@@ -8,13 +8,12 @@ package com.evolveum.midpoint.repo.sqale.update;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
@@ -60,7 +59,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     protected final Trace logger = TraceManager.getTrace(getClass());
 
-    protected final SqaleSupportService supportService;
+    private final SqaleRepoContext repositoryContext;
     protected final JdbcSession jdbcSession;
     protected final R row;
 
@@ -78,10 +77,10 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
 
     public SqaleUpdateContext(
-            SqaleSupportService supportService,
+            SqaleRepoContext repositoryContext,
             JdbcSession jdbcSession,
             R row) {
-        this.supportService = supportService;
+        this.repositoryContext = repositoryContext;
         this.jdbcSession = jdbcSession;
         this.row = row;
 
@@ -93,21 +92,13 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
             R row) {
         this.parentContext = parentContext;
         // registering this with parent context must happen outside of constructor!
-        this.supportService = parentContext.supportService;
+        this.repositoryContext = parentContext.repositoryContext;
         this.jdbcSession = parentContext.jdbcSession();
         this.row = row;
     }
 
-    public SqaleSupportService supportService() {
-        return supportService;
-    }
-
-    public Integer processCacheableRelation(QName relation) {
-        return supportService.processCacheableRelation(relation);
-    }
-
-    public Integer processCacheableUri(String uri) {
-        return supportService.processCacheableUri(uri);
+    public SqaleRepoContext repositoryContext() {
+        return repositoryContext;
     }
 
     public JdbcSession jdbcSession() {

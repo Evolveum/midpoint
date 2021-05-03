@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -32,17 +33,18 @@ public class QAbstractRoleMapping<
 
     public static final String DEFAULT_ALIAS_NAME = "ar";
 
-    public static final
-    QAbstractRoleMapping<AbstractRoleType, QAbstractRole<MAbstractRole>, MAbstractRole> INSTANCE =
-            new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    AbstractRoleType.class, QAbstractRole.CLASS);
+    public static QAbstractRoleMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                AbstractRoleType.class, QAbstractRole.CLASS, repositoryContext);
+    }
 
     protected QAbstractRoleMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         addNestedMapping(F_AUTOASSIGN, AutoassignSpecificationType.class)
                 .addItemMapping(AutoassignSpecificationType.F_ENABLED,
@@ -53,15 +55,9 @@ public class QAbstractRoleMapping<
         addItemMapping(F_REQUESTABLE, booleanMapper(q -> q.requestable));
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
 
-        addContainerTableMapping(F_INDUCEMENT, inducementMapping(),
+        addContainerTableMapping(F_INDUCEMENT,
+                QAssignmentMapping.initInducement(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    @NotNull
-    public QAssignmentMapping<R> inducementMapping() {
-        //noinspection unchecked
-        return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE_INDUCEMENT;
     }
 
     @Override
@@ -94,7 +90,7 @@ public class QAbstractRoleMapping<
         List<AssignmentType> inducement = schemaObject.getInducement();
         if (!inducement.isEmpty()) {
             inducement.forEach(assignment ->
-                    inducementMapping().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getInducement().insert(assignment, row, jdbcSession));
         }
     }
 }

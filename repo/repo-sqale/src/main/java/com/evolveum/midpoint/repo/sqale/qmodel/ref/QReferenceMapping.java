@@ -10,8 +10,10 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -27,21 +29,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * @param <OQ> query type of the reference owner
  * @param <OR> row type of the reference owner (related to {@link OQ})
  */
-public class QReferenceMapping<Q extends QReference<R, OR>, R extends MReference, OQ extends FlexibleRelationalPathBase<OR>, OR>
+public class QReferenceMapping<
+        Q extends QReference<R, OR>,
+        R extends MReference,
+        OQ extends FlexibleRelationalPathBase<OR>,
+        OR>
         extends SqaleTableMapping<Referencable, Q, R>
         implements QOwnedByMapping<Referencable, R, OR> {
 
     // see also subtype specific alias names defined for instances below
     public static final String DEFAULT_ALIAS_NAME = "ref";
 
-    /** Top level "abstract" reference table, not really needed for normal queries. */
-    public static final QReferenceMapping<
-            QReference<MReference, Object>, MReference, FlexibleRelationalPathBase<Object>, Object> INSTANCE =
-            new QReferenceMapping<>(QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS);
+    public static QReferenceMapping<?, ?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QReferenceMapping<>(
+                QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS, repositoryContext);
+    }
 
     protected QReferenceMapping(
-            String tableName, String defaultAliasName, Class<Q> queryType) {
-        super(tableName, defaultAliasName, Referencable.class, queryType);
+            String tableName,
+            String defaultAliasName,
+            Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, Referencable.class, queryType, repositoryContext);
 
         // TODO owner and reference type is not possible to query, probably OK
         //  not sure about this mapping yet, does it make sense to query ref components?

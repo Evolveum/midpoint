@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -23,10 +24,13 @@ public class QShadowMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sh";
 
-    public static final QShadowMapping INSTANCE = new QShadowMapping();
+    public static QShadowMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QShadowMapping(repositoryContext);
+    }
 
-    private QShadowMapping() {
-        super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME, ShadowType.class, QShadow.class);
+    private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ShadowType.class, QShadow.class, repositoryContext);
 
         addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
         addItemMapping(F_RESOURCE_REF, refMapper(

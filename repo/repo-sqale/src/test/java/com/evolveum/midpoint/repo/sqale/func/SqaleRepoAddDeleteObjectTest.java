@@ -293,7 +293,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.containerIdSeq).isEqualTo(1); // cid sequence is in initial state
 
         UUID userOid = UUID.fromString(user.getOid());
-        QObjectReference<?> or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> or = QObjectReferenceMapping.getForProjection().defaultAlias();
         List<MReference> projectionRefs = select(or, or.ownerOid.eq(userOid));
         assertThat(projectionRefs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION)
@@ -335,7 +335,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
 
         QAssignmentReference ar =
-                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+                QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
         List<MAssignmentReference> projectionRefs = select(ar, ar.ownerOid.eq(userRow.oid));
         assertThat(projectionRefs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.ASSIGNMENT_CREATE_APPROVER)
@@ -593,7 +593,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and rows to child tables are inserted");
         assertThatOperationResult(result).isSuccess();
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(object.getOid())));
         assertThat(aRows).hasSize(2)
                 .allMatch(ar -> ar.orderValue != null);
@@ -735,7 +735,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
 
         QObjectReference<?> ref = QObjectReferenceMapping
-                .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
+                .getForResourceBusinessConfigurationApprover().defaultAlias();
         List<MReference> refs = select(ref, ref.ownerOid.eq(row.oid));
         assertThat(refs).hasSize(2);
 
@@ -1014,7 +1014,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.requestable).isFalse();
         assertThat(row.riskLevel).isEqualTo("extremely-high");
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(archetypeOid))).hasSize(2)
                 .anyMatch(ar -> ar.orderValue.equals(2))
                 .anyMatch(ar -> ar.orderValue.equals(3))

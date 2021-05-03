@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
@@ -18,11 +21,13 @@ public class QObjectCollectionMapping
 
     public static final String DEFAULT_ALIAS_NAME = "oc";
 
-    public static final QObjectCollectionMapping INSTANCE = new QObjectCollectionMapping();
+    public static QObjectCollectionMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QObjectCollectionMapping(repositoryContext);
+    }
 
-    private QObjectCollectionMapping() {
+    private QObjectCollectionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QObjectCollection.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectCollectionType.class, QObjectCollection.class);
+                ObjectCollectionType.class, QObjectCollection.class, repositoryContext);
     }
 
     @Override

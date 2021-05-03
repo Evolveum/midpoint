@@ -13,6 +13,7 @@ import java.util.Collection;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -33,16 +34,19 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    public static final QFocusMapping<FocusType, QFocus<MFocus>, MFocus> INSTANCE =
-            new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, QFocus.CLASS);
+    public static QFocusMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                FocusType.class, QFocus.CLASS,
+                repositoryContext);
+    }
 
     protected QFocusMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         addItemMapping(F_COST_CENTER, stringMapper(q -> q.costCenter));
         addItemMapping(F_EMAIL_ADDRESS, stringMapper(q -> q.emailAddress));
@@ -85,20 +89,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
                         enumMapper(q -> q.lockoutStatus));
 
-        addRefMapping(F_PERSONA_REF, personaReferenceMapping());
-        addRefMapping(F_LINK_REF, projectionReferenceMapping());
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> personaReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_PERSONA;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> projectionReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_PROJECTION;
+        addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.initForPersona(repositoryContext));
+        addRefMapping(F_LINK_REF, QObjectReferenceMapping.initForProjection(repositoryContext));
     }
 
     @Override
@@ -174,8 +166,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getLinkRef(),
-                projectionReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForProjection(), jdbcSession);
         storeRefs(row, schemaObject.getPersonaRef(),
-                personaReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForPersona(), jdbcSession);
     }
 }

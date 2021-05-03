@@ -19,7 +19,7 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -49,6 +50,19 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  * See javadoc in {@link QueryTableMapping} for more.
  *
+ * Mappings are often initialized using static `init*(repositoryContext)` methods, various
+ * suffixes are used for these reasons:
+ *
+ * * To differentiate various instances for the same mapping type, e.g. various references
+ * stored in separate tables;
+ * * or to avoid return type clash of the `init` method, even though they are static
+ * and technically independent Java meddles too much.
+ *
+ * Some subclasses (typically containers and refs) track their instances and avoid unnecessary
+ * instance creation for the same init method; the instance is available via matching `get*()`.
+ * Other subclasses (most objects) don't have `get()` methods but can be obtained using
+ * {@link QueryModelMappingRegistry#getByQueryType(Class)}, or by schema type (e.g. in tests).
+ *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -62,8 +76,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+    }
+
+    public SqaleRepoContext repositoryContext() {
+        return (SqaleRepoContext) super.repositoryContext();
     }
 
     /**
@@ -232,8 +251,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqaleSupportService.getInstance()
-                        .schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
     }
@@ -250,36 +268,26 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return MiscUtil.trimString(value, columnMetadata.getSize());
     }
 
-    protected @NotNull Integer searchCachedRelationId(QName qName) {
-        return SqaleSupportService.getInstance().searchCachedRelationId(qName);
-    }
-
-    /** Returns ID for cached URI without going to the database. */
-    protected Integer resolveUriToId(String uri) {
-        return SqaleSupportService.getInstance().resolveUriToId(uri);
-    }
-
     /**
      * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
      * Relation is normalized before consulting the cache.
      * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName) {
-        return SqaleSupportService.getInstance().processCacheableRelation(qName);
+        return repositoryContext().processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? SqaleSupportService.getInstance().processCacheableUri(uri)
+                ? repositoryContext().processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? SqaleSupportService.getInstance()
-                .processCacheableUri(QNameUtil.qNameToUri(qName))
+                ? repositoryContext().processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
 
@@ -302,8 +310,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
-                MObjectType.fromSchemaType(
-                        SqaleSupportService.getInstance().qNameToSchemaClass(schemaType));
+                MObjectType.fromSchemaType(repositoryContext().qNameToSchemaClass(schemaType));
     }
 
     protected void setPolyString(PolyStringType polyString,

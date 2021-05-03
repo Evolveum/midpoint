@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -24,16 +25,20 @@ public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MR
 
     public static final String DEFAULT_ALIAS_NAME = "res";
 
-    public static final QResourceMapping INSTANCE = new QResourceMapping();
+    public static QResourceMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QResourceMapping(repositoryContext);
+    }
 
-    private QResourceMapping() {
-        super(QResource.TABLE_NAME, DEFAULT_ALIAS_NAME, ResourceType.class, QResource.class);
+    private QResourceMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QResource.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ResourceType.class, QResource.class, repositoryContext);
 
         addNestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
                 .addItemMapping(ResourceBusinessConfigurationType.F_ADMINISTRATIVE_STATE,
                         enumMapper(q -> q.businessAdministrativeState))
                 .addRefMapping(ResourceBusinessConfigurationType.F_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
+                        QObjectReferenceMapping.initForResourceBusinessConfigurationApprover(
+                                repositoryContext));
 
         addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
@@ -87,7 +92,7 @@ public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MR
         ResourceBusinessConfigurationType business = schemaObject.getBusiness();
         if (business != null) {
             storeRefs(row, business.getApproverRef(),
-                    QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER,
+                    QObjectReferenceMapping.getForResourceBusinessConfigurationApprover(),
                     jdbcSession);
         }
     }

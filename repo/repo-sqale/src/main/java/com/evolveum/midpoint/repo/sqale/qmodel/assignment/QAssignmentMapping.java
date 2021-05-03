@@ -8,11 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.MAbstractRole;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -35,20 +38,48 @@ public class QAssignmentMapping<OR extends MObject>
     public static final String DEFAULT_ALIAS_NAME = "a";
 
     /** Default assignment mapping instance, for queries it works for inducements too. */
-    public static final QAssignmentMapping<MObject> INSTANCE =
-            new QAssignmentMapping<>(MContainerType.ASSIGNMENT);
+    private static QAssignmentMapping<?> instanceAssignment;
 
     /** Inducement mapping instance, this must be used for inserting inducements. */
-    public static final QAssignmentMapping<MAbstractRole> INSTANCE_INDUCEMENT =
-            new QAssignmentMapping<>(MContainerType.INDUCEMENT);
+    private static QAssignmentMapping<?> instanceInducement;
+
+    public static <OR extends MObject> QAssignmentMapping<OR>
+    initAssignment(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceAssignment == null) {
+            instanceAssignment = new QAssignmentMapping<>(
+                    MContainerType.ASSIGNMENT, repositoryContext);
+        }
+        return getAssignment();
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR> getAssignment() {
+        //noinspection unchecked
+        return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceAssignment);
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR>
+    initInducement(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceInducement == null) {
+            instanceInducement = new QAssignmentMapping<>(
+                    MContainerType.INDUCEMENT, repositoryContext);
+        }
+        return getInducement();
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR> getInducement() {
+        //noinspection unchecked
+        return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceInducement);
+    }
 
     private final MContainerType containerType;
 
     // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private QAssignmentMapping(MContainerType containerType) {
+    private QAssignmentMapping(
+            @NotNull MContainerType containerType,
+            @NotNull SqaleRepoContext repositoryContext) {
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AssignmentType.class, (Class) QAssignment.class);
+                AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
@@ -112,17 +143,12 @@ public class QAssignmentMapping<OR extends MObject>
                         uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.modifyTimestamp))
-                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF, referenceMapping(
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER))
-                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF, referenceMapping(
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER));
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    private QReferenceMapping<?, ?, QAssignment<OR>, MAssignment> referenceMapping(
-            QAssignmentReferenceMapping<?> referenceMapping) {
-        //noinspection unchecked
-        return (QAssignmentReferenceMapping<OR>) referenceMapping;
+                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
+                        QAssignmentReferenceMapping.initForAssignmentCreateApprover(
+                                repositoryContext))
+                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
+                        QAssignmentReferenceMapping.initForAssignmentModifyApprover(
+                                repositoryContext));
     }
 
     @Override
@@ -216,9 +242,9 @@ public class QAssignmentMapping<OR extends MObject>
 
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
-                    QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER, jdbcSession);
+                    QAssignmentReferenceMapping.getForAssignmentCreateApprover(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
-                    QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER, jdbcSession);
+                    QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
         }
 
         return row;

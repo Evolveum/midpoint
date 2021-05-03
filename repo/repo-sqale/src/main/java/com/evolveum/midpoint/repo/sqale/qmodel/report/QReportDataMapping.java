@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
@@ -22,11 +23,13 @@ public class QReportDataMapping
 
     public static final String DEFAULT_ALIAS_NAME = "repout";
 
-    public static final QReportDataMapping INSTANCE = new QReportDataMapping();
+    public static QReportDataMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QReportDataMapping(repositoryContext);
+    }
 
-    private QReportDataMapping() {
+    private QReportDataMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QReportData.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ReportDataType.class, QReportData.class);
+                ReportDataType.class, QReportData.class, repositoryContext);
 
         addItemMapping(F_REPORT_REF, refMapper(
                 q -> q.reportRefTargetOid,

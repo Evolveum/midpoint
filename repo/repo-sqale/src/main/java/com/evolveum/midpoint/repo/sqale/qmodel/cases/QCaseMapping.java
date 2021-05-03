@@ -8,6 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
@@ -19,11 +22,13 @@ public class QCaseMapping
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
 
-    public static final QCaseMapping INSTANCE = new QCaseMapping();
+    public static QCaseMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QCaseMapping(repositoryContext);
+    }
 
-    private QCaseMapping() {
+    private QCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCase.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                CaseType.class, QCase.class);
+                CaseType.class, QCase.class, repositoryContext);
 
         addItemMapping(F_STATE, stringMapper(q -> q.state));
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));

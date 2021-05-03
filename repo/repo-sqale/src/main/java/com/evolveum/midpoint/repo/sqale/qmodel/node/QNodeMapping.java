@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NO
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
@@ -22,10 +23,13 @@ public class QNodeMapping
 
     public static final String DEFAULT_ALIAS_NAME = "nod";
 
-    public static final QNodeMapping INSTANCE = new QNodeMapping();
+    public static QNodeMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QNodeMapping(repositoryContext);
+    }
 
-    private QNodeMapping() {
-        super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME, NodeType.class, QNode.class);
+    private QNodeMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                NodeType.class, QNode.class, repositoryContext);
 
         addItemMapping(F_NODE_IDENTIFIER, stringMapper(q -> q.nodeIdentifier));
     }

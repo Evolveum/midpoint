@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAcces
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -25,12 +26,15 @@ public class QAccessCertificationDefinitionMapping
 
     public static final String DEFAULT_ALIAS_NAME = "acd";
 
-    public static final QAccessCertificationDefinitionMapping INSTANCE =
-            new QAccessCertificationDefinitionMapping();
+    public static QAccessCertificationDefinitionMapping init(
+            @NotNull SqaleRepoContext repositoryContext) {
+        return new QAccessCertificationDefinitionMapping(repositoryContext);
+    }
 
-    private QAccessCertificationDefinitionMapping() {
+    private QAccessCertificationDefinitionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QAccessCertificationDefinition.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class);
+                AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class,
+                repositoryContext);
 
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_CAMPAIGN_STARTED_TIMESTAMP,

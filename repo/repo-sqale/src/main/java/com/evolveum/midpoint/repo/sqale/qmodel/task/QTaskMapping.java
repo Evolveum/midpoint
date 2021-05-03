@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -21,11 +22,13 @@ public class QTaskMapping
 
     public static final String DEFAULT_ALIAS_NAME = "t";
 
-    public static final QTaskMapping INSTANCE = new QTaskMapping();
+    public static QTaskMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QTaskMapping(repositoryContext);
+    }
 
-    private QTaskMapping() {
+    private QTaskMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QTask.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                TaskType.class, QTask.class);
+                TaskType.class, QTask.class, repositoryContext);
 
         addItemMapping(TaskType.F_TASK_IDENTIFIER, stringMapper(q -> q.taskIdentifier));
         addItemMapping(TaskType.F_BINDING, enumMapper(q -> q.binding));

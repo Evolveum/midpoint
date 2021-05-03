@@ -8,8 +8,13 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_NAME;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditRefValue;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 
 /**
@@ -20,11 +25,20 @@ public class QAuditRefValueMapping
 
     public static final String DEFAULT_ALIAS_NAME = "aref";
 
-    public static final QAuditRefValueMapping INSTANCE = new QAuditRefValueMapping();
+    private static QAuditRefValueMapping instance;
 
-    private QAuditRefValueMapping() {
+    public static QAuditRefValueMapping init(@NotNull SqlRepoContext repositoryContext) {
+        instance = new QAuditRefValueMapping(repositoryContext);
+        return instance;
+    }
+
+    public static QAuditRefValueMapping get() {
+        return Objects.requireNonNull(instance);
+    }
+
+    private QAuditRefValueMapping(@NotNull SqlRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordReferenceType.class, QAuditRefValue.class);
+                AuditEventRecordReferenceType.class, QAuditRefValue.class, repositoryContext);
     }
 
     @Override

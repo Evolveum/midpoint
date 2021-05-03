@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqlbase;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
+import javax.xml.namespace.QName;
 
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
@@ -17,12 +18,16 @@ import com.querydsl.sql.SQLTemplates;
 import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -32,29 +37,23 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 public class SqlRepoContext {
 
-    private static SqlRepoContext instance;
-
     private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     protected final Configuration querydslConfig;
+    protected final SchemaService schemaService;
     private final QueryModelMappingRegistry mappingRegistry;
     private final DataSource dataSource;
 
     public SqlRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
-            SchemaService schemaService, QueryModelMappingRegistry mappingRegistry) {
+            SchemaService schemaService,
+            QueryModelMappingRegistry mappingRegistry) {
         this.jdbcRepositoryConfiguration = jdbcRepositoryConfiguration;
         this.querydslConfig = QuerydslUtils.querydslConfiguration(
                 jdbcRepositoryConfiguration.getDatabaseType());
+        this.schemaService = schemaService;
         this.mappingRegistry = mappingRegistry;
         this.dataSource = dataSource;
-
-        // TODO later inject directly into mappers
-        instance = this;
-    }
-
-    public static SqlRepoContext getInstance() {
-        return instance;
     }
 
     public SQLQuery<?> newQuery() {
@@ -114,5 +113,51 @@ public class SqlRepoContext {
         } catch (SQLException e) {
             throw new SystemException("Cannot create JDBC connection", e);
         }
+    }
+
+    // TODO review from here - this is stuff merged from support service
+    public <T> Class<? extends T> qNameToSchemaClass(QName qName) {
+        return schemaService.typeQNameToSchemaClass(qName);
+    }
+
+    public QName schemaClassToQName(Class<?> schemaClass) {
+        return schemaService.schemaClassToTypeQName(schemaClass);
+    }
+
+    public @NotNull QName normalizeRelation(QName qName) {
+        return schemaService.normalizeRelation(qName);
+    }
+
+    @NotNull
+    public PrismSerializer<String> createStringSerializer() {
+        return schemaService.createStringSerializer(
+                getJdbcRepositoryConfiguration().getFullObjectFormat());
+    }
+
+    public <T extends Objectable> RepositoryObjectParseResult<T> parsePrismObject(String serializedForm)
+            throws SchemaException {
+        PrismContext prismContext = schemaService.prismContext();
+        // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+        ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
+        PrismObject<T> prismObject = prismContext.parserFor(serializedForm)
+                .context(parsingContext).parse();
+        return new RepositoryObjectParseResult<>(parsingContext, prismObject);
+    }
+
+    @NotNull
+    public PrismParserNoIO createStringParser(String serializedResult) {
+        return schemaService.parserFor(serializedResult);
+    }
+
+    /**
+     * Sometimes delegation is not enough - we need Prism context for schema type construction
+     * with definitions (parameter to constructor).
+     */
+    public PrismContext prismContext() {
+        return schemaService.prismContext();
+    }
+
+    public void normalizeAllRelations(PrismObject<?> prismObject) {
+        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
     }
 }

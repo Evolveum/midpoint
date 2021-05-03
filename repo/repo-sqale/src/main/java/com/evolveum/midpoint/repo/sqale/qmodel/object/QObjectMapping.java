@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -49,16 +49,20 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     public static final String DEFAULT_ALIAS_NAME = "o";
 
-    public static final QObjectMapping<ObjectType, QObject<MObject>, MObject> INSTANCE =
-            new QObjectMapping<>(QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    ObjectType.class, QObject.CLASS);
+    public static QObjectMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QObjectMapping<>(
+                QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ObjectType.class, QObject.CLASS,
+                repositoryContext);
+    }
 
     protected QObjectMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
@@ -91,82 +95,28 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.modifyTimestamp))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        objectCreateApproverReferenceMapping())
+                        QObjectReferenceMapping.initForObjectCreateApprover(repositoryContext))
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        objectModifyApproverReferenceMapping());
+                        QObjectReferenceMapping.initForObjectModifyApprover(repositoryContext));
 
-        addRefMapping(F_PARENT_ORG_REF, objectParentOrgReferenceMapping());
+        addRefMapping(F_PARENT_ORG_REF,
+                QObjectReferenceMapping.initForObjectParentOrg(repositoryContext));
 
-        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT, assignmentMapping(),
+        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT,
+                QAssignmentMapping.initAssignment(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
-        addContainerTableMapping(F_OPERATION_EXECUTION, operationExecutionMapping(),
+        addContainerTableMapping(F_OPERATION_EXECUTION,
+                QOperationExecutionMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
-        addContainerTableMapping(F_TRIGGER, triggerMapping(),
+        addContainerTableMapping(F_TRIGGER,
+                QTriggerMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
 
         // AssignmentHolderType
-        addRefMapping(F_ARCHETYPE_REF, archetypeReferenceMapping());
-        addRefMapping(F_DELEGATED_REF, delegatedReferenceMapping());
-        addRefMapping(F_ROLE_MEMBERSHIP_REF, roleMembershipReferenceMapping());
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    @NotNull
-    public QAssignmentMapping<R> assignmentMapping() {
-        //noinspection unchecked
-        return (QAssignmentMapping<R>) QAssignmentMapping.INSTANCE;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    @NotNull
-    public QOperationExecutionMapping<R> operationExecutionMapping() {
-        //noinspection unchecked
-        return (QOperationExecutionMapping<R>) QOperationExecutionMapping.INSTANCE;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    @NotNull
-    public QTriggerMapping<R> triggerMapping() {
-        //noinspection unchecked
-        return (QTriggerMapping<R>) QTriggerMapping.INSTANCE;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> archetypeReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ARCHETYPE;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> delegatedReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_DELEGATED;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> objectCreateApproverReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>)
-                QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> objectModifyApproverReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>)
-                QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> objectParentOrgReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_OBJECT_PARENT_ORG;
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    public @NotNull QObjectReferenceMapping<Q, R> roleMembershipReferenceMapping() {
-        //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) QObjectReferenceMapping.INSTANCE_ROLE_MEMBERSHIP;
+        addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.initForArchetype(repositoryContext));
+        addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.initForDelegated(repositoryContext));
+        addRefMapping(F_ROLE_MEMBERSHIP_REF,
+                QObjectReferenceMapping.initForRoleMembership(repositoryContext));
     }
 
     @Override
@@ -198,8 +148,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         PrismObject<S> prismObject;
         String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
-            SqlSupportService.ParseResult<S> result =
-                    SqaleSupportService.getInstance().parsePrismObject(serializedForm);
+            RepositoryObjectParseResult<S> result =
+                    repositoryContext().parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -295,24 +245,24 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
-                    objectCreateApproverReferenceMapping(), jdbcSession);
+                    QObjectReferenceMapping.getForObjectCreateApprover(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
-                    objectModifyApproverReferenceMapping(), jdbcSession);
+                    QObjectReferenceMapping.getForObjectModifyApprover(), jdbcSession);
         }
 
         List<TriggerType> triggers = schemaObject.getTrigger();
         if (!triggers.isEmpty()) {
-            triggers.forEach(t -> triggerMapping().insert(t, row, jdbcSession));
+            triggers.forEach(t -> QTriggerMapping.get().insert(t, row, jdbcSession));
         }
 
         List<OperationExecutionType> operationExecutions = schemaObject.getOperationExecution();
         if (!operationExecutions.isEmpty()) {
             operationExecutions.forEach(oe ->
-                    operationExecutionMapping().insert(oe, row, jdbcSession));
+                    QOperationExecutionMapping.get().insert(oe, row, jdbcSession));
         }
 
         storeRefs(row, schemaObject.getParentOrgRef(),
-                objectParentOrgReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForObjectParentOrg(), jdbcSession);
 
         if (schemaObject instanceof AssignmentHolderType) {
             storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);
@@ -330,15 +280,15 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             assignments.forEach(assignment ->
-                    assignmentMapping().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getAssignment().insert(assignment, row, jdbcSession));
         }
 
         storeRefs(row, schemaObject.getArchetypeRef(),
-                archetypeReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForArchetype(), jdbcSession);
         storeRefs(row, schemaObject.getDelegatedRef(),
-                delegatedReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForDelegated(), jdbcSession);
         storeRefs(row, schemaObject.getRoleMembershipRef(),
-                roleMembershipReferenceMapping(), jdbcSession);
+                QObjectReferenceMapping.getForRoleMembership(), jdbcSession);
     }
 
     /**
@@ -354,7 +304,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return SqaleSupportService.getInstance().createStringSerializer()
+        return repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

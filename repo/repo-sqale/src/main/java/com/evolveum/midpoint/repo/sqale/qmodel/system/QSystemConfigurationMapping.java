@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -18,11 +21,13 @@ public class QSystemConfigurationMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sc";
 
-    public static final QSystemConfigurationMapping INSTANCE = new QSystemConfigurationMapping();
+    public static QSystemConfigurationMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QSystemConfigurationMapping(repositoryContext);
+    }
 
-    private QSystemConfigurationMapping() {
+    private QSystemConfigurationMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QSystemConfiguration.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                SystemConfigurationType.class, QSystemConfiguration.class);
+                SystemConfigurationType.class, QSystemConfiguration.class, repositoryContext);
     }
 
     @Override

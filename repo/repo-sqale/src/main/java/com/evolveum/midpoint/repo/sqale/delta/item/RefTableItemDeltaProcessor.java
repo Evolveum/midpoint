@@ -46,7 +46,7 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends 
     public void deleteValues(Collection<Referencable> values) {
         Q r = refTableMapping.defaultAlias();
         for (Referencable ref : values) {
-            Integer relId = context.supportService().searchCachedRelationId(ref.getRelation());
+            Integer relId = context.repositoryContext().searchCachedRelationId(ref.getRelation());
             context.jdbcSession().newDelete(r)
                     .where(r.isOwnedBy(context.row())
                             .and(r.targetOid.eq(UUID.fromString(ref.getOid())))

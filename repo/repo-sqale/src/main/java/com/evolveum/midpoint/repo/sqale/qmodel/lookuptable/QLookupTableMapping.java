@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -25,13 +26,16 @@ public class QLookupTableMapping
 
     public static final String DEFAULT_ALIAS_NAME = "lt";
 
-    public static final QLookupTableMapping INSTANCE = new QLookupTableMapping();
+    public static QLookupTableMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QLookupTableMapping(repositoryContext);
+    }
 
-    private QLookupTableMapping() {
+    private QLookupTableMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QLookupTable.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                LookupTableType.class, QLookupTable.class);
+                LookupTableType.class, QLookupTable.class, repositoryContext);
 
-        addContainerTableMapping(F_ROW, QLookupTableRowMapping.INSTANCE,
+        addContainerTableMapping(F_ROW,
+                QLookupTableRowMapping.init(repositoryContext),
                 joinOn((o, t) -> o.oid.eq(t.ownerOid)));
     }
 
@@ -55,7 +59,7 @@ public class QLookupTableMapping
         List<LookupTableRowType> rows = schemaObject.getRow();
         if (!rows.isEmpty()) {
             rows.forEach(row ->
-                    QLookupTableRowMapping.INSTANCE.insert(row, lookupTable, jdbcSession));
+                    QLookupTableRowMapping.get().insert(row, lookupTable, jdbcSession));
         }
     }
 }

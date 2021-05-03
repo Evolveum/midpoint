@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -28,8 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryTableMapping<S, Q, R> {
 
-    protected AuditTableMapping(@NotNull String tableName, @NotNull String defaultAliasName, @NotNull Class<S> schemaType, @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+    protected AuditTableMapping(
+            @NotNull String tableName,
+            @NotNull String defaultAliasName,
+            @NotNull Class<S> schemaType,
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
     @Override
@@ -63,8 +68,7 @@ public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqlSupportService.getInstance()
-                        .schemaClassToQName(repoObjectType.getJaxbClass()))
+                .type(repositoryContext().schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }

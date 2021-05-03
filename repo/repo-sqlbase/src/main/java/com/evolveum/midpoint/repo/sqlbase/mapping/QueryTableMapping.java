@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
@@ -59,6 +60,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * That's why these methods have flexible schema type parameter.
  * Because such nested mapping still uses the same table, types `Q` and `R` remain the same.
  *
+ * Mapping for tables is initialized once and requires {@link SqlRepoContext}.
+ * The mapping is accessible by static `get()` method; if multiple mapping instances exist
+ * for the same type the method uses suffix to differentiate them.
+ *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -68,6 +73,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     private final String tableName;
     private final String defaultAliasName;
+    private final SqlRepoContext repositoryContext;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
@@ -92,10 +98,12 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
         super(schemaType, queryType);
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
+        this.repositoryContext = repositoryContext;
     }
 
     /**
@@ -217,6 +225,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     public String defaultAliasName() {
         return defaultAliasName;
+    }
+
+    public SqlRepoContext repositoryContext() {
+        return repositoryContext;
     }
 
     /**

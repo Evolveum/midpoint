@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 
@@ -19,11 +20,13 @@ public class QGenericObjectMapping
 
     public static final String DEFAULT_ALIAS_NAME = "go";
 
-    public static final QGenericObjectMapping INSTANCE = new QGenericObjectMapping();
+    public static QGenericObjectMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QGenericObjectMapping(repositoryContext);
+    }
 
-    private QGenericObjectMapping() {
+    private QGenericObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QGenericObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                GenericObjectType.class, QGenericObject.class);
+                GenericObjectType.class, QGenericObject.class, repositoryContext);
     }
 
     @Override
