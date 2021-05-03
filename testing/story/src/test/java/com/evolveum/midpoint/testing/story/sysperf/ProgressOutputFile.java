@@ -20,13 +20,13 @@ class ProgressOutputFile {
         writer.println("test;time;progress");
     }
 
-    void recordProgress(String testName, Task task) {
+    void recordProgress(String label, Task task) {
         long start = task.getLastRunStartTimestamp();
         Long lastFinish = task.getLastRunFinishTimestamp();
         long thisFinish = lastFinish != null && lastFinish > start ? lastFinish : System.currentTimeMillis();
         long running = thisFinish - start;
         long progress = task.getProgress();
-        writer.println(testName + ";" + running + ";" + progress);
+        writer.println(label + task.getName() + ";" + running + ";" + progress);
         writer.flush();
     }
 }

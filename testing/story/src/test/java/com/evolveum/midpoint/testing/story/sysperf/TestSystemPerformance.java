@@ -61,12 +61,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    static final ExtensionSchemaVariant EXTENSION_SCHEMA_VARIANT;
+    static final SchemaConfiguration SCHEMA_CONFIGURATION;
     static final SourcesConfiguration SOURCES_CONFIGURATION;
     static final TargetsConfiguration TARGETS_CONFIGURATION;
     static final RolesConfiguration ROLES_CONFIGURATION;
-    static final ImportsConfiguration IMPORTS_CONFIGURATION;
-    static final ReconciliationsConfiguration RECONCILIATIONS_CONFIGURATION;
+    static final ImportConfiguration IMPORTS_CONFIGURATION;
+    static final ReconciliationConfiguration RECONCILIATIONS_CONFIGURATION;
     static final RecomputationConfiguration RECOMPUTATION_CONFIGURATION;
 
     static final OtherParameters OTHER_PARAMETERS;
@@ -101,12 +101,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private long lastProgress;
 
     static {
-        EXTENSION_SCHEMA_VARIANT = ExtensionSchemaVariant.setup();
+        SCHEMA_CONFIGURATION = SchemaConfiguration.setup();
         SOURCES_CONFIGURATION = SourcesConfiguration.setup();
         TARGETS_CONFIGURATION = TargetsConfiguration.setup();
         ROLES_CONFIGURATION = RolesConfiguration.setup();
-        IMPORTS_CONFIGURATION = ImportsConfiguration.setup();
-        RECONCILIATIONS_CONFIGURATION = ReconciliationsConfiguration.setup();
+        IMPORTS_CONFIGURATION = ImportConfiguration.setup();
+        RECONCILIATIONS_CONFIGURATION = ReconciliationConfiguration.setup();
         RECOMPUTATION_CONFIGURATION = RecomputationConfiguration.setup();
 
         OTHER_PARAMETERS = OtherParameters.setup();
@@ -171,13 +171,15 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public void test000LogStart() {
 
         testMonitor().addReportSection(REPORT_SECTION_SUMMARY_NAME)
-                .withColumns("schema",
+                .withColumns("schemaSingleValuedProperties", "schemaMultiValuedProperties", "schemaIndexedPercentage",
                         "sources", "accounts", "singleValuedInboundMappings", "multiValuedInboundMappings", "attributeValues",
                         "targets", "singleValuedOutboundMappings", "multiValuedOutboundMappings",
                         "importTaskThreads",
                         "reconciliationTaskThreads",
                         "recomputationTaskThreads")
-                .addRow(EXTENSION_SCHEMA_VARIANT.getName(),
+                .addRow(SCHEMA_CONFIGURATION.getSingleValuedProperties(),
+                        SCHEMA_CONFIGURATION.getMultiValuedProperties(),
+                        SCHEMA_CONFIGURATION.getIndexedPercentage(),
 
                         SOURCES_CONFIGURATION.getNumberOfResources(),
                         SOURCES_CONFIGURATION.getNumberOfAccounts(),
@@ -197,12 +199,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .withColumns("task", "time", "timePerAccount");
 
         logger.info("********** STARTED **********\n");
-        logger.info("Extension schema: {}", EXTENSION_SCHEMA_VARIANT);
+        logger.info("Extension schema: {}", SCHEMA_CONFIGURATION);
         logger.info("Sources: {}", SOURCES_CONFIGURATION);
         logger.info("Targets: {}", TARGETS_CONFIGURATION);
         logger.info("Roles: {}", ROLES_CONFIGURATION);
-        logger.info("Imports: {}", IMPORTS_CONFIGURATION);
-        logger.info("Reconciliations: {}", RECONCILIATIONS_CONFIGURATION);
+        logger.info("Import: {}", IMPORTS_CONFIGURATION);
+        logger.info("Reconciliation: {}", RECONCILIATIONS_CONFIGURATION);
         logger.info("Recomputation: {}", RECOMPUTATION_CONFIGURATION);
         logger.info("Progress file: {}", ProgressOutputFile.FILE);
 
@@ -225,6 +227,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
+        String label = "initial-run-of-";
+
         for (int taskIndex = 0; taskIndex < TASK_IMPORT_LIST.size(); taskIndex++) {
             String importName = "import #" + taskIndex;
 
@@ -235,7 +239,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             lastProgress = 0;
             addTask(taskImport.file);
             waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
-                    builder -> builder.taskConsumer(this::recordProgress));
+                    builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
             then(importName);
 
@@ -249,7 +253,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .display()
                     .getObject();
 
-            logTaskFinish(taskAfter, "initial-run-of-");
+            logTaskFinish(taskAfter, label);
         }
 
         String accountName = SourceInitializer.getAccountName(0);
@@ -318,8 +322,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
         for (int retry = 0; retry < IMPORTS_CONFIGURATION.getNoOpRuns(); retry++) {
+
+            String label = String.format("no-op-run-%d-of-", retry + 1);
+
             for (int taskIndex = 0; taskIndex < TASK_IMPORT_LIST.size(); taskIndex++) {
-                String importName = String.format("re-import #%d of resource #%d", retry, taskIndex);
+                String importName = String.format("re-import #%d of resource #%d", retry+1, taskIndex);
 
                 when(importName);
 
@@ -330,7 +337,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 Thread.sleep(500);
 
                 waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
-                        builder -> builder.taskConsumer(this::recordProgress));
+                        builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
 
@@ -341,7 +348,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, String.format("no-op-run-%d-of-", retry+1));
+                logTaskFinish(taskAfter, label);
             }
         }
     }
@@ -354,8 +361,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         OperationResult result = task.getResult();
 
         for (int run = 0; run < RECONCILIATIONS_CONFIGURATION.getRuns(); run++) {
+            String label = String.format("run-%d-of-", run + 1);
+
             for (int taskIndex = 0; taskIndex < TASK_RECONCILIATION_LIST.size(); taskIndex++) {
-                String importName = String.format("reconciliation #%d of resource #%d", run, taskIndex);
+                String importName = String.format("reconciliation #%d of resource #%d", run+1, taskIndex);
 
                 when(importName);
 
@@ -370,7 +379,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 }
 
                 waitForTaskFinish(reconTask.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
-                        builder -> builder.taskConsumer(this::recordProgress));
+                        builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
 
@@ -378,7 +387,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, String.format("recon-run-%d-of-", run+1));
+                logTaskFinish(taskAfter, label);
             }
         }
     }
@@ -392,7 +401,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         lastProgress = 0;
         addTask(TASK_RECOMPUTE.file);
         waitForTaskFinish(TASK_RECOMPUTE.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
-                builder -> builder.taskConsumer(this::recordProgress));
+                builder -> builder.taskConsumer(task1 -> recordProgress("", task1)));
 
         then();
 
@@ -435,7 +444,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .addRow(desc, executionTime, timePerAccount);
     }
 
-    private void recordProgress(Task task) {
+    private void recordProgress(String label, Task task) {
         Long start = task.getLastRunStartTimestamp();
         long progress = task.getProgress();
 
@@ -444,7 +453,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         }
         lastProgress = progress;
 
-        progressOutputFile.recordProgress(getTestNameShort(), task);
+        progressOutputFile.recordProgress(label, task);
 
         OperationStatsType stats = task.getStoredOperationStats();
         logger.info("\n{}", StatisticsUtil.format(stats));

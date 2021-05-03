@@ -16,7 +16,7 @@ Parameters:
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
       xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
 
-    <name>task-recompute</name>
+    <name>task-recomputation</name>
 
     <extension>
         <mext:objectType>UserType</mext:objectType>

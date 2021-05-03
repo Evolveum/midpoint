@@ -20,7 +20,7 @@ import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.Util.mapOf;
 
-class ReconciliationsConfiguration {
+class ReconciliationConfiguration {
 
     private static final String PROP = "reconciliation";
     private static final String PROP_THREADS = PROP + ".threads";
@@ -33,7 +33,7 @@ class ReconciliationsConfiguration {
 
     private final List<TestResource<TaskType>> generatedTasks;
 
-    private ReconciliationsConfiguration() {
+    private ReconciliationConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
         runs = Integer.parseInt(System.getProperty(PROP_RUNS, "1"));
 
@@ -54,14 +54,14 @@ class ReconciliationsConfiguration {
 
     @Override
     public String toString() {
-        return "ReconciliationsConfiguration{" +
+        return "ReconciliationConfiguration{" +
                 "threads=" + threads +
                 ", runs=" + runs +
                 '}';
     }
 
-    public static ReconciliationsConfiguration setup() {
-        ReconciliationsConfiguration configuration = new ReconciliationsConfiguration();
+    public static ReconciliationConfiguration setup() {
+        ReconciliationConfiguration configuration = new ReconciliationConfiguration();
         System.out.println("Import: " + configuration);
         return configuration;
     }
