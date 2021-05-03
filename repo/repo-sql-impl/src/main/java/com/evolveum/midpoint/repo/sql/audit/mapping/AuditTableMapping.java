@@ -28,8 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryTableMapping<S, Q, R> {
 
-    protected AuditTableMapping(@NotNull String tableName, @NotNull String defaultAliasName, @NotNull Class<S> schemaType, @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+    protected AuditTableMapping(
+            @NotNull String tableName,
+            @NotNull String defaultAliasName,
+            @NotNull Class<S> schemaType,
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
     @Override

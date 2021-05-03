@@ -80,12 +80,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         uriCache.initialize(this::newJdbcSession);
     }
 
-    /** @see UriCache#searchId(QName) */
-    @NotNull
-    public Integer searchCachedUriId(QName qName) {
-        return uriCache.searchId(qName);
-    }
-
     /** @see UriCache#searchId(String) */
     public Integer searchCachedUriId(String uri) {
         return uriCache.searchId(uri);
@@ -98,16 +92,6 @@ public class SqaleRepoContext extends SqlRepoContext {
      */
     public @NotNull Integer searchCachedRelationId(QName qName) {
         return searchCachedUriId(QNameUtil.qNameToUri(normalizeRelation(qName)));
-    }
-
-    /** Returns ID for cached URI without going to the database. */
-    public @NotNull Integer resolveUriToId(String uri) {
-        return uriCache.resolveUriToId(uri);
-    }
-
-    /** Returns ID for cached URI without going to the database. */
-    public Integer resolveUriToId(QName uri) {
-        return uriCache.resolveUriToId(uri);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */

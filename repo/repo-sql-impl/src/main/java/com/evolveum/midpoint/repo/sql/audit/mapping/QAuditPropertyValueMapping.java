@@ -8,8 +8,11 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue.TABLE_NAME;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 
 /**
@@ -20,11 +23,20 @@ public class QAuditPropertyValueMapping
 
     public static final String DEFAULT_ALIAS_NAME = "apv";
 
-    public static final QAuditPropertyValueMapping INSTANCE = new QAuditPropertyValueMapping();
+    private static QAuditPropertyValueMapping instance;
 
-    private QAuditPropertyValueMapping() {
+    public static QAuditPropertyValueMapping init(@NotNull SqlRepoContext repositoryContext) {
+        instance = new QAuditPropertyValueMapping(repositoryContext);
+        return instance;
+    }
+
+    public static QAuditPropertyValueMapping get() {
+        return instance;
+    }
+
+    private QAuditPropertyValueMapping(@NotNull SqlRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordPropertyType.class, QAuditPropertyValue.class);
+                AuditEventRecordPropertyType.class, QAuditPropertyValue.class, repositoryContext);
     }
 
     @Override

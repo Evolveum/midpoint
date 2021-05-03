@@ -174,7 +174,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
      */
     private Long insertAuditEventRecord(
             JdbcSession jdbcSession, AuditEventRecord record) {
-        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord aerBean = aerMapping.toRowObject(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
@@ -208,7 +208,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         if (!deltasByChecksum.isEmpty()) {
             SQLInsertClause insertBatch = jdbcSession.newInsert(
-                    QAuditDeltaMapping.INSTANCE.defaultAlias());
+                    QAuditDeltaMapping.get().defaultAlias());
             for (MAuditDelta value : deltasByChecksum.values()) {
                 // NULLs are important to keep the value count consistent during the batch
                 insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
@@ -300,7 +300,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             }
         }
         if (!changedItemPaths.isEmpty()) {
-            QAuditItem qAuditItem = QAuditItemMapping.INSTANCE.defaultAlias();
+            QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
             SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
             for (String changedItemPath : changedItemPaths) {
                 insertBatch.set(qAuditItem.recordId, recordId)
@@ -318,7 +318,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.INSTANCE.defaultAlias();
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
         for (String propertyName : properties.keySet()) {
             for (String propertyValue : properties.get(propertyName)) {
@@ -343,7 +343,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.INSTANCE.defaultAlias();
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
         for (String refName : references.keySet()) {
             for (AuditReferenceValue refValue : references.get(refName)) {
@@ -372,7 +372,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditResource qAuditResource = QAuditResourceMapping.INSTANCE.defaultAlias();
+        QAuditResource qAuditResource = QAuditResourceMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditResource);
         for (String resourceOid : resourceOids) {
             insertBatch.set(qAuditResource.recordId, recordId)
@@ -496,7 +496,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             throws SQLException {
         AuditEventRecord audit = createAuditEventRecord(resultList);
         final Map<String, ColumnMetadata> customColumns =
-                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
+                QAuditEventRecordMapping.get().getExtensionColumns();
         for (Entry<String, ColumnMetadata> entry : customColumns.entrySet()) {
             audit.getCustomColumnProperty().put(entry.getKey(),
                     resultList.getString(entry.getValue().getName()));
@@ -974,7 +974,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private int selectRecordsByMaxAge(
             JdbcSession jdbcSession, String tempTable, Date minValue) {
 
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        QAuditEventRecord aer = QAuditEventRecordMapping.get().defaultAlias();
         SQLQuery<Long> populateQuery = jdbcSession.newQuery()
                 .select(aer.id)
                 .from(aer)
@@ -989,7 +989,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private int selectRecordsByNumberToKeep(
             JdbcSession jdbcSession, String tempTable, int recordsToKeep) {
 
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        QAuditEventRecord aer = QAuditEventRecordMapping.get().defaultAlias();
         long totalAuditRecords = jdbcSession.newQuery().from(aer).fetchCount();
 
         // we will find the number to delete and limit it to range [0,CLEANUP_AUDIT_BATCH_SIZE]

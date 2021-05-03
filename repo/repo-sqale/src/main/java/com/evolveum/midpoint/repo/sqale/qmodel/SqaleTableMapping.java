@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
@@ -62,15 +63,17 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
     public SqaleRepoContext repositoryContext() {
+//        return (SqaleRepoContext) super.repositoryContext();
+        // TODO remove this version when mapping is provided properly in config
         SqaleRepoContext repositoryContext = (SqaleRepoContext) super.repositoryContext();
         return repositoryContext != null
                 ? repositoryContext
-                // TODO remove this branch
                 : SqaleRepoContext.getInstance();
     }
 
@@ -255,15 +258,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                     "trimString with column metadata without specified size: " + columnMetadata);
         }
         return MiscUtil.trimString(value, columnMetadata.getSize());
-    }
-
-    protected @NotNull Integer searchCachedRelationId(QName qName) {
-        return repositoryContext().searchCachedRelationId(qName);
-    }
-
-    /** Returns ID for cached URI without going to the database. */
-    protected Integer resolveUriToId(String uri) {
-        return repositoryContext().resolveUriToId(uri);
     }
 
     /**

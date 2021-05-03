@@ -57,7 +57,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+        super(tableName, defaultAliasName, schemaType, queryType, null);
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(

@@ -27,10 +27,7 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.audit.mapping.*;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
+import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -81,15 +78,6 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     private SqlRepoContext createSqlRepoContext(Configuration configuration)
             throws RepositoryServiceFactoryException {
-        final QueryModelMappingRegistry auditModelMapping = new QueryModelMappingRegistry()
-                .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE)
-                .register(QAuditItemMapping.INSTANCE)
-                .register(QAuditPropertyValueMapping.INSTANCE)
-                .register(QAuditRefValueMapping.INSTANCE)
-                .register(QAuditResourceMapping.INSTANCE)
-                .register(QAuditDeltaMapping.INSTANCE)
-                .seal();
-
         // one of these properties must be present to trigger separate audit datasource config
         if (configuration.getString(PROPERTY_JDBC_URL) == null
                 && configuration.getString(PROPERTY_DATASOURCE) == null) {
@@ -97,8 +85,10 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
             // NOTE: If default BaseHelper is used, it's used to configure PerformanceMonitor
             // in SqlBaseService. Perhaps the base class is useless and these factories can provide
             // PerformanceMonitor for the services.
-            return new SqlRepoContext(defaultBaseHelper.getConfiguration(),
-                    defaultBaseHelper.dataSource(), schemaService, auditModelMapping);
+            return createSqlRepoContext(
+                    defaultBaseHelper.getConfiguration(),
+                    defaultBaseHelper.dataSource(),
+                    schemaService);
         }
 
         LOGGER.info("Configuring SQL audit service to use a different datasource");
@@ -110,7 +100,28 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
         DataSourceFactory dataSourceFactory = new DataSourceFactory(config);
         DataSource dataSource = dataSourceFactory.createDataSource();
-        return new SqlRepoContext(config, dataSource, schemaService, auditModelMapping);
+        return createSqlRepoContext(config, dataSource, schemaService);
+    }
+
+    private SqlRepoContext createSqlRepoContext(
+            JdbcRepositoryConfiguration config,
+            DataSource dataSource,
+            SchemaService schemaService) {
+        QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
+        SqlRepoContext repositoryContext =
+                new SqlRepoContext(config, dataSource, schemaService, mappingRegistry);
+        // Registered mapping needs repository context which needs registry - but we fill it now:
+        mappingRegistry
+                .register(AuditEventRecordType.COMPLEX_TYPE,
+                        QAuditEventRecordMapping.init(repositoryContext))
+                .register(QAuditItemMapping.init(repositoryContext))
+                .register(QAuditPropertyValueMapping.init(repositoryContext))
+                .register(QAuditRefValueMapping.init(repositoryContext))
+                .register(QAuditResourceMapping.init(repositoryContext))
+                .register(QAuditDeltaMapping.init(repositoryContext))
+                .seal();
+
+        return repositoryContext;
     }
 
     private void initCustomColumns(
@@ -142,7 +153,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
             ColumnMetadata columnMetadata =
                     ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
-            QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
+            QAuditEventRecordMapping.get().addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
                 // Fails on SQL Server with snapshot transaction, so different isolation is used.
                 try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()

@@ -10,11 +10,13 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 
 import com.querydsl.sql.SQLServerTemplates;
 import com.querydsl.sql.SQLTemplates;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -29,11 +31,20 @@ public class QAuditDeltaMapping
 
     public static final String DEFAULT_ALIAS_NAME = "ad";
 
-    public static final QAuditDeltaMapping INSTANCE = new QAuditDeltaMapping();
+    private static QAuditDeltaMapping instance;
 
-    private QAuditDeltaMapping() {
+    public static QAuditDeltaMapping init(@NotNull SqlRepoContext repositoryContext) {
+        instance = new QAuditDeltaMapping(repositoryContext);
+        return instance;
+    }
+
+    public static QAuditDeltaMapping get() {
+        return instance;
+    }
+
+    private QAuditDeltaMapping(@NotNull SqlRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectDeltaOperationType.class, QAuditDelta.class);
+                ObjectDeltaOperationType.class, QAuditDelta.class, repositoryContext);
     }
 
     @Override

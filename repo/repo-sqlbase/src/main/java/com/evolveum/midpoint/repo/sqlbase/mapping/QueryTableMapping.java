@@ -60,6 +60,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * That's why these methods have flexible schema type parameter.
  * Because such nested mapping still uses the same table, types `Q` and `R` remain the same.
  *
+ * Mapping for tables is initialized once and requires {@link SqlRepoContext}.
+ * The mapping is accessible by static `get()` method; if multiple mapping instances exist
+ * for the same type the method uses suffix to differentiate them.
+ *
  * @param <S> schema type
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
@@ -100,29 +104,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.repositoryContext = repositoryContext;
-    }
-
-    /**
-     * Creates metamodel for the table described by designated type (Q-class) related to schema type.
-     * Allows registration of any number of columns - typically used for static properties
-     * (non-extensions).
-     *
-     * @param tableName database table name
-     * @param defaultAliasName default alias name, some short abbreviation, must be unique
-     * across mapped types
-     */
-    @Deprecated
-    protected QueryTableMapping(
-            @NotNull String tableName,
-            @NotNull String defaultAliasName,
-            @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(schemaType, queryType);
-        this.tableName = tableName;
-        this.defaultAliasName = defaultAliasName;
-
-        // TODO remove this constructor, use the one above only
-        this.repositoryContext = null;
     }
 
     /**
@@ -247,10 +228,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     public SqlRepoContext repositoryContext() {
-        return repositoryContext != null
-                ? repositoryContext
-                // TODO remove this branch
-                : SqlRepoContext.getInstance();
+        return repositoryContext;
     }
 
     /**

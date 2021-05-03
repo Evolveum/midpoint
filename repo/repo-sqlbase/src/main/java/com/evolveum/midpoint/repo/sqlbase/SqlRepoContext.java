@@ -37,8 +37,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 public class SqlRepoContext {
 
-    private static SqlRepoContext instance;
-
     private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     protected final Configuration querydslConfig;
     protected final SchemaService schemaService;
@@ -56,14 +54,6 @@ public class SqlRepoContext {
         this.schemaService = schemaService;
         this.mappingRegistry = mappingRegistry;
         this.dataSource = dataSource;
-
-        // TODO later inject directly into mappers
-        instance = this;
-    }
-
-    @Deprecated
-    public static SqlRepoContext getInstance() {
-        return instance;
     }
 
     public SQLQuery<?> newQuery() {

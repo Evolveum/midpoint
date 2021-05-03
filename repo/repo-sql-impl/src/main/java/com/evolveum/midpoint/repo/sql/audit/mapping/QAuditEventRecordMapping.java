@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
@@ -47,11 +49,20 @@ public class QAuditEventRecordMapping
 
     public static final String DEFAULT_ALIAS_NAME = "aer";
 
-    public static final QAuditEventRecordMapping INSTANCE = new QAuditEventRecordMapping();
+    private static QAuditEventRecordMapping instance;
 
-    private QAuditEventRecordMapping() {
+    public static QAuditEventRecordMapping init(@NotNull SqlRepoContext repositoryContext) {
+        instance = new QAuditEventRecordMapping(repositoryContext);
+        return instance;
+    }
+
+    public static QAuditEventRecordMapping get() {
+        return instance;
+    }
+
+    private QAuditEventRecordMapping(@NotNull SqlRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordType.class, QAuditEventRecord.class);
+                AuditEventRecordType.class, QAuditEventRecord.class, repositoryContext);
 
         addItemMapping(F_REPO_ID, longMapper(q -> q.id));
         addItemMapping(F_CHANNEL, stringMapper(q -> q.channel));
@@ -189,7 +200,7 @@ public class QAuditEventRecordMapping
         }
 
         for (MAuditDelta delta : deltas) {
-            record.delta(QAuditDeltaMapping.INSTANCE.toSchemaObject(delta));
+            record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
         }
     }
 
