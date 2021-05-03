@@ -273,9 +273,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .collect(Collectors.toSet());
         displayValue("Technical roles for " + accountName, technicalRoles);
 
-        assertUserAfterByUsername(accountName)
+        PrismObject<UserType> user = assertUserAfterByUsername(accountName)
                 .assertAssignments(roles.size() + 1) // 1. archetype
-                .assertRoleMemberhipRefs(roles.size() + technicalRoles.size() + 2) // 1. archetype, 2. role-targets
                 .assertLinks(SOURCES_CONFIGURATION.getNumberOfResources() + TARGETS_CONFIGURATION.getNumberOfResources(), 0)
                 .extension()
                     .assertSize(SOURCES_CONFIGURATION.getSingleValuedMappings() + SOURCES_CONFIGURATION.getMultiValuedMappings())
@@ -285,7 +284,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .property(ItemPath.create(getMultiValuedPropertyName(0)))
                         .assertSize(SOURCES_CONFIGURATION.getAttributeValues() * SOURCES_CONFIGURATION.getNumberOfResources())
                         .end()
-                    .end();
+                    .end()
+                .getObject();
+
+        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
+            assertThat(user.asObjectable().getRoleMembershipRef().size())
+                    .as("# of role membership refs")
+                    .isEqualTo(roles.size() + technicalRoles.size() + 2); // 1. archetype, 2. role-targets)
+        }
     }
 
     private String getTechnicalRoleName(String membership) {

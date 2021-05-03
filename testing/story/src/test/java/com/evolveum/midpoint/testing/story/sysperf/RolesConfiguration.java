@@ -134,9 +134,14 @@ class RolesConfiguration {
 
     private String createTechnicalRoleDefinition(int index, String oid) {
         String fileName = String.format("generated-technical-role-%04d.xml", index);
-        String resourceOid = TARGETS_CONFIGURATION.getGeneratedResources()
-                .get(index % TARGETS_CONFIGURATION.getNumberOfResources())
-                .oid;
+        String resourceOid;
+        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
+            resourceOid = TARGETS_CONFIGURATION.getGeneratedResources()
+                    .get(index % TARGETS_CONFIGURATION.getNumberOfResources())
+                    .oid;
+        } else {
+            resourceOid = "";
+        }
 
         File generated = new File(TARGET_DIR, fileName);
         VelocityGenerator.generate(TECHNICAL_ROLE_TEMPLATE_FILE, generated,
