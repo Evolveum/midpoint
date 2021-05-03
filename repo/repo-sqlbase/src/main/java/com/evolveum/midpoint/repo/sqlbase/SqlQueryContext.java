@@ -73,8 +73,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     protected final Q entityPath;
     protected final QueryTableMapping<S, Q, R> entityPathMapping;
-    protected final SqlRepoContext sqlRepoContext;
-    protected final SqlSupportService sqlSupportService;
+    private final SqlRepoContext sqlRepoContext;
 
     protected boolean notFilterUsed = false;
 
@@ -84,12 +83,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     protected SqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
-            SqlSupportService sqlSupportService,
+            SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
         this.entityPath = entityPath;
         this.entityPathMapping = mapping;
-        this.sqlSupportService = sqlSupportService;
-        this.sqlRepoContext = sqlSupportService.sqlRepoContext();
+        this.sqlRepoContext = sqlRepoContext;
         this.sqlQuery = query;
     }
 
@@ -338,25 +336,25 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return notFilterUsed;
     }
 
-    public SqlRepoContext sqlRepoContext() {
+    public SqlRepoContext repositoryContext() {
         return sqlRepoContext;
     }
 
     public PrismContext prismContext() {
-        return sqlSupportService.prismContext();
+        return sqlRepoContext.prismContext();
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
-        return sqlSupportService.qNameToSchemaClass(qName);
+        return sqlRepoContext.qNameToSchemaClass(qName);
     }
 
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
-        return sqlSupportService.prismContext().createCanonicalItemPath(itemPath);
+        return sqlRepoContext.prismContext().createCanonicalItemPath(itemPath);
     }
 
     @NotNull
     public QName normalizeRelation(QName qName) {
-        return sqlSupportService.normalizeRelation(qName);
+        return sqlRepoContext.normalizeRelation(qName);
     }
 
     public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {

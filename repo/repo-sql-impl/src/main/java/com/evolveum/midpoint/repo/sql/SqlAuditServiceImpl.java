@@ -102,9 +102,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final BaseHelper baseHelper; // only for logging/exception handling
     private final SqlRepoContext sqlRepoContext;
     private final SchemaService schemaService;
-
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlSupportService transformerSupport;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -116,7 +114,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerSupport = new SqlSupportService(schemaService, sqlRepoContext);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -1129,7 +1126,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
+                    AuditEventRecordType.class, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
@@ -1155,7 +1152,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
+                    AuditEventRecordType.class, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,7 +63,7 @@ public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqlSupportService.getInstance()
+                .type(SqlRepoContext.getInstance()
                         .schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);

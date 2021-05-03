@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -49,13 +49,12 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     private ContainerValueIdGenerator cidGenerator;
 
-    public RootUpdateContext(SqaleSupportService supportService,
+    public RootUpdateContext(SqaleRepoContext repositoryContext,
             JdbcSession jdbcSession, S object, R rootRow) {
-        super(supportService, jdbcSession, rootRow);
+        super(repositoryContext, jdbcSession, rootRow);
 
         this.object = object;
-        mapping = supportService.sqlRepoContext()
-                .getMappingBySchemaType(SqaleUtils.getClass(object));
+        mapping = repositoryContext.getMappingBySchemaType(SqaleUtils.getClass(object));
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
         // root context always updates, at least version and full object, so we can create it early
@@ -101,7 +100,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             }
         }
 
-        supportService.normalizeAllRelations(prismObject);
+        repositoryContext().normalizeAllRelations(prismObject);
         finishExecution();
 
         return modifications;

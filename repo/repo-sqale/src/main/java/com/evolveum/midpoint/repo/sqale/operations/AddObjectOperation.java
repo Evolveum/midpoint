@@ -18,7 +18,7 @@ import org.postgresql.util.PSQLState;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -46,7 +46,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     private final RepoAddOptions options;
     private final OperationResult result;
 
-    private SqlRepoContext sqlRepoContext;
+    private SqlRepoContext repositoryContext;
     private Q root;
     private QObjectMapping<S, Q, R> rootMapping;
     private MObjectType objectType;
@@ -58,15 +58,17 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
         this.result = result;
     }
 
-    /** Inserts the object provided to the constructor and returns its OID. */
-    public String execute(SqaleSupportService supportService)
+    /**
+     * Inserts the object provided to the constructor and returns its OID.
+     */
+    public String execute(SqaleRepoContext repositoryContext)
             throws SchemaException, ObjectAlreadyExistsException {
         try {
             // TODO utilize options and result
-            sqlRepoContext = supportService.sqlRepoContext();
+            this.repositoryContext = repositoryContext;
             Class<S> schemaObjectClass = object.getCompileTimeClass();
             objectType = MObjectType.fromSchemaType(schemaObjectClass);
-            rootMapping = sqlRepoContext.getMappingBySchemaType(schemaObjectClass);
+            rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
             root = rootMapping.defaultAlias();
 
             // we don't want CID generation here, because overwrite works different then normal add
@@ -94,7 +96,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
 
     private String addObjectWithOid() throws SchemaException {
         long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
             row.containerIdSeq = lastCid + 1;
@@ -115,7 +117,7 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     }
 
     private String addObjectWithoutOid() throws SchemaException {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 

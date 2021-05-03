@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -153,10 +152,8 @@ public class AuditTest extends BaseSQLRepoTest {
             throws QueryException {
         // "create" does not actually create a new audit service, but returns the existing one
         SqlRepoContext sqlRepoContext = auditServiceFactory.createAuditService().getSqlRepoContext();
-        SqlSupportService transformerSupport = new SqlSupportService(schemaService, sqlRepoContext);
         SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
-                AuditSqlQueryContext.from(
-                        AuditEventRecordType.class, transformerSupport, sqlRepoContext);
+                AuditSqlQueryContext.from(AuditEventRecordType.class, sqlRepoContext);
         QAuditEventRecord aer = context.root();
         context.sqlQuery().orderBy(aer.id.asc());
 

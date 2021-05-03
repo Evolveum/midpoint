@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlSupportService;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
@@ -149,7 +149,7 @@ public class QAuditEventRecordMapping
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        return new AuditEventRecordType(SqlSupportService.getInstance().prismContext())
+        return new AuditEventRecordType(SqlRepoContext.getInstance().prismContext())
                 .repoId(row.id)
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
@@ -326,7 +326,7 @@ public class QAuditEventRecordMapping
 
     private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
         //noinspection rawtypes
-        Class objectClass = SqlSupportService.getInstance()
+        Class objectClass = SqlRepoContext.getInstance()
                 .qNameToSchemaClass(targetOwner.getTargetType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));

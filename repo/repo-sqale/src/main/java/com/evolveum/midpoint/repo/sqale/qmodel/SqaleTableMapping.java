@@ -19,7 +19,7 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqale.SqaleSupportService;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
@@ -232,7 +232,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqaleSupportService.getInstance()
+                .type(SqaleRepoContext.getInstance()
                         .schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
@@ -251,12 +251,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @NotNull Integer searchCachedRelationId(QName qName) {
-        return SqaleSupportService.getInstance().searchCachedRelationId(qName);
+        return SqaleRepoContext.getInstance().searchCachedRelationId(qName);
     }
 
     /** Returns ID for cached URI without going to the database. */
     protected Integer resolveUriToId(String uri) {
-        return SqaleSupportService.getInstance().resolveUriToId(uri);
+        return SqaleRepoContext.getInstance().resolveUriToId(uri);
     }
 
     /**
@@ -265,20 +265,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName) {
-        return SqaleSupportService.getInstance().processCacheableRelation(qName);
+        return SqaleRepoContext.getInstance().processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? SqaleSupportService.getInstance().processCacheableUri(uri)
+                ? SqaleRepoContext.getInstance().processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? SqaleSupportService.getInstance()
+                ? SqaleRepoContext.getInstance()
                 .processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
@@ -303,7 +303,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
                 MObjectType.fromSchemaType(
-                        SqaleSupportService.getInstance().qNameToSchemaClass(schemaType));
+                        SqaleRepoContext.getInstance().qNameToSchemaClass(schemaType));
     }
 
     protected void setPolyString(PolyStringType polyString,
