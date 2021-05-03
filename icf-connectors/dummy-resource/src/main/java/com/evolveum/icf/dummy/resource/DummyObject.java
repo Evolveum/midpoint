@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -34,14 +34,14 @@ public abstract class DummyObject implements DebugDumpable {
     private String id;
 //    private int internalId = -1;
     private String name;
-    private Map<String,Set<Object>> attributes = new HashMap<>();
+    private final Map<String,Set<Object>> attributes = new ConcurrentHashMap<>();
     private Boolean enabled = true;
     private Date validFrom = null;
     private Date validTo = null;
     private String lastModifier;
     protected DummyResource resource;
 
-    private final Set<String> auxiliaryObjectClassNames = new HashSet<>();
+    private final Set<String> auxiliaryObjectClassNames = ConcurrentHashMap.newKeySet();
 
     private BreakMode modifyBreakMode = null;
 
@@ -160,7 +160,7 @@ public abstract class DummyObject implements DebugDumpable {
         delayOperation();
         Set<Object> currentValues = attributes.get(name);
         if (currentValues == null) {
-            currentValues = new HashSet<>();
+            currentValues = createNewSet();
             attributes.put(name, currentValues);
         } else {
             currentValues.clear();
@@ -170,12 +170,16 @@ public abstract class DummyObject implements DebugDumpable {
         recordModify(name, null, null, values);
     }
 
+    private Set<Object> createNewSet() {
+        return ConcurrentHashMap.newKeySet();
+    }
+
     public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         Set<Object> currentValues = attributes.get(name);
         if (currentValues == null) {
-            currentValues = new HashSet<>();
+            currentValues = createNewSet();
             attributes.put(name, currentValues);
         } else {
             currentValues.clear();
@@ -200,7 +204,7 @@ public abstract class DummyObject implements DebugDumpable {
         delayOperation();
         Set<Object> currentValues = attributes.get(name);
         if (currentValues == null) {
-            currentValues = new HashSet<>();
+            currentValues = createNewSet();
             attributes.put(name, currentValues);
         }
         for(T valueToAdd: valuesToAdd) {
@@ -214,7 +218,7 @@ public abstract class DummyObject implements DebugDumpable {
         delayOperation();
         Set<Object> currentValues = attributes.get(name);
         if (currentValues == null) {
-            currentValues = new HashSet<>();
+            currentValues = createNewSet();
             attributes.put(name, currentValues);
         }
         for (Object valueToAdd: valuesToAdd) {
@@ -268,7 +272,7 @@ public abstract class DummyObject implements DebugDumpable {
         delayOperation();
         Set<Object> currentValues = attributes.get(name);
         if (currentValues == null) {
-            currentValues = new HashSet<>();
+            currentValues = createNewSet();
             attributes.put(name, currentValues);
         }
 
