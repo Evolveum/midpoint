@@ -92,7 +92,7 @@ class SchemaConfiguration {
         GENERATED_SCHEMA_DIR.mkdirs();
 
         VelocityGenerator.generate(SCHEMA_TEMPLATE_FILE, GENERATED_SCHEMA_FILE,
-                Map.of("itemList", itemDefList));
+                Util.mapOf("itemList", itemDefList));
     }
 
     public static class ItemDef {
