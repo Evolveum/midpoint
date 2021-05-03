@@ -1945,7 +1945,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging paging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
@@ -1966,7 +1966,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
-        query.setPaging(paging);
+        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
         query.setFilter(filter);
 
         if (compiledCollection.getTargetClass(prismContext) == null) {

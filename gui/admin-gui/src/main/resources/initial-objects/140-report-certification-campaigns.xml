@@ -163,13 +163,13 @@
                     </expression>
                 </export>
             </column>
+            <paging>
+                <orderDirection>ascending</orderDirection>
+                <orderBy>name</orderBy>
+            </paging>
             <type>AccessCertificationCampaignType</type>
         </view>
         <useOnlyReportView>true</useOnlyReportView>
-        <paging>
-            <orderDirection>ascending</orderDirection>
-            <orderBy>name</orderBy>
-        </paging>
         <parameter>
             <name>alsoClosedCampaigns</name>
             <type>boolean</type>

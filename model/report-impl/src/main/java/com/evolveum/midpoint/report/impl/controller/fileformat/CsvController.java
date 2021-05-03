@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -134,8 +133,7 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
 
         return createTableBox(collectionRefSpecification, compiledCollection,
-                    collectionConfig.getCondition(), collectionConfig.getSubreport(),
-                ObjectQueryUtil.convertToObjectPaging(collectionConfig.getPaging(), getReportService().getPrismContext()), result, task);
+                    collectionConfig.getCondition(), collectionConfig.getSubreport(), result, task);
     }
 
     private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
@@ -185,7 +183,7 @@ public class CsvController extends FileFormatController {
     }
 
     private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
-            List<SubreportParameterType> subreports, ObjectPaging paging, OperationResult result, Task task)
+            List<SubreportParameterType> subreports, OperationResult result, Task task)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Class<Containerable> type = resolveType(collection, compiledCollection);
@@ -235,7 +233,7 @@ public class CsvController extends FileFormatController {
             return true;
         };
         searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
-                options, paging, task, result, true);
+                options, task, result, true);
 
         CSVFormat csvFormat = createCsvFormat();
         if (Boolean.TRUE.equals(isHeader())) {

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -185,8 +186,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
 
                 if (isCollectionViewPanel()) {
-                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, getObjectCollectionView()));
+                    CompiledObjectCollectionView view = getObjectCollectionView();
+                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
                     search.setCollectionItemVisible(isCollectionViewPanelForWidget());
+                    if (storage != null && view.getPaging() != null) {
+                        ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
+                        if (storage.getPaging() == null) {
+                            storage.setPaging(paging);
+                        }
+                        if (getTableId() != null && paging.getMaxSize() != null
+                                && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
+                            getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
+                        }
+                    }
                 }
                 if (storage != null) {
                     storage.setSearch(search);

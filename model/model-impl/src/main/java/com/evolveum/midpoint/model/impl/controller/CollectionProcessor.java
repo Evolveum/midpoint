@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -443,6 +445,7 @@ public class CollectionProcessor {
             compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
             compileSearchBox(existingView, objectListViewType, replaceIfExist);
             compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
+            compilePaging(existingView, objectListViewType, replaceIfExist);
         }
     }
 
@@ -588,6 +591,18 @@ public class CollectionProcessor {
                 }
             }
             existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        }
+    }
+
+    private void compilePaging(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        PagingType newPaging = objectListViewType.getPaging();
+        if (newPaging == null) {
+            return;
+        }
+        if (existingView.getPaging() == null) {
+            existingView.setPaging(newPaging);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
         }
     }
 }

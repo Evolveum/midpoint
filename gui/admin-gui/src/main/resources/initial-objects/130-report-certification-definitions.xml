@@ -115,12 +115,12 @@
                     </expression>
                 </export>
             </column>
+            <paging>
+                <orderDirection>ascending</orderDirection>
+                <orderBy>name</orderBy>
+            </paging>
             <type>AccessCertificationDefinitionType</type>
         </view>
-        <paging>
-            <orderDirection>ascending</orderDirection>
-            <orderBy>name</orderBy>
-        </paging>
         <subreport>
             <name>campaigns</name>
             <type>AccessCertificationCampaignType</type>

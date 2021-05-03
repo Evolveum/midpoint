@@ -2413,10 +2413,11 @@ public final class WebComponentUtil {
             return;
         }
 
-        if (paging == null) {
+        if (paging == null || paging.getOffset() == null) {
             table.getDataTable().setCurrentPage(0);
             return;
         }
+
 
         long itemsPerPage = table.getDataTable().getItemsPerPage();
         long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;

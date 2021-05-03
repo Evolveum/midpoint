@@ -138,11 +138,11 @@
                     </expression>
                 </export>
             </column>
+            <paging>
+                <orderBy>objectRef/@/name</orderBy>
+            </paging>
             <type>c:AccessCertificationCaseType</type>
         </view>
-        <paging>
-            <orderBy>objectRef/@/name</orderBy>
-        </paging>
         <parameter>
             <name>campaignName</name>
             <type>c:ObjectReferenceType</type>

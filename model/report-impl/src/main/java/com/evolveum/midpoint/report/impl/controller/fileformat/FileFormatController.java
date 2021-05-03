@@ -473,10 +473,10 @@ public abstract class FileFormatController {
     }
 
     protected void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         checkVariables(task);
         getReportService().getModelInteractionService().processObjectsFromCollection(
-                collectionConfig, typeForFilter, handler, defaultOptions, paging, variables, task, result, recordProgress);
+                collectionConfig, typeForFilter, handler, defaultOptions, null, variables, task, result, recordProgress);
     }
 }

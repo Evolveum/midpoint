@@ -25619,18 +25619,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Paging for query.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.4</a:since>
-                                <a:displayName>ObjectCollectionReportEngineConfigurationType.paging</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -26453,6 +26441,18 @@
                                </xsd:documentation>
                                <xsd:appinfo>
                                    <a:displayName>GuiObjectListViewType.refreshInterval</a:displayName>
+                               </xsd:appinfo>
+                           </xsd:annotation>
+                       </xsd:element>
+                       <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
+                           <xsd:annotation>
+                               <xsd:documentation>
+                                   Paging for query.
+                               </xsd:documentation>
+                               <xsd:appinfo>
+                                   <a:experimental>true</a:experimental>
+                                   <a:since>4.4</a:since>
+                                   <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>

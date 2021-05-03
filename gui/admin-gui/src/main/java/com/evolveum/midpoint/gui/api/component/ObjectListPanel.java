@@ -12,9 +12,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.web.component.search.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -36,10 +49,6 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -121,8 +130,18 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return null;
     }
 
-    protected void setDefaultSorting(ISelectableDataProvider<O, SelectableBean<O>> provider){
-        //should be overrided if needed
+    protected void setDefaultSorting(SelectableBeanObjectDataProvider<O> provider){
+            if (isCollectionViewPanel() && getObjectCollectionView().getPaging() != null
+                    && getObjectCollectionView().getPaging().getOrderBy() != null) {
+            PagingType paging = getObjectCollectionView().getPaging();
+            boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
+            ItemPath orderBy = paging.getOrderBy().getItemPath();
+            ItemName name = orderBy.lastName();
+            if (name == null) {
+                return;
+            }
+            provider.setSort(new SortParam(name.getLocalPart(), ascending));
+        }
     }
 
 
