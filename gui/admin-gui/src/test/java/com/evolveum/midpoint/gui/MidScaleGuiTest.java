@@ -9,8 +9,12 @@ package com.evolveum.midpoint.gui;
 import java.io.File;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
@@ -39,33 +43,34 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationsPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMethodMixin {
+public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements PerformanceTestMethodMixin {
 
     private static final String TEST_DIR = "./src/test/resources/midScale";
 
-    private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
-    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+//    private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
+//    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+
+    protected PrismObject<UserType> userAdministrator;
 
     private static final int REPETITION_COUNT = 10;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        modelService.postInit(initResult);
+        userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
+        login(userAdministrator);
 
-        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
-        initResult.computeStatusIfUnknown();
-        if (!initResult.isSuccess()) {
-            System.out.println("init result:\n" + initResult);
-        }
-        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
+//        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
+//        initResult.computeStatusIfUnknown();
+//        if (!initResult.isSuccess()) {
+//            System.out.println("init result:\n" + initResult);
+//        }
+//        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
 
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
@@ -195,9 +200,8 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
             Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
             try (Split ignored = stopwatch.start()) {
-                clickOnTab(1, PageUser.class);
                 queryListener.start();
-
+                clickOnTab(1, PageUser.class);
             }
         }
 
@@ -230,9 +234,8 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
             Stopwatch stopwatch = stopwatch("showAssignments", "User's assignmentTab");
             try (Split ignored = stopwatch.start()) {
-                clickOnTab(2, PageUser.class);
                 queryListener.start();
-
+                clickOnTab(2, PageUser.class);
             }
         }
 
