@@ -66,6 +66,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         super(tableName, defaultAliasName, schemaType, queryType);
     }
 
+    public SqaleRepoContext repositoryContext() {
+        SqaleRepoContext repositoryContext = (SqaleRepoContext) super.repositoryContext();
+        return repositoryContext != null
+                ? repositoryContext
+                // TODO remove this branch
+                : SqaleRepoContext.getInstance();
+    }
+
     /**
      * Returns the mapper creating the string filter/delta processors from context.
      *
@@ -232,8 +240,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqaleRepoContext.getInstance()
-                        .schemaClassToQName(repoObjectType.getSchemaType()))
+                .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
     }
@@ -251,12 +258,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @NotNull Integer searchCachedRelationId(QName qName) {
-        return SqaleRepoContext.getInstance().searchCachedRelationId(qName);
+        return repositoryContext().searchCachedRelationId(qName);
     }
 
     /** Returns ID for cached URI without going to the database. */
     protected Integer resolveUriToId(String uri) {
-        return SqaleRepoContext.getInstance().resolveUriToId(uri);
+        return repositoryContext().resolveUriToId(uri);
     }
 
     /**
@@ -265,21 +272,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Never returns null, returns default ID for configured default relation.
      */
     protected Integer processCacheableRelation(QName qName) {
-        return SqaleRepoContext.getInstance().processCacheableRelation(qName);
+        return repositoryContext().processCacheableRelation(qName);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(String uri) {
         return uri != null
-                ? SqaleRepoContext.getInstance().processCacheableUri(uri)
+                ? repositoryContext().processCacheableUri(uri)
                 : null;
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
     protected Integer processCacheableUri(QName qName) {
         return qName != null
-                ? SqaleRepoContext.getInstance()
-                .processCacheableUri(QNameUtil.qNameToUri(qName))
+                ? repositoryContext().processCacheableUri(QNameUtil.qNameToUri(qName))
                 : null;
     }
 
@@ -302,8 +308,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
         return schemaType == null ? null :
-                MObjectType.fromSchemaType(
-                        SqaleRepoContext.getInstance().qNameToSchemaClass(schemaType));
+                MObjectType.fromSchemaType(repositoryContext().qNameToSchemaClass(schemaType));
     }
 
     protected void setPolyString(PolyStringType polyString,

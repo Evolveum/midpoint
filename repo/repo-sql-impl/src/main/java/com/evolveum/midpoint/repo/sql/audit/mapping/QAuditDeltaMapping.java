@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -44,8 +43,7 @@ public class QAuditDeltaMapping
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) {
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
-        SQLTemplates querydslTemplates =
-                SqlRepoContext.getInstance().getQuerydslTemplates();
+        SQLTemplates querydslTemplates = repositoryContext().getQuerydslTemplates();
 
         boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
         odo.setObjectDelta(parseBytes(row.delta, usingSqlServer, ObjectDeltaType.class));
@@ -70,7 +68,7 @@ public class QAuditDeltaMapping
         }
 
         try {
-            return SqlRepoContext.getInstance()
+            return repositoryContext()
                     .createStringParser(RUtil.getSerializedFormFromBytes(bytes, usingSqlServer))
                     .compat()
                     .parseRealValue(clazz);

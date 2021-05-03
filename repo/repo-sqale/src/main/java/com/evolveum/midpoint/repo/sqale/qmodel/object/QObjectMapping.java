@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
@@ -199,7 +198,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
         try {
             RepositoryObjectParseResult<S> result =
-                    SqaleRepoContext.getInstance().parsePrismObject(serializedForm);
+                    repositoryContext().parsePrismObject(serializedForm);
             prismObject = result.prismObject;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -354,7 +353,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return SqaleRepoContext.getInstance().createStringSerializer()
+        return repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

@@ -63,8 +63,7 @@ public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(SqlRepoContext.getInstance()
-                        .schemaClassToQName(repoObjectType.getJaxbClass()))
+                .type(repositoryContext().schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }

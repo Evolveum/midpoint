@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
@@ -68,6 +69,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     private final String tableName;
     private final String defaultAliasName;
+    private final SqlRepoContext repositoryContext;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
@@ -92,10 +94,35 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
+        super(schemaType, queryType);
+        this.tableName = tableName;
+        this.defaultAliasName = defaultAliasName;
+        this.repositoryContext = repositoryContext;
+    }
+
+    /**
+     * Creates metamodel for the table described by designated type (Q-class) related to schema type.
+     * Allows registration of any number of columns - typically used for static properties
+     * (non-extensions).
+     *
+     * @param tableName database table name
+     * @param defaultAliasName default alias name, some short abbreviation, must be unique
+     * across mapped types
+     */
+    @Deprecated
+    protected QueryTableMapping(
+            @NotNull String tableName,
+            @NotNull String defaultAliasName,
+            @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType) {
         super(schemaType, queryType);
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
+
+        // TODO remove this constructor, use the one above only
+        this.repositoryContext = null;
     }
 
     /**
@@ -217,6 +244,13 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     public String defaultAliasName() {
         return defaultAliasName;
+    }
+
+    public SqlRepoContext repositoryContext() {
+        return repositoryContext != null
+                ? repositoryContext
+                // TODO remove this branch
+                : SqlRepoContext.getInstance();
     }
 
     /**
