@@ -8,15 +8,7 @@ package com.evolveum.icf.dummy.resource;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,9 +17,12 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
+import static java.util.Collections.*;
+
 /**
- * @author Radovan Semancik
+ * TODO Treat null attribute values more consistently.
  *
+ * @author Radovan Semancik
  */
 public abstract class DummyObject implements DebugDumpable {
 
@@ -80,33 +75,36 @@ public abstract class DummyObject implements DebugDumpable {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public void setEnabled(Boolean enabled)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.enabled = enabled;
-        recordModify("_ENABLED", null, null, Arrays.asList(enabled));
+        recordModify("_ENABLED", null, null, singletonList(enabled));
     }
 
     public Date getValidFrom() {
         return validFrom;
     }
 
-    public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public void setValidFrom(Date validFrom)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validFrom = validFrom;
-        recordModify("_VALID_FROM", null, null, Arrays.asList(validFrom));
+        recordModify("_VALID_FROM", null, null, singletonList(validFrom));
     }
 
     public Date getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public void setValidTo(Date validTo)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validTo = validTo;
-        recordModify("_VALID_TO", null, null, Arrays.asList(validTo));
+        recordModify("_VALID_TO", null, null, singletonList(validTo));
     }
 
     public String getLastModifier() {
@@ -130,8 +128,8 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     public <T> Set<T> getAttributeValues(String attrName, Class<T> type) {
-        Set<Object> values = attributes.get(attrName);
-        return (Set)values;
+        //noinspection unchecked
+        return (Set<T>) attributes.get(attrName);
     }
 
     public <T> T getAttributeValue(String attrName, Class<T> type) {
@@ -139,8 +137,8 @@ public abstract class DummyObject implements DebugDumpable {
         if (values == null || values.isEmpty()) {
             return null;
         }
-        if (values.size()>1) {
-            throw new IllegalArgumentException("Attempt to fetch single value from a multi-valued attribute "+attrName);
+        if (values.size() > 1) {
+            throw new IllegalArgumentException("Attempt to fetch single value from a multi-valued attribute " + attrName);
         }
         return values.iterator().next();
     }
@@ -149,87 +147,95 @@ public abstract class DummyObject implements DebugDumpable {
         return getAttributeValue(attrName,String.class);
     }
 
-    public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        Collection<Object> values = new ArrayList<>(1);
-        values.add(value);
-        replaceAttributeValues(name, values);
+    public void replaceAttributeValue(String name, Object value)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        replaceAttributeValues(name, createCollection(value));
     }
 
-    public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private Set<Object> createCollection(Object value) {
+        return value != null ? singleton(value) : emptySet();
+    }
+
+    public void replaceAttributeValues(String name, Collection<Object> values)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
-        Set<Object> currentValues = attributes.get(name);
-        if (currentValues == null) {
-            currentValues = createNewSet();
-            attributes.put(name, currentValues);
-        } else {
-            currentValues.clear();
-        }
-        currentValues.addAll(values);
+
+        Set<Object> currentValues = getOrCreateAttributeValueSet(name);
+        currentValues.clear();
+
+        addNonNullValues(currentValues, values);
         checkSchema(name, values, "replace");
         recordModify(name, null, null, values);
     }
 
-    private Set<Object> createNewSet() {
-        return ConcurrentHashMap.newKeySet();
+    private void addNonNullValues(Set<Object> currentValues, Collection<Object> values) {
+        for (Object value : values) {
+            if (value != null) {
+                currentValues.add(value);
+            }
+        }
     }
 
-    public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private Set<Object> getOrCreateAttributeValueSet(String name) {
+        return attributes.computeIfAbsent(name, k -> ConcurrentHashMap.newKeySet());
+    }
+
+    public void replaceAttributeValues(String name, Object... values)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
-        Set<Object> currentValues = attributes.get(name);
-        if (currentValues == null) {
-            currentValues = createNewSet();
-            attributes.put(name, currentValues);
-        } else {
-            currentValues.clear();
-        }
+
+        Set<Object> currentValues = getOrCreateAttributeValueSet(name);
+        currentValues.clear();
+
         List<Object> valuesList = Arrays.asList(values);
-        currentValues.addAll(valuesList);
+        addNonNullValues(currentValues, valuesList);
         checkSchema(name, valuesList, "replace");
+
+        // Why isn't the same code in the "collection" version of this method (above)?
+        // Maybe to check null-attribute handling of UCF layer, see TestDummy.test129NullAttributeValue.
         if (valuesList.isEmpty()) {
             attributes.remove(name);
         }
-        recordModify(name, null, null, Arrays.asList(values));
+        recordModify(name, null, null, valuesList);
     }
 
-    public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        Collection<Object> values = new ArrayList<>(1);
-        values.add(value);
-        addAttributeValues(name, values);
+    public void addAttributeValue(String name, Object value)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        addAttributeValues(name, createCollection(value));
     }
 
-    public <T> void addAttributeValues(String name, Collection<T> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public <T> void addAttributeValues(String name, Collection<T> valuesToAdd)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
-        Set<Object> currentValues = attributes.get(name);
-        if (currentValues == null) {
-            currentValues = createNewSet();
-            attributes.put(name, currentValues);
-        }
-        for(T valueToAdd: valuesToAdd) {
+        Set<Object> currentValues = getOrCreateAttributeValueSet(name);
+        for (T valueToAdd: valuesToAdd) {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, valuesToAdd, null, null);
     }
 
-    public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public void addAttributeValues(String name, String... valuesToAdd)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
-        Set<Object> currentValues = attributes.get(name);
-        if (currentValues == null) {
-            currentValues = createNewSet();
-            attributes.put(name, currentValues);
-        }
+        Set<Object> currentValues = getOrCreateAttributeValueSet(name);
         for (Object valueToAdd: valuesToAdd) {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, Arrays.asList(valuesToAdd), null, null);
     }
 
-    private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
+
+        if (valueToAdd == null) {
+            return; // Concurrent hash map does not allow null values.
+        }
         if (resource != null && !resource.isTolerateDuplicateValues()) {
             for (Object currentValue: currentValues) {
                 if (currentValue.equals(valueToAdd)) {
@@ -261,34 +267,29 @@ public abstract class DummyObject implements DebugDumpable {
         currentValues.add(valueToAdd);
     }
 
-    public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        Collection<Object> values = new ArrayList<>();
-        values.add(value);
-        removeAttributeValues(name, values);
+    public void removeAttributeValue(String name, Object value)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        removeAttributeValues(name, createCollection(value));
     }
 
-    public <T> void removeAttributeValues(String name, Collection<T> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    public <T> void removeAttributeValues(String name, Collection<T> values)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
-        Set<Object> currentValues = attributes.get(name);
-        if (currentValues == null) {
-            currentValues = createNewSet();
-            attributes.put(name, currentValues);
-        }
+        Set<Object> currentValues = getOrCreateAttributeValueSet(name);
 
-        Set<Object> valuesToCheck = new HashSet<>();
-        valuesToCheck.addAll(currentValues);
+        Set<Object> valuesToCheck = new HashSet<>(currentValues);
         valuesToCheck.removeAll(values);
         checkSchema(name, valuesToCheck, "remove");
 
         Iterator<Object> iterator = currentValues.iterator();
         boolean foundMember = false;
 
-        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()){
+        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()) {
             checkIfExist(values, currentValues);
         }
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Object currentValue = iterator.next();
             boolean found = false;
             for (Object value: values) {
@@ -355,7 +356,7 @@ public abstract class DummyObject implements DebugDumpable {
                 }
             }
 
-            if (!found){
+            if (!found) {
                 throw new SchemaViolationException("no such member: " + valueToDelete + " in " + currentValues);
             }
         }
