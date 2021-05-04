@@ -70,11 +70,12 @@ Configuration parameters:
                 <ref>ri:a-single-$index</ref>
                 <outbound>
                     <source>
+                        <name>data</name>
                         <path>extension/p-single-$index</path>
                     </source>
                     <expression>
                         <script>
-                            <code>p-single-$index</code>
+                            <code>data</code>
                         </script>
                     </expression>
                 </outbound>
@@ -85,11 +86,12 @@ Configuration parameters:
                 <ref>ri:a-multi-$index</ref>
                 <outbound>
                     <source>
+                        <name>data</name>
                         <path>extension/p-multi-$index</path>
                     </source>
                     <expression>
                         <script>
-                            <code>p-multi-$index</code>
+                            <code>data</code>
                         </script>
                     </expression>
                 </outbound>
