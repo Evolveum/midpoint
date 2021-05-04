@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -55,12 +54,6 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements P
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         PrismTestUtil.getPrismContext().setExtraValidation(false);
         assert !InternalsConfig.isConsistencyChecks();
-    }
-
-    @BeforeClass
-    @Override
-    public void initTestMonitor() {
-        PerformanceTestClassMixin.super.initTestMonitor();
     }
 
     protected void measure(String label, CheckedProducer<?> producer) throws CommonException, IOException {
