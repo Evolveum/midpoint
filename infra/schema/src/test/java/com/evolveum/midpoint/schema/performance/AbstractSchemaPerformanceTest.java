@@ -43,7 +43,7 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements P
 
     public static final File RESULTS_FILE = new File("target/results.csv");
 
-    public static final int DEFAULT_EXECUTION = 3;
+    public static final int DEFAULT_EXECUTION = 3000;
     public static final int DEFAULT_REPEATS = 5;
     protected static final String NS_FOO = "http://www.example.com/foo";
 
