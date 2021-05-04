@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.test.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
 
+    // region perf-test support
     private TestMonitor testMonitor;
 
     /** Called only by tests that need it, implements performance mixin interface. */
@@ -52,6 +54,40 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         return testMonitor;
     }
 
+    // see the comment in PerformanceTestMethodMixin for explanation
+    @BeforeMethod
+    public void initTestMethodMonitor() {
+        if (this instanceof PerformanceTestMethodMixin) {
+            createTestMonitor();
+        }
+    }
+
+    // see the comment in PerformanceTestMethodMixin for explanation
+    @AfterMethod
+    public void dumpMethodReport(Method method) {
+        if (this instanceof PerformanceTestMethodMixin) {
+            ((PerformanceTestMethodMixin) this).dumpReport(
+                    getClass().getSimpleName() + "#" + method.getName());
+        }
+    }
+
+    // see the comment in PerformanceTestClassMixin for explanation
+    @BeforeClass
+    public void initTestClassMonitor() {
+        if (this instanceof PerformanceTestClassMixin) {
+            createTestMonitor();
+        }
+    }
+
+    // see the comment in PerformanceTestClassMixin for explanation
+    @AfterClass
+    public void dumpClassReport() {
+        if (this instanceof PerformanceTestClassMixin) {
+            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
+        }
+    }
+    // endregion
+
     @BeforeClass
     public void displayTestClassTitle() {
         displayTestTitle("Starting TEST CLASS: " + getClass().getName());
@@ -60,14 +96,6 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     @AfterClass
     public void displayTestClassFooter() {
         displayTestFooter("Finishing with TEST CLASS: " + getClass().getName());
-    }
-
-    // see the comment in PerformanceTestClassMixin for explanation
-    @AfterClass
-    public void dumpReport() {
-        if (this instanceof PerformanceTestClassMixin) {
-            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
-        }
     }
 
     @BeforeMethod
@@ -107,7 +135,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
      */
-    @AfterClass(alwaysRun = true, dependsOnMethods = "dumpReport")
+    @AfterClass(alwaysRun = true, dependsOnMethods = "dumpClassReport")
     protected void clearClassFields() throws Exception {
         logger.trace("Clearing all fields for test class {}", getClass().getName());
         clearClassFields(this, getClass());
