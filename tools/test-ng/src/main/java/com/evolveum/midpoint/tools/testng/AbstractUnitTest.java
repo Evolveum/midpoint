@@ -51,6 +51,14 @@ public abstract class AbstractUnitTest implements MidpointTestMixin {
         displayTestFooter("Finishing with TEST CLASS: " + getClass().getName());
     }
 
+    // see the comment in PerformanceTestClassMixin for explanation
+    @AfterClass
+    public void dumpReport() {
+        if (this instanceof PerformanceTestClassMixin) {
+            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
+        }
+    }
+
     @BeforeMethod
     public void startTestContext(ITestResult testResult) {
         SimpleMidpointTestContext context = SimpleMidpointTestContext.create(testResult);
