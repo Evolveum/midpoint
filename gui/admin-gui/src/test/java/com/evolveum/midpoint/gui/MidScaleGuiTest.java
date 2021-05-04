@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 
+import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -47,7 +47,7 @@ import java.io.File;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
+public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMethodMixin {
 
     private static final String TEST_DIR = "./src/test/resources/midScale";
 

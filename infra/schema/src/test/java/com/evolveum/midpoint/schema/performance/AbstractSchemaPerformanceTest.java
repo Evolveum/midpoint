@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
@@ -18,20 +22,19 @@ import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class AbstractSchemaPerformanceTest extends AbstractUnitTest {
+public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements PerformanceTestClassMixin {
 
     protected static final String LABEL = "new-mapxnode";
 
@@ -40,7 +43,7 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest {
 
     public static final File RESULTS_FILE = new File("target/results.csv");
 
-    public static final int DEFAULT_EXECUTION = 3000;
+    public static final int DEFAULT_EXECUTION = 3;
     public static final int DEFAULT_REPEATS = 5;
     protected static final String NS_FOO = "http://www.example.com/foo";
 
@@ -52,6 +55,12 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         PrismTestUtil.getPrismContext().setExtraValidation(false);
         assert !InternalsConfig.isConsistencyChecks();
+    }
+
+    @BeforeClass
+    @Override
+    public void initTestMonitor() {
+        PerformanceTestClassMixin.super.initTestMonitor();
     }
 
     protected void measure(String label, CheckedProducer<?> producer) throws CommonException, IOException {

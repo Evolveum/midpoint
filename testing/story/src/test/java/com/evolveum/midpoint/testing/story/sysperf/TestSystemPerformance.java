@@ -44,7 +44,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.tools.testng.TestReportSection;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @SuppressWarnings("BusyWait")
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestSystemPerformance extends AbstractStoryTest implements PerformanceTestMixin {
+public class TestSystemPerformance extends AbstractStoryTest implements PerformanceTestClassMixin {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "system-perf");
     static final File TARGET_DIR = new File(TARGET_DIR_PATH);

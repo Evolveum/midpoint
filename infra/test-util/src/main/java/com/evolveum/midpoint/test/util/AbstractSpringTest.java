@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -37,11 +36,18 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     private TestMonitor testMonitor;
 
-    // called only by tests that need it
-    public void initializeTestMonitor() {
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public TestMonitor createTestMonitor() {
         testMonitor = new TestMonitor();
+        return testMonitor;
     }
 
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public void destroyTestMonitor() {
+        testMonitor = null;
+    }
+
+    /** Called only by tests that need it, implements performance mixin interface. */
     public TestMonitor testMonitor() {
         return testMonitor;
     }
@@ -90,14 +96,14 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     /**
      * This method null all fields which are not static, final or primitive type.
-     *
+     * <p>
      * All this is just to make GC work during DirtiesContext after every test class,
      * because test class instances are not GCed immediately.
      * If they hold autowired fields like sessionFactory (for example
      * through SqlRepositoryService impl), their memory footprint is getting big.
      * This can manifest as failed test initialization because of OOM in modules like model-intest.
      * Strangely, this will not fail the Jenkins build (but makes it much slower).
-     *
+     * <p>
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
      */
