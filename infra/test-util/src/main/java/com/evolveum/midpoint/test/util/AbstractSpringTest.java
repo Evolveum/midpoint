@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,10 +18,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
-import com.evolveum.midpoint.tools.testng.MidpointTestContext;
-import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
-import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
-import com.evolveum.midpoint.tools.testng.TestMonitor;
+import com.evolveum.midpoint.tools.testng.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -59,6 +56,14 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         displayTestFooter("Finishing with TEST CLASS: " + getClass().getName());
     }
 
+    // see the comment in PerformanceTestClassMixin for explanation
+    @AfterClass
+    public void dumpReport() {
+        if (this instanceof PerformanceTestClassMixin) {
+            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
+        }
+    }
+
     @BeforeMethod
     public void startTestContext(ITestResult testResult) throws Exception {
         SimpleMidpointTestContext context = SimpleMidpointTestContext.create(testResult);
@@ -85,18 +90,18 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     /**
      * This method null all fields which are not static, final or primitive type.
-     * <p>
+     *
      * All this is just to make GC work during DirtiesContext after every test class,
      * because test class instances are not GCed immediately.
      * If they hold autowired fields like sessionFactory (for example
      * through SqlRepositoryService impl), their memory footprint is getting big.
      * This can manifest as failed test initialization because of OOM in modules like model-intest.
      * Strangely, this will not fail the Jenkins build (but makes it much slower).
-     * <p>
+     *
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
      */
-    @AfterClass(alwaysRun = true)
+    @AfterClass(alwaysRun = true, dependsOnMethods = "dumpReport")
     protected void clearClassFields() throws Exception {
         logger.trace("Clearing all fields for test class {}", getClass().getName());
         clearClassFields(this, getClass());
@@ -108,9 +113,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         }
 
         for (Field field : forClass.getDeclaredFields()) {
-            // we need to skip testMonitor to have it non-null in PerformanceTestMixin#dumpReport
-            if (field.getName().equals("testMonitor")
-                    || Modifier.isFinal(field.getModifiers())
+            if (Modifier.isFinal(field.getModifiers())
                     || Modifier.isStatic(field.getModifiers())
                     || field.getType().isPrimitive()) {
                 continue;
