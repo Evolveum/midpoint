@@ -40,6 +40,7 @@ public class TestRelDiagram {
     HashMap<String, Definition> stringToDef = new HashMap<>();
     HashMap<Definition, String> mapOfOriginalDefs = new HashMap<>();
     HashMap<String, Definition> mapOfParents = new HashMap<>();
+    HashMap<Definition, Definition> mapOfSelectedDefinitionsParents = new HashMap<>();
     HashMap<String, String> selectedDefToRefDef = new HashMap<>(); // todo maybe array when there will be more references
     HashMap<Definition, HashMap<Definition, ArrayList<String>>> mapOfRefs = new HashMap<>(); // todo map on selectedDef but store also original def
     ArrayList<Definition> selectedDefinitions = new ArrayList<>(); //maybe with id so there will be more options where there are multiple types in path.
@@ -230,6 +231,7 @@ public class TestRelDiagram {
                 if (spec.getName().equals(diagramName)) {
                     for (Definition subDefinition : selectedDefinitions) {
                         if ((path.contains(subDefinition) || subDefinition == stringToDef.get(definitionString)) && path.indexOf(subDefinition) == mapOfRefDefLevels.get(subDefinition)) { //todo if there will be more than one selected def in path
+                            mapOfSelectedDefinitionsParents.put(definition, subDefinition);
                             writeDefinition2(subDefinition, definitionString, path.size());
                         }
                     }
@@ -529,7 +531,7 @@ public class TestRelDiagram {
                 ArrayList<String> refs = refsArrays.get(0);
 
                 myWriter.write("\n" + parent.getItemName().getLocalPart() + def.getTypeName().getLocalPart() + "Refs = {");
-                myWriter.write("\n\tparent: " + parent.getItemName().getLocalPart() + ","); // todo make as parent selected def
+                myWriter.write("\n\tparent: " + ((PrismContainerDefinition<?>)mapOfSelectedDefinitionsParents.get(parent)).getItemName().getLocalPart() + ","); // todo make as parent selected def
 
                 //String refsInnerHTML = "<div class = \"ref\"><h1>source:<br>" + originalDef.replaceAll("\\d", "") + "</h1><ul>"; // todo make decision if source would be displayed
 
