@@ -365,6 +365,8 @@ public class TestRelDiagram {
 
             Definition parentDef = null;
 
+            //todo simplify
+
             if (isPresent) {
                 mapOfParents.put(definitionString, definition);
                 parentDef = definition;
@@ -372,10 +374,17 @@ public class TestRelDiagram {
                 for (Definition def : selectedDefinitions) {
                     //PrismContainerDefinition<?> selectedDefinition = (PrismContainerDefinition<?>) stringToDef.get(def);
                     if (def != null && (path.contains(def) || definition == def)) { // todo maybe add: && path.indexOf(subDefinition) == mapOfRefDefLevels.get(subDefinitionString)
+                        mapOfSelectedDefinitionsParents.put(definition, def);
                         mapOfParents.put(definitionString, def);
                         parentDef = def;
                     }
                 }
+            }
+
+            // todo
+            if (parentDef == null) {
+                parentDef = definition;
+                mapOfParents.put(definitionString, definition);
             }
 
             if (selectedDefinitions.contains(targetDefinition) && parentDef != null && selectedDefinitions.indexOf(parentDef) > selectedDefinitions.indexOf(targetDefinition)) {
@@ -499,7 +508,7 @@ public class TestRelDiagram {
                         //description += nParentDefinition;
 
                         if (neededNotClosedUls == null || neededNotClosedUls > notClosedUls || nParentLevel != level) {
-                            myWriter.write("\ncouz" + subDefinition);
+                            myWriter.write("\nBUG" + subDefinition);
                         } else {
                             while (notClosedUls != (neededNotClosedUls)) {
                                 description += "</ul></li>";
@@ -525,13 +534,22 @@ public class TestRelDiagram {
             Definition originalDef = stringToDef.get(originalDefString);
             PrismContainerDefinition<?> parent = (PrismContainerDefinition<?>) mapOfParents.get(originalDefString);
 
+//            if (parent != null) {
+//                throw new Error("HALOOOOO" + parent);
+//            }
+
             if (originalDef != null) { //refs != null
 
                 ArrayList<ArrayList<String>> refsArrays = new ArrayList<>(mapOfRefs.get(def).values());
                 ArrayList<String> refs = refsArrays.get(0);
+                PrismContainerDefinition<?> selectedDefinitionParent = (PrismContainerDefinition<?>) mapOfSelectedDefinitionsParents.get(parent);
+
+                if (selectedDefinitionParent == null) {
+                    selectedDefinitionParent = parent;
+                }
 
                 myWriter.write("\n" + parent.getItemName().getLocalPart() + def.getTypeName().getLocalPart() + "Refs = {");
-                myWriter.write("\n\tparent: " + ((PrismContainerDefinition<?>)mapOfSelectedDefinitionsParents.get(parent)).getItemName().getLocalPart() + ","); // todo make as parent selected def
+                myWriter.write("\n\tparent: " + selectedDefinitionParent.getItemName().getLocalPart() + ","); // todo make as parent selected def
 
                 //String refsInnerHTML = "<div class = \"ref\"><h1>source:<br>" + originalDef.replaceAll("\\d", "") + "</h1><ul>"; // todo make decision if source would be displayed
 
