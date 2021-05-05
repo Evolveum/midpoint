@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Describes formatting at abstract level.
@@ -24,6 +25,12 @@ public abstract class Formatting {
     private static final Trace LOGGER = TraceManager.getTrace(Formatting.class);
 
     final List<Column> columns = new ArrayList<>();
+
+    public List<String> getColumnLabels() {
+        return columns.stream()
+                .map(column -> column.label)
+                .collect(Collectors.toList());
+    }
 
     static class Column {
         final String label;
@@ -61,6 +68,10 @@ public abstract class Formatting {
 
     enum Alignment {
         LEFT, RIGHT
+    }
+
+    public boolean isNiceNumbersFormatting() {
+        return false;
     }
 
     public abstract String apply(Data data);

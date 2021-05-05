@@ -24,15 +24,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCachePerforman
  */
 public class CachePerformanceInformationPrinter extends AbstractStatisticsPrinter<CachesPerformanceInformationType> {
 
-    public CachePerformanceInformationPrinter(@NotNull CachesPerformanceInformationType information, Options options) {
+    CachePerformanceInformationPrinter(@NotNull CachesPerformanceInformationType information, Options options) {
         super(information, options, null, null);
     }
 
-    public String print() {
+    public void prepare() {
         List<SingleCachePerformanceInformationType> caches = getSortedCaches();
         createData(caches);
         createFormatting();
-        return applyFormatting();
     }
 
     @NotNull
