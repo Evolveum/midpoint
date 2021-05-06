@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test.util;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import org.jetbrains.annotations.Nullable;
@@ -18,10 +18,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
-import com.evolveum.midpoint.tools.testng.MidpointTestContext;
-import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
-import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
-import com.evolveum.midpoint.tools.testng.TestMonitor;
+import com.evolveum.midpoint.tools.testng.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -38,16 +35,58 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
 
+    // region perf-test support
     private TestMonitor testMonitor;
 
-    // called only by tests that need it
-    public void initializeTestMonitor() {
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public TestMonitor createTestMonitor() {
         testMonitor = new TestMonitor();
+        return testMonitor;
     }
 
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public void destroyTestMonitor() {
+        testMonitor = null;
+    }
+
+    /** Called only by tests that need it, implements performance mixin interface. */
     public TestMonitor testMonitor() {
         return testMonitor;
     }
+
+    // see the comment in PerformanceTestMethodMixin for explanation
+    @BeforeMethod
+    public void initTestMethodMonitor() {
+        if (this instanceof PerformanceTestMethodMixin) {
+            createTestMonitor();
+        }
+    }
+
+    // see the comment in PerformanceTestMethodMixin for explanation
+    @AfterMethod
+    public void dumpMethodReport(Method method) {
+        if (this instanceof PerformanceTestMethodMixin) {
+            ((PerformanceTestMethodMixin) this).dumpReport(
+                    getClass().getSimpleName() + "#" + method.getName());
+        }
+    }
+
+    // see the comment in PerformanceTestClassMixin for explanation
+    @BeforeClass
+    public void initTestClassMonitor() {
+        if (this instanceof PerformanceTestClassMixin) {
+            createTestMonitor();
+        }
+    }
+
+    // see the comment in PerformanceTestClassMixin for explanation
+    @AfterClass
+    public void dumpClassReport() {
+        if (this instanceof PerformanceTestClassMixin) {
+            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
+        }
+    }
+    // endregion
 
     @BeforeClass
     public void displayTestClassTitle() {
@@ -96,7 +135,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
      */
-    @AfterClass(alwaysRun = true)
+    @AfterClass(alwaysRun = true, dependsOnMethods = "dumpClassReport")
     protected void clearClassFields() throws Exception {
         logger.trace("Clearing all fields for test class {}", getClass().getName());
         clearClassFields(this, getClass());
@@ -108,9 +147,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         }
 
         for (Field field : forClass.getDeclaredFields()) {
-            // we need to skip testMonitor to have it non-null in PerformanceTestMixin#dumpReport
-            if (field.getName().equals("testMonitor")
-                    || Modifier.isFinal(field.getModifiers())
+            if (Modifier.isFinal(field.getModifiers())
                     || Modifier.isStatic(field.getModifiers())
                     || field.getType().isPrimitive()) {
                 continue;
@@ -123,7 +160,6 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     private void nullField(Object obj, Field field) throws Exception {
         logger.info("Setting {} to null on {}.", field.getName(), obj.getClass().getSimpleName());
         boolean accessible = field.isAccessible();
-//        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
         if (!accessible) {
             field.setAccessible(true);
         }

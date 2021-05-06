@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,7 +36,7 @@ public class TestMonitor {
      * Name of a system property that specifies file name prefix for report.
      * If system property is null, report is dumped to standard output.
      * Specified file name prefix can be absolute or relative from working directory,
-     * e.g. {@code target/perf-report}.
+     * e.g. `target/perf-report`.
      */
     public static final String PERF_REPORT_PREFIX_PROPERTY_NAME = "mp.perf.report.prefix";
 
@@ -47,13 +47,19 @@ public class TestMonitor {
     private final Map<String, Stopwatch> stopwatches = new LinkedHashMap<>();
 
     /**
-     * Extension for already preformatted reports can be added under specified section name.
-     * This is really crude (read primitive), but also very easy.
-     * This obviously can't assure report formatting consistency, etc.
+     * Collection of report sections that will be formatted using {@link #dumpReport(String)}.
+     * This can be extended in one of these ways:
+     *
+     * * Directly by using {@link #addReportSection(String)} and then filling the returned
+     * {@link TestReportSection}.
+     * * Using {@link #addReportCallback(ReportCallback)} which can be registered beforehand.
      */
     private final List<TestReportSection> reportSections = new ArrayList<>();
 
-    // TODO other monitors later
+    /**
+     * Callbacks that are called during the report dump, see {@link #addReportCallback)}.
+     */
+    private final List<ReportCallback> reportCallbacks = new ArrayList<>();
 
     /** Simon manager used for monitor creations, otherwise ignored. */
     private final Manager simonManager = new EnabledManager();
@@ -90,6 +96,23 @@ public class TestMonitor {
         return stopwatch(name, description).start();
     }
 
+    /**
+     * This registers the callback that will be executed during the report dump and can be used
+     * to add new sections.
+     * The advantage of callback is that it can be prepared during the initialization of the test
+     * monitor without the need to change the point where the dump occurs (some `@After...` method).
+     */
+    public TestMonitor addReportCallback(ReportCallback reportCallback) {
+        reportCallbacks.add(reportCallback);
+        return this;
+    }
+
+    public TestReportSection addReportSection(String sectionName) {
+        TestReportSection reportSection = new TestReportSection(sectionName);
+        reportSections.add(reportSection);
+        return reportSection;
+    }
+
     public void dumpReport(String testName) {
         ReportMetadata reportMetadata = new ReportMetadata(testName);
         String perfReportPrefix = System.getProperty(PERF_REPORT_PREFIX_PROPERTY_NAME);
@@ -106,7 +129,7 @@ public class TestMonitor {
                         new FileOutputStream(filename)))) {
             dumpReport(reportMetadata, out);
         } catch (FileNotFoundException e) {
-            System.out.println("Creating report file failed with: " + e.toString());
+            System.out.println("Creating report file failed with: " + e);
             System.out.println("Falling back to stdout dump:");
             dumpReportToStdout(reportMetadata);
         }
@@ -143,15 +166,14 @@ public class TestMonitor {
                     stopwatch.getNote());
         }
 
+        // executing callback to get other report sections for higher level metrics
+        for (ReportCallback reportCallback : reportCallbacks) {
+            reportCallback.execute(this);
+        }
+
         for (TestReportSection reportSection : reportSections) {
             reportSection.dump(reportMetadata.testName, out);
         }
-    }
-
-    public TestReportSection addReportSection(String sectionName) {
-        TestReportSection reportSection = new TestReportSection(sectionName);
-        reportSections.add(reportSection);
-        return reportSection;
     }
 
     private static class ReportMetadata {
@@ -198,5 +220,13 @@ public class TestMonitor {
                     ", timestamp='" + timestamp + '\'' +
                     '}';
         }
+    }
+
+    public interface ReportCallback {
+        /**
+         * Called during report dump - allows interacting with the monitor,
+         * typically to add additional report section.
+         */
+        void execute(TestMonitor testMonitor);
     }
 }
