@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCachePerforman
  */
 public class CachePerformanceInformationPrinter extends AbstractStatisticsPrinter<CachesPerformanceInformationType> {
 
-    CachePerformanceInformationPrinter(@NotNull CachesPerformanceInformationType information, Options options) {
+    public CachePerformanceInformationPrinter(@NotNull CachesPerformanceInformationType information, Options options) {
         super(information, options, null, null);
     }
 
