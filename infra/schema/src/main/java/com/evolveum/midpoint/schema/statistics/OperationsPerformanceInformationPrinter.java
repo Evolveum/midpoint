@@ -28,6 +28,8 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
 
     private final boolean viaAspect;
 
+    private List<SingleOperationPerformanceInformationType> operations;
+
     public OperationsPerformanceInformationPrinter(@NotNull OperationsPerformanceInformationType information,
             Options options, Integer iterations, Integer seconds, boolean viaAspect) {
         super(information, options, iterations, seconds);
@@ -37,15 +39,20 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
     /**
      * @param nullIfNone If there are no data, returns empty string.
      */
-    public String print(boolean nullIfNone) {
-        List<SingleOperationPerformanceInformationType> operations = getSortedOperations();
+    String print(boolean nullIfNone) {
+        prepare();
         if (operations.isEmpty() && nullIfNone) {
             return null;
         } else {
-            createData(operations);
-            createFormatting();
             return applyFormatting();
         }
+    }
+
+    @Override
+    public void prepare() {
+        operations = getSortedOperations();
+        createData(operations);
+        createFormatting();
     }
 
     @NotNull

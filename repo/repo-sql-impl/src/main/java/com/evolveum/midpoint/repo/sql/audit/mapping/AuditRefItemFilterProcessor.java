@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -32,15 +32,17 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
     /**
      * Returns the mapper function creating the ref-filter processor from context.
      */
-    public static ItemSqlMapper mapper(Function<EntityPath<?>, StringPath> rootToOidPath) {
-        return new ItemSqlMapper(ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null, null));
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
+    ItemSqlMapper<S, Q, R> mapper(Function<Q, StringPath> rootToOidPath) {
+        return new ItemSqlMapper<>(
+                ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null, null));
     }
 
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, StringPath> rootToOidPath,
-            Function<EntityPath<?>, StringPath> rootToNamePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath) {
-        return new ItemSqlMapper(ctx ->
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<S, Q, R> mapper(
+            Function<Q, StringPath> rootToOidPath,
+            Function<Q, StringPath> rootToNamePath,
+            Function<Q, NumberPath<Integer>> rootToTypePath) {
+        return new ItemSqlMapper<>(ctx ->
                 new AuditRefItemFilterProcessor(ctx, rootToOidPath, rootToNamePath, rootToTypePath));
     }
 
@@ -48,11 +50,11 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
     private final StringPath namePath;
     private final NumberPath<Integer> typePath;
 
-    private AuditRefItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, StringPath> rootToOidPath,
-            Function<EntityPath<?>, StringPath> rootToNamePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath) {
+    private <S, Q extends FlexibleRelationalPathBase<R>, R> AuditRefItemFilterProcessor(
+            SqlQueryContext<S, Q, R> context,
+            Function<Q, StringPath> rootToOidPath,
+            Function<Q, StringPath> rootToNamePath,
+            Function<Q, NumberPath<Integer>> rootToTypePath) {
         super(context);
         this.oidPath = rootToOidPath.apply(context.path());
         this.namePath = rootToNamePath != null ? rootToNamePath.apply(context.path()) : null;

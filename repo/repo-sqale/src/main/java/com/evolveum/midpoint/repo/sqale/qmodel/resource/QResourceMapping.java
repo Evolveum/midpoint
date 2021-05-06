@@ -8,9 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -18,29 +21,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Mapping between {@link QResource} and {@link ResourceType}.
  */
-public class QResourceMapping
-        extends QObjectMapping<ResourceType, QResource, MResource> {
+public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MResource> {
 
     public static final String DEFAULT_ALIAS_NAME = "res";
 
-    public static final QResourceMapping INSTANCE = new QResourceMapping();
+    public static QResourceMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QResourceMapping(repositoryContext);
+    }
 
-    private QResourceMapping() {
-        super(QResource.TABLE_NAME, DEFAULT_ALIAS_NAME, ResourceType.class, QResource.class);
+    private QResourceMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QResource.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ResourceType.class, QResource.class, repositoryContext);
 
         addNestedMapping(F_BUSINESS, ResourceBusinessConfigurationType.class)
                 .addItemMapping(ResourceBusinessConfigurationType.F_ADMINISTRATIVE_STATE,
-                        enumMapper(path(q -> q.businessAdministrativeState)))
+                        enumMapper(q -> q.businessAdministrativeState))
                 .addRefMapping(ResourceBusinessConfigurationType.F_APPROVER_REF,
-                        QObjectReferenceMapping.INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER);
+                        QObjectReferenceMapping.initForResourceBusinessConfigurationApprover(
+                                repositoryContext));
+
         addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
-                        enumMapper(
-                                path(q -> q.operationalStateLastAvailabilityStatus)));
+                        enumMapper(q -> q.operationalStateLastAvailabilityStatus));
+
         addItemMapping(F_CONNECTOR_REF, refMapper(
-                path(q -> q.connectorRefTargetOid),
-                path(q -> q.connectorRefTargetType),
-                path(q -> q.connectorRefRelationId)));
+                q -> q.connectorRefTargetOid,
+                q -> q.connectorRefTargetType,
+                q -> q.connectorRefRelationId));
     }
 
     @Override
@@ -49,12 +56,44 @@ public class QResourceMapping
     }
 
     @Override
-    public ResourceSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ResourceSqlTransformer(transformerSupport, this);
+    public MResource newRowObject() {
+        return new MResource();
     }
 
     @Override
-    public MResource newRowObject() {
-        return new MResource();
+    public @NotNull MResource toRowObjectWithoutFullObject(
+            ResourceType schemaObject, JdbcSession jdbcSession) {
+        MResource row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        ResourceBusinessConfigurationType business = schemaObject.getBusiness();
+        if (business != null) {
+            row.businessAdministrativeState = business.getAdministrativeState();
+        }
+
+        OperationalStateType operationalState = schemaObject.getOperationalState();
+        if (operationalState != null) {
+            row.operationalStateLastAvailabilityStatus =
+                    operationalState.getLastAvailabilityStatus();
+        }
+
+        setReference(schemaObject.getConnectorRef(),
+                o -> row.connectorRefTargetOid = o,
+                t -> row.connectorRefTargetType = t,
+                r -> row.connectorRefRelationId = r);
+
+        return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(@NotNull MResource row,
+            @NotNull ResourceType schemaObject, @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        ResourceBusinessConfigurationType business = schemaObject.getBusiness();
+        if (business != null) {
+            storeRefs(row, business.getApproverRef(),
+                    QObjectReferenceMapping.getForResourceBusinessConfigurationApprover(),
+                    jdbcSession);
+        }
     }
 }

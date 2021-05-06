@@ -1,0 +1,65 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--
+Parameters:
+ - index
+ - oid
+ - resourceOid
+-->
+<role oid="$oid"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>technical-$index</name>
+
+#if($resourceOid != "")
+    <assignment>
+        <construction>
+            <resourceRef oid="$resourceOid" />
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </assignment>
+#end
+
+    <identifier>g-$index</identifier>
+
+#if($resourceOid != "")
+    <inducement>
+        <construction>
+            <resourceRef oid="$resourceOid" />
+            <attribute>
+                <ref>ri:membership</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>
+                                // assuming user -> business -> technical role assignment path
+                                assignmentPath[0].target.name + '-' + assignmentPath[1].target.name
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+    </inducement>
+#end
+
+</role>

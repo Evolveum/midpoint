@@ -730,7 +730,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /**
      * Modify account not found => reaction: Delete account
      * <p>
-     * no assignemnt - only linkRef to non existent account
+     * no assignment - only linkRef to non existent account
      */
     @Test
     public void test140ModifyObjectNotFoundLinkedAccount() throws Exception {
@@ -790,7 +790,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /**
      * Modify account not found => reaction: Re-create account, apply changes.
      * <p>
-     * assignemt with non-existent account
+     * assignment with non-existent account
      */
     @Test
     public void test142ModifyObjectNotFoundAssignedAccount() throws Exception {

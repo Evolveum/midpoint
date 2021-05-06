@@ -29,11 +29,11 @@ public class RepositoryPerformanceInformationPrinter extends AbstractStatisticsP
         super(information, options, iterations, seconds);
     }
 
-    public String print() {
+    @Override
+    public void prepare() {
         List<RepositoryOperationPerformanceInformationType> operations = getSortedOperations();
         createData(operations);
         createFormatting();
-        return applyFormatting();
     }
 
     @NotNull

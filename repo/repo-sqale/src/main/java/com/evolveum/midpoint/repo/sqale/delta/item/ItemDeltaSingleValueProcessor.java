@@ -10,21 +10,22 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 /**
  * Applies single item delta value to an item.
  * This class implements {@link #setRealValues} (for multiple values) and requires
  * {@link #setValue} (for a single value) to be implemented by the subclasses.
+ *
+ * This hierarchy branch should not need {@link #addRealValues} and {@link #deleteRealValues},
+ * so it's not overridden and throws {@link UnsupportedOperationException}.
  */
-public abstract class ItemDeltaSingleValueProcessor<T> implements ItemDeltaValueProcessor<T> {
-
-    protected final SqaleUpdateContext<?, ?, ?> context;
+public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValueProcessor<T> {
 
     protected ItemDeltaSingleValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
-        this.context = context;
+        super(context);
     }
 
     @Override

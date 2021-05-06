@@ -13,76 +13,84 @@ import java.util.Collection;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QFocus} and {@link FocusType}.
+ *
+ * @param <S> schema type for the focus object
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
 public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
         extends QObjectMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    public static final QFocusMapping<FocusType, QFocus<MFocus>, MFocus> INSTANCE =
-            new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, QFocus.CLASS);
+    public static QFocusMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                FocusType.class, QFocus.CLASS,
+                repositoryContext);
+    }
 
     protected QFocusMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
-        super(tableName, defaultAliasName, schemaType, queryType);
+            @NotNull Class<Q> queryType,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
-        addItemMapping(F_COST_CENTER, stringMapper(path(q -> q.costCenter)));
-        addItemMapping(F_EMAIL_ADDRESS, stringMapper(path(q -> q.emailAddress)));
+        addItemMapping(F_COST_CENTER, stringMapper(q -> q.costCenter));
+        addItemMapping(F_EMAIL_ADDRESS, stringMapper(q -> q.emailAddress));
         // TODO byte[] mapping for F_JPEG_PHOTO -> q.photo
-        addItemMapping(F_LOCALE, stringMapper(path(q -> q.locale)));
+        addItemMapping(F_LOCALE, stringMapper(q -> q.locale));
         addItemMapping(F_LOCALITY, polyStringMapper(
-                path(q -> q.localityOrig), path(q -> q.localityNorm)));
-        addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(path(q -> q.preferredLanguage)));
-        addItemMapping(F_TIMEZONE, stringMapper(path(q -> q.timezone)));
-        addItemMapping(F_TELEPHONE_NUMBER, stringMapper(path(q -> q.telephoneNumber)));
+                q -> q.localityOrig, q -> q.localityNorm));
+        addItemMapping(F_PREFERRED_LANGUAGE, stringMapper(q -> q.preferredLanguage));
+        addItemMapping(F_TIMEZONE, stringMapper(q -> q.timezone));
+        addItemMapping(F_TELEPHONE_NUMBER, stringMapper(q -> q.telephoneNumber));
         // passwordModify/CreateTimestamps are just a bit deeper
         addNestedMapping(F_CREDENTIALS, CredentialsType.class)
                 .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
                 .addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
-                        timestampMapper(path(q -> q.passwordCreateTimestamp)))
+                        timestampMapper(q -> q.passwordCreateTimestamp))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
-                        timestampMapper(path(q -> q.passwordModifyTimestamp)));
+                        timestampMapper(q -> q.passwordModifyTimestamp));
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
-                        enumMapper(path(q -> q.administrativeStatus)))
+                        enumMapper(q -> q.administrativeStatus))
                 .addItemMapping(ActivationType.F_EFFECTIVE_STATUS,
-                        enumMapper(path(q -> q.effectiveStatus)))
+                        enumMapper(q -> q.effectiveStatus))
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,
-                        timestampMapper(path(q -> q.enableTimestamp)))
+                        timestampMapper(q -> q.enableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        timestampMapper(path(q -> q.disableTimestamp)))
+                        timestampMapper(q -> q.disableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_REASON,
-                        stringMapper(path(q -> q.disableReason)))
+                        stringMapper(q -> q.disableReason))
                 .addItemMapping(ActivationType.F_VALIDITY_STATUS,
-                        enumMapper(path(q -> q.validityStatus)))
+                        enumMapper(q -> q.validityStatus))
                 .addItemMapping(ActivationType.F_VALID_FROM,
-                        timestampMapper(path(q -> q.validFrom)))
+                        timestampMapper(q -> q.validFrom))
                 .addItemMapping(ActivationType.F_VALID_TO,
-                        timestampMapper(path(q -> q.validTo)))
+                        timestampMapper(q -> q.validTo))
                 .addItemMapping(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP,
-                        timestampMapper(path(q -> q.validityChangeTimestamp)))
+                        timestampMapper(q -> q.validityChangeTimestamp))
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
-                        timestampMapper(path(q -> q.archiveTimestamp)))
+                        timestampMapper(q -> q.archiveTimestamp))
                 .addItemMapping(ActivationType.F_LOCKOUT_STATUS,
-                        enumMapper(path(q -> q.lockoutStatus)));
+                        enumMapper(q -> q.lockoutStatus));
 
-        addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.INSTANCE_DELEGATED);
-        addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.INSTANCE_PERSONA);
-        addRefMapping(F_LINK_REF, QObjectReferenceMapping.INSTANCE_PROJECTION);
+        addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.initForPersona(repositoryContext));
+        addRefMapping(F_LINK_REF, QObjectReferenceMapping.initForProjection(repositoryContext));
     }
 
     @Override
@@ -99,14 +107,67 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    public FocusSqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new FocusSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public R newRowObject() {
         //noinspection unchecked
         return (R) new MFocus();
+    }
+
+    @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
+    @Override
+    public @NotNull R toRowObjectWithoutFullObject(S focus, JdbcSession jdbcSession) {
+        R row = super.toRowObjectWithoutFullObject(focus, jdbcSession);
+
+        row.costCenter = focus.getCostCenter();
+        row.emailAddress = focus.getEmailAddress();
+        row.photo = focus.getJpegPhoto();
+        row.locale = focus.getLocale();
+        setPolyString(focus.getLocality(), o -> row.localityOrig = o, n -> row.localityNorm = n);
+        row.preferredLanguage = focus.getPreferredLanguage();
+        row.telephoneNumber = focus.getTelephoneNumber();
+        row.timezone = focus.getTimezone();
+
+        // credential/password/metadata (sorry for nesting, but the gets may not be so cheap)
+        CredentialsType credentials = focus.getCredentials();
+        if (credentials != null) {
+            PasswordType password = credentials.getPassword();
+            if (password != null) {
+                MetadataType passwordMetadata = password.getMetadata();
+                if (passwordMetadata != null) {
+                    row.passwordCreateTimestamp =
+                            MiscUtil.asInstant(passwordMetadata.getCreateTimestamp());
+                    row.passwordModifyTimestamp =
+                            MiscUtil.asInstant(passwordMetadata.getModifyTimestamp());
+                }
+            }
+        }
+
+        // activation
+        ActivationType activation = focus.getActivation();
+        if (activation != null) {
+            row.administrativeStatus = activation.getAdministrativeStatus();
+            row.effectiveStatus = activation.getEffectiveStatus();
+            row.enableTimestamp = MiscUtil.asInstant(activation.getEnableTimestamp());
+            row.disableTimestamp = MiscUtil.asInstant(activation.getDisableTimestamp());
+            row.disableReason = activation.getDisableReason();
+            row.validityStatus = activation.getValidityStatus();
+            row.validFrom = MiscUtil.asInstant(activation.getValidFrom());
+            row.validTo = MiscUtil.asInstant(activation.getValidTo());
+            row.validityChangeTimestamp = MiscUtil.asInstant(activation.getValidityChangeTimestamp());
+            row.archiveTimestamp = MiscUtil.asInstant(activation.getArchiveTimestamp());
+            row.lockoutStatus = activation.getLockoutStatus();
+        }
+
+        return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        storeRefs(row, schemaObject.getLinkRef(),
+                QObjectReferenceMapping.getForProjection(), jdbcSession);
+        storeRefs(row, schemaObject.getPersonaRef(),
+                QObjectReferenceMapping.getForPersona(), jdbcSession);
     }
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 
 /**
@@ -24,12 +25,6 @@ public class MReference {
 
     @Override
     public String toString() {
-        return "MReference{" +
-                "ownerOid=" + ownerOid +
-                ", referenceType=" + referenceType +
-                ", targetOid=" + targetOid +
-                ", targetType=" + targetType +
-                ", relationId=" + relationId +
-                '}';
+        return SqaleUtils.toString(this);
     }
 }

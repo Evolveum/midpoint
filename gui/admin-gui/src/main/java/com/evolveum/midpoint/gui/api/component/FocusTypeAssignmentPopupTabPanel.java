@@ -113,7 +113,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
 
-        ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), getObjectType().getClassDefinition(),
+        ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignmentObject(), getObjectType().getClassDefinition(),
                 isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
         return getPrismContext().queryFactory().createQuery(filter);
     }
@@ -126,7 +126,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         return false;
     }
 
-    protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+    protected <O extends FocusType> PrismObject<O> getTargetedAssignmentObject() {
         PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null) {
             return null;

@@ -8,8 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
 /**
@@ -22,22 +26,25 @@ public class QAccessCertificationDefinitionMapping
 
     public static final String DEFAULT_ALIAS_NAME = "acd";
 
-    public static final QAccessCertificationDefinitionMapping INSTANCE =
-            new QAccessCertificationDefinitionMapping();
+    public static QAccessCertificationDefinitionMapping init(
+            @NotNull SqaleRepoContext repositoryContext) {
+        return new QAccessCertificationDefinitionMapping(repositoryContext);
+    }
 
-    private QAccessCertificationDefinitionMapping() {
+    private QAccessCertificationDefinitionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QAccessCertificationDefinition.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class);
+                AccessCertificationDefinitionType.class, QAccessCertificationDefinition.class,
+                repositoryContext);
 
-        addItemMapping(F_HANDLER_URI, uriMapper(path(q -> q.handlerUriId)));
+        addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(F_LAST_CAMPAIGN_STARTED_TIMESTAMP,
-                timestampMapper(path(q -> q.lastCampaignStartedTimestamp)));
+                timestampMapper(q -> q.lastCampaignStartedTimestamp));
         addItemMapping(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP,
-                timestampMapper(path(q -> q.lastCampaignClosedTimestamp)));
+                timestampMapper(q -> q.lastCampaignClosedTimestamp));
         addItemMapping(F_OWNER_REF, refMapper(
-                path(q -> q.ownerRefTargetOid),
-                path(q -> q.ownerRefTargetType),
-                path(q -> q.ownerRefRelationId)));
+                q -> q.ownerRefTargetOid,
+                q -> q.ownerRefTargetType,
+                q -> q.ownerRefRelationId));
     }
 
     @Override
@@ -46,12 +53,26 @@ public class QAccessCertificationDefinitionMapping
     }
 
     @Override
-    public AccessCertificationDefinitionSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new AccessCertificationDefinitionSqlTransformer(transformerSupport, this);
+    public MAccessCertificationDefinition newRowObject() {
+        return new MAccessCertificationDefinition();
     }
 
     @Override
-    public MAccessCertificationDefinition newRowObject() {
-        return new MAccessCertificationDefinition();
+    public @NotNull MAccessCertificationDefinition toRowObjectWithoutFullObject(
+            AccessCertificationDefinitionType schemaObject, JdbcSession jdbcSession) {
+        MAccessCertificationDefinition row =
+                super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
+        row.lastCampaignStartedTimestamp =
+                MiscUtil.asInstant(schemaObject.getLastCampaignStartedTimestamp());
+        row.lastCampaignClosedTimestamp =
+                MiscUtil.asInstant(schemaObject.getLastCampaignClosedTimestamp());
+        setReference(schemaObject.getOwnerRef(),
+                o -> row.ownerRefTargetOid = o,
+                t -> row.ownerRefTargetType = t,
+                r -> row.ownerRefRelationId = r);
+
+        return row;
     }
 }

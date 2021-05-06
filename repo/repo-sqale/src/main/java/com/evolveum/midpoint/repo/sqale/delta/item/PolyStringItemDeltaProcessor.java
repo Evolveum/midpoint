@@ -8,37 +8,28 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.StringPath;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<PolyString> {
 
     private final StringPath origPath;
     private final StringPath normPath;
 
-    public PolyStringItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
-            Function<EntityPath<?>, StringPath> origMapping,
-            Function<EntityPath<?>, StringPath> normMapping) {
+    /**
+     * @param <Q> entity query type from which the attribute is resolved
+     * @param <R> row type related to {@link Q}
+     */
+    public <Q extends FlexibleRelationalPathBase<R>, R> PolyStringItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context,
+            Function<Q, StringPath> origMapping,
+            Function<Q, StringPath> normMapping) {
         super(context);
         this.origPath = origMapping.apply(context.path());
         this.normPath = normMapping.apply(context.path());
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
-        PolyString polyString = getAnyValue(modification);
-        if (modification.isDelete() || polyString == null) {
-            delete();
-        } else {
-            setValue(polyString);
-        }
     }
 
     @Override
