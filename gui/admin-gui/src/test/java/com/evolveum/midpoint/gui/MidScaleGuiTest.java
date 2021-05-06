@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -47,7 +49,7 @@ import java.io.File;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
+public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements PerformanceTestMixin {
 
     private static final String TEST_DIR = "./src/test/resources/midScale";
 
@@ -57,17 +59,22 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     private static final int REPETITION_COUNT = 10;
 
     @Autowired TestQueryListener queryListener;
+    protected PrismObject<UserType> userAdministrator;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
-        initResult.computeStatusIfUnknown();
-        if (!initResult.isSuccess()) {
-            System.out.println("init result:\n" + initResult);
-        }
-        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
+        modelService.postInit(initResult);
+        userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
+        login(userAdministrator);
+
+//        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
+//        initResult.computeStatusIfUnknown();
+//        if (!initResult.isSuccess()) {
+//            System.out.println("init result:\n" + initResult);
+//        }
+//        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
 
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
@@ -191,9 +198,8 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
             Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
             try (Split ignored = stopwatch.start()) {
-                clickOnTab(1, PageUser.class);
                 queryListener.start();
-
+                clickOnTab(1, PageUser.class);
             }
         }
 
