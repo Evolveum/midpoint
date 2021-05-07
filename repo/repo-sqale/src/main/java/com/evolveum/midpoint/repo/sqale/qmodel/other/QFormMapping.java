@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 
 /**
@@ -19,23 +20,18 @@ public class QFormMapping extends QObjectMapping<FormType, QForm, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "form";
 
-    public static final QFormMapping INSTANCE = new QFormMapping();
+    public static QFormMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QFormMapping(repositoryContext);
+    }
 
-    private QFormMapping() {
+    private QFormMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QForm.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                FormType.class, QForm.class);
+                FormType.class, QForm.class, repositoryContext);
     }
 
     @Override
     protected QForm newAliasInstance(String alias) {
         return new QForm(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<FormType, QForm, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

@@ -31,11 +31,10 @@ public class SynchronizationInformationPrinter extends AbstractStatisticsPrinter
         super(information, options, null, null);
     }
 
-    public String print() {
+    @Override
+    public void prepare() {
         createData();
         createFormatting();
-
-        return applyFormatting() + "\n";
     }
 
     private void createData() {

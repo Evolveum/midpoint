@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.statistics;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 /**
@@ -17,7 +19,20 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 public abstract class AbstractStatisticsPrinter<T> {
 
     public enum Format {
-        TEXT, CSV
+
+        TEXT(AsciiTableFormatting::new),
+        CSV(CsvFormatting::new),
+        RAW(RawFormatting::new);
+
+        @NotNull private final Supplier<Formatting> formattingSupplier;
+
+        Format(@NotNull Supplier<Formatting> formattingSupplier) {
+            this.formattingSupplier = formattingSupplier;
+        }
+
+        Formatting createFormatting() {
+            return formattingSupplier.get();
+        }
     }
 
     public enum SortBy {
@@ -60,7 +75,7 @@ public abstract class AbstractStatisticsPrinter<T> {
         this.seconds = seconds;
     }
 
-    protected void initData() {
+    void initData() {
         if (data == null) {
             data = new Data();
         } else {
@@ -68,23 +83,22 @@ public abstract class AbstractStatisticsPrinter<T> {
         }
     }
 
-    protected void initFormatting() {
+    void initFormatting() {
         if (formatting == null) {
-            if (isCsv()) {
-                formatting = new CsvFormatting();
-            } else {
-                formatting = new AsciiTableFormatting();
-            }
+            formatting = options.format.createFormatting();
         } else {
             throw new IllegalStateException("formatting already created");
         }
     }
 
-    protected boolean isCsv() {
-        return options.format == Format.CSV;
+    public String print() {
+        prepare();
+        return applyFormatting();
     }
 
-    protected String applyFormatting() {
+    public abstract void prepare();
+
+    String applyFormatting() {
         return formatting.apply(data);
     }
 
@@ -123,21 +137,21 @@ public abstract class AbstractStatisticsPrinter<T> {
         return n != null ? n : 0;
     }
 
-    protected <X> X nullIfFalse(boolean condition, X value) {
+    <X> X nullIfFalse(boolean condition, X value) {
         return condition ? value : null;
     }
 
     public static class Options {
-        final Format format;
-        final SortBy sortBy;
+        @NotNull final Format format;
+        @NotNull final SortBy sortBy;
 
         public Options() {
             this(null, null);
         }
 
         public Options(Format format, SortBy sortBy) {
-            this.format = format;
-            this.sortBy = sortBy;
+            this.format = format != null ? format : Format.TEXT;
+            this.sortBy = sortBy != null ? sortBy : SortBy.NAME;
         }
     }
 
@@ -146,18 +160,26 @@ public abstract class AbstractStatisticsPrinter<T> {
     }
 
     String formatInt() {
-        return isCsv() ? "%d" : "%,d";
+        return formatting.isNiceNumbersFormatting() ? "%,d" : "%d";
     }
 
     String formatFloat1() {
-        return isCsv() ? "%f" : "%,.1f";
+        return formatting.isNiceNumbersFormatting() ? "%,.1f" : "%f";
     }
 
     String formatPercent1() {
-        return isCsv() ? "%f%%" : "%.1f%%";
+        return formatting.isNiceNumbersFormatting() ? "%.1f%%" : "%f%%";
     }
 
     String formatPercent2() {
-        return isCsv() ? "%f%%" : "%.2f%%";
+        return formatting.isNiceNumbersFormatting() ? "%.2f%%" : "%f%%";
+    }
+
+    public Data getData() {
+        return data;
+    }
+
+    public Formatting getFormatting() {
+        return formatting;
     }
 }

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 /**
  * Marks mappings for {@link QOwnedBy} entities.
@@ -21,5 +21,5 @@ public interface QOwnedByMapping<S, R, OR> {
     /** Returns a row with foreign key fields referencing the provided owner row. */
     R newRowObject(OR ownerRow);
 
-    TransformerForOwnedBy<S, R, OR> createTransformer(SqlTransformerSupport transformerSupport);
+    R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession);
 }

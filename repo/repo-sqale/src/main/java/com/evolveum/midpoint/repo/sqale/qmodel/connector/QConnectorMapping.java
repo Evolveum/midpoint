@@ -8,8 +8,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 /**
@@ -20,10 +23,13 @@ public class QConnectorMapping
 
     public static final String DEFAULT_ALIAS_NAME = "con";
 
-    public static final QConnectorMapping INSTANCE = new QConnectorMapping();
+    public static QConnectorMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QConnectorMapping(repositoryContext);
+    }
 
-    private QConnectorMapping() {
-        super(QConnector.TABLE_NAME, DEFAULT_ALIAS_NAME, ConnectorType.class, QConnector.class);
+    private QConnectorMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QConnector.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ConnectorType.class, QConnector.class, repositoryContext);
 
         addItemMapping(F_CONNECTOR_BUNDLE, stringMapper(q -> q.connectorBundle));
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(q -> q.connectorType));
@@ -43,12 +49,27 @@ public class QConnectorMapping
     }
 
     @Override
-    public ConnectorSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ConnectorSqlTransformer(transformerSupport, this);
+    public MConnector newRowObject() {
+        return new MConnector();
     }
 
     @Override
-    public MConnector newRowObject() {
-        return new MConnector();
+    public @NotNull MConnector toRowObjectWithoutFullObject(
+            ConnectorType schemaObject, JdbcSession jdbcSession) {
+        MConnector row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.connectorBundle = schemaObject.getConnectorBundle();
+        row.connectorType = schemaObject.getConnectorType();
+        row.connectorVersion = schemaObject.getConnectorVersion();
+        row.frameworkId = processCacheableUri(schemaObject.getFramework());
+
+        setReference(schemaObject.getConnectorHostRef(),
+                o -> row.connectorHostRefTargetOid = o,
+                t -> row.connectorHostRefTargetType = t,
+                r -> row.connectorHostRefRelationId = r);
+
+        row.targetSystemTypes = arrayFor(schemaObject.getTargetSystemType());
+
+        return row;
     }
 }

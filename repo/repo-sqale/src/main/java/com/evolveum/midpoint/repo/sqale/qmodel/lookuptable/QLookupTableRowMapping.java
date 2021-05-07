@@ -8,8 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 /**
@@ -20,11 +26,22 @@ public class QLookupTableRowMapping
 
     public static final String DEFAULT_ALIAS_NAME = "ltr";
 
-    public static final QLookupTableRowMapping INSTANCE = new QLookupTableRowMapping();
+    private static QLookupTableRowMapping instance;
 
-    private QLookupTableRowMapping() {
+    public static QLookupTableRowMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QLookupTableRowMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    public static QLookupTableRowMapping get() {
+        return Objects.requireNonNull(instance);
+    }
+
+    private QLookupTableRowMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QLookupTableRow.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                LookupTableRowType.class, QLookupTableRow.class);
+                LookupTableRowType.class, QLookupTableRow.class, repositoryContext);
 
         addItemMapping(F_KEY, stringMapper(q -> q.key));
         addItemMapping(F_LABEL, polyStringMapper(
@@ -40,11 +57,6 @@ public class QLookupTableRowMapping
     }
 
     @Override
-    public LookupTableRowSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new LookupTableRowSqlTransformer(transformerSupport, this);
-    }
-
-    @Override
     public MLookupTableRow newRowObject() {
         return new MLookupTableRow();
     }
@@ -53,6 +65,20 @@ public class QLookupTableRowMapping
     public MLookupTableRow newRowObject(MLookupTable ownerRow) {
         MLookupTableRow row = newRowObject();
         row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    public MLookupTableRow insert(LookupTableRowType lookupTableRow,
+            MLookupTable ownerRow, JdbcSession jdbcSession) {
+
+        MLookupTableRow row = initRowObject(lookupTableRow, ownerRow);
+        row.key = lookupTableRow.getKey();
+        row.value = lookupTableRow.getValue();
+        setPolyString(lookupTableRow.getLabel(), o -> row.labelOrig = o, n -> row.labelNorm = n);
+        row.lastChangeTimestamp = MiscUtil.asInstant(lookupTableRow.getLastChangeTimestamp());
+
+        insert(row, jdbcSession);
         return row;
     }
 }

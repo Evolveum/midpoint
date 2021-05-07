@@ -8,8 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -20,10 +24,13 @@ public class QShadowMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sh";
 
-    public static final QShadowMapping INSTANCE = new QShadowMapping();
+    public static QShadowMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QShadowMapping(repositoryContext);
+    }
 
-    private QShadowMapping() {
-        super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME, ShadowType.class, QShadow.class);
+    private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                ShadowType.class, QShadow.class, repositoryContext);
 
         addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
         addItemMapping(F_RESOURCE_REF, refMapper(
@@ -51,13 +58,34 @@ public class QShadowMapping
     }
 
     @Override
-    public ShadowSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new ShadowSqlTransformer(transformerSupport, this);
+    public MShadow newRowObject() {
+        return new MShadow();
     }
 
     @Override
-    public MShadow newRowObject() {
-        return new MShadow();
+    public @NotNull MShadow toRowObjectWithoutFullObject(
+            ShadowType shadow, JdbcSession jdbcSession) {
+        MShadow row = super.toRowObjectWithoutFullObject(shadow, jdbcSession);
+
+        row.objectClassId = processCacheableUri(shadow.getObjectClass());
+        setReference(shadow.getResourceRef(),
+                o -> row.resourceRefTargetOid = o,
+                t -> row.resourceRefTargetType = t,
+                r -> row.resourceRefRelationId = r);
+        row.intent = shadow.getIntent();
+        row.kind = shadow.getKind();
+//        row.attemptNumber = shadow.att; TODO not set in RShadow, probably just with deltas? Where does it come from?
+        row.dead = shadow.isDead();
+        row.exist = shadow.isExists();
+        row.fullSynchronizationTimestamp =
+                MiscUtil.asInstant(shadow.getFullSynchronizationTimestamp());
+        row.pendingOperationCount = shadow.getPendingOperation().size();
+        row.primaryIdentifierValue = shadow.getPrimaryIdentifierValue();
+        row.synchronizationSituation = shadow.getSynchronizationSituation();
+        row.synchronizationTimestamp = MiscUtil.asInstant(shadow.getSynchronizationTimestamp());
+
+        // TODO extension attributes
+        //  copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
+        return row;
     }
 }

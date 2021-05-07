@@ -36,7 +36,7 @@ public class TestMonitor {
      * Name of a system property that specifies file name prefix for report.
      * If system property is null, report is dumped to standard output.
      * Specified file name prefix can be absolute or relative from working directory,
-     * e.g. {@code target/perf-report}.
+     * e.g. `target/perf-report`.
      */
     public static final String PERF_REPORT_PREFIX_PROPERTY_NAME = "mp.perf.report.prefix";
 
@@ -48,15 +48,16 @@ public class TestMonitor {
 
     /**
      * Collection of report sections that will be formatted using {@link #dumpReport(String)}.
-     * which can be extended in two ways:
-     * <ul>
-     * <li>calling {@link #addReportSection(String)} and then filling the </li>
-     * </ul>
+     * This can be extended in one of these ways:
+     *
+     * * Directly by using {@link #addReportSection(String)} and then filling the returned
+     * {@link TestReportSection}.
+     * * Using {@link #addReportCallback(ReportCallback)} which can be registered beforehand.
      */
     private final List<TestReportSection> reportSections = new ArrayList<>();
 
     /**
-     *
+     * Callbacks that are called during the report dump, see {@link #addReportCallback)}.
      */
     private final List<ReportCallback> reportCallbacks = new ArrayList<>();
 
@@ -95,6 +96,12 @@ public class TestMonitor {
         return stopwatch(name, description).start();
     }
 
+    /**
+     * This registers the callback that will be executed during the report dump and can be used
+     * to add new sections.
+     * The advantage of callback is that it can be prepared during the initialization of the test
+     * monitor without the need to change the point where the dump occurs (some `@After...` method).
+     */
     public TestMonitor addReportCallback(ReportCallback reportCallback) {
         reportCallbacks.add(reportCallback);
         return this;
@@ -122,7 +129,7 @@ public class TestMonitor {
                         new FileOutputStream(filename)))) {
             dumpReport(reportMetadata, out);
         } catch (FileNotFoundException e) {
-            System.out.println("Creating report file failed with: " + e.toString());
+            System.out.println("Creating report file failed with: " + e);
             System.out.println("Falling back to stdout dump:");
             dumpReportToStdout(reportMetadata);
         }

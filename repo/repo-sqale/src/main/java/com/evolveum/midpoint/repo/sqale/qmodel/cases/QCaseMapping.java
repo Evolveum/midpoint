@@ -8,9 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
@@ -21,11 +22,13 @@ public class QCaseMapping
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
 
-    public static final QCaseMapping INSTANCE = new QCaseMapping();
+    public static QCaseMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QCaseMapping(repositoryContext);
+    }
 
-    private QCaseMapping() {
+    private QCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCase.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                CaseType.class, QCase.class);
+                CaseType.class, QCase.class, repositoryContext);
 
         addItemMapping(F_STATE, stringMapper(q -> q.state));
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
@@ -53,14 +56,9 @@ public class QCaseMapping
     }
 
     @Override
-    public ObjectSqlTransformer<CaseType, QCase, MCase>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public MCase newRowObject() {
         return new MCase();
     }
+
+    // TODO transformation code
 }

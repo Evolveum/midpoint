@@ -57,7 +57,8 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     public void setValue(Referencable value) {
         context.set(oidPath, UUID.fromString(value.getOid()));
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));
-        context.set(relationIdPath, context.processCacheableRelation(value.getRelation()));
+        context.set(relationIdPath,
+                context.repositoryContext().processCacheableRelation(value.getRelation()));
     }
 
     @Override

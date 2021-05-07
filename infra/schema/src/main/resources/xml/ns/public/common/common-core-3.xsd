@@ -141,7 +141,7 @@
                     that each object must have to live in our system (identifier, name).
                 </p>
                 <p>
-                    All objects are identified by ﻿OID﻿﻿. The OID is an immutable identifier
+                    All objects are identified by OID. The OID is an immutable identifier
                     (usually UUID). Except the OID all the objects have human-readable name.
                     The name is usually unique for each object type, but this is not a
                     strict requirement.
@@ -7486,7 +7486,7 @@
                         When set to true, midPoint will try to avoid adding attribute values that are already
                         there and remove values that are not there. Some resources do not tolerate such operations
                         and they respond with errors. However midPoint cannot rely on transactions. MidPoint's
-                        ﻿lock-free relativistic model﻿﻿ provides the necessary consistency, occasional redundant
+                        lock-free relativistic model provides the necessary consistency, occasional redundant
                         additions or deletions may happen. If this option is turned on then midPoint will read
                         the data from resource right before the operation and filter our any redundant changes.
                         This requires additional operation and it increases the risk of inconsistencies. However
