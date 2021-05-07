@@ -16,13 +16,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 
 /**
- * Update context for owned containers stored in tables.
+ * Update context for multi-value containers stored in separate table.
  * This can be owned by the root object or another container.
- * TODO - this is theory, before implementation:
- * Updates are collected as the modifications are processed and then executed by the root context.
- * Inserts are executed immediately to allow nested inserts (e.g. container inside the container).
  *
- * @param <S> schema type of the object stored in the owned (child) table
+ * @param <S> schema type of the container stored in the owned table
  * @param <Q> type of entity path for the owned (child) table
  * @param <R> row type related to the {@link Q}
  * @param <OR> owner row type

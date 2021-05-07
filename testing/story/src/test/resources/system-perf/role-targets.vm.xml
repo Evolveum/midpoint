@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="3b65aad7-7d6b-412e-bfc7-2cee44d22c32"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>targets</name>
+
+#foreach($oid in $oidList)
+    <inducement>
+        <construction>
+            <resourceRef oid="$oid" />
+        </construction>
+    </inducement>
+#end
+</role>

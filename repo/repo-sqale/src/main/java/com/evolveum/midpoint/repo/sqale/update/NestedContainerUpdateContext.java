@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Update context for nested containers stored in the same table used by the parent context.
  *
- * @param <S> schema type of the object mapped by nested mapping
+ * @param <S> schema type of the container mapped by the nested mapping
  * @param <Q> entity query type that holds the data for the mapped attributes
  * @param <R> row type related to the {@link Q}
  */

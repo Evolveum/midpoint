@@ -8,20 +8,21 @@ package com.evolveum.axiom.concepts;
 
 public abstract class AbstractLazy<T> {
 
-    private Object value;
+    private volatile Object value;
 
     AbstractLazy(Object supplier) {
         value = supplier;
     }
 
     T unwrap() {
-        if (value instanceof Lazy.Supplier<?>) {
+        Object val = this.value;
+        if (val instanceof Lazy.Supplier<?>) {
             //noinspection unchecked
-            value = ((Lazy.Supplier<T>) value).get();
+            this.value = ((Lazy.Supplier<T>) val).get();
             return unwrap();
         }
         //noinspection unchecked
-        return (T) value;
+        return (T) val;
     }
 
     @Override

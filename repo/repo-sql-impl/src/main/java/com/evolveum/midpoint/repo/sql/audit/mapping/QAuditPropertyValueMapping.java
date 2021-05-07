@@ -8,24 +8,37 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue.TABLE_NAME;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 
 /**
  * Mapping for {@link QAuditPropertyValue}.
  */
 public class QAuditPropertyValueMapping
-        extends QueryTableMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
+        extends AuditTableMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
 
     public static final String DEFAULT_ALIAS_NAME = "apv";
 
-    public static final QAuditPropertyValueMapping INSTANCE = new QAuditPropertyValueMapping();
+    private static QAuditPropertyValueMapping instance;
 
-    private QAuditPropertyValueMapping() {
+    public static QAuditPropertyValueMapping init(@NotNull SqlRepoContext repositoryContext) {
+        instance = new QAuditPropertyValueMapping(repositoryContext);
+        return instance;
+    }
+
+    public static QAuditPropertyValueMapping get() {
+        return Objects.requireNonNull(instance);
+    }
+
+    private QAuditPropertyValueMapping(@NotNull SqlRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordPropertyType.class, QAuditPropertyValue.class);
+                AuditEventRecordPropertyType.class, QAuditPropertyValue.class, repositoryContext);
     }
 
     @Override

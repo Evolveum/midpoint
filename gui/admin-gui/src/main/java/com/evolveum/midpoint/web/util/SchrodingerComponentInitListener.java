@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.util;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;
@@ -52,7 +54,11 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     }
 
     private void handleId(Component component) {
-        writeDataAttribute(component, ATTR_ID, component.getId());
+        if (component instanceof CaptchaPanel) {
+            writeDataAttribute(component, ATTR_ID, component.getId() + ((CaptchaPanel) component).getRandomText());
+        } else {
+            writeDataAttribute(component, ATTR_ID, component.getId());
+        }
     }
 
     private void writeDataAttribute(Component component, String key, String value) {

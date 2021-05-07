@@ -859,7 +859,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(1)
@@ -903,7 +903,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(3)
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -946,7 +946,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(2) // new added, previous three or so are gone
                 .anyMatch(refRowMatcher(refTargetOid, refRelation1))
@@ -1025,7 +1025,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
         List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(refs).hasSize(6)
                 .anyMatch(refRowMatcher(refTargetOid1, refRelation2))
@@ -1065,7 +1065,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted and deleted accordingly");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
@@ -1107,7 +1107,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(2)
@@ -1143,9 +1143,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QObjectReference<?> r = QObjectReferenceMapping.INSTANCE_OBJECT_CREATE_APPROVER.defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
-        r = QObjectReferenceMapping.INSTANCE_OBJECT_MODIFY_APPROVER.defaultAlias();
+        r = QObjectReferenceMapping.getForObjectModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
     // endregion
@@ -1661,7 +1661,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
@@ -1676,7 +1676,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("delta replacing single-value item inside assignment for user 1");
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -1755,7 +1755,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
@@ -1767,7 +1767,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         && aRow.resourceRefTargetOid.equals(resourceOid));
 
         QAssignmentReference ar =
-                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+                QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
         List<MAssignmentReference> refRows = select(ar, ar.ownerOid.eq(UUID.fromString(user1Oid))
                 .and(ar.assignmentCid.eq(row.containerIdSeq - 2)));
         assertThat(refRows).hasSize(2)
@@ -1781,7 +1781,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing item inside single assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         long assOrder49Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(49)).cid;
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -1825,7 +1825,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing multiple assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         long assOrder48Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(48)).cid;
         long assOrder50Cid = selectOne(a,
@@ -1876,12 +1876,51 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         // Approver references were removed from the only assignment that had them.
         QAssignmentReference ar =
-                QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER.defaultAlias();
+                QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
         assertThat(count(ar, ar.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
 
     @Test
-    public void test305AddingAssignmentWithNewPrefilledCid()
+    public void test305DeleteAssignmentByContent()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta deleting assignments without CID by equality for user 1");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .delete(new AssignmentType(prismContext).order(50))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and assignments with only order 50");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize(2)
+                .anyMatch(a -> a.getOrder().equals(47))
+                // this one had order AND target ref, so it's no match
+                .anyMatch(ass -> ass.getOrder() == 50 && ass.getTargetRef() != null);
+
+        and("corresponding assignment row is deleted");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(2)
+                .anyMatch(aRow -> aRow.orderValue.equals(47))
+                .anyMatch(ass -> ass.orderValue == 50 && ass.targetRefTargetOid != null);
+    }
+
+    @Test
+    public void test310AddingAssignmentWithNewPrefilledCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1905,7 +1944,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(4)
+        assertThat(assignments).hasSize(3)
                 .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq));
 
         and("new assignment row is created");
@@ -1913,15 +1952,15 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(4)
+        assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
                         && aRow.orderValue == 1);
     }
 
     @Test
-    public void test306DeleteAssignmentByCid()
+    public void test311DeleteAssignmentByCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1944,7 +1983,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(3)
+        assertThat(assignments).hasSize(2)
                 .noneMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
@@ -1952,14 +1991,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(3)
+        assertThat(aRows).hasSize(2)
                 .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
     }
 
     @Test
-    public void test307AddingAssignmentWithUsedBytFreeCid()
+    public void test312AddingAssignmentWithUsedBytFreeCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -1984,7 +2023,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(4)
+        assertThat(assignments).hasSize(3)
                 .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
@@ -1992,9 +2031,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(4)
+        assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
                         && aRow.orderValue == 1);
     }
@@ -2002,7 +2041,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
 
     @Test
-    public void test309DeleteAllAssignments()
+    public void test319DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2030,7 +2069,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.INSTANCE.defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
     // endregion

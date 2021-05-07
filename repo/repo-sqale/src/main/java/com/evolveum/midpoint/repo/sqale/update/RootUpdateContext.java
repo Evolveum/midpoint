@@ -14,16 +14,16 @@ import java.util.UUID;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.DelegatingItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -32,8 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * TODO
- * Adds execute that processes the modifications and finalizes the update of root entity.
+ * Root context of the update context tree, see {@link SqaleUpdateContext} for more information.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -43,20 +42,19 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         extends SqaleUpdateContext<S, Q, R> {
 
     private final S object;
-    protected final QueryTableMapping<S, Q, R> mapping;
+    protected final QObjectMapping<S, Q, R> mapping;
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
 
     private ContainerValueIdGenerator cidGenerator;
 
-    public RootUpdateContext(SqaleTransformerSupport transformerSupport,
+    public RootUpdateContext(SqaleRepoContext repositoryContext,
             JdbcSession jdbcSession, S object, R rootRow) {
-        super(transformerSupport, jdbcSession, rootRow);
+        super(repositoryContext, jdbcSession, rootRow);
 
         this.object = object;
-        mapping = transformerSupport.sqlRepoContext()
-                .getMappingBySchemaType(SqaleUtils.getClass(object));
+        mapping = repositoryContext.getMappingBySchemaType(SqaleUtils.getClass(object));
         rootPath = mapping.defaultAlias();
         objectVersion = objectVersionAsInt(object);
         // root context always updates, at least version and full object, so we can create it early
@@ -102,7 +100,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             }
         }
 
-        transformerSupport.normalizeAllRelations(prismObject);
+        repositoryContext().normalizeAllRelations(prismObject);
         finishExecution();
 
         return modifications;
@@ -111,9 +109,31 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     private void processModification(ItemDelta<?, ?> modification)
             throws RepositoryException, SchemaException {
         cidGenerator.processModification(modification);
+        resolveContainerIdsForValuesToDelete(modification);
         modification.applyTo(getPrismObject());
 
         new DelegatingItemDeltaProcessor(this).process(modification);
+    }
+
+    private void resolveContainerIdsForValuesToDelete(ItemDelta<?, ?> modification) {
+        if (!modification.isDelete()) {
+            return;
+        }
+
+        PrismContainer<Containerable> container =
+                getPrismObject().findContainer(modification.getPath());
+        if (container != null) {
+            for (PrismValue value : modification.getValuesToDelete()) {
+                //noinspection unchecked
+                PrismContainerValue<Containerable> pcv = (PrismContainerValue<Containerable>) value;
+                if (pcv.getId() == null) {
+                    PrismContainerValue<Containerable> existingValue = container.findValue(
+                            pcv, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+                    // We will set CID and use that for DB updates.
+                    pcv.setId(existingValue.getId());
+                }
+            }
+        }
     }
 
     /**
@@ -127,10 +147,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         update.set(rootPath.version, newVersion);
 
         update.set(rootPath.containerIdSeq, cidGenerator.lastUsedId() + 1);
-
-        ObjectSqlTransformer<S, Q, R> transformer =
-                (ObjectSqlTransformer<S, Q, R>) mapping.createTransformer(transformerSupport);
-        update.set(rootPath.fullObject, transformer.createFullObject(object));
+        update.set(rootPath.fullObject, mapping.createFullObject(object));
 
         long rows = update.execute();
         if (rows != 1) {

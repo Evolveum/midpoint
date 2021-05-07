@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -19,11 +22,13 @@ public class QUserMapping
 
     public static final String DEFAULT_ALIAS_NAME = "u";
 
-    public static final QUserMapping INSTANCE = new QUserMapping();
+    public static QUserMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QUserMapping(repositoryContext);
+    }
 
-    private QUserMapping() {
+    private QUserMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QUser.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                UserType.class, QUser.class);
+                UserType.class, QUser.class, repositoryContext);
 
         addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
                 q -> q.additionalNameOrig, q -> q.additionalNameNorm));
@@ -50,13 +55,33 @@ public class QUserMapping
     }
 
     @Override
-    public UserSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new UserSqlTransformer(transformerSupport, this);
+    public MUser newRowObject() {
+        return new MUser();
     }
 
     @Override
-    public MUser newRowObject() {
-        return new MUser();
+    public @NotNull MUser toRowObjectWithoutFullObject(
+            UserType user, JdbcSession jdbcSession) {
+        MUser row = super.toRowObjectWithoutFullObject(user, jdbcSession);
+
+        setPolyString(user.getAdditionalName(),
+                o -> row.additionalNameOrig = o, n -> row.additionalNameNorm = n);
+        row.employeeNumber = user.getEmployeeNumber();
+        setPolyString(user.getFamilyName(),
+                o -> row.familyNameOrig = o, n -> row.familyNameNorm = n);
+        setPolyString(user.getFullName(), o -> row.fullNameOrig = o, n -> row.fullNameNorm = n);
+        setPolyString(user.getGivenName(), o -> row.givenNameOrig = o, n -> row.givenNameNorm = n);
+        setPolyString(user.getHonorificPrefix(),
+                o -> row.honorificPrefixOrig = o, n -> row.honorificPrefixNorm = n);
+        setPolyString(user.getHonorificSuffix(),
+                o -> row.honorificSuffixOrig = o, n -> row.honorificSuffixNorm = n);
+        setPolyString(user.getNickName(), o -> row.nickNameOrig = o, n -> row.nickNameNorm = n);
+        setPolyString(user.getTitle(), o -> row.titleOrig = o, n -> row.titleNorm = n);
+
+        // TODO:
+        // user.getOrganizationalUnit() -> m_user_organizational_unit
+        // user.getOrganization() -> m_user_organization
+
+        return row;
     }
 }

@@ -54,9 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
- * WORK IN PROGRESS:
- * It will be PostgreSQL only or at least PG optimized with generic SQL support for other unsupported DB.
- * Possible Oracle support is in play.
+ * WORK IN PROGRESS.
  */
 public class SqaleRepositoryService implements RepositoryService {
 
@@ -71,10 +69,9 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
-    private final SqaleRepoContext sqlRepoContext;
+    private final SqaleRepoContext repositoryContext;
     private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqaleTransformerSupport transformerSupport;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
     // TODO: see comment in the SystemConfigurationChangeDispatcherImpl for related issues
@@ -86,17 +83,16 @@ public class SqaleRepositoryService implements RepositoryService {
     private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     public SqaleRepositoryService(
-            SqaleRepoContext sqlRepoContext,
+            SqaleRepoContext repositoryContext,
             SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
-        this.sqlRepoContext = sqlRepoContext;
+        this.repositoryContext = repositoryContext;
         this.schemaService = schemaService;
-        this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerSupport = new SqaleTransformerSupport(schemaService, sqlRepoContext);
+        this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
-        JdbcRepositoryConfiguration config = sqlRepoContext.getJdbcRepositoryConfiguration();
+        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
         performanceMonitor = new SqlPerformanceMonitorImpl(
                 config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
@@ -125,7 +121,7 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             PrismObject<T> object;
             try (JdbcSession jdbcSession =
-                    sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+                    repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
                 //noinspection unchecked
                 object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
                         .asPrismObject();
@@ -171,10 +167,10 @@ public class SqaleRepositoryService implements RepositoryService {
             throws SchemaException, ObjectNotFoundException {
 
         SqaleTableMapping<S, QObject<MObject>, MObject> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(schemaType);
+                repositoryContext.getMappingBySchemaType(schemaType);
         QObject<MObject> root = rootMapping.defaultAlias();
 
-        Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
+        Tuple result = repositoryContext.newQuery(jdbcSession.connection())
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
                 .where(root.oid.eq(oid))
@@ -184,8 +180,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        return rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, options);
+        return rootMapping.toSchemaObject(result, root, options);
     }
 
     @Override
@@ -258,7 +253,7 @@ public class SqaleRepositoryService implements RepositoryService {
             // TODO use executeAttempts
 
             String oid = new AddObjectOperation<>(object, options, operationResult)
-                    .execute(transformerSupport);
+                    .execute(repositoryContext);
             invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
             return oid;
             /*
@@ -359,7 +354,7 @@ public class SqaleRepositoryService implements RepositoryService {
             logTraceModifications(modifications);
 
             // TODO: THIS is real start of modifyObjectAttempt
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
                 RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                         prepareUpdateContext(jdbcSession, type, oidUuid);
                 PrismObject<T> prismObject = updateContext.getPrismObject();
@@ -402,10 +397,10 @@ public class SqaleRepositoryService implements RepositoryService {
             throws SchemaException, ObjectNotFoundException {
 
         SqaleTableMapping<S, QObject<R>, R> rootMapping =
-                sqlRepoContext.getMappingBySchemaType(schemaType);
+                repositoryContext.getMappingBySchemaType(schemaType);
         QObject<R> root = rootMapping.defaultAlias();
 
-        Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
+        Tuple result = repositoryContext.newQuery(jdbcSession.connection())
                 .select(root.oid, root.fullObject, root.containerIdSeq)
                 .from(root)
                 .where(root.oid.eq(oid))
@@ -416,8 +411,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.createTransformer(transformerSupport)
-                .toSchemaObject(result, root, Collections.emptyList());
+        S object = rootMapping.toSchemaObject(result, root, Collections.emptyList());
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
@@ -426,7 +420,7 @@ public class SqaleRepositoryService implements RepositoryService {
         rootRow.objectType = MObjectType.fromSchemaType(object.getClass());
         // we don't care about full object in row
 
-        return new RootUpdateContext<>(transformerSupport, jdbcSession, object, rootRow);
+        return new RootUpdateContext<>(repositoryContext, jdbcSession, object, rootRow);
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -463,7 +457,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("oid", oid)
                 .build();
         try {
-            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
                 DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
                 invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
 
@@ -484,8 +478,7 @@ public class SqaleRepositoryService implements RepositoryService {
     DeleteObjectResult deleteObjectAttempt(Class<T> type, UUID oid, JdbcSession jdbcSession)
             throws ObjectNotFoundException {
 
-        QueryTableMapping<T, Q, R> mapping =
-                transformerSupport.sqlRepoContext().getMappingBySchemaType(type);
+        QueryTableMapping<T, Q, R> mapping = repositoryContext.getMappingBySchemaType(type);
         Q entityPath = mapping.defaultAlias();
         byte[] fullObject = jdbcSession.newQuery()
                 .select(entityPath.fullObject)
@@ -522,7 +515,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, repositoryContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -550,7 +543,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, repositoryContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             // TODO see the commented code from old repo lower, problems for each object must be caught
@@ -569,7 +562,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     /*
     TODO from ObjectRetriever, how to do this per-object Throwable catch + record result?
-     should we smuggle the OperationResult all the way to the transformer call?
+     should we smuggle the OperationResult all the way to the mapping call?
     @NotNull
     private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(
             List<T> objects, Class<T> type,
@@ -633,7 +626,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, transformerSupport, sqlRepoContext);
+            var queryContext = SqaleQueryContext.from(type, repositoryContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
             return result;
@@ -838,7 +831,7 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, result,
-                sqlRepoContext.getJdbcRepositoryConfiguration().isFatalException(ex));
+                repositoryContext.getJdbcRepositoryConfiguration().isFatalException(ex));
 
         return ex instanceof SystemException
                 ? (SystemException) ex

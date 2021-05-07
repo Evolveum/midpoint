@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
@@ -21,11 +24,14 @@ public class QAssignmentHolderMapping extends QObjectMapping<
 
     public static final String DEFAULT_ALIAS_NAME = "ah";
 
-    public static final QAssignmentHolderMapping INSTANCE = new QAssignmentHolderMapping();
+    public static QAssignmentHolderMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QAssignmentHolderMapping(repositoryContext);
+    }
 
-    protected QAssignmentHolderMapping() {
+    protected QAssignmentHolderMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AssignmentHolderType.class, QAssignmentHolder.class);
+                AssignmentHolderType.class, QAssignmentHolder.class,
+                repositoryContext);
     }
 
     public static class MAssignmentHolder extends MObject {

@@ -8,17 +8,15 @@ package com.evolveum.midpoint.repo.sqale.update;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.TransformerForOwnedBy;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -61,7 +59,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     protected final Trace logger = TraceManager.getTrace(getClass());
 
-    protected final SqaleTransformerSupport transformerSupport;
+    private final SqaleRepoContext repositoryContext;
     protected final JdbcSession jdbcSession;
     protected final R row;
 
@@ -79,10 +77,10 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
 
     public SqaleUpdateContext(
-            SqaleTransformerSupport sqlTransformerSupport,
+            SqaleRepoContext repositoryContext,
             JdbcSession jdbcSession,
             R row) {
-        this.transformerSupport = sqlTransformerSupport;
+        this.repositoryContext = repositoryContext;
         this.jdbcSession = jdbcSession;
         this.row = row;
 
@@ -94,21 +92,13 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
             R row) {
         this.parentContext = parentContext;
         // registering this with parent context must happen outside of constructor!
-        this.transformerSupport = parentContext.transformerSupport;
+        this.repositoryContext = parentContext.repositoryContext;
         this.jdbcSession = parentContext.jdbcSession();
         this.row = row;
     }
 
-    public SqaleTransformerSupport transformerSupport() {
-        return transformerSupport;
-    }
-
-    public Integer processCacheableRelation(QName relation) {
-        return transformerSupport.processCacheableRelation(relation);
-    }
-
-    public Integer processCacheableUri(String uri) {
-        return transformerSupport.processCacheableUri(uri);
+    public SqaleRepoContext repositoryContext() {
+        return repositoryContext;
     }
 
     public JdbcSession jdbcSession() {
@@ -127,9 +117,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     @SuppressWarnings("UnusedReturnValue")
     public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
-        TransformerForOwnedBy<TS, TR, R> transformer =
-                mapping.createTransformer(transformerSupport());
-        return transformer.insert(schemaObject, row, jdbcSession);
+        return mapping.insert(schemaObject, row, jdbcSession);
     }
 
     public SqaleUpdateContext<?, ?, ?> getSubcontext(ItemPath itemPath) {
