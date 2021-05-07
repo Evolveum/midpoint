@@ -65,10 +65,10 @@ public class OtherParameters {
         int number;
         String suffix;
 
-        if (users > 1_000_000 && users % 1_000_000 == 0) {
+        if (users >= 1_000_000 && users % 1_000_000 == 0) {
             number = users / 1_000_000;
             suffix = "M";
-        } else if (users > 1_000 && users % 1_000 == 0) {
+        } else if (users >= 1_000 && users % 1_000 == 0) {
             number = users / 1_000;
             suffix = "k";
         } else {
