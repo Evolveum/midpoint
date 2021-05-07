@@ -552,8 +552,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         // Why so many operations? But this is a very special case. As long as we do not see significant
         // increase of operation count in normal scenarios we are quite OK.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 8);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 5);
     }
 
     /**
