@@ -10,6 +10,9 @@
 -- FK foreign key, IDX for index, KEY for unique index.
 -- TR is suffix for triggers.
 -- Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+--
+-- Other notes:
+-- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 
@@ -199,7 +202,7 @@ INSERT INTO m_uri (id, uri)
 
 -- region for abstract tables m_object/container/reference
 -- Purely abstract table (no entries are allowed). Represents ObjectType+ArchetypeHolderType.
--- See https://wiki.evolveum.com/display/midPoint/ObjectType
+-- See https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/objecttype/
 -- Following is recommended for each concrete table (see m_resource for example):
 -- 1) override OID like this (PK+FK): oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
 -- 2) define object type class (change value): objectType ObjectType GENERATED ALWAYS AS ('XY') STORED,
@@ -208,8 +211,6 @@ INSERT INTO m_uri (id, uri)
 -- 5) the rest varies on the concrete table, other indexes or constraints, etc.
 -- 6) any required FK must be created on the concrete table, even for inherited columns
 
--- TODO EXPERIMENT: consider TEXT instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
---  Even VARCHAR without length can be used.
 CREATE TABLE m_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
     oid UUID NOT NULL,
@@ -274,6 +275,7 @@ CREATE TABLE m_container (
 CREATE TABLE m_reference (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     -- reference_type will be overridden with GENERATED value in concrete table
+    owner_type ObjectType NOT NULL,
     referenceType ReferenceType NOT NULL,
     targetOid UUID NOT NULL, -- soft-references m_object
     targetType ObjectType NOT NULL,
@@ -340,10 +342,12 @@ CREATE TABLE m_ref_object_parent_org (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
 
+    -- TODO wouldn't (owner_oid, targetOid, relation_id) perform better for typical queries?
     PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
     INHERITS (m_reference);
 
+-- TODO is this enough? Is target+owner+relation needed too?
 CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
     ON m_ref_object_parent_org (targetOid, relation_id);
 
@@ -361,7 +365,7 @@ CREATE INDEX m_ref_role_member_targetOid_relation_id_idx
 -- endregion
 
 -- region FOCUS related tables
--- Represents FocusType (Users, Roles, ...), see https://wiki.evolveum.com/display/midPoint/Focus+and+Projections
+-- Represents FocusType (Users, Roles, ...), see https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 -- extending m_object, but still abstract, hence DEFAULT for objectType and CHECK (false)
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
@@ -419,7 +423,7 @@ CREATE TABLE m_ref_projection (
 CREATE INDEX m_ref_projection_targetOid_relation_id_idx
     ON m_ref_projection (targetOid, relation_id);
 
--- Represents GenericObjectType, see https://wiki.evolveum.com/display/midPoint/Generic+Objects
+-- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED,
@@ -441,7 +445,7 @@ ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_name_norm_key UNIQU
 -- endregion
 
 -- region USER related tables
--- Represents UserType, see https://wiki.evolveum.com/display/midPoint/UserType
+-- Represents UserType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('USER') STORED,
@@ -496,7 +500,7 @@ CREATE TABLE m_user_organizational_unit (
 -- endregion
 
 -- region ROLE related tables
--- Represents AbstractRoleType, see https://wiki.evolveum.com/display/midPoint/Abstract+Role
+-- Represents AbstractRoleType, see https://docs.evolveum.com/midpoint/architecture/concepts/abstract-role/
 CREATE TABLE m_abstract_role (
     -- will be overridden with GENERATED value in concrete table
     objectType ObjectType NOT NULL,
@@ -511,7 +515,13 @@ CREATE TABLE m_abstract_role (
 )
     INHERITS (m_focus);
 
--- Represents RoleType, see https://wiki.evolveum.com/display/midPoint/RoleType
+/* TODO: add for sub-tables, role, org... all? how many services?
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
+CREATE INDEX iRequestable ON m_abstract_role (requestable);
+CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
+*/
+
+-- Represents RoleType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED,
@@ -563,6 +573,43 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
 
 CREATE INDEX m_archetype_name_orig_idx ON m_archetype (name_orig);
 ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_norm);
+-- endregion
+
+-- region Organization hierarchy support
+-- Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
+CREATE TABLE m_org (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ORG') STORED,
+    displayOrder INTEGER,
+    tenant BOOLEAN
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_org_oid_insert_tr BEFORE INSERT ON m_org
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_org_update_tr BEFORE UPDATE ON m_org
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_org_oid_delete_tr AFTER DELETE ON m_org
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_org_name_orig_idx ON m_org (name_orig);
+ALTER TABLE m_org ADD CONSTRAINT m_org_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
+
+/*
+CREATE TABLE m_org_closure (
+    ancestor_oid   UUID NOT NULL,
+    descendant_oid UUID NOT NULL,
+    val INTEGER, -- number of distinct paths
+    PRIMARY KEY (ancestor_oid, descendant_oid)
+);
+
+CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid);
+ALTER TABLE m_org_closure
+  ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
+ALTER TABLE m_org_closure
+  ADD CONSTRAINT fk_descendant FOREIGN KEY (descendant_oid) REFERENCES m_object;
+*/
 -- endregion
 
 -- region Access Certification object tables
@@ -1608,21 +1655,7 @@ CREATE TABLE m_object_ext_string (
   stringValue TEXT NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
-CREATE TABLE m_org_closure (
-  ancestor_oid   UUID NOT NULL,
-  descendant_oid UUID NOT NULL,
-  val            INTEGER,
-  PRIMARY KEY (ancestor_oid, descendant_oid)
-);
 
-CREATE TABLE m_org (
-  displayOrder INTEGER,
-  name_norm    TEXT,
-  name_orig    TEXT,
-  tenant       BOOLEAN,
-  oid          UUID NOT NULL,
-  PRIMARY KEY (oid)
-);
 CREATE INDEX iAExtensionBoolean
   ON m_assignment_ext_boolean (booleanValue);
 CREATE INDEX iAExtensionDate
@@ -1680,17 +1713,6 @@ CREATE INDEX iExtensionReference
   ON m_object_ext_reference (targetoid);
 CREATE INDEX iExtensionString
   ON m_object_ext_string (stringValue);
-CREATE INDEX iAncestor
-  ON m_org_closure (ancestor_oid);
-CREATE INDEX iDescendant
-  ON m_org_closure (descendant_oid);
-CREATE INDEX iDescendantAncestor
-  ON m_org_closure (descendant_oid, ancestor_oid);
-CREATE INDEX iAbstractRoleIdentifier
-  ON m_abstract_role (identifier);
-CREATE INDEX iRequestable
-  ON m_abstract_role (requestable);
-CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
 CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iFocusAdministrative
@@ -1711,12 +1733,6 @@ CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
   ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
-CREATE INDEX iDisplayOrder
-  ON m_org (displayOrder);
-CREATE INDEX iOrgNameOrig
-  ON m_org (name_orig);
-ALTER TABLE m_org
-  ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
@@ -1789,22 +1805,12 @@ ALTER TABLE m_object_ext_string
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_org_closure
-  ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
-ALTER TABLE m_org_closure
-  ADD CONSTRAINT fk_descendant FOREIGN KEY (descendant_oid) REFERENCES m_object;
-ALTER TABLE m_org_org_type
-  ADD CONSTRAINT fk_org_org_type FOREIGN KEY (org_oid) REFERENCES m_org;
-ALTER TABLE m_user_employee_type
-  ADD CONSTRAINT fk_user_employee_type FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_user_organization
   ADD CONSTRAINT fk_user_organization FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_org
-  ADD CONSTRAINT fk_org FOREIGN KEY (oid) REFERENCES m_abstract_role;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);
@@ -1822,7 +1828,6 @@ CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID);
 CREATE INDEX iObjectExtPolyItemId ON M_OBJECT_EXT_POLY(ITEM_ID);
 CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID);
 CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID);
-CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
 
 -- Thanks to Patrick Lightbody for submitting this...
 --
