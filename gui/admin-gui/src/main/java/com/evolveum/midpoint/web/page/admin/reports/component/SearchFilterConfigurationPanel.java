@@ -122,6 +122,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
         WebMarkupContainer textFieldContainer = new WebMarkupContainer(ID_TEXT_DNS_CONTAINER);
         textFieldContainer.setOutputMarkupId(true);
+        textFieldContainer.add(new VisibleBehaviour(() -> FiledType.QUERY.equals(fieldType)));
         textFieldContainer.add(AttributeAppender.append("class", classGridModel));
         textFieldContainer.add(AttributeAppender.append("style", (IModel<?>) () -> {
             if (FiledType.QUERY.equals(fieldType)) {
