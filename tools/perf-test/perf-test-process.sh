@@ -31,11 +31,19 @@ if [ -z "${TGZFILE:-}" ]; then
   echo "Performance reports backed up to ${TGZFILE}"
 else
   echo "Importing ${TGZFILE} to DB"
-  BRANCH=$(basename $TGZFILE | cut -d- -f3)
-  # _ was likely / originally, see above
-  BRANCH="${BRANCH/_/\/}"
-  BUILD_NUMBER=$(basename $TGZFILE | cut -d- -f4)
-  GIT_COMMIT=$(basename $TGZFILE | cut -d- -f5 | cut -d. -f1)
+
+  # amount of dashes in the filename - to check if branch name contain the dash
+  delimcount=$(( $(echo ${TGZFILE} | wc -c) - $(echo ${TGZFILE} | tr -d - | wc -c) ))
+
+  # the option to not overwrite previously checked / set values
+  if [ -z ${TGZFILE_RAW:-} ]
+  then
+	BRANCH="$( basename ${TGZFILE} | cut -d- -f3-$(( ${delimcount} - 1 )) | sed "s-_-/-" )"
+	BUILD_NUMBER="$(basename ${TGZFILE} | cut -d- -f${delimcount} )"
+	GIT_COMMIT="$(basename ${TGZFILE} | cut -d- -f$(( ${delimcount} + 1 )) | sed "s-.tar.gz\$--")"
+  else
+	echo "The filename was not parsed for the variable value..."
+  fi
 fi
 
 # check for commit date in case the date is not already set
