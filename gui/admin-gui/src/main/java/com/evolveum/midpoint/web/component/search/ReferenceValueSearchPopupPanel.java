@@ -180,6 +180,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 getPageBase().showMainPopup(objectBrowserPanel, target);
             }
         };
+        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup() == null));
         midpointForm.add(selectObject);
     }
 

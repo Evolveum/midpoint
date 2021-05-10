@@ -1945,7 +1945,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
@@ -1957,44 +1957,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         }
         CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
 
-        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, prismContext, "collection filter", task, result);
-        if (filter == null) {
-            LOGGER.error("Couldn't find filter");
-            throw new ConfigurationException("Couldn't find filter");
-        }
-
-        ObjectQuery query = prismContext.queryFactory().createQuery();
-        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
-        query.setFilter(filter);
-
-        if (compiledCollection.getTargetClass(prismContext) == null) {
-            if (typeForFilter == null) {
-                LOGGER.error("Type of objects is null");
-                throw new ConfigurationException("Type of objects is null");
-            }
-            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
-        } else {
-            type = compiledCollection.getTargetClass(prismContext);
-        }
-
-        Collection<SelectorOptions<GetOperationOptions>> options;
-        if (compiledCollection.getOptions() == null) {
-            options = defaultOptions;
-        } else {
-            options = compiledCollection.getOptions();
-        }
         if (recordProgress) {
-            long count;
-            if (AuditEventRecordType.class.equals(type)) {
-                count = auditService.countObjects(query, options, result);
-            } else if (ObjectType.class.isAssignableFrom(type)) {
-                count = modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
-            } else {
-                count = modelService.countContainers(type, query, options, task, result);
-            }
-
+            long count = countObjectsFromCollectionByType(type, query, options, task, result);
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
@@ -2018,4 +1986,98 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    @Override
+    public List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<? extends Containerable> type = null;
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, usedPaging, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
+
+        if (AuditEventRecordType.class.equals(type)) {
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            return auditRecords.getList();
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, task, result);
+            List list = new ArrayList<Containerable>();
+            results.forEach(object -> list.add(object.asObjectable()));
+            return list;
+        } else {
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            return containers.getList();
+        }
+    }
+
+    @Override
+    public Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<? extends Containerable> type = null;
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
+        return countObjectsFromCollectionByType(type, query, options, task, result);
+    }
+
+    private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        if (AuditEventRecordType.class.equals(type)) {
+            return auditService.countObjects(query, options, result);
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            return modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
+        }
+        return modelService.countContainers(type, query, options, task, result);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> determineOptionsForSearch(CompiledObjectCollectionView compiledCollection, Collection<SelectorOptions<GetOperationOptions>> defaultOptions) {
+        if (compiledCollection.getOptions() == null) {
+            return defaultOptions;
+        }
+        return compiledCollection.getOptions();
+    }
+
+    private Class<? extends Containerable> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+        if (compiledCollection.getTargetClass(prismContext) == null) {
+            if (typeForFilter == null) {
+                LOGGER.error("Type of objects is null");
+                throw new ConfigurationException("Type of objects is null");
+            }
+            return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        return compiledCollection.getTargetClass(prismContext);
+
+    }
+
+    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables, ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+                expressionFactory, prismContext, "collection filter", task, result);
+        if (filter == null) {
+            LOGGER.error("Couldn't find filter");
+            throw new ConfigurationException("Couldn't find filter");
+        }
+
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
+        query.setFilter(filter);
+        return query;
+    }
 }

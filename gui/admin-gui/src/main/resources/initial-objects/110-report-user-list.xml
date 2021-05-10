@@ -154,6 +154,103 @@
             </display>
         </parameter>
         <view>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+            </column>
+            <column>
+                <name>fullNameColumn</name>
+                <path>fullName</path>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+            <column>
+                <name>activationColumn</name>
+                <path>activation/administrativeStatus</path>
+                <previousColumn>fullNameColumn</previousColumn>
+            </column>
+            <column>
+                <name>roleColumn</name>
+                <path>assignment</path>
+                <display>
+                    <label>Role</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                if (input != null){
+                                    roles = report.resolveRoles(input);
+                                    if (roles.isEmpty()) {
+                                        return null;
+                                    }
+                                    list = new ArrayList();
+                                    for (role in roles) {
+                                        list.add(role.getName());
+                                    }
+                                    return list;
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+                <previousColumn>activationColumn</previousColumn>
+            </column>
+            <column>
+                <name>orgColumn</name>
+                <path>assignment</path>
+                <display>
+                    <label>Organization</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                if (input != null){
+                                    orgs = report.resolveOrgs(input);
+                                    if (orgs.isEmpty()) {
+                                        return null;
+                                    }
+                                    list = new ArrayList();
+                                    for (org in orgs) {
+                                        list.add(org.getName());
+                                    }
+                                    return list;
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+                <previousColumn>roleColumn</previousColumn>
+            </column>
+            <column>
+                <name>accountColumn</name>
+                <path>linkRef</path>
+                <display>
+                    <label>Account</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.SelectorOptions;
+                                import com.evolveum.midpoint.schema.GetOperationOptions;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+                                if (input != null){
+                                    list = new ArrayList();
+                                    for (linkRef in input){
+                                        shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
+                                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
+                                        list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
+                                    }
+                                    return list;
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+                <previousColumn>orgColumn</previousColumn>
+            </column>
             <type>UserType</type>
         </view>
     </objectCollection>

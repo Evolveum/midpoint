@@ -170,19 +170,45 @@
                 <path>name</path>
             </column>
             <column>
+                <name>resourceColumn</name>
+                <path>resourceRef</path>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+            <column>
                 <name>situationColumn</name>
                 <path>synchronizationSituation</path>
-                <previousColumn>nameColumn</previousColumn>
+                <previousColumn>resourceColumn</previousColumn>
+            </column>
+            <column>
+                <name>ownerColumn</name>
+                <display>
+                    <label>Owner</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.GetOperationOptions;
+                                import com.evolveum.midpoint.schema.SelectorOptions;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                                import com.evolveum.midpoint.prism.query.*
+
+                                query = midpoint.getPrismContext().queryFor(FocusType.class)
+                                .item(FocusType.F_LINK_REF).ref(object.getOid())
+                                .build();
+
+                                options = SelectorOptions.createCollection(GetOperationOptions.createRaw())
+                                return midpoint.searchObjects(FocusType.class, query, options);
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+                <previousColumn>situationColumn</previousColumn>
             </column>
             <column>
                 <name>synchTimestampColumn</name>
                 <path>synchronizationTimestamp</path>
-                <previousColumn>situationColumn</previousColumn>
-            </column>
-            <column>
-                <name>resourceColumn</name>
-                <path>resourceRef</path>
-                <previousColumn>synchTimestampColumn</previousColumn>
+                <previousColumn>ownerColumn</previousColumn>
             </column>
         </view>
     </objectCollection>

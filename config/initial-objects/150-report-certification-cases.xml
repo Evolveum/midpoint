@@ -47,7 +47,7 @@
                             <code>
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                ReportUtils.prettyPrintForReport(object)
+                                ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>
@@ -67,7 +67,7 @@
                             <code>
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                ReportUtils.prettyPrintForReport(object)
+                                ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>
@@ -181,10 +181,10 @@
                 <previousColumn>commentsColumn</previousColumn>
             </column>
             <type>AccessCertificationCaseType</type>
+            <paging>
+                <orderBy>objectRef/@/name</orderBy>
+            </paging>
         </view>
-        <paging>
-            <orderBy>objectRef/@/name</orderBy>
-        </paging>
         <parameter>
             <name>campaignName</name>
             <type>c:ObjectReferenceType</type>

@@ -217,9 +217,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         if (collection != null && (collection.getFilter() != null || collectionRef.getFilter() != null)) {
             try {
                 ObjectPaging paging = getPrismContext().queryFactory().createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
-                Predicate<PrismContainer> handler = (audit) -> auditRecordList.add((AuditEventRecordType) audit.getRealValue());
-                getPageBase().getModelInteractionService().processObjectsFromCollection(collectionRef, AuditEventRecordType.COMPLEX_TYPE, handler,
-                        null, paging, null, task, task.getResult(), false);
+                auditRecordList.addAll((Collection<? extends AuditEventRecordType>) getPageBase().getModelInteractionService().searchObjectsFromCollection(collectionRef, AuditEventRecordType.COMPLEX_TYPE,
+                        null, paging, null, task, task.getResult()));
             } catch (Exception e) {
                 result.recordFatalError(
                         getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);

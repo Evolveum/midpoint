@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.component.search.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -130,21 +131,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return null;
     }
 
-    protected void setDefaultSorting(SelectableBeanObjectDataProvider<O> provider){
-            if (isCollectionViewPanel() && getObjectCollectionView().getPaging() != null
-                    && getObjectCollectionView().getPaging().getOrderBy() != null) {
-            PagingType paging = getObjectCollectionView().getPaging();
-            boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
-            ItemPath orderBy = paging.getOrderBy().getItemPath();
-            ItemName name = orderBy.lastName();
-            if (name == null) {
-                return;
-            }
-            provider.setSort(new SortParam(name.getLocalPart(), ascending));
-        }
-    }
-
-
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
     }
@@ -166,7 +152,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
             private static final long serialVersionUID = 1L;

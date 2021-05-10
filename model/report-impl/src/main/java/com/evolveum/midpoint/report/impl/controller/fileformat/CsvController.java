@@ -120,86 +120,25 @@ public class CsvController extends FileFormatController {
 
     @Override
     public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
-        ObjectCollectionType collection = null;
-        if (ref != null) {
-            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getReportService().getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
         initializationParameters(collectionConfig.getParameter(), task);
-        CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
+        CompiledObjectCollectionView compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
 
-        return createTableBox(collectionRefSpecification, compiledCollection,
+        return createTableBox(collectionConfig.getCollection(), compiledCollection,
                     collectionConfig.getCondition(), collectionConfig.getSubreport(), result, task);
-    }
-
-    private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = null;
-        if (collectionRefSpecification != null) {
-            ref = collectionRefSpecification.getCollectionRef();
-        }
-        ObjectCollectionType collection = null;
-        if (ref != null) {
-            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getReportService().getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
-        CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
-        if (compiledCollection.getColumns().isEmpty()) {
-            if (useDefaultView) {
-                Class<Containerable> type = resolveType(collectionRefSpecification, compiledCollection);
-                getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
-            } else {
-                return null;
-            }
-        }
-        return compiledCollection;
-    }
-
-    private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, ObjectCollectionType collection) {
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
-            if (collection != null) {
-                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
-            } else if (collectionRefSpecification != null && collectionRefSpecification.getBaseCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
-                ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-                getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
-            }
-        }
-
-        GuiObjectListViewType reportView = collectionConfig.getView();
-        if (reportView != null) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
-        }
-        return compiledCollection;
     }
 
     private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
             List<SubreportParameterType> subreports, OperationResult result, Task task)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        Class<Containerable> type = resolveType(collection, compiledCollection);
+        Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
         PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
 
         List<String> headers = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
 
-        List<GuiObjectColumnType> columns;
-        if (compiledCollection.getColumns().isEmpty()) {
-            columns = MiscSchemaUtil.orderCustomColumns(DefaultColumnUtils.getDefaultView(type).getColumn());
-        } else {
-            columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-        }
-
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
             String label = getColumnLabel(column, def);
@@ -264,6 +203,7 @@ public class CsvController extends FileFormatController {
     protected String getRealValueAsString(GuiObjectColumnType column, PrismContainer<? extends Containerable> object, ItemPath itemPath, ExpressionType expression, Task task, OperationResult result) {
         String value = super.getRealValueAsString(column, object, itemPath, expression, task, result);
         value = removeNewLine(value);
+
         return value;
     }
 
@@ -273,7 +213,7 @@ public class CsvController extends FileFormatController {
             ObjectCollectionReportEngineConfigurationType collectionConfig = report.getObjectCollection();
             CompiledObjectCollectionView compiledCollection;
             try {
-                compiledCollection = createCompiledView(collectionConfig, true, task, result);
+                compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
             } catch (Exception e) {
                 LOGGER.error("Couldn't define compiled collection for report", e);
                 return;
@@ -533,7 +473,7 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = null;
         try {
             if (collectionEngineConf != null) {
-                compiledCollection = createCompiledView(collectionEngineConf, !useImportScript, task, result);
+                compiledCollection = getReportService().createCompiledView(collectionEngineConf, !useImportScript, task, result);
             }
         } catch (Exception e) {
             LOGGER.error("Couldn't define compiled collection for report", e);
@@ -698,7 +638,7 @@ public class CsvController extends FileFormatController {
         sb.append(delimiter);
     }
 
-    private String getMultivalueDelimiter() {
+    protected String getMultivalueDelimiter() {
         return getCsvConfiguration().getMultivalueDelimiter() == null ? "," : getCsvConfiguration().getMultivalueDelimiter();
     }
 

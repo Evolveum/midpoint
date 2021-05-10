@@ -146,7 +146,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     }
 
                     @Override
-                    protected IColumn createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+                    protected IColumn createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
                         return CaseWorkItemsPanel.this.createNameColumn();
                     }
 

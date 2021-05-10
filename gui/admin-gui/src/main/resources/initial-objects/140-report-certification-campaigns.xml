@@ -79,7 +79,7 @@
                     <expression>
                         <script>
                             <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
+                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>
@@ -96,7 +96,7 @@
                     <expression>
                         <script>
                             <code>
-                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
+                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>

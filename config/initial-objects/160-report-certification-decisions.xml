@@ -66,7 +66,7 @@
                             <code>
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                ReportUtils.prettyPrintForReport(object)
+                                ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>
@@ -86,7 +86,7 @@
                             <code>
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                ReportUtils.prettyPrintForReport(object)
+                                ReportUtils.prettyPrintForReport(input)
                             </code>
                         </script>
                     </expression>
@@ -107,32 +107,35 @@
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
                                 import com.evolveum.midpoint.report.impl.ReportUtils;
 
-                                if (stageNumber != null &amp;&amp; !Objects.equals(object.getStageNumber(), stageNumber)) {
-                                return null;
+                                if (input == null){
+                                    return "";
                                 }
-                                if (iteration != null &amp;&amp; CertCampaignTypeUtil.norm(object.getIteration()) != iteration) {
-                                return null;
+                                for (workItem in input) {
+                                    if (stageNumber != null &amp;&amp; !Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                                        return null;
+                                    }
+                                    if (iteration != null &amp;&amp; CertCampaignTypeUtil.norm(workItem.getIteration()) != iteration) {
+                                        return null;
+                                    }
+
+                                    StringBuilder sb = new StringBuilder(ReportUtils.prettyPrintPerformerOrAssigneesForReport(workItem.asPrismContainerValue()));
+                                    sb.append(" - ");
+                                    sb.append(ReportUtils.prettyPrintOutputChangeForReport(workItem.asPrismContainerValue()));
+                                    sb.append(" - ");
+                                    sb.append(object.getStageNumber());
+                                    sb.append(" - ");
+                                    sb.append(object.getIteration());
+                                    sb.append(" - ");
+                                    sb.append(ReportUtils.prettyPrintCertOutcomeForReport(workItem.getOutput(), true));
+                                    comment = ReportUtils.prettyPrintCertCommentForReport(workItem.getOutput());
+                                    if (comment != null) {
+                                        sb.append(" (");
+                                        sb.append(comment);
+                                        sb.append(")");
+                                    }
+
+                                    return sb.toString();
                                 }
-
-                                StringBuilder sb = new StringBuilder(ReportUtils.prettyPrintPerformerOrAssigneesForReport(object.asPrismContainerValue()));
-                                sb.append(" - ");
-                                sb.append(ReportUtils.prettyPrintOutputChangeForReport(object.asPrismContainerValue()));
-                                sb.append(" - ");
-                                sb.append(object.getStageNumber());
-                                sb.append(" - ");
-                                sb.append(object.getIteration());
-                                sb.append(" - ");
-                                sb.append(ReportUtils.prettyPrintCertOutcomeForReport(object.getOutput(), true));
-                                comment = ReportUtils.prettyPrintCertCommentForReport(object.getOutput());
-                                if (comment != null) {
-                                sb.append(" (");
-                                sb.append(comment);
-                                sb.append(")");
-                                }
-
-                                return sb.toString();
-
-
                             </code>
                         </script>
                     </expression>

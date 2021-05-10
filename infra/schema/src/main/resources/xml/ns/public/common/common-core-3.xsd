@@ -26972,7 +26972,8 @@
                         User friendly display name of the search item (property)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SearchItemType.display</a:displayName>
+                        <a:displayName>SearchItemType.displayName</a:displayName>
+                        <a:deprecated>true</a:deprecated>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

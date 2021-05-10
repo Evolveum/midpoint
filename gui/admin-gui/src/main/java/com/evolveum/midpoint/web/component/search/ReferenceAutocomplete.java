@@ -85,7 +85,7 @@ public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReference
     }
 
     protected <O extends ObjectType> Class<O> getReferenceTargetObjectType(){
-        if (model.getObject().getType() == null) {
+        if (model.getObject() == null || model.getObject().getType() == null) {
             return (Class<O>) ObjectType.class;
         }
         return (Class<O>) WebComponentUtil.qnameToClass(pageBase.getPrismContext(), model.getObject().getType());

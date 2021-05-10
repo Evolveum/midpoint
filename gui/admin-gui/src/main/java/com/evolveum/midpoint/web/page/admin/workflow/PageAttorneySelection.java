@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -105,7 +106,7 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected IColumn<SelectableBean<UserType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+            protected IColumn<SelectableBean<UserType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
                 return new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
                     private static final long serialVersionUID = 1L;
@@ -121,7 +122,7 @@ public class PageAttorneySelection extends PageBase {
             @Override
             protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
-                columns.add(createNameColumn(null, null, null));
+                columns.add(createNameColumn(null, null, null, null));
                 columns.addAll(PageAttorneySelection.this.initColumns());
                 return columns;
             }

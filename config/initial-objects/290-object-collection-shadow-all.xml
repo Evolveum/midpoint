@@ -18,6 +18,7 @@
         <option>
             <options>
                 <raw>true</raw>
+                <resolveNames>true</resolveNames>
             </options>
         </option>
     </getOptions>

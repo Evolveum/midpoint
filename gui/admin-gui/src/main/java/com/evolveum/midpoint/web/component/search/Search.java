@@ -258,6 +258,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         FilterSearchItem item = new FilterSearchItem(this, predefinedFilter);
         item.setDefinition(def);
 
+        if (predefinedFilter != null && predefinedFilter.getParameter() != null
+                && QNameUtil.match(predefinedFilter.getParameter().getType(), ObjectReferenceType.COMPLEX_TYPE)) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(predefinedFilter.getParameter().getTargetType());
+            if (supportedTargets.size() == 1) {
+                ref.setType(supportedTargets.iterator().next());
+            }
+            item.setInput(new SearchValue<>(ref));
+        }
+
         items.add(item);
         availableDefinitions.remove(def);
         return item;
@@ -420,15 +430,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
 
-        VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        for (FilterSearchItem item : getFilterItems()) {
-            SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
-            if (functionParameter != null && functionParameter.getType() != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
-                variables.put(functionParameter.getName(), value);
-            }
-        }
+        VariablesMap variables = getFilterVariables(defaultVariables, pageBase);
 
         for (FilterSearchItem item : getFilterItems()) {
             if (item.isEnabled() && item.isApplyFilter()) {
@@ -480,6 +482,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 }
         }
         return query;
+    }
+
+    public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
+        VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
+        for (FilterSearchItem item : getFilterItems()) {
+            SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
+            if (functionParameter != null && functionParameter.getType() != null) {
+                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
+                variables.put(functionParameter.getName(), value);
+            }
+        }
+        return variables;
     }
 
     private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {

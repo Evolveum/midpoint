@@ -158,10 +158,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         getPageBase().showResult(result);
     }
 
-    private WebMarkupContainer getFeedbackPanel() {
-        return getPageBase().getFeedbackPanel();
-    }
-
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
         Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);
         OperationResult result = opTask.getResult();

@@ -7,31 +7,30 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%; text-align: justify; -ms-text-justify: distribute-all-lines; text-justify: distribute-all-lines; text-align-last: right;">
-
         <div class="form-inline" style="float:right; text-align-last: left;">
             <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
                 <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
             </div>
 
             <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
-                            <i class="fa fa-search flip-icon fa-lg"></i>
-                        </button>
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false" wicket:id="menuDropdown">
-                            <span class="caret"></span>
-                            <span class="sr-only">Toggle Dropdown</span>
-                        </button>
-                        <ul class="dropdown-menu pull-right" role="menu">
-                            <li wicket:id="menuItem">
-                                <div wicket:id="menuItemBody"/>
-                            </li>
-                        </ul>
-                    </div>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
+                        <i class="fa fa-search flip-icon fa-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false" wicket:id="menuDropdown">
+                        <span class="caret"></span>
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li wicket:id="menuItem">
+                            <div wicket:id="menuItemBody"/>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="form-group pull-right" wicket:id="moreGroup"  style="padding-right: 5px;">
+            <div class="form-group pull-right" wicket:id="moreGroup" style="padding-right: 5px;">
                 <a wicket:id="more" class="btn btn-sm btn-default">
                     <wicket:message key="SearchPanel.more"/>
                     &nbsp;
@@ -41,8 +40,8 @@
         </div>
 
         <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                    style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+                <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
+                        style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
             <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
                     style="width: 91.6666667%; min-width: 300px; float:right;">
             <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
@@ -78,7 +77,9 @@
 
             <div class="properties">
                 <dl wicket:id="propList">
-                    <dt><wicket:message key="SearchPanel.properties"/></dt>
+                    <dt>
+                        <wicket:message key="SearchPanel.properties"/>
+                    </dt>
                     <dd wicket:id="properties">
                         <label>
                             <input wicket:id="check" type="checkbox">&nbsp;

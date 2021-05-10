@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import j2html.TagCreator;
@@ -106,7 +104,8 @@ public class HtmlController extends FileFormatController {
                     if (sourceType == null) {
                         throw new IllegalStateException("No source type specified in " + widget);
                     }
-                    CollectionRefSpecificationType collectionRefSpecification = getReportService().getDashboardService().getCollectionRefSpecificationType(widget, task, result);
+                    CollectionRefSpecificationType collectionRefSpecification = getReportService()
+                            .getDashboardService().getCollectionRefSpecificationType(widget, task, result);
                     ObjectCollectionType collection = getReportService().getDashboardService().getObjectCollectionType(widget, task, result);
 
                     CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
@@ -114,7 +113,8 @@ public class HtmlController extends FileFormatController {
                         getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
                     } else if (collectionRefSpecification.getBaseCollectionRef() != null
                             && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
-                        ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+                        ObjectCollectionType baseCollection = (ObjectCollectionType) getReportService()
+                                .getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
                         getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
                     }
 
@@ -122,7 +122,7 @@ public class HtmlController extends FileFormatController {
                         getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
                     }
 
-                    QName collectionType = resolveTypeQname(collectionRefSpecification, compiledCollection);
+                    QName collectionType = getReportService().resolveTypeQNameForReport(collectionRefSpecification, compiledCollection);
                     GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
                     if (reportView != null) {
                         getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
@@ -172,7 +172,8 @@ public class HtmlController extends FileFormatController {
     }
 
     @Override
-    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig,
+            Task task, OperationResult result) throws Exception {
         CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
         ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
         ObjectCollectionType collection = null;
@@ -205,7 +206,8 @@ public class HtmlController extends FileFormatController {
             defaultName = collection.getName().getOrig();
         } else if (collectionRefSpecification.getBaseCollectionRef() != null
                 && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
-            ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+            ObjectCollectionType baseCollection = (ObjectCollectionType) getReportService()
+                    .getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
             if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
             }
@@ -257,12 +259,14 @@ public class HtmlController extends FileFormatController {
     }
 
     private ContainerTag createTableBox(String tableLabel, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            ExpressionType condition, List<SubreportParameterType> subreports, OperationResult result, boolean recordProgress, Task task) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ExpressionType condition, List<SubreportParameterType> subreports, OperationResult result, boolean recordProgress, Task task)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        Class<Containerable> type = resolveType(collection, compiledCollection);
+        Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
-        PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
+        PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
 
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
@@ -375,7 +379,11 @@ public class HtmlController extends FileFormatController {
     }
 
     private void appendNewLine(StringBuilder body) {
-        body.append("<br>");
+        body.append(getMultivalueDelimiter());
+    }
+
+    protected String getMultivalueDelimiter(){
+        return "<br>";
     }
 
     protected void appendMultivalueDelimiter(StringBuilder body) {
@@ -388,7 +396,8 @@ public class HtmlController extends FileFormatController {
     }
 
     @Override
-    public List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException {
+    public List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData,
+            boolean useImportScript, Task task, OperationResult result) {
         throw new UnsupportedOperationException("Unsupported operation import for HTML file format");
     }
 

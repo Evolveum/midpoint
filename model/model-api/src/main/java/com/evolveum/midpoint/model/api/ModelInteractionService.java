@@ -500,6 +500,16 @@ public interface ModelInteractionService {
 
     @Experimental
     void processObjectsFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> options, ObjectPaging paging, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
+            Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    @Experimental
+    List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    @Experimental
+    Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 }
