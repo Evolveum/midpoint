@@ -272,6 +272,7 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
         if (runAsAccountOid != null) {
             sb.append("runAsAccountOid=").append(runAsAccountOid).append(",");
         }
+        appendFlag(sb, "forceRetry", forceRetry);
         if (isEmpty()) {
             sb.append("(empty)");
         } else {

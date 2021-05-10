@@ -1867,7 +1867,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // THEN
         then();
         display("Result", result);
-        assertHadnledError(result);
+        assertHandledError(result);
 
         // @formatter:off
         syncServiceMock
@@ -2067,12 +2067,14 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME_CHM);
     }
 
-    @Test(enabled = false)
-    public void test920ForceRetryOnUnAddedAccount() throws Exception {
+    /**
+     * Preparation for testing MID-7044.
+     */
+    @Test
+    public void test920TryToAddAccountLate() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        syncServiceMock.reset();
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
@@ -2080,22 +2082,92 @@ public class TestDummyConsistency extends AbstractDummyTest {
         account.checkConsistence();
         display("Adding shadow", account);
 
+        // This is to avoid giving up retries too early in the following tests.
+        // (The forceRetry option causes the operations to be retried each time.)
+        setMaxAttempts(RESOURCE_DUMMY_OID, 10, result);
+
         when();
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        provisioningService.addObject(account, null, null, task, result);
 
         then();
         display("Result", result);
         assertInProgress(result);
 
-        when("get with forceRetry");
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    /**
+     * MID-7044
+     */
+    @Test
+    public void test922GetLateWithForceRetry() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when();
         var options = schemaService.getOperationOptionsBuilder()
                 .forceRetry()
+                .pointInTime(PointInTimeType.FUTURE)
                 .build();
+        provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
 
-        provisioningService.getObject(ShadowType.class, addedObjectOid, options, task, result);
+        then();
+        assertHandledError(result);
 
-        then("get with forceRetry");
-        assertSuccess(result);
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    @Test
+    public void test924ModifyLate() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_LATE.oid, dummyResourceCtl.getAttributeFullnamePath(), "Late");
+
+        when();
+        provisioningService.modifyObject(ShadowType.class, ACCOUNT_LATE.oid, delta.getModifications(),
+                null, null, task, result);
+
+        then();
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    /**
+     * MID-7044
+     */
+    @Test
+    public void test926GetLateWithForceRetry() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when();
+        var options = schemaService.getOperationOptionsBuilder()
+                .forceRetry()
+                .pointInTime(PointInTimeType.FUTURE)
+                .build();
+        provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
+
+        then();
+        assertHandledError(result);
+
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead()
+                .pendingOperations()
+                    .modifyOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
     }
 
     private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
