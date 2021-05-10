@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
@@ -150,6 +151,7 @@ public class SqaleRepositoryBeanConfig {
                         QObjectTemplateMapping.init(repositoryContext))
                 .register(OperationExecutionType.COMPLEX_TYPE,
                         QOperationExecutionMapping.init(repositoryContext))
+                .register(OrgType.COMPLEX_TYPE, QOrgMapping.init(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))

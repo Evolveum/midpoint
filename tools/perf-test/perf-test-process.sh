@@ -38,7 +38,8 @@ else
   GIT_COMMIT=$(basename $TGZFILE | cut -d- -f5 | cut -d. -f1)
 fi
 
-COMMIT_DATE=$(git show -s --format=%cI "${GIT_COMMIT}")
+# check for commit date in case the date is not already set
+: "${COMMIT_DATE:=$(git show -s --format=%cI "${GIT_COMMIT}")}"
 
 # load to DB
 BUILD_ID=$(psql -tc "select id from mst_build where commit_hash='${GIT_COMMIT}'")
