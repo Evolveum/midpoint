@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -66,6 +68,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private static final String ACCOUNT_SHADOW_MURRAY_PENDING_OID = "34132742-2085-11e9-a956-17770b09881b";
     private static final String ACCOUNT_MURRAY_USERNAME = "murray";
     private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
+
+    private static final TestResource<ShadowType> ACCOUNT_LATE = new TestResource<>(TEST_DIR, "account-late.xml", "9f2bc5b3-61ea-4b59-9ee4-901affe5c8c8");
 
     private XMLGregorianCalendar lastRequestStartTs;
     private XMLGregorianCalendar lastRequestEndTs;
@@ -2061,6 +2065,37 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .display()
                 .attributes()
                     .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME_CHM);
+    }
+
+    @Test(enabled = false)
+    public void test920ForceRetryOnUnAddedAccount() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_LATE.file);
+        account.checkConsistence();
+        display("Adding shadow", account);
+
+        when();
+        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+
+        then();
+        display("Result", result);
+        assertInProgress(result);
+
+        when("get with forceRetry");
+        var options = schemaService.getOperationOptionsBuilder()
+                .forceRetry()
+                .build();
+
+        provisioningService.getObject(ShadowType.class, addedObjectOid, options, task, result);
+
+        then("get with forceRetry");
+        assertSuccess(result);
     }
 
     private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
