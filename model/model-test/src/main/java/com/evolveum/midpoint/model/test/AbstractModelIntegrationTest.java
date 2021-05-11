@@ -5632,7 +5632,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
     }
 
-    protected void resetTriggerTask(String taskOid, File taskFile, OperationResult result)
+    // Use this when you want to start the task manually.
+    protected void clearTaskSchedule(String taskOid, File taskFile, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
         importObjectFromFile(taskFile, result);
@@ -5640,6 +5641,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifySystemObjectInRepo(TaskType.class, taskOid,
                 prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_SCHEDULE).replace()
+                        .item(TaskType.F_BINDING).replace(TaskBindingType.LOOSE) // tightly-bound tasks must have interval set
                         .asItemDeltas(),
                 result);
         taskManager.resumeTasks(singleton(taskOid), result);
