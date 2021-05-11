@@ -68,8 +68,7 @@ public class SqlQueryExecutor {
             result = context.executeQuery(jdbcSession.connection());
         }
 
-        PageOf<S> map = context.transformToSchemaType(result);
-        return createSearchResultList(map);
+        return createSearchResultList(context.transformToSchemaType(result));
     }
 
     @NotNull

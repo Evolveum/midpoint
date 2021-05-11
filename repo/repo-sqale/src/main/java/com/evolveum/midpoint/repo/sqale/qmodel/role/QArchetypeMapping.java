@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 /**
@@ -17,23 +19,18 @@ public class QArchetypeMapping
 
     public static final String DEFAULT_ALIAS_NAME = "arch";
 
-    public static final QArchetypeMapping INSTANCE = new QArchetypeMapping();
+    public static QArchetypeMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QArchetypeMapping(repositoryContext);
+    }
 
-    private QArchetypeMapping() {
+    private QArchetypeMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QArchetype.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ArchetypeType.class, QArchetype.class);
+                ArchetypeType.class, QArchetype.class, repositoryContext);
     }
 
     @Override
     protected QArchetype newAliasInstance(String alias) {
         return new QArchetype(alias);
-    }
-
-    @Override
-    public AbstractRoleSqlTransformer<ArchetypeType, QArchetype, MArchetype>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new AbstractRoleSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

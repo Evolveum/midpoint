@@ -52,7 +52,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
 
             then();
             assertThat(result.isSuccess()).isTrue();
-            assertThat(count(QAuditEventRecordMapping.INSTANCE)).isEqualTo(1);
+            assertThat(count(QAuditEventRecordMapping.get())).isEqualTo(1);
         }
     }
 
@@ -72,7 +72,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
             }
         }
 
-        assertThat(count(QAuditEventRecordMapping.INSTANCE)).isEqualTo(RECORDS);
+        assertThat(count(QAuditEventRecordMapping.get())).isEqualTo(RECORDS);
     }
 
     private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {

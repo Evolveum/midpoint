@@ -9,8 +9,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_HOSTNAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_PORT;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 /**
@@ -21,14 +24,16 @@ public class QConnectorHostMapping
 
     public static final String DEFAULT_ALIAS_NAME = "conh";
 
-    public static final QConnectorHostMapping INSTANCE = new QConnectorHostMapping();
+    public static QConnectorHostMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QConnectorHostMapping(repositoryContext);
+    }
 
-    private QConnectorHostMapping() {
+    private QConnectorHostMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QConnectorHost.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ConnectorHostType.class, QConnectorHost.class);
+                ConnectorHostType.class, QConnectorHost.class, repositoryContext);
 
-        addItemMapping(F_HOSTNAME, stringMapper(path(q -> q.hostname)));
-        addItemMapping(F_PORT, stringMapper(path(q -> q.port)));
+        addItemMapping(F_HOSTNAME, stringMapper(q -> q.hostname));
+        addItemMapping(F_PORT, stringMapper(q -> q.port));
     }
 
     @Override
@@ -37,12 +42,18 @@ public class QConnectorHostMapping
     }
 
     @Override
-    public ConnectorHostSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ConnectorHostSqlTransformer(transformerSupport, this);
+    public MConnectorHost newRowObject() {
+        return new MConnectorHost();
     }
 
     @Override
-    public MConnectorHost newRowObject() {
-        return new MConnectorHost();
+    public @NotNull MConnectorHost toRowObjectWithoutFullObject(
+            ConnectorHostType schemaObject, JdbcSession jdbcSession) {
+        MConnectorHost row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        row.hostname = schemaObject.getHostname();
+        row.port = schemaObject.getPort();
+
+        return row;
     }
 }

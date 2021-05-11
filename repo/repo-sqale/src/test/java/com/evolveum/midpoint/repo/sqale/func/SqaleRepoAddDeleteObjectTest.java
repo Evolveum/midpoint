@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -45,6 +46,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.MArchetype;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
@@ -72,14 +75,15 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .name(userName);
 
         when("adding it to the repository");
-        repositoryService.addObject(userType.asPrismObject(), null, result);
+        String returnedOid = repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("operation is successful and user row for it is created");
         assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(userType.getOid());
 
         QUser u = aliasFor(QUser.class);
         MUser row = selectOne(u, u.nameOrig.eq(userName));
-        assertThat(row.oid).isNotNull();
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
         assertThat(row.version).isEqualTo(1); // initial version is set
         // read-only column with value generated/stored in the database
@@ -212,7 +216,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -252,7 +256,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -278,7 +282,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(user.asPrismObject(), null, result);
 
-        then("object and its container rows are created and container IDs are assigned");
+        then("object and its reference rows are created");
         assertThatOperationResult(result).isSuccess();
 
         QUser u = aliasFor(QUser.class);
@@ -289,7 +293,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.containerIdSeq).isEqualTo(1); // cid sequence is in initial state
 
         UUID userOid = UUID.fromString(user.getOid());
-        QObjectReference or = QObjectReferenceMapping.INSTANCE_PROJECTION.defaultAlias();
+        QObjectReference<?> or = QObjectReferenceMapping.getForProjection().defaultAlias();
         List<MReference> projectionRefs = select(or, or.ownerOid.eq(userOid));
         assertThat(projectionRefs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION)
@@ -297,10 +301,47 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .extracting(rRow -> rRow.targetOid.toString())
                 .containsExactlyInAnyOrder(targetRef1, targetRef2);
         // this is the same set of refs queried from the super-table
-        QReference<MReference> r = aliasFor(QReference.CLASS);
+        QReference<MReference, ?> r = aliasFor(QReference.CLASS);
         List<MReference> refs = select(r, r.ownerOid.eq(userOid));
         assertThat(refs).hasSize(2)
                 .allMatch(rRow -> rRow.referenceType == MReferenceType.PROJECTION);
+    }
+
+    @Test
+    public void test206AddObjectWithMultivalueRefsOnAssignment()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with ref");
+        String userName = "user" + getTestNumber();
+        UUID approverRef1 = UUID.randomUUID();
+        UUID approverRef2 = UUID.randomUUID();
+        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel"); // TODO
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .metadata(new MetadataType()
+                                .createApproverRef(approverRef1.toString(),
+                                        UserType.COMPLEX_TYPE, approverRelation)
+                                .createApproverRef(approverRef2.toString(), UserType.COMPLEX_TYPE)));
+
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its reference rows are created");
+        assertThatOperationResult(result).isSuccess();
+
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.oid).isNotNull();
+
+        QAssignmentReference ar =
+                QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
+        List<MAssignmentReference> projectionRefs = select(ar, ar.ownerOid.eq(userRow.oid));
+        assertThat(projectionRefs).hasSize(2)
+                .allMatch(rRow -> rRow.referenceType == MReferenceType.ASSIGNMENT_CREATE_APPROVER)
+                .allMatch(rRow -> rRow.ownerOid.equals(userRow.oid))
+                .allMatch(rRow -> rRow.assignmentCid.equals(1L)) // there's just one container
+                .anyMatch(refRowMatcher(approverRef1, approverRelation));
     }
 
     @Test
@@ -337,7 +378,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     // region insertion of various types
 
-    // this test covers function of ObjectSqlTransformer and all the basic object fields
+    // this test covers function of QObjectMapping and all the basic object fields
     @Test
     public void test800SystemConfigurationBasicObjectAttributes() throws Exception {
         OperationResult result = createOperationResult();
@@ -362,7 +403,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
                         .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
-                        .modifierRef(modifierRefOid.toString(), ServiceType.COMPLEX_TYPE, relation2)
+                        .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
                         .modifyChannel("modify-channel")
                         .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)));
 
@@ -372,7 +413,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and relevant attributes are in columns");
         assertThatOperationResult(result).isSuccess();
 
-        MObject row = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject row = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         display("FULL OBJECT: " + new String(row.fullObject, StandardCharsets.UTF_8));
         assertThat(row.nameOrig).isEqualTo(objectName);
         assertThat(row.nameNorm).isEqualTo(objectName); // nothing to normalize here
@@ -392,7 +434,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.createChannelId, "create-channel");
         assertThat(row.createTimestamp).isEqualTo(Instant.ofEpochMilli(1));
         assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
-        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.SERVICE);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.modifierRefRelationId, relation2);
         assertCachedUri(row.modifyChannelId, "modify-channel");
         assertThat(row.modifyTimestamp).isEqualTo(Instant.ofEpochMilli(2));
@@ -420,7 +462,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QTrigger t = aliasFor(QTrigger.class);
+        QTrigger<?> t = aliasFor(QTrigger.CLASS);
         List<MTrigger> containers = select(t, t.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
 
@@ -435,7 +477,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(containerRow.handlerUriId, "trigger-2-handler-uri");
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
-        MObject objectRow = selectObjectByOid(QSystemConfiguration.class, systemConfiguration.getOid());
+        MObject objectRow = selectObjectByOid(
+                QSystemConfiguration.class, systemConfiguration.getOid());
         assertThat(objectRow.containerIdSeq).isEqualTo(5); // next free CID
     }
 
@@ -468,7 +511,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored with its persisted trigger containers");
         assertThatOperationResult(result).isSuccess();
 
-        QOperationExecution oe = aliasFor(QOperationExecution.class);
+        QOperationExecution<?> oe = aliasFor(QOperationExecution.CLASS);
         List<MOperationExecution> containers =
                 select(oe, oe.ownerOid.eq(UUID.fromString(systemConfiguration.getOid())));
         assertThat(containers).hasSize(2);
@@ -492,6 +535,114 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.timestampValue).isEqualTo(Instant.ofEpochMilli(2));
 
         // this time we didn't test assigned CID or CID SEQ value on owner (see test801)
+    }
+
+    @Test
+    public void test803ContainerAssignment() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object with assignments");
+        String objectName = "sc" + getTestNumber();
+        UUID orgRefOid = UUID.randomUUID();
+        UUID targetRefOid = UUID.randomUUID();
+        UUID tenantRefOid = UUID.randomUUID();
+        UUID resourceRefOid = UUID.randomUUID();
+        UUID creatorRefOid = UUID.randomUUID();
+        UUID modifierRefOid = UUID.randomUUID();
+        QName relation1 = QName.valueOf("{https://random.org/ns}random-rel-1");
+        QName relation2 = QName.valueOf("{https://random.org/ns}random-rel-2");
+        SystemConfigurationType object = new SystemConfigurationType(prismContext)
+                .name(objectName)
+                .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("lifecycle-state")
+                        .order(47)
+                        .orgRef(orgRefOid.toString(), OrgType.COMPLEX_TYPE, relation1)
+                        .targetRef(targetRefOid.toString(), RoleType.COMPLEX_TYPE, relation2)
+                        .tenantRef(tenantRefOid.toString(), OrgType.COMPLEX_TYPE, relation2)
+                        // TODO extId, extOid, ext?
+                        .policySituation("policy-situation-1")
+                        .policySituation("policy-situation-2")
+                        .construction(new ConstructionType()
+                                .resourceRef(resourceRefOid.toString(),
+                                        ResourceType.COMPLEX_TYPE, relation1))
+                        .activation(new ActivationType()
+                                .administrativeStatus(ActivationStatusType.ENABLED)
+                                .effectiveStatus(ActivationStatusType.DISABLED)
+                                .enableTimestamp(MiscUtil.asXMLGregorianCalendar(3L))
+                                .disableTimestamp(MiscUtil.asXMLGregorianCalendar(4L))
+                                .disableReason("disable-reason")
+                                .validityStatus(TimeIntervalStatusType.IN)
+                                .validFrom(MiscUtil.asXMLGregorianCalendar(5L))
+                                .validTo(MiscUtil.asXMLGregorianCalendar(6L))
+                                .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(7L))
+                                .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(8L)))
+                        .metadata(new MetadataType()
+                                // multi-value approver refs are tested elsewhere
+                                .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
+                                .createChannel("create-channel")
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                                .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
+                                .modifyChannel("modify-channel")
+                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
+                // one more just to see it stores multiple assignments
+                .assignment(new AssignmentType().order(1));
+
+        when("adding it to the repository");
+        repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("it is stored and rows to child tables are inserted");
+        assertThatOperationResult(result).isSuccess();
+
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(object.getOid())));
+        assertThat(aRows).hasSize(2)
+                .allMatch(ar -> ar.orderValue != null);
+
+        MAssignment row = aRows.stream()
+                .filter(ar -> ar.orderValue == 47)
+                .findFirst().orElseThrow();
+
+        assertThat(row.lifecycleState).isEqualTo("lifecycle-state");
+        assertThat(row.orderValue).isEqualTo(47);
+        assertThat(row.orgRefTargetOid).isEqualTo(orgRefOid);
+        assertThat(row.orgRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.orgRefRelationId, relation1);
+        assertThat(row.targetRefTargetOid).isEqualTo(targetRefOid);
+        assertThat(row.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(row.targetRefRelationId, relation2);
+        assertThat(row.tenantRefTargetOid).isEqualTo(tenantRefOid);
+        assertThat(row.tenantRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.tenantRefRelationId, relation2);
+        // complex DB columns
+        // TODO EXT
+        assertThat(resolveCachedUriIds(row.policySituations))
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-2");
+        // construction
+        assertThat(row.resourceRefTargetOid).isEqualTo(resourceRefOid);
+        assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
+        assertCachedUri(row.resourceRefRelationId, relation1);
+        // activation
+        assertThat(row.administrativeStatus).isEqualTo(ActivationStatusType.ENABLED);
+        assertThat(row.effectiveStatus).isEqualTo(ActivationStatusType.DISABLED);
+        assertThat(row.enableTimestamp).isEqualTo(Instant.ofEpochMilli(3));
+        assertThat(row.disableTimestamp).isEqualTo(Instant.ofEpochMilli(4));
+        assertThat(row.disableReason).isEqualTo("disable-reason");
+        assertThat(row.validityStatus).isEqualTo(TimeIntervalStatusType.IN);
+        assertThat(row.validFrom).isEqualTo(Instant.ofEpochMilli(5));
+        assertThat(row.validTo).isEqualTo(Instant.ofEpochMilli(6));
+        assertThat(row.validityChangeTimestamp).isEqualTo(Instant.ofEpochMilli(7));
+        assertThat(row.archiveTimestamp).isEqualTo(Instant.ofEpochMilli(8));
+        // metadata
+        assertThat(row.creatorRefTargetOid).isEqualTo(creatorRefOid);
+        assertThat(row.creatorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.creatorRefRelationId, relation1);
+        assertCachedUri(row.createChannelId, "create-channel");
+        assertThat(row.createTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+        assertThat(row.modifierRefTargetOid).isEqualTo(modifierRefOid);
+        assertThat(row.modifierRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.modifierRefRelationId, relation2);
+        assertCachedUri(row.modifyChannelId, "modify-channel");
+        assertThat(row.modifyTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
     @Test
@@ -545,10 +696,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(containerRow.key).isEqualTo("row3");
     }
 
-    // TODO test for object's related entities?
-    // - trigger
-    // - operation execution
-
     @Test
     public void test810ResourceAndItsBusinessApproverReferences() throws Exception {
         OperationResult result = createOperationResult();
@@ -587,8 +734,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
 
-        QObjectReference ref = QObjectReferenceMapping
-                .INSTANCE_RESOURCE_BUSINESS_CONFIGURATION_APPROVER.defaultAlias();
+        QObjectReference<?> ref = QObjectReferenceMapping
+                .getForResourceBusinessConfigurationApprover().defaultAlias();
         List<MReference> refs = select(ref, ref.ownerOid.eq(row.oid));
         assertThat(refs).hasSize(2);
 
@@ -753,7 +900,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.synchronizationTimestamp).isEqualTo(Instant.ofEpochMilli(2));
     }
 
-    // this covers mapping of attributes in FocusSqlTransformer + GenericObject
+    // This covers mapping of attributes in QFocusMapping + GenericObject.
     @Test
     public void test820GenericObject() throws Exception {
         OperationResult result = createOperationResult();
@@ -825,6 +972,54 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         // field specific to GenericObjectType
         assertCachedUri(row.genericObjectTypeId, "some-custom-object-type-uri");
+    }
+
+    // This covers mapping of attributes in AbstractRole + Archetype + inducement mapping.
+    // There is no focus on QFocusMapping that is covered above.
+    @Test
+    public void test821ArchetypeAndInducement() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("archetype object");
+        String objectName = "arch" + getTestNumber();
+        ArchetypeType archetype = new ArchetypeType(prismContext)
+                .name(objectName)
+                .autoassign(new AutoassignSpecificationType().enabled(true))
+                .displayName("display-name")
+                .identifier("identifier")
+                .requestable(false)
+                .riskLevel("extremely-high")
+                // we don't need all attributes here, this is tested in TODO
+                .inducement(new AssignmentType()
+                        .order(2)
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
+                .inducement(new AssignmentType()
+                        .order(3)
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        // this is no additional attribute specific for archetype
+
+        when("adding it to the repository");
+        repositoryService.addObject(archetype.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        UUID archetypeOid = UUID.fromString(archetype.getOid());
+        MArchetype row = selectObjectByOid(QArchetype.class, archetypeOid);
+        // all attributes from MAbstractRole
+        assertThat(row.autoAssignEnabled).isTrue();
+        assertThat(row.displayNameOrig).isEqualTo("display-name");
+        assertThat(row.displayNameNorm).isEqualTo("displayname");
+        assertThat(row.identifier).isEqualTo("identifier");
+        assertThat(row.requestable).isFalse();
+        assertThat(row.riskLevel).isEqualTo("extremely-high");
+
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        assertThat(select(a, a.ownerOid.eq(archetypeOid))).hasSize(2)
+                .anyMatch(ar -> ar.orderValue.equals(2))
+                .anyMatch(ar -> ar.orderValue.equals(3))
+                .allMatch(ar -> ar.targetRefTargetOid != null
+                        && ar.targetRefTargetType == MObjectType.ROLE);
     }
 
     // TODO test for focus' related entities?
@@ -961,7 +1156,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     // slight variation of the above, but using lower-level abstract table
@@ -983,7 +1178,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(deleteResult).isNotNull();
         assertThat(deleteResult.getObjectTextRepresentation()).isNotNull();
 
-        assertThat(selectObjectByOid(QUser.class, userOid)).isNull();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
     }
 
     @Test

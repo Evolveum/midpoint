@@ -13,7 +13,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 
 /**
@@ -24,6 +24,10 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  * subclasses of {@link ItemDeltaProcessor} for that.
  * The class also declares more specific methods for applying values (add, replace, delete),
  * because in some scenarios we work with items and not with item delta modifications anymore.
+ *
+ * Implementations populate updates contained in the {@link #context} using
+ * {@link SqaleUpdateContext#set} method (these will be executed later) or issue insert/delete
+ * statements which are executed immediately which is responsibility of the processor.
  *
  * @param <T> expected type of the real value for the modification (after optional conversion)
  */
@@ -43,12 +47,12 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
             return;
         }
 
-        // if it was replace, we don't get here, but add+delete can be used together
-        if (modification.isAdd()) {
-            addRealValues(modification.getRealValuesToAdd());
-        }
+        // if it was replace, we don't get here, but delete+add can be used together
         if (modification.isDelete()) {
             deleteRealValues(modification.getRealValuesToDelete());
+        }
+        if (modification.isAdd()) {
+            addRealValues(modification.getRealValuesToAdd());
         }
     }
 

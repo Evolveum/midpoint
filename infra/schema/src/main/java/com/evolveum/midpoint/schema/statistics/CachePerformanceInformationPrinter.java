@@ -28,11 +28,10 @@ public class CachePerformanceInformationPrinter extends AbstractStatisticsPrinte
         super(information, options, null, null);
     }
 
-    public String print() {
+    public void prepare() {
         List<SingleCachePerformanceInformationType> caches = getSortedCaches();
         createData(caches);
         createFormatting();
-        return applyFormatting();
     }
 
     @NotNull

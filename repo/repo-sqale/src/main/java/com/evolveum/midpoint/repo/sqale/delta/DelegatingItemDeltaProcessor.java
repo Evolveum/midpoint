@@ -11,11 +11,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -24,30 +25,22 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * This is default item delta processor that decides what to do with the modification.
  * If the modification has multi-part name then it resolves it to the last component first.
  *
- * *Implementation note:*
- * This is a separate component used by {@link SqaleUpdateContext} but while the context is
- * one for all modifications this is instantiated for each modification (or even path resolution
- * step) which allows for state changes that don't affect processing of another modification.
+ * This component is for delta processing what {@link ValueFilterProcessor} is for filters.
+ * Notable difference is that context and mapping are always related here, even for nested
+ * mappings on the same table we create new context which contains the right mapping, so we
+ * just track context changes here.
  */
 public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
-    /** Query context and mapping is not final as it can change during complex path resolution. */
+    /** Query context is not final as it can change during complex path resolution. */
     private SqaleUpdateContext<?, ?, ?> context;
-    private QueryModelMapping<?, ?, ?> mapping;
 
-    public DelegatingItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+    public DelegatingItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context) {
         this.context = context;
-        this.mapping = mapping;
     }
 
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        // TODO will we need various types of SqaleUpdateContext too?
-        //  E.g. AccessCertificationWorkItemType is container inside container and to add/delete
-        //  it we need to anchor the context in its parent, not in absolute root of update context.
-        //  Similar situation is adding multi-value references to containers like assignments.
-
         QName itemName = resolvePath(modification.getPath());
         if (itemName == null) {
             // This may indicate forgotten mapping, but normally it means that the item is simply
@@ -55,9 +48,10 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             return;
         }
 
-        ItemSqlMapper itemSqlMapper = mapping.getItemMapper(itemName);
+        QueryModelMapping<?, ?, ?> mapping = context.mapping();
+        ItemSqlMapper<?, ?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
         if (itemSqlMapper instanceof SqaleItemSqlMapper) {
-            ((SqaleItemSqlMapper) itemSqlMapper)
+            ((SqaleItemSqlMapper<?, ?, ?>) itemSqlMapper)
                     .createItemDeltaProcessor(context)
                     .process(modification);
         } else if (itemSqlMapper != null) {
@@ -70,12 +64,13 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
         // It's a similar case like the fast return after resolving the path.
     }
 
-    private QName resolvePath(ItemPath path) throws QueryException {
+    private QName resolvePath(ItemPath path) {
         while (!path.isSingleName()) {
             ItemName firstName = path.firstName();
             path = path.rest();
 
-            ItemRelationResolver relationResolver = mapping.getRelationResolver(firstName);
+            QueryModelMapping<?, ?, ?> mapping = context.mapping();
+            ItemRelationResolver<?, ?> relationResolver = mapping.getRelationResolver(firstName);
             if (relationResolver == null) {
                 return null; // unmapped, not persisted, nothing to do
             }
@@ -85,10 +80,24 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                 throw new IllegalArgumentException("Relation resolver for " + firstName
                         + " in mapping " + mapping + " does not support delta modifications!");
             }
-            SqaleItemRelationResolver resolver = (SqaleItemRelationResolver) relationResolver;
-            SqaleItemRelationResolver.UpdateResolutionResult resolution = resolver.resolve(context);
-            context = resolution.context;
-            mapping = resolution.mapping;
+
+            ItemPath subcontextPath = firstName;
+            if (relationResolver instanceof ContainerTableRelationResolver) {
+                Object cid = path.first();
+                path = path.rest();
+                subcontextPath = ItemPath.create(firstName, cid);
+            }
+
+            // We want to use the same subcontext for the same item path to use one UPDATE.
+            SqaleUpdateContext<?, ?, ?> subcontext = context.getSubcontext(subcontextPath);
+            if (subcontext == null) {
+                // we know nothing about context and resolver types, so we have to ignore it
+                //noinspection unchecked,rawtypes
+                subcontext = ((SqaleItemRelationResolver) relationResolver)
+                        .resolve(this.context, subcontextPath);
+                context.addSubcontext(subcontextPath, subcontext);
+            }
+            context = subcontext;
         }
         return path.asSingleName();
     }

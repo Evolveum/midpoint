@@ -6,22 +6,18 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar.
@@ -65,6 +61,11 @@ public class TaskErrorSelectableBeanImpl<O extends ObjectType> extends Selectabl
 
     private String extractMessages(OperationExecutionType execution) {
         List<String> messages = new ArrayList<>();
+        if (execution.getMessage() != null) {
+            message = execution.getMessage();
+            return message;
+        }
+
         for (ObjectDeltaOperationType deltaOperation : execution.getOperation()) {
             OperationResultType result = deltaOperation.getExecutionResult();
             if (result == null || result.getMessage() == null) {

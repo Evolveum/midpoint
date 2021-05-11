@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 /**
@@ -20,23 +21,18 @@ public class QFunctionLibraryMapping
 
     public static final String DEFAULT_ALIAS_NAME = "flib";
 
-    public static final QFunctionLibraryMapping INSTANCE = new QFunctionLibraryMapping();
+    public static QFunctionLibraryMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QFunctionLibraryMapping(repositoryContext);
+    }
 
-    private QFunctionLibraryMapping() {
+    private QFunctionLibraryMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QFunctionLibrary.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                FunctionLibraryType.class, QFunctionLibrary.class);
+                FunctionLibraryType.class, QFunctionLibrary.class, repositoryContext);
     }
 
     @Override
     protected QFunctionLibrary newAliasInstance(String alias) {
         return new QFunctionLibrary(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<FunctionLibraryType, QFunctionLibrary, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

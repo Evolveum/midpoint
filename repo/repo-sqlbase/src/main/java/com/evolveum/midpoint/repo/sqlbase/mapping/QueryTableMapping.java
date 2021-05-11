@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and tables.
@@ -43,16 +45,24 @@ import com.evolveum.midpoint.util.QNameUtil;
  * related to-many detail tables.
  *
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
- * Transformation between schema/prism objects and repository objects (row beans or tuples) is
- * delegated to {@link SqlTransformer}.
- * Objects of various {@link QueryTableMapping} subclasses are factories for the transformer.
+ * Mappings also takes care of transformation between schema/prism objects and repository objects
+ * (row beans or tuples).
  *
  * Other important functions of mapping:
  *
  * * It allows creating "aliases" (entity path instances) {@link #newAlias(String)}.
  * * It knows how to traverse to other related entities, defined by {@link #addRelationResolver}
  *
- * TODO: possible future use is to help with item delta applications (objectModify)
+ * Mapper factory methods like {@link #stringMapper} return mappers that may or may not be bound
+ * to the same schema type because of the nested mappings.
+ * E.g. attribute `name` is part of the `S` object, but `metadata/createChannel` is based on nested
+ * mapping for `metadata` for which `S` is `MetadataType`.
+ * That's why these methods have flexible schema type parameter.
+ * Because such nested mapping still uses the same table, types `Q` and `R` remain the same.
+ *
+ * Mapping for tables is initialized once and requires {@link SqlRepoContext}.
+ * The mapping is accessible by static `get()` method; if multiple mapping instances exist
+ * for the same type the method uses suffix to differentiate them.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -63,6 +73,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     private final String tableName;
     private final String defaultAliasName;
+    private final SqlRepoContext repositoryContext;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
@@ -87,53 +98,91 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType) {
+            @NotNull Class<Q> queryType,
+            @NotNull SqlRepoContext repositoryContext) {
         super(schemaType, queryType);
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
+        this.repositoryContext = repositoryContext;
     }
 
-    /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper stringMapper(
-            Function<EntityPath<?>, StringPath> rootToQueryItem) {
-        return new ItemSqlMapper(
+    /**
+     * Returns the mapper creating the string filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> stringMapper(
+            Function<Q, StringPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
-    /** Returns the mapper creating the integer filter processor from context. */
-    public ItemSqlMapper integerMapper(
-            Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    /**
+     * Returns the mapper creating the integer filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    public <MS> ItemSqlMapper<MS, Q, R> integerMapper(
+            Function<Q, NumberPath<Integer>> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the boolean filter processor from context. */
-    protected ItemSqlMapper booleanMapper(
-            Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    /**
+     * Returns the mapper creating the long filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    public <MS> ItemSqlMapper<MS, Q, R> longMapper(
+            Function<Q, NumberPath<Long>> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the OID (UUID) filter processor from context. */
-    protected ItemSqlMapper uuidMapper(
-            Function<EntityPath<?>, UuidPath> rootToQueryItem) {
-        return new ItemSqlMapper(ctx ->
+    /**
+     * Returns the mapper creating the boolean filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> booleanMapper(
+            Function<Q, BooleanPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper function creating the timestamp filter processor from context. */
-    protected <T extends Comparable<T>> ItemSqlMapper timestampMapper(
-            Function<EntityPath<?>, DateTimePath<T>> rootToQueryItem) {
-        return new ItemSqlMapper(context ->
+    /**
+     * Returns the mapper creating the OID (UUID) filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> uuidMapper(
+            Function<Q, UuidPath> rootToQueryItem) {
+        return new ItemSqlMapper<>(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /**
+     * Returns the mapper function creating the timestamp filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     * @param <T> actual data type of the query path storing the timestamp
+     */
+    protected <MS, T extends Comparable<T>> ItemSqlMapper<MS, Q, R> timestampMapper(
+            Function<Q, DateTimePath<T>> rootToQueryItem) {
+        return new ItemSqlMapper<>(context ->
                 new TimestampItemFilterProcessor<>(context, rootToQueryItem), rootToQueryItem);
     }
 
-    /** Returns the mapper creating the string filter processor from context. */
-    protected ItemSqlMapper polyStringMapper(
-            Function<EntityPath<?>, StringPath> origMapping,
-            Function<EntityPath<?>, StringPath> normMapping) {
-        return new ItemSqlMapper(ctx ->
+    /**
+     * Returns the mapper creating the string filter processor from context.
+     *
+     * @param <MS> mapped schema type, see javadoc for the class
+     */
+    protected <MS> ItemSqlMapper<MS, Q, R> polyStringMapper(
+            Function<Q, StringPath> origMapping,
+            Function<Q, StringPath> normMapping) {
+        return new ItemSqlMapper<>(ctx ->
                 new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
     }
 
@@ -153,36 +202,19 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <A extends Path<?>> Function<EntityPath<?>, A> path(
-            Function<Q, A> rootToQueryItem) {
-        return (Function) rootToQueryItem;
-    }
-
-    /**
-     * Lambda "wrapper" but this time with explicit query type (otherwise unused by the method)
-     * for paths not starting on the Q parameter used for this mapping instance.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <OQ extends EntityPath<OR>, OR, A extends Path<?>> Function<EntityPath<?>, A> path(
-            @SuppressWarnings("unused") Class<OQ> queryType,
-            Function<OQ, A> entityToQueryItem) {
-        return (Function) entityToQueryItem;
-    }
-
-    /**
      * Lambda "wrapper" that helps with the type inference (namely the current Q type).
      * Returned bi-function returns {@code ON} condition predicate for two entity paths.
+     *
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      */
-    protected <DQ extends EntityPath<DR>, DR> BiFunction<Q, DQ, Predicate> joinOn(
-            BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    protected <TQ extends FlexibleRelationalPathBase<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
+            BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return joinOnPredicateFunction;
     }
 
     public final @Nullable Path<?> primarySqlPath(
-            ItemName itemName, SqlQueryContext<?, ?, ?> context)
+            ItemName itemName, SqlQueryContext<S, Q, R> context)
             throws RepositoryException {
         return itemMapper(itemName).itemPrimaryPath(context.path());
     }
@@ -193,6 +225,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     public String defaultAliasName() {
         return defaultAliasName;
+    }
+
+    public SqlRepoContext repositoryContext() {
+        return repositoryContext;
     }
 
     /**
@@ -227,18 +263,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             defaultAlias = newAlias(defaultAliasName);
         }
         return defaultAlias;
-    }
-
-    /**
-     * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
-     * TODO: rethink/confirm this create mechanism, currently the SqlTransformerSupport is managed
-     * component without any other state and so are transformers, perhaps we can pre-create them
-     * or cache (I don't like the sound of that). On the other hand they are really lightweight
-     * and short lived helpers too, so it shouldn't be a real GC problem.
-     */
-    public SqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType());
     }
 
     /**
@@ -298,6 +322,35 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     public R newRowObject() {
         throw new UnsupportedOperationException(
                 "Row bean creation not implemented for query type " + queryType().getName());
+    }
+
+    /**
+     * Transforms row of {@link R} type to schema type {@link S}.
+     * If pre-generated bean is used as row it does not include extension (dynamic) columns,
+     * which is OK if extension columns are used only for query and their information
+     * is still contained in the object somehow else (e.g. full object LOB).
+     *
+     * Alternative would be dynamically generated list of select expressions and transforming
+     * row to M object directly from {@link com.querydsl.core.Tuple}.
+     */
+    public abstract S toSchemaObject(R row) throws SchemaException;
+
+    /**
+     * Transforms row Tuple containing attributes of {@link R} to schema type {@link S}.
+     * Entity path can be used to access tuple elements.
+     * This allows loading also dynamically defined columns (like extensions).
+     */
+    public abstract S toSchemaObject(Tuple row, Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException;
+
+    public S toSchemaObjectSafe(Tuple tuple, Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        try {
+            return toSchemaObject(tuple, entityPath, options);
+        } catch (SchemaException e) {
+            throw new RepositoryMappingException(e);
+        }
     }
 
     @Override

@@ -14,13 +14,15 @@ import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -33,8 +35,9 @@ public class SqaleRepoContext extends SqlRepoContext {
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
+            SchemaService schemaService,
             QueryModelMappingRegistry mappingRegistry) {
-        super(jdbcRepositoryConfiguration, dataSource, mappingRegistry);
+        super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
@@ -65,16 +68,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
     public void clearCaches() {
-        try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
-            uriCache.initialize(jdbcSession);
-            jdbcSession.commit();
-        }
-    }
-
-    /** @see UriCache#searchId(QName) */
-    @NotNull
-    public Integer searchCachedUriId(QName qName) {
-        return uriCache.searchId(qName);
+        uriCache.initialize(this::newJdbcSession);
     }
 
     /** @see UriCache#searchId(String) */
@@ -82,18 +76,27 @@ public class SqaleRepoContext extends SqlRepoContext {
         return uriCache.searchId(uri);
     }
 
-    /** @see UriCache#resolveUriToId(String) */
-    public @NotNull Integer resolveUriToId(String uri) {
-        return uriCache.resolveUriToId(uri);
-    }
-
-    /** @see UriCache#resolveUriToId(QName) */
-    public Integer resolveUriToId(QName uri) {
-        return uriCache.resolveUriToId(uri);
+    /**
+     * Returns ID for relation QName or {@link UriCache#UNKNOWN_ID} without going to the database.
+     * Relation is normalized before consulting {@link UriCache}.
+     * Never returns null; returns default ID for configured default relation if provided with null.
+     */
+    public @NotNull Integer searchCachedRelationId(QName qName) {
+        return searchCachedUriId(QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCacheableUri(String uri, JdbcSession jdbcSession) {
-        return uriCache.processCacheableUri(uri, jdbcSession);
+    public Integer processCacheableUri(String uri) {
+        return uriCache.processCacheableUri(uri);
+    }
+
+    /**
+     * Returns ID for relation QName creating new {@link QUri} row in DB as needed.
+     * Relation is normalized before consulting the cache.
+     * Never returns null, returns default ID for configured default relation.
+     */
+    public Integer processCacheableRelation(QName qName) {
+        return processCacheableUri(
+                QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 }

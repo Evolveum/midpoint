@@ -24,11 +24,10 @@ public class ProvisioningStatisticsPrinter extends AbstractStatisticsPrinter<Pro
         super(information, options, null, null);
     }
 
-    public String print() {
+    @Override
+    public void prepare() {
         createData();
         createFormatting();
-
-        return applyFormatting() + "\n";
     }
 
     private void createData() {

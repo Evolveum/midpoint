@@ -29,7 +29,9 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -100,9 +102,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final BaseHelper baseHelper; // only for logging/exception handling
     private final SqlRepoContext sqlRepoContext;
     private final SchemaService schemaService;
-
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlTransformerSupport transformerSupport;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -114,7 +114,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerSupport = new SqlTransformerSupport(schemaService, sqlRepoContext);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -175,11 +174,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
      */
     private Long insertAuditEventRecord(
             JdbcSession jdbcSession, AuditEventRecord record) {
-        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.get();
         QAuditEventRecord aer = aerMapping.defaultAlias();
-        MAuditEventRecord aerBean = aerMapping
-                .createTransformer(transformerSupport)
-                .from(record);
+        MAuditEventRecord aerBean = aerMapping.toRowObject(record);
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
@@ -211,7 +208,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         if (!deltasByChecksum.isEmpty()) {
             SQLInsertClause insertBatch = jdbcSession.newInsert(
-                    QAuditDeltaMapping.INSTANCE.defaultAlias());
+                    QAuditDeltaMapping.get().defaultAlias());
             for (MAuditDelta value : deltasByChecksum.values()) {
                 // NULLs are important to keep the value count consistent during the batch
                 insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
@@ -303,7 +300,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             }
         }
         if (!changedItemPaths.isEmpty()) {
-            QAuditItem qAuditItem = QAuditItemMapping.INSTANCE.defaultAlias();
+            QAuditItem qAuditItem = QAuditItemMapping.get().defaultAlias();
             SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
             for (String changedItemPath : changedItemPaths) {
                 insertBatch.set(qAuditItem.recordId, recordId)
@@ -321,7 +318,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.INSTANCE.defaultAlias();
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
         for (String propertyName : properties.keySet()) {
             for (String propertyValue : properties.get(propertyName)) {
@@ -346,7 +343,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.INSTANCE.defaultAlias();
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
         for (String refName : references.keySet()) {
             for (AuditReferenceValue refValue : references.get(refName)) {
@@ -375,7 +372,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        QAuditResource qAuditResource = QAuditResourceMapping.INSTANCE.defaultAlias();
+        QAuditResource qAuditResource = QAuditResourceMapping.get().defaultAlias();
         SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditResource);
         for (String resourceOid : resourceOids) {
             insertBatch.set(qAuditResource.recordId, recordId)
@@ -499,7 +496,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             throws SQLException {
         AuditEventRecord audit = createAuditEventRecord(resultList);
         final Map<String, ColumnMetadata> customColumns =
-                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
+                QAuditEventRecordMapping.get().getExtensionColumns();
         for (Entry<String, ColumnMetadata> entry : customColumns.entrySet()) {
             audit.getCustomColumnProperty().put(entry.getKey(),
                     resultList.getString(entry.getValue().getName()));
@@ -977,7 +974,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private int selectRecordsByMaxAge(
             JdbcSession jdbcSession, String tempTable, Date minValue) {
 
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        QAuditEventRecord aer = QAuditEventRecordMapping.get().defaultAlias();
         SQLQuery<Long> populateQuery = jdbcSession.newQuery()
                 .select(aer.id)
                 .from(aer)
@@ -992,7 +989,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private int selectRecordsByNumberToKeep(
             JdbcSession jdbcSession, String tempTable, int recordsToKeep) {
 
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        QAuditEventRecord aer = QAuditEventRecordMapping.get().defaultAlias();
         long totalAuditRecords = jdbcSession.newQuery().from(aer).fetchCount();
 
         // we will find the number to delete and limit it to range [0,CLEANUP_AUDIT_BATCH_SIZE]
@@ -1129,7 +1126,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
+                    AuditEventRecordType.class, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
@@ -1155,10 +1152,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         try {
             var queryContext = AuditSqlQueryContext.from(
-                    AuditEventRecordType.class, transformerSupport, sqlRepoContext);
+                    AuditEventRecordType.class, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(queryContext, query, options);
-//            addContainerDefinition(AuditEventRecordType.class, result);
             return result;
         } catch (RepositoryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
@@ -1168,25 +1164,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
-        }
-    }
-
-    /**
-     * This enriches collection of returned values with parent container so that
-     * {@link PrismContainer#getDefinition()} is not null.
-     * It is a bit questionable whether this is a responsibility of the repository-level service.
-     * Even without this the values should have {@link PrismContainer#getComplexTypeDefinition()}
-     * if properly created with {@link PrismContext} as constructor parameter.
-     */
-    @SuppressWarnings("SameParameterValue")
-    private <C extends Containerable> void addContainerDefinition(
-            Class<C> containerableType, List<C> containerableValues) throws SchemaException {
-        PrismContainerDefinition<C> containerDefinition =
-                schemaService.findContainerDefinitionByCompileTimeClass(containerableType);
-        PrismContainer<C> container = containerDefinition.instantiate();
-        for (C containerValue : containerableValues) {
-            //noinspection unchecked
-            container.add(containerValue.asPrismContainerValue());
         }
     }
 }

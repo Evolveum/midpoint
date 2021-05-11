@@ -10,16 +10,20 @@ import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
+/**
+ * @param <S> schema type, used by encapsulated mapping
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
+ */
 public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
+    // Type parameters the same as in the class documentation.
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlTransformerSupport transformerSupport, SqlRepoContext sqlRepoContext) {
+            Class<S> schemaType, SqlRepoContext sqlRepoContext) {
 
         QueryTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
@@ -29,27 +33,21 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         query.getMetadata().setValidate(true);
 
         return new AuditSqlQueryContext<>(
-                rootPath, rootMapping, sqlRepoContext, transformerSupport, query);
+                rootPath, rootMapping, sqlRepoContext, query);
     }
 
     private AuditSqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
-            SqlTransformerSupport transformerSupport,
             SQLQuery<?> query) {
-        super(entityPath, mapping, sqlRepoContext, transformerSupport, query);
+        super(entityPath, mapping, sqlRepoContext, query);
     }
 
     @Override
-    protected SqlTransformer<S, Q, R> createTransformer() {
-        return entityPathMapping.createTransformer(transformerSupport);
-    }
-
-    @Override
-    protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> deriveNew(
-            DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new AuditSqlQueryContext<>(
-                newPath, newMapping, sqlRepoContext, transformerSupport, sqlQuery);
+                newPath, newMapping, repositoryContext(), sqlQuery);
     }
 }

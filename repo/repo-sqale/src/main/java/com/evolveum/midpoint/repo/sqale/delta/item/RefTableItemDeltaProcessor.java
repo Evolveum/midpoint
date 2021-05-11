@@ -10,44 +10,45 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.ReferenceSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
-public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referencable> {
+/**
+ * Delta value processor for multi-value references stored in separate tables.
+ *
+ * @param <Q> type of entity path for the reference table
+ * @param <OQ> query type of the reference owner
+ * @param <OR> row type of the reference owner (related to {@link OQ})
+ */
+public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends FlexibleRelationalPathBase<OR>, OR>
+        extends ItemDeltaValueProcessor<Referencable> {
 
-    private final QObjectReferenceMapping refTableMapping;
+    private final SqaleUpdateContext<?, OQ, OR> context;
+    private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
-            QObjectReferenceMapping refTableMapping) {
+            SqaleUpdateContext<?, OQ, OR> context,
+            QReferenceMapping<Q, ?, OQ, OR> refTableMapping) {
         super(context);
+        this.context = context;
         this.refTableMapping = refTableMapping;
     }
 
     @Override
     public void addValues(Collection<Referencable> values) {
-        MObject ownerRow = context.row();
-        ReferenceSqlTransformer<QObjectReference, MReference> transformer =
-                refTableMapping.createTransformer(context.transformerSupport());
-
-        // It looks like the insert belongs to context, but there is no common insert contract.
-        // Each transformer has different types and needs. What? No, I don't want to introduce
-        // owner row type as another parametrized type on the transformer, thank you.
-        values.forEach(ref -> transformer.insert(ref, ownerRow, context.jdbcSession()));
+        values.forEach(ref -> context.insertOwnedRow(refTableMapping, ref));
     }
 
     @Override
     public void deleteValues(Collection<Referencable> values) {
-        QObjectReference r = refTableMapping.defaultAlias();
+        Q r = refTableMapping.defaultAlias();
         for (Referencable ref : values) {
-            Integer relId = context.transformerSupport().searchCachedRelationId(ref.getRelation());
+            Integer relId = context.repositoryContext().searchCachedRelationId(ref.getRelation());
             context.jdbcSession().newDelete(r)
-                    .where(r.ownerOid.eq(context.objectOid())
+                    .where(r.isOwnedBy(context.row())
                             .and(r.targetOid.eq(UUID.fromString(ref.getOid())))
                             .and(r.relationId.eq(relId)))
                     .execute();
@@ -56,9 +57,9 @@ public class RefTableItemDeltaProcessor extends ItemDeltaValueProcessor<Referenc
 
     @Override
     public void delete() {
-        QObjectReference r = refTableMapping.defaultAlias();
+        Q r = refTableMapping.defaultAlias();
         context.jdbcSession().newDelete(r)
-                .where(r.ownerOid.eq(context.objectOid()))
+                .where(r.isOwnedBy(context.row()))
                 .execute();
     }
 }
