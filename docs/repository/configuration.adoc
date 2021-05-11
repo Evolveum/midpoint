@@ -96,8 +96,16 @@ E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
 | Driver class name for JDBC connection.
 | org.h2.Driver (if embedded=true)
 
+| fullObjectFormat
+| Property specifies format (or language) used to store serialized object representation (*m_object.fullObject*).
+Supported values are `xml` and `json`.
+| `xml`
+
 | useZip
 | Property provides optional compression for column storing serialized object representation (*m_object.fullObject*).
+
+Please, consult your RDBMS documentation as some databases may do this transparently behind
+the scenes or even in addition to this setting which is likely undesired.
 | false
 
 | useZipAudit
@@ -105,6 +113,8 @@ E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
 *Important:* Because this was on by default since 3.8 and the option was introduced much later, its default (*true*) reflects the situation in 3.8 and later. +
 If wiki:Audit+configuration#Auditconfiguration-Audittoseparaterepository[separate audit repository] is used, this option must be used there.
 If single repository is used (by default), it must be used in main repository configuration.
+
+Please, consult also your RDBMS documentation to see if this is necessary and not useless or harmful.
 | true
 
 | minPoolSize
