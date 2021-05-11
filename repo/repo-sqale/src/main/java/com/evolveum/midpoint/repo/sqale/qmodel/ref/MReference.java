@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 public class MReference {
 
     public UUID ownerOid;
+    public MObjectType ownerType;
     public MReferenceType referenceType;
     public UUID targetOid;
     public MObjectType targetType;

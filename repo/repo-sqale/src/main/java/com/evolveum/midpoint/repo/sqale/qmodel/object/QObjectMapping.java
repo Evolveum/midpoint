@@ -95,12 +95,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.modifyTimestamp))
                 .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
-                        QObjectReferenceMapping.initForObjectCreateApprover(repositoryContext))
+                        QObjectReferenceMapping.initForCreateApprover(repositoryContext))
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
-                        QObjectReferenceMapping.initForObjectModifyApprover(repositoryContext));
+                        QObjectReferenceMapping.initForModifyApprover(repositoryContext));
 
         addRefMapping(F_PARENT_ORG_REF,
-                QObjectReferenceMapping.initForObjectParentOrg(repositoryContext));
+                QObjectReferenceMapping.initForParentOrg(repositoryContext));
 
         addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT,
                 QAssignmentMapping.initAssignment(repositoryContext),
@@ -245,9 +245,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
             storeRefs(row, metadata.getCreateApproverRef(),
-                    QObjectReferenceMapping.getForObjectCreateApprover(), jdbcSession);
+                    QObjectReferenceMapping.getForCreateApprover(), jdbcSession);
             storeRefs(row, metadata.getModifyApproverRef(),
-                    QObjectReferenceMapping.getForObjectModifyApprover(), jdbcSession);
+                    QObjectReferenceMapping.getForModifyApprover(), jdbcSession);
         }
 
         List<TriggerType> triggers = schemaObject.getTrigger();
@@ -262,7 +262,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         }
 
         storeRefs(row, schemaObject.getParentOrgRef(),
-                QObjectReferenceMapping.getForObjectParentOrg(), jdbcSession);
+                QObjectReferenceMapping.getForParentOrg(), jdbcSession);
 
         if (schemaObject instanceof AssignmentHolderType) {
             storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);

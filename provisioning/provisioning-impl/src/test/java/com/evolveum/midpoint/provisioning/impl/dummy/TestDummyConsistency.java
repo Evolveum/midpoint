@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -66,6 +68,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private static final String ACCOUNT_SHADOW_MURRAY_PENDING_OID = "34132742-2085-11e9-a956-17770b09881b";
     private static final String ACCOUNT_MURRAY_USERNAME = "murray";
     private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
+
+    private static final TestResource<ShadowType> ACCOUNT_LATE = new TestResource<>(TEST_DIR, "account-late.xml", "9f2bc5b3-61ea-4b59-9ee4-901affe5c8c8");
 
     private XMLGregorianCalendar lastRequestStartTs;
     private XMLGregorianCalendar lastRequestEndTs;
@@ -1863,7 +1867,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // THEN
         then();
         display("Result", result);
-        assertHadnledError(result);
+        assertHandledError(result);
 
         // @formatter:off
         syncServiceMock
@@ -2061,6 +2065,109 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .display()
                 .attributes()
                     .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME_CHM);
+    }
+
+    /**
+     * Preparation for testing MID-7044.
+     */
+    @Test
+    public void test920TryToAddAccountLate() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_LATE.file);
+        account.checkConsistence();
+        display("Adding shadow", account);
+
+        // This is to avoid giving up retries too early in the following tests.
+        // (The forceRetry option causes the operations to be retried each time.)
+        setMaxAttempts(RESOURCE_DUMMY_OID, 10, result);
+
+        when();
+        provisioningService.addObject(account, null, null, task, result);
+
+        then();
+        display("Result", result);
+        assertInProgress(result);
+
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    /**
+     * MID-7044
+     */
+    @Test
+    public void test922GetLateWithForceRetry() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when();
+        var options = schemaService.getOperationOptionsBuilder()
+                .forceRetry()
+                .pointInTime(PointInTimeType.FUTURE)
+                .build();
+        provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
+
+        then();
+        assertHandledError(result);
+
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    @Test
+    public void test924ModifyLate() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_LATE.oid, dummyResourceCtl.getAttributeFullnamePath(), "Late");
+
+        when();
+        provisioningService.modifyObject(ShadowType.class, ACCOUNT_LATE.oid, delta.getModifications(),
+                null, null, task, result);
+
+        then();
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead();
+    }
+
+    /**
+     * MID-7044
+     */
+    @Test
+    public void test926GetLateWithForceRetry() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when();
+        var options = schemaService.getOperationOptionsBuilder()
+                .forceRetry()
+                .pointInTime(PointInTimeType.FUTURE)
+                .build();
+        provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
+
+        then();
+        assertHandledError(result);
+
+        assertRepoShadow(ACCOUNT_LATE.oid)
+                .assertNotDead()
+                .pendingOperations()
+                    .modifyOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
     }
 
     private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {

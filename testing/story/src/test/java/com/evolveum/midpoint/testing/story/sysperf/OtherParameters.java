@@ -22,7 +22,8 @@ public class OtherParameters {
                 getSourceMappingsLabel() + "-" +
                 TARGETS_CONFIGURATION.getNumberOfResources() + "t-" +
                 getTargetMappingsLabel() + "-" +
-                getAssignmentsLabel()
+                getAssignmentsLabel() + "-" +
+                getUsersLabel()
                 ;
     }
 
@@ -56,6 +57,25 @@ public class OtherParameters {
         } else {
             return min + "-" + max + "a";
         }
+    }
+
+    private String getUsersLabel() {
+        int users = SOURCES_CONFIGURATION.getNumberOfAccounts();
+
+        int number;
+        String suffix;
+
+        if (users >= 1_000_000 && users % 1_000_000 == 0) {
+            number = users / 1_000_000;
+            suffix = "M";
+        } else if (users >= 1_000 && users % 1_000 == 0) {
+            number = users / 1_000;
+            suffix = "k";
+        } else {
+            number = users;
+            suffix = "";
+        }
+        return number + suffix + "u";
     }
 
     static OtherParameters setup() {

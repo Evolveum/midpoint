@@ -79,15 +79,31 @@ final class PassReason {
         }
         GetOperationOptions cloned = selectorOptions.getOptions().clone();
 
+        // Options considered harmful:
+        //  - retrieve
+        //  - resolve
+        //  - resolveNames
+        //  - raw (because of strange definition handling)
+        //  - tolerateRawData (this is questionable, though)
+        //  - relationalValueSearchQuery
+        //  - distinct
+        //  - attachDiagData
+        //  - definitionProcessing
+        //  - iterationMethod
+
         // Eliminate harmless options
+        cloned.doNotDiscovery(null);
+        cloned.setForceRefresh(null);
+        cloned.setForceRetry(null);
         cloned.setAllowNotFound(null);
         cloned.setExecutionPhase(null);
         cloned.setReadOnly(null);
         cloned.setNoFetch(null);
-        cloned.setPointInTimeType(null);            // This is not used by repository anyway.
+        cloned.setPointInTimeType(null); // This is not used by repository anyway.
         // We know the staleness is not zero, so caching is (in principle) allowed.
         // More detailed treatment of staleness is not yet available.
         cloned.setStaleness(null);
+        cloned.setErrorHandling(null);
         if (cloned.equals(GetOperationOptions.EMPTY)) {
             return null;
         }

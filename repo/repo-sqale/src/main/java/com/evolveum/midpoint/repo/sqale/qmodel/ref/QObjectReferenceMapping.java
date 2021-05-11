@@ -38,9 +38,10 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     public static QObjectReferenceMapping<?, ?> instanceDelegated;
     public static QObjectReferenceMapping<QObjectTemplate, MObject> instanceInclude;
     public static QObjectReferenceMapping<?, ?> instanceProjection;
-    public static QObjectReferenceMapping<?, ?> instanceObjectCreateApprover;
-    public static QObjectReferenceMapping<?, ?> instanceObjectModifyApprover;
-    public static QObjectReferenceMapping<?, ?> instanceObjectParentOrg;
+    // word "object" not used, as it is already implied in the class name
+    public static QObjectReferenceMapping<?, ?> instanceCreateApprover;
+    public static QObjectReferenceMapping<?, ?> instanceModifyApprover;
+    public static QObjectReferenceMapping<?, ?> instanceParentOrg;
     public static QObjectReferenceMapping<?, ?> instancePersona;
     public static QObjectReferenceMapping<QResource, MResource>
             instanceResourceBusinessConfigurationApprover;
@@ -106,48 +107,48 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     }
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
-    initForObjectCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceObjectCreateApprover == null) {
-            instanceObjectCreateApprover = new QObjectReferenceMapping<>(
+    initForCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceCreateApprover == null) {
+            instanceCreateApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_create_approver", "refca", repositoryContext);
         }
-        return getForObjectCreateApprover();
+        return getForCreateApprover();
     }
 
     public static <Q extends QObject<R>, R extends MObject>
-    QObjectReferenceMapping<Q, R> getForObjectCreateApprover() {
+    QObjectReferenceMapping<Q, R> getForCreateApprover() {
         //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceObjectCreateApprover);
+        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceCreateApprover);
     }
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
-    initForObjectModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceObjectModifyApprover == null) {
-            instanceObjectModifyApprover = new QObjectReferenceMapping<>(
+    initForModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceModifyApprover == null) {
+            instanceModifyApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_modify_approver", "refma", repositoryContext);
         }
-        return getForObjectModifyApprover();
+        return getForModifyApprover();
     }
 
     public static <Q extends QObject<R>, R extends MObject>
-    QObjectReferenceMapping<Q, R> getForObjectModifyApprover() {
+    QObjectReferenceMapping<Q, R> getForModifyApprover() {
         //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceObjectModifyApprover);
+        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceModifyApprover);
     }
 
     public static <Q extends QObject<R>, R extends MObject> QObjectReferenceMapping<Q, R>
-    initForObjectParentOrg(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceObjectParentOrg == null) {
-            instanceObjectParentOrg = new QObjectReferenceMapping<>(
+    initForParentOrg(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceParentOrg == null) {
+            instanceParentOrg = new QObjectReferenceMapping<>(
                     "m_ref_object_parent_org", "refpo", repositoryContext);
         }
-        return getForObjectParentOrg();
+        return getForParentOrg();
     }
 
     public static <Q extends QObject<R>, R extends MObject>
-    QObjectReferenceMapping<Q, R> getForObjectParentOrg() {
+    QObjectReferenceMapping<Q, R> getForParentOrg() {
         //noinspection unchecked
-        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceObjectParentOrg);
+        return (QObjectReferenceMapping<Q, R>) Objects.requireNonNull(instanceParentOrg);
     }
 
     public static <Q extends QObject<R>, R extends MObject>
@@ -212,6 +213,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     public MReference newRowObject(MObject ownerRow) {
         MReference row = new MReference();
         row.ownerOid = ownerRow.oid;
+        row.ownerType = ownerRow.objectType;
         return row;
     }
 

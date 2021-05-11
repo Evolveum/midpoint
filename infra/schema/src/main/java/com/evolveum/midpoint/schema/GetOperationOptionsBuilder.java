@@ -52,6 +52,8 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder staleness(Long value);
     GetOperationOptionsBuilder forceRefresh();
     GetOperationOptionsBuilder forceRefresh(Boolean value);
+    GetOperationOptionsBuilder forceRetry();
+    GetOperationOptionsBuilder forceRetry(Boolean value);
     GetOperationOptionsBuilder distinct();
     GetOperationOptionsBuilder distinct(Boolean value);
     GetOperationOptionsBuilder attachDiagData();

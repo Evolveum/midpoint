@@ -1107,7 +1107,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForCreateApprover().defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(2)
@@ -1143,9 +1143,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForCreateApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
-        r = QObjectReferenceMapping.getForObjectModifyApprover().defaultAlias();
+        r = QObjectReferenceMapping.getForModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
     // endregion

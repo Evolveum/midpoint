@@ -18,6 +18,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
@@ -54,11 +55,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     }
 
     private void handleId(Component component) {
-        if (component instanceof CaptchaPanel) {
-            writeDataAttribute(component, ATTR_ID, component.getId() + ((CaptchaPanel) component).getRandomText());
-        } else {
-            writeDataAttribute(component, ATTR_ID, component.getId());
-        }
+        writeDataAttribute(component, ATTR_ID, component.getId());
     }
 
     private void writeDataAttribute(Component component, String key, String value) {
