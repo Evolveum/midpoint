@@ -99,6 +99,7 @@ E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
 | fullObjectFormat
 | Property specifies format (or language) used to store serialized object representation (*m_object.fullObject*).
 Supported values are `xml` and `json`.
+This is safe to change any time, objects are read properly regardless of the format they are stored in.
 | `xml`
 
 | useZip
