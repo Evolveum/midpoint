@@ -202,6 +202,16 @@ public class GetOperationOptionsBuilderImpl
     }
 
     @Override
+    public GetOperationOptionsBuilder forceRetry() {
+        return forceRetry(true);
+    }
+
+    @Override
+    public GetOperationOptionsBuilder forceRetry(Boolean value) {
+        return forPaths(opts -> opts.setForceRetry(value));
+    }
+
+    @Override
     public GetOperationOptionsBuilder distinct() {
         return distinct(true);
     }

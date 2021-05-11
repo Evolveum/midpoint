@@ -99,7 +99,7 @@ class ShadowUpdater {
     /**
      * Record results of ADD operation to the shadow.
      */
-    public void recordAddResult(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    void recordAddResult(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
@@ -168,12 +168,11 @@ class ShadowUpdater {
         result.recordSuccess();
     }
 
-    private void recordAddResultExistingShadow(
-            ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
+    private void recordAddResultExistingShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException {
 
         final PrismObject<ShadowType> resourceShadow;
         if (opState.wasStarted() && opState.getAsyncResult().getReturnValue() != null) {
@@ -431,6 +430,9 @@ class ShadowUpdater {
                 if (wasMarkedDead(shadow, modifications)) {
                     eventDispatcher.notify(ShadowDeathEvent.dead(shadow.getOid()), ctx.getTask(), result);
                 }
+                // This is important e.g. to update opState.repoShadow content in case of ADD operation success
+                // - to pass newly-generated primary identifier to other parts of the code.
+                ItemDeltaCollectionsUtil.applyTo(modifications, shadow);
                 LOGGER.trace("Shadow changes processed successfully.");
             } catch (ObjectAlreadyExistsException ex) {
                 throw new SystemException(ex);
