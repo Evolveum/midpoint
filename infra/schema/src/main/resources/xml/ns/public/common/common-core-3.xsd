@@ -3451,8 +3451,6 @@
                 of the operation or operations that are carried out in the scope of the task.
 
                 Not all parts of this structure are relevant for all task types. TODO handle this by subtyping - later.
-
-                EXPERIMENTAL.
             </xsd:documentation>
            <xsd:appinfo>
                <a:container>true</a:container>
@@ -6863,6 +6861,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6925,6 +6924,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -7542,6 +7542,9 @@
                         wrong and auto-correct them. Enabling this feature will cause that an error
                         is thrown even if cases that may get auto-corrected.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
@@ -20271,7 +20274,6 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetDataType.details</a:displayName>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
           <xsd:sequence>
@@ -20364,7 +20366,6 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetPresentationType.details</a:displayName>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
           <xsd:sequence>
@@ -20420,7 +20421,6 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetDataFieldType.details</a:displayName>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
           <xsd:sequence>
@@ -20502,7 +20502,6 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetVariationType.details</a:displayName>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
           <xsd:sequence>
