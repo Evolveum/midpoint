@@ -1,5 +1,5 @@
-MidPoint 4.3 Support Branch
----------------------------
+MidPoint 4.3.1 "Faraday" Update 1
+----------------------------------
 
 General information:
 
