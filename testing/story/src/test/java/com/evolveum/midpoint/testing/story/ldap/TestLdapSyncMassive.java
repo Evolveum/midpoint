@@ -352,6 +352,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         int segmentSize = users.size() / NUMBER_OF_TEST_THREADS;
         ParallelTestThread[] threads = multithread(
                 (threadIndex) -> {
+                    login(userAdministrator.clone());
                     for (int i = segmentSize * threadIndex; i < segmentSize * threadIndex + segmentSize; i++) {
                         PrismObject<UserType> user = users.get(i);
                         reconcile(user);
