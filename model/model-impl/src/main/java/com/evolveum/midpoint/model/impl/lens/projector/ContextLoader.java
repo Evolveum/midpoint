@@ -666,10 +666,7 @@ public class ContextLoader implements ProjectorProcessor {
             if (!relationRegistry.isMember(linkRefVal.getRelation())) {
                 LOGGER.trace("Inactive linkRef: will only refresh it, no processing. Relation={}, ref={}",
                         linkRefVal.getRelation(), linkRefVal);
-                // We do this just to restore old behavior that ensures that linked shadows are quick-refreshed,
-                // deleting e.g. expired pending operations (see TestMultiResource.test429). But only if full reconciliation
-                // is requested.
-                refreshLinkedShadow(oid, context, task, result);
+                refreshInactiveLinkedShadow(oid, context, task, result);
                 continue;
             }
             if (StringUtils.isBlank(oid)) {
@@ -736,18 +733,27 @@ public class ContextLoader implements ProjectorProcessor {
                 .build();
     }
 
-    private void refreshLinkedShadow(String oid, LensContext<?> context, Task task, OperationResult result) {
+    /**
+     * We do this just to restore old behavior that ensures that linked shadows are quick-refreshed,
+     * deleting e.g. expired pending operations (see TestMultiResource.test429).
+     */
+    private void refreshInactiveLinkedShadow(String oid, LensContext<?> context, Task task, OperationResult result) {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (context.isDoReconciliationForAllProjections()) {
+            // Ensures an attempt to complete any pending operations.
+            // TODO Shouldn't we include FUTURE option as well? E.g. to avoid failing on not-yet-created accounts?
+            //  (Fortunately, we ignore any exceptions but anyway: FUTURE is used in other cases in this class.)
             options = schemaService.getOperationOptionsBuilder()
                     .forceRetry()
                     .build();
         } else {
-            options = createStandardGetOptions();
+            // This ensures only minimal processing, e.g. the quick shadow refresh is done.
+            options = schemaService.getOperationOptionsBuilder()
+                    .noFetch()
+                    .pointInTime(PointInTimeType.FUTURE)
+                    .build();
         }
         try {
-            // TODO should we even do this if no reconciliation is requested?
-            //  We call it with noFetch and we even ignore any exceptions.
             provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (Exception e) {
             result.muteLastSubresultError();
