@@ -3704,6 +3704,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (freshTask.getLastRunStartTimestamp() == null) {
                     return false;
                 }
+                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
+                //  It is because it requires that the task is not running. And this can be a problem if the
+                //  typical run time is approximately the same (or even larger) than the interval.
                 return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
                         && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
                         && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
