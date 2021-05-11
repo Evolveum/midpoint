@@ -7,7 +7,6 @@
 
 -- PERF TEST RESULTS DB
 -- mst_ prefix means: "MidScale Test"
--- TODO: add indexes (and/or views) as necessary for Grafana queries
 
 -- drop view v_stopwatch;
 -- drop table mst_stopwatch; drop table mst_glob_perf_info; drop table mst_query; drop table mst_build;
@@ -15,32 +14,35 @@
 
 create table mst_build (
     id SERIAL NOT NULL, -- surrogate PK
-    build VARCHAR(32) NOT NULL UNIQUE, -- build #
-    branch VARCHAR(64) NOT NULL,
-    commit_hash VARCHAR(40) NOT NULL UNIQUE, -- we don't want to process the same commit multiple times
+    build TEXT NOT NULL, -- build #
+    branch TEXT NOT NULL,
+    commit_hash TEXT NOT NULL, -- we don't want to process the same commit multiple times
     date TIMESTAMPTZ NOT NULL,
+    env TEXT NOT NULL DEFAULT 'dev',
 
     PRIMARY KEY (id)
 );
 
+CREATE UNIQUE INDEX mst_build_commit_hash_env_idx ON mst_build (commit_hash, env);
+
 create table mst_stopwatch (
     build_id SERIAL NOT NULL REFERENCES mst_build(id),
-    test VARCHAR(256) NOT NULL,
-    monitor VARCHAR(512) NOT NULL,
+    test TEXT NOT NULL,
+    monitor TEXT NOT NULL,
     count INTEGER NOT NULL,
     total_us BIGINT NOT NULL,
     avg_us BIGINT NOT NULL,
     min_us BIGINT NOT NULL,
     max_us BIGINT NOT NULL,
--- note VARCHAR(1024), not imported yet due to quoting/escaping problems
+-- note TEXT, not imported yet due to quoting/escaping problems
 
     PRIMARY KEY (build_id, test, monitor)
 );
 
 create table mst_glob_perf_info (
     build_id SERIAL NOT NULL REFERENCES mst_build(id),
-    test VARCHAR(256) NOT NULL,
-    operation VARCHAR(512) NOT NULL,
+    test TEXT NOT NULL,
+    operation TEXT NOT NULL,
     count INTEGER NOT NULL,
     total_ms NUMERIC NOT NULL,
     avg_ms NUMERIC NOT NULL,
@@ -52,8 +54,8 @@ create table mst_glob_perf_info (
 
 create table mst_query (
     build_id SERIAL NOT NULL REFERENCES mst_build(id),
-    test VARCHAR(256) NOT NULL,
-    metric VARCHAR(512) NOT NULL,
+    test TEXT NOT NULL,
+    metric TEXT NOT NULL,
     count INTEGER NOT NULL,
 
     PRIMARY KEY (build_id, test, metric)
