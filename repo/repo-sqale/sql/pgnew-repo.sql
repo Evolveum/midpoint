@@ -597,10 +597,9 @@ CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
     ON m_ref_object_parent_org (targetOid, relation_id);
 
 -- region org-closure
--- Closure is handled by two views - one materialized (m_org_closure_internal) and one with return
--- rule (m_org_closure). Only the second one is used from the outside.
--- Trigger on m_ref_object_parent_org creates flag that the materialized view must be refreshed
--- (line in
+-- Trigger on m_ref_object_parent_org refreshes this view.
+-- This is not most performant, but it is *correct* and it's still WIP.
+
 CREATE MATERIALIZED VIEW m_org_closure AS
 WITH RECURSIVE org_h (
     ancestor_oid, -- ref.targetoid
@@ -633,7 +632,7 @@ CREATE OR REPLACE FUNCTION m_org_closure_refresh()
 AS $$
 BEGIN
     IF TG_OP = 'TRUNCATE' OR OLD.owner_type = 'ORG' OR NEW.owner_type = 'ORG' THEN
-        REFRESH MATERIALIZED VIEW m_org_closure_internal;
+        REFRESH MATERIALIZED VIEW m_org_closure;
     END IF;
 
     -- after trigger returns null

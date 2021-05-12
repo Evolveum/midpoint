@@ -86,22 +86,139 @@ select orgc.parent, orgc.child from orgc orgc
 where orgc.child = gen_random_uuid() limit 10
 ;
 
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
+select count(*) from m_org_closure where ancestor_oid = '1047bd4e-79ff-466c-802f-c42fc7e3ebaf';
+select * from m_ref_object_parent_org;
 
--- bottom to top, we check for owner type only in the non-recursive term
-drop materialized view m_org_closure;
-create materialized view m_org_closure as
--- EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
-with recursive org_h (ancestor, descendant) as not materialized (
+CREATE OR REPLACE FUNCTION m_org_clsr(ancestorOid UUID)
+    RETURNS TABLE (
+        ancestor_oid UUID, -- ref.targetoid
+        descendant_oid UUID --ref.owner_oid
+    )
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    flag_val text;
+BEGIN
+    -- No lock here, if the view is OK, we don't want any locking at all.
+    SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+    IF flag_val = 'true' THEN
+        CALL m_refresh_org_closure();
+    END IF;
+
+    RETURN QUERY SELECT * FROM m_org_closure_internal oci where oci.ancestor_oid = ancestorOid;
+END $$;
+
+select count(*) from m_org_closure_internal;
+
+select * from m_user
+order by oid;
+
+-- using function m_org_clsr(ancestorOid): 1000 ms for oids, 1400 ms for full rows
+-- using m_org_closure with rule: 23 s! no noticeable difference between oid/full select
+select oid from m_user u
+where u.name_norm like '%45'
+    and exists (select 1 from
+        m_ref_object_parent_org pref
+        join
+--         m_org_closure oc on pref.targetoid = oc.descendant_oid
+        m_org_clsr('4e84dcec-eff6-4f1c-9bad-929e98dea3fa') oc on pref.targetoid = oc.descendant_oid
+            and pref.owner_oid = u.oid
+--         where oc.ancestor_oid = '4e84dcec-eff6-4f1c-9bad-929e98dea3fa'
+);
+
+-- using m_org_closure_internal directly 150 ms for just OIDs (600 ms full rows)
+select oid from m_user u
+where u.name_norm like '%45'
+    and exists (select 1 from
+        m_ref_object_parent_org pref
+        join
+        m_org_closure_internal oc on pref.targetoid = oc.descendant_oid
+            and pref.owner_oid = u.oid
+        where oc.ancestor_oid = '4e84dcec-eff6-4f1c-9bad-929e98dea3fa'
+);
+
+WITH RECURSIVE org_h (
+    ancestor_oid, -- ref.targetoid
+    descendant_oid --ref.owner_oid
+) AS (
     -- gather all organizations with parents
-    select r.targetoid, r.owner_oid
-    from m_ref_object_parent_org r
-    where r.owner_type = 'ORG'
-    union
+    SELECT r.targetoid, r.owner_oid
+    FROM m_ref_object_parent_org r
+    WHERE r.owner_type = 'ORG'
+    UNION
     -- generate their parents
-    select par.targetoid, chi.descendant -- leaving original child there generates closure
-    from m_ref_object_parent_org as par, org_h as chi
-    where par.owner_oid = chi.ancestor
+    SELECT par.targetoid, chi.descendant_oid -- leaving original child there generates closure
+    FROM m_ref_object_parent_org as par, org_h as chi
+    WHERE par.owner_oid = chi.ancestor_oid
+),
+pref as (
+    select pref.* from m_ref_object_parent_org pref
+        join org_h oc on pref.targetoid = oc.descendant_oid
+    where oc.ancestor_oid = '4e84dcec-eff6-4f1c-9bad-929e98dea3fa'
 )
-select count(*) from org_h;
+select oid from m_user u
+where
+      u.name_norm like '%45' and
+      exists (select 1 from pref where pref.owner_oid = u.oid)
+;
+-- select count(*) from org_h;
+-- select * from org_h;
+;
+select oid from m_user u
+where u.name_norm like '%45'
+    and exists (select 1 from
+        m_ref_object_parent_org pref
+        join
+        org_h oc on pref.targetoid = oc.descendant_oid
+            and pref.owner_oid = u.oid
+        where oc.ancestor_oid = '4e84dcec-eff6-4f1c-9bad-929e98dea3fa'
+);
+
+select * from m_ref_object_parent_org
+    where owner_oid = '0f9badc4-3fc2-4977-aa0a-f08c3576383d';
+
+select * from m_org_closure oc
+    where oc.descendant_oid = '6e732607-609f-46de-9747-1675868dc227';
+
+select * from m_org_closure oc
+    where oc.ancestor_oid = '4e84dcec-eff6-4f1c-9bad-929e98dea3fa'; -- parent
+--     where oc.ancestor_oid = '29d933cc-a26c-49c7-afb5-a7b0e39121f2'; -- child
+--     where oc.ancestor_oid = '5e3ff03b-7366-4ed5-9d8c-7dc8186b70c6'; -- next child
+
+select * from m_org_closure oc
+    where oc.descendant_oid = '29d933cc-a26c-49c7-afb5-a7b0e39121f2';
+
+select * from m_global_metadata
+;
 
 refresh materialized view m_org_closure;
+
+WITH RECURSIVE org_h(ancestor_oid, descendant_oid) AS (
+    SELECT r.targetoid,
+        r.owner_oid
+    FROM m_ref_object_parent_org r
+    WHERE r.owner_type = 'ORG'::objecttype
+    UNION
+    SELECT par.targetoid,
+        chi.descendant_oid
+    FROM m_ref_object_parent_org par,
+        org_h chi
+    WHERE par.owner_oid = chi.ancestor_oid
+)
+SELECT count(*) FROM org_h;
+
+select * from m_org;
+select count(*) from m_org;
+select count(*) from m_user;
+select count(*) from m_org_closure;
+
+select * from m_org_closure;
+
+select * from m_object where oid = '62d6f1db-7b97-40de-bfbd-d325020597a0'
+;
+
+select * from m_ref_object_parent_org;
+
+truncate m_ref_object_parent_org;
+select * from m_org_closure_internal;
