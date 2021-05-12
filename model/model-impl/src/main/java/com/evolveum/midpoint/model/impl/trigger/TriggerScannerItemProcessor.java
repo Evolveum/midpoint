@@ -91,7 +91,7 @@ public class TriggerScannerItemProcessor
                 continue;
             }
             if (!isHot(timestamp)) {
-                logger.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={}) - skipping also the triggers after that",
+                logger.debug("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={}) - skipping also the triggers after that",
                         trigger, timestamp, taskExecution.getThisScanTimestamp(), taskExecution.getLastScanTimestamp());
                 return;
             }
@@ -109,7 +109,7 @@ public class TriggerScannerItemProcessor
                 // during single task handler run.)
                 continue;
             }
-            logger.debug("Going to fire trigger {} in {}: id={}", handlerUri, object, trigger.getId());
+            logger.debug("Going to fire trigger {} in {}: id={}, ts={}", handlerUri, object, trigger.getId(), timestamp);
             TriggerHandler handler = taskHandler.getTriggerHandler(handlerUri);
             if (handler == null) {
                 logger.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
