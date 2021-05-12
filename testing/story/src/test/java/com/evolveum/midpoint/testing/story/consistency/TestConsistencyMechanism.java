@@ -730,7 +730,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /**
      * Modify account not found => reaction: Delete account
      * <p>
-     * no assignemnt - only linkRef to non existent account
+     * no assignment - only linkRef to non existent account
      */
     @Test
     public void test140ModifyObjectNotFoundLinkedAccount() throws Exception {
@@ -790,7 +790,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /**
      * Modify account not found => reaction: Re-create account, apply changes.
      * <p>
-     * assignemt with non-existent account
+     * assignment with non-existent account
      */
     @Test
     public void test142ModifyObjectNotFoundAssignedAccount() throws Exception {
@@ -1123,6 +1123,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //THEN
         then();
+
+        // @formatter:off
         assertRepoShadow(accountOid)
                 .display(getTestNameShort() + "Shadow after")
                 .assertKind(ShadowKindType.ACCOUNT)
@@ -1133,33 +1135,35 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
-                .end()
-                .pendingOperations().assertOperations(2)
-                .addOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertAttemptNumber(2)
-                .delta()
-                .display()
-                .end()
-                .end()
-                .modifyOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(1)
-                .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .delta()
-                .end()
-                .end()
-                .end()
+                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .end()
+                .pendingOperations()
+                    .assertOperations(2)
+                    .addOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertAttemptNumber(3) // +1 during initial loading, then +1 when executing the modification
+                        .delta()
+                            .display()
+                            .end()
+                        .end()
+                    .modifyOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(1)
+                        .assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .delta()
+                            .end()
+                        .end()
+                    .end()
                 .display();
+        // @formatter:on
 
 //        checkPostponedAccountWithAttributes(accountOid, "e", "Jackkk", "e", "e", "emp4321", FailedOperationTypeType.ADD, false, task, parentResult);
     }
@@ -1718,24 +1722,26 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRetry(), true);
         XMLGregorianCalendar lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
 
+        // @formatter:off
         ShadowAsserter.forShadow(shadowAfter)
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+                    .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
                 .end()
                 .pendingOperations()
-                .singleOperation()
-                .display()
-                .assertType(PendingOperationTypeType.RETRY)
-                .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-                .assertAttemptNumber(2)
-                .assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
-                .delta()
-                .display()
-                .assertModify()
-                .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                    .singleOperation()
+                        .display()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED) // The operation was completed above!
+                        .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+                        .assertAttemptNumber(2)
+                        .assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+                        .delta()
+                            .display()
+                            .assertModify()
+                            .assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+        // @formatter:on
     }
 
     @Test

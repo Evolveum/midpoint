@@ -9,10 +9,6 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,9 +18,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -33,9 +29,10 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -50,7 +47,6 @@ import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvi
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * @author skublik
@@ -84,29 +80,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return null;
     }
 
-    protected IModel<List<PrismContainerValueWrapper<C>>> loadValuesModel() {
-        return getContainerModel() != null ? new PropertyModel<>(getContainerModel(), "values") : Model.ofList(new ArrayList<>());
-    }
-
     @Override
     protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), loadValuesModel()) {
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return MultivalueContainerListPanel.this.getCustomizeContentQuery();
-            }
-
-            @Override
-            protected List<PrismContainerValueWrapper<C>> searchThroughList() {
-                List<PrismContainerValueWrapper<C>> resultList = super.searchThroughList();
-                return postSearch(resultList);
-            }
-
-            @Override
-            protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
-                MultivalueContainerListPanel.this.postProcessWrapper(valueWrapper);
-            }
+        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override
             protected PageStorage getPageStorage() {
@@ -115,46 +91,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         };
     }
 
-    protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
-
-    }
-
-    protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> bar = new ArrayList<>();
         MultiCompositedButtonPanel newObjectIcon =
-                new MultiCompositedButtonPanel(idButton, new LoadableModel<List<MultiFunctinalButtonDto>>(false) {
-                    @Override
-                    protected List<MultiFunctinalButtonDto> load() {
-                        return createNewButtonDescription();
-                    }
-                }) {
-                    private static final long serialVersionUID = 1L;
+                new MultiCompositedButtonPanel(idButton, createNewButtonDescriptionModel()) {
 
-                    @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
-                        newItemPerformed(target, relationSepc);
-                    }
-
-                    @Override
-                    protected boolean isDefaultButtonVisible(){
-                        return getNewObjectGenericButtonVisibility();
-                    }
-
-                    @Override
-                    protected DisplayType getMainButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
-
-                    @Override
-                    protected DisplayType getDefaultObjectButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
-                };
+            @Override
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
+                newItemPerformed(target, relationSepc);
+            }
+        };
         newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
         newObjectIcon.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -173,27 +120,21 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return bar;
     }
 
-    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+    private IModel<List<CompositedIconButtonDto>> createNewButtonDescriptionModel() {
+        return new LoadableModel<>(false) {
+            @Override
+            protected List<CompositedIconButtonDto> load() {
+                return createNewButtonDescription();
+            }
+        };
+    }
+
+    protected List<CompositedIconButtonDto> createNewButtonDescription() {
         return null;
     }
 
-    protected boolean isNewObjectButtonEnabled(){
-        return true;
-    }
+    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
 
-    protected boolean getNewObjectGenericButtonVisibility(){
-        return true;
-    }
-
-    protected DisplayType getNewObjectButtonDisplayType(){
-        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
-    }
-
-    protected List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items){
-        return items;
-    }
-
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc){
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
@@ -231,7 +172,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             PrismContainerWrapper<C> model, AjaxRequestTarget target) {
 
         return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
-
     }
 
     protected abstract void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems);
@@ -283,7 +223,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() == null) {
-                    deleteItemPerformed(target, new ArrayList<>());
+                    deleteItemPerformed(target, getSelectedItems());
                 } else {
                     List<PrismContainerValueWrapper<C>> toDelete = new ArrayList<>();
                     toDelete.add(getRowModel().getObject());

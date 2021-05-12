@@ -8,10 +8,10 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
@@ -22,30 +22,32 @@ public class QCaseMapping
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
 
-    public static final QCaseMapping INSTANCE = new QCaseMapping();
+    public static QCaseMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QCaseMapping(repositoryContext);
+    }
 
-    private QCaseMapping() {
+    private QCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCase.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                CaseType.class, QCase.class);
+                CaseType.class, QCase.class, repositoryContext);
 
-        addItemMapping(F_STATE, stringMapper(path(q -> q.state)));
-        addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(path(q -> q.closeTimestamp)));
-        addItemMapping(F_OBJECT_REF, SqaleTableMapping.refMapper(
-                path(q -> q.objectRefTargetOid),
-                path(q -> q.objectRefTargetType),
-                path(q -> q.objectRefRelationId)));
-        addItemMapping(F_PARENT_REF, SqaleTableMapping.refMapper(
-                path(q -> q.parentRefTargetOid),
-                path(q -> q.parentRefTargetType),
-                path(q -> q.parentRefRelationId)));
-        addItemMapping(F_REQUESTOR_REF, SqaleTableMapping.refMapper(
-                path(q -> q.requestorRefTargetOid),
-                path(q -> q.requestorRefTargetType),
-                path(q -> q.requestorRefRelationId)));
-        addItemMapping(F_TARGET_REF, SqaleTableMapping.refMapper(
-                path(q -> q.targetRefTargetOid),
-                path(q -> q.targetRefTargetType),
-                path(q -> q.targetRefRelationId)));
+        addItemMapping(F_STATE, stringMapper(q -> q.state));
+        addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
+        addItemMapping(F_OBJECT_REF, refMapper(
+                q -> q.objectRefTargetOid,
+                q -> q.objectRefTargetType,
+                q -> q.objectRefRelationId));
+        addItemMapping(F_PARENT_REF, refMapper(
+                q -> q.parentRefTargetOid,
+                q -> q.parentRefTargetType,
+                q -> q.parentRefRelationId));
+        addItemMapping(F_REQUESTOR_REF, refMapper(
+                q -> q.requestorRefTargetOid,
+                q -> q.requestorRefTargetType,
+                q -> q.requestorRefRelationId));
+        addItemMapping(F_TARGET_REF, refMapper(
+                q -> q.targetRefTargetOid,
+                q -> q.targetRefTargetType,
+                q -> q.targetRefRelationId));
     }
 
     @Override
@@ -54,14 +56,9 @@ public class QCaseMapping
     }
 
     @Override
-    public ObjectSqlTransformer<CaseType, QCase, MCase>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
-    }
-
-    @Override
     public MCase newRowObject() {
         return new MCase();
     }
+
+    // TODO transformation code
 }

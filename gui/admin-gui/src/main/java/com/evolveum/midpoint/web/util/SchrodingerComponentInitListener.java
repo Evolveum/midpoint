@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.util;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;
@@ -16,6 +18,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;

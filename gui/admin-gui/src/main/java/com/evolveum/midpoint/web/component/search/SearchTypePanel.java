@@ -40,10 +40,10 @@ public class SearchTypePanel<C extends Containerable> extends AbstractSearchItem
     protected void initSearchItemField(WebMarkupContainer searchItemContainer) {
         Component searchItemField = new WebMarkupContainer(ID_SEARCH_ITEM_FIELD);
         ContainerTypeSearchItem<C> item = getModelObject();
-        if (item != null && item.getAllowedValues(getPageBase()) != null) {
-            List<DisplayableValue<Class<? extends C>>> allowedValues = item.getAllowedValues(getPageBase());
+        if (item != null && item.getAllowedValues() != null) {
+            List<DisplayableValue<Class<C>>> allowedValues = item.getAllowedValues();
             if (allowedValues != null && !allowedValues.isEmpty()) {
-                IModel<List<DisplayableValue<?>>> choices = new ListModel(item.getAllowedValues(getPageBase()));
+                IModel<List<DisplayableValue<?>>> choices = new ListModel(item.getAllowedValues());
                 searchItemField = WebComponentUtil.createDropDownChoices(
                         ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ContainerTypeSearchItem.F_TYPE), (IModel)choices, false, getPageBase());
             }

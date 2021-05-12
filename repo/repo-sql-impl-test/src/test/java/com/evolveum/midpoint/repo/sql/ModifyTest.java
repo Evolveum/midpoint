@@ -365,6 +365,32 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertUserEmployeeNumber(user.getOid(), "new");
     }
 
+    @Test
+    public void test052ModifyUserEmployeeNumberDynamically() throws Exception {
+        OperationResult result = createOperationResult();
+        UserType user = new UserType(prismContext)
+                .oid("052")
+                .name("user052")
+                .employeeNumber("old");
+
+        repositoryService.addObject(user.asPrismObject(), null, result);
+        assertUserEmployeeNumber(user.getOid(), "old");
+
+        repositoryService.modifyObjectDynamically(UserType.class, user.getOid(), null, userBefore -> {
+            String employeeNumber = userBefore.getEmployeeNumber();
+            if ("old".equals(employeeNumber)) {
+                return prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_EMPLOYEE_NUMBER)
+                        .add("new")
+                        .delete("old")
+                        .asItemDeltas();
+            } else {
+                throw new IllegalStateException("employeeNumber is not 'old': " + employeeNumber);
+            }
+        }, getModifyOptions(), result);
+        assertUserEmployeeNumber(user.getOid(), "new");
+    }
+
     @Test   // MID-4801
     public void test055DeleteUserEmployeeNumberWrong() throws Exception {
         OperationResult result = createOperationResult();

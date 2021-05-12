@@ -11,12 +11,15 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,6 +27,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -128,21 +132,17 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
-                        return new IModel<List<PrismContainerValueWrapper<ShadowType>>>() {
-
-                            private static final long serialVersionUID = 1L;
-
+                    protected ISelectableDataProvider<ShadowType, PrismContainerValueWrapper<ShadowType>> createProvider() {
+                        return new ProjectionsListProvider(FocusProjectionsTabPanel.this, getSearchModel(), loadShadowModel()) {
                             @Override
-                            public List<PrismContainerValueWrapper<ShadowType>> getObject() {
-                                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-                                for (ShadowWrapper projection : projectionModel.getObject()) {
-                                    items.add(projection.getValue());
+                            protected PageStorage getPageStorage() {
+                                PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
+                                if (storage == null) {
+                                    storage = getSession().getSessionStorage().initPageStorage(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
                                 }
-                                return items;
+                                return storage;
                             }
                         };
-
                     }
 
                     @Override
@@ -180,10 +180,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                         return null;
                     }
 
-                    @Override
-                    protected String getStorageKey() {
-                        return SessionStorage.KEY_FOCUS_PROJECTION_TABLE;
-                    }
 
                     @Override
                     protected TableId getTableId() {
@@ -242,6 +238,20 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
+    }
+
+    private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
+        return new IModel<List<PrismContainerValueWrapper<ShadowType>>>() {
+
+            @Override
+            public List<PrismContainerValueWrapper<ShadowType>> getObject() {
+                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
+                for (ShadowWrapper projection : projectionModel.getObject()) {
+                    items.add(projection.getValue());
+                }
+                return items;
+            }
+        };
     }
 
     private int countDeadShadows() {
@@ -328,9 +338,15 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             }
 
             @Override
-            protected void addBasicContainerValuePanel(String idPanel) {
-                ShadowPanel shadowPanel = new ShadowPanel(idPanel, getParentModel(getModel()));
-                add(shadowPanel);
+            protected AbstractTab addBasicContainerValuePanel() {
+                return new PanelTab(createStringResource("ShadowType.basic")) {
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        ShadowPanel shadowPanel = new ShadowPanel(panelId, getParentModel(getModel()));
+                        return shadowPanel;
+                    }
+                };
+
 //                add(new WebMarkupContainer(idPanel));
             }
 

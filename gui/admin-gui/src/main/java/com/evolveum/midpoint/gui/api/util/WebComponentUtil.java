@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,17 +22,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
-import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
@@ -82,14 +71,17 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -114,10 +106,14 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -135,6 +131,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -154,6 +151,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -163,10 +161,10 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
@@ -185,6 +183,7 @@ import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -1551,7 +1550,7 @@ public final class WebComponentUtil {
         PolyStringType poly = new PolyStringType();
         poly.setOrig(str);
 
-        if (StringUtils.isNotEmpty(key)){
+        if (StringUtils.isNotEmpty(key)) {
             PolyStringTranslationType translation = new PolyStringTranslationType();
             translation.setKey(key);
             poly.setTranslation(translation);
@@ -2321,7 +2320,7 @@ public final class WebComponentUtil {
                 // this is needed to successfully pass through security
                 // TODO: fix MID-3234
                 if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-                    if(ref.getRelation() == null || pageBase.getRelationRegistry().isStoredIntoParentOrgRef(ref.getRelation())) {
+                    if (ref.getRelation() == null || pageBase.getRelationRegistry().isStoredIntoParentOrgRef(ref.getRelation())) {
                         assignmentHolder.getParentOrgRef().add(ref.clone());
                     }
                 }
@@ -3083,8 +3082,8 @@ public final class WebComponentUtil {
                 int int1 = rK1 != null ? rK1.ordinal() : 100;
                 int int2 = rK2 != null ? rK2.ordinal() : 100;
                 int compare = Integer.compare(int1, int2);
-                if (compare == 0){
-                    if(rD1.getDisplay() == null || rD1.getDisplay().getLabel() == null
+                if (compare == 0) {
+                    if (rD1.getDisplay() == null || rD1.getDisplay().getLabel() == null
                             || rD2.getDisplay() == null || rD2.getDisplay().getLabel() == null) {
                         return compare;
                     }
@@ -3109,7 +3108,7 @@ public final class WebComponentUtil {
 
     private static RelationKindType getHighestRelationKind(List<RelationKindType> kinds) {
         RelationKindType ret = null;
-        for (RelationKindType kind : kinds){
+        for (RelationKindType kind : kinds) {
             if (ret == null || ret.ordinal() < kind.ordinal()) {
                 ret = kind;
             }
@@ -3522,7 +3521,7 @@ public final class WebComponentUtil {
         }
 
         if (suppressTrailingZeroElements) {
-            tmp = StringUtils.replaceOnce(duration, " 0 miliseconds", "");
+            tmp = StringUtils.replaceOnce(duration, " 000 miliseconds", "");
             if (tmp.length() != duration.length()) {
                 duration = tmp;
                 tmp = StringUtils.replaceOnce(duration, " 0 seconds", "");
@@ -3781,14 +3780,14 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType)obj)) {
+        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType) obj)) {
             IconType icon = new IconType();
             icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
             builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             if (title.length() > 0) {
                 title.append("\n");
             }
-            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType)obj)).getString());
+            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType) obj)).getString());
         }
 
         if (StringUtils.isNotEmpty(title.toString())) {
@@ -3828,7 +3827,7 @@ public final class WebComponentUtil {
         }
 
         if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
-                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType)shadow.getResourceRef().getObject().asObjectable(), null)) {
+                && !ResourceTypeUtil.isActivationCapabilityEnabled((ResourceType) shadow.getResourceRef().getObject().asObjectable(), null)) {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
             if (isColumn) {
@@ -3844,7 +3843,7 @@ public final class WebComponentUtil {
         ActivationType activation = shadow.getActivation();
         if (activation == null) {
             builder.setTitle(pageBase.createStringResource("accountIcon.activation.unknown").getString()
-                        + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+                    + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             appendUndefinedIcon(builder);
             return builder.build();
         }
@@ -4038,7 +4037,6 @@ public final class WebComponentUtil {
         return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
     }
 
-
     public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
         DisplayType displayType = new DisplayType();
         IconType icon = new IconType();
@@ -4071,6 +4069,7 @@ public final class WebComponentUtil {
         return icon;
     }
 
+    @Contract("_,_,_,null -> null")
     public static CompositedIconBuilder getAssignmentRelationIconBuilder(PageBase pageBase, AssignmentObjectRelation relationSpec,
             IconType relationIcon, IconType actionButtonIcon) {
         CompositedIconBuilder builder = new CompositedIconBuilder();
@@ -4795,8 +4794,8 @@ public final class WebComponentUtil {
         return sb.toString();
     }
 
-    public static String getObjectListPageStorageKey(String additionalKeyValue){
-        if (StringUtils.isEmpty(additionalKeyValue)){
+    public static String getObjectListPageStorageKey(String additionalKeyValue) {
+        if (StringUtils.isEmpty(additionalKeyValue)) {
             return null;
         }
         return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
@@ -4908,7 +4907,7 @@ public final class WebComponentUtil {
         return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
     }
 
-    public static <AH extends AssignmentHolderType> boolean hasAnyArchetypeAssignemnt(AH assignmentHolder) {
+    public static <AH extends AssignmentHolderType> boolean hasAnyArchetypeAssignment(AH assignmentHolder) {
         if (assignmentHolder.getAssignment() == null) {
             return false;
         }
@@ -5150,5 +5149,15 @@ public final class WebComponentUtil {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         }, allowNull);
+    }
+
+    public static Map<IconCssStyle, IconType> createMainButtonLayerIcon(DisplayType mainButtonDisplayType) {
+        if (mainButtonDisplayType.getIcon() != null && mainButtonDisplayType.getIcon().getCssClass() != null &&
+                mainButtonDisplayType.getIcon().getCssClass().contains(GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
+            return Collections.emptyMap();
+        }
+        Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+        layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+        return layerIconMap;
     }
 }

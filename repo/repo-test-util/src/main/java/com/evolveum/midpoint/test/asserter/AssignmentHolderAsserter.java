@@ -28,11 +28,11 @@ public class AssignmentHolderAsserter<AH extends AssignmentHolderType, RA> exten
         super(focus, returnAsserter, details);
     }
 
-    public static <AH extends AssignmentHolderType> AssignmentHolderAsserter<AH, Void> forAssignemntHolder(PrismObject<AH> assignmentHolder) {
+    public static <AH extends AssignmentHolderType> AssignmentHolderAsserter<AH, Void> forAssignmentHolder(PrismObject<AH> assignmentHolder) {
         return new AssignmentHolderAsserter<>(assignmentHolder);
     }
 
-    public static <AH extends AssignmentHolderType> AssignmentHolderAsserter<AH, Void> forAssignemntHolder(PrismObject<AH> assignmentHolder, String details) {
+    public static <AH extends AssignmentHolderType> AssignmentHolderAsserter<AH, Void> forAssignmentHolder(PrismObject<AH> assignmentHolder, String details) {
         return new AssignmentHolderAsserter<>(assignmentHolder, details);
     }
 

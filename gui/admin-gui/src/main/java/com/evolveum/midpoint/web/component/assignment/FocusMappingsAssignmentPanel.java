@@ -9,20 +9,17 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
 
 public class FocusMappingsAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
@@ -49,34 +46,4 @@ public class FocusMappingsAssignmentPanel extends AssignmentPanel {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
     }
-
-    @Override
-    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
-        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())) {
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, wrapper.getTypeName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
-            return ItemVisibility.HIDDEN;
-        }
-
-        return ItemVisibility.AUTO;
-    }
-
 }

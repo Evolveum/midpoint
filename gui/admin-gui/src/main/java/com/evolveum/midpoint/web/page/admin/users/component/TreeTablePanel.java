@@ -61,6 +61,8 @@ import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Used as a main component of the Org tree page.
  * <p>
@@ -145,9 +147,8 @@ public class TreeTablePanel extends BasePanel<String> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AvailableRelationDto getSupportedRelations() {
-                return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()),
-                        getDefaultRelationConfiguration());
+            protected List<QName> getSupportedRelations() {
+                return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase());
             }
         };
         memberPanel.setOutputMarkupId(true);

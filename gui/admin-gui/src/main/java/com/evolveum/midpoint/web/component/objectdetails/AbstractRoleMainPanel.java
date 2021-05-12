@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
@@ -219,13 +217,13 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
     public AbstractRoleMemberPanel<R> createMemberPanel(String panelId, PageBase parentPage) {
 
-        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable()), parentPage) {
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AvailableRelationDto getSupportedRelations() {
-                return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
+            protected List<QName> getSupportedRelations() {
+                return getSupportedMembersTabRelations();
             }
 
             @Override
@@ -238,14 +236,13 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
     public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId, PageBase parentPage) {
 
-        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable()), parentPage) {
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AvailableRelationDto getSupportedRelations() {
-                AvailableRelationDto availableRelations = getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
-                availableRelations.setDefaultRelation(null);
+            protected List<QName> getSupportedRelations() {
+                List<QName> availableRelations = getSupportedGovernanceTabRelations();
                 return availableRelations;
             }
 
@@ -262,16 +259,16 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         };
     }
 
-    protected AvailableRelationDto getSupportedMembersTabRelations(RelationSearchItemConfigurationType defaultRelationConfiguration) {
+    protected List<QName> getSupportedMembersTabRelations() {
         List<QName> relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
         List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
         governance.forEach(r -> relations.remove(r));
-        return new AvailableRelationDto(relations, defaultRelationConfiguration);
+        return relations;
+//        return new AvailableRelationDto(relations, defaultRelationConfiguration);
     }
 
-    protected AvailableRelationDto getSupportedGovernanceTabRelations(RelationSearchItemConfigurationType defaultRelationConfiguration) {
-        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()),
-                SchemaConstants.ORG_APPROVER, defaultRelationConfiguration);
+    protected List<QName> getSupportedGovernanceTabRelations() {
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
     }
 
     protected Map<String, String> getGovernanceTabAuthorizations() {

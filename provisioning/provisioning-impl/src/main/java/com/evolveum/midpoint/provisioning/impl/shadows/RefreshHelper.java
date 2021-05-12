@@ -468,19 +468,26 @@ class RefreshHelper {
             addHelper.addShadowAttempt(ctx, resourceObjectToAdd, scripts,
                     (ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>>) opState,
                     options, task, result);
-            opState.setRepoShadow(resourceObjectToAdd);
         }
 
         if (pendingDelta.isModify()) {
-            modifyHelper.modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
-                    (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState,
-                    true, task, result);
+            if (opState.objectExists()) {
+                modifyHelper.modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
+                        (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState,
+                        true, task, result);
+            } else {
+                result.recordFatalError("Object does not exist on the resource yet, modification attempt was skipped");
+            }
         }
 
         if (pendingDelta.isDelete()) {
-            deleteHelper.deleteShadowAttempt(ctx, options, scripts,
-                    (ProvisioningOperationState<AsynchronousOperationResult>) opState,
-                    task, result);
+            if (opState.objectExists()) {
+                deleteHelper.deleteShadowAttempt(ctx, options, scripts,
+                        (ProvisioningOperationState<AsynchronousOperationResult>) opState,
+                        task, result);
+            } else {
+                result.recordFatalError("Object does not exist on the resource yet, deletion attempt was skipped");
+            }
         }
     }
 

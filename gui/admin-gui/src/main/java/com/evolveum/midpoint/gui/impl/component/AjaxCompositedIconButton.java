@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
+
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -30,6 +34,33 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
     private IModel<String> title;
     private CompositedIcon icon;
+
+    private IModel<CompositedIconButtonDto> buttonModel;
+
+    public AjaxCompositedIconButton(String id, IModel<CompositedIconButtonDto> buttonModel) {
+        super(id);
+        this.buttonModel = buttonModel;
+
+        add(AttributeAppender.append("class", new IModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return " position-relative ";
+            }
+        }));
+
+        add(AttributeAppender.append("class", new IModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : "";
+            }
+        }));
+    }
 
     public AjaxCompositedIconButton(String id, CompositedIcon icon, IModel<String> title) {
         super(id);
@@ -64,7 +95,17 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         if (title != null) {
             add(AttributeModifier.replace("title", title));
+        } else {
+            add(AttributeModifier.replace("title", new ReadOnlyModel<>(() ->
+                    isNotEmptyModel() ? WebComponentUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "")));
         }
+    }
+
+    private boolean isNotEmptyModel() {
+        if (buttonModel == null) {
+            return false;
+        }
+        return buttonModel.getObject() != null;
     }
 
     @Override
@@ -72,6 +113,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         StringBuilder sb = new StringBuilder();
 
         CompositedIcon icon = this.icon;
+        if (icon == null) {
+            icon = buttonModel.getObject().getCompositedIcon();
+        }
         if (icon.hasBasicIcon()) {
             sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
             if (icon.hasBasicIconHtmlColor()) {

@@ -54,9 +54,17 @@
     mvn clean install -P -dist -DskipTests -DskipStoryTests=false
     See "extratest" profile in testing/pom.xml for all individual properties enabling extra tests.
 
+    Running a single IT test class from story tests with remote debugger:
+    mvn integration-test -DskipStoryTests=false -DredirectTestOutputToFile=false \
+      -Dmaven.failsafe.debug="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" \
+      -pl testing/story -Dit.test=TestSystemPerformance
+    Note the "maven.failsafe.debug", it is possible to use "maven.surefire.debug" (with -Dtest) too.
+    Change to "suspend=y" for the test to wait for the debugger (e.g. debugging the startup).
+    See: https://maven.apache.org/surefire/maven-surefire-plugin/examples/debugging.html
+    and https://maven.apache.org/surefire/maven-failsafe-plugin/examples/debugging.html
+
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
-
     -->
 
     <parent>
@@ -156,7 +164,7 @@
         <redirectTestOutputToFile>true</redirectTestOutputToFile>
 
         <!-- Dependencies global versions -->
-        <commons.io.version>2.6</commons.io.version>
+        <commons.io.version>2.8.0</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.3.1</cxf.version>
@@ -384,7 +392,7 @@
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.5</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>

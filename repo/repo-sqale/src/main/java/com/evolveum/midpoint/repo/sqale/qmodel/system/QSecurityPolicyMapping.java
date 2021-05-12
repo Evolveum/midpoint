@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.system;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
@@ -20,23 +21,18 @@ public class QSecurityPolicyMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sp";
 
-    public static final QSecurityPolicyMapping INSTANCE = new QSecurityPolicyMapping();
+    public static QSecurityPolicyMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QSecurityPolicyMapping(repositoryContext);
+    }
 
-    private QSecurityPolicyMapping() {
+    private QSecurityPolicyMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QSecurityPolicy.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                SecurityPolicyType.class, QSecurityPolicy.class);
+                SecurityPolicyType.class, QSecurityPolicy.class, repositoryContext);
     }
 
     @Override
     protected QSecurityPolicy newAliasInstance(String alias) {
         return new QSecurityPolicy(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<SecurityPolicyType, QSecurityPolicy, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

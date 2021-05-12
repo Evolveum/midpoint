@@ -9,22 +9,9 @@ package com.evolveum.midpoint.repo.sql.audit.beans;
 import java.time.Instant;
 import java.util.*;
 
-import com.evolveum.midpoint.repo.sql.audit.mapping.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 
-/**
- * Querydsl "row bean" type related to {@link QAuditEventRecord}.
- * <p>
- * Design notes (TODO reconsider in 2021 and possibly remove if settled):
- * This bean is super stupid for now.
- * It can have getters/setters and handle more transformations and trimming (in setters),
- * but at this moment this is left to transformation code like in {@link AuditEventRecordSqlTransformer}.
- * I'd not suggest to move complete transformations here, but small conversions and trimming could
- * be here - but how to do it reasonably without converting all fields to private + set/get methods?
- * Can additional setter indicate conversion/trimming duties?
- * What about methods like {@code SqlTransformerBase.trim()}, should we create common supertype
- * to make it easy to call them in M-beans? Or should we use RUtil?
- */
+/** Querydsl "row bean" type related to {@link QAuditEventRecord}. */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {
 

@@ -8,9 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 
-import com.evolveum.midpoint.repo.sqale.mapping.item.TableRelationResolver;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
@@ -21,15 +26,17 @@ public class QLookupTableMapping
 
     public static final String DEFAULT_ALIAS_NAME = "lt";
 
-    public static final QLookupTableMapping INSTANCE = new QLookupTableMapping();
+    public static QLookupTableMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QLookupTableMapping(repositoryContext);
+    }
 
-    private QLookupTableMapping() {
+    private QLookupTableMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QLookupTable.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                LookupTableType.class, QLookupTable.class);
+                LookupTableType.class, QLookupTable.class, repositoryContext);
 
-        addRelationResolver(F_ROW,
-                new TableRelationResolver<>(QLookupTableRow.class,
-                        joinOn((o, t) -> o.oid.eq(t.ownerOid))));
+        addContainerTableMapping(F_ROW,
+                QLookupTableRowMapping.init(repositoryContext),
+                joinOn((o, t) -> o.oid.eq(t.ownerOid)));
     }
 
     @Override
@@ -38,12 +45,21 @@ public class QLookupTableMapping
     }
 
     @Override
-    public LookupTableSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new LookupTableSqlTransformer(transformerSupport, this);
+    public MLookupTable newRowObject() {
+        return new MLookupTable();
     }
 
     @Override
-    public MLookupTable newRowObject() {
-        return new MLookupTable();
+    public void storeRelatedEntities(
+            @NotNull MLookupTable lookupTable,
+            @NotNull LookupTableType schemaObject,
+            @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(lookupTable, schemaObject, jdbcSession);
+
+        List<LookupTableRowType> rows = schemaObject.getRow();
+        if (!rows.isEmpty()) {
+            rows.forEach(row ->
+                    QLookupTableRowMapping.get().insert(row, lookupTable, jdbcSession));
+        }
     }
 }

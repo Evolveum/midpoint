@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -133,36 +134,34 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                ModelInteractionService service = getModelInteractionService();
-                Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
-                try {
-//                    ObjectQuery origQuery = ((SelectableBeanObjectDataProvider)getDataProvider()).getQuery();
-//                    ObjectFilter filter;
-                    ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
-//                    if (origQuery != null) {
-//                        filter = origQuery.getFilter();
-//                    } else {
-//                        filter = query.getFilter();
-//                    }
-//                    // todo target authorization action
-                    ObjectFilter filter = service.getDonorFilter(UserType.class, null, null,
-                            task, task.getResult());
-
-                    query.addFilter(filter);
-                    return query;
-                } catch (CommonException ex) {
-                    LOGGER.error("Couldn't get donor filter, reason: {}", ex.getMessage());
-                    LOGGER.debug("Couldn't get donor filter", ex);
-
-                    PageError error = new PageError(ex);
-                    throw new RestartResponseException(error);
-                }
+            protected ISelectableDataProvider<UserType, SelectableBean<UserType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(() -> getAttorneySelectionQuery(), null);
             }
+
         };
         table.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
         table.setOutputMarkupId(true);
         mainForm.add(table);
+    }
+
+    private ObjectQuery getAttorneySelectionQuery() {
+        ModelInteractionService service = getModelInteractionService();
+        Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
+        try {
+            ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
+            // todo target authorization action
+            ObjectFilter filter = service.getDonorFilter(UserType.class, null, null,
+                    task, task.getResult());
+
+            query.addFilter(filter);
+            return query;
+        } catch (CommonException ex) {
+            LOGGER.error("Couldn't get donor filter, reason: {}", ex.getMessage());
+            LOGGER.debug("Couldn't get donor filter", ex);
+
+            PageError error = new PageError(ex);
+            throw new RestartResponseException(error);
+        }
     }
 
     private List<IColumn<SelectableBean<UserType>, String>> initColumns() {

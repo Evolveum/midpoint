@@ -12,22 +12,30 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
 /**
  * Filter processor that resolves item path and then constructs an SQL condition for it.
- * This covers needs of {@link RefFilter} and {@link PropertyValueFilter}.
+ * This covers the needs of {@link ValueFilter} subtypes.
+ *
+ * Despite the class name it does not directly contain code that creates conditions based on values.
+ * This is still a structural processor and the name "value filter" merely reflects the type of
+ * a filter which it processes.
+ * During multi-part item path it creates necessary JOINs or subqueries creating new
+ * {@link #context} and {@link #mapping} instances in the process.
+ * Finally, it then delegates to the right {@link ItemFilterProcessor} to process the values
+ * and construct SQL conditions.
  */
 public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
 
-    /** Query context here is not final as it can change during complex path resolution. */
+    /** Query context and mapping is not final as it can change during complex path resolution. */
     private SqlQueryContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
 
@@ -39,6 +47,7 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         if (filter.getRightHandSidePath() != null) {
+            // TODO
             throw new QueryException(
                     "Filter with right-hand-side path is not supported YET: " + filter.getPath());
         }
@@ -47,9 +56,14 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
 //        ItemDefinition definition = filter.getDefinition();
 
         QName itemName = resolvePath(filter.getPath());
-        return mapping.itemMapper(itemName)
-                .createFilterProcessor(context)
-                .process(filter);
+        ItemFilterProcessor<ObjectFilter> filterProcessor =
+                mapping.itemMapper(itemName)
+                        .createFilterProcessor(context);
+        if (filterProcessor == null) {
+            throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
+            // this should not even happen, we can't even create a Query that would cause this
+        }
+        return filterProcessor.process(filter);
     }
 
     /**
@@ -66,7 +80,10 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
             ItemName firstName = path.firstName();
             path = path.rest();
 
+            // we know nothing about context and resolver types, so we have to ignore it
+            //noinspection rawtypes
             ItemRelationResolver resolver = mapping.relationResolver(firstName);
+            //noinspection unchecked
             ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
             context = resolution.context;
             mapping = resolution.mapping;

@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -20,6 +26,11 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author skublik
  */
@@ -29,11 +40,17 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DISPLAY_NAME = "displayName";
-    private static final String ID_BASIC_PANEL = "basicPanel";
-    protected static final String ID_SPECIFIC_CONTAINERS_PANEL = "specificContainersPanel";
+    private static final String ID_DETAILS = "details";
+
+    private boolean isAddDefaultPanel;
 
     public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
         super(id, model);
+    }
+
+    public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model, boolean addDefaultPanel) {
+        super(id, model);
+        this.isAddDefaultPanel = addDefaultPanel;
     }
 
     @Override
@@ -47,8 +64,15 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
 
     private void initLayout() {
 
-        addBasicContainerValuePanel(ID_BASIC_PANEL);
-        add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
+        List<ITab> tabs = createTabs();
+        if (isAddDefaultPanel) {
+            tabs.add(addBasicContainerValuePanel());
+        }
+        TabbedPanel tabbedPanel = WebComponentUtil.createTabPanel(ID_DETAILS, getPageBase(), tabs, null);
+        tabbedPanel.setOutputMarkupId(true);
+        add(tabbedPanel);
+
+
 
         DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
@@ -56,12 +80,23 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
         add(displayNamePanel);
     }
 
-    protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
-        return new WebMarkupContainer(contentAreaId);
+    @NotNull protected List<ITab> createTabs() {
+        List<ITab> tabs = new ArrayList<>();
+//        if (isAddDefaultPanel) {
+//            tabs.add(addBasicContainerValuePanel());
+//        }
+        return tabs;
     }
+    protected AbstractTab addBasicContainerValuePanel() {
+        PanelTab panel = new PanelTab(createStringResource("Basic")) {
 
-    protected void addBasicContainerValuePanel(String idPanel) {
-        add(getBasicContainerValuePanel(idPanel));
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return getBasicContainerValuePanel(panelId);
+            }
+        };
+        return panel;
+
     }
 
     protected Panel getBasicContainerValuePanel(String idPanel) {

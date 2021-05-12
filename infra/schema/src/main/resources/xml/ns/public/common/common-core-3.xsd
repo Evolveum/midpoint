@@ -141,7 +141,7 @@
                     that each object must have to live in our system (identifier, name).
                 </p>
                 <p>
-                    All objects are identified by ﻿OID﻿﻿. The OID is an immutable identifier
+                    All objects are identified by OID. The OID is an immutable identifier
                     (usually UUID). Except the OID all the objects have human-readable name.
                     The name is usually unique for each object type, but this is not a
                     strict requirement.
@@ -1299,6 +1299,7 @@
                 <!--</xsd:annotation>-->
             <!--</xsd:element>-->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskWorkManagementType">
@@ -1360,6 +1361,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <!-- Work buckets configurations -->
@@ -1427,6 +1429,7 @@
                 <!--</xsd:annotation>-->
             <!--</xsd:element>-->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="WorkAllocationConfigurationType">
@@ -1510,6 +1513,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractWorkSegmentationType">
@@ -1545,6 +1549,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="NumericWorkSegmentationType">
@@ -1682,6 +1687,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType" />
 
@@ -3202,6 +3208,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskExecutionConstraintsType">
@@ -3276,6 +3283,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskExecutionGroupConstraintType">  <!-- TODO type name -->
@@ -3314,6 +3322,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="StructuredTaskProgressType">
@@ -3362,6 +3371,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="structuredTaskProgress" type="tns:StructuredTaskProgressType" />
 
@@ -3410,6 +3420,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
 
@@ -3441,6 +3452,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType" />
 
@@ -3519,6 +3531,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="operationStats" type="tns:OperationStatsType" />
 
@@ -4191,6 +4204,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="UriStack">
@@ -4308,6 +4322,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="WorkerTasksPerNodeConfigurationType">
@@ -4370,6 +4385,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskPartitionsDefinitionType">
@@ -4464,6 +4480,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskPartitionDefinitionType">
@@ -4577,6 +4594,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
      <xsd:simpleType name="ExecutionModeType">
@@ -5701,7 +5719,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-              <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Timestamps and general metadata describing the credential change.
@@ -5730,7 +5748,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-          </xsd:sequence>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SecurityQuestionsCredentialsType">
@@ -6234,6 +6253,7 @@
                 </xsd:annotation>
             </xsd:element>
        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AssignmentRelationType">
@@ -6303,6 +6323,7 @@
             </xsd:element>
             <!-- TODO: orderConstraint -->
        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="MappingsType">
@@ -6314,12 +6335,13 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-           <xsd:sequence>
-               <xsd:element ref="tns:description" minOccurs="0"/>
-               <xsd:element ref="tns:documentation" minOccurs="0"/>
-               <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
-                   </xsd:element>
-       </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ActivationType">
@@ -7014,6 +7036,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="XmlSchemaType">
@@ -7044,6 +7067,7 @@
             <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
             <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="schema" type="tns:XmlSchemaType"/>
 
@@ -7143,6 +7167,7 @@
             </xsd:annotation>
         </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
 
@@ -7370,6 +7395,7 @@
                 </xsd:annotation>
              </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="SearchHierarchyScopeType">
@@ -7429,7 +7455,7 @@
                         When set to true, midPoint will try to avoid adding attribute values that are already
                         there and remove values that are not there. Some resources do not tolerate such operations
                         and they respond with errors. However midPoint cannot rely on transactions. MidPoint's
-                        ﻿lock-free relativistic model﻿﻿ provides the necessary consistency, occasional redundant
+                        lock-free relativistic model provides the necessary consistency, occasional redundant
                         additions or deletions may happen. If this option is turned on then midPoint will read
                         the data from resource right before the operation and filter our any redundant changes.
                         This requires additional operation and it increases the risk of inconsistencies. However
@@ -8191,42 +8217,43 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-   <xsd:complexType name="ResourceObjectTypeDependencyType">
-           <xsd:annotation>
-               <xsd:appinfo>
+    <xsd:complexType name="ResourceObjectTypeDependencyType">
+        <xsd:annotation>
+            <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
-           </xsd:annotation>
-           <xsd:complexContent>
-               <xsd:extension base="tns:ShadowDiscriminatorType">
-                   <xsd:sequence>
-                       <xsd:element name="strictness" type="tns:ResourceObjectTypeDependencyStrictnessType" minOccurs="0"/>
-                       <xsd:element name="order" type="xsd:int" minOccurs="0" default="0">
-                           <xsd:annotation>
-                               <xsd:documentation>
-                                   Specifies the order in which the dependency is applied. Lower-order dependencies
-                                   are applied before higher-order dependencies. Dependencies with the same order
-                                   are applied at the same time. There must be no circular dependency formed from
-                                   dependencies of the same order.
-                               </xsd:documentation>
-                           </xsd:annotation>
-                       </xsd:element>
-                       <xsd:element name="forceLoad" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                           <xsd:annotation>
-                               <xsd:documentation>
-                                   Specifies if the shadow on which we depends has to be load. By default we do
-                                   not force to load full dependent shadow.
-                               </xsd:documentation>
-                           </xsd:annotation>
-                       </xsd:element>
-                   </xsd:sequence>
-               </xsd:extension>
-           </xsd:complexContent>
-   </xsd:complexType>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ShadowDiscriminatorType">
+                <xsd:sequence>
+                    <xsd:element name="strictness" type="tns:ResourceObjectTypeDependencyStrictnessType" minOccurs="0"/>
+                    <xsd:element name="order" type="xsd:int" minOccurs="0" default="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the order in which the dependency is applied. Lower-order dependencies
+                                are applied before higher-order dependencies. Dependencies with the same order
+                                are applied at the same time. There must be no circular dependency formed from
+                                dependencies of the same order.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forceLoad" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies if the shadow on which we depends has to be load. By default we do
+                                not force to load full dependent shadow.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-   <xsd:simpleType name="ResourceObjectTypeDependencyStrictnessType">
+    <xsd:simpleType name="ResourceObjectTypeDependencyStrictnessType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -8284,7 +8311,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-             </xsd:restriction>
+        </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="ItemRefinedDefinitionType">
@@ -8515,6 +8542,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="ItemPersistenceType">
@@ -9184,6 +9212,7 @@
                  -->
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceActivationDefinitionType">
@@ -9233,6 +9262,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceObjectLifecycleDefinitionType">
@@ -9267,6 +9297,7 @@
                        We need to align this with similar method to control lifecycle transitions
                        for all other objects -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceBidirectionalMappingType">
@@ -9292,6 +9323,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceBidirectionalMappingAndDefinitionType">
@@ -9427,6 +9459,7 @@
             </xsd:element>
 
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
      </xsd:complexType>
 
      <xsd:complexType name="ShadowTagSpecificationType">
@@ -9456,6 +9489,7 @@
                  </xsd:annotation>
              </xsd:element>
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
      </xsd:complexType>
 
     <xsd:complexType name="ProvenanceFeedDefinitionType">
@@ -9513,6 +9547,7 @@
             <!-- A flag that determines that we want to provide different values for different attributes (to speed up processing)?
                  Currently we use the same metadata for all values in given resource object. -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
      <xsd:complexType name="ResourceObjectReferenceType">
@@ -9561,6 +9596,7 @@
              <xsd:element name="resolutionFrequency" type="tns:ResourceObjectReferenceResolutionFrequencyType" minOccurs="0" maxOccurs="1" default="once">
              </xsd:element>
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
      </xsd:complexType>
 
      <xsd:simpleType name="ResourceObjectReferenceResolutionStrategyType">
@@ -9900,6 +9936,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="capabilities" type="tns:CapabilitiesType"/>
 
@@ -9932,6 +9969,7 @@
                 </xsd:annotation>
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="OperationProvisioningScriptsType">
@@ -10286,6 +10324,7 @@
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractMappingType">
@@ -10500,6 +10539,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="MappingType">
@@ -10920,6 +10960,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionParameterType">
@@ -12140,6 +12181,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType"/>
@@ -14081,6 +14123,7 @@
                  </xsd:annotation>
              </xsd:element>
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
      </xsd:complexType>
 
      <xsd:complexType name="AutoassignSpecificationType">
@@ -14134,6 +14177,7 @@
              </xsd:element>
              <!-- TODO: later: inbound -->
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
      <xsd:complexType name="FocalAutoassignSpecificationType">
@@ -14184,6 +14228,7 @@
                   role managers to be set from GUI. But we can support most of the policy rule
                   constraints here (PolicyConstraintsType). -->
          </xsd:sequence>
+         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AutoassignMappingType">
@@ -14245,6 +14290,7 @@
             </xsd:element>
             <!-- TODO: later: activation, lifecycle -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AuthorizationType">
@@ -14771,7 +14817,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
 
     <xsd:complexType name="OwnedObjectSelectorType">
         <xsd:annotation>
@@ -15323,6 +15368,7 @@
                </xsd:annotation>
            </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ConstructionType">
@@ -16158,6 +16204,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LinkTypeDefinitionsType">
@@ -16188,6 +16235,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LinkTypeDefinitionType">
@@ -16219,6 +16267,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LinkedObjectSelectorType">
@@ -16317,8 +16366,8 @@
             </xsd:element>
             <!-- TODO: default view for archetyped objects? -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
 
     <xsd:complexType name="LookupTableType">
         <xsd:annotation>
@@ -16552,6 +16601,7 @@
             <xsd:element name="limitations" type="tns:LimitationsType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LimitationsType">
@@ -16702,6 +16752,7 @@
         <xsd:sequence>
             <xsd:element name="item" type="tns:ProhibitedValueItemType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ProhibitedValueItemType">
@@ -16726,6 +16777,7 @@
             </xsd:element>
             <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
         <xsd:simpleType name="ValuePolicyOriginType">
@@ -17500,6 +17552,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FullTextSearchIndexedItemsConfigurationType">
@@ -17536,6 +17589,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SystemConfigurationAuditType">
@@ -17562,6 +17616,7 @@
             </xsd:element>
             <!-- TODO: recordRetentionPolicy -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SystemConfigurationAuditEventRecordingType">
@@ -17638,6 +17693,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SystemConfigurationAuditEventRecordingPropertyType">
@@ -17678,6 +17734,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SystemConfigurationExpressionsType">
@@ -17724,6 +17781,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionProfileType">
@@ -17782,6 +17840,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionEvaluatorProfileType">
@@ -17840,6 +17899,7 @@
             </xsd:element>
             <!-- TODO: restrict runAs option -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ScriptExpressionProfileType">
@@ -17911,6 +17971,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionPermissionProfileType">
@@ -17985,6 +18046,7 @@
             </xsd:element>
             <!-- TODO: later: sandboxing, allowed operations -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionPermissionPackageProfileType">
@@ -18035,6 +18097,7 @@
             </xsd:element>
             <!-- TODO: classes within a package? -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionPermissionClassProfileType">
@@ -18092,6 +18155,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionPermissionMethodProfileType">
@@ -18140,9 +18204,8 @@
             </xsd:element>
             <!-- TODO: later: parameter specification -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
-
 
     <xsd:complexType name="FunctionLibraryType">
         <xsd:annotation>
@@ -18358,6 +18421,7 @@
             </xsd:element>
             <!-- TODO: Status may be added here later: all/active/active+delegated -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CollectionRefSpecificationType">
@@ -18552,6 +18616,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="IntegerStatType">
@@ -18622,6 +18687,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AuditSearchType">
@@ -18670,6 +18736,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="InternalsConfigurationType">
@@ -18875,6 +18942,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
 
@@ -18913,6 +18981,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="memoryDiagnosticsConfiguration" type="tns:MemoryDiagnosticsConfigurationType"/>
 
@@ -18973,6 +19042,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="operationResultHandlingStrategy" type="tns:OperationResultHandlingStrategyType" />
 
@@ -18999,6 +19069,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="synchronizationSituationUpdatingStrategy" type="tns:SynchronizationSituationUpdatingStrategyType" />
 
@@ -19032,6 +19103,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="operationExecutionRecordingStrategy" type="tns:OperationExecutionRecordingStrategyType" />
 
@@ -19056,6 +19128,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="metadataRecordingStrategy" type="tns:MetadataRecordingStrategyType" />
 
@@ -19093,6 +19166,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="constraintsCheckingStrategy" type="tns:ConstraintsCheckingStrategyType" />
 
@@ -19117,6 +19191,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="repositoryConfiguration" type="tns:RepositoryConfigurationType" />
 
@@ -19147,6 +19222,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="repositoryStatisticsReportingConfiguration" type="tns:RepositoryStatisticsReportingConfigurationType" />
 
@@ -19261,6 +19337,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="tracingConfiguration" type="tns:TracingConfigurationType" />
 
@@ -19291,6 +19368,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cachingConfiguration" type="tns:CachingConfigurationType" />
 
@@ -19427,6 +19505,7 @@
 <!--                </xsd:annotation>-->
 <!--            </xsd:element>-->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cachingProfile" type="tns:CachingProfileType" />
 
@@ -19573,6 +19652,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cacheObjectTypeSettings" type="tns:CacheObjectTypeSettingsType" />
 
@@ -19604,6 +19684,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cacheInvalidationConfiguration" type="tns:CacheInvalidationConfigurationType" />
 
@@ -19669,6 +19750,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cacheStatisticsReportingConfiguration" type="tns:CacheStatisticsReportingConfigurationType" />
 
@@ -20039,6 +20121,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AdminGuiConfigurationRoleManagementType">
@@ -20068,6 +20151,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AdminGuiApprovalsConfigurationType">
@@ -20097,6 +20181,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="adminGuiApprovalsConfiguration" type="tns:AdminGuiApprovalsConfigurationType" />
 
@@ -20151,6 +20236,7 @@
                         precision (ronuding) of floating-point values
                         deafault boolean presentation (checkbox, on/off switch, dropdown) -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FeedbackMessagesHookType">
@@ -20169,6 +20255,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ConfigurableUserDashboardType">
@@ -20216,15 +20303,16 @@
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-               <xsd:sequence>
-                   <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:displayName>DashboardLayoutType.widget</a:displayName>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-               </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>DashboardLayoutType.widget</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="DashboardWidgetType">
@@ -20308,6 +20396,7 @@
                 </xsd:annotation>
             </xsd:element>
           </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="DashboardWidgetSourceTypeType">
@@ -20412,6 +20501,7 @@
               <!-- TODO: formRef (optional, for form-based widgets) -->
               <!-- TODO: view setting (optional, for list-based widgets) -->
           </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="DashboardWidgetDataFieldType">
@@ -20443,6 +20533,7 @@
               </xsd:element>
               <!-- TODO (later): condition? -->
           </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
         <xsd:simpleType name="DashboardWidgetDataFieldTypeType">
@@ -20530,6 +20621,7 @@
                   </xsd:annotation>
               </xsd:element>
           </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="UserInterfaceFeatureType">
@@ -20642,6 +20734,7 @@
                         </xsd:annotation>
                     </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="UserInterfaceElementVisibilityType">
@@ -20786,6 +20879,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="IconType">
@@ -20848,6 +20942,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectPolicyConfigurationType">
@@ -20926,6 +21021,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FetchErrorHandlingType">
@@ -20948,6 +21044,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="fetchErrorHandling" type="tns:FetchErrorHandlingType" />
 
@@ -21044,6 +21141,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="ConflictResolutionActionType">
@@ -21174,6 +21272,7 @@
                  </xsd:annotation>
              </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ConnectorFrameworkType">
@@ -21191,6 +21290,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ConnectorFrameworkConfigurationType">
@@ -21222,6 +21322,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ProjectionPolicyType">
@@ -21259,6 +21360,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AssignmentPolicyEnforcementType">
@@ -21444,6 +21546,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LoggingAuditingConfigurationType">
@@ -21481,6 +21584,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AdvancedLoggingConfigurationType" mixed="true">
@@ -21495,6 +21599,7 @@
         <xsd:sequence>
             <xsd:any maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractLoggerConfigurationType" abstract="true">
@@ -21527,6 +21632,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ClassLoggerConfigurationType">
@@ -21771,6 +21877,7 @@
             </xsd:element>
         </xsd:sequence>
         <!-- <xsd:attribute name="name" type="xsd:string"/> -->
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FileAppenderConfigurationType">
@@ -22004,6 +22111,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AssignmentConstraintsType">
@@ -22090,6 +22198,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="RelationDefinitionType">
@@ -22242,6 +22351,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="RelationKindType">
@@ -22622,6 +22732,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="PolicyRuleEvaluationTargetType">
@@ -23318,6 +23429,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CleanupPolicyType">
@@ -23347,6 +23459,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="DeadNodeCleanupPolicyType">
@@ -23369,6 +23482,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <!-- Things relevant to model context serialization - more precisely, those parts that are publicly visible
@@ -23447,6 +23561,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SelectorQualifiedGetOptionType">
@@ -23474,6 +23589,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="OptionObjectSelectorType">
@@ -23494,6 +23610,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GetOperationOptionsType">
@@ -23605,6 +23722,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="RetrieveOptionType">
@@ -23799,9 +23917,7 @@
                             chosen but a custom paging exists, provided that the paging contains maxSize clause with a number
                             not greater than a specified limit (maxObjectsForImplicitFetchAllIterationMethod).
                         </xsd:documentation>
-                        <xsd:annotation>
-                            <a:since>3.9</a:since>
-                        </xsd:annotation>
+                        <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23994,6 +24110,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="modelExecuteOptions" type="tns:ModelExecuteOptionsType"/>
 
@@ -24063,6 +24180,7 @@
             <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
    </xsd:complexType>
    <xsd:element name="partialProcessingOptions" type="tns:PartialProcessingOptionsType">
        <xsd:annotation>
@@ -24385,6 +24503,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <!-- TODO profiling Configuration -->
@@ -24486,6 +24605,7 @@
             </xsd:element>
             <!-- Subsystems end -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType"/>
 
@@ -24666,6 +24786,7 @@
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ReportType">
@@ -24918,6 +25039,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="ReportEngineSelectionType">
@@ -25004,6 +25126,7 @@
                 </xsd:element>
             </xsd:choice>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="FileFormatTypeType">
@@ -25041,6 +25164,7 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CsvFileFormatType">
@@ -25269,6 +25393,7 @@
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="JasperReportEngineConfigurationType">
@@ -25322,7 +25447,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
-    <xsd:annotation>
+                <xsd:annotation>
                     <xsd:documentation>
                         Report page orientation (portrait/landscape).
                         This item is specific to JasperRepors. But it may be reused for other report types.
@@ -25330,7 +25455,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="export" type="tns:JasperExportType" minOccurs="0">
-<xsd:annotation>
+                <xsd:annotation>
                     <xsd:documentation>
                         Report output file format.
                     </xsd:documentation>
@@ -25398,6 +25523,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="JasperReportTypeType">
@@ -25476,6 +25602,7 @@
                 <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="DashboardReportEngineConfigurationType">
@@ -25959,6 +26086,7 @@
             <xsd:element name="currentObjectOid" type="xsd:string" minOccurs="0" />
             <xsd:element name="currentObjectStartTimestamp" type="xsd:dateTime" minOccurs="0" />
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="IterativeTaskPartItemsProcessingInformationType">
@@ -26002,6 +26130,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TaskPartExecutionRecordType">
@@ -26031,6 +26160,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ProcessedItemSetType">
@@ -26137,6 +26267,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SynchronizationInformationType">
@@ -26172,6 +26303,7 @@
             <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="0" />
             <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="0" />
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SynchronizationSituationTransitionType">
@@ -26192,6 +26324,7 @@
             <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
             <xsd:element name="counter" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>
 
@@ -26377,6 +26510,7 @@
                        </xsd:annotation>
                    </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectListPanelConfigurationType">
@@ -26590,6 +26724,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SearchBoxConfigurationType">
@@ -26750,6 +26885,7 @@
                    </xsd:element>
                    <!-- TODO: default relation (e.g. defalt, manager, all relations) -->
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectTypeSearchItemConfigurationType">
@@ -26903,6 +27039,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SearchItemType">
@@ -27002,6 +27139,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SearchFilterParameterType">
@@ -27371,6 +27509,7 @@
                        </xsd:annotation>
                    </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="DirectionTypeType">
@@ -27556,6 +27695,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="DisplayValueType">
@@ -27653,6 +27793,7 @@
                    </xsd:element>
                    <!-- TODO later: expression, reference to java class, etc. -->
                </xsd:sequence>
+           <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiExportSettingsType">
@@ -27681,6 +27822,7 @@
                    </xsd:element>
                    <!-- TODO: later: default data language, sync/async, whether to show detail dialog or just run the export, etc. -->
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectDetailsSetType">
@@ -27703,6 +27845,7 @@
                     </xsd:annotation>
                 </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractObjectTypeConfigurationType" abstract="true">
@@ -27862,6 +28005,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SummaryPanelSpecificationType">
@@ -27918,6 +28062,7 @@
                     </xsd:annotation>
                 </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="DetailsPageSaveMethodType">
@@ -27989,6 +28134,7 @@
                     </xsd:annotation>
                 </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
   <!-- ============================================================== -->
@@ -28016,6 +28162,7 @@
                     </xsd:annotation>
                 </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectFormType">
@@ -28115,6 +28262,7 @@
                     </xsd:annotation>
                 </xsd:element>
                </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
 
@@ -28419,6 +28567,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="FormDisplayType">
@@ -28924,6 +29073,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ValidationResultType">
@@ -28944,6 +29094,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="validationResult" type="tns:ValidationResultType"/>
 
@@ -28964,6 +29115,7 @@
             <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" />
             <xsd:element name="itemPath" type="xsd:string" minOccurs="0" />                    <!-- ItemPathType is problem within containers -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="ValidationIssueSeverityType">
@@ -29061,6 +29213,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ItemMergeConfigurationType">
@@ -29097,6 +29250,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ItemRefMergeConfigurationType">
@@ -29371,6 +29525,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="InfrastructureConfigurationType">
@@ -29441,6 +29596,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CachingPolicyType">
@@ -29456,6 +29612,7 @@
         <xsd:sequence>
             <xsd:element name="cachingStategy" type="tns:CachingStategyType" minOccurs="0" maxOccurs="1" default="none"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="CachingStategyType">
@@ -29670,6 +29827,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="operationExecutionRecordRealOwner" type="tns:OperationExecutionRecordRealOwnerType"/>
 
@@ -29958,6 +30116,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="cachesStateInformation" type="tns:CachesStateInformationType" />
 
@@ -30011,6 +30170,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="singleCacheStateInformation" type="tns:SingleCacheStateInformationType" />
 
@@ -30055,6 +30215,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="componentSizeInformation" type="tns:ComponentSizeInformationType" />
 
@@ -30098,6 +30259,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
@@ -30122,6 +30284,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskErrorHandlingStrategy" type="tns:TaskErrorHandlingStrategyType"/>
 
@@ -30161,6 +30324,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskErrorHandlingStrategyEntry" type="tns:TaskErrorHandlingStrategyEntryType"/>
 
@@ -30197,6 +30361,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskErrorSituationSelector" type="tns:TaskErrorSituationSelectorType"/>
 
@@ -30227,6 +30392,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskErrorReaction" type="tns:TaskErrorReactionType"/>
 
@@ -30241,6 +30407,7 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="ignoreErrorReaction" type="tns:IgnoreErrorReactionType"/>
 
@@ -30255,6 +30422,7 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="stopProcessingReaction" type="tns:StopProcessingReactionType"/>
 
@@ -30292,6 +30460,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="retryLaterReaction" type="tns:RetryLaterReactionType"/>
 
@@ -30330,6 +30499,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
 
@@ -30386,6 +30556,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType"/>
 
@@ -30522,6 +30693,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType" />
 
@@ -30555,6 +30727,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskReportingOptions" type="tns:TaskReportingOptionsType" />
 
@@ -30585,6 +30758,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="taskLoggingOptions" type="tns:TaskLoggingOptionsType" />
 

@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
 /**
@@ -19,23 +20,18 @@ public class QSequenceMapping extends QObjectMapping<SequenceType, QSequence, MO
 
     public static final String DEFAULT_ALIAS_NAME = "seq";
 
-    public static final QSequenceMapping INSTANCE = new QSequenceMapping();
+    public static QSequenceMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QSequenceMapping(repositoryContext);
+    }
 
-    private QSequenceMapping() {
+    private QSequenceMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QSequence.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                SequenceType.class, QSequence.class);
+                SequenceType.class, QSequence.class, repositoryContext);
     }
 
     @Override
     protected QSequence newAliasInstance(String alias) {
         return new QSequence(alias);
-    }
-
-    @Override
-    public ObjectSqlTransformer<SequenceType, QSequence, MObject>
-    createTransformer(SqlTransformerSupport transformerSupport) {
-        // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerSupport, this);
     }
 
     @Override

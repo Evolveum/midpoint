@@ -64,7 +64,7 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
     }
 
     protected ObjectFilter getSubtypeFilter(){
-        ObjectFilter filter = getPageBase().getPrismContext().queryFor(OrgType.class)
+        return getPageBase().getPrismContext().queryFor(OrgType.class)
                 .block()
                 .item(OrgType.F_SUBTYPE)
                 .contains("access")
@@ -73,7 +73,6 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
                 .contains("access")
                 .endBlock()
                 .buildFilter();
-        return filter;
     }
 
     @Override

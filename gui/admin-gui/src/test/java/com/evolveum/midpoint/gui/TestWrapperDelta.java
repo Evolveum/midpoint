@@ -1,23 +1,37 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui;
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.ProfilingClassLoggerWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.ProfilingClassLoggerWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -40,20 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.testng.AssertJUnit.*;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -72,6 +72,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         importObjectFromFile(USER_ELAINE, initTask, initResult);
     }
 
+    @Test
     public void test100modifyUserFullname() throws Exception {
         Task task = getTestTask();
 
@@ -80,11 +81,10 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
         PrismPropertyWrapper<PolyString> fullName = objectWrapper.findProperty(UserType.F_FULL_NAME);
         fullName.getValue().setRealValue(PrismTestUtil.createPolyString("Sparrow-Marley"));
-
 
         //GIVEN
         ObjectDelta<UserType> elaineDelta = objectWrapper.getObjectDelta();
@@ -108,7 +108,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
         PrismPropertyWrapper<String> weapon = objectWrapper.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_WEAPON));
         for (PrismPropertyValueWrapper<String> valueWrapper : weapon.getValues()) {
@@ -116,7 +116,8 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         }
 
         ModelServiceLocator locator = getServiceLocator(task);
-        PrismPropertyValueWrapper<String> newValue = locator.createValueWrapper(weapon, new PrismPropertyValueImpl("revolver"), ValueStatus.ADDED, ctx);
+        PrismPropertyValueWrapper<String> newValue = locator.createValueWrapper(
+                weapon, new PrismPropertyValueImpl<>("revolver"), ValueStatus.ADDED, ctx);
         weapon.getValues().add(newValue);
 
         ObjectDelta<UserType> elaineDelta = objectWrapper.getObjectDelta();
@@ -141,9 +142,11 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper<UserType> objectWrapper =
+                createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
-        PrismContainerValue<AssignmentType> newAssignmentClone = createDummyResourceAssignment(objectWrapper, 0, task, result);
+        PrismContainerValue<AssignmentType> newAssignmentClone =
+                createDummyResourceAssignment(objectWrapper, 0, task, result);
 
         ObjectDelta<UserType> delta = objectWrapper.getObjectDelta();
         assertModificationsSize(delta, 1);
@@ -167,14 +170,14 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test111modifyUserAssignemnt() throws Exception {
+    public void test111modifyUserAssignment() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper<UserType> objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
         PrismContainerWrapper<AssignmentType> assignment = objectWrapper.findContainer(UserType.F_ASSIGNMENT);
         assertNotNull("unexpected null assignment wrapper", assignment);
@@ -310,7 +313,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         SystemConfigurationType systemConfig = getSystemConfiguration();
 
         WrapperContext ctx = new WrapperContext(task, result);
-        PrismObjectWrapper objectWrapper =createObjectWrapper(systemConfig.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(systemConfig.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
 
         //GIVEN
         ObjectDelta<UserType> systemConfigDelta = objectWrapper.getObjectDelta();
@@ -340,7 +343,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
         assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_LEVEL),
                 ModificationTypeType.ADD, LoggingLevelType.DEBUG);
-        assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType. F_APPENDER),
+        assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER),
                 ModificationTypeType.ADD, "MIDPOINT_PROFILE_LOG");
         //WHEN
         executeChanges(systemConfigDelta, null, task, result);
@@ -352,10 +355,10 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         loggerLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_LEVEL);
         appenderLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_APPENDER);
 
-        if(!loggerLevel.getValue().getRealValue().equals(LoggingLevelType.DEBUG)) {
+        if (!loggerLevel.getValue().getRealValue().equals(LoggingLevelType.DEBUG)) {
             AssertJUnit.fail("Expected value: " + LoggingLevelType.DEBUG + " after executing of changes. Values present: " + loggerLevel.getValue().getRealValue());
         }
-        if(!appenderLevel.getValues().get(0).getRealValue().equals("MIDPOINT_PROFILE_LOG")) {
+        if (!appenderLevel.getValues().get(0).getRealValue().equals("MIDPOINT_PROFILE_LOG")) {
             AssertJUnit.fail("Expected value: " + "MIDPOINT_PROFILE_LOG" + " after executing of changes. Values present: " + appenderLevel.getValues().get(0).getRealValue());
         }
 
@@ -489,7 +492,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertNotNull("Unexpeted null delta", delta);
         logger.trace("Delta: {}", delta.debugDump());
 
-        Collection<? extends ItemDelta<?,?>> modifications = delta.getModifications();
+        Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
         assertEquals("Unexpected modifications size", expectedModifications, modifications.size());
 
     }
@@ -513,7 +516,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
                 break;
         }
 
-
         assertEquals("Unexpected numbers of values", expectedValues.length, modificationValues.size());
         List<Object> realValues = modificationValues.stream().map(v -> v.getRealValue()).collect(Collectors.toList());
         for (Object expectedValue : expectedValues) {
@@ -524,11 +526,11 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     }
 
-    private <O extends ObjectType> PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws Exception{
+    private <O extends ObjectType> PrismObjectWrapper<O> createObjectWrapper(
+            PrismObject<O> object, ItemStatus status, WrapperContext context) throws Exception {
         ModelServiceLocator locator = getServiceLocator(context.getTask());
-        PrismObjectWrapperFactory objectFactory = locator.findObjectWrapperFactory(object.getDefinition());
+        PrismObjectWrapperFactory<O> objectFactory = locator.findObjectWrapperFactory(object.getDefinition());
 
-        PrismObjectWrapper objectWrapper = objectFactory.createObjectWrapper(object, status, context);
-        return objectWrapper;
+        return objectFactory.createObjectWrapper(object, status, context);
     }
 }

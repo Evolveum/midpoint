@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
@@ -110,49 +111,67 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
+            SchemaService schemaService,
             DataSource dataSource) {
-        QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
-                // ordered alphabetically here, mappings without schema type at the end
-                .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
+        QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
+        SqaleRepoContext repositoryContext = new SqaleRepoContext(
+                repositoryConfiguration, dataSource, schemaService, mappingRegistry);
+
+        // Registered mapping needs repository context which needs registry. Now we can fill it.
+        // Mappings are ordered alphabetically here, mappings without schema type are at the end.
+        mappingRegistry
+                .register(AbstractRoleType.COMPLEX_TYPE,
+                        QAbstractRoleMapping.init(repositoryContext))
                 .register(AccessCertificationDefinitionType.COMPLEX_TYPE,
-                        QAccessCertificationDefinitionMapping.INSTANCE)
-                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
-                .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
-                .register(AssignmentType.COMPLEX_TYPE, QAssignmentMapping.INSTANCE)
-                .register(CaseType.COMPLEX_TYPE, QCaseMapping.INSTANCE)
-                .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
-                .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
-                .register(FormType.COMPLEX_TYPE, QFormMapping.INSTANCE)
-                .register(FunctionLibraryType.COMPLEX_TYPE, QFunctionLibraryMapping.INSTANCE)
-                .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
-                .register(ConnectorHostType.COMPLEX_TYPE, QConnectorHostMapping.INSTANCE)
-                .register(GenericObjectType.COMPLEX_TYPE, QGenericObjectMapping.INSTANCE)
-                .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.INSTANCE)
-                .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
-                .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
-                .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
-                .register(ObjectTemplateType.COMPLEX_TYPE, QObjectTemplateMapping.INSTANCE)
-                .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
-                .register(OperationExecutionType.COMPLEX_TYPE, QOperationExecutionMapping.INSTANCE)
-                .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
-                .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.INSTANCE)
-                .register(ResourceType.COMPLEX_TYPE, QResourceMapping.INSTANCE)
-                .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
-                .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
-                .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.INSTANCE)
-                .register(ServiceType.COMPLEX_TYPE, QServiceMapping.INSTANCE)
-                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.INSTANCE)
+                        QAccessCertificationDefinitionMapping.init(repositoryContext))
+                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.init(repositoryContext))
+                .register(AssignmentHolderType.COMPLEX_TYPE,
+                        QAssignmentHolderMapping.init(repositoryContext))
+                .register(AssignmentType.COMPLEX_TYPE,
+                        QAssignmentMapping.initAssignment(repositoryContext))
+                .register(CaseType.COMPLEX_TYPE, QCaseMapping.init(repositoryContext))
+                .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
+                .register(FocusType.COMPLEX_TYPE, QFocusMapping.init(repositoryContext))
+                .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))
+                .register(FunctionLibraryType.COMPLEX_TYPE,
+                        QFunctionLibraryMapping.init(repositoryContext))
+                .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.init(repositoryContext))
+                .register(ConnectorHostType.COMPLEX_TYPE,
+                        QConnectorHostMapping.init(repositoryContext))
+                .register(GenericObjectType.COMPLEX_TYPE,
+                        QGenericObjectMapping.init(repositoryContext))
+                .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.init(repositoryContext))
+                .register(LookupTableRowType.COMPLEX_TYPE,
+                        QLookupTableRowMapping.init(repositoryContext))
+                .register(NodeType.COMPLEX_TYPE, QNodeMapping.init(repositoryContext))
+                .register(ObjectType.COMPLEX_TYPE, QObjectMapping.init(repositoryContext))
+                .register(ObjectCollectionType.COMPLEX_TYPE,
+                        QObjectCollectionMapping.init(repositoryContext))
+                .register(ObjectTemplateType.COMPLEX_TYPE,
+                        QObjectTemplateMapping.init(repositoryContext))
+                .register(OperationExecutionType.COMPLEX_TYPE,
+                        QOperationExecutionMapping.init(repositoryContext))
+                .register(OrgType.COMPLEX_TYPE, QOrgMapping.init(repositoryContext))
+                .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
+                .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
+                .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
+                .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
+                .register(SecurityPolicyType.COMPLEX_TYPE,
+                        QSecurityPolicyMapping.init(repositoryContext))
+                .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.init(repositoryContext))
+                .register(ServiceType.COMPLEX_TYPE, QServiceMapping.init(repositoryContext))
+                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.init(repositoryContext))
                 .register(SystemConfigurationType.COMPLEX_TYPE,
-                        QSystemConfigurationMapping.INSTANCE)
-                .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
-                .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.INSTANCE)
-                .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
-                .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
-                .register(QContainerMapping.INSTANCE)
-                .register(QReferenceMapping.INSTANCE)
+                        QSystemConfigurationMapping.init(repositoryContext))
+                .register(TaskType.COMPLEX_TYPE, QTaskMapping.init(repositoryContext))
+                .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.init(repositoryContext))
+                .register(UserType.COMPLEX_TYPE, QUserMapping.init(repositoryContext))
+                .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.init(repositoryContext))
+                .register(QContainerMapping.initContainerMapping(repositoryContext))
+                .register(QReferenceMapping.init(repositoryContext))
                 .seal();
 
-        return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
+        return repositoryContext;
     }
 
     @Bean

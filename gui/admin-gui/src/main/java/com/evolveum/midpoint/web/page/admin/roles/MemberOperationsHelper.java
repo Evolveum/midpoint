@@ -151,20 +151,20 @@ public class MemberOperationsHelper {
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes) {
-        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, true);
+                                                                  RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes) {
+        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, true);
 
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
-        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
+                                                                  RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
+        assignMembers(pageBase, targetRefObject, target, relationConfig, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
     }
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
+                                                                                        RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
 
-        ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), availableRelationList) {
+        ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), relationConfig) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -192,8 +192,8 @@ public class MemberOperationsHelper {
     }
 
     public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
+                                                               RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(pageBase.getMainPopupBodyId(), relationConfig) {
 
             private static final long serialVersionUID = 1L;
 
@@ -218,8 +218,8 @@ public class MemberOperationsHelper {
     }
 
     public static <O extends AssignmentHolderType> void assignArchetypeMembers(PageBase pageBase, ArchetypeType targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
-        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
+                                                                               RelationSearchItemConfigurationType relationConfig, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<O>(pageBase.getMainPopupBodyId(), relationConfig) {
 
             private static final long serialVersionUID = 1L;
 

@@ -14,6 +14,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -79,21 +80,9 @@ public class PageTasks extends PageAdmin {
 
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, createOperationOptions()) {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                if (isCollectionViewPanel()) {
-                    return null;
-                }
-                ObjectQuery query = getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                        .isNull()
-                        .build();
-                if (predefinedQuery != null) {
-                    query.addFilter(predefinedQuery.getFilter());
-                }
-                return query;
+            protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(() -> getTaskQuery(isCollectionViewPanel(), predefinedQuery), null);
             }
 
             @Override
@@ -109,6 +98,20 @@ public class PageTasks extends PageAdmin {
             }
         };
         add(tablePanel);
+    }
+
+    private ObjectQuery getTaskQuery(boolean collectionViewPanel, ObjectQuery predefinedQuery) {
+        if (collectionViewPanel) {
+            return null;
+        }
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_PARENT)
+                .isNull()
+                .build();
+        if (predefinedQuery != null) {
+            query.addFilter(predefinedQuery.getFilter());
+        }
+        return query;
     }
 
     private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {

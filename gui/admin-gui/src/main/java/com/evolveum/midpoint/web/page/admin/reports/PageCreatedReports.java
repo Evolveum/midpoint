@@ -167,31 +167,47 @@ public class PageCreatedReports extends PageAdmin {
 
             @Override
             protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
-                PageStorage storage = getObjectListPanel().getPageStorage();
-                SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
-                        getPageBase(), getSearchModel(), null) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected PageStorage getPageStorage() {
-                        return storage;
-                    }
-
-                    @NotNull
-                    @Override
-                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                        return PageCreatedReports.this.createCustomOrdering(sortParam);
-                    }
-
-                    @Override
-                    protected ObjectQuery getCustomizeContentQuery() {
-                        return appendTypeFilter();
-                    }
-                };
-                provider.setCompiledObjectCollectionView(getObjectCollectionView());
-                provider.setOptions(createOptions());
-                return provider;
+                return createSelectableBeanObjectDataProvider(() -> appendTypeFilter(),
+                        (sortParam) -> PageCreatedReports.this.createCustomOrdering(sortParam));
             }
+
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                return appendTypeFilter();
+//            }
+//
+//            @Override
+//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                return PageCreatedReports.this.createCustomOrdering(sortParam);
+//            }
+
+//            @Override
+//            protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
+//                PageStorage storage = getObjectListPanel().getPageStorage();
+//                SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
+//                        getPageBase(), getSearchModel(), null) {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    protected PageStorage getPageStorage() {
+//                        return storage;
+//                    }
+//
+//                    @NotNull
+//                    @Override
+//                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                        return PageCreatedReports.this.createCustomOrdering(sortParam);
+//                    }
+//
+//                    @Override
+//                    protected ObjectQuery getCustomizeContentQuery() {
+//                        return appendTypeFilter();
+//                    }
+//                };
+//                provider.setCompiledObjectCollectionView(getObjectCollectionView());
+//                provider.setOptions(createOptions());
+//                return provider;
+//            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {

@@ -242,7 +242,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
         RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
         CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
         OperationsPerformanceInformationType methods = getAggregateOperationsPerformanceInformation(children);
-        WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();   // this is not fetched from children (present on coordinator task only)
+        // This is not fetched from children (present on coordinator task only).
+        // It looks like that children are always LATs, and LATs do not have bucket management information.
+        WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();
         String cachingConfiguration = getAggregateCachingConfiguration(children);
         if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && buckets == null && cachingConfiguration == null) {
             return null;

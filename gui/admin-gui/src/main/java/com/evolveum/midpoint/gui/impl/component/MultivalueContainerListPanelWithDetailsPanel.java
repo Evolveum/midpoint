@@ -7,7 +7,14 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -171,5 +178,13 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
     protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList() {
         return detailsPanelItemsList;
+    }
+
+    @Override
+    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+        PrismContainerWrapper<C> container = getContainerModel().getObject();
+        PrismContainerValue<C> newObjectPolicy = container.getItem().createNewValue();
+        PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newObjectPolicy, container, target);
+        itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
     }
 }

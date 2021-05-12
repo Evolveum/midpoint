@@ -13,6 +13,7 @@ package com.evolveum.midpoint.web.session;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import javax.xml.namespace.QName;
@@ -245,6 +248,26 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return pageStorage;
         //TODO: fixme
+    }
+
+    public MemberPanelStorage initMemberStorage(String storageKey, SearchBoxConfigurationHelper searchBoxCofig) {
+        PageStorage pageStorage = initPageStorage(storageKey);
+        if (!(pageStorage instanceof MemberPanelStorage)) {
+            return null;
+        }
+        MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
+
+        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
+        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
+        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
+        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
+
+        storage.setIndirect(searchBoxCofig.getDefaultIndirectConfiguration().isIndirect());
+        storage.setRelation(searchBoxCofig.getDefaultRelationConfiguration().getDefaultValue());
+        storage.setOrgSearchScope(searchBoxCofig.getDefaultSearchScopeConfiguration().getDefaultValue());
+        //TODO project? tenant?
+
+        return storage;
     }
 
     public void setUserProfile(UserProfileStorage profile) {

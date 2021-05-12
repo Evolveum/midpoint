@@ -477,11 +477,8 @@ public class AuditLogViewerPanel extends BasePanel {
             public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 AuditEventRecordType record = unwrapModel(rowModel);
                 PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, record.getEventIdentifier());
-                if (AuditEventTypeType.EXECUTE_CHANGES_RAW == record.getEventType()) {
-                    parameters.add(PageAuditLogDetails.PARAMETER_STAGE, record.getEventStage().value());
-                }
-                getPageBase().navigateToNext(new PageAuditLogDetails(parameters));
+                parameters.add(OnePageParameterEncoder.PARAMETER, record.getRepoId());
+                getPageBase().navigateToNext(PageAuditLogDetails.class, parameters);
             }
         };
     }

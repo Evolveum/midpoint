@@ -42,7 +42,43 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class AssignmentsUtil {
 
+    public enum AssignmentTypeType {
+        CONSTRUCTION, ABSTRACT_ROLE, POLICY_RULE, FOCUS_MAPPING, PERSONA_CONSTRUCTION, ASSIGNMENT_RELATION;
+    }
+
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
+
+    public static AssignmentTypeType getAssignmentType(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
+        if (assignmentValueWrapper == null) {
+            return AssignmentTypeType.ABSTRACT_ROLE;
+        }
+        return getAssignmentType(assignmentValueWrapper.getRealValue());
+    }
+
+    public static AssignmentTypeType getAssignmentType(AssignmentType assignment) {
+        if (assignment.getConstruction() != null) {
+            return AssignmentTypeType.CONSTRUCTION;
+        }
+
+        if (assignment.getPolicyRule() != null) {
+            return AssignmentTypeType.POLICY_RULE;
+        }
+
+        if (assignment.getFocusMappings() != null) {
+            return AssignmentTypeType.FOCUS_MAPPING;
+        }
+
+        if (assignment.getPersonaConstruction() != null) {
+            return AssignmentTypeType.PERSONA_CONSTRUCTION;
+        }
+
+//        if (assignment.getAssignmentRelation() != null) {
+//            return AssignmentTypeType.ASSIGNMENT_RELATION;
+//        }
+
+        return AssignmentTypeType.ABSTRACT_ROLE;
+
+    }
 
     public static String createActivationTitleModel(ActivationType activation, String defaultTitle, PageBase basePanel) {
         if (activation == null) {
@@ -251,7 +287,7 @@ public class AssignmentsUtil {
             return sb.toString();
         }
 
-        //TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
+        //TODO fix this.. what do we want to show in the name columns in the case of assignmentRelation assignment??
         if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
             for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
                 sb.append("Assignment relation");
@@ -432,24 +468,22 @@ public class AssignmentsUtil {
         if (assignment.getConstruction() != null) {
             return ConstructionType.COMPLEX_TYPE;
         }
-        ObjectReferenceType targetRef = assignment.getTargetRef();
-        if (targetRef.asReferenceValue().getObject() != null) {
-            // object assignment
-            return targetRef.asReferenceValue().getObject().getComplexTypeDefinition().getTypeName();
-        } else if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null) {
-            return assignment.getTargetRef().getType();
-        }
         if (assignment.getPolicyRule() != null) {
             return PolicyRuleType.COMPLEX_TYPE;
         }
-
         if (assignment.getPersonaConstruction() != null) {
             return PersonaConstructionType.COMPLEX_TYPE;
         }
         if (assignment.getFocusMappings() != null) {
             return MappingType.COMPLEX_TYPE;
         }
-
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef != null && targetRef.asReferenceValue().getObject() != null) {
+            // object assignment
+            return targetRef.asReferenceValue().getObject().getComplexTypeDefinition().getTypeName();
+        } else if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null) {
+            return assignment.getTargetRef().getType();
+        }
         // account assignment through account construction
         return ConstructionType.COMPLEX_TYPE;
 

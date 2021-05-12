@@ -8,51 +8,96 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
 /**
  * Mapping between {@link QOperationExecution} and {@link OperationExecutionType}.
+ *
+ * @param <OR> type of the owner row
  */
-public class QOperationExecutionMapping
-        extends QContainerMapping<OperationExecutionType, QOperationExecution, MOperationExecution> {
+public class QOperationExecutionMapping<OR extends MObject>
+        extends QContainerMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "opex";
 
-    public static final QOperationExecutionMapping INSTANCE = new QOperationExecutionMapping();
+    private static QOperationExecutionMapping<?> instance;
 
-    private QOperationExecutionMapping() {
+    public static <OR extends MObject> QOperationExecutionMapping<OR> init(
+            @NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QOperationExecutionMapping<>(repositoryContext);
+        }
+        return get();
+    }
+
+    public static <OR extends MObject> QOperationExecutionMapping<OR> get() {
+        //noinspection unchecked
+        return (QOperationExecutionMapping<OR>) Objects.requireNonNull(instance);
+    }
+
+    // We can't declare Class<QOperationExecution<OR>>.class, so we cheat a bit.
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private QOperationExecutionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QOperationExecution.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                OperationExecutionType.class, QOperationExecution.class);
+                OperationExecutionType.class, (Class) QOperationExecution.class, repositoryContext);
 
-        addItemMapping(F_STATUS, enumMapper(path(q -> q.status)));
-        addItemMapping(F_RECORD_TYPE, enumMapper(path(q -> q.recordType)));
-        addItemMapping(F_INITIATOR_REF, SqaleTableMapping.refMapper(
-                path(q -> q.initiatorRefTargetOid),
-                path(q -> q.initiatorRefTargetType),
-                path(q -> q.initiatorRefRelationId)));
-        addItemMapping(F_TASK_REF, SqaleTableMapping.refMapper(
-                path(q -> q.taskRefTargetOid),
-                path(q -> q.taskRefTargetType),
-                path(q -> q.taskRefRelationId)));
+        addItemMapping(F_STATUS, enumMapper(q -> q.status));
+        addItemMapping(F_RECORD_TYPE, enumMapper(q -> q.recordType));
+        addItemMapping(F_INITIATOR_REF, refMapper(
+                q -> q.initiatorRefTargetOid,
+                q -> q.initiatorRefTargetType,
+                q -> q.initiatorRefRelationId));
+        addItemMapping(F_TASK_REF, refMapper(
+                q -> q.taskRefTargetOid,
+                q -> q.taskRefTargetType,
+                q -> q.taskRefRelationId));
         addItemMapping(OperationExecutionType.F_TIMESTAMP,
-                timestampMapper(path(q -> q.timestampValue)));
+                timestampMapper(q -> q.timestampValue));
     }
 
     @Override
-    protected QOperationExecution newAliasInstance(String alias) {
-        return new QOperationExecution(alias);
-    }
-
-    @Override
-    public OperationExecutionSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new OperationExecutionSqlTransformer(transformerSupport, this);
+    protected QOperationExecution<OR> newAliasInstance(String alias) {
+        return new QOperationExecution<>(alias);
     }
 
     @Override
     public MOperationExecution newRowObject() {
         return new MOperationExecution();
+    }
+
+    @Override
+    public MOperationExecution newRowObject(OR ownerRow) {
+        MOperationExecution row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    public MOperationExecution insert(
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+        MOperationExecution row = initRowObject(schemaObject, ownerRow);
+
+        row.status = schemaObject.getStatus();
+        row.recordType = schemaObject.getRecordType();
+        setReference(schemaObject.getInitiatorRef(),
+                o -> row.initiatorRefTargetOid = o,
+                t -> row.initiatorRefTargetType = t,
+                r -> row.initiatorRefRelationId = r);
+        setReference(schemaObject.getTaskRef(),
+                o -> row.taskRefTargetOid = o,
+                t -> row.taskRefTargetType = t,
+                r -> row.taskRefRelationId = r);
+        row.timestampValue = MiscUtil.asInstant(schemaObject.getTimestamp());
+
+        insert(row, jdbcSession);
+        return row;
     }
 }

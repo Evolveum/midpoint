@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,6 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,13 +16,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author semancik
- *
- */
-public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends AssignmentHolderAsserter<AH, RA>,RA> extends AbstractAsserter<AHA> {
+public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends AssignmentHolderAsserter<AH, RA>, RA> extends AbstractAsserter<AHA> {
 
-    private AHA focusAsserter;
+    private final AHA focusAsserter;
     private List<AssignmentType> assignments;
 
     public AssignmentsAsserter(AHA focusAsserter) {
@@ -37,7 +32,7 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
     }
 
     public static <AH extends AssignmentHolderType> AssignmentsAsserter<AH, AssignmentHolderAsserter<AH, Void>, Void> forFocus(PrismObject<AH> focus) {
-        return new AssignmentsAsserter<>(AssignmentHolderAsserter.forAssignemntHolder(focus));
+        return new AssignmentsAsserter<>(AssignmentHolderAsserter.forAssignmentHolder(focus));
     }
 
     List<AssignmentType> getAssignments() {
@@ -58,7 +53,7 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
     }
 
     AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> forAssignment(AssignmentType assignment) {
-        AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> asserter = new AssignmentAsserter<>(assignment, this, "assignment in "+desc());
+        AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> asserter = new AssignmentAsserter<>(assignment, this, "assignment in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -79,86 +74,86 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
 
     @Override
     protected String desc() {
-        return descWithDetails("assignments of "+getFocus());
+        return descWithDetails("assignments of " + getFocus());
     }
 
-    public AssignmentFinder<AH, AHA,RA> by() {
+    public AssignmentFinder<AH, AHA, RA> by() {
         return new AssignmentFinder<>(this);
     }
 
-    public AssignmentAsserter<AssignmentsAsserter<AH, AHA,RA>> forRole(String roleOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> forRole(String roleOid) throws ObjectNotFoundException, SchemaException {
         return by()
-            .targetOid(roleOid)
-            .targetType(RoleType.COMPLEX_TYPE)
-            .find();
+                .targetOid(roleOid)
+                .targetType(RoleType.COMPLEX_TYPE)
+                .find();
     }
 
-    public AssignmentAsserter<AssignmentsAsserter<AH, AHA,RA>> forOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> forOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
         return by()
-            .targetOid(orgOid)
-            .targetType(OrgType.COMPLEX_TYPE)
-            .find();
+                .targetOid(orgOid)
+                .targetType(OrgType.COMPLEX_TYPE)
+                .find();
     }
 
-    public AssignmentAsserter<AssignmentsAsserter<AH, AHA,RA>> forService(String serviceOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> forService(String serviceOid) throws ObjectNotFoundException, SchemaException {
         return by()
-            .targetOid(serviceOid)
-            .targetType(ServiceType.COMPLEX_TYPE)
-            .find();
+                .targetOid(serviceOid)
+                .targetType(ServiceType.COMPLEX_TYPE)
+                .find();
     }
 
-    public AssignmentAsserter<AssignmentsAsserter<AH, AHA,RA>> forArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> forArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
         return by()
-            .targetOid(archetypeOid)
-            .targetType(ArchetypeType.COMPLEX_TYPE)
-            .find();
+                .targetOid(archetypeOid)
+                .targetType(ArchetypeType.COMPLEX_TYPE)
+                .find();
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertRole(String roleOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertRole(String roleOid) throws ObjectNotFoundException, SchemaException {
         by()
-            .targetOid(roleOid)
-            .targetType(RoleType.COMPLEX_TYPE)
-            .find();
+                .targetOid(roleOid)
+                .targetType(RoleType.COMPLEX_TYPE)
+                .find();
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertRole(String roleOid, QName relation) throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertRole(String roleOid, QName relation) throws ObjectNotFoundException, SchemaException {
         by()
-            .targetOid(roleOid)
-            .targetType(RoleType.COMPLEX_TYPE)
-            .targetRelation(relation)
-            .find();
+                .targetOid(roleOid)
+                .targetType(RoleType.COMPLEX_TYPE)
+                .targetRelation(relation)
+                .find();
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertNoRole(String roleOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertNoRole(String roleOid) throws ObjectNotFoundException, SchemaException {
         by()
-            .targetOid(roleOid)
-            .targetType(RoleType.COMPLEX_TYPE)
-            .assertNone();
+                .targetOid(roleOid)
+                .targetType(RoleType.COMPLEX_TYPE)
+                .assertNone();
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertNoRole() throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertNoRole() throws ObjectNotFoundException, SchemaException {
         by()
-            .targetType(RoleType.COMPLEX_TYPE)
-            .assertNone();
+                .targetType(RoleType.COMPLEX_TYPE)
+                .assertNone();
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
         by()
-            .targetOid(orgOid)
-            .targetType(OrgType.COMPLEX_TYPE)
-            .find();
+                .targetOid(orgOid)
+                .targetType(OrgType.COMPLEX_TYPE)
+                .find();
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA,RA> assertArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA, RA> assertArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
         by()
-            .targetOid(archetypeOid)
-            .targetType(ArchetypeType.COMPLEX_TYPE)
-            .find();
+                .targetOid(archetypeOid)
+                .targetType(ArchetypeType.COMPLEX_TYPE)
+                .find();
         return this;
     }
 
