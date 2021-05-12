@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
+public class QAbstractRole<R extends MAbstractRole> extends QFocus<R> {
 
     private static final long serialVersionUID = 8559628642680237808L;
 
@@ -52,11 +52,11 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public final BooleanPath requestable = createBoolean("requestable", REQUESTABLE);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
 
-    public QAbstractRole(Class<T> type, String variable) {
+    public QAbstractRole(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QAbstractRole(Class<T> type, String variable, String schema, String table) {
+    public QAbstractRole(Class<R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
+public class QObject<R extends MObject> extends FlexibleRelationalPathBase<R> {
 
     private static final long serialVersionUID = -4174420892574422778L;
 
@@ -129,7 +129,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final DateTimePath<Instant> modifyTimestamp =
             createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
 
-    public final PrimaryKey<T> pk = createPrimaryKey(oid);
+    public final PrimaryKey<R> pk = createPrimaryKey(oid);
     public final ForeignKey<QUri> createChannelIdFk =
             createForeignKey(createChannelId, QUri.ID.getName());
     public final ForeignKey<QUri> modifyChannelIdFk =
@@ -141,11 +141,11 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final ForeignKey<QUri> tenantRefRelationIdFk =
             createForeignKey(tenantRefRelationId, QUri.ID.getName());
 
-    public QObject(Class<T> type, String variable) {
+    public QObject(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QObject(Class<T> type, String variable, String schema, String table) {
+    public QObject(Class<R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }
