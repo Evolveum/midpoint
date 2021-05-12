@@ -337,20 +337,6 @@ CREATE TABLE m_ref_object_modify_approver (
 CREATE INDEX m_ref_object_modify_approver_targetOid_relation_id_idx
     ON m_ref_object_modify_approver (targetOid, relation_id);
 
--- stores ObjectType/parentOrgRef
-CREATE TABLE m_ref_object_parent_org (
-    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
-
-    -- TODO wouldn't (owner_oid, targetOid, relation_id) perform better for typical queries?
-    PRIMARY KEY (owner_oid, relation_id, targetOid)
-)
-    INHERITS (m_reference);
-
--- TODO is this enough? Is target+owner+relation needed too?
-CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
-    ON m_ref_object_parent_org (targetOid, relation_id);
-
 -- stores AssignmentHolderType/roleMembershipRef
 CREATE TABLE m_ref_role_membership (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -596,168 +582,71 @@ CREATE INDEX m_org_name_orig_idx ON m_org (name_orig);
 ALTER TABLE m_org ADD CONSTRAINT m_org_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
 
-/*
-CREATE TABLE m_org_closure (
-    ancestor_oid   UUID NOT NULL,
-    descendant_oid UUID NOT NULL,
-    val INTEGER, -- number of distinct paths
-    PRIMARY KEY (ancestor_oid, descendant_oid)
-);
-
-CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid);
-ALTER TABLE m_org_closure
-  ADD CONSTRAINT fk_ancestor FOREIGN KEY (ancestor_oid) REFERENCES m_object;
-ALTER TABLE m_org_closure
-  ADD CONSTRAINT fk_descendant FOREIGN KEY (descendant_oid) REFERENCES m_object;
-*/
--- endregion
-
--- region Access Certification object tables
--- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
-CREATE TABLE m_access_cert_definition (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
-    handlerUri_id INTEGER REFERENCES m_uri(id),
-    lastCampaignStartedTimestamp TIMESTAMPTZ,
-    lastCampaignClosedTimestamp TIMESTAMPTZ,
-    ownerRef_targetOid UUID,
-    ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER REFERENCES m_uri(id)
-)
-    INHERITS (m_object);
-
-CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_access_cert_definition_update_tr BEFORE UPDATE ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
-
-CREATE INDEX m_access_cert_definition_name_orig_idx ON m_access_cert_definition (name_orig);
-ALTER TABLE m_access_cert_definition
-    ADD CONSTRAINT m_access_cert_definition_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
-
--- TODO not mapped yet
-CREATE TABLE m_access_cert_campaign (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
-    definitionRef_targetOid UUID,
-    definitionRef_targetType ObjectType,
-    definitionRef_relation_id INTEGER REFERENCES m_uri(id),
-    endTimestamp TIMESTAMPTZ,
-    handlerUri_id INTEGER REFERENCES m_uri(id),
-    iteration INTEGER NOT NULL,
-    ownerRef_targetOid UUID,
-    ownerRef_targetType ObjectType,
-    ownerRef_relation_id INTEGER REFERENCES m_uri(id),
-    stageNumber INTEGER,
-    startTimestamp TIMESTAMPTZ,
-    state INTEGER
-)
-    INHERITS (m_object);
-
-CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_access_cert_campaign_update_tr BEFORE UPDATE ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
-CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
-
-CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
-ALTER TABLE m_access_cert_campaign
-    ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
-CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
-
-CREATE TABLE m_access_cert_case (
+-- stores ObjectType/parentOrgRef
+CREATE TABLE m_ref_object_parent_org (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
-    administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMPTZ,
-    disableReason TEXT,
-    disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMPTZ,
-    validFrom TIMESTAMPTZ,
-    validTo TIMESTAMPTZ,
-    validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
-    currentStageOutcome TEXT,
-    fullObject BYTEA,
-    iteration INTEGER NOT NULL,
-    objectRef_targetOid UUID,
-    objectRef_targetType ObjectType,
-    objectRef_relation_id INTEGER REFERENCES m_uri(id),
-    orgRef_targetOid UUID,
-    orgRef_targetType ObjectType,
-    orgRef_relation_id INTEGER REFERENCES m_uri(id),
-    outcome TEXT,
-    remediedTimestamp TIMESTAMPTZ,
-    reviewDeadline TIMESTAMPTZ,
-    reviewRequestedTimestamp TIMESTAMPTZ,
-    stageNumber INTEGER,
-    targetRef_targetOid UUID,
-    targetRef_targetType ObjectType,
-    targetRef_relation_id INTEGER REFERENCES m_uri(id),
-    tenantRef_targetOid UUID,
-    tenantRef_targetType ObjectType,
-    tenantRef_relation_id INTEGER REFERENCES m_uri(id),
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
 
-    PRIMARY KEY (owner_oid, cid)
+    -- TODO wouldn't (owner_oid, targetOid, relation_id) perform better for typical queries?
+    PRIMARY KEY (owner_oid, relation_id, targetOid)
 )
-    INHERITS(m_container);
+    INHERITS (m_reference);
 
-CREATE TABLE m_access_cert_wi (
-    owner_oid UUID NOT NULL, -- PK+FK
-    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
-    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
-    closeTimestamp TIMESTAMPTZ,
-    iteration INTEGER NOT NULL,
-    outcome TEXT,
-    outputChangeTimestamp TIMESTAMPTZ,
-    performerRef_targetOid UUID,
-    performerRef_targetType ObjectType,
-    performerRef_relation_id INTEGER REFERENCES m_uri(id),
-    stageNumber INTEGER,
+-- TODO is this enough? Is target+owner+relation needed too?
+CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
+    ON m_ref_object_parent_org (targetOid, relation_id);
 
-    PRIMARY KEY (owner_oid, acc_cert_case_cid, cid)
+-- region org-closure
+-- Closure is handled by two views - one materialized (m_org_closure_internal) and one with return
+-- rule (m_org_closure). Only the second one is used from the outside.
+-- Trigger on m_ref_object_parent_org creates flag that the materialized view must be refreshed
+-- (line in
+CREATE MATERIALIZED VIEW m_org_closure AS
+WITH RECURSIVE org_h (
+    ancestor_oid, -- ref.targetoid
+    descendant_oid --ref.owner_oid
+    -- paths -- number of different paths, not used for materialized view version
+    -- TODO depth? if so, cycles must be checked in recursive term
+) AS (
+    -- gather all organizations with parents
+    SELECT r.targetoid, r.owner_oid
+        FROM m_ref_object_parent_org r
+        WHERE r.owner_type = 'ORG'
+    UNION
+    -- generate their parents
+    SELECT par.targetoid, chi.descendant_oid -- leaving original child there generates closure
+        FROM m_ref_object_parent_org as par, org_h as chi
+        WHERE par.owner_oid = chi.ancestor_oid
 )
-    INHERITS(m_container);
+SELECT * FROM org_h;
 
-ALTER TABLE m_access_cert_wi
-    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
-        REFERENCES m_access_cert_case (owner_oid, cid)
-            ON DELETE CASCADE;
+-- unique index is like PK if it was table
+CREATE UNIQUE INDEX m_org_closure_asc_desc_idx
+    ON m_org_closure (ancestor_oid, descendant_oid);
+CREATE INDEX m_org_closure_desc_asc_idx
+    ON m_org_closure (descendant_oid, ancestor_oid);
 
--- TODO rework to inherit from reference tables
-CREATE TABLE m_access_cert_wi_reference (
-    owner_oid UUID NOT NULL, -- PK+FK
-    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
-    acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
-    targetOid UUID NOT NULL, -- more PK columns...
-    targetType ObjectType,
-    relation_id INTEGER NOT NULL REFERENCES m_uri(id),
+-- The trigger for m_ref_object_parent_org that flags the view for refresh.
+CREATE OR REPLACE FUNCTION m_org_closure_refresh()
+    RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'TRUNCATE' OR OLD.owner_type = 'ORG' OR NEW.owner_type = 'ORG' THEN
+        REFRESH MATERIALIZED VIEW m_org_closure_internal;
+    END IF;
 
-    -- TODO is the order of last two components optimal for index/query?
-    PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
-);
+    -- after trigger returns null
+    RETURN NULL;
+END $$;
 
-ALTER TABLE m_access_cert_wi_reference
-    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
-        FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
-        REFERENCES m_access_cert_wi (owner_oid, acc_cert_case_cid, cid)
-            ON DELETE CASCADE;
-/*
-CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (name_orig);
-ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (name_norm);
-CREATE INDEX iCaseObjectRefTargetOid ON m_access_cert_case (objectRef_targetOid);
-CREATE INDEX iCaseTargetRefTargetOid ON m_access_cert_case (targetRef_targetOid);
-CREATE INDEX iCaseTenantRefTargetOid ON m_access_cert_case (tenantRef_targetOid);
-CREATE INDEX iCaseOrgRefTargetOid ON m_access_cert_case (orgRef_targetOid);
-CREATE INDEX iCertDefinitionNameOrig ON m_access_cert_definition (name_orig);
-ALTER TABLE m_access_cert_definition ADD CONSTRAINT uc_access_cert_definition_name UNIQUE (name_norm);
-CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid);
- */
+CREATE TRIGGER m_ref_object_parent_org_refresh_tr
+    AFTER INSERT OR UPDATE OR DELETE ON m_ref_object_parent_org
+    FOR EACH ROW EXECUTE PROCEDURE m_org_closure_refresh();
+CREATE TRIGGER m_ref_object_parent_org_trunc_refresh_tr
+    AFTER TRUNCATE ON m_ref_object_parent_org
+    FOR EACH STATEMENT EXECUTE PROCEDURE m_org_closure_refresh();
+-- endregion
 -- endregion
 
 -- region OTHER object tables
@@ -1117,7 +1006,9 @@ CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRef_targetOid_idx ON m_task(objectRef_targetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
 CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
+-- endregion
 
+-- region cases
 -- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1155,11 +1046,189 @@ CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
+
+CREATE TABLE m_case_wi (
+  id                                INTEGER        NOT NULL,
+  owner_oid                         UUID NOT NULL,
+  closeTimestamp                    TIMESTAMPTZ,
+  createTimestamp                   TIMESTAMPTZ,
+  deadline                          TIMESTAMPTZ,
+  originalAssigneeRef_relation      VARCHAR(157),
+  originalAssigneeRef_targetOid     UUID,
+  originalAssigneeRef_targetType    INTEGER,
+  outcome                           TEXT,
+  performerRef_relation             VARCHAR(157),
+  performerRef_targetOid            UUID,
+  performerRef_targetType           INTEGER,
+  stageNumber                       INTEGER,
+  PRIMARY KEY (owner_oid, id)
+);
+
 ALTER TABLE m_case_wi
     ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
+
+CREATE TABLE m_case_wi_reference (
+  owner_id        INTEGER         NOT NULL,
+  owner_owner_oid UUID  NOT NULL,
+  reference_type  INTEGER         NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       UUID  NOT NULL,
+  targetType      INTEGER,
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
+);
+
 ALTER TABLE m_case_wi_reference
     ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi;
+CREATE INDEX iCaseWorkItemRefTargetOid ON m_case_wi_reference (targetOid);
 */
+-- endregion
+
+-- region Access Certification object tables
+-- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
+CREATE TABLE m_access_cert_definition (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
+    handlerUri_id INTEGER REFERENCES m_uri(id),
+    lastCampaignStartedTimestamp TIMESTAMPTZ,
+    lastCampaignClosedTimestamp TIMESTAMPTZ,
+    ownerRef_targetOid UUID,
+    ownerRef_targetType ObjectType,
+    ownerRef_relation_id INTEGER REFERENCES m_uri(id)
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_access_cert_definition_update_tr BEFORE UPDATE ON m_access_cert_definition
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_cert_definition
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_access_cert_definition_name_orig_idx ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition
+    ADD CONSTRAINT m_access_cert_definition_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
+
+-- TODO not mapped yet
+CREATE TABLE m_access_cert_campaign (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
+    definitionRef_targetOid UUID,
+    definitionRef_targetType ObjectType,
+    definitionRef_relation_id INTEGER REFERENCES m_uri(id),
+    endTimestamp TIMESTAMPTZ,
+    handlerUri_id INTEGER REFERENCES m_uri(id),
+    iteration INTEGER NOT NULL,
+    ownerRef_targetOid UUID,
+    ownerRef_targetType ObjectType,
+    ownerRef_relation_id INTEGER REFERENCES m_uri(id),
+    stageNumber INTEGER,
+    startTimestamp TIMESTAMPTZ,
+    state INTEGER
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_access_cert_campaign_update_tr BEFORE UPDATE ON m_access_cert_campaign
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cert_campaign
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_access_cert_campaign_name_orig_idx ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign
+    ADD CONSTRAINT m_access_cert_campaign_name_norm_key UNIQUE (name_norm);
+CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
+
+CREATE TABLE m_access_cert_case (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
+    administrativeStatus INTEGER,
+    archiveTimestamp TIMESTAMPTZ,
+    disableReason TEXT,
+    disableTimestamp TIMESTAMPTZ,
+    effectiveStatus INTEGER,
+    enableTimestamp TIMESTAMPTZ,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
+    validityStatus INTEGER,
+    currentStageOutcome TEXT,
+    fullObject BYTEA,
+    iteration INTEGER NOT NULL,
+    objectRef_targetOid UUID,
+    objectRef_targetType ObjectType,
+    objectRef_relation_id INTEGER REFERENCES m_uri(id),
+    orgRef_targetOid UUID,
+    orgRef_targetType ObjectType,
+    orgRef_relation_id INTEGER REFERENCES m_uri(id),
+    outcome TEXT,
+    remediedTimestamp TIMESTAMPTZ,
+    reviewDeadline TIMESTAMPTZ,
+    reviewRequestedTimestamp TIMESTAMPTZ,
+    stageNumber INTEGER,
+    targetRef_targetOid UUID,
+    targetRef_targetType ObjectType,
+    targetRef_relation_id INTEGER REFERENCES m_uri(id),
+    tenantRef_targetOid UUID,
+    tenantRef_targetType ObjectType,
+    tenantRef_relation_id INTEGER REFERENCES m_uri(id),
+
+    PRIMARY KEY (owner_oid, cid)
+)
+    INHERITS(m_container);
+
+CREATE TABLE m_access_cert_wi (
+    owner_oid UUID NOT NULL, -- PK+FK
+    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
+    closeTimestamp TIMESTAMPTZ,
+    iteration INTEGER NOT NULL,
+    outcome TEXT,
+    outputChangeTimestamp TIMESTAMPTZ,
+    performerRef_targetOid UUID,
+    performerRef_targetType ObjectType,
+    performerRef_relation_id INTEGER REFERENCES m_uri(id),
+    stageNumber INTEGER,
+
+    PRIMARY KEY (owner_oid, acc_cert_case_cid, cid)
+)
+    INHERITS(m_container);
+
+ALTER TABLE m_access_cert_wi
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (owner_oid, acc_cert_case_cid)
+        REFERENCES m_access_cert_case (owner_oid, cid)
+        ON DELETE CASCADE;
+
+-- TODO rework to inherit from reference tables
+CREATE TABLE m_access_cert_wi_reference (
+    owner_oid UUID NOT NULL, -- PK+FK
+    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
+    acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
+    targetOid UUID NOT NULL, -- more PK columns...
+    targetType ObjectType,
+    relation_id INTEGER NOT NULL REFERENCES m_uri(id),
+
+    -- TODO is the order of last two components optimal for index/query?
+    PRIMARY KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid, relation_id, targetOid)
+);
+
+ALTER TABLE m_access_cert_wi_reference
+    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
+        FOREIGN KEY (owner_oid, acc_cert_case_cid, acc_cert_wi_cid)
+            REFERENCES m_access_cert_wi (owner_oid, acc_cert_case_cid, cid)
+            ON DELETE CASCADE;
+/*
+CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (name_orig);
+ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (name_norm);
+CREATE INDEX iCaseObjectRefTargetOid ON m_access_cert_case (objectRef_targetOid);
+CREATE INDEX iCaseTargetRefTargetOid ON m_access_cert_case (targetRef_targetOid);
+CREATE INDEX iCaseTenantRefTargetOid ON m_access_cert_case (tenantRef_targetOid);
+CREATE INDEX iCaseOrgRefTargetOid ON m_access_cert_case (orgRef_targetOid);
+CREATE INDEX iCertDefinitionNameOrig ON m_access_cert_definition (name_orig);
+ALTER TABLE m_access_cert_definition ADD CONSTRAINT uc_access_cert_definition_name UNIQUE (name_norm);
+CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid);
+ */
 -- endregion
 
 -- region ObjectTemplateType
@@ -1578,31 +1647,6 @@ CREATE TABLE m_audit_resource (
   record_id       BIGINT         NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 );
-CREATE TABLE m_case_wi (
-  id                                INTEGER        NOT NULL,
-  owner_oid                         UUID NOT NULL,
-  closeTimestamp                    TIMESTAMPTZ,
-  createTimestamp                   TIMESTAMPTZ,
-  deadline                          TIMESTAMPTZ,
-  originalAssigneeRef_relation      VARCHAR(157),
-  originalAssigneeRef_targetOid     UUID,
-  originalAssigneeRef_targetType    INTEGER,
-  outcome                           TEXT,
-  performerRef_relation             VARCHAR(157),
-  performerRef_targetOid            UUID,
-  performerRef_targetType           INTEGER,
-  stageNumber                       INTEGER,
-  PRIMARY KEY (owner_oid, id)
-);
-CREATE TABLE m_case_wi_reference (
-  owner_id        INTEGER         NOT NULL,
-  owner_owner_oid UUID  NOT NULL,
-  reference_type  INTEGER         NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       UUID  NOT NULL,
-  targetType      INTEGER,
-  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
-);
 CREATE TABLE m_ext_item (
   id       SERIAL NOT NULL,
   kind     INTEGER,
@@ -1688,8 +1732,6 @@ CREATE INDEX iAuditResourceOid
   ON m_audit_resource (resourceOid);
 CREATE INDEX iAuditResourceOidRecordId
   ON m_audit_resource (record_id);
-CREATE INDEX iCaseWorkItemRefTargetOid
-  ON m_case_wi_reference (targetOid);
 
 ALTER TABLE m_ext_item
   ADD CONSTRAINT iExtItemDefinition UNIQUE (itemName, itemType, kind);
