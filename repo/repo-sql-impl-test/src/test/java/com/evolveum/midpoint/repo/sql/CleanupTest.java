@@ -74,12 +74,13 @@ public class CleanupTest extends BaseSQLRepoTest {
     @AfterMethod
     public void cleanup() {
         try (JdbcSession jdbcSession = createJdbcSession().startTransaction()) {
-            jdbcSession.newDelete(QAuditDeltaMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QAuditItemMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QAuditPropertyValueMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QAuditResourceMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QAuditRefValueMapping.INSTANCE.defaultAlias()).execute();
-            jdbcSession.newDelete(QAuditEventRecordMapping.INSTANCE.defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditDeltaMapping.get().defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditItemMapping.get().defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditPropertyValueMapping.get().defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditResourceMapping.get().defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditRefValueMapping.get().defaultAlias()).execute();
+            jdbcSession.newDelete(QAuditEventRecordMapping.get().defaultAlias()).execute();
+            jdbcSession.commit();
         }
     }
 
@@ -167,7 +168,7 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
 
     private MAuditEventRecord assertAndReturnAuditEventRecord(int expectedCount) {
-        List<MAuditEventRecord> records = select(QAuditEventRecordMapping.INSTANCE);
+        List<MAuditEventRecord> records = select(QAuditEventRecordMapping.get());
         AssertJUnit.assertEquals(expectedCount, records.size());
         return records.get(0);
     }

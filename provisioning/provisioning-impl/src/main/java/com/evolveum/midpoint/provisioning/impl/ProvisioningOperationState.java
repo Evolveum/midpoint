@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.provisioning.api.ShadowDeathListener;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
@@ -221,4 +221,11 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
         return opState;
     }
 
+    public boolean objectExists() {
+        if (repoShadow != null) {
+            return ShadowUtil.isExists(repoShadow);
+        } else {
+            return false; // shouldn't occur
+        }
+    }
 }

@@ -586,8 +586,18 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
 
     void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
             ParameterizedEquivalenceStrategy strategy) {
+        diffInternal(other, deltas, rootValuesOnly, strategy, false);
+    }
+
+    boolean diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
+            ParameterizedEquivalenceStrategy strategy, boolean exitOnDiff) {
         ItemDelta delta = createDelta();
         if (other == null) {
+            // Early exit for equals use case
+            if (exitOnDiff && hasAnyValue()) {
+                return true;
+            }
+
             if (delta.getDefinition() == null && this.getDefinition() != null) {
                 delta.setDefinition(this.getDefinition().clone());
             }
@@ -611,7 +621,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
                     if (!rootValuesOnly && thisValue.representsSameValue(otherValue, true)) {
                         found = true;
                         // Matching IDs, look inside to figure out internal deltas
-                        ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);
+                        boolean different = ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy, exitOnDiff);
+                        if (exitOnDiff && different) {
+                            return true;
+                        }
+
                         // No need to process this value again
                         iterator.remove();
                         break;
@@ -624,12 +638,18 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
                     }
                 }
                 if (!found) {
+                    if (exitOnDiff) {
+                        return true;
+                    }
                     // We have the value and the other does not, this is delete of the entire value
                     delta.addValueToDelete(thisValue.clone());
                 }
             }
             // outstandingOtherValues are those values that the other has and we could not
             // match them to any of our values. These must be new values to add
+            if (exitOnDiff && !outstandingOtherValues.isEmpty()) {
+                return true;
+            }
             for (PrismValue outstandingOtherValue : outstandingOtherValues) {
                 delta.addValueToAdd(outstandingOtherValue.clone());
             }
@@ -640,6 +660,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         if (delta != null && !delta.isEmpty()) {
             ((Collection)deltas).add(delta);
         }
+        return !delta.isEmpty();
     }
 
     protected ItemDelta<V,D> fixupDelta(ItemDelta<V, D> delta, Item<V, D> other) {

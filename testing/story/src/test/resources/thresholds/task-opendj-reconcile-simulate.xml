@@ -45,7 +45,7 @@
 
     <recurrence>recurring</recurrence>
     <schedule>
-        <interval>3</interval>
+        <interval>5</interval>
     </schedule>
 
 </task>

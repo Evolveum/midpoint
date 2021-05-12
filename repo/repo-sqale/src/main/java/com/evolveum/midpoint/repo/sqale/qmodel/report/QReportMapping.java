@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -19,17 +22,19 @@ public class QReportMapping
 
     public static final String DEFAULT_ALIAS_NAME = "rep";
 
-    public static final QReportMapping INSTANCE = new QReportMapping();
+    public static QReportMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QReportMapping(repositoryContext);
+    }
 
-    private QReportMapping() {
+    private QReportMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QReport.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ReportType.class, QReport.class);
+                ReportType.class, QReport.class, repositoryContext);
 
         addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
                 .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,
-                        enumMapper(path(q -> q.orientation)))
+                        enumMapper(q -> q.orientation))
                 .addItemMapping(JasperReportEngineConfigurationType.F_PARENT,
-                        booleanMapper(path(q -> q.parent)));
+                        booleanMapper(q -> q.parent));
     }
 
     @Override
@@ -38,12 +43,21 @@ public class QReportMapping
     }
 
     @Override
-    public ReportSqlTransformer createTransformer(SqlTransformerSupport transformerSupport) {
-        return new ReportSqlTransformer(transformerSupport, this);
+    public MReport newRowObject() {
+        return new MReport();
     }
 
     @Override
-    public MReport newRowObject() {
-        return new MReport();
+    public @NotNull MReport toRowObjectWithoutFullObject(
+            ReportType schemaObject, JdbcSession jdbcSession) {
+        MReport row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        JasperReportEngineConfigurationType jasper = schemaObject.getJasper();
+        if (jasper != null) {
+            row.orientation = jasper.getOrientation();
+            row.parent = jasper.isParent();
+        }
+
+        return row;
     }
 }

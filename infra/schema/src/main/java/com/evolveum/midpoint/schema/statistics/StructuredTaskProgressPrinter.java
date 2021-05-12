@@ -27,13 +27,17 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
         super(information, options, null, null);
     }
 
-    public String print() {
+    @Override
+    public void prepare() {
         createData();
         createFormatting();
+    }
 
+    @Override
+    String applyFormatting() {
         return "Current part " + information.getCurrentPartUri()
                 + " (" + information.getCurrentPartNumber() + " of " + information.getExpectedParts() + "):\n\n"
-                + applyFormatting() + "\n";
+                + super.applyFormatting() + "\n";
     }
 
     private void createData() {

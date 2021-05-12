@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
@@ -19,11 +18,12 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -38,11 +38,11 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
     private final EnumPath<MObjectType> typePath;
     private final NumberPath<Integer> relationIdPath;
 
-    public RefItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
+    public <Q extends FlexibleRelationalPathBase<R>, R> RefItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context,
+            Function<Q, UuidPath> rootToOidPath,
+            Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
         this(context,
                 rootToOidPath.apply(context.path()),
                 rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
@@ -50,7 +50,8 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
     }
 
     // exposed mainly for RefTableItemFilterProcessor
-    RefItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
+    <Q extends FlexibleRelationalPathBase<R>, R> RefItemFilterProcessor(
+            SqlQueryContext<?, Q, R> context,
             UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
         this.oidPath = oidPath;
@@ -84,8 +85,8 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
             predicate = oidPath.isNull();
         }
         if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
-            Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .searchCachedUriId(context.normalizeRelation(ref.getRelation()));
+            Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
+                    .searchCachedRelationId(ref.getRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         } else {

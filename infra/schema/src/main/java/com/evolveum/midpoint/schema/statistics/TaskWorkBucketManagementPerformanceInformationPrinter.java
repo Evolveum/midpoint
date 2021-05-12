@@ -29,11 +29,11 @@ public class TaskWorkBucketManagementPerformanceInformationPrinter extends Abstr
         super(information, options, iterations, seconds);
     }
 
-    public String print() {
+    @Override
+    public void prepare() {
         List<WorkBucketManagementOperationPerformanceInformationType> operations = getSortedOperations();
         createData(operations);
         createFormatting();
-        return applyFormatting();
     }
 
     @NotNull

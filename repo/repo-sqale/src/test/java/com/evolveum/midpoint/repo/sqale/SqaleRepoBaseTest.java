@@ -16,16 +16,22 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -37,6 +43,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
     @Autowired protected PrismContext prismContext;
+    @Autowired protected RelationRegistry relationRegistry;
 
     private static boolean uriCacheCleared = false;
 
@@ -55,6 +62,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             long count = jdbcSession.newDelete(QObjectMapping.INSTANCE.defaultAlias()).execute();
             display("Deleted " + count + " objects from DB");
             */
+            jdbcSession.commit();
         }
 
         // this is "suite" scope code, but @BeforeSuite can't use injected fields
@@ -65,6 +73,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                         // We could skip default relation ID with .where(u.id.gt(0)),
                         // but it must work even when it's gone.
                         .execute();
+                jdbcSession.commit();
             }
 
             sqlRepoContext.clearCaches(); // uses its own transaction
@@ -111,7 +120,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
-            Q path, Predicate[] conditions) {
+            Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
@@ -136,7 +145,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    protected <R, Q extends FlexibleRelationalPathBase<R>> R selectOne(
+    protected <R, Q extends FlexibleRelationalPathBase<R>> @NotNull R selectOne(
+            Q path, Predicate... conditions) {
+        R row = selectOneNullable(path, conditions);
+        assertThat(row).isNotNull();
+        return row;
+    }
+
+    protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             return jdbcSession.newQuery()
@@ -147,15 +163,27 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+    protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
             Class<Q> queryType, String oid) {
         return selectObjectByOid(queryType, UUID.fromString(oid));
     }
 
-    protected <R extends MObject, Q extends QObject<R>> R selectObjectByOid(
+    protected <R extends MObject, Q extends QObject<R>> @NotNull R selectObjectByOid(
+            Class<Q> queryType, UUID oid) {
+        R row = selectNullableObjectByOid(queryType, oid);
+        assertThat(row).isNotNull();
+        return row;
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
+            Class<Q> queryType, String oid) {
+        return selectNullableObjectByOid(queryType, UUID.fromString(oid));
+    }
+
+    protected <R extends MObject, Q extends QObject<R>> @Nullable R selectNullableObjectByOid(
             Class<Q> queryType, UUID oid) {
         Q path = aliasFor(queryType);
-        return selectOne(path, path.oid.eq(oid));
+        return selectOneNullable(path, path.oid.eq(oid));
     }
 
     protected String cachedUriById(Integer uriId) {
@@ -185,5 +213,22 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected void setName(MObject object, String origName) {
         object.nameOrig = origName;
         object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
+    }
+
+    protected java.util.function.Predicate<? super Referencable> refMatcher(UUID targetOid, QName relation) {
+        return ref -> ref.getOid().equals(targetOid.toString())
+                && ref.getRelation().equals(relation);
+    }
+
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(UUID targetOid, QName relation) {
+        return ref -> ref.targetOid.equals(targetOid)
+                && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
+    }
+
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(
+            UUID targetOid, MObjectType targetType, QName relation) {
+        return ref -> ref.targetOid.equals(targetOid)
+                && ref.targetType == targetType
+                && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }
 }

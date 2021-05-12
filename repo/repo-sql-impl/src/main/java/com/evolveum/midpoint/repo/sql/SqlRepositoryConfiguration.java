@@ -27,10 +27,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.helpers.TransactionSerializationProblemDetector;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -388,7 +388,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                 PROPERTY_FULL_OBJECT_FORMAT,
-                System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
+                System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML))
+                .toLowerCase();
 
         // requires asServer, baseDir, fileName, port
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, embedded ? getDefaultEmbeddedJdbcUrl() : null);

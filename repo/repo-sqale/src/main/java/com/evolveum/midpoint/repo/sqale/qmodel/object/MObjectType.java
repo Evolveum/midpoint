@@ -13,22 +13,26 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplate;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QDashboard;
-import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectCollection;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicy;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicy;
@@ -40,8 +44,9 @@ public enum MObjectType {
 
     // mapping of codes and schema types must be unique
     ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class),
-    ACCESS_CERTIFICATION_CAMPAIGN(null, AccessCertificationCampaignType.class),
-    ACCESS_CERTIFICATION_DEFINITION(null, AccessCertificationDefinitionType.class),
+    ACCESS_CERTIFICATION_CAMPAIGN(null, AccessCertificationCampaignType.class), // TODO
+    ACCESS_CERTIFICATION_DEFINITION(
+            QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class),
     ARCHETYPE(QArchetype.class, ArchetypeType.class),
     ASSIGNMENT_HOLDER(QAssignmentHolder.class, AssignmentHolderType.class),
     CASE(QCase.class, CaseType.class),
@@ -49,23 +54,23 @@ public enum MObjectType {
     CONNECTOR_HOST(QConnectorHost.class, ConnectorHostType.class),
     DASHBOARD(QDashboard.class, DashboardType.class),
     FOCUS(QFocus.CLASS, FocusType.class),
-    FORM(null, FormType.class),
-    FUNCTION_LIBRARY(null, FunctionLibraryType.class),
-    GENERIC_OBJECT(null, GenericObjectType.class),
+    FORM(QForm.class, FormType.class),
+    FUNCTION_LIBRARY(QFunctionLibrary.class, FunctionLibraryType.class),
+    GENERIC_OBJECT(QGenericObject.class, GenericObjectType.class),
     LOOKUP_TABLE(QLookupTable.class, LookupTableType.class),
     NODE(QNode.class, NodeType.class),
     OBJECT(QObject.CLASS, ObjectType.class),
     OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class),
-    OBJECT_TEMPLATE(null, ObjectTemplateType.class),
-    ORG(null, OrgType.class),
+    OBJECT_TEMPLATE(QObjectTemplate.class, ObjectTemplateType.class),
+    ORG(null, OrgType.class), // TODO
     REPORT(QReport.class, ReportType.class),
     REPORT_DATA(QReportData.class, ReportDataType.class),
-    RESOURCE(null, ResourceType.class),
+    RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
-    SEQUENCE(null, SequenceType.class),
+    SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),
-    SHADOW(null, ShadowType.class),
+    SHADOW(QShadow.class, ShadowType.class),
     SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class),
     TASK(QTask.class, TaskType.class),
     USER(QUser.class, UserType.class),

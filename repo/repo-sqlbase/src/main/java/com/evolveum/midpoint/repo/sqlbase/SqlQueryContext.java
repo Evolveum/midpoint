@@ -28,8 +28,8 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -73,24 +73,21 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     protected final Q entityPath;
     protected final QueryTableMapping<S, Q, R> entityPathMapping;
-    protected final SqlRepoContext sqlRepoContext;
-    protected final SqlTransformerSupport transformerSupport;
+    private final SqlRepoContext sqlRepoContext;
 
     protected boolean notFilterUsed = false;
 
-    // options stored to modify select clause and also to affect transformation
+    // options stored to modify select clause and also to affect mapping
     protected Collection<SelectorOptions<GetOperationOptions>> options;
 
     protected SqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
-            SqlTransformerSupport transformerSupport,
             SQLQuery<?> query) {
         this.entityPath = entityPath;
         this.entityPathMapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
-        this.transformerSupport = transformerSupport;
         this.sqlQuery = query;
     }
 
@@ -141,7 +138,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 throw new QueryException(
                         "ORDER BY is not possible for complex paths: " + orderByItemPath);
             }
-            Path<?> path = mapping().primarySqlPath(orderByItemPath.asSingleNameOrFail(), this);
+            Path<?> path = entityPathMapping.primarySqlPath(
+                    orderByItemPath.asSingleNameOrFail(), this);
             if (!(path instanceof ComparableExpressionBase)) {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);
@@ -172,12 +170,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 .fetch();
 
         // TODO: run fetchers selectively based on options?
-        if (!mapping().detailFetchMappers().isEmpty()) {
+        Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers =
+                entityPathMapping.detailFetchMappers();
+        if (!detailFetchMappers.isEmpty()) {
             // we don't want to extract R if no mappers exist, otherwise we want to do it only once
             List<R> dataEntities = data.stream()
                     .map(t -> t.get(entity))
                     .collect(Collectors.toList());
-            for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
+            for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : detailFetchMappers) {
                 fetcher.execute(sqlRepoContext, () -> sqlRepoContext.newQuery(conn), dataEntities);
             }
         }
@@ -186,7 +186,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     private @NotNull Expression<?>[] buildSelectExpressions(Q entity, SQLQuery<?> query) {
-        Path<?>[] defaultExpressions = mapping().selectExpressions(entity, options);
+        Path<?>[] defaultExpressions = entityPathMapping.selectExpressions(entity, options);
         if (!query.getMetadata().isDistinct() || query.getMetadata().getOrderBy().isEmpty()) {
             return defaultExpressions;
         }
@@ -211,32 +211,32 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     /**
      * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
      *
-     * @param <DQ> query type for the JOINed table
-     * @param <DR> row type related to the {@link DQ}
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      * @param joinType entity path type for the JOIN
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
-            @NotNull Class<DQ> joinType,
-            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
+            @NotNull Class<TQ> joinType,
+            @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return leftJoin(sqlRepoContext.getMappingByQueryType(joinType), joinOnPredicateFunction);
     }
 
     /**
      * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
      *
-     * @param <DQ> query type for the JOINed table
-     * @param <DR> row type related to the {@link DQ}
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
      * @param targetMapping mapping for the JOIN target query type
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
-    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
-            @NotNull QueryTableMapping<?, DQ, DR> targetMapping,
-            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
+            @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
+            @NotNull BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
-        DQ joinPath = targetMapping.newAlias(aliasName);
+        TQ joinPath = targetMapping.newAlias(aliasName);
         sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));
-        SqlQueryContext<?, DQ, DR> newQueryContext = deriveNew(joinPath, targetMapping);
+        SqlQueryContext<TS, TQ, TR> newQueryContext = deriveNew(joinPath, targetMapping);
 
         // for JOINed context we want to preserve "NOT" status (unlike for subqueries)
         if (notFilterUsed) {
@@ -246,8 +246,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return newQueryContext;
     }
 
-    protected abstract <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
-    deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping);
+    /**
+     * Contract to implement to obtain derived (e.g. joined) query context.
+     *
+     * @param <TQ> query type for the JOINed (target) table
+     * @param <TR> row type related to the {@link TQ}
+     */
+    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =
@@ -287,9 +293,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     public PageOf<S> transformToSchemaType(PageOf<Tuple> result)
             throws SchemaException, QueryException {
         try {
-            SqlTransformer<S, Q, R> transformer = createTransformer();
-            return result.map(row -> transformer.toSchemaObjectSafe(row, root(), options));
-        } catch (SqlTransformer.SqlTransformationException e) {
+            return result.map(row -> entityPathMapping.toSchemaObjectSafe(row, root(), options));
+        } catch (RepositoryMappingException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {
                 throw (SchemaException) cause;
@@ -300,13 +305,6 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             }
         }
     }
-
-    /**
-     * Creates transformer for the {@link #entityPathMapping}.
-     * Made abstract, because the way how to create the transformer can differ on the type
-     * of context that is needed to do it (typically providing various components).
-     */
-    protected abstract SqlTransformer<S, Q, R> createTransformer();
 
     /**
      * Returns wrapped query if usage of Querydsl API is more convenient.
@@ -338,25 +336,25 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return notFilterUsed;
     }
 
-    public SqlRepoContext sqlRepoContext() {
+    public SqlRepoContext repositoryContext() {
         return sqlRepoContext;
     }
 
     public PrismContext prismContext() {
-        return transformerSupport.prismContext();
+        return sqlRepoContext.prismContext();
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
-        return transformerSupport.qNameToSchemaClass(qName);
+        return sqlRepoContext.qNameToSchemaClass(qName);
     }
 
     public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
-        return transformerSupport.prismContext().createCanonicalItemPath(itemPath);
+        return sqlRepoContext.prismContext().createCanonicalItemPath(itemPath);
     }
 
     @NotNull
     public QName normalizeRelation(QName qName) {
-        return transformerSupport.normalizeRelation(qName);
+        return sqlRepoContext.normalizeRelation(qName);
     }
 
     public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {

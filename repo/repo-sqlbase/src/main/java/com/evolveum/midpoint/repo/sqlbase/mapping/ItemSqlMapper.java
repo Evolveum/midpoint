@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqlbase.mapping;
 import java.util.Objects;
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Declarative information how an item (from schema/prism world) is to be processed
@@ -29,8 +29,12 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
  * Based on this information the mapper can later create {@link FilterProcessor} when needed,
  * again providing the right type of {@link FilterProcessor}, based on the type of the item
  * and/or how the item is mapped to the database.
+ *
+ * @param <S> schema type owning the mapped item (not the target type)
+ * @param <Q> entity path owning the mapped item (not the target type)
+ * @param <R> row type with the mapped item (not the target type)
  */
-public class ItemSqlMapper {
+public class ItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     /**
      * Primary mapping is used for order by clauses (if they are comparable).
@@ -38,25 +42,25 @@ public class ItemSqlMapper {
      * so normally the mapping(s) are encapsulated there, but for order we need one exposed.
      * Can be {@code null} which indicates that ordering is not possible.
      */
-    @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
+    @Nullable private final Function<Q, Path<?>> primaryItemMapping;
 
     @NotNull private final
-    Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory;
+    Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory;
 
     public <P extends Path<?>> ItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory,
-            @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @Nullable Function<Q, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         //noinspection unchecked
-        this.primaryItemMapping = (Function<EntityPath<?>, Path<?>>) primaryItemMapping;
+        this.primaryItemMapping = (Function<Q, Path<?>>) primaryItemMapping;
     }
 
     public ItemSqlMapper(
-            @NotNull Function<SqlQueryContext<?, ?, ?>, ItemFilterProcessor<?>> filterProcessorFactory) {
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory) {
         this(filterProcessorFactory, null);
     }
 
-    public @Nullable Path<?> itemPrimaryPath(EntityPath<?> root) {
+    public @Nullable Path<?> itemPrimaryPath(Q root) {
         return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
     }
 
@@ -66,11 +70,17 @@ public class ItemSqlMapper {
      * (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
      *
-     * The type of the returned filter is adapted to the client code needs for convenience.
+     * The type of the returned processor is adapted to the client code needs for convenience.
+     * Also the type of the provided context is flexible, but with proper mapping it's all safe.
+     *
+     * [NOTE]
+     * This may return null if the subclass supports other type of mapping for this item,
+     * but not filtering for queries.
      */
-    public <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public @Nullable <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
-        //noinspection unchecked
-        return (ItemFilterProcessor<T>) filterProcessorFactory.apply(sqlQueryContext);
+        return (ItemFilterProcessor<T>) filterProcessorFactory
+                .apply((SqlQueryContext) sqlQueryContext);
     }
 }

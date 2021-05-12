@@ -146,19 +146,10 @@ public class PageAuditLogDetails extends PageBase {
             @Override
             protected AuditEventRecordType load() {
 
-                String eventIdentifier = getEventIdentifierParameter();
-                AuditEventStageType stageType = getStageTypeParameter();
+                Long eventIdentifier = getEventIdentifierParameter();
                 S_MatchingRuleEntry filter = getPrismContext().queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_EVENT_IDENTIFIER)
+                        .item(AuditEventRecordType.F_REPO_ID)
                         .eq(eventIdentifier);
-                //TODO: remove when we will be able to query according to "repo id".
-                // it is here, because there was a bug, that raw (execute_changes_raw) changes
-                // were executed with same eventIdentifier for both request and execution stage
-                if (stageType != null) {
-                    filter = filter.and()
-                            .item(AuditEventRecordType.F_EVENT_STAGE)
-                            .eq(stageType);
-                }
                 ObjectQuery query = filter.build();
                 OperationResult result = new OperationResult(OPERATION_LOAD_AUDIT_RECORD);
                 SearchResultList<AuditEventRecordType> records = null;
@@ -187,24 +178,12 @@ public class PageAuditLogDetails extends PageBase {
         };
     }
 
-    private String getEventIdentifierParameter() {
+    private Long getEventIdentifierParameter() {
         StringValue param = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         if (param == null) {
             return null;
         }
-        return param.toString();
-    }
-
-    private AuditEventStageType getStageTypeParameter() {
-        StringValue param = getPageParameters().get(PageAuditLogDetails.PARAMETER_STAGE);
-        if (param == null) {
-            return null;
-        }
-        String stage = param.toString();
-        if (stage == null) {
-            return null;
-        }
-        return AuditEventStageType.fromValue(stage);
+        return Long.valueOf(param.toString());
     }
 
     private void initLayout() {

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2014 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!--
+Parameters:
+ - itemList contains a list of:
+   - item:
+     - name
+     - maxOccurs
+     - indexed
+-->
+<xsd:schema elementFormDefault="qualified"
+        targetNamespace="http://midpoint.evolveum.com/xml/ns/test/system-perf"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:complexType name="UserTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+#foreach($item in $itemList)
+            <xsd:element name="$item.name" type="xsd:string" minOccurs="0" maxOccurs="$item.maxOccurs">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>$item.indexed</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+#end
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

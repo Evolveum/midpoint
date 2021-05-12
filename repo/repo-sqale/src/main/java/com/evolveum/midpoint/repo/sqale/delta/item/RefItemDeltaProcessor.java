@@ -9,37 +9,43 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 import java.util.UUID;
 import java.util.function.Function;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referencable> {
 
-    // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;
     private final EnumPath<MObjectType> typePath;
     private final NumberPath<Integer> relationIdPath;
 
-    public RefItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> context,
-            Function<EntityPath<?>, UuidPath> rootToOidPath,
-            Function<EntityPath<?>, EnumPath<MObjectType>> rootToTypePath,
-            Function<EntityPath<?>, NumberPath<Integer>> rootToRelationIdPath) {
+    /**
+     * @param <Q> entity query type from which the attribute is resolved
+     * @param <R> row type related to {@link Q}
+     */
+    public <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context,
+            Function<Q, UuidPath> rootToOidPath,
+            Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
         this(context,
                 rootToOidPath.apply(context.path()),
                 rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
                 rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null);
     }
 
+    /**
+     * @param <Q> entity query type from which the attribute is resolved
+     * @param <R> row type related to {@link Q}
+     */
     // exposed mainly for RefTableItemFilterProcessor
-    RefItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> context,
+    <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context,
             UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
         this.oidPath = oidPath;
@@ -48,22 +54,11 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
-        Referencable ref = getAnyValue(modification);
-
-        // See implementation comments in SinglePathItemDeltaProcessor#process for logic details.
-        if (modification.isDelete() || ref == null) {
-            delete();
-        } else {
-            setValue(ref);
-        }
-    }
-
-    @Override
     public void setValue(Referencable value) {
         context.set(oidPath, UUID.fromString(value.getOid()));
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));
-        context.set(relationIdPath, context.processCacheableRelation(value.getRelation()));
+        context.set(relationIdPath,
+                context.repositoryContext().processCacheableRelation(value.getRelation()));
     }
 
     @Override
