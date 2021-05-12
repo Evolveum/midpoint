@@ -57,7 +57,7 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception {
+    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, RunningTask task, OperationResult result) throws Exception {
         ObjectReferenceType ref = dashboardConfig.getDashboardRef();
         Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
         DashboardType dashboard = (DashboardType) getReportService().getModelService()
@@ -119,7 +119,7 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, RunningTask task, OperationResult result) throws Exception {
         initializationParameters(collectionConfig.getParameter(), task);
         CompiledObjectCollectionView compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
 
@@ -128,7 +128,7 @@ public class CsvController extends FileFormatController {
     }
 
     private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
-            List<SubreportParameterType> subreports, OperationResult result, Task task)
+            List<SubreportParameterType> subreports, OperationResult result, RunningTask task)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
@@ -147,6 +147,9 @@ public class CsvController extends FileFormatController {
 
         AtomicInteger index = new AtomicInteger(1);
         Predicate<PrismContainer> handler = (value) -> {
+            if (!task.canRun()) {
+                return false;
+            }
             recordProgress(task, index.getAndIncrement(), result, LOGGER);
             boolean writeRecord = true;
             if (condition != null) {

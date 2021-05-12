@@ -62,7 +62,7 @@ public class HtmlController extends FileFormatController {
     }
 
     @Override
-    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception {
+    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, RunningTask task, OperationResult result) throws Exception {
         ObjectReferenceType ref = dashboardConfig.getDashboardRef();
         Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
         DashboardType dashboard = (DashboardType) getReportService().getModelService()
@@ -134,9 +134,6 @@ public class HtmlController extends FileFormatController {
                                 LOGGER.error("CollectionRef is null for report of audit records");
                                 throw new IllegalArgumentException("CollectionRef is null for report of audit records");
                             }
-//                            tableBox = createTableBox(widgetData.getLabel(), collectionRefSpecification, compiledCollection,
-//                                    null, Collections.emptyList(), task, result, false);
-//                            break;
                         case OBJECT_COLLECTION:
                             tableBox = createTableBox(widgetData.getLabel(), collectionRefSpecification, compiledCollection,
                                     null, Collections.emptyList(), result, false, task);
@@ -173,7 +170,7 @@ public class HtmlController extends FileFormatController {
 
     @Override
     public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig,
-            Task task, OperationResult result) throws Exception {
+            RunningTask task, OperationResult result) throws Exception {
         CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
         ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
         ObjectCollectionType collection = null;
@@ -259,7 +256,7 @@ public class HtmlController extends FileFormatController {
     }
 
     private ContainerTag createTableBox(String tableLabel, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            ExpressionType condition, List<SubreportParameterType> subreports, OperationResult result, boolean recordProgress, Task task)
+            ExpressionType condition, List<SubreportParameterType> subreports, OperationResult result, boolean recordProgress, RunningTask task)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
@@ -301,8 +298,12 @@ public class HtmlController extends FileFormatController {
 
         AtomicInteger index = new AtomicInteger(1);
         Predicate<PrismContainer> handler = (value) -> {
+            if (!task.canRun()) {
+                return false;
+            }
+            index.getAndIncrement();
             if (recordProgress) {
-                recordProgress(task, index.getAndIncrement(), result, LOGGER);
+                recordProgress(task, index.get(), result, LOGGER);
             }
             boolean writeRecord = true;
             if (condition != null) {

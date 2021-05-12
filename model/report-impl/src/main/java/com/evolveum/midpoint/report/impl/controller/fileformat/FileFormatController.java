@@ -84,9 +84,9 @@ public abstract class FileFormatController {
         return HEADS_OF_WIDGET;
     }
 
-    public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception;
+    public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, RunningTask task, OperationResult result) throws Exception;
 
-    public abstract byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception;
+    public abstract byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, RunningTask task, OperationResult result) throws Exception;
 
     protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
         try {
@@ -224,7 +224,7 @@ public abstract class FileFormatController {
                 sb.append(ReportUtils.prettyPrintForReport(value));
             }
         });
-        if (!sb.toString().isEmpty()
+        if (!sb.toString().isEmpty() && sb.lastIndexOf(getMultivalueDelimiter()) != -1
                 && sb.lastIndexOf(getMultivalueDelimiter()) == (sb.length() - getMultivalueDelimiter().length())) {
             sb.replace(sb.lastIndexOf(getMultivalueDelimiter()), sb.length(), "");
         }

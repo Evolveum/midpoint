@@ -1982,7 +1982,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismContainerValue prismValue = container.asPrismContainerValue();
             prismValue.setPrismContext(prismContext);
             PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());
-            handler.test(prismContainer);
+            if (!handler.test(prismContainer)) {
+                return;
+            }
         }
     }
 
