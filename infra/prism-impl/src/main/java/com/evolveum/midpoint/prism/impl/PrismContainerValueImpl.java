@@ -47,6 +47,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
 
     public static final RuntimeException DIFFERENT_ITEMS_EXCEPTION = new ItemDifferentException();
+    private static final boolean EARLY_EXIT = true;
 
     static {
         DIFFERENT_ITEMS_EXCEPTION.fillInStackTrace();
@@ -1131,11 +1132,16 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 }
             }
 
-            // Other has an item that we don't have, this must be an add
+            // Other item has no values
+            if(otherItem.hasNoValues()) {
+                continue;
+            }
             if (exitOnDiff) {
                 return true;
             }
+
             ItemDelta itemDelta = otherItem.createDelta();
+
             itemDelta.addValuesToAdd(otherItem.getClonedValues());
             if (!itemDelta.isEmpty()) {
                 ((Collection) deltas).add(itemDelta);
@@ -1446,7 +1452,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     private boolean equalsItems(PrismContainerValue<C> other, ParameterizedEquivalenceStrategy strategy) {
         Collection<? extends ItemDelta<?, ?>> deltas = FailOnAddList.INSTANCE;
         try {
-            boolean different = diffItems(this, other, deltas, strategy, true);
+            boolean different = diffItems(this, other, deltas, strategy, EARLY_EXIT);
             if (different) {
                 return false;
             }

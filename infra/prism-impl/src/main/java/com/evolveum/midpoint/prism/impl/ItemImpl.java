@@ -594,7 +594,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         ItemDelta delta = createDelta();
         if (other == null) {
             // Early exit for equals use case
-            if (exitOnDiff) {
+            if (exitOnDiff && hasAnyValue()) {
                 return true;
             }
 
