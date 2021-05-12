@@ -168,7 +168,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
             QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().defaultAlias();
             //noinspection unchecked
             SQLQuery<?> query = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .withRecursive(orgc, orgc.parent, orgc.child)
+                    .withRecursive(orgc, orgc.ancestorOid, orgc.descendantOid)
                     .as(new SQLQuery<>().union(
                             // non-recursive term: initial select
                             new SQLQuery<>()
@@ -178,12 +178,12 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                                     // add where here if possible for much faster results (often not possible)
                                     .where(),
                             // recursive term: each time add the parents for what we have gathered in orgc until now
-                            new SQLQuery<>().select(par.targetOid, orgc.child)
+                            new SQLQuery<>().select(par.targetOid, orgc.descendantOid)
                                     .from(par, orgc)
-                                    .where(par.ownerOid.eq(orgc.parent))))
-                    .select(orgc.parent, orgc.child)
+                                    .where(par.ownerOid.eq(orgc.ancestorOid))))
+                    .select(orgc.ancestorOid, orgc.descendantOid)
                     .from(orgc)
-                    .where(orgc.child.eq(UUID.randomUUID()));
+                    .where(orgc.descendantOid.eq(UUID.randomUUID()));
             System.out.println("query = " + query);
             Object o = query.fetchFirst();
             System.out.println("o = " + o);
@@ -202,7 +202,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
             QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().defaultAlias();
             //noinspection unchecked
             SQLQuery<?> query = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .withRecursive(orgc, orgc.parent, orgc.child)
+                    .withRecursive(orgc, orgc.ancestorOid, orgc.descendantOid)
                     .as(new SQLQuery<>().union(
                             // non-recursive term: initial select
                             new SQLQuery<>()
@@ -212,17 +212,17 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                                     // add where here if possible for much faster results (often not possible)
                                     .where(),
                             // recursive term: each time add the parents for what we have gathered in orgc until now
-                            new SQLQuery<>().select(par.targetOid, orgc.child)
+                            new SQLQuery<>().select(par.targetOid, orgc.descendantOid)
                                     .from(par, orgc)
-                                    .where(par.ownerOid.eq(orgc.parent))))
+                                    .where(par.ownerOid.eq(orgc.ancestorOid))))
                     .select(u)
                     .from(u)
                     .where(u.honorificPrefixNorm.startsWith("x")
                             // query filter condition
                             .and(new SQLQuery<>()
                                     .from(orgc)
-                                    .where(orgc.child.eq(u.oid)
-                                            .and(orgc.parent.eq(orgXOid)))
+                                    .where(orgc.descendantOid.eq(u.oid)
+                                            .and(orgc.ancestorOid.eq(orgXOid)))
                                     .exists()));
 
             System.out.println("query = " + query);
