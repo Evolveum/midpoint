@@ -1835,8 +1835,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
         @Override
         public boolean add(ItemDelta<?, ?> e) {
-            throw new IllegalStateException("Should not happen");
-            //throw DIFFERENT_ITEMS_EXCEPTION;
+            throw DIFFERENT_ITEMS_EXCEPTION;
         }
     }
 
