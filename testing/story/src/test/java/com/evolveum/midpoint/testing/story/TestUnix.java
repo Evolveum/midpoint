@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -27,8 +26,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -1799,12 +1799,12 @@ public class TestUnix extends AbstractStoryTest {
     }
 
     private void addRoleAssignment(PrismObject<UserType> user, String roleOid) {
-        AssignmentType roleAssignemnt = new AssignmentType();
+        AssignmentType roleAssignment = new AssignmentType();
         ObjectReferenceType roleTargetRef = new ObjectReferenceType();
         roleTargetRef.setOid(roleOid);
         roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-        roleAssignemnt.setTargetRef(roleTargetRef);
-        user.asObjectable().getAssignment().add(roleAssignemnt);
+        roleAssignment.setTargetRef(roleTargetRef);
+        user.asObjectable().getAssignment().add(roleAssignment);
     }
 
     protected void assertUserHerman(PrismObject<UserType> user) {
@@ -1921,12 +1921,12 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> role = getRoleDefinition().instantiate();
         RoleType roleType = role.asObjectable();
         roleType.setName(new PolyStringType(name));
-        AssignmentType roleAssignemnt = new AssignmentType();
+        AssignmentType roleAssignment = new AssignmentType();
         ObjectReferenceType roleTargetRef = new ObjectReferenceType();
         roleTargetRef.setOid(ROLE_META_LDAPGROUP_OID);
         roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-        roleAssignemnt.setTargetRef(roleTargetRef);
-        roleType.getAssignment().add(roleAssignemnt);
+        roleAssignment.setTargetRef(roleTargetRef);
+        roleType.getAssignment().add(roleAssignment);
         return role;
     }
 
@@ -1935,12 +1935,12 @@ public class TestUnix extends AbstractStoryTest {
         RoleType roleType = role.asObjectable();
         roleType.setName(new PolyStringType(name));
 
-        AssignmentType roleAssignemnt = new AssignmentType();
+        AssignmentType roleAssignment = new AssignmentType();
         ObjectReferenceType roleTargetRef = new ObjectReferenceType();
         roleTargetRef.setOid(metaRoleOid);
         roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-        roleAssignemnt.setTargetRef(roleTargetRef);
-        roleType.getAssignment().add(roleAssignemnt);
+        roleAssignment.setTargetRef(roleTargetRef);
+        roleType.getAssignment().add(roleAssignment);
 
         return role;
     }

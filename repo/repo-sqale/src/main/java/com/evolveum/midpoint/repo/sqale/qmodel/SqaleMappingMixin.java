@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import javax.xml.namespace.QName;
 
@@ -12,9 +13,9 @@ import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
@@ -65,6 +66,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     /** Defines reference mapping for both query and modifications. */
     default SqaleMappingMixin<S, Q, R> addRefMapping(
             @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
+        Objects.requireNonNull(referenceMapping, "referenceMapping");
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));

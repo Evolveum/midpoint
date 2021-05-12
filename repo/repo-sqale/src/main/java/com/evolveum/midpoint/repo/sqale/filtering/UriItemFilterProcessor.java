@@ -36,6 +36,6 @@ public class UriItemFilterProcessor
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter,
-                        u -> ((SqaleRepoContext) context.sqlRepoContext()).searchCachedUriId(u)));
+                        u -> ((SqaleRepoContext) context.repositoryContext()).searchCachedUriId(u)));
     }
 }

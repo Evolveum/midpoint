@@ -6,6 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -30,14 +39,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -66,10 +67,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     private Class<F> type;
     private MergeObjectsPanel mergeObjectsPanel;
 
-    public PageMergeObjects(){
+    public PageMergeObjects() {
     }
 
-    public PageMergeObjects(F mergeObject, F mergeWithObject, Class<F> type){
+    public PageMergeObjects(F mergeObject, F mergeWithObject, Class<F> type) {
         this.mergeObject = mergeObject;
         this.mergeWithObject = mergeWithObject;
         this.type = type;
@@ -82,8 +83,8 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         initialize(this.mergeObject.asPrismObject());
     }
 
-    private void initModels(){
-        mergeObjectModel = new IModel<F>() {
+    private void initModels() {
+        mergeObjectModel = new IModel<>() {
             @Override
             public F getObject() {
                 return mergeObject;
@@ -99,7 +100,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
             }
         };
-        mergeWithObjectModel = new IModel<F>() {
+        mergeWithObjectModel = new IModel<>() {
             @Override
             public F getObject() {
                 return mergeWithObject;
@@ -118,10 +119,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
+    protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
 
         //empty assignments model
-        CountableLoadableModel<AssignmentType> assignemtns = new CountableLoadableModel<AssignmentType>() {
+        CountableLoadableModel<AssignmentType> assignments = new CountableLoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -131,23 +132,24 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         };
 
         //empty policy rules  model
-         CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<AssignmentType>() {
-             private static final long serialVersionUID = 1L;
+        CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<>() {
+            private static final long serialVersionUID = 1L;
 
-             @Override
-             protected List<AssignmentType> load() {
-                 return new ArrayList<>();
-             }
-         };
+            @Override
+            protected List<AssignmentType> load() {
+                return new ArrayList<>();
+            }
+        };
 
-         //empty projections model
-         LoadableModel<List<ShadowWrapper>> shadows = new LoadableModel<List<ShadowWrapper>>() {
-             private static final long serialVersionUID = 1L;
-                     @Override
-                     protected List<ShadowWrapper> load() {
-                         return new ArrayList<>();
-                     }
-                 };
+        //empty projections model
+        LoadableModel<List<ShadowWrapper>> shadows = new LoadableModel<>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ShadowWrapper> load() {
+                return new ArrayList<>();
+            }
+        };
 
         return new FocusMainPanel<UserType>(id, getObjectModel(), shadows, this) {
 
@@ -157,12 +159,12 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
                 tabs.add(
-                        new PanelTab(parentPage.createStringResource("PageMergeObjects.tabTitle"), new VisibleEnableBehaviour()){
+                        new PanelTab(parentPage.createStringResource("PageMergeObjects.tabTitle"), new VisibleEnableBehaviour()) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                mergeObjectsPanel =  new MergeObjectsPanel(panelId, mergeObjectModel, mergeWithObjectModel, type, PageMergeObjects.this);
+                                mergeObjectsPanel = new MergeObjectsPanel<>(panelId, mergeObjectModel, mergeWithObjectModel, type, PageMergeObjects.this);
                                 return mergeObjectsPanel;
                             }
                         });
@@ -170,7 +172,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             }
 
             @Override
-            protected boolean isPreviewButtonVisible(){
+            protected boolean isPreviewButtonVisible() {
                 return false;
             }
 
@@ -181,7 +183,6 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         };
     }
 
-
     //TODO did it work before?
     @Override
     protected ObjectSummaryPanel createSummaryPanel(IModel summaryModel) {
@@ -190,7 +191,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel){
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel) {
         summaryPanel.setVisible(false);
     }
 
@@ -199,7 +200,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         return PageUsers.class;
     }
 
-    protected UserType createNewObject(){
+    protected UserType createNewObject() {
         return new UserType();
     }
 
@@ -228,7 +229,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             showResult(result);
             redirectBack();
 
-        } catch (Exception ex){
+        } catch (Exception ex) {
             result.recomputeStatus();
             result.recordFatalError(getString("PageMergeObjects.message.saveOrPreviewPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't merge objects", ex);

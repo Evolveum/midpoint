@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 
 /**
@@ -17,11 +20,13 @@ public class QGenericObjectMapping
 
     public static final String DEFAULT_ALIAS_NAME = "go";
 
-    public static final QGenericObjectMapping INSTANCE = new QGenericObjectMapping();
+    public static QGenericObjectMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QGenericObjectMapping(repositoryContext);
+    }
 
-    private QGenericObjectMapping() {
+    private QGenericObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QGenericObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                GenericObjectType.class, QGenericObject.class);
+                GenericObjectType.class, QGenericObject.class, repositoryContext);
     }
 
     @Override
@@ -30,13 +35,17 @@ public class QGenericObjectMapping
     }
 
     @Override
-    public GenericObjectSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new GenericObjectSqlTransformer(transformerSupport, this);
+    public MGenericObject newRowObject() {
+        return new MGenericObject();
     }
 
     @Override
-    public MGenericObject newRowObject() {
-        return new MGenericObject();
+    public @NotNull MGenericObject toRowObjectWithoutFullObject(
+            GenericObjectType genericObject, JdbcSession jdbcSession) {
+        MGenericObject row = super.toRowObjectWithoutFullObject(genericObject, jdbcSession);
+
+        row.genericObjectTypeId = processCacheableUri(genericObject.getObjectType());
+
+        return row;
     }
 }

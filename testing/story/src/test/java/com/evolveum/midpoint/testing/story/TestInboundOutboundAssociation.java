@@ -80,6 +80,8 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         setDefaultObjectTemplate(RoleType.COMPLEX_TYPE, SUBTYPE_GROUP, OBJECT_TEMPLATE_ROLE_GROUP_OID, initResult);
 
         addObject(TASK_DUMMY_DIR_LIVESYNC_FILE);
+        // This is to make sure the 1st run (initializing the token) is executed before Pirates group is created.
+        waitForTaskFinish(TASK_DUMMY_DIR_LIVESYNC_OID, false);
 
         importObjectFromFile(USER_MANCOMB_FILE, initResult);
     }

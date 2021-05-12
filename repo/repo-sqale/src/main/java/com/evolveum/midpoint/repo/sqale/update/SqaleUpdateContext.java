@@ -8,16 +8,15 @@ package com.evolveum.midpoint.repo.sqale.update;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.SqaleTransformerSupport;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.TransformerForOwnedBy;
+import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -48,6 +47,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Nested container context merely "focuses" from assignment container to its metadata, but the
  * table is still the same.
  *
+ * This class also coordinates final update execution for the whole context tree implemented
+ * as a template method {@link #finishExecution()} called from the {@link RootUpdateContext}.
+ * Subclasses implement their specific logic in {@link #finishExecutionOwn()}.
+ *
  * @param <S> schema type of the mapped object (potentially in nested mapping)
  * @param <Q> query entity type
  * @param <R> row type related to the {@link Q}
@@ -56,22 +59,32 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     protected final Trace logger = TraceManager.getTrace(getClass());
 
-    protected final SqaleUpdateContext<?, ?, ?> parentContext;
-
-    protected final SqaleTransformerSupport transformerSupport;
+    private final SqaleRepoContext repositoryContext;
     protected final JdbcSession jdbcSession;
     protected final R row;
 
+    // Fields for managing update context tree
+    /**
+     * Parent is typically used to do some work for the child like when nested container
+     * uses the parent's UPDATE clause.
+     */
+    protected final SqaleUpdateContext<?, ?, ?> parentContext;
+
+    /**
+     * Map of subcontext for known {@link ItemPath} sub-paths relative to this context.
+     * {@link ItemName} is not enough to represent multi-value container paths like `assignment/1`.
+     */
     protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
 
     public SqaleUpdateContext(
-            SqaleTransformerSupport sqlTransformerSupport,
+            SqaleRepoContext repositoryContext,
             JdbcSession jdbcSession,
             R row) {
-        parentContext = null; // this is the root context without any parent
-        this.transformerSupport = sqlTransformerSupport;
+        this.repositoryContext = repositoryContext;
         this.jdbcSession = jdbcSession;
         this.row = row;
+
+        parentContext = null; // this is the root context without any parent
     }
 
     public SqaleUpdateContext(
@@ -79,21 +92,13 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
             R row) {
         this.parentContext = parentContext;
         // registering this with parent context must happen outside of constructor!
-        this.transformerSupport = parentContext.transformerSupport;
+        this.repositoryContext = parentContext.repositoryContext;
         this.jdbcSession = parentContext.jdbcSession();
         this.row = row;
     }
 
-    public SqaleTransformerSupport transformerSupport() {
-        return transformerSupport;
-    }
-
-    public Integer processCacheableRelation(QName relation) {
-        return transformerSupport.processCacheableRelation(relation);
-    }
-
-    public Integer processCacheableUri(String uri) {
-        return transformerSupport.processCacheableUri(uri);
+    public SqaleRepoContext repositoryContext() {
+        return repositoryContext;
     }
 
     public JdbcSession jdbcSession() {
@@ -112,12 +117,20 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     @SuppressWarnings("UnusedReturnValue")
     public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
-        TransformerForOwnedBy<TS, TR, R> transformer =
-                mapping.createTransformer(transformerSupport());
-        return transformer.insert(schemaObject, row, jdbcSession);
+        return mapping.insert(schemaObject, row, jdbcSession);
+    }
+
+    public SqaleUpdateContext<?, ?, ?> getSubcontext(ItemPath itemPath) {
+        return subcontexts.get(itemPath);
     }
 
     public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        if (subcontexts.containsKey(itemPath)) {
+            // This should not happen if code above is written properly, but prevents losing
+            // updates when multiple modifications use the same container path segment.
+            throw new IllegalStateException(
+                    "Trying to overwrite existing subcontext for item path: " + itemPath);
+        }
         subcontexts.put(itemPath, subcontext);
     }
 

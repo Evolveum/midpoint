@@ -98,4 +98,9 @@ public class AsciiTableFormatting extends Formatting {
         }
         return sb.toString();
     }
+
+    @Override
+    public boolean isNiceNumbersFormatting() {
+        return true;
+    }
 }

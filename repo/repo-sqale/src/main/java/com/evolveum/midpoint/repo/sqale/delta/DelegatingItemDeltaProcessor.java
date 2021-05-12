@@ -87,14 +87,16 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                 path = path.rest();
                 subcontextPath = ItemPath.create(firstName, cid);
             }
-            // TODO check for existing subcontext
 
-            // we know nothing about context and resolver types, so we have to ignore it
-            //noinspection unchecked,rawtypes
-            SqaleUpdateContext subcontext =
-                    ((SqaleItemRelationResolver) relationResolver)
-                            .resolve(this.context, subcontextPath);
-            context.addSubcontext(subcontextPath, subcontext);
+            // We want to use the same subcontext for the same item path to use one UPDATE.
+            SqaleUpdateContext<?, ?, ?> subcontext = context.getSubcontext(subcontextPath);
+            if (subcontext == null) {
+                // we know nothing about context and resolver types, so we have to ignore it
+                //noinspection unchecked,rawtypes
+                subcontext = ((SqaleItemRelationResolver) relationResolver)
+                        .resolve(this.context, subcontextPath);
+                context.addSubcontext(subcontextPath, subcontext);
+            }
             context = subcontext;
         }
         return path.asSingleName();

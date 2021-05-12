@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @param <R> row type related to the {@link Q}
  */
 public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Class<S> schemaType;
     private final Class<Q> queryType;

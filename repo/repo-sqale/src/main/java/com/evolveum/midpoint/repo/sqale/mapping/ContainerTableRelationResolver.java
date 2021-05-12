@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.ContainerTableUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -34,15 +34,13 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
-        // TODO how to add & QOwnedByMapping without clashing on transformer? perhaps it will not be necessary to capture here
-//        M extends SqaleTableMapping<?, TQ, TR>> // without & the M is not necessary
         implements SqaleItemRelationResolver<Q, R> {
 
-    private final SqaleTableMapping<TS, TQ, TR> targetMapping;
+    private final QContainerMapping<TS, TQ, TR, R> targetMapping;
     private final BiFunction<Q, TQ, Predicate> joinPredicate;
 
     public ContainerTableRelationResolver(
-            @NotNull SqaleTableMapping<TS, TQ, TR> targetMapping,
+            @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         this.targetMapping = targetMapping;
         this.joinPredicate = joinPredicate;
@@ -66,7 +64,14 @@ public class ContainerTableRelationResolver<
     @Override
     public ContainerTableUpdateContext<TS, TQ, TR, R> resolve(
             SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) {
-        // TODO actually use that item path
-        return new ContainerTableUpdateContext<>(context, targetMapping);
+        if (itemPath == null || itemPath.size() != 2 || !(itemPath.getSegment(1) instanceof Long)) {
+            throw new IllegalArgumentException(
+                    "Item path provided for container table relation resolver must have two"
+                            + " segments with PCV ID as the second");
+        }
+        TR row = targetMapping.newRowObject(context.row());
+        //noinspection ConstantConditions
+        row.cid = (long) itemPath.getSegment(1);
+        return new ContainerTableUpdateContext<>(context, targetMapping, row);
     }
 }

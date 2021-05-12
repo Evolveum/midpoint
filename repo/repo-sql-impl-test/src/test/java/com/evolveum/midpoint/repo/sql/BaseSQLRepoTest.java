@@ -363,7 +363,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     /** Creates new {@link JdbcSession} based on {@link #baseHelper} setup. */
     protected JdbcSession createJdbcSession() {
-        return new SqlRepoContext(baseHelper.getConfiguration(), baseHelper.dataSource(), null)
+        return new SqlRepoContext(baseHelper.getConfiguration(), baseHelper.dataSource(), schemaService, null)
                 .newJdbcSession();
     }
 }

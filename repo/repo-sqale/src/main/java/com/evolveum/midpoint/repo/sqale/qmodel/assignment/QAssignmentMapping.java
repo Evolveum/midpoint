@@ -8,10 +8,16 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -19,6 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
+ * There are separate instances for assignments and inducements and the instance also knows
+ * the {@link MAssignment#containerType} it should set.
+ * Only the instance for assignments is registered for queries as there is no way to distinguish
+ * between assignments and inducements when searching containers in the Query API anyway.
  *
  * @param <OR> type of the owner row
  */
@@ -27,13 +37,50 @@ public class QAssignmentMapping<OR extends MObject>
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
-    public static final QAssignmentMapping<MObject> INSTANCE = new QAssignmentMapping<>();
+    /** Default assignment mapping instance, for queries it works for inducements too. */
+    private static QAssignmentMapping<?> instanceAssignment;
+
+    /** Inducement mapping instance, this must be used for inserting inducements. */
+    private static QAssignmentMapping<?> instanceInducement;
+
+    public static <OR extends MObject> QAssignmentMapping<OR>
+    initAssignment(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceAssignment == null) {
+            instanceAssignment = new QAssignmentMapping<>(
+                    MContainerType.ASSIGNMENT, repositoryContext);
+        }
+        return getAssignment();
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR> getAssignment() {
+        //noinspection unchecked
+        return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceAssignment);
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR>
+    initInducement(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceInducement == null) {
+            instanceInducement = new QAssignmentMapping<>(
+                    MContainerType.INDUCEMENT, repositoryContext);
+        }
+        return getInducement();
+    }
+
+    public static <OR extends MObject> QAssignmentMapping<OR> getInducement() {
+        //noinspection unchecked
+        return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceInducement);
+    }
+
+    private final MContainerType containerType;
 
     // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private QAssignmentMapping() {
+    private QAssignmentMapping(
+            @NotNull MContainerType containerType,
+            @NotNull SqaleRepoContext repositoryContext) {
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AssignmentType.class, (Class) QAssignment.class);
+                AssignmentType.class, (Class) QAssignment.class, repositoryContext);
+        this.containerType = containerType;
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
@@ -96,17 +143,12 @@ public class QAssignmentMapping<OR extends MObject>
                         uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.modifyTimestamp))
-                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF, referenceMapping(
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_CREATE_APPROVER))
-                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF, referenceMapping(
-                        QAssignmentReferenceMapping.INSTANCE_ASSIGNMENT_MODIFY_APPROVER));
-    }
-
-    /** Fixes rigid parametric types of static mapping instance to this instance. */
-    private QReferenceMapping<?, ?, QAssignment<OR>, MAssignment> referenceMapping(
-            QAssignmentReferenceMapping<?> referenceMapping) {
-        //noinspection unchecked
-        return (QAssignmentReferenceMapping<OR>) referenceMapping;
+                .addRefMapping(MetadataType.F_CREATE_APPROVER_REF,
+                        QAssignmentReferenceMapping.initForAssignmentCreateApprover(
+                                repositoryContext))
+                .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
+                        QAssignmentReferenceMapping.initForAssignmentModifyApprover(
+                                repositoryContext));
     }
 
     @Override
@@ -115,12 +157,96 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    public AssignmentSqlTransformer<OR> createTransformer(SqlTransformerSupport transformerSupport) {
-        return new AssignmentSqlTransformer<>(transformerSupport, this);
+    public MAssignment newRowObject() {
+        MAssignment row = new MAssignment();
+        row.containerType = this.containerType;
+        return row;
     }
 
     @Override
-    public MAssignment newRowObject() {
-        return new MAssignment();
+    public MAssignment newRowObject(OR ownerRow) {
+        MAssignment row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
+        MAssignment row = initRowObject(assignment, ownerRow);
+
+        row.ownerType = ownerRow.objectType;
+        row.lifecycleState = assignment.getLifecycleState();
+        row.orderValue = assignment.getOrder();
+        setReference(assignment.getOrgRef(),
+                o -> row.orgRefTargetOid = o,
+                t -> row.orgRefTargetType = t,
+                r -> row.orgRefRelationId = r);
+        setReference(assignment.getTargetRef(),
+                o -> row.targetRefTargetOid = o,
+                t -> row.targetRefTargetType = t,
+                r -> row.targetRefRelationId = r);
+        setReference(assignment.getTenantRef(),
+                o -> row.tenantRefTargetOid = o,
+                t -> row.tenantRefTargetType = t,
+                r -> row.tenantRefRelationId = r);
+
+        // TODO no idea how to do this yet, somehow related to RAssignment.extension
+//        row.extId = assignment.getExtension()...id?;
+//        row.extOid =;
+        row.policySituations = processCacheableUris(assignment.getPolicySituation());
+        // TODO extensions stored inline (JSON)
+
+        ConstructionType construction = assignment.getConstruction();
+        if (construction != null) {
+            setReference(construction.getResourceRef(),
+                    o -> row.resourceRefTargetOid = o,
+                    t -> row.resourceRefTargetType = t,
+                    r -> row.resourceRefRelationId = r);
+        }
+
+        ActivationType activation = assignment.getActivation();
+        if (activation != null) {
+            row.administrativeStatus = activation.getAdministrativeStatus();
+            row.effectiveStatus = activation.getEffectiveStatus();
+            row.enableTimestamp = MiscUtil.asInstant(activation.getEnableTimestamp());
+            row.disableTimestamp = MiscUtil.asInstant(activation.getDisableTimestamp());
+            row.disableReason = activation.getDisableReason();
+            row.validityStatus = activation.getValidityStatus();
+            row.validFrom = MiscUtil.asInstant(activation.getValidFrom());
+            row.validTo = MiscUtil.asInstant(activation.getValidTo());
+            row.validityChangeTimestamp = MiscUtil.asInstant(activation.getValidityChangeTimestamp());
+            row.archiveTimestamp = MiscUtil.asInstant(activation.getArchiveTimestamp());
+        }
+
+        MetadataType metadata = assignment.getMetadata();
+        if (metadata != null) {
+            setReference(metadata.getCreatorRef(),
+                    o -> row.creatorRefTargetOid = o,
+                    t -> row.creatorRefTargetType = t,
+                    r -> row.creatorRefRelationId = r);
+            row.createChannelId = processCacheableUri(metadata.getCreateChannel());
+            row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
+
+            setReference(metadata.getModifierRef(),
+                    o -> row.modifierRefTargetOid = o,
+                    t -> row.modifierRefTargetType = t,
+                    r -> row.modifierRefRelationId = r);
+            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
+            row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
+        }
+
+        // insert before treating sub-entities
+        insert(row, jdbcSession);
+
+        if (metadata != null) {
+            storeRefs(row, metadata.getCreateApproverRef(),
+                    QAssignmentReferenceMapping.getForAssignmentCreateApprover(), jdbcSession);
+            storeRefs(row, metadata.getModifyApproverRef(),
+                    QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
+        }
+
+        return row;
     }
 }

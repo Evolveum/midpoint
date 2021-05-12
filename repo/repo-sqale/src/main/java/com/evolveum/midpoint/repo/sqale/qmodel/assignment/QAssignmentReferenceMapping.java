@@ -6,31 +6,68 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
- * Mapping between {@link QObjectReference} and {@link ObjectReferenceType}.
- * The mapping is the same for all subtypes, see different `INSTANCE_*` constants below.
+ * Mapping between {@link QAssignmentReference} and {@link ObjectReferenceType}.
+ * The mapping is the same for all subtypes, see various static `get*()` methods below.
+ * Both mapping instances are initialized (`init*()` methods) in {@link QAssignmentMapping}.
+ * Init methods can be called multiple times, only one instance for each sub-tables is created.
  *
  * @param <AOR> type of the row (M-bean) of the assignment owner
  */
 public class QAssignmentReferenceMapping<AOR extends MObject>
         extends QReferenceMapping<QAssignmentReference, MAssignmentReference, QAssignment<AOR>, MAssignment> {
 
-    public static final QAssignmentReferenceMapping<?> INSTANCE_ASSIGNMENT_CREATE_APPROVER =
-            new QAssignmentReferenceMapping<>("m_assignment_ref_create_approver", "arefca");
-    public static final QAssignmentReferenceMapping<?> INSTANCE_ASSIGNMENT_MODIFY_APPROVER =
-            new QAssignmentReferenceMapping<>("m_assignment_ref_create_approver", "arefma");
+    private static QAssignmentReferenceMapping<?> instanceAssignmentCreateApprover;
+    private static QAssignmentReferenceMapping<?> instanceAssignmentModifyApprover;
 
-    private QAssignmentReferenceMapping(String tableName, String defaultAliasName) {
-        super(tableName, defaultAliasName, QAssignmentReference.class);
+    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    initForAssignmentCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceAssignmentCreateApprover == null) {
+            instanceAssignmentCreateApprover = new QAssignmentReferenceMapping<>(
+                    "m_assignment_ref_create_approver", "arefca", repositoryContext);
+        }
+        return getForAssignmentCreateApprover();
+    }
+
+    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    getForAssignmentCreateApprover() {
+        //noinspection unchecked
+        return (QAssignmentReferenceMapping<OR>)
+                Objects.requireNonNull(instanceAssignmentCreateApprover);
+    }
+
+    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    initForAssignmentModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
+        if (instanceAssignmentModifyApprover == null) {
+            instanceAssignmentModifyApprover = new QAssignmentReferenceMapping<>(
+                    "m_assignment_ref_modify_approver", "arefma", repositoryContext);
+        }
+        return getForAssignmentModifyApprover();
+    }
+
+    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    getForAssignmentModifyApprover() {
+        //noinspection unchecked
+        return (QAssignmentReferenceMapping<OR>)
+                Objects.requireNonNull(instanceAssignmentModifyApprover);
+    }
+
+    private QAssignmentReferenceMapping(
+            String tableName,
+            String defaultAliasName,
+            @NotNull SqaleRepoContext repositoryContext) {
+        super(tableName, defaultAliasName, QAssignmentReference.class, repositoryContext);
 
         // assignmentCid probably can't be mapped directly
     }
@@ -44,6 +81,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     public MAssignmentReference newRowObject(MAssignment ownerRow) {
         MAssignmentReference row = new MAssignmentReference();
         row.ownerOid = ownerRow.ownerOid;
+        row.ownerType = ownerRow.ownerType;
         row.assignmentCid = ownerRow.cid;
         return row;
     }

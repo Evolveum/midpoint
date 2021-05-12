@@ -269,7 +269,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
     }
 
-    protected DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
                 resource.controllerInitLambda, task, result);
         return resource.controller;
@@ -3704,6 +3704,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (freshTask.getLastRunStartTimestamp() == null) {
                     return false;
                 }
+                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
+                //  It is because it requires that the task is not running. And this can be a problem if the
+                //  typical run time is approximately the same (or even larger) than the interval.
                 return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
                         && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
                         && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
@@ -5629,7 +5632,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
     }
 
-    protected void resetTriggerTask(String taskOid, File taskFile, OperationResult result)
+    // Use this when you want to start the task manually.
+    protected void clearTaskSchedule(String taskOid, File taskFile, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
         importObjectFromFile(taskFile, result);
@@ -5637,6 +5641,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifySystemObjectInRepo(TaskType.class, taskOid,
                 prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_SCHEDULE).replace()
+                        .item(TaskType.F_BINDING).replace(TaskBindingType.LOOSE) // tightly-bound tasks must have interval set
                         .asItemDeltas(),
                 result);
         taskManager.resumeTasks(singleton(taskOid), result);

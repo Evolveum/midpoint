@@ -8,10 +8,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerSupport;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 /**
@@ -22,13 +25,15 @@ public class QObjectTemplateMapping
 
     public static final String DEFAULT_ALIAS_NAME = "ot";
 
-    public static final QObjectTemplateMapping INSTANCE = new QObjectTemplateMapping();
+    public static QObjectTemplateMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        return new QObjectTemplateMapping(repositoryContext);
+    }
 
-    private QObjectTemplateMapping() {
+    private QObjectTemplateMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QObjectTemplate.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectTemplateType.class, QObjectTemplate.class);
+                ObjectTemplateType.class, QObjectTemplate.class, repositoryContext);
 
-        addRefMapping(F_INCLUDE_REF, QObjectReferenceMapping.INSTANCE_INCLUDE);
+        addRefMapping(F_INCLUDE_REF, QObjectReferenceMapping.initForInclude(repositoryContext));
     }
 
     @Override
@@ -37,13 +42,16 @@ public class QObjectTemplateMapping
     }
 
     @Override
-    public ObjectTemplateSqlTransformer createTransformer(
-            SqlTransformerSupport transformerSupport) {
-        return new ObjectTemplateSqlTransformer(transformerSupport, this);
+    public MObject newRowObject() {
+        return new MObject();
     }
 
     @Override
-    public MObject newRowObject() {
-        return new MObject();
+    public void storeRelatedEntities(@NotNull MObject row,
+            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        storeRefs(row, schemaObject.getIncludeRef(),
+                QObjectReferenceMapping.getForInclude(), jdbcSession);
     }
 }

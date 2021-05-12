@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -51,16 +50,12 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Override
     public void initSystem() throws Exception {
-        //given
-        //no role
         PrismObject<RoleType> role = prismContext.parseObject(FILE_ROLE);
 
         OperationResult result = new OperationResult("add role");
 
-        // WHEN
         String oid = repositoryService.addObject(role, null, result);
 
-        // THEN
         assertSuccess(result);
         assertEquals(ROLE_OID, oid);
 
@@ -71,8 +66,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test010AddAssignment() throws Exception {
-        //given
-
+        given();
         AssignmentType assignment1 = new AssignmentType(prismContext)
                 .id(4L)
                 .targetRef(ORIGINAL_ASSIGNMENT_4_TARGET_OID, RoleType.COMPLEX_TYPE);
@@ -83,10 +77,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("add assignment");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         //check role and its assignments and inducements
@@ -112,7 +106,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test011AddInducement() throws Exception {
-        //given
+        given();
         AssignmentType inducement1 = new AssignmentType(prismContext)
                 .id(5L)
                 .beginConstruction()
@@ -125,10 +119,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("add inducement");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         //check role and its assignments and inducements
@@ -151,8 +145,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyAssignment() throws Exception {
-        //given
-
+        given();
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT, 4L, AssignmentType.F_TARGET_REF)
                 .replace(new ObjectReferenceType().oid(NEW_ASSIGNMENT_4_TARGET_OID).type(RoleType.COMPLEX_TYPE))
@@ -160,10 +153,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("modify assignment");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -187,8 +180,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test021ModifyInducement() throws Exception {
-        //given
-
+        given();
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT, 5L, AssignmentType.F_TARGET_REF)
                 .replace(new ObjectReferenceType().oid(NEW_INDUCEMENT_5_TARGET_OID).type(RoleType.COMPLEX_TYPE))
@@ -196,10 +188,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("modify inducement");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -226,18 +218,17 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test030DeleteAssignment() throws Exception {
-        //given
-
+        given();
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT).delete(new AssignmentType(prismContext).id(4L))
                 .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete assignment");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -267,8 +258,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test031DeleteInducement() throws Exception {
-        //given
-
+        given();
         AssignmentType i = new AssignmentType(prismContext)
                 .id(3L)
                 .targetRef(ORIGINAL_INDUCEMENT_5_TARGET_OID, OrgType.COMPLEX_TYPE);
@@ -279,10 +269,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("delete inducement");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -306,8 +296,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
      */
     @Test
     public void test040RenameAssignmentToInducement() throws Exception {
-        //given
-
+        given();
         AssignmentType a = new AssignmentType(prismContext)
                 .id(1L)
                 .beginConstruction()
@@ -324,10 +313,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("delete add assignment");
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -343,7 +332,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     @Test
     public void test100AssignmentAdd() throws Exception {
-        //given
+        given();
         OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
@@ -355,10 +344,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
                 .item(RoleType.F_ASSIGNMENT).add(assignmentToAdd)
                 .asItemDeltas();
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, ROLE_OID, deltas, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
@@ -378,7 +367,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
      */
     @Test
     public void test110AssignmentAddDeleteIds() throws Exception {
-        //given
+        given();
         OperationResult result = createOperationResult();
 
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_OID);
@@ -388,20 +377,20 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assignmentToAdd.targetRef(ROLE_A2_OID, RoleType.COMPLEX_TYPE);
 
         AssignmentType assignmentToDelete = new AssignmentType();
-        Long origAssingmentId = roleBefore.asObjectable().getAssignment().iterator().next().getId();
-        assertNotNull(origAssingmentId);
-        assignmentToDelete.setId(origAssingmentId);
+        Long origAssignmentId = roleBefore.asObjectable().getAssignment().iterator().next().getId();
+        assertNotNull(origAssignmentId);
+        assignmentToDelete.setId(origAssignmentId);
 
         List<ItemDelta<?, ?>> deltas = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT)
-                .add(assignmentToAdd)
                 .delete(assignmentToDelete)
+                .add(assignmentToAdd)
                 .asItemDeltas();
 
-        // WHEN
+        when();
         repositoryService.modifyObject(RoleType.class, ROLE_OID, deltas, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
@@ -411,7 +400,6 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(assignment);
         assertEquals("Wrong number of assignments", 1, assignment.getValues().size());
 
-        assertEquals("Wrong assignment id", (Long) (origAssingmentId + 1), assignment.getValues().iterator().next().getId());
+        assertEquals("Wrong assignment id", (Long) (origAssignmentId + 1), assignment.getValues().iterator().next().getId());
     }
-
 }
