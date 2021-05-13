@@ -106,10 +106,20 @@ public class SchemaDocMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage(),e);
         }
         for (PrismSchema schema: schemaRegistry.getSchemas()) {
+
             try {
                 renderSchema(schema, prismContext, velocityEngine, pathGenerator);
             } catch (IOException e) {
                 throw new MojoExecutionException(e.getMessage(),e);
+            }
+
+            if (schema.getNamespace().equals("http://midpoint.evolveum.com/xml/ns/public/common/common-3")) { // todo as parameter
+                try {
+                    renderRelationDiagram(schema, schemaRegistry, "user-overview",
+                            outDir.getAbsolutePath() + "/", buildDir.getAbsolutePath() + "/schemadoc/schemaLibraries/", null, null, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
