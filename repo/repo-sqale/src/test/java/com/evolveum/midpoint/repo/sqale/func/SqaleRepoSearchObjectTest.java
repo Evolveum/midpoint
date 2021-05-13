@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -21,12 +20,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -40,17 +34,20 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
-    private String user1Oid; // typical object
-    private String task1Oid; // task has more attribute type variability
-    private String shadow1Oid; // ditto
-    private String service1Oid; // object with integer attribute
-    private String org1Oid;
+    // org structure
+    private String org1Oid; // one root
     private String org11Oid;
     private String org111Oid;
     private String org112Oid;
-    private String org2Oid;
+    private String org2Oid; // second root
     private String org21Oid;
     private String orgXOid; // under two orgs
+
+    private String user1Oid; // typical object
+    private String user2Oid; // different user, this one is in org
+    private String task1Oid; // task has more attribute type variability
+    private String shadow1Oid; // ditto
+    private String service1Oid; // object with integer attribute
 
     // other info used in queries
     private String creatorOid = UUID.randomUUID().toString();
@@ -62,26 +59,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        user1Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-1")
-                        .metadata(new MetadataType()
-                                .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
-                                .createChannel("create-channel")
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
-                                .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
-                                .modifyChannel("modify-channel")
-                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
-                        .asPrismObject(),
-                null, result);
-        task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1").asPrismObject(),
-                null, result);
-        shadow1Oid = repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
-                null, result);
-        service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1").asPrismObject(),
-                null, result);
+        // org structure
         org1Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-1").asPrismObject(),
                 null, result);
@@ -113,6 +91,33 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
+                null, result);
+
+        // other objects
+        user1Oid = repositoryService.addObject(
+                new UserType(prismContext).name("user-1")
+                        .metadata(new MetadataType()
+                                .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
+                                .createChannel("create-channel")
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                                .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
+                                .modifyChannel("modify-channel")
+                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
+                        .asPrismObject(),
+                null, result);
+        user2Oid = repositoryService.addObject(
+                new UserType(prismContext).name("user-2")
+                        .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                        .asPrismObject(),
+                null, result);
+        task1Oid = repositoryService.addObject(
+                new TaskType(prismContext).name("task-1").asPrismObject(),
+                null, result);
+        shadow1Oid = repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
+                null, result);
+        service1Oid = repositoryService.addObject(
+                new ServiceType(prismContext).name("service-1").asPrismObject(),
                 null, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -160,76 +165,44 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
     // region org filter
     @Test
-    public void testQuerydslCteSimple() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            // CTE query just for the organization closure
-            QOrgClosure orgc = new QOrgClosure();
-            QObjectReference<?> ref = QObjectReferenceMapping.getForParentOrg().defaultAlias();
-            QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().defaultAlias();
-            //noinspection unchecked
-            SQLQuery<?> query = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .withRecursive(orgc, orgc.ancestorOid, orgc.descendantOid)
-                    .as(new SQLQuery<>().union(
-                            // non-recursive term: initial select
-                            new SQLQuery<>()
-//                                    .select(ref.ownerOid, ref.ownerOid) // use this to include identity loops
-                                    .select(ref.targetOid, ref.ownerOid)
-                                    .from(ref)
-                                    // add where here if possible for much faster results (often not possible)
-                                    .where(),
-                            // recursive term: each time add the parents for what we have gathered in orgc until now
-                            new SQLQuery<>().select(par.targetOid, orgc.descendantOid)
-                                    .from(par, orgc)
-                                    .where(par.ownerOid.eq(orgc.ancestorOid))))
-                    .select(orgc.ancestorOid, orgc.descendantOid)
-                    .from(orgc)
-                    .where(orgc.descendantOid.eq(UUID.randomUUID()));
-            System.out.println("query = " + query);
-            Object o = query.fetchFirst();
-            System.out.println("o = " + o);
-        }
+    public void test200QueryForRootOrganizations() throws SchemaException {
+        when("searching orgs with is-root filter");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .isRoot()
+                        .build(),
+                operationResult);
+
+        then("only organizations without any parents are returned");
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org1Oid, org2Oid);
+
+        and("operation result is success");
+        assertThatOperationResult(operationResult).isSuccess();
     }
 
     @Test
-    public void testQuerydslCteForUser() {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            // CTE for user with condition that is child of org X
-            UUID orgXOid = UUID.randomUUID();
+    public void test201QueryForRootOrganizationsWithWrongType() throws SchemaException {
+        // Currently this is "undefined", this does not work in old repo, in new repo it
+        // checks parent-org refs (not closure). Prism does not complain either.
+        // First we should fix it on Prism level first, then add type check to OrgFilterProcessor.
+        when("searching user with is-root filter");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .isRoot()
+                        .build(),
+                operationResult);
 
-            QUser u = aliasFor(QUser.class);
-            QOrgClosure orgc = new QOrgClosure(); // vanilla new, this has no mapping
-            QObjectReference<?> ref = QObjectReferenceMapping.getForParentOrg().defaultAlias();
-            QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().defaultAlias();
-            //noinspection unchecked
-            SQLQuery<?> query = sqlRepoContext.newQuery(jdbcSession.connection())
-                    .withRecursive(orgc, orgc.ancestorOid, orgc.descendantOid)
-                    .as(new SQLQuery<>().union(
-                            // non-recursive term: initial select
-                            new SQLQuery<>()
-//                                    .select(ref.ownerOid, ref.ownerOid) // use this to include identity loops
-                                    .select(ref.targetOid, ref.ownerOid)
-                                    .from(ref)
-                                    // add where here if possible for much faster results (often not possible)
-                                    .where(),
-                            // recursive term: each time add the parents for what we have gathered in orgc until now
-                            new SQLQuery<>().select(par.targetOid, orgc.descendantOid)
-                                    .from(par, orgc)
-                                    .where(par.ownerOid.eq(orgc.ancestorOid))))
-                    .select(u)
-                    .from(u)
-                    .where(u.honorificPrefixNorm.startsWith("x")
-                            // query filter condition
-                            .and(new SQLQuery<>()
-                                    .from(orgc)
-                                    .where(orgc.descendantOid.eq(u.oid)
-                                            .and(orgc.ancestorOid.eq(orgXOid)))
-                                    .exists()));
+        then("only users without any organizations are returned");
+        assertThat(result).hasSize(1)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid);
 
-            System.out.println("query = " + query);
-            Object o = query.fetchFirst();
-            // just exec check, hardly returns something for random UUID
-            System.out.println("o = " + o);
-        }
+        and("operation result is success");
+        assertThatOperationResult(operationResult).isSuccess();
     }
     // TODO
     // endregion

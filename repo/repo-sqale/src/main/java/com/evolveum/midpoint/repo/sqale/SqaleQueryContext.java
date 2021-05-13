@@ -12,7 +12,9 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
@@ -51,8 +53,13 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
-        return new InOidFilterProcessor(context);
+    public FilterProcessor<InOidFilter> createInOidFilter() {
+        return new InOidFilterProcessor(this);
+    }
+
+    @Override
+    public FilterProcessor<OrgFilter> createOrgFilter() {
+        return new OrgFilterProcessor(this);
     }
 
     public @NotNull Integer searchCachedRelationId(QName qName) {

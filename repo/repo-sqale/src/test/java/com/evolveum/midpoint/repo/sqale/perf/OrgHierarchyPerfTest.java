@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.func;
+package com.evolveum.midpoint.repo.sqale.perf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,7 +43,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        createOrgsFor(null, 5, 8, result);
+        createOrgsFor(null, 5, 6, result);
 
         assertThatOperationResult(result).isSuccess();
     }
@@ -56,7 +56,10 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
             return;
         }
 
-        int orgs = RANDOM.nextInt(typicalCountPerLevel) + typicalCountPerLevel / 2 + 1;
+        // for roots we want the exact number, so it does not vary wildly
+        int orgs = parent != null
+                ? RANDOM.nextInt(typicalCountPerLevel) + typicalCountPerLevel / 2 + 1
+                : typicalCountPerLevel;
         for (int i = 1; i <= orgs; i++) {
             // names use only chars that are preserved by normalization to avoid collision
             String name = parent != null ? parent.getName() + "x" + i : "org" + i;

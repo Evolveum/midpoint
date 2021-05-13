@@ -357,7 +357,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return sqlRepoContext.normalizeRelation(qName);
     }
 
-    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
+    public FilterProcessor<InOidFilter> createInOidFilter() {
+        // not supported for audit, overridden in repo-sqale
+        throw new UnsupportedOperationException();
+    }
+
+    public FilterProcessor<OrgFilter> createOrgFilter() {
         // not supported for audit, overridden in repo-sqale
         throw new UnsupportedOperationException();
     }
