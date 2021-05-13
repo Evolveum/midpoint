@@ -18,7 +18,7 @@ set -eu
 : "${BUILD_NUMBER:="dev"}"
 : "${BRANCH:=$(git rev-parse --abbrev-ref HEAD)}"
 : "${GIT_COMMIT:=$(git show -s --format=%H)}"
-: "${ENV:="dev"}" # TODO use this
+: "${BUILD_ENV:="dev"}" # TODO use this
 
 # backup
 mkdir -p "${HOME}/perf-out/"
@@ -49,16 +49,16 @@ fi
 # check for commit date in case the date is not already set
 : "${COMMIT_DATE:=$(git show -s --format=%cI "${GIT_COMMIT}")}"
 
-# load to DB TODO ENV
-BUILD_ID=$(psql -tc "select id from mst_build where commit_hash='${GIT_COMMIT}'")
+# load to DB
+BUILD_ID=$(${PSQL} -tc "select id from mst_build where commit_hash='${GIT_COMMIT}' and env='${BUILD_ENV}'")
 if [ -n "${BUILD_ID}" ]; then
-  echo "Results for commit ${GIT_COMMIT} already processed, no action needed."
+  echo "Results for commit ${GIT_COMMIT} from environment ${BUILD_ENV} already processed, no action needed."
   exit
 fi
 
 # create new build entry
 BUILD_ID=$(
-  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date) values ('${BUILD_NUMBER}', '${BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}') returning id"
+  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date, env) values ('${BUILD_NUMBER}', '${BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}', '${BUILD_ENV}') returning id"
 )
 
 echo "BUILD_ID = $BUILD_ID"
