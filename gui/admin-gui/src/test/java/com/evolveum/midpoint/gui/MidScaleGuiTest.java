@@ -200,9 +200,8 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
 
             Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
             try (Split ignored = stopwatch.start()) {
-                clickOnTab(1, PageUser.class);
                 queryListener.start();
-
+                clickOnTab(1, PageUser.class);
             }
         }
 
@@ -235,9 +234,8 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
 
             Stopwatch stopwatch = stopwatch("showAssignments", "User's assignmentTab");
             try (Split ignored = stopwatch.start()) {
-                clickOnTab(2, PageUser.class);
                 queryListener.start();
-
+                clickOnTab(2, PageUser.class);
             }
         }
 
