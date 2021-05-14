@@ -1213,7 +1213,7 @@ If `relation` is specified (`isChildOf` with `PrismReferenceValue` parameter mus
 it filters the objects with their parent-org reference having the specified relation (the reference
 closest to the returned object, see picture below for example).
 
-// TODO returns itself? probably not, but clarify
+Query does not return object used as a parameter (object is not considered a child of itself).
 
 | `isDirectChildOf`
 | `OrgType` or any type assignable to organization
@@ -1224,12 +1224,16 @@ pointing to the organization specified in the parameter of the filter.
 Just as in `isChildOf`, optional `relation` can be specified, here the semantics is obvious as there
 is only a single ref leading from possibly returned object to the org specified in the parameter.
 
+Query does not return object used as a parameter (an org is not considered a child of itself).
+
 | `isParentOf`
 | `OrgType` only, not defined on non-org query
 | `OrgType` specified by OID or as `PrismReferenceValue`
 | Matches any organization that is direct or indirect parent (ancestor) of the organization
 specified in the parameter.
 It is not possible to filter by `relation`, it is ignored if specified.
+
+Query does not return object used as a parameter (an org is not considered a parent of itself).
 
 |===
 
