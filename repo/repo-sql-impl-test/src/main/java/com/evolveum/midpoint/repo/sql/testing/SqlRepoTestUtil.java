@@ -1,15 +1,13 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.testing;
 
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.tools.testng.TestReportSection;
 
@@ -35,7 +33,7 @@ public class SqlRepoTestUtil {
             return "null next version";
         }
         if (prevVersion == null) {
-            // anythig is OK
+            // anything is OK
             return null;
         }
         if (prevVersion.equals(nextVersion)) {
@@ -60,11 +58,7 @@ public class SqlRepoTestUtil {
     }
 
     /**
-     * Returns report callback effectively wrapping around "this" at the moment the callback is created.
-     * This is handy, because the field queryListener may be null at the moment when the results
-     * are to be processed because of {@link AbstractSpringTest#clearClassFields()}
-     * and ordering of @After... methods.
-     * <p>
+     * Returns report callback adding query section to the performance test report.
      * Note that the section is NOT added if the count of queries is 0.
      */
     public static TestMonitor.ReportCallback createReportCallback(TestQueryListener testQueryListener) {
