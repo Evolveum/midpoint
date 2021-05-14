@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
     }
 
     TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-            TaskPartDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
+            ActivityDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
 
     default TaskWorkBucketProcessingResult onNoMoreBuckets(RunningTask task,
             TaskWorkBucketProcessingResult previousRunResult, OperationResult result) {

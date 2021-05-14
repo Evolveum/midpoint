@@ -33,19 +33,22 @@
 
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
 
-    <work>
-        <executionMode>execute</executionMode>
-        <partOverride>
-            <index>2</index>
-            <distribution>
-                <workerThreads>4</workerThreads>
-            </distribution>
-        </partOverride>
-    </work>
-
     <recurrence>recurring</recurrence>
     <schedule>
         <interval>5</interval>
     </schedule>
+
+    <activity>
+        <!-- we use legacy way to specify the work -->
+        <tailoring>
+            <change>
+                <reference>resourceReconciliation</reference>
+                <distribution>
+                    <workerThreads>4</workerThreads>
+                </distribution>
+            </change>
+        </tailoring>
+        <executionMode>execute</executionMode>
+    </activity>
 
 </task>

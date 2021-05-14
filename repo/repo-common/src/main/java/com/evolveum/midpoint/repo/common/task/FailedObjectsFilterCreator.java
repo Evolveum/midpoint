@@ -24,11 +24,11 @@ import static java.util.Objects.requireNonNull;
 class FailedObjectsFilterCreator {
 
     @NotNull private final FailedObjectsSelectorType selector;
-    @NotNull private final AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?> taskPartExecution;
+    @NotNull private final AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?> taskPartExecution;
     @NotNull private final PrismContext prismContext;
 
     public FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector,
-            @NotNull AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?> taskPartExecution, @NotNull PrismContext prismContext) {
+            @NotNull AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?> taskPartExecution, @NotNull PrismContext prismContext) {
         this.selector = selector;
         this.taskPartExecution = taskPartExecution;
         this.prismContext = prismContext;

@@ -8,13 +8,13 @@
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
-import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelActivityExecution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -84,15 +84,15 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
 
         @Override
-        public List<? extends AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?>> createPartExecutions() {
+        public List<? extends AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutions() {
             return Collections.singletonList(new PartExecution(this));
         }
     }
 
     protected class PartExecution
-            extends AbstractIterativeModelTaskPartExecution
+            extends AbstractIterativeModelActivityExecution
             <O, SimpleIterativeTaskHandler<O, EC, P>,
-                    TaskExecution, PartExecution, ItemProcessor> {
+                                TaskExecution, PartExecution, ItemProcessor> {
 
         private final P processing;
 

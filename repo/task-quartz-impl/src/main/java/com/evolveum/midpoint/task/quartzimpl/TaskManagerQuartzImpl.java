@@ -655,17 +655,22 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     //region Managing handlers and task categories
     @Override
-    public void registerHandler(String uri, TaskHandler handler) {
+    public void registerHandler(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerHandler(uri, handler);
     }
 
     @Override
-    public void registerAdditionalHandlerUri(String uri, TaskHandler handler) {
+    public void unregisterHandler(String uri) {
+        handlerRegistry.unregisterHandler(uri);
+    }
+
+    @Override
+    public void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerAdditionalHandlerUri(uri, handler);
     }
 
     @Override
-    public void registerDeprecatedHandlerUri(String uri, TaskHandler handler) {
+    public void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerDeprecatedHandlerUri(uri, handler);
     }
 
@@ -694,6 +699,12 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
         return handlerRegistry.getHandlerUrisForArchetype(archetypeOid, nonDeprecatedOnly);
     }
+
+    @Override
+    public void setDefaultHandlerUri(String uri) {
+        handlerRegistry.setDefaultHandlerUri(uri);
+    }
+
     //endregion
 
     //region Notifications

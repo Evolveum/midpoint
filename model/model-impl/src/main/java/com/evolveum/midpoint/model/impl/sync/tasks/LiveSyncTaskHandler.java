@@ -119,7 +119,7 @@ public class LiveSyncTaskHandler
     }
 
     @ItemProcessorClass(PartExecution.ItemProcessor.class)
-    public class PartExecution extends AbstractIterativeTaskPartExecution
+    public class PartExecution extends AbstractIterativeActivityExecution
             <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(@NotNull TaskExecution taskExecution) {
@@ -146,7 +146,7 @@ public class LiveSyncTaskHandler
 
             ModelImplUtils.clearRequestee(localCoordinatorTask);
             taskExecution.syncResult = provisioningService.synchronize(taskExecution.targetInfo.coords,
-                    localCoordinatorTask, partDefinition, handler, opResult);
+                    localCoordinatorTask, activityDefinition, handler, opResult);
         }
 
         @Override

@@ -31,7 +31,7 @@ public abstract class AbstractSearchIterativeItemProcessor<
         O extends ObjectType,
         TH extends AbstractTaskHandler<TH, TE>,
         TE extends AbstractTaskExecution<TH, TE>,
-        PE extends AbstractSearchIterativeTaskPartExecution<O, TH, TE, PE, IP>,
+        PE extends AbstractSearchIterativeActivityExecution<O, TH, TE, PE, IP>,
         IP extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, IP>>
         extends AbstractIterativeItemProcessor<PrismObject<O>, TH, TE, PE, IP> {
 

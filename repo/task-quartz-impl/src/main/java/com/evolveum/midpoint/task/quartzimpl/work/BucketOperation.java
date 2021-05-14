@@ -145,18 +145,18 @@ class BucketOperation {
         return TaskWorkStateUtil.getBuckets(workerTask.getWorkState());
     }
 
-    TaskPartDefinitionType getWorkerTaskPartDefinition() {
-        return TaskWorkStateUtil.getPartDefinition(workerTask.getWorkDefinitionOrClone(), workerTask.getCurrentPartId());
+    ActivityDefinitionType getWorkerTaskPartDefinition() {
+        return TaskWorkStateUtil.getPartDefinition(workerTask.getActivityDefinitionOrClone(), workerTask.getCurrentPartId());
     }
 
-    TaskPartDefinitionType getCoordinatorTaskPartDefinition() {
-        return TaskWorkStateUtil.getPartDefinition(coordinatorTask.getWorkDefinitionOrClone(), coordinatorTask.getCurrentPartId());
+    ActivityDefinitionType getCoordinatorTaskPartDefinition() {
+        return TaskWorkStateUtil.getPartDefinition(coordinatorTask.getActivityDefinitionOrClone(), coordinatorTask.getCurrentPartId());
     }
 
     @NotNull
-    private TaskWorkDistributionType getCoordinatorWorkManagement() {
+    private WorkDistributionType getCoordinatorWorkManagement() {
         return requireNonNull(
-                TaskWorkStateUtil.getWorkDistribution(coordinatorTask.getWorkDefinitionOrClone(),
+                TaskWorkStateUtil.getWorkDistribution(coordinatorTask.getActivityDefinitionOrClone(),
                         getCurrentPartId(coordinatorTask.getWorkState())),
                 () -> "No work management for the current part in coordinator task " + coordinatorTask);
     }

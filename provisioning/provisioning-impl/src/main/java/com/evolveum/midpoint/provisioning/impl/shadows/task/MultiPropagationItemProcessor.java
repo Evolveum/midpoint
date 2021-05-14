@@ -31,10 +31,10 @@ public class MultiPropagationItemProcessor
         <ResourceType,
                 MultiPropagationTaskHandler,
                 MultiPropagationTaskHandler.TaskExecution,
-                MultiPropagationTaskPartExecution,
+                MultiPropagationActivityExecution,
                 MultiPropagationItemProcessor> {
 
-    public MultiPropagationItemProcessor(MultiPropagationTaskPartExecution taskExecution) {
+    public MultiPropagationItemProcessor(MultiPropagationActivityExecution taskExecution) {
         super(taskExecution);
     }
 

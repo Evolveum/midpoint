@@ -28,6 +28,6 @@ import java.lang.annotation.Target;
 @Experimental
 public @interface PartExecutionClass {
 
-    Class<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> value();
+    Class<? extends AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> value();
 
 }

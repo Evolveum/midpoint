@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Describes the "error state" of the current task part execution.
+ * Describes the "error state" of the current activity execution.
  *
  * Very experimental. TODO rethink this
  */

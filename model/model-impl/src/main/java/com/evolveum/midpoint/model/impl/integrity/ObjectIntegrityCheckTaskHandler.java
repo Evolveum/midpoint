@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  */
 @Component
 @TaskExecutionClass(ObjectIntegrityCheckTaskHandler.TaskExecution.class)
-@PartExecutionClass(ObjectIntegrityCheckTaskPartExecution.class)
+@PartExecutionClass(ObjectIntegrityCheckActivityExecution.class)
 public class ObjectIntegrityCheckTaskHandler
         extends AbstractModelTaskHandler
         <ObjectIntegrityCheckTaskHandler, ObjectIntegrityCheckTaskHandler.TaskExecution> {

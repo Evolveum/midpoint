@@ -23,17 +23,17 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
-    <work>
-        <parameters>
+    <activity>
+        <work>
             <liveSynchronization>
                 <resourceRef oid="10000000-0000-0000-0000-000000000003" />
                 <kind>account</kind>
                 <intent>default</intent>
                 <objectclass>ri:inetOrgPerson</objectclass>
             </liveSynchronization>
-        </parameters>
+        </work>
         <executionMode>execute</executionMode>
-    </work>
+    </activity>
 
     <recurrence>recurring</recurrence>
     <binding>tight</binding>

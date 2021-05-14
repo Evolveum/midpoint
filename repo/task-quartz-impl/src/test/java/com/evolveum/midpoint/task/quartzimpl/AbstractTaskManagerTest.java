@@ -56,8 +56,8 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
     @Autowired protected SchemaService schemaService;
 
     MockSingleTaskHandler singleHandler1;
-    MockWorkBucketsTaskHandler workBucketsTaskHandler;
-    MockWorkBucketsTaskHandler partitionedWorkBucketsTaskHandler;
+//    MockWorkBucketsTaskHandler workBucketsTaskHandler;
+//    MockWorkBucketsTaskHandler partitionedWorkBucketsTaskHandler;
     MockParallelTaskHandler parallelTaskHandler;
 
     private void initHandlers() {
@@ -67,16 +67,16 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
         singleHandler1 = new MockSingleTaskHandler("1", taskManager);
         taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
 
-        workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
-        taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);
+//        workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
+//        taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);
 
         new PartitionedMockWorkBucketsTaskHandlerCreator(taskManager, prismContext)
                 .initializeAndRegister(PARTITIONED_WB_TASK_HANDLER_URI);
 
-        partitionedWorkBucketsTaskHandler = new MockWorkBucketsTaskHandler("p", taskManager);
-        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_1, partitionedWorkBucketsTaskHandler);
-        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_2, partitionedWorkBucketsTaskHandler);
-        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_3, partitionedWorkBucketsTaskHandler);
+//        partitionedWorkBucketsTaskHandler = new MockWorkBucketsTaskHandler("p", taskManager);
+//        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_1, partitionedWorkBucketsTaskHandler);
+//        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_2, partitionedWorkBucketsTaskHandler);
+//        taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_3, partitionedWorkBucketsTaskHandler);
 
         parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
         taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);

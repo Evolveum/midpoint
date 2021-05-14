@@ -305,7 +305,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            TaskPartDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
+            ActivityDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 

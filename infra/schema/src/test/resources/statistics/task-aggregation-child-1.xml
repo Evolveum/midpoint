@@ -22,31 +22,6 @@
     <lastRunFinishTimestamp>2021-04-08T09:15:45.918+02:00</lastRunFinishTimestamp>
     <completionTimestamp>2021-04-08T09:15:45.934+02:00</completionTimestamp>
     <progress>12</progress>
-    <structuredProgress>
-        <currentPartUri>resourceObjects:1</currentPartUri> <!-- fake URI to check the aggregation -->
-        <currentPartNumber>1</currentPartNumber>
-        <expectedParts>1</expectedParts>
-        <part id="100">
-            <partUri>resourceObjects:1</partUri> <!-- fake URI to check the aggregation -->
-            <closed>
-                <outcome>
-                    <outcome>success</outcome>
-                </outcome>
-                <count>12</count>
-            </closed>
-            <complete>true</complete>
-        </part>
-        <part id="200">
-            <partUri>resourceObjects:2</partUri> <!-- fake URI to check the aggregation -->
-            <closed id="101"> <!-- intentionally the same as in child-2 -->
-                <outcome>
-                    <outcome>failure</outcome>
-                </outcome>
-                <count>1</count>
-            </closed>
-            <complete>true</complete>
-        </part>
-    </structuredProgress>
     <operationStats>
         <environmentalPerformanceInformation>
             <provisioningStatistics>
@@ -80,7 +55,7 @@
         </environmentalPerformanceInformation>
         <iterativeTaskInformation>
             <part id="1000">
-                <partUri>resourceObjects:1</partUri> <!-- fake URI to check the aggregation -->
+                <partIdentifier>resourceObjects:1</partIdentifier> <!-- fake URI to check the aggregation -->
                 <processed id="1001">
                     <outcome>
                         <outcome>success</outcome>
@@ -962,10 +937,39 @@
 Profiles: []</cachingConfiguration>
         <timestamp>2021-04-08T09:15:45.903+02:00</timestamp>
     </operationStats>
-    <workManagement>
-        <taskKind>worker</taskKind>
-        <scavenger>true</scavenger>
-    </workManagement>
+    <workState>
+        <currentPartNumber>1</currentPartNumber>
+        <expectedParts>1</expectedParts>
+        <part id="1">
+            <partId>resourceObjects:1</partId>
+            <progress>
+                <closed>
+                    <outcome>
+                        <outcome>success</outcome>
+                    </outcome>
+                    <count>12</count>
+                </closed>
+            </progress>
+            <complete>true</complete>
+            <bucketsProcessingRole>worker</bucketsProcessingRole>
+            <scavenger>true</scavenger>
+        </part>
+        <part id="100">
+            <partId>resourceObjects:1</partId> <!-- fake ID to check the aggregation -->
+        </part>
+        <part id="200">
+            <partId>resourceObjects:2</partId> <!-- fake ID to check the aggregation -->
+            <progress>
+                <closed id="101"> <!-- intentionally the same as in child-2 -->
+                    <outcome>
+                        <outcome>failure</outcome>
+                    </outcome>
+                    <count>1</count>
+                </closed>
+            </progress>
+            <complete>true</complete>
+        </part>
+    </workState>
     <recurrence>single</recurrence>
     <binding>loose</binding>
     <executionConstraints>

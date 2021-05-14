@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
  */
 @Component
 @TaskExecutionClass(PropagationTaskHandler.TaskExecution.class)
-@PartExecutionClass(PropagationTaskPartExecution.class)
+@PartExecutionClass(PropagationActivityExecution.class)
 public class PropagationTaskHandler extends AbstractTaskHandler
         <PropagationTaskHandler, PropagationTaskHandler.TaskExecution> {
 

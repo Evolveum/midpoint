@@ -30,8 +30,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class QuartzUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(QuartzUtil.class);
+    private static final String KEY_LOOSELY_BOUND_RECURRENT = "looselyBoundRecurrent";
+    private static final String KEY_HANDLER_URI = "handlerUri";
+    private static final String KEY_SCHEDULE = "schedule";
 
-    public static JobKey createJobKeyForTask(Task t) {
+    static JobKey createJobKeyForTask(Task t) {
         return new JobKey(t.getOid());
     }
 
@@ -39,15 +42,15 @@ public class QuartzUtil {
         return new JobKey(oid);
     }
 
-    public static TriggerKey createTriggerKeyForTask(Task t) {
+    static TriggerKey createTriggerKeyForTask(Task t) {
         return new TriggerKey(t.getOid());
     }
 
-    public static TriggerKey createTriggerKeyForTaskOid(String oid) {
+    static TriggerKey createTriggerKeyForTaskOid(String oid) {
         return new TriggerKey(oid);
     }
 
-    public static JobDetail createJobDetailForTask(Task task) {
+    static JobDetail createJobDetailForTask(Task task) {
         return JobBuilder.newJob(JobExecutor.class)
           .withIdentity(createJobKeyForTask(task))
           .storeDurably()
@@ -67,7 +70,7 @@ public class QuartzUtil {
         String cronLikePattern = schedule != null ? schedule.getCronLikePattern() : null;
 
         if (recurring && interval == null && cronLikePattern == null) {
-            // special case - recurrent task with no schedule (means "run on demand only")
+            // special case - recurring task with no schedule (means "run on demand only")
             return null;
         }
 
@@ -99,7 +102,7 @@ public class QuartzUtil {
 
             if (lst != null) {
                 tb.endAt(lst);
-                // LST is checked also within JobExecutor (needed mainly for tightly-bound recurrent tasks)
+                // LST is checked also within JobExecutor (needed mainly for tightly-bound recurring tasks)
             }
 
             if (schedule.getLatestFinishTime() != null) {
@@ -108,11 +111,11 @@ public class QuartzUtil {
             }
         }
 
-        boolean looselyBoundRecurrent;
+        boolean looselyBoundRecurring;
 
         if (recurring && task.isLooselyBound()) {
 
-            looselyBoundRecurrent = true;
+            looselyBoundRecurring = true;
 
             ScheduleBuilder<? extends Trigger> sb;
             if (interval != null) {
@@ -138,15 +141,15 @@ public class QuartzUtil {
             }
             tb.withSchedule(sb);
         } else {
-            // even non-recurrent tasks will be triggered, to check whether they should not be restarted
+            // even non-recurring tasks will be triggered, to check whether they should not be restarted
             // (their trigger will be erased when these tasks will be completed)
 
-            looselyBoundRecurrent = false;
+            looselyBoundRecurring = false;
         }
 
-        tb.usingJobData("schedule", scheduleFingerprint(schedule));
-        tb.usingJobData("looselyBoundRecurrent", looselyBoundRecurrent);
-        tb.usingJobData("handlerUri", task.getHandlerUri());
+        tb.usingJobData(KEY_SCHEDULE, scheduleFingerprint(schedule));
+        tb.usingJobData(KEY_LOOSELY_BOUND_RECURRENT, looselyBoundRecurring);
+        tb.usingJobData(KEY_HANDLER_URI, task.getHandlerUri());
 
         return tb.build();
     }
@@ -161,7 +164,7 @@ public class QuartzUtil {
                 .executionGroup(executionGroup);
     }
 
-    public static Trigger createTriggerNowForTask(Task task) {
+    static Trigger createTriggerNowForTask(Task task) {
         return createBasicTriggerBuilderForTask(task)
                 .startNow()
                 .build();
@@ -173,7 +176,7 @@ public class QuartzUtil {
                 .build();
     }
 
-    public static long xmlGCtoMillis(XMLGregorianCalendar gc) {
+    private static long xmlGCtoMillis(XMLGregorianCalendar gc) {
         return gc != null ? gc.toGregorianCalendar().getTimeInMillis() : 0L;
     }
 
@@ -191,7 +194,7 @@ public class QuartzUtil {
         }
     }
 
-    public static boolean triggersDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
+    static boolean triggersDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
         return !Objects.equals(triggerAsIs.getExecutionGroup(), triggerToBe.getExecutionGroup())
                 || triggerDataMapsDiffer(triggerAsIs, triggerToBe);
     }
@@ -202,22 +205,23 @@ public class QuartzUtil {
         JobDataMap asIs = triggerAsIs.getJobDataMap();
         JobDataMap toBe = triggerToBe.getJobDataMap();
 
-        boolean scheduleDiffer = !toBe.getString("schedule").equals(asIs.getString("schedule"));
-        boolean lbrDiffer = toBe.getBoolean("looselyBoundRecurrent") != asIs.getBoolean("looselyBoundRecurrent");
-        String tbh = toBe.getString("handlerUri");
-        String aih = asIs.getString("handlerUri");
-        //LOGGER.trace("handlerUri: asIs = " + aih + ", toBe = " + tbh);
+        boolean scheduleDiffer = !toBe.getString(KEY_SCHEDULE).equals(asIs.getString(KEY_SCHEDULE));
+        boolean lbrDiffer = toBe.getBoolean(KEY_LOOSELY_BOUND_RECURRENT) != asIs.getBoolean(KEY_LOOSELY_BOUND_RECURRENT);
+        String tbh = toBe.getString(KEY_HANDLER_URI);
+        String aih = asIs.getString(KEY_HANDLER_URI);
         boolean handlersDiffer = tbh != null ? !tbh.equals(aih) : aih == null;
 
         if (LOGGER.isTraceEnabled()) {
             if (scheduleDiffer) {
-                LOGGER.trace("trigger data maps differ in schedule: triggerAsIs.schedule = " + asIs.getString("schedule") + ", triggerToBe.schedule = " + toBe.getString("schedule"));
+                LOGGER.trace("trigger data maps differ in schedule: triggerAsIs.schedule = {}, triggerToBe.schedule = {}",
+                        asIs.getString(KEY_SCHEDULE), toBe.getString(KEY_SCHEDULE));
             }
             if (lbrDiffer) {
-                LOGGER.trace("trigger data maps differ in looselyBoundRecurrent: triggerAsIs = " + asIs.getBoolean("looselyBoundRecurrent") + ", triggerToBe = " + toBe.getBoolean("looselyBoundRecurrent"));
+                LOGGER.trace("trigger data maps differ in looselyBoundRecurrent: triggerAsIs = {}, triggerToBe = {}",
+                        asIs.getBoolean(KEY_LOOSELY_BOUND_RECURRENT), toBe.getBoolean(KEY_LOOSELY_BOUND_RECURRENT));
             }
             if (handlersDiffer) {
-                LOGGER.trace("trigger data maps differ in handlerUri: triggerAsIs = " + aih + ", triggerToBe = " + tbh);
+                LOGGER.trace("trigger data maps differ in handlerUri: triggerAsIs = {}, triggerToBe = {}", aih, tbh);
             }
         }
         return scheduleDiffer || lbrDiffer || handlersDiffer;

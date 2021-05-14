@@ -19,7 +19,7 @@ public abstract class AbstractScannerItemProcessor
         <O extends ObjectType,
                 TH extends AbstractScannerTaskHandler<TH, TE>,
                 TE extends AbstractScannerTaskExecution<TH, TE>,
-                E extends AbstractScannerTaskPartExecution<O, TH, TE, E, RH>,
+                E extends AbstractScannerActivityExecution<O, TH, TE, E, RH>,
                 RH extends AbstractScannerItemProcessor<O, TH, TE, E, RH>>
         extends AbstractSearchIterativeItemProcessor<O, TH, TE, E, RH> {
 

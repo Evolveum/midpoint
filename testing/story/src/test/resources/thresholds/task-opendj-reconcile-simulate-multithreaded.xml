@@ -20,33 +20,43 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
-    <work>
-        <parameters>
+    <recurrence>recurring</recurrence>
+    <schedule>
+        <interval>3</interval>
+    </schedule>
+
+    <activity>
+        <work>
             <reconciliation>
                 <resourceRef oid="10000000-0000-0000-0000-000000000003" />
                 <kind>account</kind>
                 <intent>default</intent>
                 <objectclass>ri:inetOrgPerson</objectclass>
             </reconciliation>
-        </parameters>
-
-        <part>
-            <index>1</index>
-            <relativeHandlerUri>operationCompletion</relativeHandlerUri>
-        </part>
-        <part>
-            <index>2</index>
-            <relativeHandlerUri>resourceReconciliation</relativeHandlerUri>
-            <executionMode>simulate</executionMode>
-            <distribution>
-                <workerThreads>8</workerThreads>
-            </distribution>
-        </part>
-    </work>
-
-    <recurrence>recurring</recurrence>
-    <schedule>
-        <interval>5</interval>
-    </schedule>
+        </work>
+        <tailoring>
+            <change>
+                <reference>resourceReconciliationSimulation</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>resourceReconciliation</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+                <distribution>
+                    <workerThreads>8</workerThreads>
+                </distribution>
+            </change>
+            <change>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
 
 </task>

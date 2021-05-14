@@ -45,7 +45,7 @@ public class MockFactory {
             }
 
             @Override
-            public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartDefinitionType taskPartition,
+            public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, ActivityDefinitionType taskPartition,
                     LiveSyncEventHandler handler, OperationResult parentResult) {
                 return new SynchronizationResult();
             }

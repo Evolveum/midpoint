@@ -612,25 +612,31 @@ public interface TaskManager {
 
     /**
      * Registers a handler for a specified handler URI.
-     *
      * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3
      * @param handler instance of the handler
      */
-    void registerHandler(String uri, TaskHandler handler);
+    void registerHandler(@NotNull String uri, @NotNull TaskHandler handler);
+
+    /**
+     * Unregisters a handler URI (registered either as "standard", additional or deprecated handler URI).
+     */
+    void unregisterHandler(String uri);
 
     /**
      * Registers additional handler URI for a given handler.
      * The difference from registerHandler() is that these additional URIs are not returned when searching for a handler
      * matching a given task category.
      */
-    void registerAdditionalHandlerUri(String uri, TaskHandler handler);
+    void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
 
     /**
      * Registers additional (deprecated) handler URI for a given handler.
      */
-    void registerDeprecatedHandlerUri(String uri, TaskHandler handler);
+    void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
 
     void registerTaskDeletionListener(TaskDeletionListener listener);
+
+    void setDefaultHandlerUri(String uri);
 
     //endregion
 

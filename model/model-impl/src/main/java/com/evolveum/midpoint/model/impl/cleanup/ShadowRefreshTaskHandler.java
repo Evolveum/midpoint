@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerItemProcessor;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskExecution;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerActivityExecution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -64,7 +64,7 @@ public class ShadowRefreshTaskHandler
 
     @ItemProcessorClass(PartExecution.ItemProcessor.class)
     @HandledObjectType(ShadowType.class)
-    public class PartExecution extends AbstractScannerTaskPartExecution
+    public class PartExecution extends AbstractScannerActivityExecution
             <ShadowType, ShadowRefreshTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(ShadowRefreshTaskHandler.TaskExecution ctx) {

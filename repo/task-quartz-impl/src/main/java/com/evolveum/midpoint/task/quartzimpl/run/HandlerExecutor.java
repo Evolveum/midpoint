@@ -13,9 +13,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,11 +32,11 @@ public class HandlerExecutor {
                 // TODO?
                 startCollectingStatistics(task, handler);
 
-                LOGGER.trace("Executing non-bucketed task handler {}", handler.getClass().getName());
+                LOGGER.trace("Executing task handler {}", handler.getClass().getName());
                 TaskRunResult runResult;
                 try {
                     runResult = handler.run(task);
-                } catch (ExitExecutionException e) {
+                } catch (StopHandlerExecutionException e) {
                     runResult = e.getRunResult();
                 }
                 LOGGER.trace("runResult is {} for {}", runResult, task);
@@ -47,34 +44,33 @@ public class HandlerExecutor {
                 // TODO?
                 updateAndStoreStatisticsIntoRepository(task, executionResult);
 
-                checkNullRunResult(task, runResult);
+                treatNullRunResult(task, runResult);
                 return runResult;
             } catch (Throwable t) {
                 return processHandlerException(task, t);
             }
-        } catch (ExitExecutionException e) {
+        } catch (StopHandlerExecutionException e) {
             return e.getRunResult();
         }
     }
 
-    static TaskRunResult processHandlerException(RunningTaskQuartzImpl task, Throwable t) throws ExitExecutionException {
+    private static TaskRunResult processHandlerException(RunningTaskQuartzImpl task, Throwable t) throws StopHandlerExecutionException {
         LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-        throw new ExitExecutionException(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
+        throw new StopHandlerExecutionException(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
     }
 
-    static void checkNullRunResult(RunningTask task, TaskRunResult runResult) throws ExitExecutionException {
-        if (runResult == null) {                // Obviously an error in task handler
+    private static void treatNullRunResult(RunningTask task, TaskRunResult runResult) throws StopHandlerExecutionException {
+        if (runResult == null) { // Obviously an error in task handler
             LOGGER.error("Unable to record run finish: task returned null result");
-            throw new ExitExecutionException(task, "Task returned null result", null);
+            throw new StopHandlerExecutionException(task, "Task returned null result", null);
         }
     }
 
-    static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
+    private static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
         task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
     }
 
-    static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             task.updateAndStoreStatisticsIntoRepository(true, result);
         } catch (Exception e) {

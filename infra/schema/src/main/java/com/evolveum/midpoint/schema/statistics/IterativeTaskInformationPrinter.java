@@ -45,7 +45,7 @@ public class IterativeTaskInformationPrinter extends AbstractStatisticsPrinter<I
 
         for (ProcessedItemSetType set : processed) {
             Data.Record record = data.createRecord();
-            record.add(component.getPartUri());
+            record.add(component.getPartIdentifier());
             record.add(OutcomeKeyedCounterTypeUtil.getOutcome(set));
             record.add(OutcomeKeyedCounterTypeUtil.getOutcomeQualifierUri(set));
             record.add(set.getCount());

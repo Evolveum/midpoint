@@ -1755,7 +1755,7 @@ public class TaskQuartzImpl implements Task {
 
     // todo thread safety (creating a clone?)
     @Override
-    public TaskWorkDistributionType getWorkManagement() {
+    public WorkDistributionType getWorkManagement() {
         synchronized (prismAccess) {
             // FIXME
             return null;
@@ -1764,8 +1764,8 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public TaskPartDefinitionType getWorkDefinitionOrClone() {
-        return getContainerableOrClone(TaskType.F_WORK);
+    public ActivityDefinitionType getActivityDefinitionOrClone() {
+        return getContainerableOrClone(TaskType.F_ACTIVITY);
     }
 
     // todo thread safety (creating a clone?)
@@ -1785,7 +1785,7 @@ public class TaskQuartzImpl implements Task {
     public TaskKindType getKind() {
         throw new UnsupportedOperationException();
 //        synchronized (prismAccess) {
-//            TaskWorkDistributionType workManagement = getWorkManagement();
+//            WorkDistributionType workManagement = getWorkManagement();
 //            return workManagement != null ? workManagement.getTaskKind() : null;
 //        }
     }

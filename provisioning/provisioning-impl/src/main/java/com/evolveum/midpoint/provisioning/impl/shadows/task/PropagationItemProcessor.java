@@ -27,10 +27,10 @@ public class PropagationItemProcessor
         <ShadowType,
                 PropagationTaskHandler,
                 PropagationTaskHandler.TaskExecution,
-                PropagationTaskPartExecution,
+                PropagationActivityExecution,
                 PropagationItemProcessor> {
 
-    public PropagationItemProcessor(PropagationTaskPartExecution taskExecution) {
+    public PropagationItemProcessor(PropagationActivityExecution taskExecution) {
         super(taskExecution);
     }
 

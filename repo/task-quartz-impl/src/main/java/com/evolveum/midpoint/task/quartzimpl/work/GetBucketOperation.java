@@ -80,7 +80,7 @@ public class GetBucketOperation extends BucketOperation {
     private WorkBucketType getWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        TaskPartDefinitionType partDef = getWorkerTaskPartDefinition();
+        ActivityDefinitionType partDef = getWorkerTaskPartDefinition();
         BucketAllocator allocator = BucketAllocator.create(partDef, workStateManager.getStrategyFactory());
 
         setOrUpdateEstimatedNumberOfBuckets(workerTask, workerPartPcvId, allocator.getContentFactory(), result);

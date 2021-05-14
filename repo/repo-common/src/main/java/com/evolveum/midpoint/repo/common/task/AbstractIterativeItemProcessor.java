@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 public abstract class AbstractIterativeItemProcessor<I,
         TH extends AbstractTaskHandler<TH, TE>,
         TE extends AbstractTaskExecution<TH, TE>,
-        PE extends AbstractIterativeTaskPartExecution<I, TH, TE, PE, IP>,
+        PE extends AbstractIterativeActivityExecution<I, TH, TE, PE, IP>,
         IP extends AbstractIterativeItemProcessor<I, TH, TE, PE, IP>> {
 
     /**

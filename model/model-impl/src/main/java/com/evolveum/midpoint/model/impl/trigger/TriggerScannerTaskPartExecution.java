@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerActivityExecution;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.task.DefaultHandledObjectType;
 import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @ItemProcessorClass(TriggerScannerItemProcessor.class)
 @DefaultHandledObjectType(ObjectType.class)
 public class TriggerScannerTaskPartExecution
-        extends AbstractScannerTaskPartExecution
+        extends AbstractScannerActivityExecution
         <ObjectType,
                 TriggerScannerTaskHandler,
                 TriggerScannerTaskHandler.TaskExecution,

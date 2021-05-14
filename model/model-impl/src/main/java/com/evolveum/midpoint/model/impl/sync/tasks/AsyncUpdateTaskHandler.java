@@ -78,7 +78,7 @@ public class AsyncUpdateTaskHandler
     }
 
     @ItemProcessorClass(PartExecution.ItemProcessor.class)
-    public class PartExecution extends AbstractIterativeTaskPartExecution
+    public class PartExecution extends AbstractIterativeActivityExecution
             <AsyncUpdateEvent, AsyncUpdateTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(@NotNull AsyncUpdateTaskHandler.TaskExecution taskExecution) {

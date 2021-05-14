@@ -31,9 +31,10 @@
 
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
 
-    <work>
+    <activity>
+        <!-- we use legacy way to specify the work -->
         <executionMode>simulate</executionMode>
-    </work>
+    </activity>
 
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
     <recurrence>recurring</recurrence>

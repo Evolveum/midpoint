@@ -11,7 +11,8 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -64,7 +65,7 @@ public class LiveSynchronizer {
 
     @NotNull
     public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, TaskPartDefinitionType partition, LiveSyncEventHandler handler, OperationResult gResult)
+            Task task, ActivityDefinitionType partition, LiveSyncEventHandler handler, OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
@@ -229,12 +230,12 @@ public class LiveSynchronizer {
         private final OldestTokenWatcher oldestTokenWatcher;
         private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartDefinitionType partition, OperationResult result)
+        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, ActivityDefinitionType partition, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.create(shadowCoordinates, task, result);
             this.task = task;
-            this.simulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
+            this.simulate = partition != null && partition.getExecutionMode() == ExecutionModeType.SIMULATE;
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 

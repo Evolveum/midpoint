@@ -18,8 +18,12 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  */
 public interface TaskHandler {
 
-    @Experimental
-    TaskRunResult run(@NotNull RunningTask task) throws ExitExecutionException;
+    /**
+     * Executes a task handler.
+     *
+     * TODO better description
+     */
+    TaskRunResult run(@NotNull RunningTask task) throws StopHandlerExecutionException;
 
     default Long heartbeat(Task task) {
         return null;

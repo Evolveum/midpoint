@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Import with thresholds</name>
+
+    <activity>
+        <composition>
+            <defaultWorkDefinition>
+                <importFromResource>
+                    <resourceRef oid="1937c5f9-9c50-4b84-89c5-6e84f37a3a5e" />
+                </importFromResource>
+            </defaultWorkDefinition>
+            <activity>
+                <order>1</order>
+                <executionMode>simulate</executionMode>
+            </activity>
+            <activity>
+                <order>2</order>
+                <executionMode>execute</executionMode>
+            </activity>
+        </composition>
+    </activity>
+</task>

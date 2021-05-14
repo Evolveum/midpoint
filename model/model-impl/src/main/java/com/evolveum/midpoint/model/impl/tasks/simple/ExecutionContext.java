@@ -12,7 +12,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ public abstract class ExecutionContext {
         return taskExecution.localCoordinatorTask;
     }
 
-    public TaskPartDefinitionType getPartDefinition() {
-        return partExecution.getPartDefinition();
+    public ActivityDefinitionType getPartDefinition() {
+        return partExecution.getActivityDefinition();
     }
 }

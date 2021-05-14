@@ -37,7 +37,7 @@ public class TaskWorkStateUtil {
         buckets.sort(Comparator.comparingInt(WorkBucketType::getSequentialNumber));
     }
 
-    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(TaskWorkDistributionType cfg) {
+    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(WorkDistributionType cfg) {
         if (cfg != null) {
             return getWorkSegmentationConfiguration(cfg.getBuckets());
         } else {
@@ -250,7 +250,7 @@ public class TaskWorkStateUtil {
         return null;
     }
 
-    public static TaskPartDefinitionType getPartDefinition(TaskPartDefinitionType part, String partId) {
+    public static ActivityDefinitionType getPartDefinition(ActivityDefinitionType part, String partId) {
         if (part == null) {
             return null;
         } else {
@@ -258,14 +258,17 @@ public class TaskWorkStateUtil {
         }
     }
 
-    public static TaskPartDefinitionType getPartDefinition(Collection<TaskPartDefinitionType> parts, String partId) {
-        for (TaskPartDefinitionType partDef : parts) {
+    public static ActivityDefinitionType getPartDefinition(Collection<ActivityDefinitionType> parts, String partId) {
+        for (ActivityDefinitionType partDef : parts) {
             if (java.util.Objects.equals(partDef.getIdentifier(), partId)) {
                 return partDef;
             }
-            TaskPartDefinitionType inChildren = getPartDefinition(partDef.getPart(), partId);
-            if (inChildren != null) {
-                return inChildren;
+            if (partDef.getComposition() != null) {
+                List<ActivityDefinitionType> children = partDef.getComposition().getActivity();
+                ActivityDefinitionType inChildren = getPartDefinition(children, partId);
+                if (inChildren != null) {
+                    return inChildren;
+                }
             }
         }
         return null;
@@ -281,8 +284,8 @@ public class TaskWorkStateUtil {
         return partWorkState != null ? partWorkState.getBucketsProcessingRole() : null;
     }
 
-    public static TaskWorkDistributionType getWorkDistribution(TaskPartDefinitionType work, String partId) {
-        TaskPartDefinitionType partDef = getPartDefinition(work, partId);
+    public static WorkDistributionType getWorkDistribution(ActivityDefinitionType work, String partId) {
+        ActivityDefinitionType partDef = getPartDefinition(work, partId);
         return partDef != null ? partDef.getDistribution() : null;
     }
 

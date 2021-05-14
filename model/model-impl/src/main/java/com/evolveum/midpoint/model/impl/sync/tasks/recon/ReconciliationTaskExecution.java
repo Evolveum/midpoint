@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -86,16 +86,16 @@ public class ReconciliationTaskExecution
     }
 
     @Override
-    public List<AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?>> createPartExecutions() {
-        List<AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = new ArrayList<>();
+    public List<AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutions() {
+        List<AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> partExecutions = new ArrayList<>();
         if (stage == Stage.FIRST || stage == Stage.ALL) {
-            partExecutions.add(new ReconciliationTaskFirstPartExecution(this));
+            partExecutions.add(new OperationCompletionActivityExecution(this));
         }
         if (stage == Stage.SECOND || stage == Stage.ALL) {
-            partExecutions.add(new ReconciliationTaskSecondPartExecution(this));
+            partExecutions.add(new OperationCompletionActivityExecution(this));
         }
         if (stage == Stage.THIRD || stage == Stage.ALL) {
-            partExecutions.add(new ReconciliationTaskThirdPartExecution(this));
+            partExecutions.add(new RemainingShadowsActivityExecution(this));
         }
         return partExecutions;
     }

@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.SchemaService;
 
@@ -18,8 +19,6 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,7 @@ import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.p
  * 3. The task execution object then instantiates - via {@link AbstractTaskExecution#createPartExecutions()}
  *    method - objects that are responsible for execution of individual _task parts_. For example, a reconciliation
  *    task consists of three such parts: processing unfinished shadows, resource objects reconciliation, and (remaining)
- *    shadows reconciliation. Currently these parts are subclasses of {@link AbstractIterativeTaskPartExecution}.
+ *    shadows reconciliation. Currently these parts are subclasses of {@link AbstractIterativeActivityExecution}.
  * 4. Each part issues an iteration process, typically by starting a search by providing an object type, a query,
  *    and search options. (An alternative way is to start iteration in other way, e.g. by starting a live sync
  *    or async update.) Then the part instantiates _item processor_.
@@ -79,30 +78,42 @@ public abstract class AbstractTaskHandler<
         implements TaskHandler {
 
     /**
+     * TODO DELETE
+     *
      * Logger that is specific to the concrete task handler class. This is to avoid logging everything under
      * common {@link AbstractTaskHandler} or {@link AbstractTaskExecution} or similar classes.
      * Also, it allows to group all processing related to the given task under a single logger.
      * Provided by the constructor.
      */
+    @Deprecated
     @NotNull private final Trace logger;
 
     /**
+     * TODO DELETE
+     *
      * Human-understandable name of the task type, like "Recompute", "Import from resource", and so on.
      * Used for logging and similar purposes. Provided by the constructor.
      */
+    @Deprecated
     @NotNull protected final String taskTypeName;
 
     /**
+     * TODO DELETE
+     *
      * Prefix for the task's operation result operation name.
      * E.g. `com.evolveum.midpoint.common.operation.reconciliation`.
      */
+    @Deprecated
     @NotNull final String taskOperationPrefix;
 
     /**
+     * TODO DELETE
+     *
      * Options that govern how various aspects of task execution (progress, errors, statistics, and so on)
      * are reported - into the log or by other means. These are "global", i.e. applicable to all tasks
      * handled by this task handler. They may be fine-tuned for specific tasks by configuration means.
      */
+    @Deprecated
     @NotNull protected final TaskReportingOptions globalReportingOptions;
 
     /**
@@ -130,10 +141,12 @@ public abstract class AbstractTaskHandler<
         this.globalReportingOptions = new TaskReportingOptions();
     }
 
+    @Deprecated
     public @NotNull String getTaskTypeName() {
         return taskTypeName;
     }
 
+    @Deprecated
     @NotNull String getTaskOperationPrefix() {
         return taskOperationPrefix;
     }
@@ -159,7 +172,7 @@ public abstract class AbstractTaskHandler<
      * Main entry point.
      *
      * We basically delegate all the processing to a TaskExecution object.
-     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, TaskPartDefinitionType, String, TaskRunResult)}
+     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, ActivityDefinition, String, TaskRunResult)}
      * method.
      */
     @Override

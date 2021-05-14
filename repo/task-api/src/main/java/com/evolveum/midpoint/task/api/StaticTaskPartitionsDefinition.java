@@ -59,7 +59,7 @@ public class StaticTaskPartitionsDefinition /* implements TaskPartitionsDefiniti
 //        List<TaskPartitionDefinition> rv = new ArrayList<>(Collections.nCopies(count, null));
 //        boolean hasNumbered = false;
 //        int lastUnnumbered = 0;
-//        for (TaskPartDefinitionType definition : data.getPartition()) {
+//        for (ActivityType definition : data.getPartition()) {
 //            Integer index = definition.getIndex();
 //            if (index != null) {
 //                hasNumbered = true;
@@ -76,7 +76,7 @@ public class StaticTaskPartitionsDefinition /* implements TaskPartitionsDefiniti
 //        }
 //        for (int i = 0; i < rv.size(); i++) {
 //            if (rv.get(i) == null) {
-//                rv.set(i, new StaticTaskPartition(new TaskPartDefinitionType()));
+//                rv.set(i, new StaticTaskPartition(new ActivityType()));
 //            }
 //        }
 //        return rv;
@@ -117,7 +117,7 @@ public class StaticTaskPartitionsDefinition /* implements TaskPartitionsDefiniti
 //    }
 //
 //    @Override
-//    public TaskWorkDistributionType getWorkManagement(Task masterTask) {
+//    public WorkDistributionType getWorkManagement(Task masterTask) {
 //        throw new UnsupportedOperationException();//FIXME
 ////        return data.getWorkManagement();
 //    }
@@ -152,9 +152,9 @@ public class StaticTaskPartitionsDefinition /* implements TaskPartitionsDefiniti
 
 //    public class StaticTaskPartition implements TaskPartitionDefinition {
 //
-//        @NotNull private final TaskPartDefinitionType data;
+//        @NotNull private final ActivityType data;
 //
-//        public StaticTaskPartition(@NotNull TaskPartDefinitionType data) {
+//        public StaticTaskPartition(@NotNull ActivityType data) {
 //            this.data = data;
 //        }
 //

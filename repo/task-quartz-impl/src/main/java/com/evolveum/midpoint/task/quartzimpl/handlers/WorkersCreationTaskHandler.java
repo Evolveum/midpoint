@@ -49,7 +49,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(@NotNull RunningTask task) throws ExitExecutionException {
+    public TaskRunResult run(@NotNull RunningTask task) throws StopHandlerExecutionException {
         OperationResult opResult = new OperationResult(OP_RUN);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
@@ -65,7 +65,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.IS_WAITING);
             return runResult;
 
-        } catch (ExitExecutionException e) {
+        } catch (StopHandlerExecutionException e) {
             throw e;
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't (re)create workers for {}", t, task);
@@ -94,7 +94,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 //        }
     }
 
-    private void checkWorkersComplete(List<? extends Task> workers, RunningTask task, OperationResult opResult, TaskRunResult runResult) throws ExitExecutionException {
+    private void checkWorkersComplete(List<? extends Task> workers, RunningTask task, OperationResult opResult, TaskRunResult runResult) throws StopHandlerExecutionException {
         boolean clean = task.getWorkState() == null || Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
         // todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
         if (clean) {
@@ -105,7 +105,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                 LOGGER.warn("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: {}", notClosedNorSuspended);
                 opResult.recordFatalError("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: " + notClosedNorSuspended);
                 runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-                throw new ExitExecutionException(runResult);
+                throw new StopHandlerExecutionException(runResult);
             }
         } else {
             List<? extends Task> notClosed = workers.stream()
@@ -115,7 +115,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                 LOGGER.warn("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: {}", notClosed);
                 opResult.recordFatalError("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: " + notClosed);
                 runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-                throw new ExitExecutionException(runResult);
+                throw new StopHandlerExecutionException(runResult);
             }
         }
     }
@@ -138,7 +138,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
     }
 
     private void deleteWorkStateAndWorkers(RunningTask task, OperationResult opResult, TaskRunResult runResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ExitExecutionException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, StopHandlerExecutionException {
 
         List<? extends Task> workers = task.listSubtasks(true, opResult);
         checkWorkersComplete(workers, task, opResult, runResult);
@@ -152,7 +152,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
                     LOGGER.warn("Couldn't recreate worker task {} because it has its own subtasks: {}", worker, workerSubtasks);
                     opResult.recordFatalError("Couldn't recreate worker task " + worker + " because it has its own subtasks: " + workerSubtasks);
                     runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-                    throw new ExitExecutionException(runResult);
+                    throw new StopHandlerExecutionException(runResult);
                 }
                 taskManager.deleteTask(worker.getOid(), opResult);
             } catch (ObjectNotFoundException | SchemaException e) {

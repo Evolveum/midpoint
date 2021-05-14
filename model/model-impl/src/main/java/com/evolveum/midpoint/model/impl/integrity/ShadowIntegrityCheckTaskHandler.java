@@ -40,7 +40,7 @@ import javax.annotation.PostConstruct;
  */
 @Component
 @TaskExecutionClass(ShadowIntegrityCheckTaskHandler.TaskExecution.class)
-@PartExecutionClass(ShadowIntegrityCheckTaskPartExecution.class)
+@PartExecutionClass(ShadowIntegrityCheckActivityExecution.class)
 public class ShadowIntegrityCheckTaskHandler
         extends AbstractModelTaskHandler
         <ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {

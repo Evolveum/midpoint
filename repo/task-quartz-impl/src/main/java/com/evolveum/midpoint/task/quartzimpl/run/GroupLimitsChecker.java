@@ -46,8 +46,10 @@ class GroupLimitsChecker {
 
     /**
      * Checks if the task is allowed to execute (due to group limits).
+     *
+     * @return RescheduleTime instance if the task is not allowed to run now. Null if it is.
      */
-    public RescheduleTime checkIfAllowed(OperationResult result) {
+    RescheduleTime checkIfAllowedToRun(OperationResult result) {
 
         TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
         if (executionConstraints == null) {
@@ -62,8 +64,7 @@ class GroupLimitsChecker {
             int limit = entry.getValue().limit;
             Collection<Task> tasksInGroup = entry.getValue().tasks;
             if (tasksInGroup.size() >= limit) {
-                RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
-                        task.getNextRunStartTime(result));
+                RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints, task.getNextRunStartTime(result));
                 LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}."
                                 + " Will try again at {}{}.", limit, group, task, tasksInGroup, rescheduleTime.asDate(),
                         rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");

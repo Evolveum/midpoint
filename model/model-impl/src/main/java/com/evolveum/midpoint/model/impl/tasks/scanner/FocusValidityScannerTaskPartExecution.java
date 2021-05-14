@@ -37,7 +37,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @ItemProcessorClass(FocusValidityScannerItemProcessor.class)
 @DefaultHandledObjectType(FocusType.class)
 public class FocusValidityScannerTaskPartExecution
-        extends AbstractScannerTaskPartExecution
+        extends AbstractScannerActivityExecution
         <FocusType,
                 FocusValidityScannerTaskHandler,
                 FocusValidityScannerTaskExecution,

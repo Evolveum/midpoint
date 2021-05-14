@@ -98,7 +98,7 @@ public class TaskPerformanceInformation implements DebugDumpable, Serializable {
     }
 
     private void addPart(TaskPartPerformanceInformation part) {
-        parts.put(part.getPartUri(), part);
+        parts.put(part.getPartIdentifier(), part);
     }
 
     public Map<String, TaskPartPerformanceInformation> getParts() {

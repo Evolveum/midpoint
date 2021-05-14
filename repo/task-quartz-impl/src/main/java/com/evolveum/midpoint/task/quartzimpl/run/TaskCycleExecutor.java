@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Executes so called "task cycles" i.e. executions of the task handler.
  *
@@ -46,7 +48,7 @@ class TaskCycleExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final String DOT_CLASS = TaskCycleExecutor.class.getName() + ".";
-    public static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
+    private static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
 
     @NotNull private final RunningTaskQuartzImpl task;
     @NotNull private final TaskHandler handler;
@@ -55,7 +57,7 @@ class TaskCycleExecutor {
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
-    public TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
+    TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
             @NotNull JobExecutor jobExecutor, @NotNull TaskBeans beans) {
         this.task = task;
         this.handler = handler;
@@ -69,8 +71,8 @@ class TaskCycleExecutor {
         } else if (task.isRecurring()) {
             executeRecurringTask();
         } else {
-            LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
-            result.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
+            LOGGER.error("Tasks must be either recurring or single-run. This one is neither. Sorry.");
+            result.recordFatalError("Tasks must be either recurring or single-run. This one is neither. Sorry.");
             jobExecutor.closeFlawedTaskRecordingResult(result);
             throw new StopJobException();
         }
@@ -100,7 +102,7 @@ class TaskCycleExecutor {
                 if (task.isTightlyBound()) {
                     waitForNextRun(result);
                 } else {
-                    LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
+                    LOGGER.trace("Execution loop: task is loosely bound, exiting the execution cycle");
                     break;
                 }
             }
@@ -124,18 +126,13 @@ class TaskCycleExecutor {
     /** Task is refreshed after returning from this method. */
     private TaskRunResult executeTaskCycleRun(OperationResult result) throws StopTaskException {
         processCycleRunStart(result);
-        TaskRunResult runResult = executeHandler(handler, result);
+        TaskRunResult runResult = executeHandler(result);
         processCycleRunFinish(runResult, result);
         return runResult;
     }
 
     @NotNull
-    private TaskRunResult executeHandler(TaskHandler handler, OperationResult result) {
-        if (task.getResult() == null) {
-            LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
-            task.setResultTransient(TaskQuartzImpl.createUnnamedTaskResult());
-        }
-
+    private TaskRunResult executeHandler(OperationResult result) {
         TaskRunResult runResult;
         try {
             runResult = beans.handlerExecutor.executeHandler(task, handler, result);
@@ -160,7 +157,6 @@ class TaskCycleExecutor {
             setNewOperationResult();
             task.flushPendingModifications(result);
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot process run start for task {}", e, task);
             throw new SystemException("Cannot process cycle run start: " + e.getMessage(), e);
         }
     }

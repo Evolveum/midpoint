@@ -275,7 +275,7 @@ public class WorkersManager {
         }
 
         int count = 0;
-        TaskWorkDistributionType wsCfg = coordinatorTask.getWorkManagement();
+        WorkDistributionType wsCfg = coordinatorTask.getWorkManagement();
         WorkersManagementType workersCfg = wsCfg.getWorkers();
 
         for (WorkerKey keyToCreate : keysToCreate.values()) {
@@ -373,7 +373,7 @@ public class WorkersManager {
             Map<WorkerKey, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap,
             OperationResult opResult)
             throws SchemaException {
-        TaskWorkDistributionType wsCfg = task.getWorkManagement();
+        WorkDistributionType wsCfg = task.getWorkManagement();
         WorkersManagementType workersCfg = wsCfg.getWorkers();
         if (workersCfg == null) {
             throw new IllegalStateException("Workers configuration is missing: " + task);

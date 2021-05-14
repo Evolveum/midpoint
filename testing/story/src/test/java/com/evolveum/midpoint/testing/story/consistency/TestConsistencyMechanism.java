@@ -2646,7 +2646,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // THEN
 
-        // STOP the task. We don't need it any more. Even if it's non-recurrent its safer to delete it
+        // STOP the task. We don't need it any more. Even if it's non-recurring its safer to delete it
         taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
 
         // check if the account was added after reconciliation
@@ -2737,7 +2737,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // THEN
 
-        // STOP the task. We don't need it any more. Even if it's non-recurrent its safer to delete it
+        // STOP the task. We don't need it any more. Even if it's non-recurring its safer to delete it
         taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
 
         // check if the account was added after reconciliation

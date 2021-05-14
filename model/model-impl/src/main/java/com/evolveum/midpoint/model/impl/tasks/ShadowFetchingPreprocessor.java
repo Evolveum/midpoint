@@ -22,9 +22,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  */
 public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType> {
 
-    private final AbstractIterativeModelTaskPartExecution<?, ?, ?, ?, ?> partExecution;
+    private final AbstractIterativeModelActivityExecution<?, ?, ?, ?, ?> partExecution;
 
-    public ShadowFetchingPreprocessor(AbstractIterativeModelTaskPartExecution<?, ?, ?, ?, ?> partExecution) {
+    public ShadowFetchingPreprocessor(AbstractIterativeModelActivityExecution<?, ?, ?, ?, ?> partExecution) {
         this.partExecution = partExecution;
     }
 

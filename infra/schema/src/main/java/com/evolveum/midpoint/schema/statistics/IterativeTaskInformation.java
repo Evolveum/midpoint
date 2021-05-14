@@ -105,7 +105,7 @@ public class IterativeTaskInformation {
                 .operationId(getNextOperationId());
 
         IterativeTaskPartItemsProcessingInformationType matchingPart =
-                findOrCreateMatchingPart(value.getPart(), startInfo.getPartUri());
+                findOrCreateMatchingPart(value.getPart(), startInfo.getPartIdentifier());
         updatePartExecutions(matchingPart, startInfo.getPartStartTimestamp(), System.currentTimeMillis());
 
         List<ProcessedItemType> currentList = matchingPart.getCurrent();
@@ -151,7 +151,7 @@ public class IterativeTaskInformation {
      */
     private synchronized void recordOperationEnd(OperationImpl operation, QualifiedItemProcessingOutcomeType outcome,
             Throwable exception) {
-        String partUri = operation.startInfo.getPartUri();
+        String partUri = operation.startInfo.getPartIdentifier();
 
         Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
                 findMatchingPart(value.getPart(), partUri);
@@ -230,7 +230,7 @@ public class IterativeTaskInformation {
             List<IterativeTaskPartItemsProcessingInformationType> deltaParts) {
         for (IterativeTaskPartItemsProcessingInformationType deltaPart : deltaParts) {
             IterativeTaskPartItemsProcessingInformationType matchingPart =
-                    findOrCreateMatchingPart(sumParts, deltaPart.getPartUri());
+                    findOrCreateMatchingPart(sumParts, deltaPart.getPartIdentifier());
             addPartInformation(matchingPart, deltaPart);
         }
     }
@@ -239,13 +239,13 @@ public class IterativeTaskInformation {
             @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
         return findMatchingPart(list, partUri)
                 .orElseGet(
-                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partUri(partUri)));
+                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partIdentifier(partUri)));
     }
 
     private static Optional<IterativeTaskPartItemsProcessingInformationType> findMatchingPart(
             @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
         return list.stream()
-                .filter(item -> Objects.equals(item.getPartUri(), partUri))
+                .filter(item -> Objects.equals(item.getPartIdentifier(), partUri))
                 .findFirst();
     }
 
@@ -396,7 +396,7 @@ public class IterativeTaskInformation {
             recordOperationEnd(this, outcome, exception);
             StructuredProgressCollector progressCollector = startInfo.getStructuredProgressCollector();
             if (progressCollector != null) {
-                progressCollector.incrementStructuredProgress(startInfo.getPartUri(), outcome);
+                progressCollector.incrementStructuredProgress(startInfo.getPartIdentifier(), outcome);
             }
         }
 

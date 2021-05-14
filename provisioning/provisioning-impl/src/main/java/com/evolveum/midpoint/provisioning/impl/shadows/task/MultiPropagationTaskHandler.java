@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  */
 @Component
 @TaskExecutionClass(MultiPropagationTaskHandler.TaskExecution.class)
-@PartExecutionClass(MultiPropagationTaskPartExecution.class)
+@PartExecutionClass(MultiPropagationActivityExecution.class)
 public class MultiPropagationTaskHandler
         extends AbstractTaskHandler
         <MultiPropagationTaskHandler, MultiPropagationTaskHandler.TaskExecution> {

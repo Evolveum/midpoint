@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.impl.integrity.ShadowIntegrityCheckTaskPartExecution.Configuration;
+import com.evolveum.midpoint.model.impl.integrity.ShadowIntegrityCheckActivityExecution.Configuration;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -40,7 +40,7 @@ public class ShadowIntegrityCheckItemProcessor
         <ShadowType,
                 ShadowIntegrityCheckTaskHandler,
                 ShadowIntegrityCheckTaskHandler.TaskExecution,
-                ShadowIntegrityCheckTaskPartExecution,
+                ShadowIntegrityCheckActivityExecution,
                 ShadowIntegrityCheckItemProcessor> {
 
     private static final String CLASS_DOT = ShadowIntegrityCheckItemProcessor.class.getName() + ".";
@@ -49,7 +49,7 @@ public class ShadowIntegrityCheckItemProcessor
 
     private final PrismContext prismContext;
 
-    public ShadowIntegrityCheckItemProcessor(ShadowIntegrityCheckTaskPartExecution partExecution) {
+    public ShadowIntegrityCheckItemProcessor(ShadowIntegrityCheckActivityExecution partExecution) {
         super(partExecution);
 
         this.prismContext = partExecution.getPrismContext();

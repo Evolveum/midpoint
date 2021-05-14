@@ -49,8 +49,8 @@ public class BucketAllocator {
         return new BucketAllocator(bucketingConfig, strategy);
     }
 
-    public static BucketAllocator create(TaskPartDefinitionType partDef, BucketContentFactoryCreator strategyFactory) {
-        TaskWorkDistributionType workDistribution = partDef != null ? partDef.getDistribution() : null;
+    public static BucketAllocator create(ActivityDefinitionType partDef, BucketContentFactoryCreator strategyFactory) {
+        WorkDistributionType workDistribution = partDef != null ? partDef.getDistribution() : null;
         WorkBucketsManagementType bucketingConfig = workDistribution != null ? workDistribution.getBuckets() : null;
         return create(bucketingConfig, strategyFactory);
     }

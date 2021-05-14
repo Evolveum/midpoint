@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelActivityExecution;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ItemProcessorClass(ImportFromResourceTaskPartExecution.ItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 public class ImportFromResourceTaskPartExecution
-        extends AbstractIterativeModelTaskPartExecution
+        extends AbstractIterativeModelActivityExecution
         <ShadowType,
                 ImportFromResourceTaskHandler,
                 ImportFromResourceTaskExecution,
@@ -62,7 +62,7 @@ public class ImportFromResourceTaskPartExecution
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
                 SchemaConstants.CHANNEL_IMPORT,
-                partDefinition,
+                activityDefinition,
                 true);
     }
 

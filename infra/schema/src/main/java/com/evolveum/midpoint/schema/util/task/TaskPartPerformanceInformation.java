@@ -83,7 +83,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     public static TaskPartPerformanceInformation forPart(@NotNull IterativeTaskPartItemsProcessingInformationType info,
             StructuredTaskProgressType structuredProgress) {
 
-        String partUri = info.getPartUri();
+        String partUri = info.getPartIdentifier();
 
         int itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(info);
         int errors = TaskOperationStatsUtil.getErrors(info);
@@ -107,7 +107,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
         return forPart(info, structuredProgress);
     }
 
-    public String getPartUri() {
+    public String getPartIdentifier() {
         return partUri;
     }
 

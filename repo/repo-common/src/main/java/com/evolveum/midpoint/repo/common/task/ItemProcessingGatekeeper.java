@@ -67,7 +67,7 @@ class ItemProcessingGatekeeper<I> {
     @NotNull private final AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor;
 
     /** Task part execution that requested processing of this item. */
-    @NotNull private final AbstractIterativeTaskPartExecution<I, ?, ?, ?, ?> partExecution;
+    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?, ?> partExecution;
 
     /** The whole task execution. */
     @NotNull private final AbstractTaskExecution<?, ?> taskExecution;
@@ -318,12 +318,13 @@ class ItemProcessingGatekeeper<I> {
 
         Throwable exception = processingResult.getExceptionRequired();
 
-        TaskPartDefinitionType partDef = partExecution.partDefinition;
+        ActivityDefinitionType partDef = partExecution.activityDefinition;
         if (partDef == null) {
             return getContinueOnError(result.getStatus(), exception, request, result);
         }
 
-        CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), exception, CriticalityType.PARTIAL);
+        ErrorSelectorType errorCriticality = null; //partDef.getErrorCriticality(); FIXME
+        CriticalityType criticality = ExceptionUtil.getCriticality(errorCriticality, exception, CriticalityType.PARTIAL);
         try {
             RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, exception, result);
             return true; // If we are here, the error is not fatal and we can continue.
@@ -351,7 +352,7 @@ class ItemProcessingGatekeeper<I> {
     private Operation recordIterativeOperationStart() {
         return workerTask.recordIterativeOperationStart(
                 new IterativeOperationStartInfo(
-                        iterationItemInformation, partExecution.getPartUri(), partExecution.getPartStartTimestamp()));
+                        iterationItemInformation, partExecution.getActivityIdentifier(), partExecution.getPartStartTimestamp()));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {
@@ -434,7 +435,7 @@ class ItemProcessingGatekeeper<I> {
         OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
         RunningTask task = taskExecution.localCoordinatorTask;
 
-        getOperationExecutionRecorder().recordOperationExecution(target, task, partExecution.partUri, result);
+        getOperationExecutionRecorder().recordOperationExecution(target, task, partExecution.activityIdentifier, result);
     }
 
     private OperationExecutionRecorderForTasks getOperationExecutionRecorder() {
@@ -480,7 +481,7 @@ class ItemProcessingGatekeeper<I> {
      */
     private void updateStatisticsInTasks(OperationResult result) {
         // The structured progress is maintained only in the coordinator task
-        coordinatorTask.incrementStructuredProgress(partExecution.partUri, processingResult.outcome);
+        coordinatorTask.incrementStructuredProgress(partExecution.activityIdentifier, processingResult.outcome);
 
         if (partExecution.isMultithreaded()) {
             assert workerTask.isTransient();

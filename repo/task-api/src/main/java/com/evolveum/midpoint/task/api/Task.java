@@ -265,7 +265,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskRecurrenceType getRecurrence();
 
     /**
-     * Checks whether the task is a cyclic (recurrent) one.
+     * Checks whether the task is a cyclic (recurring) one.
      */
     default boolean isRecurring() {
         return getRecurrence() == TaskRecurrenceType.RECURRING;
@@ -782,13 +782,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     //region Work management
     /** Gets work management information. NOT THREAD SAFE! */
     @Deprecated
-    TaskWorkDistributionType getWorkManagement();
+    WorkDistributionType getWorkManagement();
 
     /**
      * Retrieves the definition of task parts.
      * @return
      */
-    TaskPartDefinitionType getWorkDefinitionOrClone();
+    ActivityDefinitionType getActivityDefinitionOrClone();
 
     /**
      * Gets task work state. NOT THREAD SAFE!

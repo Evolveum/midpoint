@@ -31,21 +31,32 @@
 
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
 
-    <work>
-        <part>
-            <index>1</index>
-            <relativeHandlerUri>operationCompletion</relativeHandlerUri>
-        </part>
-        <part>
-            <index>2</index>
-            <relativeHandlerUri>resourceReconciliation</relativeHandlerUri>
-            <executionMode>simulate</executionMode>
-        </part>
-    </work>
-
     <recurrence>recurring</recurrence>
     <schedule>
         <interval>5</interval>
     </schedule>
+
+    <activity>
+        <tailoring>
+            <change>
+                <reference>resourceReconciliationSimulation</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>resourceReconciliation</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
 
 </task>

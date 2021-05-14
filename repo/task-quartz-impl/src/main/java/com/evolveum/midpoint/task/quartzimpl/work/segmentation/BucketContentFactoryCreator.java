@@ -36,8 +36,8 @@ public class BucketContentFactoryCreator {
     }
 
     @NotNull
-    public BucketContentFactory createContentFactory(TaskPartDefinitionType partDef) {
-        TaskWorkDistributionType workManagement = partDef != null ? partDef.getDistribution() : null;
+    public BucketContentFactory createContentFactory(ActivityDefinitionType partDef) {
+        WorkDistributionType workManagement = partDef != null ? partDef.getDistribution() : null;
         WorkBucketsManagementType buckets = workManagement != null ? workManagement.getBuckets() : null;
         return createContentFactory(buckets);
     }

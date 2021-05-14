@@ -12,7 +12,8 @@
     <name>task-100</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-    <work>
+    <recurrence>single</recurrence>
+    <activity>
         <distribution>
             <buckets>
                 <explicitSegmentation>
@@ -30,6 +31,5 @@
                 </explicitSegmentation>
             </buckets>
         </distribution>
-    </work>
-    <recurrence>single</recurrence>
+    </activity>
 </task>

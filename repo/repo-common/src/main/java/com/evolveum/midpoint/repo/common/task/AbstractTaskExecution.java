@@ -12,8 +12,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Collections.singletonList;
 
 /**
- * Holds data common for the whole task execution, i.e. data that are shared among all the parts.
+ * Holds data common for the whole task execution, i.e. data that are shared among all the activities.
  *
  * *TODO: thread safety ... hopefully, currentTaskPartExecution is the only field accessed by external threads*
  *
@@ -57,7 +57,7 @@ public abstract class AbstractTaskExecution
      *
      * TODO specify better - does each part execution supply its own result?
      */
-    @NotNull private final TaskWorkBucketProcessingResult currentRunResult;
+    @NotNull private final TaskRunResult currentRunResult;
 
     /**
      * Error-related state of this task. Drives the suspend/continue decisions.
@@ -67,9 +67,9 @@ public abstract class AbstractTaskExecution
     /**
      * Part executions. Initialized in the {@link TaskExecution#run(OperationResult)} method.
      */
-    private List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions;
+    private List<? extends AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> partExecutions;
 
-    private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
+    private final AtomicReference<AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
 
     public AbstractTaskExecution(@NotNull TH taskHandler, @NotNull RunningTask localCoordinatorTask) {
@@ -115,9 +115,9 @@ public abstract class AbstractTaskExecution
 
             partExecutions = createPartExecutions();
             for (int i = 0; i < partExecutions.size(); i++) {
-                AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
-                partExecution.setPartNumber(i + 1);
-                partExecution.setExpectedParts(partExecutions.size());
+                AbstractIterativeActivityExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
+                partExecution.setActivityNumber(i + 1);
+                partExecution.setExpectedActivities(partExecutions.size());
                 currentTaskPartExecution.set(partExecution);
 
                 markPreviousPartComplete(partExecutions, i);
@@ -157,7 +157,7 @@ public abstract class AbstractTaskExecution
      * The last part is marked as complete directly by task execution object, when the task manager
      * tells it that there are no more buckets.
      */
-    private void markPreviousPartComplete(List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions,
+    private void markPreviousPartComplete(List<? extends AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> partExecutions,
             int currentPartIndex) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         if (currentPartIndex > 0) {
             partExecutions.get(currentPartIndex - 1).markStructuredProgressComplete(taskOperationResult);
@@ -168,11 +168,11 @@ public abstract class AbstractTaskExecution
      * Creates executions for individual task parts. Overridden for handlers that have more than one part
      * and therefore cannot rely on class annotations.
      */
-    public List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> createPartExecutions() {
+    public List<? extends AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutions() {
         return createPartExecutionsFromAnnotation();
     }
 
-    private List<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> createPartExecutionsFromAnnotation() {
+    private List<AbstractIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutionsFromAnnotation() {
         try {
             PartExecutionClass annotation =
                     java.util.Objects.requireNonNull(taskHandler.getClass().getAnnotation(PartExecutionClass.class),
@@ -212,7 +212,7 @@ public abstract class AbstractTaskExecution
         return taskHandler.getPrismContext();
     }
 
-    public @NotNull TaskWorkBucketProcessingResult getCurrentRunResult() {
+    public @NotNull TaskRunResult getCurrentRunResult() {
         return currentRunResult;
     }
 
@@ -220,7 +220,7 @@ public abstract class AbstractTaskExecution
      * TODO reconsider this method
      */
     public Long heartbeat() {
-        AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> currentTaskPartExecution = this.currentTaskPartExecution.get();
+        AbstractIterativeActivityExecution<?, ?, ?, ?, ?> currentTaskPartExecution = this.currentTaskPartExecution.get();
         return currentTaskPartExecution != null ? currentTaskPartExecution.heartbeat() : null;
     }
 

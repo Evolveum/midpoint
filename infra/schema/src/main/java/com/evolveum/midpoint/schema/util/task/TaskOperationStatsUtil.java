@@ -162,7 +162,7 @@ public class TaskOperationStatsUtil {
             return null;
         } else {
             return statistics.getIterativeTaskInformation().getPart().stream()
-                    .filter(part -> Objects.equals(part.getPartUri(), partUri))
+                    .filter(part -> Objects.equals(part.getPartIdentifier(), partUri))
                     .findFirst().orElse(null);
         }
     }

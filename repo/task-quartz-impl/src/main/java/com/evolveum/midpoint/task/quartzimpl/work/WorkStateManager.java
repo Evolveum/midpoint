@@ -112,7 +112,7 @@ public class WorkStateManager {
 
         WorkBucketContentHandler contentHandler = handlerFactory.getHandler(workBucket.getContent());
 
-        TaskPartDefinitionType partDef = getCurrentPartDefinition(workerTask, result);
+        ActivityDefinitionType partDef = getCurrentPartDefinition(workerTask, result);
         AbstractWorkSegmentationType segmentationConfig =
                 TaskWorkStateUtil.getWorkSegmentationConfiguration(partDef.getDistribution());
 
@@ -123,18 +123,18 @@ public class WorkStateManager {
     }
 
     @NotNull
-    private TaskPartDefinitionType getCurrentPartDefinition(Task workerTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        TaskPartDefinitionType partDef;
+    private ActivityDefinitionType getCurrentPartDefinition(Task workerTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        ActivityDefinitionType partDef;
 
         boolean standalone = TaskWorkStateUtil.isStandalone(workerTask.getWorkStateOrClone());
         if (standalone) {
-            partDef = TaskWorkStateUtil.getPartDefinition(workerTask.getWorkDefinitionOrClone(), workerTask.getCurrentPartId());
+            partDef = TaskWorkStateUtil.getPartDefinition(workerTask.getActivityDefinitionOrClone(), workerTask.getCurrentPartId());
             stateCheck(partDef != null, "No current part definition for standalone task %s", workerTask);
         } else {
             Task coordinatorTask = workerTask.getParentTask(result);
             stateCheck(coordinatorTask != null, "No coordinator task for worker %s", workerTask);
 
-            partDef = TaskWorkStateUtil.getPartDefinition(coordinatorTask.getWorkDefinitionOrClone(),
+            partDef = TaskWorkStateUtil.getPartDefinition(coordinatorTask.getActivityDefinitionOrClone(),
                     coordinatorTask.getCurrentPartId());
             stateCheck(partDef != null, "No current part definition for coordinator %s (worker is %s)",
                     coordinatorTask, workerTask);

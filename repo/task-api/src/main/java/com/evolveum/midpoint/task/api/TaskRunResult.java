@@ -29,7 +29,7 @@ public class TaskRunResult implements Serializable {
          * The task run has finished.
          *
          * This does not necessarily mean that the task itself is finished. For single tasks this means that
-         * the task is finished, but it is different for recurrent tasks. Such a task will run again after
+         * the task is finished, but it is different for recurring tasks. Such a task will run again after
          * it sleeps for a while (or after the scheduler will start it again).
          */
         FINISHED,

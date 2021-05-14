@@ -328,7 +328,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 //        return taskManager.addTask(subtask.asPrismObject(), opResult);
     }
 
-//    private boolean isCoordinator(TaskWorkDistributionType workManagement) {
+//    private boolean isCoordinator(WorkDistributionType workManagement) {
 //        return workManagement != null && workManagement.getTaskKind() == TaskKindType.COORDINATOR;
 //    }
 

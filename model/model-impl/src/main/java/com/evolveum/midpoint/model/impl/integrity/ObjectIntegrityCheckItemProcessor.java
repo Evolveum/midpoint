@@ -27,13 +27,13 @@ public class ObjectIntegrityCheckItemProcessor
         <ObjectType,
                 ObjectIntegrityCheckTaskHandler,
                 ObjectIntegrityCheckTaskHandler.TaskExecution,
-                ObjectIntegrityCheckTaskPartExecution, ObjectIntegrityCheckItemProcessor> {
+                ObjectIntegrityCheckActivityExecution, ObjectIntegrityCheckItemProcessor> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckItemProcessor.class);
 
     private static final String CLASS_DOT = ObjectIntegrityCheckItemProcessor.class.getName() + ".";
 
-    public ObjectIntegrityCheckItemProcessor(ObjectIntegrityCheckTaskPartExecution taskExecution) {
+    public ObjectIntegrityCheckItemProcessor(ObjectIntegrityCheckActivityExecution taskExecution) {
         super(taskExecution);
     }
 

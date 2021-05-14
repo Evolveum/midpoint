@@ -181,7 +181,7 @@ public interface ProvisioningService {
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartDefinitionType taskPartition,
+    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, ActivityDefinitionType taskPartition,
             LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
