@@ -39,6 +39,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private String org11Oid;
     private String org111Oid;
     private String org112Oid;
+    private String org12Oid;
     private String org2Oid; // second root
     private String org21Oid;
     private String orgXOid; // under two orgs
@@ -75,7 +76,12 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
         org112Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-1-1-2")
-                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
+                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .asPrismObject(),
+                null, result);
+        org12Oid = repositoryService.addObject(
+                new OrgType(prismContext).name("org-1-2")
+                        .parentOrgRef(org1Oid, OrgType.COMPLEX_TYPE)
                         .asPrismObject(),
                 null, result);
         org2Oid = repositoryService.addObject(
@@ -88,7 +94,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
         orgXOid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-X")
-                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
+                        .parentOrgRef(org12Oid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
                 null, result);
@@ -108,6 +114,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         user2Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-2")
                         .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
                         .asPrismObject(),
                 null, result);
         task1Oid = repositoryService.addObject(
@@ -155,11 +162,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 operationResult);
 
         then("user with the matching name is returned");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
-
-        and("operation result is success");
-        assertThatOperationResult(operationResult).isSuccess();
     }
     // endregion
 
@@ -175,12 +180,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 operationResult);
 
         then("only organizations without any parents are returned");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(result).hasSize(2)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(org1Oid, org2Oid);
-
-        and("operation result is success");
-        assertThatOperationResult(operationResult).isSuccess();
     }
 
     @Test
@@ -197,14 +200,65 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 operationResult);
 
         then("only users without any organizations are returned");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(result).hasSize(1)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid);
-
-        and("operation result is success");
-        assertThatOperationResult(operationResult).isSuccess();
     }
-    // TODO
+
+    @Test
+    public void test210QueryForDirectChildrenOrgs() throws SchemaException {
+        when("searching orgs just under another org");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .isDirectChildOf(org1Oid)
+                        .build(),
+                operationResult);
+
+        then("only orgs with direct parent-org ref to another org are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org11Oid, org12Oid);
+    }
+
+    @Test
+    public void test211QueryForDirectChildrenOfAnyType() throws SchemaException {
+        when("searching objects just under an org");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .isDirectChildOf(org11Oid)
+                        .build(),
+                operationResult);
+
+        then("only objects (of any type) with direct parent-org ref to another org are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(3)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org111Oid, org112Oid, user2Oid);
+    }
+
+    @Test
+    public void test212QueryForDirectChildrenOfAnyTypeWithRelation() throws SchemaException {
+        when("searching objects just under an org with specific relation");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .isDirectChildOf(prismContext.itemFactory()
+                                .createReferenceValue(org11Oid).relation(relation1))
+                        .build(),
+                operationResult);
+
+        then("only objects with direct parent-org ref with specified relation are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org112Oid, user2Oid);
+    }
+
+    // TODO child/parent tests
     // endregion
 
     // region special cases
