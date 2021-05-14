@@ -18,6 +18,7 @@ set -eu
 : "${BUILD_NUMBER:="dev"}"
 : "${BRANCH:=$(git rev-parse --abbrev-ref HEAD)}"
 : "${GIT_COMMIT:=$(git show -s --format=%H)}"
+: "${BUILD_ENV:="dev"}" # TODO use this
 
 # backup
 mkdir -p "${HOME}/perf-out/"
@@ -31,25 +32,33 @@ if [ -z "${TGZFILE:-}" ]; then
   echo "Performance reports backed up to ${TGZFILE}"
 else
   echo "Importing ${TGZFILE} to DB"
-  BRANCH=$(basename $TGZFILE | cut -d- -f3)
-  # _ was likely / originally, see above
-  BRANCH="${BRANCH/_/\/}"
-  BUILD_NUMBER=$(basename $TGZFILE | cut -d- -f4)
-  GIT_COMMIT=$(basename $TGZFILE | cut -d- -f5 | cut -d. -f1)
+
+  # amount of dashes in the filename - to check if branch name contain the dash
+  delimcount=$(( $(echo ${TGZFILE} | wc -c) - $(echo ${TGZFILE} | tr -d - | wc -c) ))
+
+  # the option to not overwrite previously checked / set values
+  if [ -z ${TGZFILE_RAW:-} ]; then
+    BRANCH="$( basename ${TGZFILE} | cut -d- -f3-$(( ${delimcount} - 1 )) | sed "s-_-/-" )"
+    BUILD_NUMBER="$(basename ${TGZFILE} | cut -d- -f${delimcount} )"
+    GIT_COMMIT="$(basename ${TGZFILE} | cut -d- -f$(( ${delimcount} + 1 )) | sed "s-.tar.gz\$--")"
+  else
+	  echo "The filename was not parsed for the variable value..."
+  fi
 fi
 
-COMMIT_DATE=$(git show -s --format=%cI "${GIT_COMMIT}")
+# check for commit date in case the date is not already set
+: "${COMMIT_DATE:=$(git show -s --format=%cI "${GIT_COMMIT}")}"
 
 # load to DB
-BUILD_ID=$(psql -tc "select id from mst_build where commit_hash='${GIT_COMMIT}'")
+BUILD_ID=$(${PSQL} -tc "select id from mst_build where commit_hash='${GIT_COMMIT}' and env='${BUILD_ENV}'")
 if [ -n "${BUILD_ID}" ]; then
-  echo "Results for commit ${GIT_COMMIT} already processed, no action needed."
+  echo "Results for commit ${GIT_COMMIT} from environment ${BUILD_ENV} already processed, no action needed."
   exit
 fi
 
 # create new build entry
 BUILD_ID=$(
-  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date) values ('${BUILD_NUMBER}', '${BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}') returning id"
+  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date, env) values ('${BUILD_NUMBER}', '${BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}', '${BUILD_ENV}') returning id"
 )
 
 echo "BUILD_ID = $BUILD_ID"
