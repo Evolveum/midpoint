@@ -8,7 +8,6 @@
 :page-display-order: 500
 :page-toc: top
 
-
 == Objects, Queries and Filters
 
 midPoint works with tree-shaped data structures, just like hierarchical databases do.
@@ -74,7 +73,6 @@ Each query consists of a *filter* and a *paging instruction*. The former says wh
 The latter says how they are to be sorted and which ones have to be selected (e.g. those with numbers 100-199).
 Both of these components (filter, paging instruction) are optional.
 
-
 == Filter classification
 
 A filter is either a primitive or complex one.
@@ -107,7 +105,6 @@ For all fiters F1 and F2 the following holds:F1 && Undefined = F1F2 || Undefined
 
 |===
 
-
 ==== Value filters
 
 These filters decide on value(s) of a given property, reference or container.
@@ -133,8 +130,6 @@ Generally, they are characterized by:
 This option is not available for resource objects, due to ConnId limitations.
 |
 
-
-
 | Greater, Less filter
 | property
 | property
@@ -144,8 +139,6 @@ This option is not available for resource objects, due to ConnId limitations.
 For null-valued singleton items always returns false (TODO verify that).
 |
 
-
-
 | Substring filter
 | property
 | property
@@ -153,8 +146,6 @@ For null-valued singleton items always returns false (TODO verify that).
 | -
 | Accepts if the filter value is a substring of one of the property values (optionally specifying if the property value should start or end with the filter value).
 |
-
-
 
 | Ref filter
 | reference
@@ -171,19 +162,16 @@ So if you want to match any relations, use PrismConstants.Q_ANY.
 
 .. referenced types matches: but here null in filter means "any type".
 
-
-
-
 | Org filter
 | (applicable to object as a whole)
 | -
-| single, non-null (or null with isRoot flag)
+| single, non-null (or null with `isRoot` flag)
 | -
 | Accepts if the object is direct child or any descendant (this is configurable) of the referenced org.
 Alternatively, passes if the object is the root of the tree.
 As of 3.7.1 it can check the relation as well (see a note below).
-| Although technically not a Value filter, this filter can be seen as a special case of Ref filter using parentOrgRef as the item to be tested, and with some advanced options (scope, isRoot).
-
+| Although technically not a Value filter, this filter can be seen as a special case of Ref filter
+using parentOrgRef as the item to be tested, and with some advanced options (`scope`, `isRoot`).
 
 | InOid filter
 | (applicable to object/container value as a whole)
@@ -192,7 +180,6 @@ As of 3.7.1 it can check the relation as well (see a note below).
 | -
 | Accepts if object OID (or ID for container values) is among filter values.
 | Similar; see note 4.
-
 
 |===
 
@@ -207,9 +194,7 @@ Only constant values may be present there.
 single-valued right-hand-side (RHS)
 
 .. In filter: multivalued LHS vs.
-multivalued RHS ("non empty set intersection" semantics)
-
-
+multivalued RHS ("non-empty set intersection" semantics)
 
 . Interestingly enough, there *is* an InFilter available now.
 It is implemented only when searching in the provisioning module.
@@ -230,12 +215,12 @@ If you need to check for any relation, you have to provide a value of q:any ther
 .. For Org filter, null relation means any relation.
 Of course, q:any can be used as well (and is recommended for clarity).
 
-
-
-. The Org filter relation is supported only for the "directChildOf" and "childOf" queries.
+. The Org filter relation is supported only for the `directChildOf` and `childOf` queries.
 It is silently ignored for "parentOf" queries.
-It is interpreted as a relation of the last (lowest) reference in the path, i.e. if we are looking for a user that is a child of org O1 with the relation of manager, we are looking for a user that is a manager of an org O2, which is either O1 itself or is any of its descendants.
-
+It is interpreted as a relation of the last (lowest) reference in the path, i.e. if we are looking
+for a user that is a child of org O1 with the relation of manager, we are looking for a user that
+is a manager of an org O2, which is either O1 itself or is any of its descendants.
+See also dedicated section about Org filter at the end of this document and examples there.
 
 === Complex filters
 
@@ -261,11 +246,9 @@ This is useful e.g. to find an assignment with a given tenantRef and orgRef.
 
 |===
 
-
 ==== Logical filters
 
 And, Or and Not filters are quite self explanatory.
-
 
 ==== Type filter
 
@@ -285,7 +268,6 @@ Then it is possible to set up Type filter with type=UserType, filter=(name equal
   </filter>
 </type>
 ----
-
 
 ==== Exists filter
 
@@ -356,7 +338,6 @@ Written in XML:
 ----
 
 This feature is a part of midPoint 3.4 and above.
-
 
 == Differences in filter interpretation
 
@@ -472,7 +453,6 @@ General constraint for provisioning queries: It is not possible to mix both on-r
 
 For authoritative information, see link:https://github.com/Evolveum/midpoint/blob/master/provisioning/ucf-impl-connid/src/main/java/com/evolveum/midpoint/provisioning/ucf/impl/connid/query/FilterInterpreter.java[FilterInterpreter] and related classes (provisioning); and link:https://github.com/Evolveum/midpoint/blob/master/model/workflow-impl/src/main/java/com/evolveum/midpoint/wf/impl/activiti/dao/WorkItemProvider.java[WorkItemProvider] class (workflows).
 
-
 == Creating filters
 
 Filters can be created using Java API (traditional or fluent one) or via XML.
@@ -483,7 +463,6 @@ XML versions are link:https://github.com/Evolveum/midpoint/tree/master/infra/sch
 
 === Primitive filters
 
-
 ==== AllFilter
 
 .XML
@@ -492,18 +471,16 @@ XML versions are link:https://github.com/Evolveum/midpoint/tree/master/infra/sch
 <all/>
 ----
 
-
 .Traditional Java API
 [source,java]
 ----
 ObjectFilter filter = AllFilter.createAll();
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
 	.all()
     .buildFilter();
 ----
@@ -529,16 +506,14 @@ and the corresponding Fluent Java API call is:
 .Fluent Java API
 [source,java]
 ----
-ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectQuery query = prismContext.queryFor(UserType.class)
 	.all()
     .build();
 ----
 
 To be concise, we'll show only filters (no wrapping queries) in the following examples.
 
-
 === Value filters
-
 
 ==== EqualFilter
 
@@ -552,7 +527,6 @@ To be concise, we'll show only filters (no wrapping queries) in the following ex
 </equal>
 ----
 
-
 .Traditional Java API
 [source,java]
 ----
@@ -564,7 +538,7 @@ Fluent Java API:
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_NAME).eqPoly("some-name", "somename").matchingOrig()
       .buildFilter();
 ----
@@ -581,11 +555,10 @@ Another example (we'll show only XML and fluent Java API from this point on):
 </equal>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_EMPLOYEE_TYPE).eq("STD", "TEMP")
       .buildFilter();
 ----
@@ -601,15 +574,13 @@ Comparing item to another item:
 </equal>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
       .buildFilter();
 ----
-
 
 ==== Comparisons
 
@@ -622,11 +593,10 @@ ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
 </greater>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_COST_CENTER).gt("100000")
       .buildFilter();
 ----
@@ -660,11 +630,10 @@ Or a more complex example:
 </or>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_COST_CENTER).gt("100000")
           .and().item(UserType.F_COST_CENTER).lt("999999")
       .or()
@@ -672,7 +641,6 @@ ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
           .and().item(UserType.F_COST_CENTER).le("X999")
       .buildFilter();
 ----
-
 
 ==== Substring filter
 
@@ -703,18 +671,16 @@ ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
 </or>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .item(UserType.F_EMPLOYEE_TYPE).contains("A")
       .or().item(UserType.F_EMPLOYEE_TYPE).startsWith("B")
       .or().item(UserType.F_EMPLOYEE_TYPE).endsWith("C")
       .or().item(UserType.F_NAME).startsWithPoly("john", "john").matchingOrig()
       .buildFilter();
 ----
-
 
 ==== Ref filter
 
@@ -750,7 +716,7 @@ In Java:
 PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE);
 reference3.setRelation(new QName("test"));
 
-ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(ShadowType.class)
       .item(ShadowType.F_RESOURCE_REF).ref("oid1")
       .or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
       .or().item(ShadowType.F_RESOURCE_REF).ref(reference3)
@@ -789,7 +755,6 @@ XML can be written also in alternative ways:
 </or>
 ----
 
-
 ==== Org filter
 
 .XML
@@ -799,7 +764,6 @@ XML can be written also in alternative ways:
     <isRoot>true</isRoot>
 </org>
 ----
-
 
 .XML
 [source,xml]
@@ -812,7 +776,6 @@ XML can be written also in alternative ways:
 </org>
 ----
 
-
 .XML
 [source,xml]
 ----
@@ -824,27 +787,25 @@ XML can be written also in alternative ways:
 </org>
 ----
 
+.Fluent Java API
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(OrgType.class).isRoot().buildFilter();
+----
 
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isRoot().buildFilter();
+ObjectFilter filter = prismContext.queryFor(OrgType.class)
+    .isChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
 ----
-
 
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
+ObjectFilter filter = prismContext.queryFor(OrgType.class)
+    .isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
 ----
-
-
-.Fluent Java API
-[source,java]
-----
-ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
-----
-
 
 ==== InOid
 
@@ -858,13 +819,14 @@ ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, prismContext).isDirec
 </inOid>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
-      .id("00000000-1111-2222-3333-444444444444", "00000000-1111-2222-3333-555555555555", "00000000-1111-2222-3333-666666666666")
-      .buildFilter();
+ObjectFilter filter = prismContext.queryFor(UserType.class)
+    .id("00000000-1111-2222-3333-444444444444",
+        "00000000-1111-2222-3333-555555555555",
+        "00000000-1111-2222-3333-666666666666")
+    .buildFilter();
 ----
 
 This one selects container values with ID 1, 2 or 3, having owner (object) with OID of "00000000-1111-2222-3333-777777777777".
@@ -885,16 +847,14 @@ This one selects container values with ID 1, 2 or 3, having owner (object) with 
 </and>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .id(1, 2, 3)
       .and().ownerId("00000000-1111-2222-3333-777777777777")
       .buildFilter();
 ----
-
 
 === Logical filters
 
@@ -919,11 +879,10 @@ An artificial example:
 </and>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+ObjectFilter filter = prismContext.queryFor(UserType.class)
       .block()
          .all()
          .or().none()
@@ -938,7 +897,6 @@ ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
             .endBlock()
       .buildFilter();
 ----
-
 
 === Type filter
 
@@ -956,16 +914,14 @@ ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
 </type>
 ----
 
-
 .Fluent Java API
 [source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(ObjectType.class, getPrismContext())
-      .type(UserType.class)
-         .item(UserType.F_NAME).eqPoly("somename", "somename")
-      .buildFilter();
+ObjectFilter filter = prismContext.queryFor(ObjectType.class)
+    .type(UserType.class)
+        .item(UserType.F_NAME).eqPoly("somename", "somename")
+    .buildFilter();
 ----
-
 
 === Exists filter
 
@@ -1012,13 +968,14 @@ It looks like this in XML:
 
 And in Java:
 
-[source]
+[source,java]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
         .exists(AccessCertificationCaseType.F_DECISION)
         .block()
             .item(AccessCertificationDecisionType.F_REVIEWER_REF).ref("123456")
-            .and().item(AccessCertificationDecisionType.F_STAGE_NUMBER).eq().item(PrismConstants.T_PARENT, AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER)
+            .and().item(AccessCertificationDecisionType.F_STAGE_NUMBER)
+                .eq().item(PrismConstants.T_PARENT, AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER)
             .and().block()
                 .item(AccessCertificationDecisionType.F_RESPONSE).isNull()
                 .or().item(AccessCertificationDecisionType.F_RESPONSE).eq(NO_RESPONSE)
@@ -1026,7 +983,6 @@ ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, p
         .endBlock()
         .buildFilter();
 ----
-
 
 === Expression filter
 
@@ -1048,7 +1004,6 @@ ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, p
 ----
 
 This example returns all objects with a name starting with "C".
-
 
 === Date filtering
 
@@ -1081,11 +1036,9 @@ This example returns all objects with a name starting with "C".
 
 This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 Decenber last year to 01 January of this year.
 
-
 === Paging
 
-Limiting the number of returned entries, offset etc.
-can be configured using paging.
+Limiting the number of returned entries, offset, etc., can be configured using paging.
 Following table shows paging options:
 
 [%autowidth]
@@ -1093,19 +1046,16 @@ Following table shows paging options:
 | Option | Possible values | Default value | Description
 
 | `orderBy`
-| property path (e.g. "name")
+| property path (e.g. `name`)
 | arbitrary search
 | Property by which the results should be sorted.
 Only one property supported for now
-
 
 | `ascending`
 | ascending/descending
 | ascending
 | Direction of ordering (ascending or descending).
-Only valid if "orderBy" is specified.
-
-
+Only valid if `orderBy` is specified.
 
 | `offset`
 | any Integer
@@ -1114,21 +1064,17 @@ Only valid if "orderBy" is specified.
 If 0 specified, resulting list will start with first entry.
 If 1 specified, resulting list will start with second entry.
 
-
 | `maxSize`
 | any Integer
 | 2147483647
 | The maximum number of entries returned.
-The operation may return specified number of number of entries or less.
-
-
+The operation may return specified number of entries or less.
 
 | `groupBy`
 | property path (e.g. "name)
 | no grouping
 | Property by which the results should be grouped.
 Just one property for now.
-
 
 |===
 
@@ -1150,12 +1096,9 @@ Following is the example for using paging in the query.
         <maxSize>1</maxSize>
     </q:paging>
 </q:query>
-
-
 ----
 
 Using example above will return first 10 records ordered by _name_ where _administrativeStatus_ is set to enabled.
-
 
 === Special symbols in item paths ("..", "@", "#")
 
@@ -1188,7 +1131,7 @@ The ".." symbol denotes "owning campaign".
 
 [source]
 ----
-ObjectFilter filter = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
         .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
         .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
         .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
@@ -1200,7 +1143,6 @@ PrismConstants.T\_PARENT is the QName for ".." path segment.
 Following example uses @ symbol to dereference linkRef to ShadowType in user object.
 This allows e.g. filtering users that have projection on specified resource.
 Please note, that @ has limitation towards general (any object type) usage and will work with statically defined types like ObjectType, FocusType, ShadowType.
-
 
 .XML
 [source,xml]
@@ -1226,13 +1168,117 @@ Another examples:
 </filter>
 ----
 
-UserType: linkRef/@/resourceRef/@/name contains 'CSV' (norm).
+UserType: `linkRef/@/resourceRef/@/name` contains 'CSV' (norm).
 
 .Java
-[source,xml]
+[source,java]
 ----
 ObjectQuery query = prismContext.queryFor(UserType.class)
 	.item(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE,
 		ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
 	.containsPoly("CSV").matchingNorm().build();
 ----
+
+== Org filter
+
+[NOTE]
+Java Query API is used in this section for brevity.
+
+First we reiterate the information from above:
+
+* Org filter is used for the whole object.
+Query can return organizations or other types assignable to organizations, depending on the filter
+specifics (see the table below).
+* Org filter works only for repository queries.
+* With `is(Direct)ChildOf` filters it is possible to filter on `relation` value as well.
+If relation is not stated, it matches any relation (this is different from normal ref filters).
+* Parameter of the `is(Direct)ChildOf` and `isParentOf` is an OID of another organization.
+With `isParentOf` it's not possible to search for organizations above, let's say, a user.
+
+[%autowidth]
+|===
+| Org filter | Possible `queryFor` type | Parameter | Notes
+
+| `isRoot`
+| `OrgType` only, not defined on non-org query
+| none
+| Matches orgs without any parent organization.
+Does not take any parameter.
+
+| `isChildOf`
+| `OrgType` or any type assignable to organization
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any object that is directly or indirectly under the organization specified in the parameter.
+If `relation` is specified (`isChildOf` with `PrismReferenceValue` parameter must be used for this)
+it filters the objects with their parent-org reference having the specified relation (the reference
+closest to the returned object, see picture below for example).
+
+// TODO returns itself? probably not, but clarify
+
+| `isDirectChildOf`
+| `OrgType` or any type assignable to organization
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any object that is directly under the organization.
+Technically, this means that the returned object must have a parent-org reference with the target
+pointing to the organization specified in the parameter of the filter.
+Just as in `isChildOf`, optional `relation` can be specified, here the semantics is obvious as there
+is only a single ref leading from possibly returned object to the org specified in the parameter.
+
+| `isParentOf`
+| `OrgType` only, not defined on non-org query
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any organization that is direct or indirect parent (ancestor) of the organization
+specified in the parameter.
+It is not possible to filter by `relation`, it is ignored if specified.
+
+|===
+
+Few examples of matching and not-matching filters are shown in the following picture:
+
+image::org-filters.png[]
+
+=== Relation matching examples
+
+Let's consider the following filter now:
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(ObjectType.class)
+    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
+    .buildFilter();
+----
+
+Let's use this simple organization structure where red arrows designate parent-org references with *X* relation:
+
+image::org-filters-relation.png[]
+
+Query with this filter returns objects with red border because the parent-org references they
+own have relation *X* (these would appear in object's serialized form as `parentOrgRef` elements).
+Other objects have references with different relations and are not returned.
+If `isChildOf(oidOrg1)` was used instead without specifying the relation, query would return all
+objects under *ORG 1*.
+
+Now let's change the object type for the query to `UserType`:
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(UserType.class)
+    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
+    .buildFilter();
+----
+
+The query returns *User 1-1-1_E* and *User 1-1_B* because only these have the right relation
+in their immediate (owned) parent-org reference and are of the requested type.
+
+Similarly, only the orgs with red border would be returned if `OrgType` was used instead.
+
+[IMPORTANT]
+====
+Only the parent-org reference *owned by the potentially matching object* is consulted.
+This does not mean that only leaves of the tree are returned, as demonstrated by *ORG 1-1* being
+returned (because its parent-org ref has the specifiec *X* relation).
+
+Notice, that *User 1-1-1_D* also has parent-org ref with relation *X* _somewhere on the path_ to
+the *ORG 1* (parameter of the `isChildOf` filter), but this does not matter as the reference it
+ownes (the one pointing to *Org 1-1-1*) has different relation.
+====
