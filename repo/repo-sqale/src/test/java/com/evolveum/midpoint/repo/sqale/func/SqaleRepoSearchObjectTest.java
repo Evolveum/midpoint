@@ -44,8 +44,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private String org21Oid;
     private String orgXOid; // under two orgs
 
-    private String user1Oid; // typical object
+    private String user1Oid; // user without org
     private String user2Oid; // different user, this one is in org
+    private String user3Oid; // another user in org
+    private String user4Oid; // another user in org
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
@@ -89,6 +91,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
         org21Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-2-1")
+                        .costCenter("5")
                         .parentOrgRef(org2Oid, OrgType.COMPLEX_TYPE)
                         .asPrismObject(),
                 null, result);
@@ -115,6 +118,19 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 new UserType(prismContext).name("user-2")
                         .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .asPrismObject(),
+                null, result);
+        user3Oid = repositoryService.addObject(
+                new UserType(prismContext).name("user-3")
+                        .costCenter("50")
+                        .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                        .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .asPrismObject(),
+                null, result);
+        user4Oid = repositoryService.addObject(
+                new UserType(prismContext).name("user-4")
+                        .costCenter("51")
+                        .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .asPrismObject(),
                 null, result);
         task1Oid = repositoryService.addObject(
@@ -256,6 +272,60 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize(2)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(org112Oid, user2Oid);
+    }
+
+    @Test
+    public void test215QueryForChildrenOfAnyType() throws SchemaException {
+        when("searching objects anywhere under an org");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .isChildOf(org2Oid)
+                        .build(),
+                operationResult);
+
+        then("all objects under the specified organization are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(4)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org21Oid, orgXOid, user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test216QueryForChildrenOfAnyTypeWithRelation() throws SchemaException {
+        when("searching objects anywhere under an org with specific relation");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .isChildOf(prismContext.itemFactory()
+                                .createReferenceValue(org2Oid).relation(relation1))
+                        .build(),
+                operationResult);
+
+        then("all objects under the specified organization with specified relation are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(1)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user3Oid);
+        // user-2 has another parent link with relation1, but not under org-2
+    }
+
+    @Test
+    public void test230QueryForChildrenOfAnyTypeWithAnotherCondition() throws SchemaException {
+        when("searching objects anywhere under an org");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                prismContext.queryFor(FocusType.class)
+                        .isChildOf(org2Oid)
+                        .and().item(FocusType.F_COST_CENTER).startsWith("5")
+                        .build(),
+                operationResult);
+
+        then("all objects under the specified organization matching other conditions are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org21Oid, user3Oid);
     }
 
     // TODO child/parent tests

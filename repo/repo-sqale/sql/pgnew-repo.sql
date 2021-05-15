@@ -597,22 +597,30 @@ CREATE INDEX m_ref_object_parent_org_targetOid_relation_id_idx
     ON m_ref_object_parent_org (targetOid, relation_id);
 
 -- region org-closure
--- Trigger on m_ref_object_parent_org refreshes this view.
--- This is not most performant, but it is *correct* and it's still WIP.
-
+/*
+Trigger on m_ref_object_parent_org refreshes this view.
+This is not most performant, but it is *correct* and it's still WIP.
+Closure contains also identity (org = org) entries because:
+* It's easier to do optimized matrix-multiplication based refresh with them later.
+* It actually makes some query easier and requires AND instead of OR conditions.
+* While the table shows that o => o (=> means "is parent of"), this is not the semantics
+of isParent/ChildOf searches and they never return parameter OID as a result.
+*/
 CREATE MATERIALIZED VIEW m_org_closure AS
 WITH RECURSIVE org_h (
     ancestor_oid, -- ref.targetoid
     descendant_oid --ref.owner_oid
     -- paths -- number of different paths, not used for materialized view version
-    -- TODO depth? if so, cycles must be checked in recursive term
+    -- depth -- possible later, but cycle detected must be added to the recursive term
 ) AS (
-    -- gather all organizations with parents
-    SELECT r.targetoid, r.owner_oid
-        FROM m_ref_object_parent_org r
-        WHERE r.owner_type = 'ORG'
+    -- non-recursive term:
+    -- Gather all organization oids and initialize identity lines (o => o).
+    SELECT o.oid, o.oid FROM m_org o
+        -- It's possible to exclude orgs not in parent-org-refs (either owner or target!),
+        -- but it's not a big deal and makes things simple for JOINs (no outer needed).
     UNION
-    -- generate their parents
+    -- recursive (iterative) term:
+    -- Generate their parents (anc => desc, that is target => owner), => means "is parent of".
     SELECT par.targetoid, chi.descendant_oid -- leaving original child there generates closure
         FROM m_ref_object_parent_org as par, org_h as chi
         WHERE par.owner_oid = chi.ancestor_oid

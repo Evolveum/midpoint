@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -45,8 +46,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         QObject<?> objectPath = (QObject<?>) path;
         if (filter.isRoot()) {
             QObjectReference<MObject> ref = getNewRefAlias();
-            return new SQLQuery<>().select(Expressions.constant(1))
-                    .from(ref)
+            return subQuery(ref)
                     .where(ref.ownerOid.eq(objectPath.oid))
                     .notExists();
         }
@@ -68,8 +68,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
 
         if (filter.getScope() == OrgFilter.Scope.ONE_LEVEL) {
             QObjectReference<MObject> ref = getNewRefAlias();
-            SQLQuery<Integer> subQuery = new SQLQuery<>().select(Expressions.constant(1))
-                    .from(ref)
+            SQLQuery<Integer> subQuery = subQuery(ref)
                     .where(ref.ownerOid.eq(objectPath.oid)
                             .and(ref.targetOid.eq(UUID.fromString(oidParam))));
             if (relationId != null) {
@@ -77,8 +76,16 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
             }
             return subQuery.exists();
         } else if (filter.getScope() == OrgFilter.Scope.SUBTREE) {
-            throw new UnsupportedOperationException();
-            // TODO
+            QObjectReference<MObject> ref = getNewRefAlias();
+            QOrgClosure oc = getNewClosureAlias();
+            SQLQuery<Integer> subQuery = subQuery(ref)
+                    .join(oc).on(oc.descendantOid.eq(ref.targetOid))
+                    .where(ref.ownerOid.eq(objectPath.oid)
+                        .and(oc.ancestorOid.eq(UUID.fromString(oidParam))));
+            if (relationId != null) {
+                subQuery.where(ref.relationId.eq(relationId));
+            }
+            return subQuery.exists();
         } else if (filter.getScope() == OrgFilter.Scope.ANCESTORS) {
             throw new UnsupportedOperationException();
             // TODO
@@ -87,10 +94,21 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         }
     }
 
+    private SQLQuery<Integer> subQuery(FlexibleRelationalPathBase<?> entityPath) {
+        return new SQLQuery<>().select(Expressions.constant(1))
+                .from(entityPath);
+    }
+
     private QObjectReference<MObject> getNewRefAlias() {
-        var refMapping = QObjectReferenceMapping.getForParentOrg();
+        QObjectReferenceMapping<QObject<MObject>, MObject> refMapping =
+                QObjectReferenceMapping.getForParentOrg();
         QObjectReference<MObject> ref = refMapping.newAlias(
                 context.uniqueAliasName(refMapping.defaultAliasName()));
         return ref;
+    }
+
+    private QOrgClosure getNewClosureAlias() {
+        return new QOrgClosure(
+                context.uniqueAliasName(QOrgClosure.DEFAULT_ALIAS_NAME));
     }
 }
