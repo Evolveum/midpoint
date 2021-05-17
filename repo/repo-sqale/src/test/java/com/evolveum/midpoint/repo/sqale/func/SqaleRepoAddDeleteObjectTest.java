@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -1118,6 +1122,58 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
     }
+
+    @Test
+    public void test850Case() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("case");
+        String objectName = "case" + getTestNumber();
+        UUID parentOid = UUID.randomUUID();
+        QName parentRelation = QName.valueOf("{https://random.org/ns}case-parent-rel");
+        UUID objectOid = UUID.randomUUID();
+        QName objectRelation = QName.valueOf("{https://random.org/ns}case-object-rel");
+        UUID requestorOid = UUID.randomUUID();
+        QName requestorRelation = QName.valueOf("{https://random.org/ns}case-requestor-rel");
+        UUID targetOid = UUID.randomUUID();
+        QName targetRelation = QName.valueOf("{https://random.org/ns}case-target-rel");
+
+        CaseType acase = new CaseType(prismContext)
+                .name(objectName)
+                .state("closed")
+                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(321L))
+                .parentRef(parentOid.toString(),
+                        CaseType.COMPLEX_TYPE, parentRelation)
+                .objectRef(objectOid.toString(),
+                        RoleType.COMPLEX_TYPE, objectRelation)
+                .requestorRef(requestorOid.toString(),
+                        UserType.COMPLEX_TYPE, requestorRelation)
+                .targetRef(targetOid.toString(),
+                        OrgType.COMPLEX_TYPE, targetRelation);
+
+        when("adding it to the repository");
+        repositoryService.addObject(acase.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MCase row = selectObjectByOid(QCase.class, acase.getOid());
+        assertThat(row.state).isEqualTo("closed");
+        assertThat(row.closeTimestamp).isEqualTo(Instant.ofEpochMilli(321));
+        assertThat(row.parentRefTargetOid).isEqualTo(parentOid);
+        assertThat(row.parentRefTargetType).isEqualTo(MObjectType.CASE);
+        assertCachedUri(row.parentRefRelationId, parentRelation);
+        assertThat(row.objectRefTargetOid).isEqualTo(objectOid);
+        assertThat(row.objectRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(row.objectRefRelationId, objectRelation);
+        assertThat(row.requestorRefTargetOid).isEqualTo(requestorOid);
+        assertThat(row.requestorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.requestorRefRelationId, requestorRelation);
+        assertThat(row.targetRefTargetOid).isEqualTo(targetOid);
+        assertThat(row.targetRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(row.targetRefRelationId, targetRelation);
+    }
+
     // endregion
 
     // region delete tests
