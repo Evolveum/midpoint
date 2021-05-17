@@ -81,14 +81,18 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
             SQLQuery<Integer> subQuery = subQuery(ref)
                     .join(oc).on(oc.descendantOid.eq(ref.targetOid))
                     .where(ref.ownerOid.eq(objectPath.oid)
-                        .and(oc.ancestorOid.eq(UUID.fromString(oidParam))));
+                            .and(oc.ancestorOid.eq(UUID.fromString(oidParam))));
             if (relationId != null) {
                 subQuery.where(ref.relationId.eq(relationId));
             }
             return subQuery.exists();
         } else if (filter.getScope() == OrgFilter.Scope.ANCESTORS) {
-            throw new UnsupportedOperationException();
-            // TODO
+            QOrgClosure oc = getNewClosureAlias();
+            return subQuery(oc)
+                    .where(oc.ancestorOid.eq(objectPath.oid)
+                            .and(oc.descendantOid.eq(UUID.fromString(oidParam)))
+                            .and(oc.ancestorOid.ne(oc.descendantOid)))
+                    .exists();
         } else {
             throw new QueryException("Unknown scope if org filter: " + filter);
         }
@@ -102,9 +106,8 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
     private QObjectReference<MObject> getNewRefAlias() {
         QObjectReferenceMapping<QObject<MObject>, MObject> refMapping =
                 QObjectReferenceMapping.getForParentOrg();
-        QObjectReference<MObject> ref = refMapping.newAlias(
+        return refMapping.newAlias(
                 context.uniqueAliasName(refMapping.defaultAliasName()));
-        return ref;
     }
 
     private QOrgClosure getNewClosureAlias() {

@@ -73,7 +73,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
         org111Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-1-1-1")
-                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE)
+                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation2)
                         .asPrismObject(),
                 null, result);
         org112Oid = repositoryService.addObject(
@@ -308,6 +308,73 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user3Oid);
         // user-2 has another parent link with relation1, but not under org-2
+    }
+
+    @Test
+    public void test220QueryForParents() throws SchemaException {
+        when("searching parents of an org");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .isParentOf(org112Oid)
+                        .build(),
+                operationResult);
+
+        then("all ancestors of the specified organization are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org11Oid, org1Oid);
+    }
+
+    @Test
+    public void test221QueryForParentsWithOrgSupertype() throws SchemaException {
+        when("searching parents of an org using more abstract type");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .isParentOf(org112Oid)
+                        .build(),
+                operationResult);
+
+        then("returns orgs but as supertype  instances");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org11Oid, org1Oid);
+    }
+
+    @Test
+    public void test222QueryForParentsUsingOtherType() throws SchemaException {
+        when("searching parents of an org using unrelated type");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .isParentOf(org112Oid)
+                        .build(),
+                operationResult);
+
+        then("returns nothing (officially the behaviour is undefined)");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test223QueryForParentIgnoresRelation() throws SchemaException {
+        when("searching parents of an org with specified relation");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .isParentOf(prismContext.itemFactory()
+                                .createReferenceValue(org112Oid).relation(relation2))
+                        .build(),
+                operationResult);
+
+        then("all ancestors are returned, ignoring provided relation");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(org11Oid, org1Oid);
     }
 
     @Test
