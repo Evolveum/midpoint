@@ -15,11 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -43,6 +45,13 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+        assertThat(count(QOrg.CLASS)).isZero();
+        assertThat(count(new QOrgClosure())).isZero();
+
         createOrgsFor(null, 5, 6, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -52,6 +61,7 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
             OrgType parent, int levels, int typicalCountPerLevel, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
         if (levels == 0) {
+            // typical count is used as max for user generation
             createUsersFor(parent, typicalCountPerLevel, result);
             return;
         }
@@ -73,9 +83,9 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
         }
     }
 
-    private void createUsersFor(OrgType parent, int typicalCountPerLevel, OperationResult result)
+    private void createUsersFor(OrgType parent, int maxCountPerLevel, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
-        int users = RANDOM.nextInt(typicalCountPerLevel) + typicalCountPerLevel / 2 + 1;
+        int users = RANDOM.nextInt(maxCountPerLevel) + 1;
         for (int i = 1; i <= users; i++) {
             repositoryService.addObject(
                     new UserType(prismContext).name("user" + parent.getName() + "v" + i)
@@ -89,19 +99,31 @@ public class OrgHierarchyPerfTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    // TODO
     public void test100Xxx() throws Exception {
-        when("...");
-//        OperationResult operationResult = createOperationResult();
-//        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-//                prismContext.queryFor(ObjectType.class)
-//                        .build(),
-//                operationResult);
+        given("there are orgs and users, closure is not yet updated");
+        OperationResult operationResult = createOperationResult();
+        display("Orgs: " + count(QOrg.CLASS));
+        display("Users: " + count(QUser.class));
+        assertThat(count(new QOrgClosure())).isZero();
+        OrgType org1x1x1 = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .item(ObjectType.F_NAME).eq(PolyString.fromOrig("org1x1x1"))
+                        .build(),
+                operationResult).get(0);
 
-        then("...");
-        System.out.println("Orgs: " + count(QOrg.CLASS));
-        System.out.println("Org closure: " + count(new QOrgClosure()));
-        System.out.println("Users: " + count(QUser.class));
+        when("search for user under some org is initiated");
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .isChildOf(org1x1x1.getOid())
+                        .build(),
+                operationResult);
+
+        then("non-empty result is returned and org closure has been initialized");
+        assertThat(result).isNotEmpty();
+        assertThat(count(new QOrgClosure())).isPositive();
+        display("Orgs: " + count(QOrg.CLASS));
+        display("Org closure: " + count(new QOrgClosure()));
+        display("Users: " + count(QUser.class));
     }
 
     // support methods

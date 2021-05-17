@@ -37,6 +37,8 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
 
     @Override
     public Predicate process(OrgFilter filter) throws QueryException {
+        context.markContainsOrgFilter(); // necessary for lazy refresh of org closure
+
         FlexibleRelationalPathBase<?> path = context.root();
         if (!(path instanceof QObject)) {
             throw new QueryException("Org filter can only be used for objects,"

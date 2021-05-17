@@ -194,31 +194,22 @@ select * from m_global_metadata
 
 refresh materialized view m_org_closure;
 
-WITH RECURSIVE org_h(ancestor_oid, descendant_oid) AS (
-    SELECT r.targetoid,
-        r.owner_oid
-    FROM m_ref_object_parent_org r
-    WHERE r.owner_type = 'ORG'::objecttype
-    UNION
-    SELECT par.targetoid,
-        chi.descendant_oid
-    FROM m_ref_object_parent_org par,
-        org_h chi
-    WHERE par.owner_oid = chi.ancestor_oid
-)
-SELECT count(*) FROM org_h;
-
 select * from m_org;
 select count(*) from m_org;
-select count(*) from m_user;
 select count(*) from m_org_closure;
+select count(*) from m_user;
+
+-- Perf test adding orgs:
+-- trigger with refresh: orgs/closure: 15125/72892 29m31s, ~8.5 orgs/s (most late addObject took ~220ms)
+-- empty trigger: orgs/closure: 14052/67735 (after manual refresh taking ~230 ms) 31s, ~450 orgs/s
+-- trigger with mark: orgs/closure: 14573/70225 (after m_refresh_org_closure ~300 ms) 32s, ~455 orgs/s
+-- trigger with mark: orgs/closure: 59711/291099 (after refresh ~1.9s), 2m13s, ~450 orgs/s
+
+select * from m_org o
+    where not exists (select 1 from m_ref_object_parent_org po where po.owner_oid = o.oid);
 
 select * from m_org_closure;
 
-select * from m_object where oid = '62d6f1db-7b97-40de-bfbd-d325020597a0'
-;
+select * FROM m_global_metadata;
 
-select * from m_ref_object_parent_org;
-
-truncate m_ref_object_parent_org;
-select * from m_org_closure_internal;
+CALL m_refresh_org_closure(true);

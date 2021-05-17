@@ -44,10 +44,17 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         super(entityPath, mapping, sqlRepoContext, query);
     }
 
+    private AuditSqlQueryContext(
+            Q entityPath,
+            QueryTableMapping<S, Q, R> mapping,
+            AuditSqlQueryContext<?, ?, ?> parentContext) {
+        super(entityPath, mapping, parentContext);
+    }
+
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new AuditSqlQueryContext<>(
-                newPath, newMapping, repositoryContext(), sqlQuery);
+                newPath, newMapping, this);
     }
 }

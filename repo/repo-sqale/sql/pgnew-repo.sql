@@ -121,10 +121,10 @@ CREATE TYPE TimeIntervalStatusType AS ENUM ('BEFORE', 'IN', 'AFTER');
 -- select * from pg_available_extensions order by name;
 DO $$
 BEGIN
-    perform pg_get_functiondef('gen_random_uuid()'::regprocedure);
-    raise notice 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
+    PERFORM pg_get_functiondef('gen_random_uuid()'::regprocedure);
+    RAISE NOTICE 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
 EXCEPTION WHEN undefined_function THEN
-    create EXTENSION pgcrypto;
+    CREATE EXTENSION pgcrypto;
 END
 $$;
 
@@ -142,9 +142,9 @@ CREATE OR REPLACE FUNCTION insert_object_oid()
 AS $$
 BEGIN
     IF NEW.oid IS NOT NULL THEN
-        insert into m_object_oid values (NEW.oid);
+        INSERT INTO m_object_oid VALUES (NEW.oid);
     ELSE
-        insert into m_object_oid DEFAULT VALUES RETURNING oid INTO NEW.oid;
+        INSERT INTO m_object_oid DEFAULT VALUES RETURNING oid INTO NEW.oid;
     END IF;
     -- before trigger must return NEW row to do something
     RETURN NEW;
@@ -183,7 +183,13 @@ END
 $$;
 -- endregion
 
--- region Enumeration/code tables
+-- region Enumeration/code/management tables
+-- Key -> value config table for internal use.
+CREATE TABLE m_global_metadata (
+    name TEXT PRIMARY KEY,
+    value TEXT
+);
+
 -- Catalog of often used URIs, typically channels and relation Q-names.
 -- Never update values of "uri" manually to change URI for some objects
 -- (unless you really want to migrate old URI to a new one).
@@ -614,10 +620,12 @@ WITH RECURSIVE org_h (
     -- depth -- possible later, but cycle detected must be added to the recursive term
 ) AS (
     -- non-recursive term:
-    -- Gather all organization oids and initialize identity lines (o => o).
+    -- Gather all organization oids from parent-org refs and initialize identity lines (o => o).
+    -- We don't want the orgs not in org hierarchy, that would require org triggers too.
     SELECT o.oid, o.oid FROM m_org o
-        -- It's possible to exclude orgs not in parent-org-refs (either owner or target!),
-        -- but it's not a big deal and makes things simple for JOINs (no outer needed).
+        WHERE EXISTS(
+            SELECT 1 FROM m_ref_object_parent_org r
+                WHERE r.targetOid = o.oid OR r.owner_oid = o.oid)
     UNION
     -- recursive (iterative) term:
     -- Generate their parents (anc => desc, that is target => owner), => means "is parent of".
@@ -634,25 +642,55 @@ CREATE INDEX m_org_closure_desc_asc_idx
     ON m_org_closure (descendant_oid, ancestor_oid);
 
 -- The trigger for m_ref_object_parent_org that flags the view for refresh.
-CREATE OR REPLACE FUNCTION m_org_closure_refresh()
+CREATE OR REPLACE FUNCTION mark_org_closure_for_refresh()
     RETURNS trigger
     LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'TRUNCATE' OR OLD.owner_type = 'ORG' OR NEW.owner_type = 'ORG' THEN
-        REFRESH MATERIALIZED VIEW m_org_closure;
+        INSERT INTO m_global_metadata VALUES ('orgClosureRefreshNeeded', 'true')
+            ON CONFLICT (name) DO UPDATE SET value = 'true';
     END IF;
 
     -- after trigger returns null
     RETURN NULL;
 END $$;
 
-CREATE TRIGGER m_ref_object_parent_org_refresh_tr
+CREATE TRIGGER m_ref_object_parent_mark_refresh_tr
     AFTER INSERT OR UPDATE OR DELETE ON m_ref_object_parent_org
-    FOR EACH ROW EXECUTE PROCEDURE m_org_closure_refresh();
-CREATE TRIGGER m_ref_object_parent_org_trunc_refresh_tr
+    FOR EACH ROW EXECUTE PROCEDURE mark_org_closure_for_refresh();
+CREATE TRIGGER m_ref_object_parent_mark_refresh_trunc_tr
     AFTER TRUNCATE ON m_ref_object_parent_org
-    FOR EACH STATEMENT EXECUTE PROCEDURE m_org_closure_refresh();
+    FOR EACH STATEMENT EXECUTE PROCEDURE mark_org_closure_for_refresh();
+
+-- This procedure for conditional refresh when needed is called from the application code.
+-- The refresh can be forced, e.g. after many changes with triggers off (or just to be sure).
+CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    flag_val text;
+BEGIN
+    SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+    IF flag_val = 'true' OR force THEN
+        -- We use advisory session lock only for the check + refresh, then release it immediately.
+        -- This can still dead-lock two transactions in a single thread on the select/delete combo,
+        -- (I mean, who would do that?!) but works fine for parallel transactions.
+        PERFORM pg_advisory_lock(47);
+        BEGIN
+            SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+            IF flag_val = 'true' OR force THEN
+                REFRESH MATERIALIZED VIEW m_org_closure;
+                DELETE FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+            END IF;
+            PERFORM pg_advisory_unlock(47);
+        EXCEPTION WHEN OTHERS THEN
+            -- Whatever happens we definitely want to release the lock.
+            PERFORM pg_advisory_unlock(47);
+            RAISE;
+        END;
+    END IF;
+END; $$;
 -- endregion
 -- endregion
 
@@ -2067,11 +2105,6 @@ create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 */
 
 -- region Schema versioning and upgrading
-CREATE TABLE m_global_metadata (
-    name TEXT PRIMARY KEY,
-    value TEXT
-);
-
 /*
 Procedure applying a DB schema/data change. Use sequential change numbers to identify the changes.
 This protects re-execution of the same change on the same database instance.

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
+
+    private boolean containsOrgFilter = false;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType,
@@ -47,6 +50,13 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         super(entityPath, mapping, sqlRepoContext, query);
     }
 
+    private SqaleQueryContext(
+            Q entityPath,
+            SqaleTableMapping<S, Q, R> mapping,
+            SqaleQueryContext<?, ?, ?> parentContext) {
+        super(entityPath, mapping, parentContext);
+    }
+
     @Override
     public SqaleRepoContext repositoryContext() {
         return (SqaleRepoContext) super.repositoryContext();
@@ -66,6 +76,14 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         return repositoryContext().searchCachedRelationId(qName);
     }
 
+    public void markContainsOrgFilter() {
+        containsOrgFilter = true;
+        SqaleQueryContext<?, ?, ?> parentContext = parentContext();
+        if (parentContext != null) {
+            parentContext.markContainsOrgFilter();
+        }
+    }
+
     /**
      * Returns derived {@link SqaleQueryContext} for join or subquery.
      */
@@ -75,7 +93,21 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         return new SqaleQueryContext<>(
                 newPath,
                 (SqaleTableMapping<TS, TQ, TR>) newMapping,
-                repositoryContext(),
-                sqlQuery);
+                this);
+    }
+
+    @Override
+    public SqaleQueryContext<?, ?, ?> parentContext() {
+        return (SqaleQueryContext<?, ?, ?>) super.parentContext();
+    }
+
+    @Override
+    public void beforeQuery() {
+        if (containsOrgFilter) {
+            try (JdbcSession jdbcSession = repositoryContext().newJdbcSession().startTransaction()) {
+                jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+                jdbcSession.commit();
+            }
+        }
     }
 }
