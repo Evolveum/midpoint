@@ -1093,19 +1093,19 @@ CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 
 CREATE TABLE m_case_wi (
-  id                                INTEGER        NOT NULL,
-  owner_oid                         UUID NOT NULL,
-  closeTimestamp                    TIMESTAMPTZ,
-  createTimestamp                   TIMESTAMPTZ,
-  deadline                          TIMESTAMPTZ,
-  originalAssigneeRef_relation      VARCHAR(157),
-  originalAssigneeRef_targetOid     UUID,
-  originalAssigneeRef_targetType    INTEGER,
-  outcome                           TEXT,
-  performerRef_relation             VARCHAR(157),
-  performerRef_targetOid            UUID,
-  performerRef_targetType           INTEGER,
-  stageNumber                       INTEGER,
+  id INTEGER NOT NULL,
+  owner_oid UUID NOT NULL,
+  closeTimestamp TIMESTAMPTZ,
+  createTimestamp TIMESTAMPTZ,
+  deadline TIMESTAMPTZ,
+  originalAssigneeRefTargetOid UUID,
+  originalAssigneeRefTargetType ObjectType,
+  originalAssigneeRefRelationId INTEGER REFERENCES m_uri(id),
+  outcome TEXT,
+  performerRefTargetOid UUID,
+  performerRefTargetType ObjectType,
+  performerRefRelationId INTEGER REFERENCES m_uri(id),
+  stageNumber INTEGER,
   PRIMARY KEY (owner_oid, id)
 );
 

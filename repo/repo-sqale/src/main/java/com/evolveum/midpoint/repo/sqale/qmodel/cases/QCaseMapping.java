@@ -6,19 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
-
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 /**
  * Mapping between {@link QCase} and {@link CaseType}.
