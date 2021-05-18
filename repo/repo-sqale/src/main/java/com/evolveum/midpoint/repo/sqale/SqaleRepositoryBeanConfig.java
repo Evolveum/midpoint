@@ -182,11 +182,9 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryService repositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         return new SqaleRepositoryService(
                 sqlRepoContext,
-                schemaService,
                 sqlPerformanceMonitorsCollection);
     }
 

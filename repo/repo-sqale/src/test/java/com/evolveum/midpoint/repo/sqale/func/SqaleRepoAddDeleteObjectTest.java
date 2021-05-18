@@ -18,17 +18,16 @@ import java.util.List;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
-
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -58,6 +57,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
@@ -189,6 +190,25 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isFatalError()
                 .hasMessageMatching("Provided OID .* already exists");
         assertCount(QUser.class, baseCount);
+    }
+
+    @Test
+    public void test150AddOperationUpdatesPerformanceMonitor()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("object to add and cleared performance information");
+        UserType userType = new UserType(prismContext).name("user" + getTestNumber());
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is added to the repository");
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -320,7 +340,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String userName = "user" + getTestNumber();
         UUID approverRef1 = UUID.randomUUID();
         UUID approverRef2 = UUID.randomUUID();
-        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel"); // TODO
+        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel");
         UserType user = new UserType(prismContext)
                 .name(userName)
                 .assignment(new AssignmentType()

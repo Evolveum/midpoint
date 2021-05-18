@@ -12,7 +12,9 @@ import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPath
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,12 +62,33 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     public void test100AddObject() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
+        when("correct object is added to the repository");
         UserType userType = new UserType(prismContext)
                 .name("sanity-user");
         sanityUserOid = repositoryService.addObject(userType.asPrismObject(), null, result);
 
+        then("added object is assigned OID and operation is success");
         assertThat(sanityUserOid).isNotNull();
+        assertThat(userType.getOid()).isEqualTo(sanityUserOid);
         assertThatOperationResult(result).isSuccess();
+    }
+
+    @Test
+    public void test200GetObject() throws SchemaException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("cleared performance information");
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("getObject is called for known OID");
+        PrismObject<UserType> object =
+                repositoryService.getObject(UserType.class, sanityUserOid, null, result);
+
+        then("object is obtained and performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_GET_OBJECT);
     }
 
     @Test(enabled = false) // TODO deleteObject not implemented yet
