@@ -10,11 +10,15 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
 
@@ -28,16 +32,26 @@ public class QCaseWorkItemMapping<OR extends MCase>
 
     public static final String DEFAULT_ALIAS_NAME = "cswi";
 
-    private final MContainerType containerType;
+    private static QCaseWorkItemMapping<?> instance;
+
+    public static <OR extends MCase> QCaseWorkItemMapping<OR> init(
+            @NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QCaseWorkItemMapping<>(repositoryContext);
+        }
+        return get();
+    }
+
+    public static <OR extends MCase> QCaseWorkItemMapping<OR> get() {
+        //noinspection unchecked
+        return (QCaseWorkItemMapping<OR>) Objects.requireNonNull(instance);
+    }
 
     // We can't declare Class<QCaseWorkItem<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private QCaseWorkItemMapping(
-            @NotNull MContainerType containerType,
-            @NotNull SqaleRepoContext repositoryContext) {
+    private QCaseWorkItemMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCaseWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 CaseWorkItemType.class, (Class) QCaseWorkItem.class, repositoryContext);
-        this.containerType = containerType;
 
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         addItemMapping(F_CREATE_TIMESTAMP, timestampMapper(q -> q.createTimestamp));
@@ -68,7 +82,6 @@ public class QCaseWorkItemMapping<OR extends MCase>
     @Override
     public MCaseWorkItem newRowObject() {
         MCaseWorkItem row = new MCaseWorkItem();
-        row.containerType = this.containerType;
         return row;
     }
 
