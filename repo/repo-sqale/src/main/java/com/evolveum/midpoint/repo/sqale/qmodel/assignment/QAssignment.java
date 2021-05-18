@@ -40,29 +40,29 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public static final String TABLE_NAME = "m_assignment";
 
     public static final ColumnMetadata OWNER_TYPE =
-            ColumnMetadata.named("owner_type").ofType(Types.OTHER);
+            ColumnMetadata.named("ownerType").ofType(Types.OTHER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR);
     public static final ColumnMetadata ORDER_VALUE =
             ColumnMetadata.named("orderValue").ofType(Types.INTEGER);
     public static final ColumnMetadata ORG_REF_TARGET_OID =
-            ColumnMetadata.named("orgRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("orgRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata ORG_REF_TARGET_TYPE =
-            ColumnMetadata.named("orgRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("orgRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata ORG_REF_RELATION_ID =
-            ColumnMetadata.named("orgRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("orgRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_REF_TARGET_OID =
-            ColumnMetadata.named("targetRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("targetRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TARGET_REF_TARGET_TYPE =
-            ColumnMetadata.named("targetRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("targetRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TARGET_REF_RELATION_ID =
-            ColumnMetadata.named("targetRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("targetRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
-            ColumnMetadata.named("tenantRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("tenantRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
-            ColumnMetadata.named("tenantRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("tenantRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
-            ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("tenantRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata EXT_ID =
             ColumnMetadata.named("extId").ofType(Types.INTEGER);
     // TODO UUID or not? our control or outside?
@@ -73,11 +73,11 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
     // construction columns
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
-            ColumnMetadata.named("resourceRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("resourceRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata RESOURCE_REF_TARGET_TYPE =
-            ColumnMetadata.named("resourceRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("resourceRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata RESOURCE_REF_RELATION_ID =
-            ColumnMetadata.named("resourceRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("resourceRefRelationId").ofType(Types.INTEGER);
     // activation columns
     public static final ColumnMetadata ADMINISTRATIVE_STATUS =
             ColumnMetadata.named("administrativeStatus").ofType(Types.OTHER);
@@ -101,23 +101,23 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     // metadata columns
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
-            ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("creatorRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("creatorRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("creatorRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata CREATOR_REF_RELATION_ID =
-            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("creatorRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_CHANNEL_ID =
-            ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("createChannelId").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_TIMESTAMP =
             ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
-            ColumnMetadata.named("modifierRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("modifierRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
-            ColumnMetadata.named("modifierRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("modifierRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
-            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("modifierRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
-            ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("modifyChannelId").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 

@@ -22,7 +22,7 @@ public class QGenericObject extends QFocus<MGenericObject> {
     public static final String TABLE_NAME = "m_generic_object";
 
     public static final ColumnMetadata GENERIC_OBJECT_TYPE_ID =
-            ColumnMetadata.named("genericObjectType_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("genericObjectTypeId").ofType(Types.INTEGER);
 
     public final NumberPath<Integer> genericObjectTypeId =
             createInteger("genericObjectTypeId", GENERIC_OBJECT_TYPE_ID);

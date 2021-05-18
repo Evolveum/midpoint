@@ -295,11 +295,11 @@ Insert performance measurements:
 
 [source,sql]
 ----
-INSERT INTO m_user (name_norm, name_orig, version)
+INSERT INTO m_user (nameNorm, nameOrig, version)
   VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
 ----
 
-Both name columns are indexed, `name_norm` is also unique.
+Both name columns are indexed, `nameNorm` is also unique.
 Loop is used to INSERT the rows, which is slower than `INSERT from SELECT` with `generate_series`,
 but closer to real scenario that uses separate statements (although there are no round-trips here).
 
