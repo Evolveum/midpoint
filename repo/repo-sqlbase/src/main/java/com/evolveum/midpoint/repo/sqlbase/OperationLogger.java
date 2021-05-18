@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqlbase;
 
 import java.util.Collection;
 
@@ -23,10 +23,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author semancik
- *
- */
 public class OperationLogger {
 
     private static final Trace LOGGER_OP = TraceManager.getTrace("com.evolveum.midpoint.repo.operation");
@@ -40,25 +36,36 @@ public class OperationLogger {
                 object.debugDump(1));
     }
 
-    public static <O extends ObjectType> void logModify(Class<O> type, String oid, Collection<? extends ItemDelta> modifications,
-            ModificationPrecondition<O> precondition, RepoModifyOptions options, OperationResult subResult) {
+    public static <O extends ObjectType> void logModify(
+            Class<O> type,
+            String oid,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            ModificationPrecondition<O> precondition,
+            RepoModifyOptions options,
+            OperationResult subResult) {
         if (!LOGGER_OP.isDebugEnabled()) {
             return;
         }
         LOGGER_OP.debug("{} modify {} {}{}{}: {}\n{}", PREFIX, type.getSimpleName(), oid,
                 shortDumpOptions(options),
-                precondition == null ? "" : " precondition="+precondition+", ",
+                precondition == null ? "" : " precondition=" + precondition + ", ",
                 getStatus(subResult),
                 DebugUtil.debugDump(modifications, 1, false));
     }
 
-    public static <O extends ObjectType> void logModifyDynamically(Class<O> type, String oid,
-            ModifyObjectResult<?> modifyObjectResult, Collection<SelectorOptions<GetOperationOptions>> getOptions,
-            RepoModifyOptions modifyOptions, OperationResult result) {
+    public static <O extends ObjectType> void logModifyDynamically(
+            Class<O> type,
+            String oid,
+            ModifyObjectResult<?> modifyObjectResult,
+            RepoModifyOptions modifyOptions,
+            OperationResult result) {
         if (!LOGGER_OP.isDebugEnabled()) {
             return;
         }
-        Collection<? extends ItemDelta> modifications = modifyObjectResult != null ? modifyObjectResult.getModifications() : null;
+        Collection<? extends ItemDelta<?, ?>> modifications =
+                modifyObjectResult != null
+                        ? modifyObjectResult.getModifications()
+                        : null;
         LOGGER_OP.debug("{} modify dynamically {} {}{}: {}\n{}", PREFIX, type.getSimpleName(), oid,
                 shortDumpOptions(modifyOptions),
                 getStatus(result),
@@ -86,7 +93,7 @@ public class OperationLogger {
         if (options == null) {
             return "";
         } else {
-            return " ["+options.shortDump()+"]";
+            return " [" + options.shortDump() + "]";
         }
     }
 
@@ -111,5 +118,4 @@ public class OperationLogger {
             return subResult.getStatus().toString() + ": " + message;
         }
     }
-
 }

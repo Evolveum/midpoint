@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqlbase.OperationLogger;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang3.Validate;
@@ -413,7 +414,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
         int restarts = 0;
         try {
-            // TODO use executeAttempts
             final String operation = "adding";
 
             String proposedOid = object.getOid();
@@ -703,7 +703,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             pm.registerOperationFinish(opHandle, attempt);
             throw t;
         } finally {
-            OperationLogger.logModifyDynamically(type, oid, rv, getOptions, modifyOptions, result);
+            OperationLogger.logModifyDynamically(type, oid, rv, modifyOptions, result);
         }
     }
 
