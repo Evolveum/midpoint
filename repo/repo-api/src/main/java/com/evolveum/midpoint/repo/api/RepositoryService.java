@@ -112,6 +112,7 @@ public interface RepositoryService {
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
 
     String OP_ADD_OBJECT = "addObject";
+    String OP_ADD_OBJECT_OVERWRITE = "addObjectOverwrite"; // addObject with overwrite option
     String OP_DELETE_OBJECT = "deleteObject";
     String OP_COUNT_OBJECTS = "countObjects";
     String OP_MODIFY_OBJECT = "modifyObject";

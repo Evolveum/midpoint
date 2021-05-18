@@ -19,9 +19,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqlbase.OperationLogger;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -44,6 +41,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.OperationLogger;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -56,6 +54,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -410,7 +409,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .build();
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
+        long opHandle = pm.registerOperationStart(
+                options.isOverwrite() ? OP_ADD_OBJECT_OVERWRITE : OP_ADD_OBJECT,
+                object.getCompileTimeClass());
         int attempt = 1;
         int restarts = 0;
         try {

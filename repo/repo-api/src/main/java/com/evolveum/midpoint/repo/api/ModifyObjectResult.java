@@ -31,7 +31,7 @@ public class ModifyObjectResult<T extends ObjectType> {
 
     private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
-    private final Collection<? extends ItemDelta> modifications;
+    private final Collection<? extends ItemDelta<?, ?>> modifications;
 
     /**
      * Performance record for the current operation.
@@ -39,12 +39,12 @@ public class ModifyObjectResult<T extends ObjectType> {
      */
     private OperationRecord performanceRecord;
 
-    public ModifyObjectResult(Collection<? extends ItemDelta> modifications) {
+    public ModifyObjectResult(Collection<? extends ItemDelta<?, ?>> modifications) {
         this(null, null, modifications);
     }
 
     public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
-            Collection<? extends ItemDelta> modifications) {
+            Collection<? extends ItemDelta<?, ?>> modifications) {
         this.objectBefore = objectBefore;
         this.objectAfter = objectAfter;
         this.modifications = modifications;
@@ -58,7 +58,7 @@ public class ModifyObjectResult<T extends ObjectType> {
         return objectAfter;
     }
 
-    public Collection<? extends ItemDelta> getModifications() {
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
         return modifications;
     }
 
