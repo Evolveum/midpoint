@@ -14,20 +14,20 @@ select * from pg_available_extensions order by name;
 
 -- DB data initialization (after pgnew-repo.sql)
 -- one user with random name
-INSERT INTO m_user (oid, name_norm, name_orig, version)
+INSERT INTO m_user (oid, nameNorm, nameOrig, version)
 VALUES (gen_random_uuid(), md5(random()::TEXT), md5(random()::TEXT), 1);
 
-INSERT INTO m_user (name_norm, name_orig, createtimestamp, modifytimestamp, version)
+INSERT INTO m_user (nameNorm, nameOrig, createtimestamp, modifytimestamp, version)
 VALUES (md5(random()::TEXT), md5(random()::TEXT), current_timestamp, current_timestamp, 1);
 
 select * from m_resource;
--- creates new row with generated UUID, repeated run must fail on unique name_norm
-insert into m_resource (name_norm, name_orig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
--- should fail the second time because oid is PK of the table (even with changed name_norm)
-insert into m_resource (oid, name_norm, name_orig, version)
+-- creates new row with generated UUID, repeated run must fail on unique nameNorm
+insert into m_resource (nameNorm, nameOrig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
+-- should fail the second time because oid is PK of the table (even with changed nameNorm)
+insert into m_resource (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 -- this should fail after previous due to cross-table m_object unique constraint
-insert into m_user (oid, name_norm, name_orig, version)
+insert into m_user (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
 -- must fail, update trigger does not allow OID changes
 update m_object set oid='66eb4861-867d-4a41-b6f0-41a3874bd48e'
@@ -45,11 +45,11 @@ SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
 delete from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 -- switch Tx to manual in IDE to avoid autocommit
 START TRANSACTION;
-insert into m_resource (oid, name_norm, name_orig, version)
+insert into m_resource (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 
     START TRANSACTION;
-    insert into m_user (oid, name_norm, name_orig, version)
+    insert into m_user (oid, nameNorm, nameOrig, version)
         VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
     commit;
 commit;
@@ -60,7 +60,7 @@ select * from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 -- Delete in two steps without trigger, much faster than normal.
 SET session_replication_role = replica; -- disables triggers for the current session
 -- HERE the delete you want, e.g.:
-delete from m_user where name_norm > 'user-0001000000';
+delete from m_user where nameNorm > 'user-0001000000';
 
 -- this is the cleanup of unused OIDs
 DELETE FROM m_object_oid oo WHERE NOT EXISTS (SELECT * from m_object o WHERE o.oid = oo.oid);
@@ -79,14 +79,14 @@ select count(*) from m_user;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
 
-INSERT INTO m_resource (name_norm, name_orig, fullobject, version)
+INSERT INTO m_resource (nameNorm, nameOrig, fullobject, version)
 SELECT 'resource-' || LPAD(r::text, 10, '0'),
     'resource-' || LPAD(r::text, 10, '0'),
     random_bytea(100, 20000),
     1
 from generate_series(1, 10) as r;
 
-INSERT INTO m_user (name_norm, name_orig, fullobject, ext, policySituations, version)
+INSERT INTO m_user (nameNorm, nameOrig, fullobject, ext, policySituations, version)
 SELECT 'user-' || LPAD(r::text, 10, '0'),
     'user-' || LPAD(r::text, 10, '0'),
     random_bytea(100, 2000),
@@ -120,7 +120,7 @@ from generate_series(100001,1000000) as r;
 EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 select oid, policysituations from m_user
 where policysituations @> '{10}'
--- order by name_norm desc
+-- order by nameNorm desc
 ;
 
 /* 1k rows
@@ -244,7 +244,7 @@ CREATE INDEX m_user_ext_hired2_idx ON m_user ((ext ->> 'hired')) WHERE ext ? 'hi
 -- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
 EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- select count(*)
-select oid, name_norm, ext
+select oid, nameNorm, ext
 from m_user
     where
 --           ext?'hobbies' and -- faster, uses GIN index
