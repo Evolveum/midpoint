@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -37,9 +36,6 @@ public class MappingColumnPanel extends BasePanel<PrismContainerValueWrapper<Map
     }
 
     private void initLayout() {
-
-        CheckBoxPanel checkBoxPanel = new CheckBoxPanel(ID_MAPPING_ENABLED, Model.of(true));
-        add(checkBoxPanel);
 
         ReadOnlyModel<String> mappingDescription = new ReadOnlyModel<>(() -> {
 
@@ -80,6 +76,9 @@ public class MappingColumnPanel extends BasePanel<PrismContainerValueWrapper<Map
 
             return target + "(" + strength + ")";
         });
+
+        TriStateComboPanel dropDownChoicePanel = new TriStateComboPanel(ID_MAPPING_ENABLED, Model.of(true));
+        add(dropDownChoicePanel);
 
         Label label = new Label(ID_MAPPING, mappingDescription);
         add(label);
