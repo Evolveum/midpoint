@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -2115,6 +2117,26 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isFatalError();
     }
 
+    @Test
+    public void test920ModifyOperationUpdatesPerformanceMonitor()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("object modification and cleared performance information");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMAIL_ADDRESS).add(getTestNameShort() + "@email.com")
+                .asObjectDelta(user1Oid);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is modified in the repository");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_MODIFY_OBJECT);
+    }
     @Test
     public void test990ChangeOfNonPersistedAttributeWorksOk()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {

@@ -72,7 +72,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 q -> q.tenantRefTargetType,
                 q -> q.tenantRefRelationId));
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
-        // version/cid_seq is not mapped for queries or deltas, it's managed by repo explicitly
+        // version/cidSeq is not mapped for queries or deltas, it's managed by repo explicitly
 
         // TODO mapper for policySituations and subtypes
         // TODO ext mapping can't be done statically

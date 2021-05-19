@@ -26,17 +26,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.repo.sqale.operations.AddObjectOperation;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,6 +56,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
  * WORK IN PROGRESS.
+ *
+ * Structure of main public methods (WIP):
+ * - arg checks
+ * - debug log
+ * - create op-result, immediately followed by try/catch/finally (see addObject for example)
+ * - more arg checks :-) (here ore before op result depending on the needs)
+ * - call to executeMethodName(...) where perf monitor is initialized followed by try/catch/finally
+ * - finally in main method:
+ *
+ * TODO/document?:
+ * - ignore useNoFetchExtensionValuesInsertion - related to Hibernate,
  */
 public class SqaleRepositoryService implements RepositoryService {
 
@@ -70,7 +82,6 @@ public class SqaleRepositoryService implements RepositoryService {
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqaleRepoContext repositoryContext;
-    private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
@@ -84,10 +95,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
     public SqaleRepositoryService(
             SqaleRepoContext repositoryContext,
-            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.repositoryContext = repositoryContext;
-        this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
@@ -118,24 +127,9 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("oid", oid)
                 .build();
 
+        PrismObject<T> object = null;
         try {
-            PrismObject<T> object;
-            try (JdbcSession jdbcSession =
-                    repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
-                //noinspection unchecked
-                object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
-                        .asPrismObject();
-                jdbcSession.commit();
-            }
-
-            // "objectLocal" is here just to provide effectively final variable for the lambda below
-//            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
-//                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
-//            object = objectLocal;
-            invokeConflictWatchers((w) -> w.afterGetObject(object));
-
-            // TODO both update and get need this?
-            ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
+            object = executeGetObject(type, oidUuid, options);
             return object;
         } catch (RuntimeException e) { // TODO what else to catch?
             throw handledGeneralException(e, operationResult);
@@ -144,9 +138,37 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
-//            OperationLogger.logGetObject(type, oid, options, object, operationResult);
-            // TODO some logging
+            OperationLogger.logGetObject(type, oid, options, object, operationResult);
         }
+    }
+
+    private <T extends ObjectType> PrismObject<T> executeGetObject(
+            Class<T> type,
+            UUID oidUuid,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException {
+        PrismObject<T> object;
+        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
+        try (JdbcSession jdbcSession =
+                repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
+            //noinspection unchecked
+            object = (PrismObject<T>) readByOid(jdbcSession, type, oidUuid, options)
+                    .asPrismObject();
+            jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+        }
+
+        // TODO attempts on conflict
+        // "objectLocal" is here just to provide effectively final variable for the lambda below
+//            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
+//                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, operationResult));
+//            object = objectLocal;
+        invokeConflictWatchers((w) -> w.afterGetObject(object));
+
+        // TODO both update and get need this? I believe not.
+        //  ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
+        return object;
     }
 
     private UUID checkOid(String oid) {
@@ -240,46 +262,101 @@ public class SqaleRepositoryService implements RepositoryService {
                 object.setVersion("1");
             }
 
-            /* old repo code missing in new repo:
-            SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-            long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
-            int attempt = 1;
-            int restarts = 0;
-            boolean noFetchExtensionValueInsertionForbidden = false;
-            String proposedOid = object.getOid();
-            while (true) {
-                try {
-            */
-            // TODO use executeAttempts
-
-            String oid = new AddObjectOperation<>(object, options, operationResult)
-                    .execute(repositoryContext);
-            invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
-            return oid;
-            /*
-                } catch (RestartOperationRequestedException ex) {
-                    // special case: we want to restart but we do not want to count these
-                    LOGGER.trace("Restarting because of {}", ex.getMessage());
-                    restarts++;
-                    if (restarts > RESTART_LIMIT) {
-                        throw new IllegalStateException("Too many operation restarts");
-                    }
-                } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(proposedOid, "adding", attempt, ex, subResult);
-//                    pm.registerOperationNewAttempt(opHandle, attempt);
-                }
-                noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
-            }
-        } finally {
-//            pm.registerOperationFinish(opHandle, attempt);
-//            OperationLogger.logAdd(object, options, subResult); TODO logging
-        }
-        */
+            return object.getOid() == null || !options.isOverwrite()
+                    ? executeAddObject(object, options, operationResult)
+                    : executeOverwriteObject(object, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+            OperationLogger.logAdd(object, options, operationResult);
+        }
+    }
+
+    private <T extends ObjectType> String executeAddObject(
+            @NotNull PrismObject<T> object,
+            @NotNull RepoAddOptions options,
+            @NotNull OperationResult operationResult)
+            throws SchemaException, ObjectAlreadyExistsException {
+        long opHandle = registerOperationStart(OP_ADD_OBJECT, object);
+            /* old repo code missing in new repo:
+            int attempt = 1;
+            int restarts = 0;
+            String proposedOid = object.getOid();
+            while (true) {
+            */
+        // TODO use executeAttempts
+
+        try {
+            String oid = new AddObjectContext<>(repositoryContext, object, options, operationResult)
+                    .execute();
+            invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
+            return oid;
+        /*
+            } catch (RestartOperationRequestedException ex) {
+                // special case: we want to restart but we do not want to count these
+                LOGGER.trace("Restarting because of {}", ex.getMessage());
+                restarts++;
+                if (restarts > RESTART_LIMIT) {
+                    throw new IllegalStateException("Too many operation restarts");
+                }
+            } catch (RuntimeException ex) {
+                attempt = baseHelper.logOperationAttempt(proposedOid, "adding", attempt, ex, subResult);
+//                    pm.registerOperationNewAttempt(opHandle, attempt);
+            }
+        }
+    */
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
+        }
+    }
+
+    /** Overwrite is more like update than add. */
+    private <T extends ObjectType> String executeOverwriteObject(
+            @NotNull PrismObject<T> newObject,
+            @NotNull RepoAddOptions options,
+            @NotNull OperationResult operationResult)
+            throws SchemaException, RepositoryException, ObjectAlreadyExistsException {
+
+        String oid = newObject.getOid();
+        UUID oidUuid = UUID.fromString(oid);
+        long opHandle = registerOperationStart(OP_ADD_OBJECT_OVERWRITE, newObject);
+        // TODO use executeAttempts
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            try {
+                //noinspection ConstantConditions
+                RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                        prepareUpdateContext(jdbcSession, newObject.getCompileTimeClass(), oidUuid);
+                PrismObject<T> prismObject = updateContext.getPrismObject();
+                // no precondition check for overwrite
+
+                // TODO beforeModify? then afterModify lower too...
+//            invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+                newObject.setUserData(RepositoryService.KEY_ORIGINAL_OBJECT, prismObject.clone());
+                ObjectDelta<T> delta = prismObject.diff(newObject, EquivalenceStrategy.LITERAL);
+                Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
+
+                LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}",
+                        oid, modifications);
+
+                updateContext.execute(modifications);
+
+                // TODO do we want this conflict watcher or modify one?
+//            invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
+                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+            } catch (ObjectNotFoundException e) {
+                // so it is just plain addObject after all
+                new AddObjectContext<>(repositoryContext, newObject, options, operationResult)
+                        .execute();
+                invokeConflictWatchers((w) -> w.afterAddObject(oid, newObject));
+            }
+            jdbcSession.commit();
+            return oid;
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
         }
     }
 
@@ -326,6 +403,13 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
+        if (options == null) {
+            options = new RepoModifyOptions();
+        }
+
+        LOGGER.debug("Modify object type '{}', oid={}, reindex={}",
+                type.getSimpleName(), oid, options.isForceReindex());
+
         OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_MODIFY_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
@@ -353,31 +437,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
             logTraceModifications(modifications);
 
-            // TODO: THIS is real start of modifyObjectAttempt
-            try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-                RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
-                        prepareUpdateContext(jdbcSession, type, oidUuid);
-                PrismObject<T> prismObject = updateContext.getPrismObject();
-                if (precondition != null && !precondition.holds(prismObject)) {
-                    jdbcSession.rollback();
-                    throw new PreconditionViolationException(
-                            "Modification precondition does not hold for " + prismObject);
-                }
-                invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
-
-                // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
-                //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
-                //  especially if called potentially multiple times.
-                // TODO replaces: RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
-                PrismObject<T> originalObject = prismObject.clone();
-
-                modifications = updateContext.execute(modifications);
-                jdbcSession.commit();
-
-                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-
-                return new ModifyObjectResult<>(originalObject, prismObject, modifications);
-            }
+            return executeModifyObject(type, oidUuid, modifications, precondition);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -385,6 +445,40 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+            OperationLogger.logModify(type, oid, modifications, precondition, options, operationResult);
+        }
+    }
+
+    @NotNull
+    private <T extends ObjectType> ModifyObjectResult<T> executeModifyObject(
+            @NotNull Class<T> type,
+            @NotNull UUID oidUuid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ModificationPrecondition<T> precondition)
+            throws SchemaException, ObjectNotFoundException, PreconditionViolationException, RepositoryException {
+
+        long opHandle = registerOperationStart(OP_MODIFY_OBJECT, type);
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                    prepareUpdateContext(jdbcSession, type, oidUuid);
+            PrismObject<T> prismObject = updateContext.getPrismObject();
+            if (precondition != null && !precondition.holds(prismObject)) {
+                jdbcSession.rollback();
+                throw new PreconditionViolationException(
+                        "Modification precondition does not hold for " + prismObject);
+            }
+            invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+            PrismObject<T> originalObject = prismObject.clone(); // for result later
+
+            modifications = updateContext.execute(modifications);
+            jdbcSession.commit();
+
+            LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+
+            invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            return new ModifyObjectResult<>(originalObject, prismObject, modifications);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
         }
     }
 
@@ -457,13 +551,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addParam("oid", oid)
                 .build();
         try {
-            try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
-                DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
-                invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
-
-                jdbcSession.commit();
-                return result;
-            }
+            return executeDeleteObject(type, oid, oidUuid);
         } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -471,6 +559,22 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    @NotNull
+    private <T extends ObjectType> DeleteObjectResult executeDeleteObject(
+            Class<T> type, String oid, UUID oidUuid) throws ObjectNotFoundException {
+
+        long opHandle = registerOperationStart(OP_DELETE_OBJECT, type);
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            DeleteObjectResult result = deleteObjectAttempt(type, oidUuid, jdbcSession);
+            invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+
+            jdbcSession.commit();
+            return result;
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
         }
     }
 
@@ -543,13 +647,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, repositoryContext);
-            SearchResultList<T> result =
-                    sqlQueryExecutor.list(queryContext, query, options);
-            // TODO see the commented code from old repo lower, problems for each object must be caught
-            //noinspection unchecked
-            return result.map(
-                    o -> (PrismObject<T>) o.asPrismObject());
+            return executeSearchObject(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -557,6 +655,27 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObject(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException, SchemaException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS, type);
+        try {
+            SearchResultList<T> result = sqlQueryExecutor.list(
+                    SqaleQueryContext.from(type, repositoryContext),
+                    query,
+                    options);
+            // TODO see the commented code from old repo lower, problems for each object must be caught
+            //noinspection unchecked
+            return result.map(
+                    o -> (PrismObject<T>) o.asPrismObject());
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
         }
     }
 
@@ -810,7 +929,7 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     @Override
-    public PerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return performanceMonitor;
     }
 
@@ -848,5 +967,18 @@ public class SqaleRepositoryService implements RepositoryService {
         if (result != null && fatal) {
             result.recordFatalError(message, ex);
         }
+    }
+
+    private <T extends ObjectType> long registerOperationStart(String kind, PrismObject<T> object) {
+        return performanceMonitor.registerOperationStart(kind, object.getCompileTimeClass());
+    }
+
+    private <T extends ObjectType> long registerOperationStart(String kind, Class<T> type) {
+        return performanceMonitor.registerOperationStart(kind, type);
+    }
+
+    // TODO return will be used probably by modifyObject*
+    private OperationRecord registerOperationFinish(long opHandle, int attempt) {
+        return performanceMonitor.registerOperationFinish(opHandle, attempt);
     }
 }

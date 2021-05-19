@@ -19,8 +19,10 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -410,6 +412,25 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .hasMessageStartingWith("Unsupported item definition: PCD:");
 
         // even if query was possible this would fail in the actual repo search, which is expected
+    }
+
+    @Test
+    public void test950SearchOperationUpdatesPerformanceMonitor() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("cleared performance information");
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("search is called on the repository");
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                prismContext.queryFor(FocusType.class).build(),
+                operationResult);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
     }
     // endregion
 

@@ -33,11 +33,11 @@ public class QResource extends QObject<MResource> {
     public static final ColumnMetadata OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
             ColumnMetadata.named("operationalState_lastAvailabilityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_REF_TARGET_OID =
-            ColumnMetadata.named("connectorRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("connectorRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("connectorRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("connectorRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_REF_RELATION_ID =
-            ColumnMetadata.named("connectorRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("connectorRefRelationId").ofType(Types.INTEGER);
 
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,

@@ -35,13 +35,13 @@ public class QConnector extends QObject<MConnector> {
     public static final ColumnMetadata CONNECTOR_VERSION =
             ColumnMetadata.named("connectorVersion").ofType(Types.VARCHAR);
     public static final ColumnMetadata FRAMEWORK_ID =
-            ColumnMetadata.named("framework_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("frameworkId").ofType(Types.INTEGER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =
-            ColumnMetadata.named("connectorHostRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("connectorHostRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_TYPE =
-            ColumnMetadata.named("connectorHostRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("connectorHostRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_RELATION_ID =
-            ColumnMetadata.named("connectorHostRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("connectorHostRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_SYSTEM_TYPES =
             ColumnMetadata.named("targetSystemTypes").ofType(Types.ARRAY);
 

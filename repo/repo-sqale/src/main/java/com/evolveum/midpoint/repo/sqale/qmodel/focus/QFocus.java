@@ -46,9 +46,9 @@ public class QFocus<R extends MFocus> extends QObject<R> {
     public static final ColumnMetadata LOCALE =
             ColumnMetadata.named("locale").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_ORIG =
-            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("localityOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_NORM =
-            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("localityNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata PREFERRED_LANGUAGE =
             ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR);
     public static final ColumnMetadata TELEPHONE_NUMBER =

@@ -40,7 +40,7 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
     public static final ColumnMetadata HANDLER_URI_ID =
-            ColumnMetadata.named("handlerUri_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("handlerUriId").ofType(Types.INTEGER);
     public static final ColumnMetadata LAST_RUN_START_TIMESTAMP =
             ColumnMetadata.named("lastRunStartTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata LAST_RUN_FINISH_TIMESTAMP =
@@ -48,17 +48,17 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata NODE =
             ColumnMetadata.named("node").ofType(Types.VARCHAR);
     public static final ColumnMetadata OBJECT_REF_TARGET_OID =
-            ColumnMetadata.named("objectRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("objectRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OBJECT_REF_TARGET_TYPE =
-            ColumnMetadata.named("objectRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("objectRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata OBJECT_REF_RELATION_ID =
-            ColumnMetadata.named("objectRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("objectRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_REF_TARGET_OID =
-            ColumnMetadata.named("ownerRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("ownerRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OWNER_REF_TARGET_TYPE =
-            ColumnMetadata.named("ownerRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("ownerRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata OWNER_REF_RELATION_ID =
-            ColumnMetadata.named("ownerRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("ownerRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata PARENT =
             ColumnMetadata.named("parent").ofType(Types.VARCHAR);
     public static final ColumnMetadata RECURRENCE =

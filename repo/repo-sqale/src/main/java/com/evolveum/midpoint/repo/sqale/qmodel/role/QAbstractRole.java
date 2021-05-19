@@ -34,9 +34,9 @@ public class QAbstractRole<R extends MAbstractRole> extends QFocus<R> {
     public static final ColumnMetadata AUTO_ASSIGN_ENABLED =
             ColumnMetadata.named("autoAssignEnabled").ofType(Types.BOOLEAN);
     public static final ColumnMetadata DISPLAY_NAME_ORIG =
-            ColumnMetadata.named("displayName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("displayNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata DISPLAY_NAME_NORM =
-            ColumnMetadata.named("displayName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("displayNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata IDENTIFIER =
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata REQUESTABLE =
