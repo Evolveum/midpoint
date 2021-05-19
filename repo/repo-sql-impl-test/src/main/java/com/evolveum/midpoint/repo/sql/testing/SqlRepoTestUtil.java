@@ -67,7 +67,8 @@ public class SqlRepoTestUtil {
      * <p>
      * Note that the section is NOT added if the count of queries is 0.
      */
-    public static TestMonitor.ReportCallback createReportCallback(TestQueryListener testQueryListener) {
+    public static TestMonitor.ReportCallback reportCallbackQuerySummary(
+            TestQueryListener testQueryListener) {
         return testMonitor -> {
             if (testQueryListener.hasNoEntries()) {
                 return;
@@ -77,6 +78,23 @@ public class SqlRepoTestUtil {
                     .withColumns("metric", "count");
             section.addRow("query-count", testQueryListener.getQueryCount());
             section.addRow("execution-count", testQueryListener.getExecutionCount());
+        };
+    }
+
+    /**
+     * Returns report callback adding detailed query dump section to the performance test report.
+     * Note that the section is NOT added if the count of queries is 0.
+     * This section is more for visual comparison/interpretation than for graphing.
+     */
+    public static TestMonitor.ReportCallback reportCallbackQueryList(
+            TestQueryListener testQueryListener) {
+        return testMonitor -> {
+            if (testQueryListener.hasNoEntries()) {
+                return;
+            }
+
+            TestReportSection section = testMonitor.addRawReportSection("query-list");
+            testQueryListener.getEntries().forEach(e -> section.addRow(e.query));
         };
     }
 }
