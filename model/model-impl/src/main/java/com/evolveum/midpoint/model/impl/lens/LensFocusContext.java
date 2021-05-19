@@ -135,12 +135,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      */
     @NotNull
     public ObjectDeltaObject<O> getObjectDeltaObjectRelative() {
-        return new ObjectDeltaObject<>(objectCurrent, getCurrentDelta(), objectNew, getObjectDefinition());
+        return new ObjectDeltaObject<>(objectCurrent, getCurrentDelta(), objectNew, getObjectDefinition())
+                .normalizeValuesToDelete(true); // FIXME temporary solution
     }
 
     @NotNull
     public ObjectDeltaObject<O> getObjectDeltaObjectAbsolute() {
-        return new ObjectDeltaObject<>(objectOld, getSummaryDelta(), objectNew, getObjectDefinition());
+        return new ObjectDeltaObject<>(objectOld, getSummaryDelta(), objectNew, getObjectDefinition())
+                .normalizeValuesToDelete(true); // FIXME temporary solution
     }
 
     // This method may be useful for hooks. E.g. if a hook wants to insert a special secondary delta to avoid

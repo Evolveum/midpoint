@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -19,6 +22,8 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -95,6 +100,11 @@ public class TestMapping extends AbstractMappingTest {
             "resource-dummy-timed.xml", "567d9834-4f2c-4e5b-89a6-ebd804c7d469");
     private static final String RESOURCE_DUMMY_TIMED_NAME = "timed";
 
+    private static final TestResource RESOURCE_DUMMY_MEGA_OUTBOUND = new TestResource(TEST_DIR,
+            "resource-dummy-mega-outbound.xml", "2b1c05f1-8b70-43e6-ac46-3e5ee621ee36");
+    private static final String RESOURCE_DUMMY_MEGA_OUTBOUND_NAME = "mega-outbound";
+    private static final int MEGA_ATTRIBUTES = 1000;
+
     private static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
     private static final String ROLE_ANTINIHILIST_OID = "4c5c6c44-bd7d-11e7-99ef-9b82464da93d";
 
@@ -160,6 +170,8 @@ public class TestMapping extends AbstractMappingTest {
         initDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME,
                 RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.file, RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.oid, initTask, initResult);
         initDummyResource(RESOURCE_DUMMY_TIMED_NAME, RESOURCE_DUMMY_TIMED.file, RESOURCE_DUMMY_TIMED.oid, initTask, initResult);
+        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_MEGA_OUTBOUND_NAME, RESOURCE_DUMMY_MEGA_OUTBOUND.file,
+                RESOURCE_DUMMY_MEGA_OUTBOUND.oid, this::initMegaResource, initTask, initResult);
 
         repoAddObjectFromFile(ROLE_ANTINIHILIST_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_TITANIC_FILE, initResult);
@@ -172,6 +184,14 @@ public class TestMapping extends AbstractMappingTest {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
 //
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
+    }
+
+    private void initMegaResource(DummyResourceContoller controller) throws ConflictException,
+            FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        DummyObjectClass objectClass = controller.getDummyResource().getAccountObjectClass();
+        for (int i = 0; i < MEGA_ATTRIBUTES; i++) {
+            controller.addAttrDef(objectClass, String.format("a-single-%04d", i), String.class, false, false);
+        }
     }
 
     /**
@@ -3258,6 +3278,65 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userAfter = getUser(jim.getOid());
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
+    }
+
+    /**
+     * MID-4863 + MID-7057
+     */
+    @Test
+    public void test530DeleteAssignmentByIdWithMegaMappings() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        InternalMonitor.reset();
+        InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
+
+        final String userName = "test530";
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .beginConstruction()
+                        .resourceRef(RESOURCE_DUMMY_MEGA_OUTBOUND.oid, ResourceType.COMPLEX_TYPE)
+                    .<AssignmentType>end()
+                .end();
+        String oid = addObject(user.asPrismObject(), null, task, result);
+
+        PrismObject<UserType> userCreated = assertUser(oid, "after creation")
+                .display()
+                .assertAssignments(2)
+                .assertLinks(1)
+                .getObject();
+        DummyAccount account = assertDummyAccount(RESOURCE_DUMMY_MEGA_OUTBOUND_NAME, userName);
+        assertThat(account.getAttributeValue("a-single-0555")).as("attribute value").isEqualTo(userName);
+
+        when();
+
+        AssignmentType roleAssignment = findAssignment(userCreated, ROLE_SUPERUSER_OID, SchemaConstants.ORG_DEFAULT);
+        assertNotNull("role assignment not found", roleAssignment);
+        PrismContainerValue<Containerable> roleAssignmentIdOnlyPcv = prismContext.itemFactory().createContainerValue();
+        roleAssignmentIdOnlyPcv.setId(roleAssignment.getId());
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).delete(roleAssignmentIdOnlyPcv)
+                .asObjectDeltaCast(oid);
+
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        // we will be happy to get a number significantly lower than ~2000 (2x1000 mappings)
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 100);
+
+        assertUser(oid, "after assignment deletion")
+                .display()
+                .assertAssignments(1)
+                .assertLinks(1);
     }
 
     /**
