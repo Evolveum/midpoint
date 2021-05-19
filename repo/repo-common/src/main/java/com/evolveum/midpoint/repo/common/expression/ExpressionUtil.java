@@ -144,11 +144,12 @@ public class ExpressionUtil {
     }
 
     /**
-     * normalizeValuesToDelete: Whether to normalize container values that are to be deleted, i.e. convert them
-     * from id-only to full data (MID-4863).
-     * TODO:
-     * 1. consider setting this parameter to true at some other places where it might be relevant
-     * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
+     * @param normalizeValuesToDelete Whether to normalize container values that are to be deleted,
+     * i.e. convert them from id-only to full data (MID-4863). Note that normally the delta should
+     * be already normalized, as this is done now in LensFocusContext (due to MID-7057). So at
+     * this point it is just to be sure.
+     *
+     * TODO Anyway, we should analyze existing code and resolve this issue in more general way.
      */
     public static TypedValue<?> resolvePathGetTypedValue(ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
             TypedValue<?> defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)

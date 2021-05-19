@@ -67,6 +67,7 @@ class PathExpressionResolver {
 
     /**
      * Whether to normalize container values that are to be deleted, i.e. convert them from id-only to full data (MID-4863).
+     * TODO reconsider this, see MID-7057.
      */
     private final boolean normalizeValuesToDelete;
 
@@ -122,6 +123,7 @@ class PathExpressionResolver {
             return root;
         }
 
+        // TODO reconsider this (see MID-7057).
         if (normalizeValuesToDelete) {
             root = normalizeValuesToDelete(root);
         }
@@ -299,6 +301,7 @@ class PathExpressionResolver {
         return null;
     }
 
+    // FIXME temporary solution
     private TypedValue<?> normalizeValuesToDelete(TypedValue<?> root) {
         Object rootValue = root.getValue();
         if (rootValue instanceof ObjectDeltaObject<?>) {
