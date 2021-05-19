@@ -77,7 +77,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         given("user with a name");
         String userName = "user" + getTestNumber();
         UserType userType = new UserType(prismContext)
-                .name(userName);
+                .name(userName)
+                .version("5"); // version will be ignored and set to 1
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(userType.asPrismObject(), null, result);
@@ -90,7 +91,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MUser row = selectOne(u, u.nameOrig.eq(userName));
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
-        assertThat(row.version).isEqualTo(1); // initial version is set
+        assertThat(row.version).isEqualTo(1); // initial version is set, ignoring provided version
         // read-only column with value generated/stored in the database
         assertThat(row.objectType).isEqualTo(MObjectType.USER);
         assertThat(row.subtypes).isNull(); // we don't store empty lists as empty arrays
@@ -137,6 +138,65 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         List<MUser> users = select(u, u.nameOrig.eq(userName));
         assertThat(users).hasSize(1);
         assertThat(users.get(0).oid).isNotNull();
+    }
+
+    @Test
+    public void test105AddWithOverwriteOption()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user already in the repository");
+        long baseCount = count(QUser.class);
+        String userName = "user" + getTestNumber();
+        UserType userType = new UserType(prismContext)
+                .name(userName);
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1);
+
+        when("adding it to the repository again with overwrite option");
+        userType.setFullName(PolyStringType.fromOrig("Overwritten User"));
+        userType.setVersion("5"); // should be ignored
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("existing user row is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, userType.getOid());
+        assertThat(row.fullNameOrig).isEqualTo("Overwritten User");
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(2);
+    }
+
+    @Test
+    public void test106AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with random OID is not in the repository");
+        long baseCount = count(QUser.class);
+        UUID oid = UUID.randomUUID();
+        assertThat(selectNullableObjectByOid(QUser.class, oid)).isNull();
+
+        when("adding it to the repository again with overwrite option");
+        String userName = "user" + getTestNumber();
+        UserType userType = new UserType(prismContext)
+                .oid(oid.toString())
+                .name(userName)
+                .version("5");
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("existing user row is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, userType.getOid());
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(1);
     }
 
     @Test
@@ -1258,7 +1318,26 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test920DeleteAllOtherObjects() throws Exception {
+    public void test920DeleteOperationUpdatesPerformanceMonitor()
+            throws ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("object to delete and cleared performance information");
+        UUID userOid = randomExistingOid(QUser.class);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is deleted from the repository");
+        repositoryService.deleteObject(FocusType.class, userOid.toString(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_DELETE_OBJECT);
+    }
+
+    @Test
+    public void test999DeleteAllOtherObjects() throws Exception {
         // this doesn't follow given-when-then, sorry
         OperationResult result = createOperationResult();
 
