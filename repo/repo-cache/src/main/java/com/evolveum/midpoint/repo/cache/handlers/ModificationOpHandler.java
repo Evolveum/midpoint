@@ -53,6 +53,7 @@ public class ModificationOpHandler extends BaseOpHandler {
         OperationResult result = parentResult.subresult(ADD_OBJECT)
                 .addQualifier(object.asObjectable().getClass().getSimpleName())
                 .addParam("type", object.getCompileTimeClass())
+                .addParam("overwrite", RepoAddOptions.isOverwrite(options))
                 .addArbitraryObjectAsParam("options", options)
                 .build();
         RepositoryAddTraceType trace;

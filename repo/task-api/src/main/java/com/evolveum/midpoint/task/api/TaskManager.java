@@ -281,6 +281,8 @@ public interface TaskManager {
     @NotNull
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    @VisibleForTesting // TODO
+    void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.
@@ -408,11 +410,11 @@ public interface TaskManager {
     void resumeTaskTree(String coordinatorOid, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
 
-    void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+//    void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
+//            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
-    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException;
+//    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, OperationResult parentResult)
+//            throws SchemaException, ObjectNotFoundException;
 
     /**
      * Puts a WAITING task back into RUNNABLE state.
@@ -641,16 +643,10 @@ public interface TaskManager {
     //endregion
 
     //region TODO
-    /**
-     * TODO. EXPERIMENTAL.
-     */
-    ObjectQuery narrowQueryForWorkBucket(Class<? extends ObjectType> type, ObjectQuery query,
-            Task workerTask, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
-            WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
-
-    TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
-
-    void setFreeBucketWaitInterval(long value);
+//    /**
+//     * TODO. EXPERIMENTAL.
+//     */
+//    TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
 
     /**
      * EXPERIMENTAL. Relaxes some assumptions on cluster structure e.g. that IP addresses of cluster members must be different.
@@ -681,9 +677,6 @@ public interface TaskManager {
     TaskHandler getHandler(String handlerUri);
 
     NodeType getLocalNode();
-
-    // TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
-    Object getWorkStateManager();
 
     // A little bit of hack as well
     CacheConfigurationManager getCacheConfigurationManager();

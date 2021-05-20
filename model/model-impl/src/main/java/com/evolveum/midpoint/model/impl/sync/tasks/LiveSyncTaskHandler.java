@@ -48,8 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * @author Radovan Semancik
  */
 @Component
-@TaskExecutionClass(LiveSyncTaskHandler.TaskExecution.class)
-@PartExecutionClass(LiveSyncTaskHandler.PartExecution.class)
 public class LiveSyncTaskHandler
         extends AbstractModelTaskHandler<LiveSyncTaskHandler, LiveSyncTaskHandler.TaskExecution> {
 
@@ -92,7 +90,7 @@ public class LiveSyncTaskHandler
         return Channel.LIVE_SYNC.getUri();
     }
 
-    public class TaskExecution extends AbstractTaskExecution<LiveSyncTaskHandler, TaskExecution> {
+    public class TaskExecution extends AbstractTaskExecutionOld<LiveSyncTaskHandler, TaskExecution> {
 
         private TargetInfo targetInfo;
         private SynchronizationResult syncResult;
@@ -119,7 +117,7 @@ public class LiveSyncTaskHandler
     }
 
     @ItemProcessorClass(PartExecution.ItemProcessor.class)
-    public class PartExecution extends AbstractIterativeActivityExecution
+    public class PartExecution extends AbstractIterativeActivityExecutionOld
             <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(@NotNull TaskExecution taskExecution) {
@@ -163,7 +161,7 @@ public class LiveSyncTaskHandler
             return true;
         }
 
-        public class ItemProcessor extends AbstractIterativeItemProcessor
+        public class ItemProcessor extends AbstractIterativeItemProcessorOld
                 <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, ItemProcessor> {
 
             public ItemProcessor() {

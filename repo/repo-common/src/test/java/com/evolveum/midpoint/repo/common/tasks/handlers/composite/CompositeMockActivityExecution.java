@@ -10,8 +10,8 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext.SubActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext.ComponentActivityInstantiationContext;
 
 import com.evolveum.midpoint.repo.common.task.execution.AbstractCompositeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
@@ -27,26 +27,25 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * Mock activity is a semi-composite one. It contains two tailorable activities - opening and closing.
  * These activities are separable: they can run as part of mock activity or separately under pure composite activity.
  */
-class CompositeMockActivityExecution extends AbstractCompositeActivityExecution<CompositeMockWorkDefinition> {
+class CompositeMockActivityExecution
+        extends AbstractCompositeActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
 
-    @NotNull private final CompositeMockActivityHandler handler;
-
-    CompositeMockActivityExecution(ActivityContext<CompositeMockWorkDefinition> context,
+    CompositeMockActivityExecution(ActivityInstantiationContext<CompositeMockWorkDefinition> context,
             @NotNull CompositeMockActivityHandler handler) {
-        super(context);
-        this.handler = handler;
+        super(context, handler);
     }
 
     @Override
     @NotNull
     protected List<ActivityExecution> createChildren(OperationResult result) {
         List<ActivityExecution> executions = new ArrayList<>();
-        SubActivityContext<CompositeMockWorkDefinition> context = new SubActivityContext<>(activityDefinition, this);
+        ComponentActivityInstantiationContext<CompositeMockWorkDefinition> context =
+                new ComponentActivityInstantiationContext<>(activityDefinition, this);
         if (isOpeningEnabled()) {
-            executions.add(new CompositeMockOpeningActivityExecution(context));
+            executions.add(new MockOpeningActivityExecution(context, activityHandler));
         }
         if (isClosingEnabled()) {
-            executions.add(new CompositeMockClosingActivityExecution(context));
+            executions.add(new MockClosingActivityExecution(context, activityHandler));
         }
         return executions;
     }
@@ -64,7 +63,7 @@ class CompositeMockActivityExecution extends AbstractCompositeActivityExecution<
     }
 
     MockRecorder getRecorder() {
-        return handler.getRecorder();
+        return activityHandler.getRecorder();
     }
 
     @Override

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -26,7 +25,7 @@ import javax.xml.namespace.QName;
  * Currently contains just generic synchronization-related information (resource, object class, kind, intent).
  */
 public class ImportFromResourceTaskExecution
-        extends AbstractTaskExecution<ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
+        extends AbstractTaskExecutionOld<ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 

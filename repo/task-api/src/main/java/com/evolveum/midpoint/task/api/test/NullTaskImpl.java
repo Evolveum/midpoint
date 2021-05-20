@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -755,5 +757,13 @@ public class NullTaskImpl implements Task {
     @Override
     public String getCurrentPartId() {
         return null;
+    }
+
+    @Override
+    public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    }
+
+    @Override
+    public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
     }
 }

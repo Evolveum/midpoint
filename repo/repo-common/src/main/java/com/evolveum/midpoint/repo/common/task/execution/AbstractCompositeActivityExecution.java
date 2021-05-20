@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.task.execution;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,8 +28,8 @@ import java.util.List;
  *
  * @param <WD> Type of work definition.
  */
-public abstract class AbstractCompositeActivityExecution<WD extends WorkDefinition>
-        extends AbstractActivityExecution<WD>
+public abstract class AbstractCompositeActivityExecution<WD extends WorkDefinition, AH extends ActivityHandler<WD>>
+        extends AbstractActivityExecution<WD, AH>
         implements CompositeActivityExecution {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCompositeActivityExecution.class);
@@ -40,8 +41,8 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
      */
     private ActivityExecutionResult executionResult;
 
-    protected AbstractCompositeActivityExecution(ActivityContext<WD> context) {
-        super(context);
+    protected AbstractCompositeActivityExecution(ActivityInstantiationContext<WD> context, AH activityHandler) {
+        super(context, activityHandler);
     }
 
     @Override

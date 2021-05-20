@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task.definition;
 
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 import com.evolveum.midpoint.schema.util.task.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -27,20 +29,27 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class WorkDefinitionFactory {
 
-    private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
-    private final Map<String, WorkDefinitionSupplier> byHandlerUri = new ConcurrentHashMap<>();
+    @Autowired GenericTaskHandler genericTaskHandler;
 
-    public void registerSupplier(QName typeName, String handlerUri, WorkDefinitionSupplier supplier) {
+    private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
+    private final Map<String, WorkDefinitionSupplier> byLegacyHandlerUri = new ConcurrentHashMap<>();
+
+    /**
+     * Takes care of registering legacy URI in the generic task handler as well.
+     */
+    public void registerSupplier(QName typeName, String legacyHandlerUri, WorkDefinitionSupplier supplier) {
         byTypeName.put(typeName, supplier);
-        if (handlerUri != null) {
-            byHandlerUri.put(handlerUri, supplier);
+        if (legacyHandlerUri != null) {
+            byLegacyHandlerUri.put(legacyHandlerUri, supplier);
+            genericTaskHandler.registerLegacyHandlerUri(legacyHandlerUri);
         }
     }
 
-    public void unregisterSupplier(QName typeName, String handlerUri) {
+    public void unregisterSupplier(QName typeName, String legacyHandlerUri) {
         byTypeName.remove(typeName);
-        if (handlerUri != null) {
-            byHandlerUri.remove(handlerUri);
+        if (legacyHandlerUri != null) {
+            byLegacyHandlerUri.remove(legacyHandlerUri);
+            genericTaskHandler.unregisterLegacyHandlerUri(legacyHandlerUri);
         }
     }
 
@@ -69,12 +78,13 @@ public class WorkDefinitionFactory {
             return null;
         }
 
-        WorkDefinitionSupplier supplier = byHandlerUri.get(handlerUri);
+        WorkDefinitionSupplier supplier = byLegacyHandlerUri.get(handlerUri);
         if (supplier == null) {
             return null;
         }
 
-        return supplier.provide(LegacyWorkDefinitionSource.create(handlerUri, task.getExtensionOrClone()));
+        return supplier.provide(LegacyWorkDefinitionSource.create(handlerUri, task.getExtensionOrClone(),
+                task.getObjectRefOrClone()));
     }
 
     @FunctionalInterface

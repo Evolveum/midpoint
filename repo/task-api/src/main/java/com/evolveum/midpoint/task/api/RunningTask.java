@@ -61,6 +61,8 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector {
      */
     void deleteLightweightAsynchronousSubtasks();
 
+    WorkBucketStatisticsCollector getWorkBucketStatisticsCollector();
+
     // EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
     @Experimental
     int getAndIncrementObjectsSeen();

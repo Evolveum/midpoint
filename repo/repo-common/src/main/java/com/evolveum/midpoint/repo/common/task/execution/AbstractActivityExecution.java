@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task.execution;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -20,7 +21,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <WD> Definition of the work that this activity has to do.
  */
-public abstract class AbstractActivityExecution<WD extends WorkDefinition> implements ActivityExecution {
+public abstract class AbstractActivityExecution<WD extends WorkDefinition,
+        AH extends ActivityHandler<WD>> implements ActivityExecution {
 
     /**
      * The task execution in context of which this activity execution takes place.
@@ -37,10 +39,17 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition> imple
      */
     @NotNull protected final ActivityDefinition<WD> activityDefinition;
 
-    protected AbstractActivityExecution(ActivityContext<WD> context) {
+    /**
+     * TODO
+     */
+    @NotNull protected final AH activityHandler;
+
+    protected AbstractActivityExecution(@NotNull ActivityInstantiationContext<WD> context,
+            @NotNull AH activityHandler) {
         this.taskExecution = context.getTaskExecution();
         this.parent = context.getParentActivityExecution();
         this.activityDefinition = context.getActivityDefinition();
+        this.activityHandler = activityHandler;
     }
 
     @NotNull
@@ -49,7 +58,19 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition> imple
         return taskExecution;
     }
 
-    protected CommonTaskBeans getBeans() {
+    public CompositeActivityExecution getParent() {
+        return parent;
+    }
+
+    public ActivityDefinition<WD> getActivityDefinition() {
+        return activityDefinition;
+    }
+
+    @NotNull public AH getActivityHandler() {
+        return activityHandler;
+    }
+
+    public CommonTaskBeans getBeans() {
         return taskExecution.getBeans();
     }
 

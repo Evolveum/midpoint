@@ -9,14 +9,11 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
 
 import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
-
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,28 +30,23 @@ public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWork
 
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/simple-mock/handler-3";
 
-    @Autowired ActivityHandlerRegistry registry;
-    @Autowired GenericTaskHandler genericTaskHandler;
-    @Autowired WorkDefinitionFactory workDefinitionFactory;
+    @Autowired private ActivityHandlerRegistry handlerRegistry;
     @Autowired private MockRecorder recorder;
 
     @PostConstruct
     public void register() {
-        registry.register(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, this);
-        genericTaskHandler.registerLegacyHandlerUri(LEGACY_HANDLER_URI);
-        workDefinitionFactory.registerSupplier(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
-                SimpleMockWorkDefinition.supplier());
+        handlerRegistry.register(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+                SimpleMockWorkDefinition.class, SimpleMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        registry.unregister(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME);
-        genericTaskHandler.unregisterLegacyHandlerUri(LEGACY_HANDLER_URI);
-        workDefinitionFactory.unregisterSupplier(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI);
+        handlerRegistry.unregister(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+                SimpleMockWorkDefinition.class);
     }
 
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityContext<SimpleMockWorkDefinition> context,
+    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<SimpleMockWorkDefinition> context,
             @NotNull OperationResult result) {
         return new SimpleMockActivityExecution(context, this);
     }

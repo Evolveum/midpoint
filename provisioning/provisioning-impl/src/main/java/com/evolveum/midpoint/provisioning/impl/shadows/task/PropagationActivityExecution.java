@@ -7,12 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessor;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -20,32 +27,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution of a propagation task. It has always a single part, so the resource can be stored here.
  */
-@ItemProcessorClass(PropagationItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 public class PropagationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ShadowType,
-                PropagationTaskHandler,
-                PropagationTaskHandler.TaskExecution,
-                PropagationActivityExecution,
-                PropagationItemProcessor> {
+                        PropagationWorkDefinition,
+                        PropagationActivityHandler,
+                        PropagationActivityExecution> {
+
+    private static final String SHORT_NAME = "Propagation";
 
     private PrismObject<ResourceType> resource;
 
-    public PropagationActivityExecution(PropagationTaskHandler.TaskExecution taskExecution) {
-        super(taskExecution);
-        setContextDescription("to " + resource);
+    PropagationActivityExecution(@NotNull ActivityInstantiationContext<PropagationWorkDefinition> context,
+            @NotNull PropagationActivityHandler activityHandler) {
+        super(context, activityHandler, SHORT_NAME);
     }
 
     @Override
-    protected void initialize(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+        ActivityReportingOptions options = new ActivityReportingOptions();
+        options.setPreserveStatistics(false);
+        options.setEnableSynchronizationStatistics(false);
+        return options;
+    }
+
+    @Override
+    protected void initializeExecution(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String resourceOid = localCoordinatorTask.getObjectOid();
-        if (resourceOid == null) {
-            throw new SchemaException("No resource specified");
-        }
-        resource = taskHandler.provisioningService.getObject(ResourceType.class, resourceOid, null,
-                localCoordinatorTask, opResult);
+        String resourceOid = MiscUtil.requireNonNull(
+                activityDefinition.getWorkDefinition().getResourceOid(),
+                () -> "No resource specified");
+        resource = activityHandler.provisioningService
+                .getObject(ResourceType.class, resourceOid, null, getTask(), opResult);
+        setContextDescription("to " + resource);
     }
 
     @Override
@@ -57,7 +72,17 @@ public class PropagationActivityExecution
                 .build();
     }
 
-    public PrismObject<ResourceType> getResource() {
-        return resource;
+    @Override
+    protected @NotNull ItemProcessor<PrismObject<ShadowType>> createItemProcessor(OperationResult opResult) {
+        return createDefaultItemProcessor(
+                (shadow, request, workerTask, result) -> {
+                    try {
+                        activityHandler.shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
+                        return true;
+                    } catch (GenericFrameworkException | EncryptionException e) {
+                        throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
+                    }
+                }
+        );
     }
 }

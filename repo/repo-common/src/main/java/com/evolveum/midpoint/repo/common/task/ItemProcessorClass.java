@@ -20,14 +20,14 @@ import java.lang.annotation.Target;
  * Requirements:
  *
  * 1. The class and its constructor must be public.
- * 2. The constructor must have a single parameter: {@link AbstractIterativeActivityExecution} object or be nested
- * within a subclass of {@link AbstractIterativeActivityExecution}. TODO FIXME FIXME FIXME
+ * 2. The constructor must have a single parameter: {@link AbstractIterativeActivityExecutionOld} object or be nested
+ * within a subclass of {@link AbstractIterativeActivityExecutionOld}. TODO FIXME FIXME FIXME
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Experimental
 public @interface ItemProcessorClass {
 
-    Class<? extends AbstractIterativeItemProcessor<?, ?, ?, ?, ?>> value();
+    Class<? extends ItemProcessor<?>> value();
 
 }

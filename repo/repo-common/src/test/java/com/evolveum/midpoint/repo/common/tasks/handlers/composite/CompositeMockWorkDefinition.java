@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.CompositeMockSubActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
 import static com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper.UntypedWorkDefinitionWrapper.getPcv;
 
 import javax.xml.namespace.QName;
@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 
 public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
@@ -38,17 +37,13 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private final Boolean opening;
     private final Boolean closing;
 
-    private CompositeMockWorkDefinition(WorkDefinitionSource source) {
+    public CompositeMockWorkDefinition(WorkDefinitionSource source) {
         PrismContainerValue<?> pcv = getPcv(source);
         this.identifier = pcv != null ? pcv.getPropertyRealValue(IDENTIFIER_NAME, String.class) : null;
         this.delay = pcv != null ? pcv.getPropertyRealValue(DELAY_NAME, Long.class) : 0;
         this.steps = pcv != null ? pcv.getPropertyRealValue(STEPS_NAME, Integer.class) : 1;
         this.opening = pcv != null ? pcv.getPropertyRealValue(OPENING_NAME, Boolean.class) : null;
         this.closing = pcv != null ? pcv.getPropertyRealValue(CLOSING_NAME, Boolean.class) : null;
-    }
-
-    static WorkDefinitionFactory.WorkDefinitionSupplier supplier() {
-        return CompositeMockWorkDefinition::new;
     }
 
     public String getIdentifier() {

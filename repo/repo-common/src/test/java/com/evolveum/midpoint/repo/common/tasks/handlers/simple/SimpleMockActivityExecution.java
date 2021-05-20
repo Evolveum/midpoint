@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -24,16 +24,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * TODO
  */
-class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWorkDefinition> {
+class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleMockActivityExecution.class);
 
-    @NotNull private final SimpleMockActivityHandler handler;
-
-    SimpleMockActivityExecution(@NotNull ActivityContext<SimpleMockWorkDefinition> context,
+    SimpleMockActivityExecution(@NotNull ActivityInstantiationContext<SimpleMockWorkDefinition> context,
             @NotNull SimpleMockActivityHandler handler) {
-        super(context);
-        this.handler = handler;
+        super(context, handler);
     }
 
     @Override
@@ -42,7 +39,7 @@ class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWo
 
         String message = activityDefinition.getWorkDefinition().getMessage();
         LOGGER.info("Message: {}", message);
-        handler.getRecorder().recordExecution(message);
+        activityHandler.getRecorder().recordExecution(message);
         return ActivityExecutionResult.finished();
     }
 
@@ -50,7 +47,7 @@ class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWo
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "current recorder state", handler.getRecorder(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "current recorder state", activityHandler.getRecorder(), indent+1);
         return sb.toString();
     }
 }

@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,12 +26,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  */
 public class MultiPropagationItemProcessor
-        extends AbstractSearchIterativeItemProcessor
+        extends AbstractSearchIterativeItemProcessorOld
         <ResourceType,
-                MultiPropagationTaskHandler,
-                MultiPropagationTaskHandler.TaskExecution,
-                MultiPropagationActivityExecution,
-                MultiPropagationItemProcessor> {
+                        MultiPropagationTaskHandler,
+                        MultiPropagationTaskHandler.TaskExecution,
+                        MultiPropagationActivityExecution,
+                        MultiPropagationItemProcessor> {
 
     public MultiPropagationItemProcessor(MultiPropagationActivityExecution taskExecution) {
         super(taskExecution);

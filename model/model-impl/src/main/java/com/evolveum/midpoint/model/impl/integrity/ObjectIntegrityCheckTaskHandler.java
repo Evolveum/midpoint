@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,8 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * However, currently its only function is to display information about objects size.
  */
 @Component
-@TaskExecutionClass(ObjectIntegrityCheckTaskHandler.TaskExecution.class)
-@PartExecutionClass(ObjectIntegrityCheckActivityExecution.class)
 public class ObjectIntegrityCheckTaskHandler
         extends AbstractModelTaskHandler
         <ObjectIntegrityCheckTaskHandler, ObjectIntegrityCheckTaskHandler.TaskExecution> {
@@ -75,7 +70,7 @@ public class ObjectIntegrityCheckTaskHandler
 
     /** Just to make Java compiler happy. */
     protected static class TaskExecution
-            extends AbstractTaskExecution<ObjectIntegrityCheckTaskHandler, TaskExecution> {
+            extends AbstractTaskExecutionOld<ObjectIntegrityCheckTaskHandler, TaskExecution> {
 
         public TaskExecution(ObjectIntegrityCheckTaskHandler taskHandler, RunningTask localCoordinatorTask) {
             super(taskHandler, localCoordinatorTask);

@@ -15,10 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskHandler;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -39,10 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  *
  */
 @Component
-@TaskExecutionClass(MultiPropagationTaskHandler.TaskExecution.class)
-@PartExecutionClass(MultiPropagationActivityExecution.class)
 public class MultiPropagationTaskHandler
-        extends AbstractTaskHandler
+        extends AbstractTaskHandlerOld
         <MultiPropagationTaskHandler, MultiPropagationTaskHandler.TaskExecution> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationTaskHandler.class);
@@ -84,7 +78,7 @@ public class MultiPropagationTaskHandler
 
     /** Just to make Java compiler happy. */
     protected static class TaskExecution
-            extends AbstractTaskExecution<MultiPropagationTaskHandler, TaskExecution> {
+            extends AbstractTaskExecutionOld<MultiPropagationTaskHandler, TaskExecution> {
 
         public TaskExecution(MultiPropagationTaskHandler taskHandler, RunningTask localCoordinatorTask) {
             super(taskHandler, localCoordinatorTask);

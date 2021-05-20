@@ -115,7 +115,7 @@ class RemainingShadowsActivityExecution
     }
 
     protected static class ItemProcessor
-            extends AbstractSearchIterativeItemProcessor
+            extends AbstractSearchIterativeItemProcessorOld
             <ShadowType, ReconciliationTaskHandler, ReconciliationTaskExecution, RemainingShadowsActivityExecution, ItemProcessor> {
 
         public ItemProcessor(RemainingShadowsActivityExecution partExecution) {

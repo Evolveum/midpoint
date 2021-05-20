@@ -391,6 +391,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
     public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         if (isPersistent()) {
@@ -404,6 +405,7 @@ public class TaskQuartzImpl implements Task {
         return beans.prismContext.deltaFactory();
     }
 
+    @Override
     public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
         synchronized (prismAccess) {
             ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);

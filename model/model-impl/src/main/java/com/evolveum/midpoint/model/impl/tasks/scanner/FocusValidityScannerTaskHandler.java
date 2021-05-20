@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * @author Radovan Semancik
  */
 @Component
-@TaskExecutionClass(FocusValidityScannerTaskExecution.class)
 // PartExecutionClass is not defined, because part executions are created in a custom way
 public class FocusValidityScannerTaskHandler
         extends AbstractScannerTaskHandler<FocusValidityScannerTaskHandler, FocusValidityScannerTaskExecution> {

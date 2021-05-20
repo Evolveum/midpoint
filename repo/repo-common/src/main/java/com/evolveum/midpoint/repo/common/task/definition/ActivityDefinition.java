@@ -19,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.function.Supplier;
 
 /**
@@ -66,7 +65,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
         ActivityDefinitionType bean = task.getActivityDefinitionOrClone();
         WD rootDefinition = createRootDefinition(bean, taskExecution, factory);
-        rootDefinition.setExecutionMode(getExecutionMode(bean, getModeSupplier(task)));
+        rootDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(task)));
         rootDefinition.addTailoring(getTailoring(bean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
@@ -91,7 +90,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             throw new SchemaException("Child work definition is not present for " + activityBean + " in " + parent);
         }
 
-        definition.setExecutionMode(getExecutionMode(activityBean, () -> ExecutionModeType.EXECUTE));
+        definition.setExecutionMode(determineExecutionMode(activityBean, () -> ExecutionModeType.EXECUTE));
         definition.addTailoring(getTailoring(activityBean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(activityBean);
@@ -147,7 +146,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return null;
     }
 
-    private static ExecutionModeType getExecutionMode(ActivityDefinitionType activityBean,
+    private static ExecutionModeType determineExecutionMode(ActivityDefinitionType activityBean,
             Supplier<ExecutionModeType> defaultValueSupplier) {
         ExecutionModeType explicitMode = activityBean != null ? activityBean.getExecutionMode() : null;
         if (explicitMode != null) {
@@ -155,6 +154,11 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         } else {
             return defaultValueSupplier.get();
         }
+    }
+
+    @NotNull
+    public ExecutionModeType getExecutionMode() {
+        return workDefinition.getExecutionMode();
     }
 
     private static Supplier<ExecutionModeType> getModeSupplier(RunningTask task) {
@@ -171,11 +175,6 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     @Deprecated
     public ErrorSelectorType getErrorCriticality() {
         return null; // FIXME
-    }
-
-    @NotNull
-    public QName getWorkDefinitionTypeName() {
-        return workDefinition.getType();
     }
 
     public @NotNull WD getWorkDefinition() {

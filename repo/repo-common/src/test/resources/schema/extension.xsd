@@ -57,6 +57,41 @@
     </xsd:complexType>
     <xsd:element name="simpleMock" type="tns:SimpleMockDefinitionType" />
 
+    <xsd:complexType name="IterativeMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="from" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="to" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="iterativeMock" type="tns:IterativeMockDefinitionType" />
+
+    <xsd:complexType name="SearchIterativeMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectSet" type="c:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="searchIterativeMock" type="tns:SearchIterativeMockDefinitionType" />
+
     <!-- legacy way -->
     <xsd:element name="message" type="xsd:string" />
     <xsd:element name="identifier" type="xsd:string" />

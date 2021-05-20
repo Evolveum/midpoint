@@ -9,14 +9,12 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
 
 import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
-
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,28 +32,24 @@ public class CompositeMockActivityHandler implements ActivityHandler<CompositeMo
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/composite-mock/handler-3";
 
     @Autowired ActivityHandlerRegistry registry;
-    @Autowired GenericTaskHandler genericTaskHandler;
     @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired MockRecorder recorder;
 
     @PostConstruct
     public void register() {
-        registry.register(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, this);
-        genericTaskHandler.registerLegacyHandlerUri(LEGACY_HANDLER_URI);
-        workDefinitionFactory.registerSupplier(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
-                CompositeMockWorkDefinition.supplier());
+        registry.register(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
+                CompositeMockWorkDefinition.class, CompositeMockWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
-        registry.unregister(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME);
-        genericTaskHandler.unregisterLegacyHandlerUri(LEGACY_HANDLER_URI);
         workDefinitionFactory.unregisterSupplier(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
                 LEGACY_HANDLER_URI);
+        registry.unregisterHandler(CompositeMockWorkDefinition.class);
     }
 
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityContext<CompositeMockWorkDefinition> context,
+    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<CompositeMockWorkDefinition> context,
             @NotNull OperationResult result) {
         return new CompositeMockActivityExecution(context, this);
     }

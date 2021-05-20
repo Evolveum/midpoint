@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.task.task;
 
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext.RootActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext.RootActivityInstantiationContext;
 
 import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
@@ -63,7 +63,7 @@ public class GenericTaskExecution implements TaskExecution {
         ActivityDefinition<WD> activityDefinition = ActivityDefinition.createRoot(this);
         rootActivityExecution = getBeans().activityHandlerRegistry
                 .getHandler(activityDefinition)
-                .createExecution(new RootActivityContext<>(activityDefinition, this), result);
+                .createExecution(new RootActivityInstantiationContext<>(activityDefinition, this), result);
     }
 
     @Override

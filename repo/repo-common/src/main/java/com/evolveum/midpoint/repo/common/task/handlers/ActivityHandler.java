@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task.handlers;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -30,5 +30,5 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @FunctionalInterface
 public interface ActivityHandler<WD extends WorkDefinition> {
 
-    @NotNull ActivityExecution createExecution(@NotNull ActivityContext<WD> context, @NotNull OperationResult result);
+    @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<WD> context, @NotNull OperationResult result);
 }

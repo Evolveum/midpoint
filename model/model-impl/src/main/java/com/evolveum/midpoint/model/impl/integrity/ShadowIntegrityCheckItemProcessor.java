@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -36,12 +35,12 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ShadowIntegrityCheckItemProcessor
-        extends AbstractSearchIterativeItemProcessor
+        extends AbstractSearchIterativeItemProcessorOld
         <ShadowType,
-                ShadowIntegrityCheckTaskHandler,
-                ShadowIntegrityCheckTaskHandler.TaskExecution,
-                ShadowIntegrityCheckActivityExecution,
-                ShadowIntegrityCheckItemProcessor> {
+                        ShadowIntegrityCheckTaskHandler,
+                        ShadowIntegrityCheckTaskHandler.TaskExecution,
+                        ShadowIntegrityCheckActivityExecution,
+                        ShadowIntegrityCheckItemProcessor> {
 
     private static final String CLASS_DOT = ShadowIntegrityCheckItemProcessor.class.getName() + ".";
     static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";

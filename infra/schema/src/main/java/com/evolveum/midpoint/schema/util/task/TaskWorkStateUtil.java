@@ -110,7 +110,7 @@ public class TaskWorkStateUtil {
     }
 
     public static boolean hasLimitations(WorkBucketType bucket) {
-        if (bucket == null || bucket.getContent() == null) {
+        if (bucket == null || bucket.getContent() == null || bucket.getContent() instanceof NullWorkBucketContentType) {
             return false;
         }
         if (bucket.getContent() instanceof NumericIntervalWorkBucketContentType) {

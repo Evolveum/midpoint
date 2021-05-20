@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -53,33 +54,26 @@ import static java.util.Objects.requireNonNull;
  * 9. Cache entry/exit *TODO really?*
  * 10. Diagnostic logging
  *
- * The task-specific processing is invoked by calling {@link AbstractIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}
+ * The task-specific processing is invoked by calling {@link ItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}
  * method.
  */
 class ItemProcessingGatekeeper<I> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemProcessingGatekeeper.class);
 
+    private static final String OP_HANDLE = ItemProcessingGatekeeper.class.getName() + ".handle";
+
     /** Request to be processed */
     @NotNull private final ItemProcessingRequest<I> request;
 
-    /** The processor responsible for the actual processing of the item. */
-    @NotNull private final AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor;
-
     /** Task part execution that requested processing of this item. */
-    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?, ?> partExecution;
-
-    /** The whole task execution. */
-    @NotNull private final AbstractTaskExecution<?, ?> taskExecution;
+    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?> activityExecution;
 
     /** Local coordinator task that drives fetching items for processing. */
     @NotNull private final RunningTask coordinatorTask;
 
     /** Assigned worker task that executes the processing. May be the same as the coordinator task. */
     @NotNull private final RunningTask workerTask;
-
-    /** Task handler related logger. It is here to enable turning on logging for specific task types. */
-    @NotNull private final Trace logger;
 
     /** Current {@link Operation}. Contains e.g. the timing information. */
     private Operation operation;
@@ -106,15 +100,12 @@ class ItemProcessingGatekeeper<I> {
     private boolean canContinue = true;
 
     ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
-            @NotNull AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor,
+            @NotNull AbstractIterativeActivityExecution<I, ?, ?> activityExecution,
             @NotNull RunningTask workerTask) {
         this.request = request;
-        this.itemProcessor = itemProcessor;
-        this.partExecution = itemProcessor.partExecution;
-        this.taskExecution = partExecution.taskExecution;
-        this.coordinatorTask = partExecution.localCoordinatorTask;
+        this.activityExecution = activityExecution;
+        this.coordinatorTask = activityExecution.getTask();
         this.workerTask = workerTask;
-        this.logger = partExecution.getLogger();
         this.iterationItemInformation = request.getIterationItemInformation();
     }
 
@@ -127,26 +118,38 @@ class ItemProcessingGatekeeper<I> {
             operation = updateStatisticsOnStart();
 
             OperationResult result = doProcessItem(parentResult);
+            try {
 
-            stopTracingAndDynamicProfiling(result, parentResult);
-            writeOperationExecutionRecord(result);
+                stopTracingAndDynamicProfiling(result, parentResult);
+                writeOperationExecutionRecord(result);
 
-            canContinue = checkIfCanContinue(result) && canContinue;
+                canContinue = checkIfCanContinue(result) && canContinue;
 
-            acknowledgeItemProcessed(result);
+                acknowledgeItemProcessed(result);
 
-            updateStatisticsOnEnd(result);
-            logOperationEnd(result);
+                updateStatisticsOnEnd(result);
+                logOperationEnd(result);
 
-            cleanupAndSummarizeResults(result, parentResult);
+                cleanupAndSummarizeResults(result, parentResult);
 
-            return canContinue;
+                return canContinue;
+
+            } catch (RuntimeException e) {
+
+                // This is just to record the exception to the appropriate result.
+                // The exception will be also recorded to the task result when handling
+                // the errorState.permanentErrorException later.
+                result.recordFatalError(e);
+                throw e;
+            }
 
         } catch (RuntimeException e) {
 
             // This is unexpected exception. We should perhaps stop the whole processing.
             // Just throwing the exception would simply kill one worker thread. This is something
             // that would easily be lost in the logs.
+
+            activityExecution.errorState.setPermanentErrorException(e);
 
             LoggingUtils.logUnexpectedException(LOGGER, "Fatal error while doing administration over "
                             + "processing item {} in {}:{}. Stopping the whole processing.",
@@ -169,7 +172,7 @@ class ItemProcessingGatekeeper<I> {
         try {
             result = initializeOperationResult(parentResult);
 
-            canContinue = itemProcessor.process(request, workerTask, result);
+            canContinue = activityExecution.itemProcessor.process(request, workerTask, result);
 
             computeStatusIfNeeded(result);
 
@@ -228,12 +231,13 @@ class ItemProcessingGatekeeper<I> {
         parentResult.summarize();
     }
 
-    private CurrentBucketStatistics getCurrentBucketStatistics() {
-        return partExecution.bucketStatistics;
+    // FIXME
+    private ActivityExecutionStatistics getCurrentBucketStatistics() {
+        return activityExecution.executionStatistics;
     }
 
-    private String getProcessShortNameCapitalized() {
-        return partExecution.getProcessShortNameCapitalized();
+    private String getActivityShortNameCapitalized() {
+        return activityExecution.getActivityShortNameCapitalized();
     }
 
     /** Must come after item and task statistics are updated. */
@@ -242,7 +246,7 @@ class ItemProcessingGatekeeper<I> {
         logResultAndExecutionStatistics(result);
 
         if (isError() && getReportingOptions().isLogErrors()) {
-            logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
+            LOGGER.error("{} of object {} {} failed: {}", getActivityShortNameCapitalized(), iterationItemInformation,
                     getContextDesc(), processingResult.getMessage(), processingResult.exception);
         }
     }
@@ -250,7 +254,7 @@ class ItemProcessingGatekeeper<I> {
     // TODO deduplicate with statistics output in AbstractIterativeTaskPartExecution
     // TODO decide on the final form of these messages
     private void logResultAndExecutionStatistics(OperationResult result) {
-        CurrentBucketStatistics bucketStatistics = getCurrentBucketStatistics();
+        ActivityExecutionStatistics bucketStatistics = getCurrentBucketStatistics();
 
         long now = operation.getEndTimeMillis();
 
@@ -260,7 +264,7 @@ class ItemProcessingGatekeeper<I> {
                 TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
 
         String mainMessage = String.format(Locale.US, "%s of %s %s done with status %s.",
-                getProcessShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus());
+                getActivityShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus());
 
         String briefStats = String.format(Locale.US, "Items processed: %,d (%,d in part), errors: %,d (%,d in part).",
                 bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
@@ -318,7 +322,7 @@ class ItemProcessingGatekeeper<I> {
 
         Throwable exception = processingResult.getExceptionRequired();
 
-        ActivityDefinitionType partDef = partExecution.activityDefinition;
+        ActivityDefinition partDef = activityExecution.getActivityDefinition();
         if (partDef == null) {
             return getContinueOnError(result.getStatus(), exception, request, result);
         }
@@ -330,19 +334,21 @@ class ItemProcessingGatekeeper<I> {
             return true; // If we are here, the error is not fatal and we can continue.
         } catch (Throwable e) {
             // Exception means fatal error.
-            taskExecution.setPermanentErrorEncountered(e);
-            return false;
+            throw new UnsupportedOperationException();
+//            taskExecution.setPermanentErrorEncountered(e);
+//            return false;
         }
     }
 
     private boolean getContinueOnError(@NotNull OperationResultStatus status, @NotNull Throwable exception,
             ItemProcessingRequest<?> request, OperationResult result) {
-        ErrorHandlingStrategyExecutor.Action action = partExecution.determineErrorAction(status, exception, request, result);
+        ErrorHandlingStrategyExecutor.Action action = activityExecution.determineErrorAction(status, exception, request, result);
         switch (action) {
             case CONTINUE:
                 return true;
             case SUSPEND:
-                taskExecution.setPermanentErrorEncountered(exception);
+                throw new UnsupportedOperationException();
+//                taskExecution.setPermanentErrorEncountered(exception);
             case STOP:
             default:
                 return false;
@@ -352,7 +358,7 @@ class ItemProcessingGatekeeper<I> {
     private Operation recordIterativeOperationStart() {
         return workerTask.recordIterativeOperationStart(
                 new IterativeOperationStartInfo(
-                        iterationItemInformation, partExecution.getActivityIdentifier(), partExecution.getPartStartTimestamp()));
+                        iterationItemInformation, activityExecution.getActivityIdentifier(), activityExecution.getPartStartTimestamp()));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {
@@ -372,6 +378,39 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
+    private void computeStatusIfNeeded(OperationResult result) {
+        // We do not want to override the result set by handler. This is just a fallback case
+        if (result.isUnknown() || result.isInProgress()) {
+            result.computeStatus();
+        }
+    }
+
+    private OperationResult initializeOperationResult(OperationResult parentResult) throws SchemaException {
+        OperationResultBuilder builder = parentResult.subresult(OP_HANDLE)
+                .addParam("object", iterationItemInformation.toString());
+        if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
+            tracingRequested = true;
+            builder.tracingProfile(getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
+        }
+        return builder.build();
+    }
+
+    private void logOperationStart() {
+        LOGGER.trace("{} starting for {} {}", getActivityShortNameCapitalized(), iterationItemInformation, getContextDesc());
+    }
+
+    private String getContextDesc() {
+        return activityExecution.getContextDescription();
+    }
+
+    private void startTracingAndDynamicProfiling() {
+        if (activityExecution.providesTracingAndDynamicProfiling()) {
+            int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
+            workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
+            workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
+        }
+    }
+
     private void stopTracingAndDynamicProfiling(OperationResult result, OperationResult parentResult) {
         workerTask.stopDynamicProfiling();
         workerTask.stopTracing();
@@ -383,44 +422,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private Tracer getTracer() {
-        return getTaskHandler().getTracer();
-    }
-
-    private AbstractTaskHandler<?, ?> getTaskHandler() {
-        return taskExecution.taskHandler;
-    }
-
-    private void computeStatusIfNeeded(OperationResult result) {
-        // We do not want to override the result set by handler. This is just a fallback case
-        if (result.isUnknown() || result.isInProgress()) {
-            result.computeStatus();
-        }
-    }
-
-    private OperationResult initializeOperationResult(OperationResult parentResult) throws SchemaException {
-        OperationResultBuilder builder = parentResult.subresult(getTaskOperationPrefix() + ".handle")
-                .addParam("object", iterationItemInformation.toString());
-        if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
-            tracingRequested = true;
-            builder.tracingProfile(getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
-        }
-        return builder.build();
-    }
-
-    private void logOperationStart() {
-        logger.trace("{} starting for {} {}", getProcessShortNameCapitalized(), iterationItemInformation, getContextDesc());
-    }
-
-    private String getContextDesc() {
-        return partExecution.getContextDescription();
-    }
-
-    private void startTracingAndDynamicProfiling() {
-        if (partExecution.providesTracingAndDynamicProfiling()) {
-            int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
-            workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
-            workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
-        }
+        return getBeans().tracer;
     }
 
     private void enterLocalCaches() {
@@ -429,29 +431,29 @@ class ItemProcessingGatekeeper<I> {
 
     private void writeOperationExecutionRecord(OperationResult result) {
         if (getReportingOptions().isSkipWritingOperationExecutionRecords()) {
+            LOGGER.trace("Skipping writing operation execution record because of the reporting options.");
             return;
         }
 
         OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
-        RunningTask task = taskExecution.localCoordinatorTask;
-
-        getOperationExecutionRecorder().recordOperationExecution(target, task, partExecution.activityIdentifier, result);
+        if (target != null) {
+            getOperationExecutionRecorder().recordOperationExecution(target, coordinatorTask,
+                    activityExecution.activityIdentifier, result);
+        } else {
+            LOGGER.trace("No target to write operation execution record to.");
+        }
     }
 
     private OperationExecutionRecorderForTasks getOperationExecutionRecorder() {
-        return getTaskHandler().getOperationExecutionRecorder();
+        return getBeans().operationExecutionRecorder;
     }
 
-    private @NotNull TaskReportingOptions getReportingOptions() {
-        return partExecution.getReportingOptions();
+    private @NotNull ActivityReportingOptions getReportingOptions() {
+        return activityExecution.getReportingOptions();
     }
 
     private CacheConfigurationManager getCacheConfigurationManager() {
-        return getTaskHandler().getCacheConfigurationManager();
-    }
-
-    private String getTaskOperationPrefix() {
-        return getTaskHandler().taskOperationPrefix;
+        return getBeans().cacheConfigurationManager;
     }
 
     private @NotNull Operation updateStatisticsOnStart() {
@@ -468,7 +470,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void updateStatisticsInPartExecutionObject() {
-        CurrentBucketStatistics partStatistics = getCurrentBucketStatistics();
+        ActivityExecutionStatistics partStatistics = getCurrentBucketStatistics();
         partStatistics.incrementProgress();
         if (isError()) {
             partStatistics.incrementErrors();
@@ -481,9 +483,9 @@ class ItemProcessingGatekeeper<I> {
      */
     private void updateStatisticsInTasks(OperationResult result) {
         // The structured progress is maintained only in the coordinator task
-        coordinatorTask.incrementStructuredProgress(partExecution.activityIdentifier, processingResult.outcome);
+        coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
 
-        if (partExecution.isMultithreaded()) {
+        if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();
 
             // In lightweight subtasks we store progress and operational statistics.
@@ -508,7 +510,12 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private PrismContext getPrismContext() {
-        return taskExecution.getPrismContext();
+        return getBeans().prismContext;
+    }
+
+    @NotNull
+    private CommonTaskBeans getBeans() {
+        return activityExecution.getBeans();
     }
 
     @Experimental

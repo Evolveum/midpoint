@@ -206,6 +206,9 @@ class TaskCycleExecutor {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
                     task.setResult(runResult.getOperationResult());
                 }
+            } else {
+                // This updates the result in the task object. TODO improve
+                task.setResult(task.getResult());
             }
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             task.flushPendingModifications(result);

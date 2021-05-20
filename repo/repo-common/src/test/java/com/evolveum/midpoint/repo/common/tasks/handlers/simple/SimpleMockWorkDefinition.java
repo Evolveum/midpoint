@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.CompositeMockSubActivityExecution.NS_EXT;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
 import static com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper.UntypedWorkDefinitionWrapper.getPcv;
 
 import javax.xml.namespace.QName;
@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -29,13 +28,9 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
 
     private final String message;
 
-    private SimpleMockWorkDefinition(WorkDefinitionSource source) {
+    SimpleMockWorkDefinition(WorkDefinitionSource source) {
         PrismContainerValue<?> pcv = getPcv(source);
         this.message = pcv != null ? pcv.getPropertyRealValue(MESSAGE_NAME, String.class) : null;
-    }
-
-    static WorkDefinitionFactory.WorkDefinitionSupplier supplier() {
-        return SimpleMockWorkDefinition::new;
     }
 
     public String getMessage() {

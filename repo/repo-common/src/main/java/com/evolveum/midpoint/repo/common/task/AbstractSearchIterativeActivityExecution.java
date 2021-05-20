@@ -7,55 +7,62 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
-import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
-import static java.util.Objects.requireNonNull;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.FilterUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
+import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Single execution of a given search-iterative task part.
@@ -65,17 +72,20 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * *TODO finish cleanup*
  */
 public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectType,
-        TH extends AbstractTaskHandler<TH, TE>,
-        TE extends AbstractTaskExecution<TH, TE>,
-        PE extends AbstractSearchIterativeActivityExecution<O, TH, TE, PE, RH>,
-        RH extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, RH>>
-    extends AbstractIterativeActivityExecution<PrismObject<O>, TH, TE, PE, RH> {
+        WD extends WorkDefinition,
+        AH extends ActivityHandler<WD>,
+        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE>>
+    extends AbstractIterativeActivityExecution<PrismObject<O>, WD, AH> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeActivityExecution.class);
+
+    private static final long FREE_BUCKET_WAIT_TIME = -1; // indefinitely
 
     /**
-     * Current bucket that is being processed.
-     * It is used to narrow the search query.
+     * Object set specification (in the "modern" way), if present.
+     * Set up in {@link #prepareItemSource(OperationResult)}.
      */
-    @Nullable protected WorkBucketType workBucket; // TODO initialize correctly
+    private ObjectSetType objectSetSpecification;
 
     /**
      * Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}.
@@ -89,7 +99,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     /**
      * Additional filter to be applied to each object received (if not null).
-     * Currently used to filter failed objects when FILTER_AFTER_RETRIEVAL mode is selected.
+     * Currently used to filter failed objects when `FILTER_AFTER_RETRIEVAL` mode is selected.
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
@@ -97,7 +107,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     /**
      * Pre-processes object received before it is passed to the task handler specific processing.
-     * (Only for non-failed objects.) Currently used to fetch failed objects when FETCH_FAILED_OBJECTS mode is selected.
+     * (Only for non-failed objects.) Currently used to fetch failed objects when `FETCH_FAILED_OBJECTS` mode is selected.
      *
      * See {@link AbstractSearchIterativeItemProcessor#process(ItemProcessingRequest, RunningTask, OperationResult)}.
      */
@@ -132,21 +142,114 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
      */
     private final Set<String> oidsSeen = ConcurrentHashMap.newKeySet();
 
-    public AbstractSearchIterativeActivityExecution(TE taskExecution) {
-        super(taskExecution);
+    /**
+     * Current bucket that is being processed.
+     * It is used to narrow the search query.
+     */
+    protected WorkBucketType bucket = new WorkBucketType(); // FIXME
+
+    public AbstractSearchIterativeActivityExecution(@NotNull ActivityInstantiationContext<WD> context,
+            @NotNull AH activityHandler, @NotNull String shortNameCapitalized) {
+        super(context, activityHandler, shortNameCapitalized);
+    }
+
+    /**
+     * Bucketed version of the execution.
+     */
+    @Override
+    protected void executeInitialized(OperationResult opResult)
+            throws TaskException, PreconditionViolationException, CommonException {
+
+        RunningTask task = taskExecution.getTask();
+        boolean initialExecution = true;
+
+//        resetWorkStateAndStatisticsIfWorkComplete(result);
+//        startCollectingStatistics(task, handler);
+
+        for (; task.canRun(); initialExecution = false) {
+
+            bucket = getWorkBucket(initialExecution, opResult);
+            if (!task.canRun()) {
+                break;
+            }
+
+            if (bucket == null) {
+                LOGGER.trace("No (next) work bucket within {}, exiting", task);
+//                updateStructuredProgressOnNoMoreBuckets();
+                break;
+            }
+
+            executeSingleBucket(opResult);
+
+            if (!task.canRun()) {
+                break;
+            }
+
+            completeWorkBucketAndUpdateStructuredProgress(opResult);
+        }
+
+//        task.updateAndStoreStatisticsIntoRepository(true, opResult);
+    }
+
+    private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
+        RunningTask task = taskExecution.getTask();
+
+        WorkBucketType bucket;
+        try {
+            bucket = beans.workStateManager.getWorkBucket(task, FREE_BUCKET_WAIT_TIME, initialExecution, result);
+        } catch (InterruptedException e) {
+            LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+            if (!task.canRun()) {
+                return null;
+            } else {
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
+                throw new SystemException("Unexpected InterruptedException: " + e.getMessage(), e);
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);
+            throw new SystemException("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
+        }
+        return bucket;
+    }
+
+    private void completeWorkBucketAndUpdateStructuredProgress(OperationResult result) {
+        RunningTask task = taskExecution.getTask();
+        try {
+            beans.workStateManager.completeWorkBucket(task, bucket, result);
+//            task.changeStructuredProgressOnWorkBucketCompletion();
+//            updateAndStoreStatisticsIntoRepository(task, result);
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+            throw new SystemException("Couldn't complete work bucket for task: " + e.getMessage(), e);
+        }
     }
 
     @Override
     protected void prepareItemSource(OperationResult opResult) throws TaskException, CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException, ObjectAlreadyExistsException {
+
+        objectSetSpecification = getObjectSetSpecification();
+
         objectType = determineObjectType();
         searchOptions = prepareSearchOptions(opResult);
         useRepository = prepareUseRepositoryFlag(opResult);
         query = prepareQuery(opResult);
 
-        logger.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
-                getTaskTypeName(), objectType, searchOptions, useRepository, DebugUtil.debugDumpLazily(query));
+        LOGGER.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
+                activityShortNameCapitalized, objectType, searchOptions, useRepository, DebugUtil.debugDumpLazily(query));
+    }
+
+    protected ObjectSetType getObjectSetSpecification() {
+        return getObjectSetSpecificationFromWorkDefinition();
+    }
+
+    private ObjectSetType getObjectSetSpecificationFromWorkDefinition() {
+        WD workDefinition = activityDefinition.getWorkDefinition();
+        if (workDefinition instanceof ObjectSetSpecificationProvider) {
+            return ((ObjectSetSpecificationProvider) workDefinition).getObjectSetSpecification();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -154,8 +257,8 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
         Long expectedTotal = computeExpectedTotal(opResult);
-        localCoordinatorTask.setExpectedTotal(expectedTotal);
-        localCoordinatorTask.flushPendingModifications(opResult);
+        getTask().setExpectedTotal(expectedTotal);
+        getTask().flushPendingModifications(opResult);
     }
 
     private boolean prepareUseRepositoryFlag(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
@@ -164,7 +267,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         if (useRepositoryDirectlyExplicit != null) {
             // if we requested this mode explicitly we need to have appropriate authorization
             if (useRepositoryDirectlyExplicit) {
-                checkRawAuthorization(localCoordinatorTask, opResult);
+                checkRawAuthorization(getTask(), opResult);
             }
             return useRepositoryDirectlyExplicit;
         } else {
@@ -180,8 +283,8 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
             Collection<SelectorOptions<GetOperationOptions>> searchOptions) {
+        IterationMethodType iterationMethod = getIterationMethod();
         Collection<SelectorOptions<GetOperationOptions>> rv;
-        IterationMethodType iterationMethod = getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD);
         if (iterationMethod != null) {
             rv = CloneUtil.cloneCollectionMembers(searchOptions);
             return SelectorOptions.updateRootOptions(rv, o -> o.setIterationMethod(iterationMethod), GetOperationOptions::new);
@@ -190,12 +293,20 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         }
     }
 
+    private IterationMethodType getIterationMethod() {
+        if (objectSetSpecification != null && objectSetSpecification.getIterationMethod() != null) {
+            return objectSetSpecification.getIterationMethod();
+        } else {
+            return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD);
+        }
+    }
+
     @Nullable
     private Long computeExpectedTotal(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (!getReportingOptions().isDetermineExpectedTotal()) {
             return null;
-        } else if (TaskWorkStateUtil.hasLimitations(workBucket)) {
+        } else if (TaskWorkStateUtil.hasLimitations(bucket)) {
             // We avoid computing expected total if we are processing a bucket: actually we could do it,
             // but we should not display the result as 'task expected total'.
             return null;
@@ -209,10 +320,6 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         }
     }
 
-    private String getTaskTypeName() {
-        return taskHandler.getTaskTypeName();
-    }
-
     private ObjectQuery prepareQuery(OperationResult opResult) throws TaskException {
 
         stateCheck(objectType != null, "uninitialized objectType");
@@ -222,15 +329,15 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         try {
             ObjectQuery queryFromHandler = createQuery(opResult); // TODO better name
 
-            logger.trace("{}: query as defined by task handler:\n{}", getTaskTypeName(),
+            LOGGER.trace("{}: query as defined by task handler:\n{}", activityShortNameCapitalized,
                     DebugUtil.debugDumpLazily(queryFromHandler));
 
             ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromHandler); // logging is inside
 
-            ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
-                    localCoordinatorTask, createItemDefinitionProvider(), workBucket, opResult);
+            ObjectQuery bucketNarrowedQuery = beans.workStateManager.narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
+                    getTask(), createItemDefinitionProvider(), bucket, opResult);
 
-            logger.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", getTaskTypeName(),
+            LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", activityShortNameCapitalized,
                     DebugUtil.debugDumpLazily(bucketNarrowedQuery));
 
             return preProcessQuery(bucketNarrowedQuery, opResult);
@@ -248,7 +355,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             return query;
         } else {
             ObjectFilter failedObjectsFilter =
-                    new FailedObjectsFilterCreator(selector, this, getPrismContext())
+                    new FailedObjectsFilterCreator(selector, getTask(), getPrismContext())
                             .createFilter();
 
             FailedObjectsSelectionMethodType selectionMethod = getFailedObjectsSelectionMethod(selector);
@@ -259,18 +366,18 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
                     // But it should be done in the provisioning module.
                     setNoFetchOption();
                     preprocessor = createShadowFetchingPreprocessor();
-                    logger.trace("{}: shadow-fetching preprocessor was set up", getTaskTypeName());
+                    LOGGER.trace("{}: shadow-fetching preprocessor was set up", activityShortNameCapitalized);
 
                 case NARROW_QUERY:
                     ObjectQuery failureNarrowedQuery = ObjectQueryUtil.addConjunctions(query, getPrismContext(), failedObjectsFilter);
-                    logger.trace("{}: query narrowed to select failed objects only:\n{}", getTaskTypeName(),
+                    LOGGER.trace("{}: query narrowed to select failed objects only:\n{}", activityShortNameCapitalized,
                             DebugUtil.debugDumpLazily(failureNarrowedQuery));
                     return failureNarrowedQuery;
 
                 case FILTER_AFTER_RETRIEVAL:
                     additionalFilter = failedObjectsFilter;
-                    logger.trace("{}: will use additional filter to select failed objects only (but executes "
-                                    + "the search with original query):\n{}", getTaskTypeName(),
+                    LOGGER.trace("{}: will use additional filter to select failed objects only (but executes "
+                                    + "the search with original query):\n{}", activityShortNameCapitalized,
                             DebugUtil.debugDumpLazily(failedObjectsFilter));
                     return query;
 
@@ -324,10 +431,6 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         };
     }
 
-    private RepositoryService getRepositoryService() {
-        return taskHandler.getRepositoryService();
-    }
-
     /**
      * Used to count objects using model or any similar higher-level interface. Defaults to repository count.
      */
@@ -337,7 +440,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     protected final int countObjectsInRepository(OperationResult opResult) throws SchemaException {
-        return getRepositoryService().countObjects(objectType, query, searchOptions, opResult);
+        return beans.repositoryService.countObjects(objectType, query, searchOptions, opResult);
     }
 
     @Override
@@ -355,7 +458,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     protected final void searchIterativeInRepository(OperationResult opResult) throws SchemaException {
-        getRepositoryService().searchObjectsIterative(objectType, query,
+        beans.repositoryService.searchObjectsIterative(objectType, query,
                 createSearchResultHandler(), searchOptions, true, opResult);
     }
 
@@ -375,7 +478,9 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     /**
      * Handler parameter may be used to pass task instance state between the calls.
      */
-    protected ObjectQuery createQuery(OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
+    protected ObjectQuery createQuery(OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
         return createQueryFromTask();
     }
 
@@ -387,7 +492,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     // useful e.g. to specify noFetch options for shadow-related queries
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(OperationResult opResult) {
-        return createSearchOptionsFromTask();
+        return createSearchOptionsFromTaskOrWorkDef();
     }
 
     /**
@@ -408,10 +513,21 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     @NotNull
     protected Class<O> determineObjectType() {
+        Class<O> typeFromObjectSetSpec = getTypeFromObjectSetSpecification();
         HandledObjectType handledObjectType = this.getClass().getAnnotation(HandledObjectType.class);
+
         if (handledObjectType != null) {
             //noinspection unchecked
-            return (Class<O>) handledObjectType.value();
+            Class<O> typeFromAnnotation = (Class<O>) handledObjectType.value();
+            if (typeFromObjectSetSpec != null && !typeFromAnnotation.equals(typeFromObjectSetSpec)) {
+                LOGGER.warn("Object type from the object set specification ({}) is different from the hard-coded one ({}) "
+                        + "and is therefore ignored.", typeFromObjectSetSpec, handledObjectType);
+            }
+            return typeFromAnnotation;
+        }
+
+        if (typeFromObjectSetSpec != null) {
+            return typeFromObjectSetSpec;
         }
 
         Class<O> typeFromTask = getTypeFromTask();
@@ -437,24 +553,34 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         return query != null ? query : getPrismContext().queryFactory().createQuery();
     }
 
-    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask() {
-        return MiscSchemaUtil.optionsTypeToOptions(
-                getTaskContainerRealValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS),
-                getPrismContext());
+    private Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTaskOrWorkDef() {
+        SelectorQualifiedGetOptionsType optionsBean;
+
+        if (objectSetSpecification != null && objectSetSpecification.getSearchOptions() != null) {
+            optionsBean = objectSetSpecification.getSearchOptions();
+        } else {
+            optionsBean = getTaskContainerRealValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
+        }
+
+        return MiscSchemaUtil.optionsTypeToOptions(optionsBean, getPrismContext());
     }
 
     private Boolean getUseRepositoryDirectlyFromTask() {
-        return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY);
+        if (objectSetSpecification != null && objectSetSpecification.isUseRepositoryDirectly() != null) {
+            return objectSetSpecification.isUseRepositoryDirectly();
+        } else {
+            return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY);
+        }
     }
 
     protected final ObjectQuery createQueryFromTaskIfExists() throws SchemaException {
         Class<? extends ObjectType> objectType = determineObjectType();
-        logger.trace("Object type = {}", objectType);
+        LOGGER.trace("Object type = {}", objectType);
 
-        QueryType queryFromTask = getObjectQueryTypeFromTask(localCoordinatorTask);
+        QueryType queryFromTask = getObjectQueryTypeFromTask(getTask());
         if (queryFromTask != null) {
             ObjectQuery query = getPrismContext().getQueryConverter().createObjectQuery(objectType, queryFromTask);
-            logger.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
+            LOGGER.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
             return query;
         } else {
             return null;
@@ -462,12 +588,16 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     private QueryType getObjectQueryTypeFromTask(Task task) {
+        if (objectSetSpecification != null && objectSetSpecification.getObjectQuery() != null) {
+            return objectSetSpecification.getObjectQuery();
+        }
+
         QueryType queryType = getObjectQueryTypeFromTaskObjectRef(task);
         if (queryType != null) {
             return queryType;
-        } else {
-            return getObjectQueryTypeFromTaskExtension(task);
         }
+
+        return getObjectQueryTypeFromTaskExtension(task);
     }
 
     private QueryType getObjectQueryTypeFromTaskExtension(Task task) {
@@ -488,8 +618,21 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         return queryType;
     }
 
+    private Class<O> getTypeFromObjectSetSpecification() {
+        if (objectSetSpecification != null) {
+            return getTypeFromName(objectSetSpecification.getObjectType());
+        } else {
+            return null;
+        }
+    }
+
     protected final Class<O> getTypeFromTask() {
         QName typeName = getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        return getTypeFromName(typeName);
+    }
+
+    @Nullable
+    private Class<O> getTypeFromName(QName typeName) {
         //noinspection unchecked
         return typeName != null
                 ? (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(typeName).getClassDefinition()
@@ -502,28 +645,25 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     public PrismContext getPrismContext() {
-        return taskHandler.prismContext;
+        return beans.prismContext;
     }
 
     public SchemaService getSchemaService() {
-        return taskHandler.schemaService;
+        return beans.schemaService;
     }
 
     protected TaskManager getTaskManager() {
-        return taskHandler.taskManager;
+        return beans.taskManager;
     }
 
-    public @NotNull TH getTaskHandler() {
-        return taskHandler;
-    }
-
+    // FIXME
     private <X> X getTaskPropertyRealValue(ItemName propertyName) {
-        return taskExecution.getTaskPropertyRealValue(propertyName);
+        return getTask().getExtensionPropertyRealValue(propertyName);
     }
 
     @SuppressWarnings("SameParameterValue")
     private <C extends Containerable> C getTaskContainerRealValue(ItemName containerName) {
-        return taskExecution.getTaskContainerRealValue(containerName);
+        return getTask().getExtensionContainerRealValueOrClone(containerName);
     }
 
     /**
@@ -532,7 +672,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
      */
     protected final ResultHandler<O> createSearchResultHandler() {
         return (object, parentResult) -> {
-            ItemProcessingRequest<PrismObject<O>> request = new ObjectProcessingRequest<>(object, itemProcessor);
+            ObjectProcessingRequest<O> request = new ObjectProcessingRequest<>(object, this);
             return coordinator.submit(request, parentResult);
         };
     }
@@ -544,7 +684,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     private boolean isNonScavengingWorker() {
-        throw new UnsupportedOperationException();//FIXME
+        return false;//FIXME
 //        return localCoordinatorTask.getWorkManagement() != null &&
 //                localCoordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
 //                !Boolean.TRUE.equals(localCoordinatorTask.getWorkManagement().isScavenger());
@@ -563,5 +703,22 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     boolean checkAndRegisterOid(String oid) {
         return oidsSeen.add(oid);
+    }
+
+    @FunctionalInterface
+    public interface SimpleItemProcessor<O extends ObjectType> {
+        boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
+                RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
+    }
+
+    protected ItemProcessor<PrismObject<O>> createDefaultItemProcessor(SimpleItemProcessor<O> simpleItemProcessor) {
+        //noinspection unchecked
+        return new AbstractSearchIterativeItemProcessor<>((AE) this) {
+            @Override
+            protected boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
+                    RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+                return simpleItemProcessor.processObject(object, request, workerTask, result);
+            }
+        };
     }
 }

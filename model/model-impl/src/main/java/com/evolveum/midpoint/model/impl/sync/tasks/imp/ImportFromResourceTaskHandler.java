@@ -19,8 +19,6 @@ import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -59,8 +57,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @see ResourceObjectChangeListener
  */
 @Component
-@TaskExecutionClass(ImportFromResourceTaskExecution.class)
-@PartExecutionClass(ImportFromResourceTaskPartExecution.class)
 public class ImportFromResourceTaskHandler
         extends AbstractModelTaskHandler
         <ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {

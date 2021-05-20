@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -17,17 +19,20 @@ public class LegacyWorkDefinitionSource implements WorkDefinitionSource {
 
     @NotNull private final String taskHandlerUri;
     private final PrismContainerValue<?> taskExtension;
+    private final ObjectReferenceType objectRef;
 
-    private LegacyWorkDefinitionSource(@NotNull String taskHandlerUri, PrismContainerValue<?> taskExtension) {
+    private LegacyWorkDefinitionSource(@NotNull String taskHandlerUri, PrismContainerValue<?> taskExtension,
+            ObjectReferenceType objectRef) {
         this.taskHandlerUri = taskHandlerUri;
         this.taskExtension = taskExtension;
+        this.objectRef = objectRef;
     }
 
     @NotNull
     public static WorkDefinitionSource create(@NotNull String handlerUri,
-            PrismContainer<? extends ExtensionType> extensionContainer) {
+            PrismContainer<? extends ExtensionType> extensionContainer, ObjectReferenceType objectRef) {
         PrismContainerValue<?> pcv = extensionContainer != null ? extensionContainer.getValue() : null;
-        return new LegacyWorkDefinitionSource(handlerUri, pcv);
+        return new LegacyWorkDefinitionSource(handlerUri, pcv, objectRef);
     }
 
     public @NotNull String getTaskHandlerUri() {
@@ -38,11 +43,16 @@ public class LegacyWorkDefinitionSource implements WorkDefinitionSource {
         return taskExtension;
     }
 
+    public ObjectReferenceType getObjectRef() {
+        return objectRef;
+    }
+
     @Override
     public String toString() {
         return "LegacyWorkDefinitionSource{" +
                 "taskHandlerUri='" + taskHandlerUri + '\'' +
                 ", taskExtension size=" + getExtensionSize() +
+                ", objectRef=" + objectRef +
                 '}';
     }
 

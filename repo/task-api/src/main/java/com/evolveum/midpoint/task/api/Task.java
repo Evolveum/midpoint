@@ -592,6 +592,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void setResult(OperationResult result);
 
+    // TODO
+    void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
+
+    // TODO
+    void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException;
     /**
      * Returns task progress, as reported by task handler.
      */

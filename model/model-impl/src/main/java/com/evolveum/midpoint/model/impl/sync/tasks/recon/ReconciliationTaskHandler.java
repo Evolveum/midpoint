@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.Channel;
@@ -51,7 +50,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 @Component
-@TaskExecutionClass(ReconciliationTaskExecution.class)
 public class ReconciliationTaskHandler
         extends AbstractModelTaskHandler
         <ReconciliationTaskHandler, ReconciliationTaskExecution> {

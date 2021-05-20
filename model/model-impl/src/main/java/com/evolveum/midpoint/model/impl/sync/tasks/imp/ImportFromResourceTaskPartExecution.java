@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
@@ -98,12 +97,12 @@ public class ImportFromResourceTaskPartExecution
     }
 
     public class ItemProcessor
-            extends AbstractSearchIterativeItemProcessor
+            extends AbstractSearchIterativeItemProcessorOld
             <ShadowType,
-                    ImportFromResourceTaskHandler,
-                    ImportFromResourceTaskExecution,
-                    ImportFromResourceTaskPartExecution,
-                    ItemProcessor> {
+                                ImportFromResourceTaskHandler,
+                                ImportFromResourceTaskExecution,
+                                ImportFromResourceTaskPartExecution,
+                                ItemProcessor> {
 
         public ItemProcessor(ImportFromResourceTaskPartExecution taskExecution) {
             super(taskExecution);

@@ -39,8 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * @author Radovan Semancik
  */
 @Component
-@TaskExecutionClass(ShadowRefreshTaskHandler.TaskExecution.class)
-@PartExecutionClass(ShadowRefreshTaskHandler.PartExecution.class)
 public class ShadowRefreshTaskHandler
         extends AbstractScannerTaskHandler
         <ShadowRefreshTaskHandler, ShadowRefreshTaskHandler.TaskExecution> {

@@ -33,8 +33,6 @@ import javax.annotation.PostConstruct;
  * Task handler for controlled processing of asynchronous updates.
  */
 @Component
-@TaskExecutionClass(AsyncUpdateTaskHandler.TaskExecution.class)
-@PartExecutionClass(AsyncUpdateTaskHandler.PartExecution.class)
 public class AsyncUpdateTaskHandler
         extends AbstractModelTaskHandler<AsyncUpdateTaskHandler, AsyncUpdateTaskHandler.TaskExecution> {
 
@@ -54,7 +52,7 @@ public class AsyncUpdateTaskHandler
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-    public class TaskExecution extends AbstractTaskExecution<AsyncUpdateTaskHandler, TaskExecution> {
+    public class TaskExecution extends AbstractTaskExecutionOld<AsyncUpdateTaskHandler, TaskExecution> {
 
         private TargetInfo targetInfo;
 
@@ -78,7 +76,7 @@ public class AsyncUpdateTaskHandler
     }
 
     @ItemProcessorClass(PartExecution.ItemProcessor.class)
-    public class PartExecution extends AbstractIterativeActivityExecution
+    public class PartExecution extends AbstractIterativeActivityExecutionOld
             <AsyncUpdateEvent, AsyncUpdateTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(@NotNull AsyncUpdateTaskHandler.TaskExecution taskExecution) {
@@ -105,12 +103,12 @@ public class AsyncUpdateTaskHandler
                     handler, localCoordinatorTask, opResult);
         }
 
-        public class ItemProcessor extends AbstractIterativeItemProcessor
+        public class ItemProcessor extends AbstractIterativeItemProcessorOld
                 <AsyncUpdateEvent,
-                        AsyncUpdateTaskHandler,
-                        AsyncUpdateTaskHandler.TaskExecution,
-                        AsyncUpdateTaskHandler.PartExecution,
-                        ItemProcessor> {
+                                AsyncUpdateTaskHandler,
+                                TaskExecution,
+                                PartExecution,
+                                ItemProcessor> {
 
             public ItemProcessor() {
                 super(PartExecution.this);

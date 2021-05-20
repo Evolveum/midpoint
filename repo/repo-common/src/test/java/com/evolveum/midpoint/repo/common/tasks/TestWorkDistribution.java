@@ -6,50 +6,13 @@
  */
 package com.evolveum.midpoint.repo.common.tasks;
 
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
-
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.sortBucketsBySequentialNumber;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
-
-import java.io.File;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
-
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * FIXME
@@ -67,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 @ContextConfiguration(locations = "classpath:ctx-repo-common-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestWorkDistribution extends AbstractIntegrationTest {
+public class TestWorkDistribution extends AbstractRepoCommonTest {
 
     // TODO enable
 //    private static final long DEFAULT_TIMEOUT = 30000L;

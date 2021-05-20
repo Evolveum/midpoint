@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.task.execution;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityContext.SubActivityContext;
+import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext.ComponentActivityInstantiationContext;
 
 import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.task.definition.CompositeWorkDefinition;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.task.handlers.PureCompositeActivityHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +24,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PureCompositeActivityExecution extends AbstractCompositeActivityExecution<CompositeWorkDefinition> {
+public class PureCompositeActivityExecution
+        extends AbstractCompositeActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PureCompositeActivityExecution.class);
 
-    public PureCompositeActivityExecution(ActivityContext<CompositeWorkDefinition> context) {
-        super(context);
+    public PureCompositeActivityExecution(ActivityInstantiationContext<CompositeWorkDefinition> context,
+            PureCompositeActivityHandler activityHandler) {
+        super(context, activityHandler);
     }
 
     @NotNull
@@ -44,7 +47,7 @@ public class PureCompositeActivityExecution extends AbstractCompositeActivityExe
             OperationResult result) {
         ActivityExecution childExecution = getBeans().activityHandlerRegistry
                 .getHandler(childDefinition)
-                .createExecution(new SubActivityContext<>(childDefinition, this), result);
+                .createExecution(new ComponentActivityInstantiationContext<>(childDefinition, this), result);
         LOGGER.trace("Created execution {} for child definition {} to {}", childExecution, childDefinition, this);
         return childExecution;
     }

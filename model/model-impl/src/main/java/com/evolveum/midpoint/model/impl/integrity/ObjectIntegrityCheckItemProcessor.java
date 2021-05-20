@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -23,11 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Item processor for object integrity checker.
  */
 public class ObjectIntegrityCheckItemProcessor
-        extends AbstractSearchIterativeItemProcessor
+        extends AbstractSearchIterativeItemProcessorOld
         <ObjectType,
-                ObjectIntegrityCheckTaskHandler,
-                ObjectIntegrityCheckTaskHandler.TaskExecution,
-                ObjectIntegrityCheckActivityExecution, ObjectIntegrityCheckItemProcessor> {
+                        ObjectIntegrityCheckTaskHandler,
+                        ObjectIntegrityCheckTaskHandler.TaskExecution,
+                        ObjectIntegrityCheckActivityExecution, ObjectIntegrityCheckItemProcessor> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckItemProcessor.class);
 

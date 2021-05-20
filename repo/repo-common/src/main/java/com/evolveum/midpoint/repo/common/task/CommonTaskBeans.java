@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.task.work.WorkStateManager;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -38,4 +39,5 @@ public class CommonTaskBeans {
     @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired public WorkDefinitionFactory workDefinitionFactory;
 
+    @Autowired public WorkStateManager workStateManager;
 }

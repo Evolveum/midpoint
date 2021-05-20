@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskExecution;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -33,8 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * @author Radovan Semancik
  */
 @Component
-@TaskExecutionClass(TriggerScannerTaskHandler.TaskExecution.class)
-@PartExecutionClass(TriggerScannerTaskPartExecution.class)
 public class TriggerScannerTaskHandler
         extends AbstractScannerTaskHandler
         <TriggerScannerTaskHandler,

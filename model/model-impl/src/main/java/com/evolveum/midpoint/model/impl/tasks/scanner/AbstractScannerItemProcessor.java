@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -21,7 +20,7 @@ public abstract class AbstractScannerItemProcessor
                 TE extends AbstractScannerTaskExecution<TH, TE>,
                 E extends AbstractScannerActivityExecution<O, TH, TE, E, RH>,
                 RH extends AbstractScannerItemProcessor<O, TH, TE, E, RH>>
-        extends AbstractSearchIterativeItemProcessor<O, TH, TE, E, RH> {
+        extends AbstractSearchIterativeItemProcessorOld<O, TH, TE, E, RH> {
 
     protected AbstractScannerItemProcessor(E taskExecution) {
         super(taskExecution);

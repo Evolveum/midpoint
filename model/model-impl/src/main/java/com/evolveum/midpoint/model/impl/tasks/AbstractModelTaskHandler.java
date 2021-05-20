@@ -23,8 +23,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskHandler;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 /**
@@ -35,9 +33,9 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
  * @author semancik
  */
 public abstract class AbstractModelTaskHandler
-        <TH extends AbstractTaskHandler<TH, TE>,
-                TE extends AbstractTaskExecution<TH, TE>>
-        extends AbstractTaskHandler<TH, TE> {
+        <TH extends AbstractTaskHandlerOld<TH, TE>,
+                TE extends AbstractTaskExecutionOld<TH, TE>>
+        extends AbstractTaskHandlerOld<TH, TE> {
 
     // WARNING! This task handler is efficiently singleton!
     // It is a spring bean and it is supposed to handle all search task instances

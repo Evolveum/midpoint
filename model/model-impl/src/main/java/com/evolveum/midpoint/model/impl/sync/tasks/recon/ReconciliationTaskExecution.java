@@ -21,8 +21,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,7 +50,7 @@ import java.util.List;
  * Responsible for creation of task parts, as given by the context: all three of them, or only a specified one.
  */
 public class ReconciliationTaskExecution
-        extends AbstractTaskExecution<ReconciliationTaskHandler, ReconciliationTaskExecution> {
+        extends AbstractTaskExecutionOld<ReconciliationTaskHandler, ReconciliationTaskExecution> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskExecution.class);
 
@@ -86,8 +84,8 @@ public class ReconciliationTaskExecution
     }
 
     @Override
-    public List<AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutions() {
-        List<AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> partExecutions = new ArrayList<>();
+    public List<AbstractSearchIterativeActivityExecutionOld<?, ?, ?, ?, ?>> createPartExecutions() {
+        List<AbstractSearchIterativeActivityExecutionOld<?, ?, ?, ?, ?>> partExecutions = new ArrayList<>();
         if (stage == Stage.FIRST || stage == Stage.ALL) {
             partExecutions.add(new OperationCompletionActivityExecution(this));
         }

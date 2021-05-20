@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
@@ -85,12 +84,12 @@ class OperationCompletionActivityExecution
     }
 
     protected static class ItemProcessor
-            extends AbstractSearchIterativeItemProcessor
+            extends AbstractSearchIterativeItemProcessorOld
             <ShadowType,
-                    ReconciliationTaskHandler,
-                    ReconciliationTaskExecution,
-                    OperationCompletionActivityExecution,
-                    ItemProcessor> {
+                                ReconciliationTaskHandler,
+                                ReconciliationTaskExecution,
+                                OperationCompletionActivityExecution,
+                                ItemProcessor> {
 
         public ItemProcessor(OperationCompletionActivityExecution partExecution) {
             super(partExecution);

@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.work.WorkStateManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
@@ -184,6 +185,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired
     @Qualifier("repositoryService")
     protected RepositoryService plainRepositoryService;
+
+    @Autowired protected WorkStateManager workStateManager;
 
     @Autowired protected ReferenceResolver referenceResolver;
     @Autowired protected SystemObjectCache systemObjectCache;

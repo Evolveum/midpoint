@@ -12,9 +12,6 @@ import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelActivityExec
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -65,7 +62,7 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     protected abstract P createProcessing(EC ctx);
 
     protected class TaskExecution
-            extends AbstractTaskExecution<SimpleIterativeTaskHandler<O, EC, P>, TaskExecution> {
+            extends AbstractTaskExecutionOld<SimpleIterativeTaskHandler<O, EC, P>, TaskExecution> {
 
         private final EC executionContext;
 
@@ -84,7 +81,7 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
 
         @Override
-        public List<? extends AbstractSearchIterativeActivityExecution<?, ?, ?, ?, ?>> createPartExecutions() {
+        public List<? extends AbstractSearchIterativeActivityExecutionOld<?, ?, ?, ?, ?>> createPartExecutions() {
             return Collections.singletonList(new PartExecution(this));
         }
     }
@@ -132,7 +129,7 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     }
 
     protected class ItemProcessor
-            extends AbstractSearchIterativeItemProcessor
+            extends AbstractSearchIterativeItemProcessorOld
             <O, SimpleIterativeTaskHandler<O, EC, P>, TaskExecution, PartExecution, ItemProcessor> {
 
         ItemProcessor(PartExecution partExecution) {

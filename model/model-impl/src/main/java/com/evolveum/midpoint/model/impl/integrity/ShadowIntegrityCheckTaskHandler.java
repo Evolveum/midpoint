@@ -9,9 +9,6 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
-import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,8 +36,6 @@ import javax.annotation.PostConstruct;
  * effectively hidden for any search on that particular attribute.
  */
 @Component
-@TaskExecutionClass(ShadowIntegrityCheckTaskHandler.TaskExecution.class)
-@PartExecutionClass(ShadowIntegrityCheckActivityExecution.class)
 public class ShadowIntegrityCheckTaskHandler
         extends AbstractModelTaskHandler
         <ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {
@@ -73,7 +68,7 @@ public class ShadowIntegrityCheckTaskHandler
 
     /** Just to make Java compiler happy. */
     public static class TaskExecution
-            extends AbstractTaskExecution<ShadowIntegrityCheckTaskHandler, TaskExecution> {
+            extends AbstractTaskExecutionOld<ShadowIntegrityCheckTaskHandler, TaskExecution> {
 
         public TaskExecution(ShadowIntegrityCheckTaskHandler taskHandler, RunningTask localCoordinatorTask) {
             super(taskHandler, localCoordinatorTask);

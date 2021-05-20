@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -32,7 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
  */
 public class ProcessingCoordinator<I> {
 
-    @NotNull private final Trace logger;
+    private static final Trace LOGGER = TraceManager.getTrace(ProcessingCoordinator.class);
 
     private static final long WORKER_THREAD_WAIT_FOR_REQUEST = 100L;
 
@@ -61,10 +63,9 @@ public class ProcessingCoordinator<I> {
      */
     private final AtomicBoolean allItemsSubmitted = new AtomicBoolean(false);
 
-    ProcessingCoordinator(@NotNull AbstractTaskHandler<?, ?> taskHandler, @NotNull RunningTask coordinatorTask) {
-        this.logger = taskHandler.getLogger();
+    ProcessingCoordinator(@NotNull RunningTask coordinatorTask, @NotNull TaskManager taskManager) {
         this.coordinatorTask = coordinatorTask;
-        this.taskManager = taskHandler.getTaskManager();
+        this.taskManager = taskManager;
 
         threadsCount = getWorkerThreadsCount();
         if (threadsCount > 0) {
@@ -127,10 +128,10 @@ public class ProcessingCoordinator<I> {
 
     private void recordInterrupted(OperationResult result) {
         result.recordStatus(OperationResultStatus.WARNING, "Could not submit request as the processing was interrupted");
-        logger.warn("Processing was interrupted in {}", coordinatorTask);
+        LOGGER.warn("Processing was interrupted in {}", coordinatorTask);
     }
 
-    void createWorkerTasks(@NotNull TaskReportingOptions reportingOptions) {
+    void createWorkerTasks(@NotNull ActivityReportingOptions reportingOptions) {
         if (threadsCount == 0) {
             return;
         }
@@ -152,11 +153,11 @@ public class ProcessingCoordinator<I> {
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
             subtask.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
             subtask.startLightweightHandler();
-            logger.trace("Worker subtask {} created", subtask);
+            LOGGER.trace("Worker subtask {} created", subtask);
         }
     }
 
-    private void initializeStatisticsCollection(RunningLightweightTask subtask, TaskReportingOptions reportingOptions) {
+    private void initializeStatisticsCollection(RunningLightweightTask subtask, ActivityReportingOptions reportingOptions) {
         subtask.resetIterativeTaskInformation(null, reportingOptions.isCollectExecutions());
         if (reportingOptions.isEnableSynchronizationStatistics()) {
             subtask.resetSynchronizationInformation(null);
@@ -177,7 +178,7 @@ public class ProcessingCoordinator<I> {
      * Acknowledges any pending requests.
      */
     public void finishProcessing(OperationResult result) {
-        logger.trace("ProcessingCoordinator: finishing processing. Coordinator task canRun = {}", coordinatorTask.canRun());
+        LOGGER.trace("ProcessingCoordinator: finishing processing. Coordinator task canRun = {}", coordinatorTask.canRun());
 
         allItemsSubmitted.set(true);
         waitForWorkersFinish(result);
@@ -185,16 +186,16 @@ public class ProcessingCoordinator<I> {
     }
 
     private void waitForWorkersFinish(OperationResult result) {
-        logger.debug("Waiting for workers to finish");
+        LOGGER.debug("Waiting for workers to finish");
         taskManager.waitForTransientChildrenAndCloseThem(coordinatorTask, result);
-        logger.debug("Waiting for workers to finish done");
+        LOGGER.debug("Waiting for workers to finish done");
     }
 
     private void nackQueuedRequests(OperationResult result) {
         if (multithreaded) {
-            logger.trace("Acknowledging (release=false) all pending requests");
+            LOGGER.trace("Acknowledging (release=false) all pending requests");
             int count = requestsBuffer.nackAllRequests(result);
-            logger.trace("Acknowledged {} pending requests", count);
+            LOGGER.trace("Acknowledged {} pending requests", count);
         }
     }
 
@@ -234,15 +235,15 @@ public class ProcessingCoordinator<I> {
                     }
                 } else {
                     if (allItemsSubmitted.get()) {
-                        logger.trace("Queue is empty and nothing more is expected - exiting");
+                        LOGGER.trace("Queue is empty and nothing more is expected - exiting");
                         break;
                     } else {
-                        logger.trace("No requests to be processed but expecting some to come. Waiting for {} msec", WORKER_THREAD_WAIT_FOR_REQUEST);
+                        LOGGER.trace("No requests to be processed but expecting some to come. Waiting for {} msec", WORKER_THREAD_WAIT_FOR_REQUEST);
                         try {
                             //noinspection BusyWait
                             Thread.sleep(WORKER_THREAD_WAIT_FOR_REQUEST);
                         } catch (InterruptedException e) {
-                            logger.trace("Waiting interrupted, exiting");
+                            LOGGER.trace("Waiting interrupted, exiting");
                             break;
                         }
                     }
@@ -251,7 +252,7 @@ public class ProcessingCoordinator<I> {
 
             int reservedRequests = requestsBuffer.getReservedRequestsCount(taskIdentifier);
             if (reservedRequests > 0) {
-                logger.warn("Worker task exiting but it has {} reserved (pre-assigned) change requests", reservedRequests);
+                LOGGER.warn("Worker task exiting but it has {} reserved (pre-assigned) change requests", reservedRequests);
             }
             workerTask.refreshThreadLocalStatistics();
         }

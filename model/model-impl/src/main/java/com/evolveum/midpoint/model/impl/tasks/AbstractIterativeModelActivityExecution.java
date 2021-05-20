@@ -37,10 +37,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public abstract class AbstractIterativeModelActivityExecution<O extends ObjectType,
         TH extends AbstractModelTaskHandler<TH, TE>,
-        TE extends AbstractTaskExecution<TH, TE>,
+        TE extends AbstractTaskExecutionOld<TH, TE>,
         PE extends AbstractIterativeModelActivityExecution<O, TH, TE, PE, RH>,
-        RH extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, RH>>
-        extends AbstractSearchIterativeActivityExecution<O, TH, TE, PE, RH> {
+        RH extends AbstractSearchIterativeItemProcessorOld<O, TH, TE, PE, RH>>
+        extends AbstractSearchIterativeActivityExecutionOld<O, TH, TE, PE, RH> {
 
     public AbstractIterativeModelActivityExecution(TE ctx) {
         super(ctx);

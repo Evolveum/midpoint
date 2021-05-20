@@ -15,8 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
-import com.evolveum.midpoint.repo.common.task.AbstractIterativeItemProcessor;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -31,10 +29,10 @@ import org.jetbrains.annotations.Nullable;
  * It is comparable on the sequence number.
  */
 public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
-        extends ItemProcessingRequest<SE>
+        extends ItemProcessingRequestOld<SE>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
-    SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessor<SE, ?, ?, ?, ?> itemProcessor) {
+    SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessorOld<SE, ?, ?, ?, ?> itemProcessor) {
         super(item, itemProcessor);
     }
 

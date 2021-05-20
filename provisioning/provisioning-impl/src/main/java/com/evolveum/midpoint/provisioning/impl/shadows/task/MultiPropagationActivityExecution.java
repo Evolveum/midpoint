@@ -16,12 +16,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @ItemProcessorClass(MultiPropagationItemProcessor.class)
 @HandledObjectType(ResourceType.class)
 public class MultiPropagationActivityExecution
-        extends AbstractSearchIterativeActivityExecution
+        extends AbstractSearchIterativeActivityExecutionOld
         <ResourceType,
-                MultiPropagationTaskHandler,
-                MultiPropagationTaskHandler.TaskExecution,
-                MultiPropagationActivityExecution,
-                MultiPropagationItemProcessor> {
+                        MultiPropagationTaskHandler,
+                        MultiPropagationTaskHandler.TaskExecution,
+                        MultiPropagationActivityExecution,
+                        MultiPropagationItemProcessor> {
 
     public MultiPropagationActivityExecution(MultiPropagationTaskHandler.TaskExecution taskExecution) {
         super(taskExecution);

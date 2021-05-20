@@ -225,6 +225,11 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     <T> T getPropertyRealValue(QName propertyName, Class<T> type);
 
+    default <T> T getItemRealValue(ItemName itemName, Class<T> type) {
+        Item<?, ?> item = findItem(itemName);
+        return item != null ? item.getRealValue(type) : null;
+    }
+
     void recompute(PrismContext prismContext);
 
     @Override
