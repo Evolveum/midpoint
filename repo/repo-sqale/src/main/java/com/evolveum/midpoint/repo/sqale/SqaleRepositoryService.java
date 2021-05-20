@@ -333,8 +333,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 PrismObject<T> prismObject = updateContext.getPrismObject();
                 // no precondition check for overwrite
 
-                // TODO beforeModify? then afterModify lower too...
-//            invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+                invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 newObject.setUserData(RepositoryService.KEY_ORIGINAL_OBJECT, prismObject.clone());
                 ObjectDelta<T> delta = prismObject.diff(newObject, EquivalenceStrategy.LITERAL);
                 Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
@@ -344,8 +343,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
                 updateContext.execute(modifications);
 
-                // TODO do we want this conflict watcher or modify one?
-//            invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
+                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all

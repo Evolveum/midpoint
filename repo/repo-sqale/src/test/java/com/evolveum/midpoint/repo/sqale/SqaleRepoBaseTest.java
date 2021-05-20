@@ -241,7 +241,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         assertThat(pmAllData).hasSize(1);
         Map.Entry<String, OperationPerformanceInformation> perfEntry =
                 pmAllData.entrySet().iterator().next();
-        assertThat(perfEntry.getKey()).startsWith(opKind);
+        assertThat(perfEntry.getKey()).isEqualTo(opKind);
         OperationPerformanceInformation operationInfo = perfEntry.getValue();
         assertThat(operationInfo.getInvocationCount()).isEqualTo(1);
         assertThat(operationInfo.getExecutionCount()).isEqualTo(1);

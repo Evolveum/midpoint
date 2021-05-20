@@ -141,7 +141,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test105AddWithOverwriteOption()
+    public void test110AddWithOverwriteOption()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -171,7 +171,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test106AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
+    public void test111AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -199,8 +199,68 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(1);
     }
 
+    // detailed container tests are from test200 on, this one has overwrite priority :-)
     @Test
-    public void test110AddUserWithProvidedOidWorksOk()
+    public void test112OverwriteWithContainers()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with container in the repository");
+        long baseCount = count(QUser.class);
+
+        UUID assConstructionRef = UUID.randomUUID();
+        QName assConstructionRel = QName.valueOf("{https://random.org/ns}const-rel");
+        String userName = "user" + getTestNumber();
+        UserType user1 = new UserType(prismContext)
+                .name(userName)
+                .assignment(new AssignmentType(prismContext)
+                        .id(2L) // assigned CID to make things simple for tracking
+                        .construction(new ConstructionType(prismContext)
+                                .resourceRef(assConstructionRef.toString(),
+                                        ResourceType.COMPLEX_TYPE, assConstructionRel)));
+        repositoryService.addObject(user1.asPrismObject(), null, result);
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1);
+
+        UUID userOid = UUID.fromString(user1.getOid());
+        QAssignment<?> qa = QAssignmentMapping.getAssignment().defaultAlias();
+        List<MAssignment> assRows = select(qa, qa.ownerOid.eq(userOid));
+        assertThat(assRows).hasSize(1)
+                // construction/resourceRef is set
+                .anyMatch(aRow -> aRow.resourceRefTargetOid != null
+                        && aRow.resourceRefTargetType != null
+                        && aRow.resourceRefRelationId != null);
+
+        when("using overwrite with changed container identified by id");
+        UserType user2 = new UserType(prismContext)
+                .oid(user1.getOid())
+                .version("5") // should be ignored
+                .name(userName)
+                .assignment(new AssignmentType(prismContext)
+                        .id(2L)
+                        // no construction
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        repositoryService.addObject(user2.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("identified container is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, user2.getOid());
+        assRows = select(qa, qa.ownerOid.eq(UUID.fromString(user2.getOid())));
+        assertThat(assRows).hasSize(1)
+                .anyMatch(aRow -> aRow.resourceRefTargetOid == null // removed
+                        && aRow.resourceRefTargetType == null // removed
+                        && aRow.resourceRefRelationId == null // removed
+                        && aRow.targetRefTargetOid != null // added
+                        && aRow.targetRefTargetType == MObjectType.ROLE);
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(2);
+    }
+
+    @Test
+    public void test120AddUserWithProvidedOidWorksOk()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -227,7 +287,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test111AddSecondObjectWithTheSameOidThrowsObjectAlreadyExists()
+    public void test121AddSecondObjectWithTheSameOidThrowsObjectAlreadyExists()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -242,7 +302,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         long baseCount = count(QUser.class);
         UserType user2 = new UserType(prismContext)
                 .oid(providedOid.toString())
-                .name("user" + getTestNumber() + "-different-name");
+                .name("user" + getTestNumber());
 
         then("operation fails and no new user row is created");
         assertThatThrownBy(() -> repositoryService.addObject(user2.asPrismObject(), null, result))
@@ -250,6 +310,32 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isFatalError()
                 .hasMessageMatching("Provided OID .* already exists");
         assertCount(QUser.class, baseCount);
+    }
+
+    @Test
+    public void test122AddSecondObjectWithTheSameOidWithOverwriteIsOk()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with provided OID already exists");
+        UUID providedOid = UUID.randomUUID();
+        UserType user1 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber());
+        repositoryService.addObject(user1.asPrismObject(), null, result);
+
+        when("adding it again with overwrite without any changes");
+        long baseCount = count(QObject.CLASS);
+        UserType user2 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber());
+        repositoryService.addObject(user2.asPrismObject(), createOverwrite(), result);
+
+        then("operation is success and no changes are made (delta is empty)");
+        assertThatOperationResult(result).isSuccess();
+        assertCount(QObject.CLASS, baseCount); // no new object was created
+        MUser row = selectObjectByOid(QUser.class, providedOid);
+        assertThat(row.version).isEqualTo(1); // version is still initial, no change
     }
 
     @Test
@@ -269,6 +355,27 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
+    }
+
+    @Test
+    public void test151OverwriteOperationUpdatesPerformanceMonitor()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("existing object for overwrite and cleared performance information");
+        UserType userType = new UserType(prismContext).name("user" + getTestNumber());
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is added to the repository");
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
