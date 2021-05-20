@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -20,9 +21,9 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
@@ -31,7 +32,6 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,26 +60,7 @@ public class ResourceSchemaHandlingPanel extends BasePanel<PrismContainerWrapper
 
             @Override
             protected MultivalueContainerDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> item) {
-                return new MultivalueContainerDetailsPanel<>(ID_ITEM_DETAILS, item.getModel(), true) {
-
-                    @Override
-                    protected @NotNull List<ITab> createTabs() {
-                        List<ITab> tabs = new ArrayList<>();
-                        tabs.add(new PanelTab(createStringResource("Attributes")) {
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE));
-                            }
-                        });
-                        return tabs;
-                    }
-
-                    @Override
-                    protected DisplayNamePanel<ResourceObjectTypeDefinitionType> createDisplayNamePanel(String displayNamePanelId) {
-                        return new DisplayNamePanel<>(displayNamePanelId, new ItemRealValueModel<>(getModel()));
-                    }
-                };
+                return createMultivalueContainerDetailsPanel(ID_ITEM_DETAILS, item.getModel());
             }
 
             @Override
@@ -124,5 +105,36 @@ public class ResourceSchemaHandlingPanel extends BasePanel<PrismContainerWrapper
 
     private MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerListPanel(){
         return ((MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType>)get(createComponentPath(ID_FORM, ID_TABLE)));
+    }
+
+    private MultivalueContainerDetailsPanel<ResourceObjectTypeDefinitionType> createMultivalueContainerDetailsPanel(String panelId, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
+        return new MultivalueContainerDetailsPanel<>(panelId, model, true) {
+
+            @Override
+            protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
+                if (itemWrapper instanceof PrismContainerWrapper) {
+                    return ItemVisibility.HIDDEN;
+                }
+                return ItemVisibility.AUTO;
+            }
+
+            @Override
+            protected @NotNull List<ITab> createTabs() {
+                List<ITab> tabs = new ArrayList<>();
+                tabs.add(new PanelTab(createStringResource("Attributes")) {
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE));
+                    }
+                });
+                return tabs;
+            }
+
+            @Override
+            protected DisplayNamePanel<ResourceObjectTypeDefinitionType> createDisplayNamePanel(String displayNamePanelId) {
+                return new DisplayNamePanel<>(displayNamePanelId, new ItemRealValueModel<>(getModel()));
+            }
+        };
     }
 }

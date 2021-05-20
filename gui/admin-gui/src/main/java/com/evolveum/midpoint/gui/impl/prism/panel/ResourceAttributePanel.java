@@ -92,18 +92,18 @@ public class ResourceAttributePanel extends BasePanel<PrismContainerWrapper<Reso
                     @Override
                     public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ResourceAttributeDefinitionType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel) {
                         IModel<PrismContainerWrapper<MappingType>> mappingModel = PrismContainerWrapperModel.fromContainerValueWrapper(rowModel, ResourceAttributeDefinitionType.F_OUTBOUND);
-                        cellItem.add(new MappingColumnPanel(componentId, new PropertyModel<>(mappingModel, "value")));
+                        cellItem.add(new MappingColumnPanel(componentId, mappingModel));
                     }
                 });
 
-//                columns.add(new AbstractColumn<>(createStringResource("Inbound")) {
-//
-//                    @Override
-//                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ResourceAttributeDefinitionType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel) {
-//                        IModel<PrismContainerWrapper<MappingType>> mappingModel = PrismContainerWrapperModel.fromContainerValueWrapper(rowModel, ResourceAttributeDefinitionType.F_INBOUND);
-//                        cellItem.add(new MappingColumnPanel(componentId, new PropertyModel<>(mappingModel, "values")));
-//                    }
-//                });
+                columns.add(new AbstractColumn<>(createStringResource("Inbound")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ResourceAttributeDefinitionType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel) {
+                        IModel<PrismContainerWrapper<MappingType>> mappingModel = PrismContainerWrapperModel.fromContainerValueWrapper(rowModel, ResourceAttributeDefinitionType.F_INBOUND);
+                        cellItem.add(new MappingColumnPanel(componentId, mappingModel));
+                    }
+                });
                 return columns;
             }
         };

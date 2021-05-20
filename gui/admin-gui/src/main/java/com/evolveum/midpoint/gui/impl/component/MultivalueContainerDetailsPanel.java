@@ -66,7 +66,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
 
         List<ITab> tabs = createTabs();
         if (isAddDefaultPanel) {
-            tabs.add(addBasicContainerValuePanel());
+            tabs.add(0, addBasicContainerValuePanel());
         }
         TabbedPanel tabbedPanel = WebComponentUtil.createTabPanel(ID_DETAILS, getPageBase(), tabs, null);
         tabbedPanel.setOutputMarkupId(true);

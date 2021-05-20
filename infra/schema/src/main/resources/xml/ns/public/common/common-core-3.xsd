@@ -10538,6 +10538,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies if the mapping is enabled and is being evaluated. Default
+                            value is true. It means, that each defined mapping is by default enabled.
+                            To skip mapping evaluation, it has to be set to false.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MappingType.enabled</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
