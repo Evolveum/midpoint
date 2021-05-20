@@ -400,6 +400,69 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     // TODO child/parent tests
     // endregion
 
+    // region other filters: inOid, type, any
+    @Test
+    public void test300QueryForObjectsWithInOid() throws SchemaException {
+        when("searching objects by list of OIDs");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .id(user1Oid, task1Oid, org2Oid)
+                        .build(),
+                operationResult);
+
+        then("all objects with specified OIDs are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(3)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, task1Oid, org2Oid);
+    }
+
+    @Test
+    public void test301QueryForFocusWithInOid() throws SchemaException {
+        when("searching focus objects by list of OIDs");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                prismContext.queryFor(FocusType.class)
+                        .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
+                        .build(),
+                operationResult);
+
+        then("all focus objects with specified OIDs are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, org2Oid);
+    }
+
+    /*
+    @Test
+    public void test310QueryWithTypeFilter() throws SchemaException {
+        when("query includes type filter");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .type(FocusType.class)
+                        .block()
+                        .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
+//                        .and() TODO I want this
+//                        .item(FocusType.F_COST_CENTER).eq("5")
+                        .endBlock()
+                        .build(),
+                operationResult);
+
+        then("search is narrowed only to objects of specific type");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, org2Oid);
+    }
+    */
+
+    // TODO TYPE tests
+    // TODO EXISTS tests
+    // endregion
+
     // region special cases
     @Test
     public void test900SearchByWholeContainerIsNotPossible() {
@@ -424,7 +487,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
 
         when("search is called on the repository");
-        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+        searchObjects(FocusType.class,
                 prismContext.queryFor(FocusType.class).build(),
                 operationResult);
 
