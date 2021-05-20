@@ -113,6 +113,12 @@ public class TestMonitor {
         return reportSection;
     }
 
+    public TestReportSection addRawReportSection(String sectionName) {
+        TestReportSection reportSection = new TestReportSection(sectionName, true);
+        reportSections.add(reportSection);
+        return reportSection;
+    }
+
     public void dumpReport(String testName) {
         ReportMetadata reportMetadata = new ReportMetadata(testName);
         String perfReportPrefix = System.getProperty(PERF_REPORT_PREFIX_PROPERTY_NAME);
