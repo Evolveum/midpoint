@@ -171,7 +171,8 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         queryListener.clear();
         return super.createTestMonitor()
                 .addReportCallback(TestReportUtil::reportPerfData)
-                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQuerySummary(queryListener))
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
     protected boolean isUsingH2() {
