@@ -251,7 +251,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    protected WebMarkupContainer createHeader(String headerId) {
+    protected Component createHeader(String headerId) {
         return initSearch(headerId);
     }
 
@@ -265,8 +265,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                WebMarkupContainer header = ContainerableListPanel.this.createHeader(headerId);
+            protected Component createHeader(String headerId) {
+                Component header = ContainerableListPanel.this.createHeader(headerId);
                 header.add(new VisibleBehaviour(() -> isHeaderVisible()));
                 return header;
 
@@ -405,7 +405,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         addCustomActions(menuItems, this::getSelectedRealObjects);
 
         if (!menuItems.isEmpty()) {
-            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()){
+                @Override
+                public String getCssClass() {
+                    return "col-md-1";
+                }
+            };
             columns.add(actionsColumn);
         }
         return columns;
@@ -452,7 +457,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
             ExpressionType expression = customColumn.getExport() != null ? customColumn.getExport().getExpression() : null;
-            if (noItemDefinitionFor(columnPath, customColumn)) {
+            if (expression == null && noItemDefinitionFor(columnPath, customColumn)) {
                 continue;
             }
 
@@ -998,18 +1003,22 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
         if (searchModel.getObject().isTypeChanged()){
-            table.getDataTable().getColumns().clear();
-            //noinspection unchecked
-            table.getDataTable().getColumns().addAll(createColumns());
-            ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-            resetSearchModel();
-            table.setCurrentPage(null);
+            resetTable(target);
         } else {
             saveSearchModel(getCurrentTablePaging());
         }
-
         target.add(table);
         target.add(getFeedbackPanel());
+    }
+
+    public void resetTable(AjaxRequestTarget target) {
+        BoxedTablePanel<PO> table = getTable();
+        table.getDataTable().getColumns().clear();
+        //noinspection unchecked
+        table.getDataTable().getColumns().addAll(createColumns());
+        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+        resetSearchModel();
+        table.setCurrentPage(null);
     }
 
     protected Component getFeedbackPanel() {

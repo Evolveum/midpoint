@@ -141,7 +141,8 @@ public class FilterSearchItem extends SearchItem {
 
     public LookupTableType getLookupTable(PageBase pageBase) {
         if (predefinedFilter != null && predefinedFilter.getParameter() != null
-                && predefinedFilter.getParameter().getAllowedValuesLookupTable() != null) {
+                && predefinedFilter.getParameter().getAllowedValuesLookupTable() != null
+                && predefinedFilter.getParameter().getAllowedValuesLookupTable().getOid() != null) {
             PrismObject<LookupTableType> lokupTable = WebComponentUtil.findLookupTable(predefinedFilter.getParameter().getAllowedValuesLookupTable().asReferenceValue(), pageBase);
             if (lokupTable != null) {
                 return lokupTable.asObjectable();

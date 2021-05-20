@@ -22,11 +22,13 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,11 +61,12 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     protected void onInitialize() {
         initView();
         super.onInitialize();
+        this.add(new VisibleBehaviour(() -> view != null));
     }
 
     @Override
     protected Class<C> getDefaultType() {
-        return view.getTargetClass(getPrismContext());
+        return view == null ? (Class<C>) ObjectType.class : view.getTargetClass(getPrismContext());
     }
 
     private void initView() {
@@ -71,7 +74,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             Task task = getPageBase().createSimpleTask("create compiled view");
             view = getPageBase().getReportManager().createCompiledView(getReport().getObjectCollection(), true, task, task.getResult());
         } catch (Exception e) {
-            LOGGER.error("Couldn't create compiled view for report " + getReport());
+            LOGGER.error("Couldn't create compiled view for report " + getReport(), e);
         }
     }
 
@@ -109,7 +112,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected boolean isCollectionViewPanel() {
-        return true;
+        return view != null;
     }
 
     @Override
@@ -158,8 +161,12 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
                 return getPrismContext().queryFor(ObjectType.class).build();
             }
         };
-        if (provider.getSort() == null && ObjectType.class.isAssignableFrom(getDefaultType())) {
-            provider.setSort("name", SortOrder.ASCENDING);
+        if (provider.getSort() == null && hasView()) {
+            if (ObjectType.class.isAssignableFrom(getDefaultType())) {
+                provider.setSort("name", SortOrder.ASCENDING);
+            } else if (AuditEventRecordType.class.isAssignableFrom(getDefaultType())) {
+                provider.setSort("timestamp", SortOrder.ASCENDING);
+            }
         }
         return provider;
     }
@@ -191,7 +198,9 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearchForReport(type, getReport().getObjectCollection().getParameter(), getPageBase());
+        return SearchFactory.createSearchForReport(type,
+                getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
+                getPageBase());
     }
 
     @Override
@@ -283,5 +292,21 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             pageStorage = new ObjectListStorage();
         }
         return pageStorage;
+    }
+
+    public boolean hasView(){
+        return view != null;
+    }
+
+    public void checkView() {
+        if (!hasView()) {
+            warn(getPageBase().createStringResource("ReportObjectsListPanel.message.defineType").getString());
+        }
+    }
+
+    @Override
+    public void resetTable(AjaxRequestTarget target) {
+        initView();
+        super.resetTable(target);
     }
 }

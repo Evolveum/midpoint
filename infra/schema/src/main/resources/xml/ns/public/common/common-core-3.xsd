@@ -10950,6 +10950,9 @@
                     <xsd:documentation>
                         Name of the parameter
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ParameterType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
@@ -10957,6 +10960,9 @@
                     <xsd:documentation>
                         Parameter type
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ParameterType.type</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -10981,6 +10987,9 @@
                             <xsd:documentation>
                                 Expression that determines parameter value.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ExpressionParameterType.expression</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -25770,6 +25779,9 @@
                                 Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
                                 go first. Entries with no order go last.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SubreportParameterType.order</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

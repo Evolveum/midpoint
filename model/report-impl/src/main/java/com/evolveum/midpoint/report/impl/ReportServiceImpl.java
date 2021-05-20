@@ -242,7 +242,7 @@ public class ReportServiceImpl implements ReportService {
             ref = collectionRefSpecification.getCollectionRef();
         }
         ObjectCollectionType collection = null;
-        if (ref != null) {
+        if (ref != null && ref.getOid() != null) {
             Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
             collection = (ObjectCollectionType) getModelService()
                     .getObject(type, ref.getOid(), null, task, result)
@@ -256,7 +256,8 @@ public class ReportServiceImpl implements ReportService {
                     compiledCollection.setContainerType(collection.getType());
                 }
             } else if (collectionRefSpecification != null && collectionRefSpecification.getBaseCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
+                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null
+                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef().getOid() != null) {
                 ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
                 getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
                 if (compiledCollection.getContainerType() == null) {
@@ -294,14 +295,15 @@ public class ReportServiceImpl implements ReportService {
 
     public QName resolveTypeQNameForReport(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
         QName type;
-        if (collectionRef.getCollectionRef() != null) {
+        if (collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
             ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
             if (collection.getAuditSearch() != null) {
                 type = AuditEventRecordType.COMPLEX_TYPE;
             } else {
                 type = collection.getType();
             }
-        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null) {
+        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
+                && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
             ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
             type = collection.getType();
         } else {

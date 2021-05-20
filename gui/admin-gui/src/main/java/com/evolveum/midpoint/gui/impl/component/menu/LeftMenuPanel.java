@@ -381,29 +381,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createReportsItems() {
-        MainMenuItem reportsMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.list", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class));
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_REPORTS_VIEW_URL)) {
-
-            addCollectionsMenuItems(reportsMenu, ReportType.COMPLEX_TYPE, PageReports.class);
-        }
-
-        if (classMatches(PageReport.class)) {
-            MenuItem edit = new MenuItem("PageAdmin.menu.top.reports.edit",
-                    PageReport.class);
-            reportsMenu.addMenuItem(edit);
-        }
-
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
-
-
-//        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
-            reportsMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
-//        }
-
-        return reportsMenu;
+        MainMenuItem reportMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
+        createBasicAssignmentHolderMenuItems(reportMenu, PageTypes.REPORT);
+        reportMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
+        reportMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
+        return reportMenu;
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {

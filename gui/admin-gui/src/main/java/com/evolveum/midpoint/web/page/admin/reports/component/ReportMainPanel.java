@@ -146,8 +146,8 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
                 PrismContainerWrapperModel<ReportType, Containerable> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ReportType.F_FILE_FORMAT);
                 return new SingleContainerPanel(panelId, model, FileFormatConfigurationType.COMPLEX_TYPE){
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
-                        if(itemPath.isSubPathOrEquivalent(ItemPath.create(ReportType.F_FILE_FORMAT, FileFormatConfigurationType.F_HTML))) {
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                        if(itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ReportType.F_FILE_FORMAT, FileFormatConfigurationType.F_HTML))) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,6 +29,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -59,6 +61,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     private static final String ID_MAIN_FORM = "mainForm";
 
+    private static final String ID_TITLE = "title";
     private static final String ID_RUN_BUTTON = "runReport";
     private static final String ID_CANCEL_BUTTON = "cancel";
     private static final String ID_POPUP_FEEDBACK = "popupFeedback";
@@ -67,8 +70,15 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     private static final String ID_PARAMETER = "parameter";
     private static final String ID_TABLE = "table";
 
+    private final boolean isRunnable;
+
     public RunReportPopupPanel(String id, final ReportType reportType) {
+        this(id, reportType, true);
+    }
+
+    public RunReportPopupPanel(String id, final ReportType reportType, boolean isRunnable) {
         super(id, Model.of(reportType));
+        this.isRunnable = isRunnable;
     }
 
     @Override
@@ -81,6 +91,8 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
+        mainForm.add(new Label(ID_TITLE, getTitle()));
+
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
         ReportObjectsListPanel table = new ReportObjectsListPanel(ID_TABLE, getModel()){
             @Override
@@ -88,6 +100,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                 return feedback;
             }
         };
+        table.checkView();
         table.setOutputMarkupId(true);
         mainForm.add(table);
         feedback.setFilter(new ComponentFeedbackMessageFilter(table) {
@@ -118,6 +131,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
             }
         };
         runButton.setOutputMarkupId(true);
+        runButton.add(new VisibleBehaviour(() -> isRunnable));
         mainForm.add(runButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,

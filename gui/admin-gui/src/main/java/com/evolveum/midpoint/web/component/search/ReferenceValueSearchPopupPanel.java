@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -180,7 +181,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 getPageBase().showMainPopup(objectBrowserPanel, target);
             }
         };
-        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup() == null));
+        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup() instanceof WebMarkupContainer));
         midpointForm.add(selectObject);
     }
 

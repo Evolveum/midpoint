@@ -867,6 +867,8 @@ public final class WebComponentUtil {
         List<QName> qnameList = types.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
         //todo create enum for containerable types?
         qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
+        qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
+        qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
         return qnameList.stream().sorted((type1, type2) -> {
             Validate.notNull(type1);
             Validate.notNull(type2);
@@ -2602,6 +2604,7 @@ public final class WebComponentUtil {
                         if (target != null) {
                             target.add(findParent(TabbedPanel.class));
                         }
+                        target.add(parentPage.getFeedbackPanel());
                     }
 
                 };
@@ -5126,7 +5129,7 @@ public final class WebComponentUtil {
         return allowedValues;
     }
 
-    public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<T> model, IModel<List<DisplayableValue<T>>> choices,
+    public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
             boolean allowNull, PageBase pageBase) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
             private static final long serialVersionUID = 1L;
@@ -5159,5 +5162,19 @@ public final class WebComponentUtil {
         Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
         layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
         return layerIconMap;
+    }
+
+    public static <T extends AssignmentHolderType> void addNewArchetype(PrismObjectWrapper<T> object, String archetypeOid, AjaxRequestTarget target, PageBase pageBase){
+        try {
+            PrismContainerWrapper<AssignmentType> archetypeAssignment = object.findContainer(TaskType.F_ASSIGNMENT);
+            PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
+            AssignmentType newArchetypeAssignment = archetypeAssignmentValue.asContainerable();
+            newArchetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+            WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, pageBase, target);
+        } catch (SchemaException e) {
+            LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
+            pageBase.error("Cannot set selected handler: " + e.getMessage());
+            return;
+        }
     }
 }

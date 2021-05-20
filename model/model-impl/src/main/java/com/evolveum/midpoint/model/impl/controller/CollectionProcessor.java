@@ -234,7 +234,7 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
-        if (collectionRef != null) {
+        if (collectionRef != null && collectionRef.getOid() != null) {
             QName collectionRefType = collectionRef.getType();
 
             // TODO: support more cases

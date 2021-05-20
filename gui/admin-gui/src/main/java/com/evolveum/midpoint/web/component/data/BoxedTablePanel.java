@@ -228,7 +228,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return (WebMarkupContainer) get(ID_BOX).get(ID_FOOTER);
     }
 
-    protected WebMarkupContainer createHeader(String headerId) {
+    protected Component createHeader(String headerId) {
         WebMarkupContainer header = new WebMarkupContainer(headerId);
         header.setVisible(false);
         return header;

@@ -1949,7 +1949,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
-        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
@@ -1994,7 +1994,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
-        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
@@ -2026,7 +2026,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
-        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
@@ -2073,8 +2073,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
         if (filter == null) {
-            LOGGER.error("Couldn't find filter");
-            throw new ConfigurationException("Couldn't find filter");
+            LOGGER.warn("Couldn't find filter");
         }
 
         ObjectQuery query = prismContext.queryFactory().createQuery();

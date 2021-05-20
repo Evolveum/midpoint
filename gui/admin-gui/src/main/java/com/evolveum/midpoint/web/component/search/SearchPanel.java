@@ -348,6 +348,16 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 }
                 return true;
             }
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                if (search.getAllowedSearchType().size() == 1
+                        && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
+                    return !search.getItems().isEmpty() && !search.getAvailableDefinitions().isEmpty();
+                }
+                return true;
+            }
         });
         searchButtonBeforeDropdown.setOutputMarkupId(true);
         searchContainer.add(searchButtonBeforeDropdown);
