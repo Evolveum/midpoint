@@ -1883,7 +1883,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test305DeleteAssignmentByContent()
+    public void test305DeleteAssignmentByContent() // or by value, or by equality
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2040,10 +2040,46 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         && aRow.orderValue == 1);
     }
 
-    // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
+    @Test
+    public void test320AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta adding assignment to path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).add(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
 
     @Test
-    public void test319DeleteAllAssignments()
+    public void test321AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta replacing assignment at path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).replace(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test322DeleteAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta deleting assignment path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).delete()
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2137,6 +2173,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
         assertSingleOperationRecorded(pm, RepositoryService.OP_MODIFY_OBJECT);
     }
+
     @Test
     public void test990ChangeOfNonPersistedAttributeWorksOk()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
