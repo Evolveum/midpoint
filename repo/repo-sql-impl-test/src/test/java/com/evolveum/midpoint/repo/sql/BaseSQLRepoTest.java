@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
@@ -58,6 +56,7 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -69,10 +68,12 @@ import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestReportUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -150,7 +151,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     @AfterMethod
-    public void afterMethod(Method method) {
+    public void afterMethod() {
         try {
             Session session = factory.getCurrentSession();
             if (session != null) {
@@ -163,11 +164,14 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         }
     }
 
-    @AfterClass
-    public void reportPerfData() {
-        if (testMonitor() != null) {
-            TestReportUtil.reportPerfData(testMonitor());
-        }
+    /** Called only by performance tests. */
+    @Override
+    public TestMonitor createTestMonitor() {
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        queryListener.clear();
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected boolean isUsingH2() {
