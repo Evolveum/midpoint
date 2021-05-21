@@ -221,7 +221,7 @@ public class TaskWorkStateUtil {
     @Nullable
     public static TaskPartWorkStateType getCurrentPartWorkState(TaskWorkStateType workState) {
         if (workState != null) {
-            return getPartWorkState(workState, getCurrentPartId(workState));
+            return getPartWorkState(workState, getCurrentActivityId(workState));
         } else {
             return null;
         }
@@ -289,7 +289,7 @@ public class TaskWorkStateUtil {
         return partDef != null ? partDef.getDistribution() : null;
     }
 
-    public static String getCurrentPartId(TaskWorkStateType workState) {
+    public static String getCurrentActivityId(TaskWorkStateType workState) {
         return workState != null ? workState.getCurrentPartId() : null;
     }
 

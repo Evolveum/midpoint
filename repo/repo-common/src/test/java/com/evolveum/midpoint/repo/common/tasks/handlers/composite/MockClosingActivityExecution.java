@@ -22,11 +22,4 @@ class MockClosingActivityExecution extends MockComponentActivityExecution {
     String getSubActivity() {
         return "closing";
     }
-
-    @Override
-    public String toString() {
-        return "CompositeMockClosingActivityExecution{" +
-                "activityDefinition=" + activityDefinition +
-                '}';
-    }
 }

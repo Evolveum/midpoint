@@ -217,4 +217,11 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return sb.toString();
     }
 
+    public String getIdentifier() {
+        if (definitionBean != null) {
+            return definitionBean.getIdentifier();
+        } else {
+            return null;
+        }
+    }
 }

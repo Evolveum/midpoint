@@ -34,7 +34,6 @@ public class PureCompositeActivityExecution
         super(context, activityHandler);
     }
 
-    @NotNull
     @Override
     protected List<ActivityExecution> createChildren(OperationResult result) throws SchemaException {
         return activityDefinition.getWorkDefinition().createChildDefinitions().stream()

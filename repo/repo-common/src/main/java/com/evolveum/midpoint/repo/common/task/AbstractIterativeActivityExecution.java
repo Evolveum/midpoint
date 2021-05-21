@@ -519,7 +519,7 @@ public abstract class AbstractIterativeActivityExecution<
         this.activityNumber = activityNumber;
     }
 
-    public ActivityDefinition<WD> getActivityDefinition() {
+    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
         return activityDefinition;
     }
 

@@ -68,6 +68,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
     private static final TestResource<TaskType> TASK_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestResource<TaskType> TASK_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
+    private static final TestResource<TaskType> TASK_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
 
     //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
 //    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
@@ -351,6 +352,46 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .collect(Collectors.toSet());
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactlyInAnyOrderElementsOf(messages);
+
+        // TODO assert the bucketing
+    }
+
+    @Test
+    public void test180RunBucketedTree() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task task1 = taskAdd(TASK_BUCKETED_TREE, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then();
+
+        task1.refresh(result);
+        display("task after", task1);
+        assertSuccess(task1.getResult());
+
+        OperationStatsType stats = task1.getStoredOperationStatsOrClone();
+        displayValue("statistics", TaskOperationStatsUtil.format(stats));
+//        assertThat(stats.getIterativeTaskInformation().getPart().get(0).getProcessed().get(0).getCount())
+//                .as("count of processed items in first activity")
+//                .isEqualTo(100);
+
+        displayDumpable("recorder", recorder);
+//        Set<String> messages = IntStream.range(0, 100)
+//                .mapToObj(i -> String.format("Role: " + ROLE_NAME_PATTERN, i))
+//                .collect(Collectors.toSet());
+//        assertThat(recorder.getExecutions()).as("recorder")
+//                .containsExactlyInAnyOrderElementsOf(messages);
+
+        task1.setResult(null);
+        displayValue("task after (XML)", prismContext.xmlSerializer().serialize(task1.getRawTaskObjectClone()));
 
         // TODO assert the bucketing
     }

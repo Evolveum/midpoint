@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 /**
  * Base class for activity executions.
  *
@@ -44,6 +46,11 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
      */
     @NotNull protected final AH activityHandler;
 
+    /**
+     * Activity identifier, either provided by user or automatically generated. It is unique among siblings.
+     */
+    private String identifier;
+
     protected AbstractActivityExecution(@NotNull ActivityInstantiationContext<WD> context,
             @NotNull AH activityHandler) {
         this.taskExecution = context.getTaskExecution();
@@ -62,12 +69,35 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
         return parent;
     }
 
-    public ActivityDefinition<WD> getActivityDefinition() {
+    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
         return activityDefinition;
     }
 
     @NotNull public AH getActivityHandler() {
         return activityHandler;
+    }
+
+    @NotNull
+    @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public void setupIdentifier(Supplier<String> defaultIdentifierSupplier) {
+        String defined = activityDefinition.getIdentifier();
+        if (defined != null) {
+            identifier = defined;
+            return;
+        }
+
+        String generated = defaultIdentifierSupplier.get();
+        if (generated != null) {
+            identifier = generated;
+            return;
+        }
+
+        throw new IllegalStateException("Activity identifier was not defined nor generated");
     }
 
     public CommonTaskBeans getBeans() {
@@ -77,7 +107,8 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "activityDefinition=" + activityDefinition +
+                "id=" + identifier +
+                ", def=" + activityDefinition +
                 '}';
     }
 

@@ -94,13 +94,6 @@ public abstract class MockComponentActivityExecution
     abstract String getSubActivity();
 
     @Override
-    public String toString() {
-        return "CompositeMockSubActivityExecution{" +
-                "activityDefinition=" + activityDefinition +
-                '}';
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");

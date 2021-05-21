@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Abstract superclass for both pure- and semi-composite activities.
@@ -53,6 +55,8 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
 
         List<ActivityExecution> children = createChildren(result);
         this.children.addAll(children);
+        setupChildIdentifiers();
+
         tailorChildren(result);
 
         LOGGER.trace("After children creation, before execution:\n{}", debugDumpLazily());
@@ -62,6 +66,26 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
         LOGGER.trace("After children execution ({}):\n{}", executionResult.shortDumpLazily(), debugDumpLazily());
 
         return executionResult;
+    }
+
+    private void setupChildIdentifiers() {
+        for (ActivityExecution child : this.children) {
+            child.setupIdentifier(this::generateNextIdentifier);
+        }
+    }
+
+    // TODO implement seriously
+    private String generateNextIdentifier() {
+        Set<String> existing = children.stream()
+                .map(ActivityExecution::getIdentifier)
+                .collect(Collectors.toSet());
+
+        for (int i = 1; ; i++) {
+            String candidate = String.valueOf(i);
+            if (!existing.contains(candidate)) {
+                return candidate;
+            }
+        }
     }
 
     /**
@@ -75,6 +99,7 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
     /**
      * Creates child activity executions: either explicitly specified by the configuration
      * (for pure composite activities) or implicitly defined by this activity (for semi-composite ones).
+     * @return
      */
     @NotNull
     protected abstract List<ActivityExecution> createChildren(OperationResult result) throws SchemaException;
@@ -110,7 +135,8 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "activityDefinition=" + activityDefinition +
+                "id=" + getIdentifier() +
+                ", def=" + activityDefinition +
                 ", children=" + children +
                 '}';
     }

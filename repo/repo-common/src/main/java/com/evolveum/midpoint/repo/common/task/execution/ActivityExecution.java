@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 /**
  * Implements and represents an execution of an activity.
  */
@@ -37,4 +39,13 @@ public interface ActivityExecution extends DebugDumpable {
      * Returns task execution that contains this activity execution.
      */
     @NotNull TaskExecution getTaskExecution();
+
+    /** TODO */
+    void setupIdentifier(Supplier<String> defaultIdentifierSupplier);
+
+    /**
+     * Returns activity identifier (unique among siblings).
+     */
+    @NotNull String getIdentifier();
+
 }

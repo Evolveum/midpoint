@@ -34,7 +34,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.findBucketByNumber;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getCurrentPartId;
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getCurrentActivityId;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Collections.emptyList;
@@ -158,7 +158,7 @@ class BucketOperation {
     private WorkDistributionType getCoordinatorWorkManagement() {
         return requireNonNull(
                 TaskWorkStateUtil.getWorkDistribution(coordinatorTask.getActivityDefinitionOrClone(),
-                        getCurrentPartId(coordinatorTask.getWorkState())),
+                        getCurrentActivityId(coordinatorTask.getWorkState())),
                 () -> "No work management for the current part in coordinator task " + coordinatorTask);
     }
 
@@ -283,12 +283,12 @@ class BucketOperation {
     }
 
     private void createPartWorkStateInWorkerTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        String currentPartId = getCurrentPartId(workerTask.getWorkState());
-        LOGGER.trace("No part work state found for part {}, creating new one", currentPartId);
+        String currentActivityId = getCurrentActivityId(workerTask.getWorkState());
+        LOGGER.trace("No activity work state found for activity id {}, creating new one", currentActivityId);
 
         TaskPartWorkStateType newPartWorkState =
                 new TaskPartWorkStateType(prismContext)
-                        .partId(currentPartId)
+                        .partId(currentActivityId)
                         .bucketsProcessingRole(BucketsProcessingRoleType.STANDALONE);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                 .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART).add(newPartWorkState)
@@ -303,7 +303,7 @@ class BucketOperation {
     @Nullable
     private Long findPartWorkStatePcvIdInWorkerTask() {
         TaskWorkStateType workState = workerTask.getWorkState();
-        String currentPartId = getCurrentPartId(workState);
+        String currentPartId = getCurrentActivityId(workState);
         TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getPartWorkState(workState, currentPartId);
         if (partWorkState != null) {
             stateCheck(partWorkState.getId() != null, "Null part work state id in %s: %s", workerTask, partWorkState);
