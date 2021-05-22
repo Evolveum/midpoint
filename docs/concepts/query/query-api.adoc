@@ -53,12 +53,9 @@ Examples of queries are e.g.
 
 .. "give me all focal objects with a given assignment" etc.
 
-
-
 . a *container value query*. Such queries are targeted at container values.
 These are being introduced in the context of special objects, like certification campaigns and lookup tables, or even in cases when no parent object exists, like work items.
 Examples of queries:
-
 
 .. "give me all certification cases related to this reviewer, irrespective to in which campaign they are contained",
 
@@ -99,8 +96,11 @@ They are of two categories:
 
 
 | Undefined filter
-| Treated like nonexistent or invisible filter.
-For all fiters F1 and F2 the following holds:F1 && Undefined = F1F2 || Undefined = F2
+a| Treated like nonexistent or invisible filter.
+For all fiters `F1` and `F2` the following holds:
+
+* `F1 && Undefined = F1`
+* `F2 \|\| Undefined = F2`
 
 
 |===
@@ -113,7 +113,7 @@ Generally, they are characterized by:
 
 * a (left-side) *item path*, pointing to a property or a reference,
 
-* a (right-side)* constant value(s) *or *item path*, pointing to value(s) to be used in the comparison,
+* a (right-side) *constant value(s)* or *item path*, pointing to value(s) to be used in the comparison,
 
 * optionally a *matching rule*.
 
@@ -152,15 +152,15 @@ For null-valued singleton items always returns false (TODO verify that).
 | -
 | single or multivalued (since 3.6), nullable
 | -
-| For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one).For null filter values: Accepts if reference is empty.
-| "Matches" means that:
+| For non-null filter values: Accepts if one of the reference values match the filter value (or one of filter values, if there are more than one). For null filter values: Accepts if reference is empty.
+a| "Matches" means that:
 
-.. OIDs match,
+. OID matches,
 
-.. relations match: null is equivalent to org:default.
-So if you want to match any relations, use PrismConstants.Q_ANY.
+. Relation matches, `null` (or omitted) is equivalent to `org:default`.
+To match any relations, use `PrismConstants.Q_ANY`.
 
-.. referenced types matches: but here null in filter means "any type".
+. Referenced type matches, here `null` means "any type".
 
 | Org filter
 | (applicable to object as a whole)
@@ -302,15 +302,17 @@ But the interpretation should be following:
 
 * Each condition is interpreted separately.
 
-* So *ref(assignment/tenantRef, oid1)* should be read as "There is an assignment/tenantRef that points to oid1".
+* So `ref(assignment/tenantRef, oid1)` should be read as "There is an assignment/tenantRef that points to oid1".
 
-* Therefore, the above complex filter should be interpreted in the second way: There should be assignments $a1, $a2 (potentially being the same) such that $a1/tenantRef = oid1 and $a2/orgRef = oid2.
+* Therefore, the above complex filter should be interpreted in the second way:
+There should be assignments `$a1`, `$a2` (potentially being the same) such that `$a1/tenantRef = oid1` and `$a2/orgRef = oid2`.
 
-If it's necessary to say that one particular value of an item (presumably container) satisfies a complex filter, we use *Exists *filter.
+If it's necessary to say that one particular value of an item (presumably container) satisfies
+a complex filter, we use *Exists* filter.
 
 The above complex filter - if needed to be interpreted in the first way - should be written like this:
 
-* exists ( assignment , and ( ref (tenantRef, oid1), ref (orgRef, oid2) ) )
+* `exists ( assignment , and ( ref (tenantRef, oid1), ref (orgRef, oid2) ) )`
 
 Written in XML:
 
@@ -458,7 +460,7 @@ For authoritative information, see link:https://github.com/Evolveum/midpoint/blo
 Filters can be created using Java API (traditional or fluent one) or via XML.
 
 The following samples are taken from link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/test/java/com/evolveum/midpoint/schema/TestQueryConvertor.java[TestQueryConvertor] class.
-XML versions are link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[in files named test*.xml in this directory].
+XML versions are in the files named `test*.xml` in link:https://github.com/Evolveum/midpoint/tree/master/infra/schema/src/test/resources/queryconvertor[this directory].
 
 
 === Primitive filters
@@ -485,9 +487,9 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
     .buildFilter();
 ----
 
-Note that QueryBuilder can return either whole query when .build() is used, or just a filter - with .buildFilter().
+Note that `QueryBuilder` can return either whole query when `.build()` is used, or just a filter - with `.buildFilter()`.
 
-None and Undefined filters are created in a similar way.
+None and *Undefined* filters are created similarly.
 
 Just for completeness, the whole query looks like this:
 
@@ -501,7 +503,7 @@ Just for completeness, the whole query looks like this:
 </query>
 ----
 
-and the corresponding Fluent Java API call is:
+The corresponding Fluent Java API call is:
 
 .Fluent Java API
 [source,java]
@@ -731,8 +733,8 @@ Semantics of individual 'or'-conditions is:
 
 . resourceRef should contain: target OID = 'oid1', relation = 'test', and type of target (stored in the resourceRef!) must be 'ResourceType'
 
-Currently, the reference target type, if used, must match exactly.
-So e.g. if the references uses RoleType, and the filter asks for AbstractRoleType, the value would not match.
+The reference target type, if used, must match exactly.
+So e.g. if the references uses `RoleType`, and the filter asks for `AbstractRoleType`, the value would not match.
 
 It is suggested to avoid querying for target object type, if possible.
 
@@ -925,7 +927,7 @@ ObjectFilter filter = prismContext.queryFor(ObjectType.class)
 
 === Exists filter
 
-An example: *Find all certification cases that have at least one missing response for a given reviewer.
+An example: *Find all certification cases that have at least one missing response for a given reviewer.*
 
 So we are looking for a certification case, that has a decision D for which:
 
