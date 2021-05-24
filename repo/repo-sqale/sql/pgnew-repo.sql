@@ -1087,11 +1087,11 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
 
-CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRefTargetOid);
-CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRefTargetOid);
-CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRefTargetOid);
-CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRefTargetOid);
-CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
+CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
+CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
+CREATE INDEX m_case_parentRefTargetOid_idx ON m_case(parentRefTargetOid);
+CREATE INDEX m_case_requestorRefTargetOid_idx ON m_case(requestorRefTargetOid);
+CREATE INDEX m_case_closeTimestamp_idx ON m_case(closeTimestamp);
 
 CREATE TABLE m_case_wi (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
