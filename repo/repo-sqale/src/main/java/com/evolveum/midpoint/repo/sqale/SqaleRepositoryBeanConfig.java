@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -130,6 +132,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(AssignmentType.COMPLEX_TYPE,
                         QAssignmentMapping.initAssignment(repositoryContext))
                 .register(CaseType.COMPLEX_TYPE, QCaseMapping.init(repositoryContext))
+                .register(CaseWorkItemType.COMPLEX_TYPE, QCaseWorkItemMapping.init(repositoryContext))
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.init(repositoryContext))
                 .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))

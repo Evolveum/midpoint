@@ -6,23 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+import java.sql.Types;
+import java.time.Instant;
 
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
-import java.sql.Types;
-import java.time.Instant;
-
-import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -36,7 +29,7 @@ public class QCaseWorkItem<OR extends MCase> extends QContainer<MCaseWorkItem, O
      * If `QCaseWorkItem.class` is not enough because of generics, try `QCaseWorkItem.CLASS`.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final Class<QCaseWorkItem<MCase>> CLASS = (Class) QContainer.class;
+    public static final Class<QCaseWorkItem<MCase>> CLASS = (Class) QCaseWorkItem.class;
 
     public static final String TABLE_NAME = "m_case_wi";
 
@@ -86,7 +79,6 @@ public class QCaseWorkItem<OR extends MCase> extends QContainer<MCaseWorkItem, O
             createInteger("performerRefRelationId", PERFORMER_REF_RELATION_ID);
     public final NumberPath<Integer> stageNumber =
             createInteger("stageNumber", STAGE_NUMBER);
-
 
     public QCaseWorkItem(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

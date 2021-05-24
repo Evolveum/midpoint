@@ -16,5 +16,6 @@ public enum MContainerType {
     INDUCEMENT, // also represented by AssignmentType
     LOOKUP_TABLE_ROW,
     OPERATION_EXECUTION,
-    TRIGGER
+    TRIGGER,
+    CASE_WORK_ITEM
 }

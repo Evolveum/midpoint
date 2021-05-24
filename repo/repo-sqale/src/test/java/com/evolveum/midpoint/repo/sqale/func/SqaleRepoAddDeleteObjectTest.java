@@ -28,6 +28,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDe
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.MCaseWorkItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -1324,6 +1326,19 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName requestorRelation = QName.valueOf("{https://random.org/ns}case-requestor-rel");
         UUID targetOid = UUID.randomUUID();
         QName targetRelation = QName.valueOf("{https://random.org/ns}case-target-rel");
+        UUID originalAssignee1Oid = UUID.randomUUID();
+        QName originalAssignee1Relation = QName.valueOf("{https://random.org/ns}original-assignee1-rel");
+        UUID performer1Oid = UUID.randomUUID();
+        QName performer1Relation = QName.valueOf("{https://random.org/ns}performer1-rel");
+        UUID originalAssignee2Oid = UUID.randomUUID();
+        QName originalAssignee2Relation = QName.valueOf("{https://random.org/ns}original-assignee2-rel");
+        UUID performer2Oid = UUID.randomUUID();
+        QName performer2Relation = QName.valueOf("{https://random.org/ns}performer2-rel");
+
+        AbstractWorkItemOutputType output1 = new AbstractWorkItemOutputType(prismContext)
+                .outcome("OUTCOME one");
+        AbstractWorkItemOutputType output2 = new AbstractWorkItemOutputType(prismContext)
+                .outcome("OUTCOME two");
 
         CaseType acase = new CaseType(prismContext)
                 .name(objectName)
@@ -1336,7 +1351,31 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .requestorRef(requestorOid.toString(),
                         UserType.COMPLEX_TYPE, requestorRelation)
                 .targetRef(targetOid.toString(),
-                        OrgType.COMPLEX_TYPE, targetRelation);
+                        OrgType.COMPLEX_TYPE, targetRelation)
+                .beginWorkItem()
+                .id(41L)
+                .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
+                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
+                .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
+                .originalAssigneeRef(originalAssignee1Oid.toString(),
+                        OrgType.COMPLEX_TYPE, originalAssignee1Relation)
+                .performerRef(performer1Oid.toString(),
+                        UserType.COMPLEX_TYPE, performer1Relation)
+                .stageNumber(1)
+                .output(output1)
+                .<CaseType>end()
+                .beginWorkItem()
+                .id(42L)
+                .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
+                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
+                .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
+                .originalAssigneeRef(originalAssignee2Oid.toString(),
+                        UserType.COMPLEX_TYPE, originalAssignee2Relation)
+                .performerRef(performer2Oid.toString(),
+                        UserType.COMPLEX_TYPE, performer2Relation)
+                .stageNumber(2)
+                .output(output2)
+                .end();
 
         when("adding it to the repository");
         repositoryService.addObject(acase.asPrismObject(), null, result);
@@ -1359,6 +1398,46 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.targetRefTargetOid).isEqualTo(targetOid);
         assertThat(row.targetRefTargetType).isEqualTo(MObjectType.ORG);
         assertCachedUri(row.targetRefRelationId, targetRelation);
+
+        QCaseWorkItem<?> t = aliasFor(QCaseWorkItem.CLASS);
+        List<MCaseWorkItem> wiRows = select(t, t.ownerOid.eq(UUID.fromString(acase.getOid())));
+        assertThat(wiRows).hasSize(2);
+
+        wiRows.sort(comparing(tr -> tr.cid));
+
+        MCaseWorkItem wiRow = wiRows.get(0);
+        assertThat(wiRow.cid).isEqualTo(41); // assigned in advance
+        assertThat(wiRow.ownerOid.toString()).isEqualTo(acase.getOid());
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.CASE_WORK_ITEM);
+        assertThat(wiRow.createTimestamp).isEqualTo(Instant.ofEpochMilli(10000));
+        assertThat(wiRow.closeTimestamp).isEqualTo(Instant.ofEpochMilli(10100));
+        assertThat(wiRow.deadline).isEqualTo(Instant.ofEpochMilli(10200));
+        assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee1Oid);
+        assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee1Relation);
+        // TODO: outcome
+//        assertThat(wiRow.outcome).isEqualTo("OUTCOME one");
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer1Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer1Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(1);
+
+        wiRow = wiRows.get(1);
+        assertThat(wiRow.cid).isEqualTo(42); // assigned in advance
+        assertThat(wiRow.ownerOid.toString()).isEqualTo(acase.getOid());
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.CASE_WORK_ITEM);
+        assertThat(wiRow.createTimestamp).isEqualTo(Instant.ofEpochMilli(20000));
+        assertThat(wiRow.closeTimestamp).isEqualTo(Instant.ofEpochMilli(20100));
+        assertThat(wiRow.deadline).isEqualTo(Instant.ofEpochMilli(20200));
+        assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee2Oid);
+        assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee2Relation);
+        // TODO: outcome
+//        assertThat(wiRow.outcome).isEqualTo("OUTCOME two");
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer2Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer2Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(2);
     }
 
     // endregion

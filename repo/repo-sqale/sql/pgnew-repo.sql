@@ -34,7 +34,8 @@ CREATE TYPE ContainerType AS ENUM (
     'INDUCEMENT',
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
-    'TRIGGER');
+    'TRIGGER',
+    'CASE_WORK_ITEM');
 
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
@@ -1086,7 +1087,6 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
 
-/*
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRefTargetOid);
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRefTargetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRefTargetOid);
@@ -1094,40 +1094,23 @@ CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRefTargetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 
 CREATE TABLE m_case_wi (
-  id INTEGER NOT NULL,
-  owner_oid UUID NOT NULL,
-  closeTimestamp TIMESTAMPTZ,
-  createTimestamp TIMESTAMPTZ,
-  deadline TIMESTAMPTZ,
-  originalAssigneeRefTargetOid UUID,
-  originalAssigneeRefTargetType ObjectType,
-  originalAssigneeRefRelationId INTEGER REFERENCES m_uri(id),
-  outcome TEXT,
-  performerRefTargetOid UUID,
-  performerRefTargetType ObjectType,
-  performerRefRelationId INTEGER REFERENCES m_uri(id),
-  stageNumber INTEGER,
-  PRIMARY KEY (owner_oid, id)
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('CASE_WORK_ITEM') STORED,
+    closeTimestamp TIMESTAMPTZ,
+    createTimestamp TIMESTAMPTZ,
+    deadline TIMESTAMPTZ,
+    originalAssigneeRefTargetOid UUID,
+    originalAssigneeRefTargetType ObjectType,
+    originalAssigneeRefRelationId INTEGER REFERENCES m_uri(id),
+    outcome TEXT,
+    performerRefTargetOid UUID,
+    performerRefTargetType ObjectType,
+    performerRefRelationId INTEGER REFERENCES m_uri(id),
+    stageNumber INTEGER,
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
 
-);
-
-ALTER TABLE m_case_wi
-    ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (ownerOid) REFERENCES m_case;
-
-CREATE TABLE m_case_wi_reference (
-  owner_id        INTEGER         NOT NULL,
-  owner_ownerOid UUID  NOT NULL,
-  reference_type  INTEGER         NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       UUID  NOT NULL,
-  targetType      INTEGER,
-  PRIMARY KEY (owner_ownerOid, owner_id, reference_type, targetOid, relation)
-);
-
-ALTER TABLE m_case_wi_reference
-    ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_ownerOid, owner_id) REFERENCES m_case_wi;
-CREATE INDEX iCaseWorkItemRefTargetOid ON m_case_wi_reference (targetOid);
-*/
 -- endregion
 
 -- region Access Certification object tables
