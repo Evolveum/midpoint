@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,7 +58,7 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
     private static final Trace LOGGER = TraceManager.getTrace(EngineReportTabPanel.class);
 
     private static final String ID_TABS = "tabsPanel";
-//    private static final String ID_ENGINE = "engine";
+    private static final String ID_LABEL = "label";
 
     public EngineReportTabPanel(String id, IModel<PrismObjectWrapper<ReportType>> model) {
         super(id, model);
@@ -66,10 +67,26 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
     @Override
     protected void initLayout() {
         List<ITab> tabs = createTabs();
+        Label label = new Label(ID_LABEL, (IModel) () -> getEngineLabel());
+        label.add(new VisibleBehaviour(() -> hasReportArchetype()));
+        label.setOutputMarkupId(true);
+        add(label);
         TabbedPanel tabbedPanel = WebComponentUtil.createTabPanel(ID_TABS, getPageBase(), tabs, null);
         tabbedPanel.add(new VisibleBehaviour(() -> hasReportArchetype()));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
+    }
+
+    private String getEngineLabel() {
+        String label = "";
+        if (WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value())) {
+            ItemDefinition def = getModelObject().findItemDefinition(ItemPath.create(ReportType.F_OBJECT_COLLECTION));
+            return getPageBase().createStringResource(def.getDisplayName()).getString();
+        } else if (WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value())) {
+            ItemDefinition def = getModelObject().findItemDefinition(ItemPath.create(ReportType.F_DASHBOARD));
+            return getPageBase().createStringResource(def.getDisplayName()).getString();
+        }
+        return label;
     }
 
     private boolean hasReportArchetype() {
@@ -103,8 +120,8 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
                         getModel(), ItemPath.create(ReportType.F_DASHBOARD)), DashboardReportEngineConfigurationType.COMPLEX_TYPE) {
                     @Override
                     protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                        if (!ItemPath.create(ReportType.F_OBJECT_COLLECTION, DashboardReportEngineConfigurationType.F_DASHBOARD_REF).equivalent(itemWrapper.getPath())
-                                && !ItemPath.create(ReportType.F_OBJECT_COLLECTION, DashboardReportEngineConfigurationType.F_SHOW_ONLY_WIDGETS_TABLE).equivalent(itemWrapper.getPath())) {
+                        if (!ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_DASHBOARD_REF).equivalent(itemWrapper.getPath())
+                                && !ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_SHOW_ONLY_WIDGETS_TABLE).equivalent(itemWrapper.getPath())) {
                             return ItemVisibility.HIDDEN;
                         }
                         return super.getVisibility(itemWrapper);
@@ -118,7 +135,7 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new SingleContainerPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(
-                        getModel(), ItemPath.create(ReportType.F_OBJECT_COLLECTION, DashboardReportEngineConfigurationType.F_VIEW)), GuiObjectListViewType.COMPLEX_TYPE);
+                        getModel(), ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_VIEW)), GuiObjectListViewType.COMPLEX_TYPE);
             }
         });
 
@@ -165,7 +182,6 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
                 try {
                     Panel propertyPanel = getPageBase().initItemPanel(panel.newChildId(), propertyModel.getObject().getTypeName(), propertyModel, null);
                     panel.add(propertyPanel);
-                    propertyPanel.add(AttributeAppender.append("style", "font-size: 16px; font-weight: 600; color: #3c8dbc;"));
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create panel for type element in view");
                 }
@@ -406,7 +422,7 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
             @Override
             protected Component createHeader(String headerId) {
                 Label label = new Label(headerId, getPageBase().createStringResource("EngineReportTabPanel.columns"));
-                label.add(AttributeAppender.append("style", "padding-bottom:50px;"));
+                label.add(AttributeAppender.append("style", "padding-bottom:10px; font-size: 16px; font-weight: 600; color: #3c8dbc;"));
                 return label;
             }
 

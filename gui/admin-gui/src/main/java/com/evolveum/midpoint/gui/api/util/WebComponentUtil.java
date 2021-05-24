@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -5176,5 +5178,10 @@ public final class WebComponentUtil {
             pageBase.error("Cannot set selected handler: " + e.getMessage());
             return;
         }
+    }
+
+    public static boolean isImportReport(ReportType report) {
+        ReportBehaviorType behavior = report.getBehavior();
+        return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
     }
 }

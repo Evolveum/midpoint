@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -300,7 +301,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     public void checkView() {
         if (!hasView()) {
-            warn(getPageBase().createStringResource("ReportObjectsListPanel.message.defineType").getString());
+            getSession().warn(PageBase.createStringResourceStatic(null, "ReportObjectsListPanel.message.defineType").getString());
         }
     }
 

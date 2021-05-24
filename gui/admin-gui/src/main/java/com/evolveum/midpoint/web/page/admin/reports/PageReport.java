@@ -12,8 +12,10 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -28,10 +30,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.reports.component.EngineReportTabPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportMainPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.*;
 import com.evolveum.midpoint.web.page.admin.server.TaskBasicTabPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -76,7 +75,10 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     private static final String ID_REPORT_TABLE = "reportTable";
 
     private static final List<DisplayableValue<String>> TYPE_OF_REPORTS;
-    private static final String OPERATION_UPDATE_WRAPPER = "update report wrapper";
+    private static final String DOT_CLASS = PageReports.class.getName() + ".";
+    private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateReportWrapper";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
+    private static final String OPERATION_IMPORT_REPORT = DOT_CLASS + "importReport";
 
     static {
         TYPE_OF_REPORTS = Arrays.asList(
@@ -317,6 +319,98 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         showPreviewInPopup.add(AttributeAppender.append("class", "btn-default btn-sm"));
         showPreviewInPopup.setOutputMarkupId(true);
         repeatingView.add(showPreviewInPopup);
+
+        AjaxButton runReport = new AjaxButton(repeatingView.newChildId(), createStringResource("pageCreateCollectionReport.button.runOriginalReport")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                runReportPerformed(target, getOriginalReport(), PageReport.this);
+            }
+        };
+        runReport.add(new VisibleBehaviour(() -> isEditingFocus() && !WebComponentUtil.isImportReport(getOriginalReport())));
+        runReport.add(AttributeAppender.append("class", "btn-info btn-sm"));
+        runReport.setOutputMarkupId(true);
+        repeatingView.add(runReport);
+
+        AjaxButton importReport = new AjaxButton(repeatingView.newChildId(), createStringResource("pageCreateCollectionReport.button.importOriginalReport")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                importReportPerformed(target, getOriginalReport(), PageReport.this);
+            }
+        };
+        importReport.add(new VisibleBehaviour(() -> isEditingFocus() && WebComponentUtil.isImportReport(getOriginalReport())));
+        importReport.add(AttributeAppender.append("class", "btn-info btn-sm"));
+        importReport.setOutputMarkupId(true);
+        repeatingView.add(importReport);
+    }
+
+    private ReportType getOriginalReport(){
+        return getObjectWrapper().getObjectOld().asObjectable();
+    }
+
+    public static void importReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
+        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(pageBase.getMainPopupBodyId(), report) {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
+                PageReport.importConfirmPerformed(target, report, reportImportData, pageBase);
+                pageBase.hideMainPopup(target);
+
+            }
+        };
+        pageBase.showMainPopup(importReportPopupPanel, target);
+    }
+
+    private static void importConfirmPerformed(AjaxRequestTarget target, ReportType reportType, ReportDataType reportImportData, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT);
+        Task task = pageBase.createSimpleTask(OPERATION_IMPORT_REPORT);
+
+        try {
+            pageBase.getReportManager().importReport(reportType.asPrismObject(), reportImportData.asPrismObject(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        pageBase.showResult(result);
+        target.add(pageBase.getFeedbackPanel());
+    }
+
+    public static void runReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
+
+        if(report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty()) {
+            runConfirmPerformed(target, report, null, pageBase);
+            return;
+        }
+
+        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(pageBase.getMainPopupBodyId(), report) {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+                PageReport.runConfirmPerformed(target, reportType, reportParam, pageBase);
+                pageBase.hideMainPopup(target);
+            }
+        };
+        pageBase.showMainPopup(runReportPopupPanel, target);
+
+    }
+
+    private static void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        Task task = pageBase.createSimpleTask(OPERATION_RUN_REPORT);
+
+        try {
+            pageBase.getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        pageBase.showResult(result);
+        target.add(pageBase.getFeedbackPanel());
     }
 
     private void refreshEngineTab(AjaxRequestTarget target) {

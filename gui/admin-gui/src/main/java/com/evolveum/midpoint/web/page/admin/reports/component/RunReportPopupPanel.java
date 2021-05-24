@@ -100,7 +100,6 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                 return feedback;
             }
         };
-        table.checkView();
         table.setOutputMarkupId(true);
         mainForm.add(table);
         feedback.setFilter(new ComponentFeedbackMessageFilter(table) {

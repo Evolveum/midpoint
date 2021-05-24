@@ -9,8 +9,8 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,9 +61,6 @@ public class PageReports extends PageAdmin {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
-
-    private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
 
     public PageReports() {
         super();
@@ -126,7 +122,7 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        runReportPerformed(target, report);
+                        PageReport.runReportPerformed(target, report, PageReports.this);
                     }
                 };
             }
@@ -157,7 +153,7 @@ public class PageReports extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
-                        importReportPerformed(target, report);
+                        PageReport.importReportPerformed(target, report, PageReports.this);
                     }
                 };
             }
@@ -234,75 +230,8 @@ public class PageReports extends PageAdmin {
     }
 
     private boolean isImportReport(IModel<SelectableBean<ReportType>> rowModel) {
-        ReportBehaviorType behavior = rowModel.getObject().getValue().getBehavior();
-        return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
-    }
-
-    private void importReportPerformed(AjaxRequestTarget target, ReportType report) {
-        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(getMainPopupBodyId(), report) {
-
-            private static final long serialVersionUID = 1L;
-
-            protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
-                PageReports.this.importConfirmPerformed(target, report, reportImportData);
-                hideMainPopup(target);
-
-            }
-        };
-        showMainPopup(importReportPopupPanel, target);
-    }
-
-    private void importConfirmPerformed(AjaxRequestTarget target, ReportType reportType, ReportDataType reportImportData) {
-        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-        Task task = createSimpleTask(OPERATION_RUN_REPORT);
-
-        try {
-            getReportManager().importReport(reportType.asPrismObject(), reportImportData.asPrismObject(), task, result);
-        } catch (Exception ex) {
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        showResult(result);
-        target.add(getFeedbackPanel());
-    }
-
-    private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-        Task task = createSimpleTask(OPERATION_RUN_REPORT);
-
-        try {
-            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        showResult(result);
-        target.add(getFeedbackPanel());
-    }
-
-    protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
-
-        if(report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty()) {
-            runConfirmPerformed(target, report, null);
-            return;
-        }
-
-        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
-
-            private static final long serialVersionUID = 1L;
-
-            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-                PageReports.this.runConfirmPerformed(target, reportType, reportParam);
-                hideMainPopup(target);
-
-            }
-        };
-        showMainPopup(runReportPopupPanel, target);
-
+        ReportType report = rowModel.getObject().getValue();
+        return WebComponentUtil.isImportReport(report);
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {
