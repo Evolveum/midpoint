@@ -74,6 +74,8 @@ CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
+    'CASE_WI_ASSIGNEE',
+    'CASE_WI_CANDIDATE',
     'DELEGATED',
     'INCLUDE',
     'PROJECTION',
@@ -1210,7 +1212,7 @@ CREATE TABLE m_access_cert_case (
 
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
-    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
+    accCertCaseCid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
@@ -1221,32 +1223,32 @@ CREATE TABLE m_access_cert_wi (
     performerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
 
-    PRIMARY KEY (ownerOid, acc_cert_case_cid, cid)
+    PRIMARY KEY (ownerOid, accCertCaseCid, cid)
 )
     INHERITS(m_container);
 
 ALTER TABLE m_access_cert_wi
-    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, acc_cert_case_cid)
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accCertCaseCid)
         REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
 -- TODO rework to inherit from reference tables
 CREATE TABLE m_access_cert_wi_reference (
     ownerOid UUID NOT NULL, -- PK+FK
-    acc_cert_case_cid INTEGER NOT NULL, -- PK+FK
-    acc_cert_wi_cid INTEGER NOT NULL, -- PK+FK
+    accCertCaseCid INTEGER NOT NULL, -- PK+FK
+    accCertWiCid INTEGER NOT NULL, -- PK+FK
     targetOid UUID NOT NULL, -- more PK columns...
     targetType ObjectType,
     relationId INTEGER NOT NULL REFERENCES m_uri(id),
 
     -- TODO is the order of last two components optimal for index/query?
-    PRIMARY KEY (ownerOid, acc_cert_case_cid, acc_cert_wi_cid, relationId, targetOid)
+    PRIMARY KEY (ownerOid, accCertCaseCid, accCertWiCid, relationId, targetOid)
 );
 
 ALTER TABLE m_access_cert_wi_reference
     ADD CONSTRAINT m_access_cert_wi_reference_id_fk
-        FOREIGN KEY (ownerOid, acc_cert_case_cid, acc_cert_wi_cid)
-            REFERENCES m_access_cert_wi (ownerOid, acc_cert_case_cid, cid)
+        FOREIGN KEY (ownerOid, accCertCaseCid, accCertWiCid)
+            REFERENCES m_access_cert_wi (ownerOid, accCertCaseCid, cid)
             ON DELETE CASCADE;
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
@@ -1419,30 +1421,30 @@ CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefT
 -- stores assignment/metadata/createApproverRef
 CREATE TABLE m_assignment_ref_create_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    assignment_cid INTEGER NOT NULL,
+    assignmentCid INTEGER NOT NULL,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED,
 
-    PRIMARY KEY (ownerOid, assignment_cid, referenceType, relationId, targetOid)
+    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
 )
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
-    FOREIGN KEY (ownerOid, assignment_cid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
 
 -- TODO index targetOid, relationId?
 
 -- stores assignment/metadata/modifyApproverRef
 CREATE TABLE m_assignment_ref_modify_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    assignment_cid INTEGER NOT NULL,
+    assignmentCid INTEGER NOT NULL,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED,
 
-    PRIMARY KEY (ownerOid, assignment_cid, referenceType, relationId, targetOid)
+    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
 )
     INHERITS (m_reference);
 
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
-    FOREIGN KEY (ownerOid, assignment_cid) REFERENCES m_assignment (ownerOid, cid);
+    FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid);
 
 -- TODO index targetOid, relationId?
 -- endregion
