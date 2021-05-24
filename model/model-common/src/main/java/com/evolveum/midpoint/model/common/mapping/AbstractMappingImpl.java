@@ -565,6 +565,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return profiling;
     }
 
+    public boolean isEnabled() {
+        return isNotFalse(mappingBean.isEnabled());
+    }
+
     public Long getEtime() {
         if (evaluationStartTime == null || evaluationEndTime == null) {
             return null;

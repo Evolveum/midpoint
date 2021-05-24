@@ -106,6 +106,8 @@ public class TestMapping extends AbstractMappingTest {
 
     private static final TestResource<RoleType> ROLE_TIMED = new TestResource<>(TEST_DIR, "role-timed.xml", "9af2f6d7-564f-45f8-bd8a-2f5cef1596a8");
 
+    private static final TestResource<RoleType> ROLE_DISABLED_MAPPING = new TestResource<>(TEST_DIR, "role-disabled-mapping.xml", "f7228a46-bc75-11eb-8529-0242ac130003");
+
     private static final String CAPTAIN_JACK_FULL_NAME = "Captain Jack Sparrow";
 
     private static final String SHIP_BLACK_PEARL = "Black Pearl";
@@ -163,6 +165,7 @@ public class TestMapping extends AbstractMappingTest {
         repoAddObjectFromFile(ROLE_BLUE_POETRY_FILE, initResult);
         repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
         repoAddObjectFromFile(ROLE_TIMED.file, initResult);
+        repoAddObjectFromFile(ROLE_DISABLED_MAPPING.file, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -3356,6 +3359,40 @@ public class TestMapping extends AbstractMappingTest {
                     .single()
                         .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
                         .assertTimestampFuture("P2M", 20000);
+    }
+
+    /**
+     * Assign Disabled Mapping role. This role has strong mapping to cobalt resource
+     * wealth attribute and strong, but disabled mapping to weapon attribute. Account
+     * on the Cobalt resource should be created, byt weapon attribute has not to be
+     * evaluated.
+     */
+    @Test
+    public void test750assignRoleDisabledMapping() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        when();
+        UserType user = new UserType(prismContext)
+                .name("test750")
+                    .beginAssignment()
+                        .targetRef(ROLE_DISABLED_MAPPING.oid, RoleType.COMPLEX_TYPE)
+                    .end();
+        String oid = addObject(user.asPrismObject(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUser(oid, "User after")
+            .assertName("test750")
+                .assertAssignments(1)
+                .assignments().assertRole(ROLE_DISABLED_MAPPING.oid);
+
+        assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, "test750",
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME, 30000);
+        assertDummyAccountNoAttribute(RESOURCE_DUMMY_COBALT_NAME, "test750",
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
     }
 
     private String rumFrom(String locality) {

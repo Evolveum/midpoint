@@ -77,6 +77,11 @@ public class MappingEvaluator {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, CommunicationException {
 
+        if (!mapping.isEnabled()) {
+            LOGGER.debug("Skipping mapping evaluation, because mapping is disabled, {}", mapping);
+            return;
+        }
+
         ExpressionEnvironment<F, V, D> env = new ExpressionEnvironment<>();
         env.setLensContext(lensContext);
         env.setProjectionContext(projContext);
