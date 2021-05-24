@@ -32,9 +32,9 @@ public class QLookupTableRow extends QContainer<MLookupTableRow, MLookupTable> {
     public static final ColumnMetadata VALUE =
             ColumnMetadata.named("value").ofType(Types.VARCHAR);
     public static final ColumnMetadata LABEL_NORM =
-            ColumnMetadata.named("label_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("labelNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata LABEL_ORIG =
-            ColumnMetadata.named("label_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("labelOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata LAST_CHANGE_TIMESTAMP =
             ColumnMetadata.named("lastChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 

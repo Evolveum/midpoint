@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -1881,7 +1883,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test305DeleteAssignmentByContent()
+    public void test305DeleteAssignmentByContent() // or by value, or by equality
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2038,10 +2040,46 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         && aRow.orderValue == 1);
     }
 
-    // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
+    @Test
+    public void test320AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta adding assignment to path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).add(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
 
     @Test
-    public void test319DeleteAllAssignments()
+    public void test321AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta replacing assignment at path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).replace(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test322DeleteAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta deleting assignment path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).delete()
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2113,6 +2151,27 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
+    public void test920ModifyOperationUpdatesPerformanceMonitor()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("object modification and cleared performance information");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMAIL_ADDRESS).add(getTestNameShort() + "@email.com")
+                .asObjectDelta(user1Oid);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is modified in the repository");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_MODIFY_OBJECT);
     }
 
     @Test

@@ -43,12 +43,12 @@ create table teav (
 ALTER TABLE teav ADD CONSTRAINT teav_name_key UNIQUE (name);
 
 create table teav_ext_string (
-    owner_oid UUID NOT NULL references teav(oid),
+    ownerOid UUID NOT NULL references teav(oid),
     key VARCHAR(32) NOT NULL,
     value VARCHAR(255) NOT NULL,
 
-    -- this also covers the index on owner_oid FK
-    CONSTRAINT teav_ext_string_pk PRIMARY KEY (owner_oid, key, value)
+    -- this also covers the index on ownerOid FK
+    CONSTRAINT teav_ext_string_pk PRIMARY KEY (ownerOid, key, value)
 );
 
 CREATE INDEX teav_ext_string_key_value_idx ON teav_ext_string (key, value);
@@ -81,9 +81,9 @@ BEGIN
 
             -- EAV
             INSERT INTO teav (oid, name) VALUES (id, 'user-' || LPAD(r::text, 10, '0'));
-            INSERT INTO teav_ext_string (owner_oid, key, value) VALUES (id, 'eid', r);
+            INSERT INTO teav_ext_string (ownerOid, key, value) VALUES (id, 'eid', r);
             FOREACH v IN ARRAY hobbies LOOP
-                INSERT INTO teav_ext_string (owner_oid, key, value)
+                INSERT INTO teav_ext_string (ownerOid, key, value)
                 VALUES (id, 'hobbies', v);
             END LOOP;
         ELSEIF r % 10 <= 1 THEN
@@ -97,9 +97,9 @@ BEGIN
                 ('{"eid": ' || r || ', "email": "user' || r || '@mycompany.com", "other-key-' || r || '": "other-value-' || r || '"}')::jsonb
             );
             INSERT INTO teav (oid, name) VALUES (id, 'user-' || LPAD(r::text, 10, '0'));
-            INSERT INTO teav_ext_string (owner_oid, key, value) VALUES (id, 'email', 'user' || r || '@mycompany.com');
-            INSERT INTO teav_ext_string (owner_oid, key, value) VALUES (id, 'eid', r);
-            INSERT INTO teav_ext_string (owner_oid, key, value) VALUES (id, 'other-key-' || r, 'other-value-' || r);
+            INSERT INTO teav_ext_string (ownerOid, key, value) VALUES (id, 'email', 'user' || r || '@mycompany.com');
+            INSERT INTO teav_ext_string (ownerOid, key, value) VALUES (id, 'eid', r);
+            INSERT INTO teav_ext_string (ownerOid, key, value) VALUES (id, 'other-key-' || r, 'other-value-' || r);
         ELSE
             -- these values are used by many entries
             hobbies := random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.4);
@@ -111,9 +111,9 @@ BEGIN
 
             -- EAV
             INSERT INTO teav (oid, name) VALUES (id, 'user-' || LPAD(r::text, 10, '0'));
-            INSERT INTO teav_ext_string (owner_oid, key, value) VALUES (id, 'eid', r);
+            INSERT INTO teav_ext_string (ownerOid, key, value) VALUES (id, 'eid', r);
             FOREACH v IN ARRAY hobbies LOOP
-                INSERT INTO teav_ext_string (owner_oid, key, value)
+                INSERT INTO teav_ext_string (ownerOid, key, value)
                 VALUES (id, 'hobbies', v);
             END LOOP;
         END IF;
@@ -201,7 +201,7 @@ select * from tjson where UPPER(ext->>'email') LIKE 'USER2%' LIMIT 500;
 CREATE INDEX teav_ext_string_value_trgm_idx ON teav_ext_string USING gin(value gin_trgm_ops);
 CREATE INDEX teav_ext_string_value_email_trgm_idx ON teav_ext_string USING gin(value gin_trgm_ops) WHERE key='email';
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value ILIKE 'USER2%') LIMIT 50;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and es.value ILIKE 'USER2%') LIMIT 50;
 select from teav_ext_string ex where es.key = 'email' and es.value ILIKE 'USER2%' limit 500;
 
 -- selects
@@ -236,30 +236,30 @@ select * from tjson where ext @> '{"eid":5000}';
 -- pgbench -r -P 5 -f - -t 5 << "--EOF"
 select count(*) from teav_ext_string; -- out for curiosity, not practical otherwise
 select count(*) from teav;
-select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video');
-select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping');
-select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%');
-select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%');
+select count(*) from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'video');
+select count(*) from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'sleeping');
+select count(*) from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and es.value LIKE 'user2%');
+select count(*) from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%');
 --EOF
 
 -- selects
 -- pgbench -r -P 5 -f - -t 30 << "--EOF"
 select * from teav limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') order by t.oid limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') and t.oid>'fffe0000-0000-0000-0000-000000000000' order by t.oid limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') order by t.oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'video') limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'video') order by t.oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'video') and t.oid>'fffe0000-0000-0000-0000-000000000000' order by t.oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') order by t.oid limit 500;
 --EOF
 
 -- pgbench -r -P 5 -f - -t 30 << "--EOF"
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%') limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%') order by oid limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%') and oid>'fffe0000-0000-0000-0000-000000000000' order by oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and es.value LIKE 'user2%') limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and es.value LIKE 'user2%') order by oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and es.value LIKE 'user2%') and oid>'fffe0000-0000-0000-0000-000000000000' order by oid limit 500;
 
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') order by oid limit 500;
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') and oid>'fffe0000-0000-0000-0000-000000000000' order by oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') order by oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'email' and UPPER(es.value) LIKE 'USER2%') and oid>'fffe0000-0000-0000-0000-000000000000' order by oid limit 500;
 
-select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'eid' and es.value = '5000');
+select * from teav t where exists (select from teav_ext_string es where es.ownerOid = t.oid and es.key = 'eid' and es.value = '5000');
 --EOF

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QFocus<T extends MFocus> extends QObject<T> {
+public class QFocus<R extends MFocus> extends QObject<R> {
 
     private static final long serialVersionUID = -535915621882761789L;
 
@@ -46,9 +46,9 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final ColumnMetadata LOCALE =
             ColumnMetadata.named("locale").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_ORIG =
-            ColumnMetadata.named("locality_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("localityOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata LOCALITY_NORM =
-            ColumnMetadata.named("locality_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("localityNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata PREFERRED_LANGUAGE =
             ColumnMetadata.named("preferredLanguage").ofType(Types.VARCHAR);
     public static final ColumnMetadata TELEPHONE_NUMBER =
@@ -120,11 +120,11 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public final EnumPath<LockoutStatusType> lockoutStatus =
             createEnum("lockoutStatus", LockoutStatusType.class, LOCKOUT_STATUS);
 
-    public QFocus(Class<T> type, String variable) {
+    public QFocus(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QFocus(Class<T> type, String variable, String schema, String table) {
+    public QFocus(Class<R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

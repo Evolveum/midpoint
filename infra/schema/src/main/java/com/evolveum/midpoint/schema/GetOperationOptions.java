@@ -1103,6 +1103,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             if (GetOperationOptionsType.F_RESOLVE_NAMES.getLocalPart().equals(option)) {
                 rv.setResolveNames(true);
             }
+            if (GetOperationOptionsType.F_DISTINCT.getLocalPart().equals(option)) {
+                rv.setDistinct(true);
+            }
 
             // Do NOT set executionPhase here!
         }

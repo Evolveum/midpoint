@@ -316,7 +316,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         return super.createTestMonitor()
                 .addReportCallback(TestReportUtil::reportGlobalPerfData)
-                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQuerySummary(queryListener))
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
@@ -2138,6 +2139,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
         displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
         TestUtil.assertSuccess(result);
+    }
+
+    protected void assertInProgressOrSuccess(OperationResult result) {
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+        displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
+        TestUtil.assertInProgressOrSuccess(result);
     }
 
     protected void assertHandledError(OperationResult result) {

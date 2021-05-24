@@ -33,7 +33,7 @@ public class QTrigger<OR extends MObject> extends QContainer<MTrigger, OR> {
     public static final String TABLE_NAME = "m_trigger";
 
     public static final ColumnMetadata HANDLER_URI_ID =
-            ColumnMetadata.named("handlerUri_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("handlerUriId").ofType(Types.INTEGER);
     public static final ColumnMetadata TIMESTAMP_VALUE =
             ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
