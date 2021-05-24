@@ -21,15 +21,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QCaseWorkItem<OR extends MCase> extends QContainer<MCaseWorkItem, OR> {
+public class QCaseWorkItem extends QContainer<MCaseWorkItem, MCase> {
 
     private static final long serialVersionUID = 341727922218837393L;
-
-    /**
-     * If `QCaseWorkItem.class` is not enough because of generics, try `QCaseWorkItem.CLASS`.
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final Class<QCaseWorkItem<MCase>> CLASS = (Class) QCaseWorkItem.class;
 
     public static final String TABLE_NAME = "m_case_wi";
 
@@ -89,7 +83,7 @@ public class QCaseWorkItem<OR extends MCase> extends QContainer<MCaseWorkItem, O
     }
 
     @Override
-    public BooleanExpression isOwnedBy(OR ownerRow) {
+    public BooleanExpression isOwnedBy(MCase ownerRow) {
         return ownerOid.eq(ownerRow.oid);
     }
 }

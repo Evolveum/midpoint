@@ -1352,30 +1352,28 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         UserType.COMPLEX_TYPE, requestorRelation)
                 .targetRef(targetOid.toString(),
                         OrgType.COMPLEX_TYPE, targetRelation)
-                .beginWorkItem()
-                .id(41L)
-                .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
-                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
-                .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
-                .originalAssigneeRef(originalAssignee1Oid.toString(),
-                        OrgType.COMPLEX_TYPE, originalAssignee1Relation)
-                .performerRef(performer1Oid.toString(),
-                        UserType.COMPLEX_TYPE, performer1Relation)
-                .stageNumber(1)
-                .output(output1)
-                .<CaseType>end()
-                .beginWorkItem()
-                .id(42L)
-                .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
-                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
-                .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
-                .originalAssigneeRef(originalAssignee2Oid.toString(),
-                        UserType.COMPLEX_TYPE, originalAssignee2Relation)
-                .performerRef(performer2Oid.toString(),
-                        UserType.COMPLEX_TYPE, performer2Relation)
-                .stageNumber(2)
-                .output(output2)
-                .end();
+                .workItem(new CaseWorkItemType(prismContext)
+                        .id(41L)
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
+                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
+                        .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
+                        .originalAssigneeRef(originalAssignee1Oid.toString(),
+                                OrgType.COMPLEX_TYPE, originalAssignee1Relation)
+                        .performerRef(performer1Oid.toString(),
+                                UserType.COMPLEX_TYPE, performer1Relation)
+                        .stageNumber(1)
+                        .output(output1))
+                .workItem(new CaseWorkItemType(prismContext)
+                        .id(42L)
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
+                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
+                        .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
+                        .originalAssigneeRef(originalAssignee2Oid.toString(),
+                                UserType.COMPLEX_TYPE, originalAssignee2Relation)
+                        .performerRef(performer2Oid.toString(),
+                                UserType.COMPLEX_TYPE, performer2Relation)
+                        .stageNumber(2)
+                        .output(output2));
 
         when("adding it to the repository");
         repositoryService.addObject(acase.asPrismObject(), null, result);
@@ -1399,7 +1397,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.targetRefTargetType).isEqualTo(MObjectType.ORG);
         assertCachedUri(row.targetRefRelationId, targetRelation);
 
-        QCaseWorkItem<?> t = aliasFor(QCaseWorkItem.CLASS);
+        QCaseWorkItem t = aliasFor(QCaseWorkItem.class);
         List<MCaseWorkItem> wiRows = select(t, t.ownerOid.eq(UUID.fromString(acase.getOid())));
         assertThat(wiRows).hasSize(2);
 

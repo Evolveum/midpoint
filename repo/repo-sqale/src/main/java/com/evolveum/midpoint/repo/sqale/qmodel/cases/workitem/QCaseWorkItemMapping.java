@@ -6,52 +6,44 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
+
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
-
 /**
  * Mapping between {@link QCaseWorkItem} and {@link CaseWorkItemType}.
- *
- * @param <OR> type of the owner row
  */
-public class QCaseWorkItemMapping<OR extends MCase>
-        extends QContainerMapping<CaseWorkItemType, QCaseWorkItem<OR>, MCaseWorkItem, OR> {
+public class QCaseWorkItemMapping
+        extends QContainerMapping<CaseWorkItemType, QCaseWorkItem, MCaseWorkItem, MCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "cswi";
 
-    private static QCaseWorkItemMapping<?> instance;
+    private static QCaseWorkItemMapping instance;
 
-    public static <OR extends MCase> QCaseWorkItemMapping<OR> init(
+    public static QCaseWorkItemMapping init(
             @NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
-            instance = new QCaseWorkItemMapping<>(repositoryContext);
+            instance = new QCaseWorkItemMapping(repositoryContext);
         }
         return get();
     }
 
-    public static <OR extends MCase> QCaseWorkItemMapping<OR> get() {
-        //noinspection unchecked
-        return (QCaseWorkItemMapping<OR>) Objects.requireNonNull(instance);
+    public static QCaseWorkItemMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
-    // We can't declare Class<QCaseWorkItem<OR>>.class, so we cheat a bit.
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     private QCaseWorkItemMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCaseWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                CaseWorkItemType.class, (Class) QCaseWorkItem.class, repositoryContext);
+                CaseWorkItemType.class, QCaseWorkItem.class, repositoryContext);
 
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         addItemMapping(F_CREATE_TIMESTAMP, timestampMapper(q -> q.createTimestamp));
@@ -63,6 +55,7 @@ public class QCaseWorkItemMapping<OR extends MCase>
                 q -> q.originalAssigneeRefRelationId));
 
         // TODO: OUTCOME
+        // see QFocusMapping:61, F_OUTPUT/F_OUTCOME
 //        addItemMapping(F_OUTCOME, stringMapper(q -> q.outcome));
 
         addItemMapping(F_PERFORMER_REF, refMapper(
@@ -75,8 +68,8 @@ public class QCaseWorkItemMapping<OR extends MCase>
     }
 
     @Override
-    protected QCaseWorkItem<OR> newAliasInstance(String alias) {
-        return new QCaseWorkItem<>(alias);
+    protected QCaseWorkItem newAliasInstance(String alias) {
+        return new QCaseWorkItem(alias);
     }
 
     @Override
@@ -86,7 +79,7 @@ public class QCaseWorkItemMapping<OR extends MCase>
     }
 
     @Override
-    public MCaseWorkItem newRowObject(OR ownerRow) {
+    public MCaseWorkItem newRowObject(MCase ownerRow) {
         MCaseWorkItem row = newRowObject();
         row.ownerOid = ownerRow.oid;
         return row;
@@ -95,7 +88,7 @@ public class QCaseWorkItemMapping<OR extends MCase>
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public MCaseWorkItem insert(CaseWorkItemType workItem, OR ownerRow, JdbcSession jdbcSession) {
+    public MCaseWorkItem insert(CaseWorkItemType workItem, MCase ownerRow, JdbcSession jdbcSession) {
         MCaseWorkItem row = initRowObject(workItem, ownerRow);
 
         row.closeTimestamp = MiscUtil.asInstant(workItem.getCloseTimestamp());
