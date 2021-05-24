@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -53,6 +55,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
+    private String case1Oid; // Closed case, two work items
+    private String case2Oid;
 
     // other info used in queries
     private String creatorOid = UUID.randomUUID().toString();
@@ -144,6 +148,30 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
                 null, result);
+        case1Oid = repositoryService.addObject(
+                new CaseType(prismContext).name("case-1")
+                        .state("closed")
+                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(321L))
+                        .workItem(new CaseWorkItemType(prismContext)
+                                .id(41L)
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
+                                .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
+                                .originalAssigneeRef(user3Oid, UserType.COMPLEX_TYPE)
+                                .performerRef(user3Oid, UserType.COMPLEX_TYPE)
+                                .stageNumber(1)
+                                .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
+                        .workItem(new CaseWorkItemType(prismContext)
+                                .id(42L)
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
+                                .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
+                                .originalAssigneeRef(user1Oid, UserType.COMPLEX_TYPE)
+                                .performerRef(user1Oid, UserType.COMPLEX_TYPE)
+                                .stageNumber(2)
+                                .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME two")))
+                        .asPrismObject(),
+                null, result);
 
         assertThatOperationResult(result).isSuccess();
     }
@@ -183,6 +211,32 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
+    }
+
+    @Test
+    public void test180SearchCaseWorkitemByOutcome() throws Exception {
+        searchCaseWorkitemByOutcome("OUTCOME one", case1Oid);
+        searchCaseWorkitemByOutcome("OUTCOME two", case1Oid);
+        searchCaseWorkitemByOutcome("OUTCOME nonexist", null);
+    }
+
+    private void searchCaseWorkitemByOutcome(String wiOutcome, String expectedOid) throws Exception {
+        when("searching case with query for workitem/output/outcome " + wiOutcome);
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<CaseType> result = searchObjects(CaseType.class,
+                prismContext.queryFor(CaseType.class)
+                        .item(ItemPath.create(CaseType.F_WORK_ITEM, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)).eq(wiOutcome)
+                        .build(),
+                operationResult);
+
+        then("case with the matching workitem outcome is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        if (expectedOid == null) {
+            assertThat(result).hasSize(0);
+        } else {
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getOid()).isEqualTo(expectedOid);
+        }
     }
     // endregion
 

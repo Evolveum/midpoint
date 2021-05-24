@@ -1335,11 +1335,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UUID performer2Oid = UUID.randomUUID();
         QName performer2Relation = QName.valueOf("{https://random.org/ns}performer2-rel");
 
-        AbstractWorkItemOutputType output1 = new AbstractWorkItemOutputType(prismContext)
-                .outcome("OUTCOME one");
-        AbstractWorkItemOutputType output2 = new AbstractWorkItemOutputType(prismContext)
-                .outcome("OUTCOME two");
-
         CaseType acase = new CaseType(prismContext)
                 .name(objectName)
                 .state("closed")
@@ -1362,7 +1357,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .performerRef(performer1Oid.toString(),
                                 UserType.COMPLEX_TYPE, performer1Relation)
                         .stageNumber(1)
-                        .output(output1))
+                        .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
                 .workItem(new CaseWorkItemType(prismContext)
                         .id(42L)
                         .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
@@ -1373,7 +1368,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .performerRef(performer2Oid.toString(),
                                 UserType.COMPLEX_TYPE, performer2Relation)
                         .stageNumber(2)
-                        .output(output2));
+                        .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME two")));
 
         when("adding it to the repository");
         repositoryService.addObject(acase.asPrismObject(), null, result);
@@ -1413,8 +1408,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee1Oid);
         assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.ORG);
         assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee1Relation);
-        // TODO: outcome
-//        assertThat(wiRow.outcome).isEqualTo("OUTCOME one");
+        assertThat(wiRow.outcome).isEqualTo("OUTCOME one");
         assertThat(wiRow.performerRefTargetOid).isEqualTo(performer1Oid);
         assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(wiRow.performerRefRelationId, performer1Relation);
@@ -1430,8 +1424,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee2Oid);
         assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee2Relation);
-        // TODO: outcome
-//        assertThat(wiRow.outcome).isEqualTo("OUTCOME two");
+        assertThat(wiRow.outcome).isEqualTo("OUTCOME two");
         assertThat(wiRow.performerRefTargetOid).isEqualTo(performer2Oid);
         assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(wiRow.performerRefRelationId, performer2Relation);

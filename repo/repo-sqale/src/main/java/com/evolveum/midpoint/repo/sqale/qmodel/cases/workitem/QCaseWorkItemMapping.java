@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -54,9 +56,8 @@ public class QCaseWorkItemMapping
                 q -> q.originalAssigneeRefTargetType,
                 q -> q.originalAssigneeRefRelationId));
 
-        // TODO: OUTCOME
-        // see QFocusMapping:61, F_OUTPUT/F_OUTCOME
-//        addItemMapping(F_OUTCOME, stringMapper(q -> q.outcome));
+        addNestedMapping(F_OUTPUT, AbstractWorkItemOutputType.class)
+                .addItemMapping(AbstractWorkItemOutputType.F_OUTCOME, stringMapper(q -> q.outcome));
 
         addItemMapping(F_PERFORMER_REF, refMapper(
                 q -> q.performerRefTargetOid,
@@ -99,7 +100,10 @@ public class QCaseWorkItemMapping
                 t -> row.originalAssigneeRefTargetType = t,
                 r -> row.originalAssigneeRefRelationId = r);
 
-        // TODO: Outcome
+        AbstractWorkItemOutputType output = workItem.getOutput();
+        if (output != null) {
+            row.outcome = output.getOutcome();
+        }
 
         setReference(workItem.getPerformerRef(),
                 o -> row.performerRefTargetOid = o,
