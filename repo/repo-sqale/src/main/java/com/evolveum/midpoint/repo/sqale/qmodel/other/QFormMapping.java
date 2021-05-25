@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 
 /**
  * Mapping between {@link QForm} and {@link FormType}.
  */
-public class QFormMapping extends QObjectMapping<FormType, QForm, MObject> {
+public class QFormMapping extends QAssignmentHolderMapping<FormType, QForm, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "form";
 

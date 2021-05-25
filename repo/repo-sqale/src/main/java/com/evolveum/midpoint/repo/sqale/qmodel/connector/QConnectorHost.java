@@ -11,13 +11,13 @@ import java.sql.Types;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QConnectorHost extends QObject<MConnectorHost> {
+public class QConnectorHost extends QAssignmentHolder<MConnectorHost> {
 
     private static final long serialVersionUID = 8908570767190499506L;
 

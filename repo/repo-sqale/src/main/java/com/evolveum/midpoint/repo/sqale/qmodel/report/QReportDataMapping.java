@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataTyp
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
  * Mapping between {@link QReportData} and {@link ReportDataType}.
  */
 public class QReportDataMapping
-        extends QObjectMapping<ReportDataType, QReportData, MReportData> {
+        extends QAssignmentHolderMapping<ReportDataType, QReportData, MReportData> {
 
     public static final String DEFAULT_ALIAS_NAME = "repout";
 

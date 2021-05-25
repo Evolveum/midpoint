@@ -10,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Mapping between {@link QSystemConfiguration} and {@link SystemConfigurationType}.
  */
 public class QSystemConfigurationMapping
-        extends QObjectMapping<SystemConfigurationType, QSystemConfiguration, MObject> {
+        extends QAssignmentHolderMapping<SystemConfigurationType, QSystemConfiguration, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "sc";
 

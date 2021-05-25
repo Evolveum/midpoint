@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -35,7 +34,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -102,21 +104,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addRefMapping(F_PARENT_ORG_REF,
                 QObjectReferenceMapping.initForParentOrg(repositoryContext));
 
-        addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT,
-                QAssignmentMapping.initAssignment(repositoryContext),
-                joinOn((o, a) -> o.oid.eq(a.ownerOid)));
         addContainerTableMapping(F_OPERATION_EXECUTION,
                 QOperationExecutionMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
         addContainerTableMapping(F_TRIGGER,
                 QTriggerMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
-
-        // AssignmentHolderType
-        addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.initForArchetype(repositoryContext));
-        addRefMapping(F_DELEGATED_REF, QObjectReferenceMapping.initForDelegated(repositoryContext));
-        addRefMapping(F_ROLE_MEMBERSHIP_REF,
-                QObjectReferenceMapping.initForRoleMembership(repositoryContext));
     }
 
     @Override
@@ -264,31 +257,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         storeRefs(row, schemaObject.getParentOrgRef(),
                 QObjectReferenceMapping.getForParentOrg(), jdbcSession);
 
-        if (schemaObject instanceof AssignmentHolderType) {
-            storeAssignmentHolderEntities(row, (AssignmentHolderType) schemaObject, jdbcSession);
-        }
-
         /* TODO EAV extensions - the relevant code from old repo RObject#copyObjectInformationFromJAXB
         if (jaxb.getExtension() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
         }
         */
-    }
-
-    private void storeAssignmentHolderEntities(
-            R row, AssignmentHolderType schemaObject, JdbcSession jdbcSession) {
-        List<AssignmentType> assignments = schemaObject.getAssignment();
-        if (!assignments.isEmpty()) {
-            assignments.forEach(assignment ->
-                    QAssignmentMapping.getAssignment().insert(assignment, row, jdbcSession));
-        }
-
-        storeRefs(row, schemaObject.getArchetypeRef(),
-                QObjectReferenceMapping.getForArchetype(), jdbcSession);
-        storeRefs(row, schemaObject.getDelegatedRef(),
-                QObjectReferenceMapping.getForDelegated(), jdbcSession);
-        storeRefs(row, schemaObject.getRoleMembershipRef(),
-                QObjectReferenceMapping.getForRoleMembership(), jdbcSession);
     }
 
     /**

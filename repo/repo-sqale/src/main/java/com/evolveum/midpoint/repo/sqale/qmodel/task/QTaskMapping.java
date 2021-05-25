@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * Mapping between {@link QTask} and {@link TaskType}.
  */
 public class QTaskMapping
-        extends QObjectMapping<TaskType, QTask, MTask> {
+        extends QAssignmentHolderMapping<TaskType, QTask, MTask> {
 
     public static final String DEFAULT_ALIAS_NAME = "t";
 

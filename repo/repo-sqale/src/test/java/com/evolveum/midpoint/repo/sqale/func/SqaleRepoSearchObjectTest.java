@@ -13,16 +13,20 @@ import java.util.Arrays;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -490,6 +494,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     }
 
     /*
+    // TODO TYPE tests - unclear how to implement TYPE filter at the moment
     @Test
     public void test310QueryWithTypeFilter() throws SchemaException {
         when("query includes type filter");
@@ -499,8 +504,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .type(FocusType.class)
                         .block()
                         .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
-//                        .and() TODO I want this
-//                        .item(FocusType.F_COST_CENTER).eq("5")
+                        .and()
+                        .item(FocusType.F_COST_CENTER).eq("5")
                         .endBlock()
                         .build(),
                 operationResult);
@@ -513,8 +518,73 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     }
     */
 
-    // TODO TYPE tests
-    // TODO EXISTS tests
+/* TODO EXISTS tests
+1. @Count property => pendingOperationCount > 0; see: ClassDefinitionParser#parseMethod() + getJaxbName()
+EXISTS(pendingOperation, null)
+
+2. multi-value container stored in table:
+EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
+
+3. cointainer query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
+  matching on parent's ownerID (OID of AccessCertificationCampaignType) + its own CID (AccessCertificationCaseType)
+EXISTS({http://prism.evolveum.com/xml/ns/public/types-3}parent, AND(IN OID (for owner): e8c07a7a-1b11-11e8-9b32-1715a2e8273b, IN OID: 1))
+
+parent vs ..?
+
+4. part of AND in container query, used on sub-container (workItem) with nested AND condition
+CertificationTest.test730CurrentUnansweredCases >>> Q{
+AND(
+  EQUAL: stageNumber, {http://prism.evolveum.com/xml/ns/public/types-3}parent/stageNumber;
+  EQUAL: ../state, PPV(AccessCertificationCampaignStateType:IN_REVIEW_STAGE);
+  EXISTS(workItem,
+    AND(
+      EQUAL: closeTimestamp, ;
+      EQUAL: output/outcome, )))
+, null paging}
+
+5. EXISTS with .. (another way how to say parent)
+EXISTS(..,
+  OR(
+    IN OID: c0c010c0-d34d-b33f-f00d-111111111111; ,
+    REF: ownerRef,PRV(oid=c0c010c0-d34d-b33f-f00d-111111111111, targetType={.../common/common-3}UserType)))
+
+6. nothing new, nested in OR, EXISTS(workItem) with AND
+
+OR(
+  IN OID: af69e388-88bd-43f9-9259-73676124c196; ,
+  EXISTS(workItem,
+    AND(
+      EQUAL: closeTimestamp,,
+      REF: assigneeRef, PRV(oid=af69e388-88bd-43f9-9259-73676124c196, targetType=null), PRV(oid=c0c010c0-d34d-b33f-f00d-111111111111, targetType=null))))
+
+OR(
+  NONE,
+  LESS-OR-EQUAL: activation/validFrom,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
+  LESS-OR-EQUAL: activation/validTo,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
+  EXISTS(assignment,
+    OR(
+      LESS-OR-EQUAL: activation/validFrom,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
+      LESS-OR-EQUAL: activation/validTo,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00))))
+
+7. typical case EXISTS(assignment, ...)
+
+8. AND(2x EXISTS with multiple ref values)
+main >>> Q{
+AND(
+  EXISTS(assignment,
+    REF: targetRef,
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}default),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}manager),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}approver),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}owner));
+  EXISTS(assignment,
+    REF: targetRef,
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}default),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}manager),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}approver),
+      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}owner)))
+, null paging}
+*/
     // endregion
 
     // region special cases
@@ -529,6 +599,59 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .hasMessageStartingWith("Unsupported item definition: PCD:");
 
         // even if query was possible this would fail in the actual repo search, which is expected
+    }
+
+    @Test
+    public void test920SearchObjectTypeFindsAllObjects() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("query without any filter");
+        ObjectQuery query = prismContext.queryFor(ObjectType.class).build();
+
+        when("search is called with ObjectType");
+        SearchResultList<ObjectType> result =
+                searchObjects(ObjectType.class, query, operationResult);
+
+        then("all repository objects are returned");
+        assertThat(result).hasSize((int) count(QObject.CLASS));
+    }
+
+    @Test
+    public void test921SearchAssignmentHolderTypeFindsAllObjectsExceptShadows()
+            throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("query without any filter");
+        ObjectQuery query = prismContext.queryFor(ObjectType.class).build();
+
+        when("search is called with AssignmentHolderType");
+        SearchResultList<AssignmentHolderType> result =
+                searchObjects(AssignmentHolderType.class, query, operationResult);
+
+        then("all repository objects except shadows are returned");
+        QObject<MObject> o = aliasFor(QObject.CLASS);
+        assertThat(result).hasSize((int) count(o, o.objectType.ne(MObjectType.SHADOW)));
+        assertThat(result).hasSize((int) count(QAssignmentHolder.CLASS));
+        // without additional objects the test would be meaningless
+        assertThat(result).hasSizeLessThan((int) count(o));
+    }
+
+    @Test
+    public void test921SearchFocusTypeFindsOnlyFocusObjects()
+            throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("query without any filter");
+        ObjectQuery query = prismContext.queryFor(ObjectType.class).build();
+
+        when("search is called with FocusType");
+        SearchResultList<FocusType> result =
+                searchObjects(FocusType.class, query, operationResult);
+
+        then("only focus objects from repository are returned");
+        assertThat(result).hasSize((int) count(QFocus.CLASS));
+        // without additional objects the test would be meaningless
+        assertThat(result).hasSizeLessThan((int) count(QObject.CLASS));
     }
 
     @Test
@@ -549,9 +672,35 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
     }
+
+    @Test(enabled = false)
+    public void test960SearchByAxiomQueryLanguage() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<FocusType> focusTypes = searchObjects(FocusType.class,
+                ". type UserType and employeeNumber startsWith \"5\"",
+                operationResult);
+        System.out.println("focusTypes = " + focusTypes);
+        // even if query was possible this would fail in the actual repo search, which is expected
+    }
     // endregion
 
     // support methods
+
+    /** Search objects using Axiom query language. */
+    @SafeVarargs
+    @NotNull
+    private <T extends ObjectType> SearchResultList<T> searchObjects(
+            @NotNull Class<T> type,
+            String query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(type, query);
+        ObjectQuery objectQuery = prismContext.queryFactory().createQuery(objectFilter);
+        return searchObjects(type, objectQuery, operationResult, selectorOptions);
+    }
+
+    /** Search objects using {@link ObjectQuery}. */
     @SafeVarargs
     @NotNull
     private <T extends ObjectType> SearchResultList<T> searchObjects(
