@@ -46,4 +46,14 @@ public interface PrismItemAccessDefinition {
      * itself: the "shell" of the container.
      */
     boolean canAdd();
+
+    interface Mutable extends PrismItemAccessDefinition {
+
+        void setCanRead(boolean val);
+
+        void setCanModify(boolean val);
+
+        void setCanAdd(boolean val);
+
+    }
 }
