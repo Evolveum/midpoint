@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api.async;
 
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -34,17 +37,21 @@ public interface AsyncProvisioningTarget {
     /**
      * Creates a copy of the target - in the initial (unconnected) state.
      */
-    @NotNull AsyncProvisioningTarget copy();
+    @NotNull AsyncProvisioningTarget copy() throws ConfigurationException;
 
     /**
      * Tests this target for reachability.
      */
-    void test(OperationResult result);
+    void test(OperationResult result)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     /**
      * Sends out a request to this target.
      * Throws an exception if the operation is not successful.
      * @return Asynchronous operation reference
      */
-    String send(AsyncProvisioningRequest request, OperationResult result);
+    String send(AsyncProvisioningRequest request, OperationResult result)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 }

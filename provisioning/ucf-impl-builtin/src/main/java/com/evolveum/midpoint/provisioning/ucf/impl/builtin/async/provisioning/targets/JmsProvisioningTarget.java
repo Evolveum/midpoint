@@ -11,7 +11,11 @@ import javax.jms.*;
 import javax.naming.InitialContext;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetType;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +60,8 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
      */
     private final ThreadLocal<MessageProducer> producerThreadLocal = new ThreadLocal<>();
 
-    private JmsProvisioningTarget(@NotNull JmsProvisioningTargetType configuration, @NotNull AsyncProvisioningConnectorInstance connectorInstance) {
+    private JmsProvisioningTarget(@NotNull JmsProvisioningTargetType configuration,
+            @NotNull AsyncProvisioningConnectorInstance connectorInstance) throws ConfigurationException {
         super(configuration, connectorInstance);
 
         try {
@@ -64,17 +69,17 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
             this.connectionFactory = (ConnectionFactory) ic.lookup(configuration.getConnectionFactory());
             this.destination = (Destination) ic.lookup(configuration.getDestination());
         } catch (Throwable t) {
-            throw new SystemException("Couldn't obtain JNDI objects for " + this + ": " + t.getMessage(), t);
+            throw new ConfigurationException("Couldn't obtain JNDI objects for " + this + ": " + t.getMessage(), t);
         }
     }
 
     public static JmsProvisioningTarget create(@NotNull AsyncProvisioningTargetType configuration,
-            @NotNull AsyncProvisioningConnectorInstance connectorInstance) {
+            @NotNull AsyncProvisioningConnectorInstance connectorInstance) throws ConfigurationException {
         return new JmsProvisioningTarget((JmsProvisioningTargetType) configuration, connectorInstance);
     }
 
     @Override
-    public @NotNull AsyncProvisioningTarget copy() {
+    public @NotNull AsyncProvisioningTarget copy() throws ConfigurationException {
         return create(configuration, connectorInstance);
     }
 
@@ -84,18 +89,45 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
         Objects.requireNonNull(configuration.getDestination(), "destination must be specified");
     }
 
-    protected void executeTest() throws JMSException, EncryptionException {
-        closeProducer();
-        closeSession();
-        getOrCreateProducer();
+    @FunctionalInterface
+    private interface JmsFunction<X> {
+        X execute() throws JMSException, EncryptionException;
     }
 
-    protected String executeSend(AsyncProvisioningRequest request) throws JMSException, EncryptionException {
-        Session session = getOrCreateSession();
-        TextMessage message = session.createTextMessage(request.asString());
-        MessageProducer producer = getOrCreateProducer();
-        producer.send(message);
-        return message.getJMSMessageID();
+    private <X> X executeAndConvertException(JmsFunction<X> code)
+            throws SecurityViolationException, ConfigurationException, CommunicationException, GenericFrameworkException {
+        try {
+            return code.execute();
+        } catch (EncryptionException e) {
+            throw new GenericFrameworkException(e); // TODO
+        } catch (JMSSecurityException e) {
+            throw new SecurityViolationException(e);
+        } catch (InvalidDestinationException e) {
+            throw new ConfigurationException(e);
+        } catch (JMSException e) {
+            throw new CommunicationException(e);
+        }
+    }
+
+    protected void executeTest()
+            throws SecurityViolationException, CommunicationException, ConfigurationException, GenericFrameworkException {
+        executeAndConvertException(() -> {
+            closeProducer();
+            closeSession();
+            getOrCreateProducer();
+            return null;
+        });
+    }
+
+    protected String executeSend(AsyncProvisioningRequest request)
+            throws SecurityViolationException, CommunicationException, ConfigurationException, GenericFrameworkException {
+        return executeAndConvertException(() -> {
+            Session session = getOrCreateSession();
+            TextMessage message = session.createTextMessage(request.asString());
+            MessageProducer producer = getOrCreateProducer();
+            producer.send(message);
+            return message.getJMSMessageID();
+        });
     }
 
     /**

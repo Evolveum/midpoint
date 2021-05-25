@@ -47,48 +47,44 @@ public class OperationRequestTransformer {
 
     @NotNull
     public AsyncProvisioningRequest transformOperationRequested(@NotNull OperationRequested operationRequested,
-            Task task, OperationResult result) {
+            Task task, OperationResult result) throws SchemaException, IOException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
 
-        try {
-            PredefinedOperationRequestTransformationType predefinedTransformation = connectorInstance.getPredefinedTransformation();
-            if (predefinedTransformation != null) {
-                return transformerHelper.applyPredefinedTransformation(operationRequested, predefinedTransformation);
+        PredefinedOperationRequestTransformationType predefinedTransformation = connectorInstance.getPredefinedTransformation();
+        if (predefinedTransformation != null) {
+            return transformerHelper.applyPredefinedTransformation(operationRequested, predefinedTransformation);
+        }
+
+        ExpressionType transformExpression = connectorInstance.getTransformExpression();
+        if (transformExpression != null) {
+
+            VariablesMap variables = new VariablesMap();
+            variables.put(VAR_OPERATION_REQUESTED, operationRequested, operationRequested.getClass());
+            variables.put(VAR_TRANSFORMER_HELPER, transformerHelper, TransformerHelper.class);
+            variables.put(VAR_REQUEST_FORMATTER, transformerHelper.jsonRequestFormatter(operationRequested), JsonRequestFormatter.class);
+
+            List<?> list = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+                    SchemaConstantsGenerated.C_ASYNC_PROVISIONING_REQUEST, "creating asynchronous provisioning request",
+                    task, result);
+            if (list.isEmpty()) {
+                throw new IllegalStateException("Transformational script returned no value");
             }
-
-            ExpressionType transformExpression = connectorInstance.getTransformExpression();
-            if (transformExpression != null) {
-
-                VariablesMap variables = new VariablesMap();
-                variables.put(VAR_OPERATION_REQUESTED, operationRequested, operationRequested.getClass());
-                variables.put(VAR_TRANSFORMER_HELPER, transformerHelper, TransformerHelper.class);
-                variables.put(VAR_REQUEST_FORMATTER, transformerHelper.jsonRequestFormatter(operationRequested), JsonRequestFormatter.class);
-
-                List<?> list = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-                        SchemaConstantsGenerated.C_ASYNC_PROVISIONING_REQUEST, "creating asynchronous provisioning request",
-                        task, result);
-                if (list.isEmpty()) {
-                    throw new IllegalStateException("Transformational script returned no value");
-                }
-                if (list.size() > 1) {
-                    throw new IllegalStateException("Transformational script returned more than single value: " + list);
-                }
-                Object o = list.get(0);
-                if (o == null) {
-                    // In the future we can call e.g. default request creator here
-                    throw new IllegalStateException("Transformational script returned no value");
-                } else if (o instanceof AsyncProvisioningRequest) {
-                    return (AsyncProvisioningRequest) o;
-                } else if (o instanceof String) {
-                    return StringAsyncProvisioningRequest.of((String) o);
-                } else {
-                    throw new IllegalStateException("Transformational script should provide an AsyncProvisioningRequest but created " + MiscUtil.getClass(o) + " instead");
-                }
+            if (list.size() > 1) {
+                throw new IllegalStateException("Transformational script returned more than single value: " + list);
+            }
+            Object o = list.get(0);
+            if (o == null) {
+                // In the future we can call e.g. default request creator here
+                throw new IllegalStateException("Transformational script returned no value");
+            } else if (o instanceof AsyncProvisioningRequest) {
+                return (AsyncProvisioningRequest) o;
+            } else if (o instanceof String) {
+                return StringAsyncProvisioningRequest.of((String) o);
             } else {
-                return transformerHelper.applyPredefinedTransformation(operationRequested, SIMPLIFIED_JSON);
+                throw new IllegalStateException("Transformational script should provide an AsyncProvisioningRequest but created " + MiscUtil.getClass(o) + " instead");
             }
-        } catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException | IOException e) {
-            throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
+        } else {
+            return transformerHelper.applyPredefinedTransformation(operationRequested, SIMPLIFIED_JSON);
         }
     }
 }

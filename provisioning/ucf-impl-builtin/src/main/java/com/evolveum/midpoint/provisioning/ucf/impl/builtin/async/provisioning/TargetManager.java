@@ -9,11 +9,11 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.targets.JmsProvisioningTarget;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArtemisProvisioningTargetType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JmsProvisioningTargetType;
@@ -41,17 +41,23 @@ class TargetManager {
     }
 
     @NotNull
-    List<AsyncProvisioningTarget> createTargets(List<AsyncProvisioningTargetType> targetConfigurations) {
+    List<AsyncProvisioningTarget> createTargets(List<AsyncProvisioningTargetType> targetConfigurations)
+            throws ConfigurationException {
         if (targetConfigurations.isEmpty()) {
             throw new IllegalStateException("No asynchronous provisioning targets are configured");
         }
-        return targetConfigurations.stream()
-                .map(this::createTarget)
-                .collect(Collectors.toList());
+        List<AsyncProvisioningTarget> list = new ArrayList<>();
+        for (AsyncProvisioningTargetType targetConfiguration : targetConfigurations) {
+            // TODO add resilience by not failing absolutely when a target cannot be created
+            AsyncProvisioningTarget target = createTarget(targetConfiguration);
+            list.add(target);
+        }
+        return list;
     }
 
     @NotNull
-    private AsyncProvisioningTarget createTarget(AsyncProvisioningTargetType targetConfiguration) {
+    private AsyncProvisioningTarget createTarget(AsyncProvisioningTargetType targetConfiguration)
+            throws ConfigurationException {
         LOGGER.trace("Creating source from configuration: {}", targetConfiguration);
         Class<? extends AsyncProvisioningTarget> targetClass = determineTargetClass(targetConfiguration);
         try {
@@ -61,8 +67,16 @@ class TargetManager {
                 throw new SystemException("Asynchronous update source was not created for " + targetClass);
             }
             return target;
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassCastException e) {
-            throw new SystemException("Couldn't instantiate asynchronous provisioning target class " + targetClass + ": " + e.getMessage(), e);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof ConfigurationException) {
+                throw (ConfigurationException) e.getCause();
+            } else {
+                throw new SystemException("Couldn't instantiate asynchronous provisioning target class " + targetClass +
+                        ": " + e.getMessage(), e);
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | ClassCastException e) {
+            throw new SystemException("Couldn't instantiate asynchronous provisioning target class " + targetClass +
+                    ": " + e.getMessage(), e);
         }
     }
 

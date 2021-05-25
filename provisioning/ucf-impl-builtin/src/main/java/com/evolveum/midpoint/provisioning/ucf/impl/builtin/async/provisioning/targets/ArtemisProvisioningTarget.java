@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.activemq.artemis.api.core.client.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,21 +62,31 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
     }
 
     @Override
-    protected void executeTest() throws Exception {
+    protected void executeTest() {
         closeClientProducer();
         closeClientSession();
-        getOrCreateClientProducer();
+        try {
+            getOrCreateClientProducer();
+        } catch (Exception e) {
+            // TODO throw more specific exception (the problem is that Artemis Core API throws just Exception)
+            throw new SystemException("Couldn't test connection: " + e.getMessage(), e);
+        }
     }
 
     @Override
-    protected String executeSend(AsyncProvisioningRequest request) throws Exception {
-        ClientSession session = getOrCreateClientSession();
-        ClientProducer producer = getOrCreateClientProducer();
+    protected String executeSend(AsyncProvisioningRequest request) {
+        try {
+            ClientSession session = getOrCreateClientSession();
+            ClientProducer producer = getOrCreateClientProducer();
 
-        ClientMessage message = session.createMessage(false);
-        message.getBodyBuffer().writeUTF(request.asString());
-        producer.send(message);
-        return String.valueOf(message.getMessageID());
+            ClientMessage message = session.createMessage(false);
+            message.getBodyBuffer().writeUTF(request.asString());
+            producer.send(message);
+            return String.valueOf(message.getMessageID());
+        } catch (Exception e) {
+            // TODO throw more specific exception (the problem is that Artemis Core API throws just Exception)
+            throw new SystemException("Couldn't send a message: " + e.getMessage(), e);
+        }
     }
 
     @Override

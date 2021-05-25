@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.t
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.AsyncProvisioningConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetType;
 
 /**
@@ -82,46 +83,48 @@ public abstract class AbstractMessagingTarget<C extends AsyncProvisioningTargetT
     }
 
     @Override
-    public void test(OperationResult parentResult) {
+    public void test(OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException {
         OperationResult result = parentResult.createSubresult(getClass().getName() + ".test");
         result.addParam("targetName", configuration.getName());
         onOperationStart();
         try {
             executeTest();
-        } catch (RuntimeException | Error e) {
-            result.recordFatalError(e);
-            throw e;
-        } catch (Exception e) {
-            result.recordFatalError(e);
-            throw new SystemException("Couldn't test the target connection: " + e.getMessage(), e);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         } finally {
             onOperationEnd();
             result.computeStatusIfUnknown();
         }
     }
 
-    protected abstract void executeTest() throws Exception;
+    protected abstract void executeTest()
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     @Override
-    public String send(AsyncProvisioningRequest request, OperationResult parentResult) {
+    public String send(AsyncProvisioningRequest request, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException {
         OperationResult result = parentResult.createSubresult(getClass().getName() + ".send");
         result.addParam("targetName", configuration.getName());
         onOperationStart();
         try {
             return executeSend(request);
-        } catch (RuntimeException | Error e) {
-            result.recordFatalError(e);
-            throw e;
-        } catch (Exception e) {
-            result.recordFatalError(e);
-            throw new SystemException("Couldn't send the message: " + e.getMessage(), e);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         } finally {
             onOperationEnd();
             result.computeStatusIfUnknown();
         }
     }
 
-    protected abstract String executeSend(AsyncProvisioningRequest request) throws Exception;
+    protected abstract String executeSend(AsyncProvisioningRequest request)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     private synchronized void onOperationStart() {
         if (closing || closed) {

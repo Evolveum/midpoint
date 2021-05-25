@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,8 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
@@ -99,14 +100,14 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @NotNull
-    private List<AsyncProvisioningTarget> createNewTargets() {
+    private List<AsyncProvisioningTarget> createNewTargets() throws ConfigurationException {
         return unmodifiableList(targetManager.createTargets(configuration.getAllTargets()));
     }
 
     /**
      * Gracefully shuts down existing target and then tries to replace it with its new instantiation.
      */
-    private AsyncProvisioningTarget restartTarget(AsyncProvisioningTarget target) {
+    private AsyncProvisioningTarget restartTarget(AsyncProvisioningTarget target) throws ConfigurationException {
         target.disconnect();
 
         List<AsyncProvisioningTarget> existingTargets = targetsReference.get();
@@ -139,7 +140,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    protected void connect(OperationResult result) {
+    protected void connect(OperationResult result) throws ConfigurationException {
         List<AsyncProvisioningTarget> newTargets = createNewTargets();
         newTargets.forEach(AsyncProvisioningTarget::connect);
         targetsReference.set(newTargets);
@@ -156,7 +157,14 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncProvisioningConnectorInstance.class);
         result.addContext("connector", getConnectorObject().toString());
         try {
-            targetsReference.get().forEach(t -> t.test(result));
+            targetsReference.get().forEach(t -> {
+                try {
+                    t.test(result);
+                } catch (Exception e) {
+                    // Assuming the exception is recorded in the result.
+                    LoggingUtils.logException(LOGGER, "Exception encountered while testing connection", e);
+                }
+            });
             result.computeStatus();
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't test async provisioning targets: " + e.getMessage(), e);
@@ -165,7 +173,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-            StateReporter reporter, OperationResult parentResult) {
+            StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
+            SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException {
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         try {
@@ -182,7 +192,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult) {
+            ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException {
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         try {
@@ -200,7 +212,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     @Override
     public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-            OperationResult parentResult) throws SchemaException {
+            OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException {
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         try {
@@ -216,8 +230,17 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     private <X> AsynchronousOperationReturnValue<X> createAndSendRequest(OperationRequested operation, Task task,
-            OperationResult result) {
-        AsyncProvisioningRequest request = transformer.transformOperationRequested(operation, task, result);
+            OperationResult result)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException {
+        AsyncProvisioningRequest request;
+        try {
+            request = transformer.transformOperationRequested(operation, task, result);
+        } catch (ExpressionEvaluationException | IOException | ObjectNotFoundException e) {
+            // We roughly assume that expression evaluation exception means that there is a problem with the expression itself.
+            // For IOException and ObjectNotFoundException it is unclear. But we cannot do much more here, anyway.
+            throw new ConfigurationException("Couldn't evaluate transformation expression: " + e.getMessage(), e);
+        }
         String asyncOperationReference = sendRequest(request, result);
 
         AsynchronousOperationReturnValue<X> ret = new AsynchronousOperationReturnValue<>();
@@ -232,7 +255,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         return ret;
     }
 
-    private String sendRequest(AsyncProvisioningRequest request, OperationResult result) {
+    private String sendRequest(AsyncProvisioningRequest request, OperationResult result)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException {
         List<AsyncProvisioningTarget> targets = targetsReference.get();
         if (targets.isEmpty()) {
             throw new IllegalStateException("No targets available");
@@ -244,7 +269,15 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
                 return target.send(request, result);
             } catch (Throwable t) {
                 LOGGER.warn("Couldn't send a request to target {}, restarting the target and trying again", target, t);
-                AsyncProvisioningTarget restartedTarget = restartTarget(target);
+                AsyncProvisioningTarget restartedTarget;
+                try {
+                    restartedTarget = restartTarget(target);
+                } catch (Throwable t3) {
+                    LOGGER.warn("Target {} couldn't be restarted, trying the next one", target, t3);
+                    lastException = t3;
+                    continue;
+                }
+
                 if (restartedTarget != null) {
                     try {
                         result.muteLastSubresultError();
@@ -259,9 +292,25 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
                 }
             }
         }
-        assert lastException != null;
-        throw new SystemException("Couldn't send request to any of the targets available. Last exception: " +
-                lastException.getMessage(), lastException);
+        if (lastException instanceof CommunicationException) {
+            throw (CommunicationException) lastException;
+        } else if (lastException instanceof GenericFrameworkException) {
+            throw (GenericFrameworkException) lastException;
+        } else if (lastException instanceof SchemaException) {
+            throw (SchemaException) lastException;
+        } else if (lastException instanceof ConfigurationException) {
+            throw (ConfigurationException) lastException;
+        } else if (lastException instanceof SecurityViolationException) {
+            throw (SecurityViolationException) lastException;
+        } else if (lastException instanceof PolicyViolationException) {
+            throw (PolicyViolationException) lastException;
+        } else if (lastException instanceof RuntimeException) {
+            throw (RuntimeException) lastException;
+        } else if (lastException instanceof Error) {
+            throw (Error) lastException;
+        } else {
+            throw new IllegalStateException("Unknown exception while sending request", lastException);
+        }
     }
 
     //region Trivia

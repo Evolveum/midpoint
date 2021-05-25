@@ -128,32 +128,37 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
             throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
+        try {
 
-        PrismContainerValue<?> mutableConfiguration;
-        if (configuration.isImmutable()) {
-            mutableConfiguration = configuration.clone();
-        } else {
-            mutableConfiguration = configuration;
+            PrismContainerValue<?> mutableConfiguration;
+            if (configuration.isImmutable()) {
+                mutableConfiguration = configuration.clone();
+            } else {
+                mutableConfiguration = configuration;
+            }
+
+            mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
+            setConnectorConfiguration(mutableConfiguration);
+            applyConfigurationToConfigurationClass(mutableConfiguration);
+
+            // TODO: transform configuration in a subclass
+
+            if (configured) {
+                disconnect(result);
+            }
+
+            connect(result);
+
+            configured = true;
+
+            result.recordSuccessIfUnknown();
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         }
-
-        mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
-        setConnectorConfiguration(mutableConfiguration);
-        applyConfigurationToConfigurationClass(mutableConfiguration);
-
-        // TODO: transform configuration in a subclass
-
-        if (configured) {
-            disconnect(result);
-        }
-
-        connect(result);
-
-        configured = true;
-
-        result.recordSuccessIfUnknown();
     }
 
-    protected abstract void connect(OperationResult result);
+    protected abstract void connect(OperationResult result) throws ConfigurationException;
 
     protected abstract void disconnect(OperationResult result);
 
