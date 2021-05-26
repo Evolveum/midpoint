@@ -15,7 +15,11 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableItemDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismItemAccessDefinition.Mutable;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -194,7 +198,8 @@ public class SchemaTransformer {
         validateObject(object, rootOptions, result);
 
         ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
-        PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true, this::setFullAccessFlags);
+
+        PrismObjectDefinition<O> objectDefinition = TransformableObjectDefinition.of(object);
 
         if (phase == null) {
             if (!GetOperationOptions.isExecutionPhase(rootOptions)) {
@@ -388,10 +393,13 @@ public class SchemaTransformer {
         if (pcv.hasNoItems()) {
             return;
         }
+        // FIX PCV type for subtypes
+        TransformableContainerDefinition.ensureMutableType(pcv);
         List<Item> itemsToRemove = new ArrayList<>();
         for (Item<?, ?> item : pcv.getItems()) {
             ItemPath itemPath = item.getPath();
-            ItemDefinition<?> itemDef = item.getDefinition();
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            ItemDefinition<?> itemDef = ensureMutableDefinition((Item) item);
             if (itemDef != null && itemDef.isElaborate()) {
                 LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
                 continue;
@@ -404,13 +412,13 @@ public class SchemaTransformer {
                     itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
             if (applyToDefinitions && itemDef != null) {
                 if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-                    itemDef.toMutable().setCanRead(false);
+                    mutable(itemDef).setCanRead(false);
                 }
                 if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-                    itemDef.toMutable().setCanAdd(false);
+                    mutable(itemDef).setCanAdd(false);
                 }
                 if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-                    itemDef.toMutable().setCanModify(false);
+                    mutable(itemDef).setCanModify(false);
                 }
             }
             if (item instanceof PrismContainer<?>) {
@@ -444,6 +452,24 @@ public class SchemaTransformer {
         }
     }
 
+    private <D extends ItemDefinition<?>> D ensureMutableDefinition(Item<?, D> item) {
+        D original = item.getDefinition();
+        if (TransformableItemDefinition.isMutableAccess(original)) {
+            return original;
+        }
+        D replace = TransformableItemDefinition.publicFrom(original);
+        try {
+            item.applyDefinition(replace, true);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Can not replace definition with wrapper");
+        }
+        return replace;
+    }
+
+    private Mutable mutable(ItemDefinition<?> itemDef) {
+        return TransformableItemDefinition.access(itemDef);
+    }
+
     private <O extends ObjectType> void applySecurityConstraints(ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
             AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision) {
         LOGGER.trace("applySecurityConstraints(objectDelta): items={}, phase={}, defaults R={}, A={}, M={}",
@@ -452,7 +478,8 @@ public class SchemaTransformer {
             return;
         }
         if (objectDelta.isAdd()) {
-            applySecurityConstraints(objectDelta.getObjectToAdd().getValue(), securityConstraints, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision, false);
+            applySecurityConstraints(objectDelta.getObjectToAdd().getValue(), securityConstraints, phase, defaultReadDecision,
+                    defaultAddDecision, defaultModifyDecision, false);
             return;
         }
         if (objectDelta.isDelete()) {
@@ -604,23 +631,23 @@ public class SchemaTransformer {
                 nameOnlyItemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
 
         if (readDecision != AuthorizationDecisionType.ALLOW) {
-            itemDefinition.toMutable().setCanRead(false);
+            mutable(itemDefinition).setCanRead(false);
         }
         if (addDecision != AuthorizationDecisionType.ALLOW) {
-            itemDefinition.toMutable().setCanAdd(false);
+            mutable(itemDefinition).setCanAdd(false);
         }
         if (modifyDecision != AuthorizationDecisionType.ALLOW) {
-            itemDefinition.toMutable().setCanModify(false);
+            mutable(itemDefinition).setCanModify(false);
         }
 
         if (anySubElementRead) {
-            itemDefinition.toMutable().setCanRead(true);
+            mutable(itemDefinition).setCanRead(true);
         }
         if (anySubElementAdd) {
-            itemDefinition.toMutable().setCanAdd(true);
+            mutable(itemDefinition).setCanAdd(true);
         }
         if (anySubElementModify) {
-            itemDefinition.toMutable().setCanModify(true);
+            mutable(itemDefinition).setCanModify(true);
         }
     }
 
@@ -733,37 +760,9 @@ public class SchemaTransformer {
             throw new SchemaException("No definition for "+desc);
         }
 
-        MutableItemDefinition<?> mutableDef = itemDef.toMutable();
+        TransformableItemDefinition<?,?> mutableDef = TransformableItemDefinition.access(itemDef);
 
-        String displayName = templateItemDefType.getDisplayName();
-        if (displayName != null) {
-            mutableDef.setDisplayName(displayName);
-        }
-
-        String help = templateItemDefType.getHelp();
-        if (help != null) {
-            mutableDef.setHelp(help);
-        }
-
-        Integer displayOrder = templateItemDefType.getDisplayOrder();
-        if (displayOrder != null) {
-            mutableDef.setDisplayOrder(displayOrder);
-        }
-
-        Boolean emphasized = templateItemDefType.isEmphasized();
-        if (emphasized != null) {
-            mutableDef.setEmphasized(emphasized);
-        }
-
-        Boolean deprecated = templateItemDefType.isDeprecated();
-        if (deprecated != null) {
-            mutableDef.setDeprecated(deprecated);
-        }
-
-        Boolean experimental = templateItemDefType.isExperimental();
-        if (experimental != null) {
-            mutableDef.setExperimental(experimental);
-        }
+        mutableDef.applyTemplate(templateItemDefType);
 
         List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
         if (limitations != null) {
@@ -815,7 +814,7 @@ public class SchemaTransformer {
         }
     }
 
-    <O extends ObjectType> void applyItemsConstraints(@NotNull MutablePrismContainerDefinition<O> objectDefinition,
+    <O extends ObjectType> void applyItemsConstraints(@NotNull PrismContainerDefinition<O> objectDefinition,
             @NotNull ArchetypePolicyType archetypePolicy) throws SchemaException {
         List<VisibilityPolicyEntry> visibilityPolicy = getVisibilityPolicy(archetypePolicy, objectDefinition);
         if (!visibilityPolicy.isEmpty()) {
@@ -966,6 +965,10 @@ public class SchemaTransformer {
             return true;
         }
         return false;
+    }
+
+    public <O extends Objectable> TransformableObjectDefinition<O> transformableDefinition(PrismObjectDefinition<O> definition) {
+        return TransformableObjectDefinition.of(definition);
     }
 
 }
