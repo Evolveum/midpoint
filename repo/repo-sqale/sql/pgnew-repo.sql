@@ -21,6 +21,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
+--CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -241,9 +242,9 @@ CREATE TABLE m_object (
     version INTEGER NOT NULL DEFAULT 1,
     -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
     -- TODO compare with [] in JSONB, check performance, indexing, etc. first
-    policySituations INTEGER[], -- soft-references m_uri, add index per table as/if needed
-    subtypes TEXT[],
-    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet
+    policySituations INTEGER[], -- soft-references m_uri, only EQ filter
+    subtypes TEXT[], -- only EQ filter
+    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -460,6 +461,7 @@ CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
 --  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 -- endregion
 
 -- region USER related tables
@@ -503,6 +505,7 @@ CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
 CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 
 /* TODO JSON of polystrings?
 CREATE TABLE m_user_organization (
@@ -558,6 +561,7 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
@@ -595,6 +599,7 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
 
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
 ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
 -- endregion
 
 -- region Organization hierarchy support
@@ -618,6 +623,7 @@ CREATE TRIGGER m_org_oid_delete_tr AFTER DELETE ON m_org
 CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
 ALTER TABLE m_org ADD CONSTRAINT m_org_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
+CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
@@ -749,6 +755,7 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
 
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 ALTER TABLE m_resource ADD CONSTRAINT m_resource_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
 
 -- stores ResourceType/business/approverRef
 CREATE TABLE m_ref_resource_business_configuration_approver (
@@ -798,6 +805,7 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
 ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
 /*
@@ -833,7 +841,7 @@ CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
 
 CREATE INDEX m_node_nameOrig_idx ON m_node (nameOrig);
 ALTER TABLE m_node ADD CONSTRAINT m_node_nameNorm_key UNIQUE (nameNorm);
--- not interested in ext index for this one, this table will be small
+-- not interested in other indexes for this one, this table will be small
 
 -- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
 CREATE TABLE m_system_configuration (
@@ -850,6 +858,8 @@ CREATE TRIGGER m_system_configuration_update_tr BEFORE UPDATE ON m_system_config
 CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_configuration
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
+ALTER TABLE m_system_configuration
+    ADD CONSTRAINT m_system_configuration_nameNorm_key UNIQUE (nameNorm);
 -- no need for the name index, m_system_configuration table is very small
 
 -- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
@@ -867,7 +877,11 @@ CREATE TRIGGER m_security_policy_update_tr BEFORE UPDATE ON m_security_policy
 CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
--- no need for the name index, m_security_policy table is very small
+CREATE INDEX m_security_policy_nameOrig_idx ON m_security_policy (nameOrig);
+ALTER TABLE m_security_policy ADD CONSTRAINT m_security_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subtypes);
+CREATE INDEX m_security_policy_policySituation_idx
+    ON m_security_policy USING GIN(policysituations gin__int_ops);
 
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
@@ -886,6 +900,9 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
 
 CREATE INDEX m_object_collection_nameOrig_idx ON m_object_collection (nameOrig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(subtypes);
+CREATE INDEX m_object_collection_policySituation_idx
+    ON m_object_collection USING GIN(policysituations gin__int_ops);
 
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
@@ -904,6 +921,9 @@ CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
 
 CREATE INDEX m_dashboard_nameOrig_idx ON m_dashboard (nameOrig);
 ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_dashboard_subtypes_idx ON m_dashboard USING gin(subtypes);
+CREATE INDEX m_dashboard_policySituation_idx
+    ON m_dashboard USING GIN(policysituations gin__int_ops);
 
 -- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
@@ -922,6 +942,9 @@ CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
 
 CREATE INDEX m_value_policy_nameOrig_idx ON m_value_policy (nameOrig);
 ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_value_policy_subtypes_idx ON m_value_policy USING gin(subtypes);
+CREATE INDEX m_value_policy_policySituation_idx
+    ON m_value_policy USING GIN(policysituations gin__int_ops);
 
 -- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
@@ -942,6 +965,8 @@ CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
 
 CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
+CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
 -- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
@@ -964,6 +989,9 @@ CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
 ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
+CREATE INDEX m_report_data_policySituation_idx
+    ON m_report_data USING GIN(policysituations gin__int_ops);
 
 -- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
@@ -982,6 +1010,9 @@ CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
 
 CREATE INDEX m_lookup_table_nameOrig_idx ON m_lookup_table (nameOrig);
 ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_lookup_table_subtypes_idx ON m_lookup_table USING gin(subtypes);
+CREATE INDEX m_lookup_table_policySituation_idx
+    ON m_lookup_table USING GIN(policysituations gin__int_ops);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
@@ -1026,14 +1057,9 @@ CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
 
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
 ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
-
--- TODO array/json in m_connector table
--- CREATE TABLE m_connector_target_system (
---     connector_oid UUID NOT NULL,
---     targetSystemType TEXT
--- );
--- ALTER TABLE m_connector_target_system
---     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
+CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
+CREATE INDEX m_connector_policySituation_idx
+    ON m_connector USING GIN(policysituations gin__int_ops);
 
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
@@ -1054,6 +1080,9 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
 
 CREATE INDEX m_connector_host_nameOrig_idx ON m_connector_host (nameOrig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_connector_host_subtypes_idx ON m_connector_host USING gin(subtypes);
+CREATE INDEX m_connector_host_policySituation_idx
+    ON m_connector_host USING GIN(policysituations gin__int_ops);
 
 -- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
@@ -1098,6 +1127,8 @@ CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
 CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
+CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
+CREATE INDEX m_task_policySituation_idx ON m_task USING GIN(policysituations gin__int_ops);
 -- endregion
 
 -- region cases
@@ -1132,6 +1163,8 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
+CREATE INDEX m_case_policySituation_idx ON m_case USING GIN(policysituations gin__int_ops);
 
 CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
 CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
@@ -1154,10 +1187,12 @@ CREATE TABLE m_case_wi (
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
+
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
+-- TODO INDEXES, old repo had no indexes either
 -- endregion
 
 -- region Access Certification object tables
@@ -1185,6 +1220,9 @@ CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_c
 CREATE INDEX m_access_cert_definition_nameOrig_idx ON m_access_cert_definition (nameOrig);
 ALTER TABLE m_access_cert_definition
     ADD CONSTRAINT m_access_cert_definition_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_access_cert_definition_subtypes_idx ON m_access_cert_definition USING gin(subtypes);
+CREATE INDEX m_access_cert_definition_policySituation_idx
+    ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
 -- TODO not mapped yet
@@ -1217,6 +1255,9 @@ CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cer
 CREATE INDEX m_access_cert_campaign_nameOrig_idx ON m_access_cert_campaign (nameOrig);
 ALTER TABLE m_access_cert_campaign
     ADD CONSTRAINT m_access_cert_campaign_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_access_cert_campaign_subtypes_idx ON m_access_cert_campaign USING gin(subtypes);
+CREATE INDEX m_access_cert_campaign_policySituation_idx
+    ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
@@ -1329,6 +1370,8 @@ CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
 
 CREATE INDEX m_object_template_nameOrig_idx ON m_object_template (nameOrig);
 ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_object_template_subtypes_idx ON m_object_template USING gin(subtypes);
+CREATE INDEX m_object_template_policySituation_idx ON m_object_template USING GIN(policysituations gin__int_ops);
 
 -- stores ObjectTemplateType/includeRef
 CREATE TABLE m_ref_include (
@@ -1362,6 +1405,9 @@ CREATE TRIGGER m_function_library_oid_delete_tr AFTER DELETE ON m_function_libra
 
 CREATE INDEX m_function_library_nameOrig_idx ON m_function_library (nameOrig);
 ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_function_library_subtypes_idx ON m_function_library USING gin(subtypes);
+CREATE INDEX m_function_library_policySituation_idx
+    ON m_function_library USING GIN(policysituations gin__int_ops);
 
 -- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
 CREATE TABLE m_sequence (
@@ -1380,6 +1426,8 @@ CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
 
 CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_sequence_subtypes_idx ON m_sequence USING gin(subtypes);
+CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING GIN(policysituations gin__int_ops);
 
 -- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
 CREATE TABLE m_form (
@@ -1398,6 +1446,8 @@ CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
 
 CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_form_subtypes_idx ON m_form USING gin(subtypes);
+CREATE INDEX m_form_policySituation_idx ON m_form USING GIN(policysituations gin__int_ops);
 -- endregion
 
 -- region Assignment/Inducement table
