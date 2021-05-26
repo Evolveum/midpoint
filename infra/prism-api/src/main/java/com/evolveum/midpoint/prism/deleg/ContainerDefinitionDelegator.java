@@ -93,6 +93,12 @@ public interface ContainerDefinitionDelegator<C extends Containerable> extends I
     }
 
     @Override
+    default <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+        return delegate().findItemDefinition(path, clazz);
+    }
+
+
+    @Override
     default PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
         return delegate().cloneWithReplacedDefinition(itemName, newDefinition);
     }
