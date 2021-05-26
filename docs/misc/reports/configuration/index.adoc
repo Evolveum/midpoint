@@ -492,6 +492,17 @@ We can use following attributes:
 | *boolean*
 | Specifies that during creating of report will be used only view in report without merging with other view.
 
+| _condition_
+| *ExpressionType*
+| Condition for the searched objects. Searched object will be shown if the condition evaluates to true. This condition use only for reports and as last option because of performance.
+
+| _parameter_
+| *SearchFilterParameterType*
+| Parameter used in filter expression.
+
+| _subreport_
+| *SubreportParameterType*
+| Subreport with expression.
 
 |===
 
@@ -505,7 +516,7 @@ For collection report we can use object collection or filter and base object col
 When we want to use object collection easy use oid of collection in report.
 For example:
 
-.Object collection report type 1
+.Object collection report with object collection reference
 [source,xml]
 ----
 <report>
@@ -525,7 +536,7 @@ For example:
 We can use only filter with base collection or view where we define object type.
 Example with base collection.
 
-.Object collection report type 2
+.Object collection report with filter
 [source,xml]
 ----
 <report>
@@ -544,16 +555,134 @@ Example with base collection.
 </report>
 ----
 
+===== Parameters
+When we want run some report, sometimes we need define some information for input for example role, organization, resource, etc.
+For this situation we can define parameter, which user set before running of the report. For example we want report of all user
+who have accounts on concrete resource. We won't create one report for each resource with different filter but use parameter
+which define resource in filter and we set it before run of report. We can see example of this report below.
+
+.Object collection report with parameter
+[source,xml]
+----
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<name>Collection report 2</name>
+	<reportEngine>collection</reportEngine>
+    <objectCollection>
+        <collection>
+			<filter>
+				<q:ref>
+                    <q:path>assignment/construction/resourceRef</q:path>
+                    <expression>
+                        <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+                                if (!resource) {
+                                   return null;
+                                }
+
+                                ObjectReferenceType ort = new ObjectReferenceType();
+                                ort.setOid(resource.getOid());
+                                ort.setRelation(resource.getRelation());
+                                ort.setType(resource.getTargetType());
+                                return ort;
+                            </code>
+                        </script>
+                    </expression>
+                </q:ref>
+			</filter>
+        </collection>
+        <view>
+            <type>UserType</type>
+        </view>
+        <parameter>
+            <name>resource</name>
+            <type>c:ObjectReferenceType</type>
+            <targetType>c:ResourceType</targetType>
+            <display>
+                <label>
+                    <orig>resource</orig>
+                    <translation>
+                        <key>ObjectTypeGuiDescriptor.resource</key>
+                    </translation>
+                </label>
+            </display>
+        </parameter>
+    </objectCollection>
+</report>
+----
+
+We can use following attributes for parameter:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| _name_
+| *String*
+| Name of parameter.
+
+
+| _type_
+| *QName*
+| Type of parameter value.
+
+
+| _targetType_
+| *QName*
+| Type of target, when type of parameter value is ObjectReferenceType.
+
+| _allowedValuesLookupTable_
+| *ObjectReferenceType*
+| Reference of Lookup Table, which define possible values of parameter.
+
+| _allowedValuesExpression_
+| *ExpressionType*
+| Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.
+
+|===
+
+===== Subreports
+Subreport defines some object, which we can get from expression. Next we can use this object in column expression,
+so we don't have to search this object in every column expression. For example we need report with accounts(shadows) but we need some columns with attributes from owner of account, so we use subreport where in expression we define search of owner. Next in columns expressions we use owner and we get attributes from it.
+
+We can use following attributes for subreport:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| _name_
+| *String*
+| Name of subreport.
+
+
+| _type_
+| *QName*
+| Type of parameter value.
+
+
+| _order_
+| *Integer*
+| Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers go first. Entries with no order go last.
+
+|===
 
 == Creating of report
 
 Simple way how to create report is to click on 'Create report' under table on object list pages (e.g. All users page).
-After click you will be redirected to Create report page with predefined filter from search panel over object table and columns from previous table.
 
+image::users.png[]
+
+After click you will be redirected to Create report page with predefined filter from search panel over object table and columns from previous table.
 
 == 'Import report'
 
-Since version 4.2, midPoint supports 'import report'/'reverse report'.
+Since version 4.2, midPoint supports 'import report'/'reverse report'. This feature is *wiki:Experimental+Functionality[experimental]*.
 Report output generated by midPoint can also be used in reverse way - you can import it back to midPoint.
 In addition, it is also possible to import custom defined report output.
 Midpoint support two kind of import configuration .  Configuration for Object import and Import script.
