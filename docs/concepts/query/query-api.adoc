@@ -1095,14 +1095,14 @@ Following is the example for using paging in the query.
     <q:paging>
         <q:orderBy>name</q:orderBy>
         <offset>0</offset>
-        <maxSize>1</maxSize>
+        <maxSize>10</maxSize>
     </q:paging>
 </q:query>
 ----
 
-Using example above will return first 10 records ordered by _name_ where _administrativeStatus_ is set to enabled.
+Using example above will return first 10 records ordered by `name` where `administrativeStatus` is set to `enabled`.
 
-=== Special symbols in item paths ("..", "@", "#")
+=== Special symbols in item paths (`..`, `@`, `#`)
 
 TODO
 
@@ -1129,7 +1129,7 @@ An active certification case is one that is part of a campaign that is in a revi
 </and>
 ----
 
-The ".." symbol denotes "owning campaign".
+The `..` symbol denotes "owning campaign".
 
 [source]
 ----
@@ -1140,11 +1140,12 @@ ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
         .buildFilter();
 ----
 
-PrismConstants.T\_PARENT is the QName for ".." path segment.
+`PrismConstants.T_PARENT` is the QName for `..` path segment.
 
-Following example uses @ symbol to dereference linkRef to ShadowType in user object.
+Following example uses `@` symbol to dereference `linkRef` to `ShadowType` in user object.
 This allows e.g. filtering users that have projection on specified resource.
-Please note, that @ has limitation towards general (any object type) usage and will work with statically defined types like ObjectType, FocusType, ShadowType.
+Please note, that `@` has limitation towards general (any object type) usage and will work with
+statically defined types like `ObjectType`, `FocusType`, `ShadowType`.
 
 .XML
 [source,xml]
