@@ -76,7 +76,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         // version/cidSeq is not mapped for queries or deltas, it's managed by repo explicitly
 
-        // TODO mapper for policySituations and subtypes
+        addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
+        addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
+        // full-text is not item mapping, but filter on the whole object
         // TODO ext mapping can't be done statically
 
         addNestedMapping(F_METADATA, MetadataType.class)
@@ -191,7 +193,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         // complex DB fields
         row.policySituations = processCacheableUris(schemaObject.getPolicySituation());
-        row.subtypes = arrayFor(schemaObject.getSubtype());
+        row.subtypes = listToArray(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         // TODO extensions stored inline (JSON) - that is ext column

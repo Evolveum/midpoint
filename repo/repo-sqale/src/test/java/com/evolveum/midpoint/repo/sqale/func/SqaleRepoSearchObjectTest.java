@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -57,6 +57,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private String user3Oid; // another user in org
     private String user4Oid; // another user in org
     private String task1Oid; // task has more attribute type variability
+    private String task2Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
@@ -84,11 +85,13 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         org111Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-1-1-1")
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation2)
+                        .subtype("newWorkers")
                         .asPrismObject(),
                 null, result);
         org112Oid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-1-1-2")
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .subtype("secret")
                         .asPrismObject(),
                 null, result);
         org12Oid = repositoryService.addObject(
@@ -103,6 +106,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 new OrgType(prismContext).name("org-2-1")
                         .costCenter("5")
                         .parentOrgRef(org2Oid, OrgType.COMPLEX_TYPE)
+                        .policySituation("situationC")
                         .asPrismObject(),
                 null, result);
         orgXOid = repositoryService.addObject(
@@ -122,12 +126,17 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                                 .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
                                 .modifyChannel("modify-channel")
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
+                        .subtype("workerA")
+                        .subtype("workerC")
+                        .policySituation("situationA")
+                        .policySituation("situationC")
                         .asPrismObject(),
                 null, result);
         user2Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-2")
                         .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .subtype("workerA")
                         .asPrismObject(),
                 null, result);
         user3Oid = repositoryService.addObject(
@@ -135,16 +144,26 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .costCenter("50")
                         .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .policySituation("situationA")
                         .asPrismObject(),
                 null, result);
         user4Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-4")
                         .costCenter("51")
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
+                        .subtype("workerB")
+                        .policySituation("situationB")
                         .asPrismObject(),
                 null, result);
         task1Oid = repositoryService.addObject(
-                new TaskType(prismContext).name("task-1").asPrismObject(),
+                new TaskType(prismContext).name("task-1")
+                        .executionStatus(TaskExecutionStateType.RUNNABLE)
+                        .asPrismObject(),
+                null, result);
+        task2Oid = repositoryService.addObject(
+                new TaskType(prismContext).name("task-2")
+                        .executionStatus(TaskExecutionStateType.CLOSED)
+                        .asPrismObject(),
                 null, result);
         shadow1Oid = repositoryService.addObject(
                 new ShadowType(prismContext).name("shadow-1").asPrismObject(),
@@ -218,18 +237,238 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test180SearchCaseWorkitemByOutcome() throws Exception {
-        searchCaseWorkitemByOutcome("OUTCOME one", case1Oid);
-        searchCaseWorkitemByOutcome("OUTCOME two", case1Oid);
-        searchCaseWorkitemByOutcome("OUTCOME nonexist", null);
+    public void test120SearchObjectsBySubtype() throws Exception {
+        when("searching objects with subtype equal to value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .build(),
+                operationResult);
+
+        then("only objects having the specified subtype are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(2)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user2Oid);
     }
 
-    private void searchCaseWorkitemByOutcome(String wiOutcome, String expectedOid) throws Exception {
+    @Test
+    public void test121SearchObjectsBySubtypeWithMultipleValues() throws Exception {
+        when("searching objects with any subtype equal to any of the provided values");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .item(ObjectType.F_SUBTYPE).eq("workerA", "workerB")
+                        .build(),
+                operationResult);
+
+        then("objects with any of the subtypes are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(3)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user2Oid, user4Oid);
+    }
+
+    @Test
+    public void test122SearchObjectsHavingTwoSubtypeValuesUsingAnd() throws Exception {
+        when("searching objects with multiple subtype values equal to provided values");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .and()
+                        .item(ObjectType.F_SUBTYPE).eq("workerC")
+                        .build(),
+                operationResult);
+
+        then("only objects with all specified subtypes are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(1)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(user1Oid);
+    }
+
+    @Test
+    public void test123SearchOrgsHavingTwoSubtypeValuesUsingAndButNoneMatches() throws Exception {
+        when("searching objects with multiple subtype values equal to provided values");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .and()
+                        .item(ObjectType.F_SUBTYPE).eq("workerB")
+                        .build(),
+                operationResult);
+
+        then("nothing is returned because no org matches the condition");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test125SearchObjectsBySubtypeContainsIsNotSupported() {
+        given("query for subtype containing (=substring) value");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(ObjectType.F_SUBTYPE).contains("worker")
+                .build();
+
+        expect("repository throws exception because it is not supported");
+        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Can't translate filter");
+    }
+
+    @Test
+    public void test130SearchObjectsByPolicySituation() throws Exception {
+        when("searching objects with policy situation equal to value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
+                        .build(),
+                operationResult);
+
+        then("only objects having the specified policy situation are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(2)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(user1Oid, org21Oid);
+    }
+
+    @Test
+    public void test131SearchOrgsByPolicySituation() throws Exception {
+        when("searching orgs with policy situation equal to value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<OrgType> result = searchObjects(OrgType.class,
+                prismContext.queryFor(OrgType.class)
+                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
+                        .build(),
+                operationResult);
+
+        then("only orgs having the specified policy situation are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(1)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(org21Oid);
+    }
+
+    @Test
+    public void test132SearchObjectsByPolicySituationWithMultipleValues() throws Exception {
+        when("searching objects with any policy situation equal to any of the provided values");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(ObjectType.F_POLICY_SITUATION).eq("situationA", "situationB")
+                        .build(),
+                operationResult);
+
+        then("objects with any of the policy situations are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(3)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test135SearchObjectsByPolicySituationContainsIsNotSupported() {
+        given("query for policy situation containing (=substring) value");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(ObjectType.F_POLICY_SITUATION).contains("worker")
+                .build();
+
+        expect("repository throws exception because it is not supported");
+        assertThatThrownBy(() -> searchObjects(ObjectType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Can't translate filter");
+    }
+
+    @Test
+    public void test140SearchTaskByEnumValue() throws Exception {
+        when("searching task with execution status equal to one value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<TaskType> result = searchObjects(TaskType.class,
+                prismContext.queryFor(TaskType.class)
+                        .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE)
+                        .build(),
+                operationResult);
+
+        then("tasks with the execution status with the provided value are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(1)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(task1Oid);
+    }
+
+    @Test
+    public void test141SearchTaskByEnumWithMultipleValues() throws Exception {
+        when("searching task with execution status equal to any of provided value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<TaskType> result = searchObjects(TaskType.class,
+                prismContext.queryFor(TaskType.class)
+                        .item(TaskType.F_EXECUTION_STATUS).eq(
+                        TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED)
+                        .build(),
+                operationResult);
+
+        then("tasks with execution status equal to any of the provided values are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .hasSize(2)
+                .extracting(row -> row.getOid())
+                .containsExactlyInAnyOrder(task1Oid, task2Oid);
+    }
+
+    @Test
+    public void test145SearchObjectsByEnumValueContainsIsNotSupported() {
+        given("query for task's execution status containing (=substring) value");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATUS).contains(TaskExecutionStateType.RUNNABLE)
+                .build();
+
+        expect("repository throws exception because it is not supported");
+        assertThatThrownBy(() -> searchObjects(TaskType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageStartingWith("Can't translate filter");
+    }
+
+    @Test
+    public void test146SearchTaskByEnumValueProvidedAsStringIsNotSupported() {
+        given("query for enum equality using string value");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATUS).eq("RUNNABLE")
+                .build();
+
+        expect("repository throws exception because it is not supported, enum must be used");
+        assertThatThrownBy(() -> searchObjects(TaskType.class, query, operationResult))
+                .isInstanceOf(SystemException.class);
+    }
+
+    @Test
+    public void test180SearchCaseWorkItemByOutcome() throws Exception {
+        searchCaseWorkItemByOutcome("OUTCOME one", case1Oid);
+        searchCaseWorkItemByOutcome("OUTCOME two", case1Oid);
+        searchCaseWorkItemByOutcome("OUTCOME nonexist", null);
+    }
+
+    private void searchCaseWorkItemByOutcome(String wiOutcome, String expectedOid) throws Exception {
         when("searching case with query for workitem/output/outcome " + wiOutcome);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
                 prismContext.queryFor(CaseType.class)
-                        .item(ItemPath.create(CaseType.F_WORK_ITEM, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)).eq(wiOutcome)
+                        .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_OUTPUT,
+                                AbstractWorkItemOutputType.F_OUTCOME).eq(wiOutcome)
                         .build(),
                 operationResult);
 
@@ -637,7 +876,7 @@ AND(
     }
 
     @Test
-    public void test921SearchFocusTypeFindsOnlyFocusObjects()
+    public void test922SearchFocusTypeFindsOnlyFocusObjects()
             throws SchemaException {
         OperationResult operationResult = createOperationResult();
 
@@ -651,7 +890,7 @@ AND(
         then("only focus objects from repository are returned");
         assertThat(result).hasSize((int) count(QFocus.CLASS));
         // without additional objects the test would be meaningless
-        assertThat(result).hasSizeLessThan((int) count(QObject.CLASS));
+        assertThat(result).hasSizeLessThan((int) count(QAssignmentHolder.CLASS));
     }
 
     @Test

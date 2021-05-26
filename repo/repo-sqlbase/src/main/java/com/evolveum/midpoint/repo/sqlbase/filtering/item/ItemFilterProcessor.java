@@ -89,8 +89,6 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
             }
         }
         if (values.isMultiValue()) {
-            // TODO do we want Ops.EQ_IGNORE_CASE too? For one value, Querydsl takes care of
-            //  ignore-case. For IN, we would have to do it ourselves.
             if (operator == Ops.EQ) {
                 return ExpressionUtils.predicate(Ops.IN, path,
                         ConstantImpl.create(values.allValues()));

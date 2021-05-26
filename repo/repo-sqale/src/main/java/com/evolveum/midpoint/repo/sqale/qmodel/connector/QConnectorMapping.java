@@ -68,7 +68,7 @@ public class QConnectorMapping
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);
 
-        row.targetSystemTypes = arrayFor(schemaObject.getTargetSystemType());
+        row.targetSystemTypes = listToArray(schemaObject.getTargetSystemType());
 
         return row;
     }
