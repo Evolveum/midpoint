@@ -93,7 +93,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
             case EXISTENCE_OF_VALUE:
                 IModel labelModel = Model.of("");
                 if (existenceOfValue(item.getModelObject())) {
-                    labelModel = getPageBase().createStringResource("");
+                    labelModel = getPageBase().createStringResource("AbstractItemWrapperColumnPanel.existValue");
                 }
                 Label existence = new Label(ID_VALUE, labelModel);
                 item.add(existence);

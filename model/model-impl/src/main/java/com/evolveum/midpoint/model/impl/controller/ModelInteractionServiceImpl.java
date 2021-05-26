@@ -22,8 +22,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -1966,14 +1969,28 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
+            checkOrdering(query, AuditEventRecordType.F_TIMESTAMP);
             @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
             ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
+            checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {
             SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
             processContainerByHandler(containers, handler);
+        }
+    }
+
+    private void checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
+        if (query != null) {
+            if (query.getPaging() == null) {
+                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
+                paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
+                query.setPaging(paging);
+            } else if (query.getPaging().getOrderBy() == null){
+                query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
+            }
         }
     }
 

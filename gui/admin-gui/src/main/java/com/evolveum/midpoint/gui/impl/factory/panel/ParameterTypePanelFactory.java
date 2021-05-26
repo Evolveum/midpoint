@@ -13,8 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -28,8 +27,6 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * @author katkav
@@ -58,13 +55,27 @@ public class ParameterTypePanelFactory extends DropDownChoicePanelFactory implem
 
             @Override
             public void setObject(String object) {
-                if (StringUtils.isNotEmpty(object)
-                        && !QNameUtil.match(new QName(object), panelCtx.getRealValueModel().getObject())) {
-                    panelCtx.getRealValueModel().setObject(new QName(object));
+                if (StringUtils.isNotEmpty(object)){
+                    QName objectQName = getQName(object);
+                    if (!QNameUtil.match(objectQName, panelCtx.getRealValueModel().getObject())) {
+                        panelCtx.getRealValueModel().setObject(objectQName);
+                    }
+                } else {
+                    panelCtx.getRealValueModel().setObject(null);
                 }
             }
         };
         return new TextPanel(panelCtx.getComponentId(), qNameModel, String.class, false);
+    }
+
+    private QName getQName(String object){
+        if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, new QName(object))) {
+            return ObjectReferenceType.COMPLEX_TYPE;
+        }
+        if (QNameUtil.isUriQName(object)) {
+            return QNameUtil.uriToQName(object);
+        }
+        return new QName(object);
     }
 
     @Override

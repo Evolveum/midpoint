@@ -65,7 +65,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,
                 label = "PageReport.auth.report.label",
-                description = "PageReport.auth.report.description")})
+                description = "PageReport.auth.report.description") })
 public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
@@ -103,11 +103,11 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         initialize(userToEdit);
     }
 
-    public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject)  {
+    public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject) {
         initialize(unitToEdit, isNewObject);
     }
 
-    public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject, boolean isReadonly)  {
+    public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject, boolean isReadonly) {
         initialize(unitToEdit, isNewObject, isReadonly);
     }
 
@@ -143,7 +143,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     private SearchValue<String> getDisplayValue(String oid) {
-        for (DisplayableValue<String> value : TYPE_OF_REPORTS){
+        for (DisplayableValue<String> value : TYPE_OF_REPORTS) {
             if (oid.equals(value.getValue())) {
                 return (SearchValue<String>) value;
             }
@@ -177,29 +177,54 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     @Override
     public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
-        if(runReport && !result.isError()) {
+        if (runReport && !result.isError()) {
             showResult(result);
             Task task = createSimpleTask("run_task");
-            try {
 
-                PrismObject<ReportType> report;
-                if (getObjectModel().getObject().getOid() != null) {
-                    report = getObjectModel().getObject().getObject();
-                } else {
-                    report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
-                }
-                getReportManager().runReport(report, null, task, result);
-            } catch (Exception ex) {
-                result.recordFatalError(ex);
-            } finally {
-                result.computeStatusIfUnknown();
-            }
-
-            showResult(result);
-            if (!isKeepDisplayingResults()) {
-                redirectBack();
+            PrismObject<ReportType> report;
+            if (getObjectModel().getObject().getOid() != null) {
+                report = getObjectModel().getObject().getObject();
             } else {
-                target.add(getFeedbackPanel());
+                report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
+            }
+            if (hasParameters(report.asObjectable())) {
+                try {
+                    getReportManager().runReport(report, null, task, result);
+                } catch (Exception ex) {
+                    result.recordFatalError(ex);
+                } finally {
+                    result.computeStatusIfUnknown();
+                }
+                showResult(result);
+                if (!isKeepDisplayingResults()) {
+                    redirectBack();
+                } else {
+                    target.add(getFeedbackPanel());
+                }
+            } else {
+
+                RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report.asObjectable()) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+                        try {
+                            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+                        } catch (Exception ex) {
+                            result.recordFatalError(ex);
+                        } finally {
+                            result.computeStatusIfUnknown();
+                        }
+                        hideMainPopup(target);
+                        showResult(result);
+                        if (!isKeepDisplayingResults()) {
+                            redirectBack();
+                        } else {
+                            target.add(getFeedbackPanel());
+                        }
+                    }
+                };
+                showMainPopup(runReportPopupPanel, target);
             }
             this.runReport = false;
         } else if (!isKeepDisplayingResults()) {
@@ -208,12 +233,16 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         }
     }
 
+    private static boolean hasParameters(ReportType report) {
+        return report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty();
+    }
+
     @Override
     protected ReportMainPanel createMainPanel(String id) {
         return new ReportMainPanel(id, getObjectModel(), this);
     }
 
-    public void saveAndRunPerformed(AjaxRequestTarget target){
+    public void saveAndRunPerformed(AjaxRequestTarget target) {
         this.runReport = true;
         savePerformed(target);
     }
@@ -246,6 +275,8 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
                 target.add(repeatingView.get(showPreviewId));
                 target.add(getOperationalButtonsPanel());
                 refreshEngineTab(target);
+                target.add(getMainPanel().getTabbedPanel());
+                target.add(getMainPanel());
                 target.add(getFeedbackPanel());
             }
         });
@@ -305,7 +336,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         AjaxButton showPreviewInPopup = new AjaxButton(showPreviewInPopupId, createStringResource("pageCreateCollectionReport.button.showPreviewInPopup")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getMainPopupBodyId(), getReport(), false){
+                RunReportPopupPanel reportPopup = new RunReportPopupPanel(getMainPopupBodyId(), getReport(), false) {
                     @Override
                     public StringResourceModel getTitle() {
                         return createStringResource("PageReport.reportPreview");
@@ -343,7 +374,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         repeatingView.add(importReport);
     }
 
-    private ReportType getOriginalReport(){
+    private ReportType getOriginalReport() {
         return getObjectWrapper().getObjectOld().asObjectable();
     }
 
@@ -379,7 +410,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     public static void runReportPerformed(AjaxRequestTarget target, ReportType report, PageBase pageBase) {
 
-        if(report.getObjectCollection() == null || report.getObjectCollection().getParameter().isEmpty()) {
+        if (hasParameters(report)) {
             runConfirmPerformed(target, report, null, pageBase);
             return;
         }
@@ -416,19 +447,12 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     private void refreshEngineTab(AjaxRequestTarget target) {
         Component panel = getMainPanel().getTabbedPanel().get(TabbedPanel.TAB_PANEL_ID);
         if (panel instanceof EngineReportTabPanel) {
-            ((PanelTab)getMainPanel().getTabbedPanel().getTabs().getObject().get(
+            ((PanelTab) getMainPanel().getTabbedPanel().getTabs().getObject().get(
                     getMainPanel().getTabbedPanel().getSelectedTab())).resetPanel();
             getMainPanel().getTabbedPanel().setSelectedTab(getMainPanel().getTabbedPanel().getSelectedTab());
             target.add(getMainPanel().getTabbedPanel());
             target.add(getMainPanel());
-        } else {
-            getMainPanel().getTabbedPanel().getTabs().getObject().forEach(tab -> {
-                if (((PanelTab)tab).getPanel() instanceof EngineReportTabPanel){
-                    ((PanelTab)tab).resetPanel();
-                }
-            });
         }
-
     }
 
     private void addArchetype(AjaxRequestTarget target) {
@@ -456,7 +480,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     private ReportType getReport() {
-        return getObjectModel().getObject().getObject().asObjectable();
+        return getObjectWrapper().getObject().asObjectable();
     }
 
     @Override
@@ -471,15 +495,15 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         return false;
     }
 
-    private ReportObjectsListPanel getReportTable(){
+    private ReportObjectsListPanel getReportTable() {
         return (ReportObjectsListPanel) get(createComponentPath(ID_TABLE_CONTAINER, ID_TABLE_BOX, ID_REPORT_TABLE));
     }
 
-    private Component getTableBox(){
+    private Component getTableBox() {
         return get(createComponentPath(ID_TABLE_CONTAINER, ID_TABLE_BOX));
     }
 
-    private Component getTableContainer(){
+    private Component getTableContainer() {
         return get(ID_TABLE_CONTAINER);
     }
 

@@ -277,10 +277,12 @@ public abstract class FileFormatController {
         if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
             variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
         }
-        if (input == null) {
-            variables.put(ExpressionConstants.VAR_INPUT, null, Object.class);
-        } else {
-            variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
+        if (!(input instanceof Containerable) || !object.getValue().equals(((Containerable) input).asPrismContainerValue())) {
+            if (input == null) {
+                variables.put(ExpressionConstants.VAR_INPUT, null, Object.class);
+            } else {
+                variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
+            }
         }
         Object values = null;
         try {
@@ -392,7 +394,7 @@ public abstract class FileFormatController {
             if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
                 variables.put(ExpressionConstants.VAR_OBJECT, value, value.getDefinition());
             }
-            getReportService().evaluateSubreportParameters(report.asPrismObject(), variables, task, task.getResult());
+            variables.putAll(getReportService().evaluateSubreportParameters(report.asPrismObject(), variables, task, task.getResult()));
         }
     }
 
