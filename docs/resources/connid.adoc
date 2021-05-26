@@ -1,4 +1,5 @@
-= ConnId
+= Using ConnId Connectors in MidPoint
+:page-nav-title: Using ConnId Connectors
 :page-wiki-name: ConnId
 :page-wiki-id: 20086811
 :page-wiki-metadata-create-user: semancik
@@ -6,35 +7,15 @@
 :page-wiki-metadata-modify-user: martin.lizner
 :page-wiki-metadata-modify-date: 2019-01-29T13:54:46.148+01:00
 :page-upkeep-status: red
-
-// TODO: Probably move/merge with /connectors/connid/1.x/framework/
+:page-upkeep-note: Describe connector configuration here
 
 == ConnId
 
 ConnId is a framework that does most of the provisioning operations in midPoint.
-It is a descendant of Sun Identity Connector Framework (Sun ICF) which was probably the only usable open-source part of Sun Identity Manager.
-ConnId is now an open project with contributors from several independent companies.
-Although there was a significant number of improvements over the original Sun version the basic approach and architecture remains mostly the same.
 
-[%autowidth,cols="h,1"]
-|===
-| Project home page | http://connid.tirasa.net/
+Please see xref:/connectors/connid/[] page for introduction to ConnId framework, basic concepts and framework history.
 
-| Project source code
-| link:https://github.com/Tirasa/ConnId[https://github.com/Tirasa/ConnId]
-
-
-|===
-
-
-== Connectors
-
-TODO: Picture
-
-The basic concept of ConnId is a _connector_. The connector is a piece of (usually) Java code that is governed by a uniform Java interface on one side (ConnId API/SPI) and that is using a variety of protocols and interfaces to connect to the resource on the other side.
-Connectors are distributed in _bundles_ which is an ConnId packaging mechanism.
-However most connector bundles contain only a single connector.
-Connector bundles are versioned and the ConnId framework allows to run a connector in several versions at the same time.
+== Connector Identification
 
 Connector is identified by a triple consisting of:
 
@@ -141,8 +122,6 @@ It can be enabled by setting the logging to:
 
 == See Also
 
-* wiki:OpenICF[OpenICF]
+* xref:/connectors/connid/[]
 
-* wiki:ICF+Issues[ICF Issues]
-
-* wiki:Connector+Development+Guide[Connector Development Guide]
+* xref:/connectors/connid/1.x/connector-development-guide/[]
