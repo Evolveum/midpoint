@@ -26,114 +26,49 @@
                         <q:path>targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!target) {
-                                        return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(target.getOid());
-                                    ort.setRelation(target.getRelation());
-                                    ort.setType(target.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$target</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>initiatorRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!initiator) {
-                                        return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(initiator.getOid());
-                                    ort.setRelation(initiator.getRelation());
-                                    ort.setType(initiator.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$initiator</path>
                         </expression>
                     </q:ref>
                     <q:equal>
                         <q:path>outcome</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!outcome) {
-                                        return null;
-                                    }
-                                    return outcome;
-                                </code>
-                            </script>
+                            <path>$outcome</path>
                         </expression>
                     </q:equal>
                     <q:equal>
                         <q:path>eventType</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!eventType) {
-                                        return null;
-                                    }
-                                    return eventType;
-                                </code>
-                            </script>
+                            <path>$eventType</path>
                         </expression>
                     </q:equal>
                     <q:equal>
                         <q:path>eventStage</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!eventStage) {
-                                        return null;
-                                    }
-                                    return eventStage;
-                                </code>
-                            </script>
+                            <path>$eventStage</path>
                         </expression>
                     </q:equal>
                     <q:greater>
                         <q:path>timestamp</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!from) {
-                                        return null;
-                                    }
-                                    return from;
-                                </code>
-                            </script>
+                            <path>$from</path>
                         </expression>
                     </q:greater>
                     <q:less>
                         <q:path>timestamp</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!to) {
-                                        return null;
-                                    }
-                                    return to;
-                                </code>
-                            </script>
+                            <path>$to</path>
                         </expression>
                     </q:less>
                 </q:and>

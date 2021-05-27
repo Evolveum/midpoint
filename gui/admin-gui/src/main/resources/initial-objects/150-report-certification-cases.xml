@@ -21,14 +21,7 @@
                     <q:path>../name</q:path>
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <script>
-                            <code>
-                                if (!campaignName) {
-                                return null;
-                                }
-                                return campaignName.getName();
-                            </code>
-                        </script>
+                        <path>$campaignName</path>
                     </expression>
                 </q:equal>
             </filter>

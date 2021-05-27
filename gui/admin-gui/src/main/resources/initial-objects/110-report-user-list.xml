@@ -23,80 +23,28 @@
                         <q:path>activation/administrativeStatus</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    if (!activation) {
-                                        return null;
-                                    }
-                                    return activation;
-                                </code>
-                            </script>
+                            <path>$activation</path>
                         </expression>
                     </q:equal>
                     <q:ref>
                         <q:path>assignment/targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!organization) {
-                                    return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(organization.getOid());
-                                    ort.setRelation(organization.getRelation());
-                                    ort.setType(organization.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$organization</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>assignment/targetRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!role) {
-                                    return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(role.getOid());
-                                    ort.setRelation(role.getRelation());
-                                    ort.setType(role.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$role</path>
                         </expression>
                     </q:ref>
                     <q:ref>
                         <q:path>assignment/construction/resourceRef</q:path>
                         <expression>
                             <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <objectVariableMode>prismReference</objectVariableMode>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-                                    if (!resource) {
-                                    return null;
-                                    }
-
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(resource.getOid());
-                                    ort.setRelation(resource.getRelation());
-                                    ort.setType(resource.getTargetType());
-                                    return ort;
-                                </code>
-                            </script>
+                            <path>$resource</path>
                         </expression>
                     </q:ref>
                 </q:and>
