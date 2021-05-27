@@ -15,14 +15,14 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAccessCertificationDefinition extends QObject<MAccessCertificationDefinition> {
+public class QAccessCertificationDefinition extends QAssignmentHolder<MAccessCertificationDefinition> {
 
     private static final long serialVersionUID = 6073628996722018176L;
 

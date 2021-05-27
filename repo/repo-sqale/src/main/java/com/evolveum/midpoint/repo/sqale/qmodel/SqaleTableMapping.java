@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
+import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
@@ -210,6 +211,33 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    /**
+     * Returns the mapper creating string multi-value filter/delta processors from context.
+     *
+     * @param <MS> mapped schema type, see javadoc in {@link QueryTableMapping}
+     */
+    protected <MS> SqaleItemSqlMapper<MS, Q, R> multiStringMapper(
+            Function<Q, ArrayPath<String[], String>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<String, String>(
+                        ctx, rootToQueryItem, "TEXT", String.class, null),
+                ctx -> null); // TODO
+    }
+
+    /**
+     * Returns the mapper creating integer multi-value filter/delta processors from context.
+     *
+     * @param <MS> mapped schema type, see javadoc in {@link QueryTableMapping}
+     */
+    protected <MS> SqaleItemSqlMapper<MS, Q, R> multiUriMapper(
+            Function<Q, ArrayPath<Integer[], Integer>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new ArrayPathItemFilterProcessor<>(
+                        ctx, rootToQueryItem, "INTEGER", Integer.class,
+                        ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
+                ctx -> null); // TODO
+    }
+
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
@@ -339,7 +367,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] arrayFor(List<String> strings) {
+    protected String[] listToArray(List<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }

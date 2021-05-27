@@ -13,7 +13,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QTask extends QObject<MTask> {
+public class QTask extends QAssignmentHolder<MTask> {
 
     private static final long serialVersionUID = 6249403929032616177L;
 

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
+
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -80,7 +81,7 @@ public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
     @Override
     public void checkConsistence(boolean requireDefinitions) {
         if (!root && baseOrgRef == null) {
-            throw new IllegalArgumentException("Null baseOrgRef in "+this);
+            throw new IllegalArgumentException("Null baseOrgRef in " + this);
         }
     }
 
@@ -96,18 +97,16 @@ public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     @Override
     public boolean equals(Object obj, boolean exact) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        OrgFilterImpl other = (OrgFilterImpl) obj;
-        if (baseOrgRef == null) {
-            if (other.baseOrgRef != null) return false;
-        } else if (!baseOrgRef.equals(other.baseOrgRef)) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        if (scope != other.scope) return false;
-        if (root != other.root) return false;
-        return true;
+        OrgFilterImpl other = (OrgFilterImpl) obj;
+        return Objects.equals(baseOrgRef, other.baseOrgRef)
+                && scope == other.scope
+                && root == other.root;
     }
 
     // Just to make checkstyle happy
@@ -143,8 +142,11 @@ public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("ORG: ");
+        if (isRoot()) {
+            sb.append("ROOT");
+        }
         if (getOrgRef() != null) {
-            sb.append(getOrgRef().toString());
+            sb.append(getOrgRef());
             sb.append(", ");
         }
         if (getScope() != null) {
