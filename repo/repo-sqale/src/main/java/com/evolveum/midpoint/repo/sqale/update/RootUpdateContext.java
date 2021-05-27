@@ -13,10 +13,12 @@ import java.util.UUID;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -26,7 +28,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -68,7 +70,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     }
 
     @Override
-    public QueryTableMapping<S, Q, R> mapping() {
+    public QueryModelMapping<S, Q, R> mapping() {
         return mapping;
     }
 
@@ -154,6 +156,11 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             throw new RepositoryException("Object " + objectOid() + " with supposed version "
                     + objectVersion + " could not be updated (concurrent access?).");
         }
+    }
+
+    @Override
+    public <V extends PrismValue> Item<V, ?> findItem(@NotNull ItemPath path) {
+        return object.asPrismObject().findItem(path);
     }
 
     public SQLUpdateClause update() {
