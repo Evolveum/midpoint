@@ -88,10 +88,15 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
         then("object is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
+        assertThat(object).isNotNull();
         assertSingleOperationRecorded(pm, RepositoryService.OP_GET_OBJECT);
     }
 
-    @Test(enabled = false) // TODO deleteObject not implemented yet
+    // TODO test for getObject() with typical options (here or separate class?)
+    //  - ObjectOperationOptions(jpegPhoto:retrieve=INCLUDE)
+    //  - ObjectOperationOptions(/:resolveNames)
+
+    @Test
     public void test800DeleteObject() throws ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
@@ -100,6 +105,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
         assertThat(deleteResult).isNotNull();
         assertThatOperationResult(result).isSuccess();
+        assertThat(selectNullableObjectByOid(QUser.class, sanityUserOid)).isNull();
     }
 
     // region low-level tests

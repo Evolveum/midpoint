@@ -1368,9 +1368,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations).isNull();
     }
-
-    // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
-    //  But with current implementation this can go to the first hundred section...?
     // endregion
 
     // region nested (embedded) single-value containers (e.g. metadata)
@@ -2333,7 +2330,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
     // endregion
 
-    // TODO: photo test, should work fine, but it is kinda special, not part of full object
+    // TODO: photo test, currently it puts it into fullObject and not into column.
+    //  It should be other way around.
 
     // region other tests
     @Test
