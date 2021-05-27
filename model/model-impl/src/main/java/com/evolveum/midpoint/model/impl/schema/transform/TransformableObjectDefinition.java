@@ -22,7 +22,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.deleg.ObjectDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class TransformableObjectDefinition<O extends Objectable> extends TransformableContainerDefinition<O> implements ObjectDefinitionDelegator<O> {
+public class TransformableObjectDefinition<O extends Objectable> extends TransformableContainerDefinition<O>
+    implements ObjectDefinitionDelegator<O>, MutablePrismObjectDefinition<O> {
 
     public TransformableObjectDefinition(PrismObjectDefinition<O> delegate) {
         super(delegate);
@@ -48,7 +49,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
 
     @Override
     public MutablePrismObjectDefinition<O> toMutable() {
-        throw new UnsupportedOperationException();
+        return this;
     }
 
     @Override
@@ -65,21 +66,23 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
 
     @Override
     public PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-        throw new UnsupportedOperationException();
+        return (PrismObjectDefinition<O>) super.deepClone(ultraDeep, postCloneAction);
     }
 
-    public static <O extends Objectable> PrismObjectDefinition<O> of(PrismObject<O> object) {
-        PrismObjectDefinition<O> origDef = object.getDefinition();
-        if (origDef instanceof TransformableObjectDefinition) {
-            return origDef;
-        }
-        TransformableObjectDefinition<O> newDef = TransformableObjectDefinition.of(origDef);
-        try {
-            object.applyDefinition(newDef, true);
-        } catch (SchemaException e) {
-            throw new IllegalStateException("Can not replace definition for transformable one", e);
-        }
-        return newDef;
+    @Override
+    protected TransformableContainerDefinition<O> copy(ComplexTypeDefinition def) {
+        return new TransformableObjectDefinition<>(this, def);
+    }
+
+    @Override
+    public PrismObject<O> instantiate() throws SchemaException {
+        return instantiate(getItemName());
+    }
+
+    @Override
+    public @NotNull PrismObject<O> instantiate(QName name) throws SchemaException {
+        // TODO Auto-generated method stub
+        return getPrismContext().itemFactory().createObject(name, this);
     }
 
 }

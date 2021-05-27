@@ -7,8 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
+import java.util.Map;
+import java.util.function.Consumer;
+
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.deleg.RefinedAttributeDefinitionDelegator;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,7 +27,8 @@ import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.AttributeDefinitionDelegator;
 
-public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>> implements PropertyDefinitionDelegator<T> {
+public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>>
+    implements PropertyDefinitionDelegator<T>, PartiallyMutableItemDefinition.Property<T> {
 
 
     private static final long serialVersionUID = 1L;
@@ -32,10 +41,12 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         if (originalItem instanceof TransformablePropertyDefinition) {
             return originalItem;
         }
+        if (originalItem instanceof RefinedAttributeDefinition) {
+            return new RefinedAttribute<>(originalItem);
+        }
         if (originalItem instanceof ResourceAttributeDefinition) {
             return new ResourceAttribute<>(originalItem);
         }
-
 
         return new TransformablePropertyDefinition<>(originalItem);
     }
@@ -61,8 +72,23 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
+    protected TransformablePropertyDefinition<T> copy() {
+        return new TransformablePropertyDefinition<>(this);
+    }
+
+    @Override
     public MutablePrismPropertyDefinition<T> toMutable() {
-        throw new UnsupportedOperationException();
+        return this;
+    }
+
+    @Override
+    public @NotNull PrismProperty<T> instantiate() {
+        return instantiate(getItemName());
+    }
+
+    @Override
+    public @NotNull PrismProperty<T> instantiate(QName name) {
+        return getPrismContext().itemFactory().createProperty(name, this);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,12 +97,14 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         return (ID) publicView();
     }
 
+
+
     @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;
     }
 
-    public static class ResourceAttribute<T> extends TransformablePropertyDefinition<T> implements AttributeDefinitionDelegator<T> {
+    public static class ResourceAttribute<T> extends TransformablePropertyDefinition<T> implements AttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
         private static final long serialVersionUID = 1L;
 
         public ResourceAttribute(PrismPropertyDefinition<T> delegate) {
@@ -90,12 +118,84 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
 
         @Override
         public @NotNull ResourceAttributeDefinition<T> clone() {
-            throw new UnsupportedOperationException();
+            return copy();
+        }
+
+        @Override
+        protected ResourceAttribute<T> copy() {
+            return new ResourceAttribute<>(this);
         }
 
         @Override
         public MutableResourceAttributeDefinition<T> toMutable() {
+            return this;
+        }
+
+        @Override
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+            return instantiate(getItemName());
+        }
+
+        @Override
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate(QName name) {
+            var deleg = delegate().instantiate(name);
+            deleg.setDefinition(this);
+            return deleg;
+        }
+    }
+
+    public static class RefinedAttribute<T> extends ResourceAttribute<T> implements RefinedAttributeDefinitionDelegator<T> {
+
+        public RefinedAttribute(PrismPropertyDefinition<T> delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public RefinedAttributeDefinition<T> delegate() {
+            return (RefinedAttributeDefinition<T>) super.delegate();
+        }
+
+        @Override
+        public @NotNull RefinedAttributeDefinition<T> clone() {
+            return copy();
+        }
+
+        @Override
+        protected RefinedAttribute<T> copy() {
+            return new RefinedAttribute<>(this);
+        }
+
+        @Override
+        public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap,
+                Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean canAdd() {
+            return delegate().canAdd();
+        }
+
+        @Override
+        public boolean canModify() {
+            return delegate().canModify();
+        }
+
+        @Override
+        public boolean canRead() {
+            return delegate().canRead();
+        }
+
+        @Override
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+            return instantiate(getItemName());
+        }
+
+        @Override
+        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T>  instantiate(QName name) {
+            var deleg = delegate().instantiate(name);
+            deleg.setDefinition(this);
+            return deleg;
         }
     }
 

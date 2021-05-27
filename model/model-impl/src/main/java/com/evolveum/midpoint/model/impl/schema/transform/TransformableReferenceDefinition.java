@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ReferenceDefinitionDelegator;
 
-public class TransformableReferenceDefinition extends TransformableItemDefinition<PrismReference, PrismReferenceDefinition> implements ReferenceDefinitionDelegator {
+public class TransformableReferenceDefinition extends TransformableItemDefinition<PrismReference, PrismReferenceDefinition>
+        implements ReferenceDefinitionDelegator, PartiallyMutableItemDefinition.Reference {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,17 +35,27 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
     }
 
     @Override
-    public void revive(PrismContext prismContext) {
-
+    public MutablePrismReferenceDefinition toMutable() {
+        return this;
     }
 
     @Override
-    public MutableItemDefinition<PrismReference> toMutable() {
-        throw new UnsupportedOperationException();
+    public @NotNull PrismReference instantiate() {
+        return instantiate(getItemName());
+    }
+
+    @Override
+    public @NotNull PrismReference instantiate(QName name) {
+        return getPrismContext().itemFactory().createReference(name, this);
     }
 
     @Override
     public @NotNull PrismReferenceDefinition clone() {
-        throw new UnsupportedOperationException();
+        return copy();
+    }
+
+    @Override
+    protected TransformableReferenceDefinition copy() {
+        return new TransformableReferenceDefinition(this);
     }
 }
