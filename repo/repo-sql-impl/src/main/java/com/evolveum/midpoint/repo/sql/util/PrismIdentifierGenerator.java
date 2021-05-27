@@ -67,7 +67,7 @@ public class PrismIdentifierGenerator implements DebugDumpable {
     }
 
     // used both for PrismObjects nad PrismContainerValues
-    private List<PrismContainer<?>> listAllPrismContainers(Visitable<?> object) {
+    private List<PrismContainer<?>> listAllPrismContainers(Visitable object) {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {

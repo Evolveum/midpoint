@@ -860,10 +860,6 @@ public class SchemaTransformer {
             return containerVisibility;
         }
 
-        if (containerDefinition.getItemName().getLocalPart().equals("extension")) {
-            containerDefinition.getItemName();
-        }
-
         Collection<ItemName> itemsToDelete;
         if (containerVisibility == HIDDEN) {
             // Delete everything
