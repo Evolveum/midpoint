@@ -69,9 +69,9 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
  * as example, then register the mapping with {@link QueryModelMappingRegistry#register}.
  * The registration call typically appears in some bean configuration class.
  *
- * @param <T> entity type - typically a pure DTO bean for the table mapped by Q-type
+ * @param <R> row ("entity bean") type - typically a pure DTO bean for the table mapped by Q-type
  */
-public class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
+public class FlexibleRelationalPathBase<R> extends RelationalPathBase<R> {
 
     public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
 
@@ -80,7 +80,7 @@ public class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
     private final Map<String, Path<?>> propertyNameToPath = new LinkedHashMap<>();
 
     public FlexibleRelationalPathBase(
-            Class<? extends T> type, String pathVariable, String schema, String table) {
+            Class<? extends R> type, String pathVariable, String schema, String table) {
         super(type, forVariable(pathVariable), schema, table);
     }
 

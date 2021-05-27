@@ -13,25 +13,25 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QReportData extends QObject<MReportData> {
+public class QReportData extends QAssignmentHolder<MReportData> {
 
     private static final long serialVersionUID = -544485328996889511L;
 
     public static final String TABLE_NAME = "m_report_data";
 
     public static final ColumnMetadata REPORT_REF_TARGET_OID =
-            ColumnMetadata.named("reportRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("reportRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata REPORT_REF_TARGET_TYPE =
-            ColumnMetadata.named("reportRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("reportRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata REPORT_REF_RELATION_ID =
-            ColumnMetadata.named("reportRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("reportRefRelationId").ofType(Types.INTEGER);
 
     public final UuidPath reportRefTargetOid =
             createUuid("reportRefTargetOid", REPORT_REF_TARGET_OID);

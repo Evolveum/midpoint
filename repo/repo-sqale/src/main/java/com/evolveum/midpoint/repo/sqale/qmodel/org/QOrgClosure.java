@@ -12,24 +12,26 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
- * Querydsl query type for common table expression (CTE) representing org hierarchy on the fly.
- * Does not use any backing bean, it is never retrieved directly, only used in the query.
+ * Querydsl query type for org closure table.
+ * Can also be used for common table expression (CTE) representing org hierarchy on the fly.
  * This does not have to be under {@link FlexibleRelationalPathBase}, but is for convenience.
  */
 @SuppressWarnings("unused")
-public class QOrgClosure extends FlexibleRelationalPathBase<QOrgClosure> {
+public class QOrgClosure extends FlexibleRelationalPathBase<MOrgClosure> {
 
     private static final long serialVersionUID = 4406075586720866032L;
 
+    public static final String TABLE_NAME = "m_org_closure";
+
     public static final String DEFAULT_ALIAS_NAME = "orgc";
 
-    public static final ColumnMetadata PARENT =
-            ColumnMetadata.named("parent").ofType(UuidPath.UUID_TYPE);
-    public static final ColumnMetadata CHILD =
-            ColumnMetadata.named("child").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata ANCESTOR_OID =
+            ColumnMetadata.named("ancestor_oid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata DESCENDANT_OID =
+            ColumnMetadata.named("descendant_oid").ofType(UuidPath.UUID_TYPE);
 
-    public final UuidPath parent = createUuid("parent", PARENT);
-    public final UuidPath child = createUuid("child", CHILD);
+    public final UuidPath ancestorOid = createUuid("ancestorOid", ANCESTOR_OID);
+    public final UuidPath descendantOid = createUuid("descendantOid", DESCENDANT_OID);
 
     public QOrgClosure() {
         this(DEFAULT_ALIAS_NAME, DEFAULT_SCHEMA_NAME);
@@ -40,6 +42,6 @@ public class QOrgClosure extends FlexibleRelationalPathBase<QOrgClosure> {
     }
 
     public QOrgClosure(String variable, String schema) {
-        super(QOrgClosure.class, variable, schema, "orgc"); // not a real table
+        super(MOrgClosure.class, variable, schema, TABLE_NAME);
     }
 }

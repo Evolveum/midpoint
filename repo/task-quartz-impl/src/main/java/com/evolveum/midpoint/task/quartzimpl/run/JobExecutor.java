@@ -87,7 +87,7 @@ public class JobExecutor implements InterruptableJob {
         stateCheck(beans != null, "Task manager beans are not correctly set");
 
         String oid = context.getJobDetail().getKey().getName();
-        LOGGER.trace("Starting execution of task {}", oid);
+        LOGGER.debug("Starting execution of task {}", oid);
 
         fetchTheTask(oid, result);
 

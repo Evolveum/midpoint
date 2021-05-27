@@ -14,7 +14,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <R> row type related to the {@link Q}
  */
 public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
-        extends QObjectMapping<S, Q, R> {
+        extends QAssignmentHolderMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 

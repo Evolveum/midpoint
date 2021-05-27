@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  *
  * This hierarchy branch should not need {@link #addRealValues} and {@link #deleteRealValues},
  * so it's not overridden and throws {@link UnsupportedOperationException}.
+ *
+ * @param <T> expected type of the real value for the modification (after optional conversion)
  */
 public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValueProcessor<T> {
 

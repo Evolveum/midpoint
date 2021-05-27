@@ -46,6 +46,7 @@ public class SqlQueryExecutor {
         // TODO MID-6319: all options can be applied, just like for list?
         context.processOptions(options);
 
+        context.beforeQuery();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             return context.executeCount(jdbcSession.connection());
         }
@@ -63,6 +64,7 @@ public class SqlQueryExecutor {
         }
         context.processOptions(options);
 
+        context.beforeQuery();
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             result = context.executeQuery(jdbcSession.connection());

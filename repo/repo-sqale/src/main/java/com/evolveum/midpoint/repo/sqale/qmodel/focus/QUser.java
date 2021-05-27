@@ -22,39 +22,39 @@ public class QUser extends QFocus<MUser> {
     public static final String TABLE_NAME = "m_user";
 
     public static final ColumnMetadata ADDITIONAL_NAME_ORIG =
-            ColumnMetadata.named("additionalName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("additionalNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata ADDITIONAL_NAME_NORM =
-            ColumnMetadata.named("additionalName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("additionalNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata EMPLOYEE_NUMBER =
             ColumnMetadata.named("employeeNumber").ofType(Types.VARCHAR);
     public static final ColumnMetadata FAMILY_NAME_ORIG =
-            ColumnMetadata.named("familyName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("familyNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata FAMILY_NAME_NORM =
-            ColumnMetadata.named("familyName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("familyNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata FULL_NAME_ORIG =
-            ColumnMetadata.named("fullName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("fullNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata FULL_NAME_NORM =
-            ColumnMetadata.named("fullName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("fullNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata GIVEN_NAME_ORIG =
-            ColumnMetadata.named("givenName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("givenNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata GIVEN_NAME_NORM =
-            ColumnMetadata.named("givenName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("givenNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata HONORIFIC_PREFIX_ORIG =
-            ColumnMetadata.named("honorificPrefix_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("honorificPrefixOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata HONORIFIC_PREFIX_NORM =
-            ColumnMetadata.named("honorificPrefix_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("honorificPrefixNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata HONORIFIC_SUFFIX_ORIG =
-            ColumnMetadata.named("honorificSuffix_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("honorificSuffixOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata HONORIFIC_SUFFIX_NORM =
-            ColumnMetadata.named("honorificSuffix_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("honorificSuffixNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata NICK_NAME_ORIG =
-            ColumnMetadata.named("nickName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("nickNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata NICK_NAME_NORM =
-            ColumnMetadata.named("nickName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("nickNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata TITLE_ORIG =
-            ColumnMetadata.named("title_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("titleOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata TITLE_NORM =
-            ColumnMetadata.named("title_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("titleNorm").ofType(Types.VARCHAR);
 
     public final StringPath additionalNameOrig = createString("additionalNameOrig", ADDITIONAL_NAME_ORIG);
     public final StringPath additionalNameNorm = createString("additionalNameNorm", ADDITIONAL_NAME_NORM);

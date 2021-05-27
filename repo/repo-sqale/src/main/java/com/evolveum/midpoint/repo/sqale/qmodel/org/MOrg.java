@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.org;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MAbstractRole;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
 
 /**
- * Querydsl "row bean" type related to {@link QRole}.
+ * Querydsl "row bean" type related to {@link QOrg}.
  */
 public class MOrg extends MAbstractRole {
 

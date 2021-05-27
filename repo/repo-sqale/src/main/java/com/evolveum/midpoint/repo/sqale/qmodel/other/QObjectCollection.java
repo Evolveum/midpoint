@@ -7,13 +7,13 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QObjectCollection extends QObject<MObject> {
+public class QObjectCollection extends QAssignmentHolder<MObject> {
 
     private static final long serialVersionUID = -62230817260259478L;
 

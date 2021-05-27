@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NO
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
  * Mapping between {@link QNode} and {@link NodeType}.
  */
 public class QNodeMapping
-        extends QObjectMapping<NodeType, QNode, MNode> {
+        extends QAssignmentHolderMapping<NodeType, QNode, MNode> {
 
     public static final String DEFAULT_ALIAS_NAME = "nod";
 
