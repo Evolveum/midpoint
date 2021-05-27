@@ -56,16 +56,6 @@ public interface ItemDefinitionDelegator<I extends Item<?,?>> extends Definition
     }
 
     @Override
-    default boolean isSingleValue() {
-        return delegate().isSingleValue();
-    }
-
-    @Override
-    default boolean isMultiValue() {
-        return delegate().isMultiValue();
-    }
-
-    @Override
     default boolean isMandatory() {
         return delegate().isMandatory();
     }

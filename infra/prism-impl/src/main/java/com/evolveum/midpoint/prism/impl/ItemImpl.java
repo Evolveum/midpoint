@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableItem;
+import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableValue;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -56,7 +58,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
  *
  * @author Radovan Semancik
  */
-public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> extends AbstractFreezable implements Item<V, D> {
+public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> extends AbstractFreezable implements Item<V, D>, TransformableItem {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -970,5 +972,19 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             }
         });
         return highest.getValue();
+    }
+
+    @Override
+    public void transformDefinition(ComplexTypeDefinition parent, ItemDefinitionTransformer transformation) {
+        D newDefinition = transformation.transformItem(parent, definition);
+        // Do not replace definition with null or run checks if definition is unmodified.
+        if (newDefinition != null && newDefinition != definition) {
+            setDefinition(newDefinition);
+        }
+        for (V pval : values) {
+            if (pval instanceof TransformableValue) {
+                ((TransformableValue) pval).transformDefinition(parent, definition, transformation);
+            }
+        }
     }
 }

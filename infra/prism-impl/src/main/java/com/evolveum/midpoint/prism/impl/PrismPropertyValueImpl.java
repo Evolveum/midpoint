@@ -671,4 +671,10 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
             return null;
         }
     }
+
+    @Override
+    public void transformDefinition(ComplexTypeDefinition parentDef, ItemDefinition<?> itemDef,
+            ItemDefinitionTransformer transformation) {
+        // NOOP
+    }
 }

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableItem;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -1823,6 +1824,22 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 }
             }
         });
+    }
+
+    @Override
+    public void transformDefinition(ComplexTypeDefinition parentDef, ItemDefinition<?> itemDef,
+            ItemDefinitionTransformer transformation) {
+
+        ComplexTypeDefinition newDefinition = transformation.applyValue(parentDef, itemDef, complexTypeDefinition);
+        if (newDefinition != null && newDefinition != complexTypeDefinition) {
+            replaceComplexTypeDefinition(newDefinition);
+        }
+
+        for(Item<?,?> item : items.values()) {
+            if (item instanceof TransformableItem) {
+                ((TransformableItem) item).transformDefinition(complexTypeDefinition, transformation);
+            }
+        }
     }
 
     private static class FailOnAddList extends AbstractList<ItemDelta<?, ?>> {
