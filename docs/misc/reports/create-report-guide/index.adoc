@@ -1,4 +1,5 @@
 = Create Report Guide
+:page-since: "4.4"
 
 This guide describe how to create report in GUI. We chose the example report of accounts with resource as parameter and with columns which shows some attributes from owner, to demonstrate all the functionality.
 
