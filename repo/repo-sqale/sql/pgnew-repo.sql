@@ -1104,7 +1104,7 @@ CREATE TABLE m_case_wi (
     originalAssigneeRefTargetOid UUID,
     originalAssigneeRefTargetType ObjectType,
     originalAssigneeRefRelationId INTEGER REFERENCES m_uri(id),
-    outcome TEXT,
+    outcome TEXT, -- stores workitem/output/outcome
     performerRefTargetOid UUID,
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1112,6 +1112,32 @@ CREATE TABLE m_case_wi (
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
+
+-- stores workItem/assigneeRef
+CREATE TABLE m_case_wi_assignee (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    workItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('CASE_WI_ASSIGNEE') STORED,
+
+    PRIMARY KEY (ownerOid, workItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+
+-- stores workItem/candidateRef
+CREATE TABLE m_case_wi_candidate (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    workItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('CASE_WI_CANDIDATE') STORED,
+
+    PRIMARY KEY (ownerOid, workItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
 
 -- endregion
 
