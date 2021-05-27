@@ -80,7 +80,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
     }
 
     public void addValues(Collection<T> values) {
-        throw new UnsupportedOperationException("deleteRealValues not implemented");
+        throw new UnsupportedOperationException("addValues not implemented");
     }
 
     /** Adds the provided real values to the database, implements ADD modification. */
@@ -89,7 +89,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
     }
 
     public void deleteValues(Collection<T> values) {
-        throw new UnsupportedOperationException("deleteRealValues not implemented");
+        throw new UnsupportedOperationException("deleteValues not implemented");
     }
 
     /** Resets the database columns or deletes sub-entities like refs, containers, etc. */
