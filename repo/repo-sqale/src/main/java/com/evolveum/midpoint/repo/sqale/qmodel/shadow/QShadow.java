@@ -28,15 +28,14 @@ public class QShadow extends QObject<MShadow> {
 
     public static final String TABLE_NAME = "m_shadow";
 
-    // TODO
     public static final ColumnMetadata OBJECT_CLASS_ID =
-            ColumnMetadata.named("objectClass_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("objectClassId").ofType(Types.INTEGER);
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
-            ColumnMetadata.named("resourceRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("resourceRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata RESOURCE_REF_TARGET_TYPE =
-            ColumnMetadata.named("resourceRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("resourceRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata RESOURCE_REF_RELATION_ID =
-            ColumnMetadata.named("resourceRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("resourceRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata INTENT =
             ColumnMetadata.named("intent").ofType(Types.VARCHAR);
     public static final ColumnMetadata KIND =

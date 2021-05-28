@@ -27,8 +27,8 @@ public class Clock {
 
     private static final Trace LOGGER = TraceManager.getTrace(Clock.class);
 
-    private Long override = null;
-    private Long overrideOffset = null;
+    volatile private Long override = null;
+    volatile private Long overrideOffset = null;
 
     public long currentTimeMillis() {
         long time;
@@ -66,11 +66,10 @@ public class Clock {
     }
 
     public void override(long overrideTimestamp) {
-        LOGGER.info("Clock override: {}", override);
+        Long originalOverride = this.override;
         this.override = overrideTimestamp;
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
-        }
+        LOGGER.info("Clock override changed from {} to {}", originalOverride, this.override);
+        LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
     }
 
     public void override(XMLGregorianCalendar overrideTimestamp) {
@@ -99,11 +98,13 @@ public class Clock {
      * Extends offset on top of existing offset.
      */
     public void overrideDuration(Long offsetMillis) {
-        if (overrideOffset == null) {
-            overrideOffset = offsetMillis;
+        Long originalOverrideOffset = this.overrideOffset;
+        if (originalOverrideOffset == null) {
+            this.overrideOffset = offsetMillis;
         } else {
-            overrideOffset = overrideOffset + offsetMillis;
+            this.overrideOffset = originalOverrideOffset + offsetMillis;
         }
+        LOGGER.info("Clock override offset changed from {} to {}", originalOverrideOffset, this.overrideOffset);
     }
 
     public void overrideOffset(Long offsetMillis) {
@@ -111,12 +112,9 @@ public class Clock {
     }
 
     public void resetOverride() {
-        LOGGER.info("Clock override reset");
         this.override = null;
         this.overrideOffset = null;
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
-        }
+        LOGGER.info("Clock override and override offset were reset");
+        LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
     }
-
 }

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
  * Mapping between {@link QObjectTemplate} and {@link ObjectTemplateType}.
  */
 public class QObjectTemplateMapping
-        extends QObjectMapping<ObjectTemplateType, QObjectTemplate, MObject> {
+        extends QAssignmentHolderMapping<ObjectTemplateType, QObjectTemplate, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "ot";
 

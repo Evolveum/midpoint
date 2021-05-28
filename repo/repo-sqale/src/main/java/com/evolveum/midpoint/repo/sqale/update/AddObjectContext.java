@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sqale.operations;
+package com.evolveum.midpoint.repo.sqale.update;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -24,35 +24,31 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/*
-TODO: implementation note:
- Typically I'd use "technical" dependencies in a constructor and then the object/options/result
- would be parameters of execute(). Unfortunately I don't know how to do that AND capture
- the parametric types in the operations object. I could hide it behind this object and then capture
- it in another "actual operation" object, but that does not make any sense.
- That's why the creation is with actual parameters and execute() takes technical ones (possibly
- some richer "context" object later to provide more dependencies if necessary).
- The "context" could go to construction too, but than it would be all mixed too much. Sorry.
-*/
-public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
+/**
+ * Add object operation context; used only for true add, not overwrite which is more like modify.
+ */
+public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R extends MObject> {
 
+    private final SqaleRepoContext repositoryContext;
     private final PrismObject<S> object;
     private final RepoAddOptions options;
     private final OperationResult result;
 
-    private SqlRepoContext repositoryContext;
     private Q root;
     private QObjectMapping<S, Q, R> rootMapping;
     private MObjectType objectType;
 
-    public AddObjectOperation(@NotNull PrismObject<S> object,
-            @NotNull RepoAddOptions options, @NotNull OperationResult result) {
+    public AddObjectContext(
+            @NotNull SqaleRepoContext repositoryContext,
+            @NotNull PrismObject<S> object,
+            @NotNull RepoAddOptions options,
+            @NotNull OperationResult result) {
+        this.repositoryContext = repositoryContext;
         this.object = object;
         this.options = options;
         this.result = result;
@@ -61,24 +57,20 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
     /**
      * Inserts the object provided to the constructor and returns its OID.
      */
-    public String execute(SqaleRepoContext repositoryContext)
+    public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
         try {
             // TODO utilize options and result
-            this.repositoryContext = repositoryContext;
+            object.setVersion("1"); // initial add always uses 1 as version number
             Class<S> schemaObjectClass = object.getCompileTimeClass();
             objectType = MObjectType.fromSchemaType(schemaObjectClass);
             rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
             root = rootMapping.defaultAlias();
 
-            // we don't want CID generation here, because overwrite works different then normal add
-
             if (object.getOid() == null) {
                 return addObjectWithoutOid();
-            } else if (options.isOverwrite()) {
-                return overwriteObject();
             } else {
-                // OID is not null, but it's not overwrite either
+                // this also handles overwrite after ObjectNotFoundException
                 return addObjectWithOid();
             }
         } catch (QueryException e) {
@@ -88,10 +80,6 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             }
             throw e;
         }
-    }
-
-    private String overwriteObject() {
-        throw new UnsupportedOperationException(); // TODO
     }
 
     private String addObjectWithOid() throws SchemaException {
@@ -149,6 +137,8 @@ public class AddObjectOperation<S extends ObjectType, Q extends QObject<R>, R ex
             return oidString;
         }
     }
+
+    // TODO can be static. Should it move to other SQL exception handling code?
 
     /** Throws more specific exception or returns and then original exception should be rethrown. */
     private void handlePostgresException(PSQLException psqlException)

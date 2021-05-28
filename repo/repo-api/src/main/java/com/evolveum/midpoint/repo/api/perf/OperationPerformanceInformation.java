@@ -1,25 +1,24 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.api.perf;
+
+import java.util.Locale;
 
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryOperationPerformanceInformationType;
 
-import java.util.Locale;
-
 /**
- *  Experimental.
+ * Experimental.
  */
 public class OperationPerformanceInformation implements ShortDumpable, Cloneable {
 
     private int invocationCount;
-    private int executionCount;
+    private int executionCount; // counts each attempt, including retries
     private long totalTime;
     private Long minTime;
     private Long maxTime;
@@ -105,7 +104,7 @@ public class OperationPerformanceInformation implements ShortDumpable, Cloneable
         sb.append(invocationCount);
         sb.append(", total time: ").append(timeInfo(totalTime, minTime, maxTime, invocationCount));
         if (totalTime > 0 && executionCount > invocationCount) {
-            sb.append(String.format(Locale.US, ", wasted time for %d retry/retries: %s (%s)", executionCount-invocationCount,
+            sb.append(String.format(Locale.US, ", wasted time for %d retry/retries: %s (%s)", executionCount - invocationCount,
                     timeInfo(totalWastedTime, minWastedTime, maxWastedTime, invocationCount), percent(totalWastedTime, totalTime)));
         }
     }

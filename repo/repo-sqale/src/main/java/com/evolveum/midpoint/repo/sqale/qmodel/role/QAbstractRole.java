@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
+public class QAbstractRole<R extends MAbstractRole> extends QFocus<R> {
 
     private static final long serialVersionUID = 8559628642680237808L;
 
@@ -34,9 +34,9 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public static final ColumnMetadata AUTO_ASSIGN_ENABLED =
             ColumnMetadata.named("autoAssignEnabled").ofType(Types.BOOLEAN);
     public static final ColumnMetadata DISPLAY_NAME_ORIG =
-            ColumnMetadata.named("displayName_orig").ofType(Types.VARCHAR);
+            ColumnMetadata.named("displayNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata DISPLAY_NAME_NORM =
-            ColumnMetadata.named("displayName_norm").ofType(Types.VARCHAR);
+            ColumnMetadata.named("displayNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata IDENTIFIER =
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR);
     public static final ColumnMetadata REQUESTABLE =
@@ -52,11 +52,11 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
     public final BooleanPath requestable = createBoolean("requestable", REQUESTABLE);
     public final StringPath riskLevel = createString("riskLevel", RISK_LEVEL);
 
-    public QAbstractRole(Class<T> type, String variable) {
+    public QAbstractRole(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QAbstractRole(Class<T> type, String variable, String schema, String table) {
+    public QAbstractRole(Class<R> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
 }

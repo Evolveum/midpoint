@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * Single execution of a trigger scanner task part.
  */
@@ -36,8 +38,10 @@ public class TriggerScannerTaskPartExecution
 
     @Override
     protected ObjectQuery createQuery(OperationResult opResult) {
+        XMLGregorianCalendar timestamp = taskExecution.getThisScanTimestamp();
+        logger.debug("Looking for triggers with timestamps up to {}", timestamp);
         return getPrismContext().queryFor(ObjectType.class)
-                .item(F_TRIGGER, F_TIMESTAMP).le(taskExecution.getThisScanTimestamp())
+                .item(F_TRIGGER, F_TIMESTAMP).le(timestamp)
                 .build();
     }
 }

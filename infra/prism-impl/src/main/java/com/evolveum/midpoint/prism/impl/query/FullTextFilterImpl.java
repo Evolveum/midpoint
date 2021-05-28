@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -13,14 +20,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTextFilter {
 
@@ -35,11 +34,11 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
         this.expression = expression;
     }
 
-    public static FullTextFilter createFullText(Collection<String> values){
+    public static FullTextFilter createFullText(Collection<String> values) {
         return new FullTextFilterImpl(values);
     }
 
-    public static FullTextFilter createFullText(String... values){
+    public static FullTextFilter createFullText(String... values) {
         return new FullTextFilterImpl(Arrays.asList(values));
     }
 
@@ -78,14 +77,14 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
     @Override
     public void checkConsistence(boolean requireDefinitions) {
         if (values == null) {
-            throw new IllegalArgumentException("Null 'values' in "+this);
+            throw new IllegalArgumentException("Null 'values' in " + this);
         }
         if (values.isEmpty()) {
-            throw new IllegalArgumentException("No values in "+this);
+            throw new IllegalArgumentException("No values in " + this);
         }
-        for (String value: values) {
+        for (String value : values) {
             if (StringUtils.isBlank(value)) {
-                throw new IllegalArgumentException("Empty value in "+this);
+                throw new IllegalArgumentException("Empty value in " + this);
             }
         }
     }
@@ -98,7 +97,7 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
         if (values != null) {
             sb.append("\n");
             for (String value : values) {
-                DebugUtil.indentDebugDump(sb, indent+1);
+                DebugUtil.indentDebugDump(sb, indent + 1);
                 sb.append(value);
                 sb.append("\n");
             }
@@ -113,7 +112,7 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
         StringBuilder sb = new StringBuilder();
         sb.append("FULLTEXT: ");
         if (values != null) {
-            sb.append(values.stream().collect(Collectors.joining("; ")));
+            sb.append(String.join("; ", values));
         }
         return sb.toString();
     }
@@ -132,8 +131,12 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (!(o instanceof FullTextFilterImpl)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof FullTextFilterImpl)) {
+            return false;
+        }
         FullTextFilterImpl that = (FullTextFilterImpl) o;
         return Objects.equals(values, that.values) &&
                 Objects.equals(expression, that.expression);

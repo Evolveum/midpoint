@@ -75,11 +75,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     protected final QueryTableMapping<S, Q, R> entityPathMapping;
     private final SqlRepoContext sqlRepoContext;
 
+    private final SqlQueryContext<?, ?, ?> parent;
+
     protected boolean notFilterUsed = false;
 
     // options stored to modify select clause and also to affect mapping
     protected Collection<SelectorOptions<GetOperationOptions>> options;
 
+    /** Constructor for root query context. */
     protected SqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
@@ -89,6 +92,19 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         this.entityPathMapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
         this.sqlQuery = query;
+        this.parent = null;
+    }
+
+    /** Constructor for derived context or sub-context, e.g. JOIN, EXISTS, etc. */
+    protected SqlQueryContext(
+            Q entityPath,
+            QueryTableMapping<S, Q, R> mapping,
+            SqlQueryContext<?, ?, ?> parentContext) {
+        this.entityPath = entityPath;
+        this.entityPathMapping = mapping;
+        this.sqlRepoContext = parentContext.repositoryContext();
+        this.sqlQuery = parentContext.sqlQuery;
+        this.parent = parentContext;
     }
 
     public Q root() {
@@ -313,6 +329,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return sqlQuery;
     }
 
+    public SqlQueryContext<?, ?, ?> parentContext() {
+        return parent;
+    }
+
     /**
      * Returns entity path of this context.
      */
@@ -357,8 +377,17 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return sqlRepoContext.normalizeRelation(qName);
     }
 
-    public FilterProcessor<InOidFilter> createInOidFilter(SqlQueryContext<?, ?, ?> context) {
+    public FilterProcessor<InOidFilter> createInOidFilter() {
         // not supported for audit, overridden in repo-sqale
         throw new UnsupportedOperationException();
+    }
+
+    public FilterProcessor<OrgFilter> createOrgFilter() {
+        // not supported for audit, overridden in repo-sqale
+        throw new UnsupportedOperationException();
+    }
+
+    // before-query hook, empty by default
+    public void beforeQuery() {
     }
 }

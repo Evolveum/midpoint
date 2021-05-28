@@ -16,14 +16,14 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QCase extends QObject<MCase> {
+public class QCase extends QAssignmentHolder<MCase> {
 
     private static final long serialVersionUID = -5546874425855732858L;
 
@@ -34,29 +34,29 @@ public class QCase extends QObject<MCase> {
     public static final ColumnMetadata CLOSE_TIMESTAMP =
             ColumnMetadata.named("closeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata OBJECT_REF_TARGET_OID =
-            ColumnMetadata.named("objectRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("objectRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OBJECT_REF_TARGET_TYPE =
-            ColumnMetadata.named("objectRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("objectRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata OBJECT_REF_RELATION_ID =
-            ColumnMetadata.named("objectRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("objectRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata PARENT_REF_TARGET_OID =
-            ColumnMetadata.named("parentRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("parentRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata PARENT_REF_TARGET_TYPE =
-            ColumnMetadata.named("parentRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("parentRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata PARENT_REF_RELATION_ID =
-            ColumnMetadata.named("parentRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("parentRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata REQUESTOR_REF_TARGET_OID =
-            ColumnMetadata.named("requestorRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("requestorRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata REQUESTOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("requestorRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("requestorRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata REQUESTOR_REF_RELATION_ID =
-            ColumnMetadata.named("requestorRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("requestorRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_REF_TARGET_OID =
-            ColumnMetadata.named("targetRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("targetRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TARGET_REF_TARGET_TYPE =
-            ColumnMetadata.named("targetRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("targetRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TARGET_REF_RELATION_ID =
-            ColumnMetadata.named("targetRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("targetRefRelationId").ofType(Types.INTEGER);
 
     // attributes
 

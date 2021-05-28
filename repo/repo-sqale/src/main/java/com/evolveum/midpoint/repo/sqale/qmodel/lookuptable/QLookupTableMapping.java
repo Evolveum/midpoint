@@ -13,7 +13,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
  * Mapping between {@link QLookupTable} and {@link LookupTableType}.
  */
 public class QLookupTableMapping
-        extends QObjectMapping<LookupTableType, QLookupTable, MLookupTable> {
+        extends QAssignmentHolderMapping<LookupTableType, QLookupTable, MLookupTable> {
 
     public static final String DEFAULT_ALIAS_NAME = "lt";
 

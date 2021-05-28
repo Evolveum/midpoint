@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
@@ -21,7 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Mapping between {@link QResource} and {@link ResourceType}.
  */
-public class QResourceMapping extends QObjectMapping<ResourceType, QResource, MResource> {
+public class QResourceMapping
+        extends QAssignmentHolderMapping<ResourceType, QResource, MResource> {
 
     public static final String DEFAULT_ALIAS_NAME = "res";
 

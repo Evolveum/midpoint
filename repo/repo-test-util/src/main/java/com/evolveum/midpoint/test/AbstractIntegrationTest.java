@@ -333,7 +333,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         return super.createTestMonitor()
                 .addReportCallback(TestReportUtil::reportGlobalPerfData)
-                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQuerySummary(queryListener))
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {

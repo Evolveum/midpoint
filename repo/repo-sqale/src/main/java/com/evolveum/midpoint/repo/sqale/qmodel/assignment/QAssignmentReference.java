@@ -23,7 +23,7 @@ public class QAssignmentReference extends QReference<MAssignmentReference, MAssi
     private static final long serialVersionUID = 3046837007769017219L;
 
     public static final ColumnMetadata ASSIGNMENT_CID =
-            ColumnMetadata.named("assignment_cid").ofType(Types.BIGINT).notNull();
+            ColumnMetadata.named("assignmentCid").ofType(Types.BIGINT).notNull();
 
     public final NumberPath<Long> assignmentCid = createLong("assignmentCid", ASSIGNMENT_CID);
 

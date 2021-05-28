@@ -135,7 +135,7 @@ public class TestStrings extends AbstractStoryTest {
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_FILE, initTask, initResult);
 
         // we prefer running trigger scanner by hand
-        clearTaskSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, initResult);
+        reimportWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, initTask, initResult);
         // and we don't need validity scanner
         taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_VALIDITY_SCANNER_OID), 60000L, true, initResult);
 
@@ -843,7 +843,7 @@ public class TestStrings extends AbstractStoryTest {
 
         // GIVEN
         clock.resetOverride();
-        clearTaskSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
+        reimportWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
         clock.overrideDuration("P6D");
 
         // WHEN

@@ -5636,18 +5636,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     // Use this when you want to start the task manually.
-    protected void clearTaskSchedule(String taskOid, File taskFile, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
+    protected void reimportWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException,
+            PolicyViolationException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
-        importObjectFromFile(taskFile, result);
-        taskManager.suspendTasks(Collections.singletonList(taskOid), 60000L, result);
-        modifySystemObjectInRepo(TaskType.class, taskOid,
-                prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_SCHEDULE).replace()
-                        .item(TaskType.F_BINDING).replace(TaskBindingType.LOOSE) // tightly-bound tasks must have interval set
-                        .asItemDeltas(),
-                result);
-        taskManager.resumeTasks(singleton(taskOid), result);
+        addObject(taskFile, opTask, result, taskObject ->
+                ((TaskType) taskObject.asObjectable())
+                        .schedule(null)
+                        .binding(TaskBindingType.LOOSE)); // tightly-bound tasks must have interval set
     }
 
     protected void repoAddObjects(List<ObjectType> objects, OperationResult result)
