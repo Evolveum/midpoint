@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -57,9 +56,10 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
 
     private static final List<String> SENSITIVE_CONFIGURATION_VARIABLES = Arrays.asList(
-        "jdbcPassword",
-        "keyStorePassword"
+            "jdbcPassword",
+            "keyStorePassword"
     );
+    public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
 
     private boolean silent = false;
 
@@ -120,18 +120,16 @@ public class StartupConfiguration implements MidpointConfiguration {
         return config;
     }
 
+    // TODO do we want it for each getConfiguration call and on DEBUG level?
+    //  getConfiguration(String) is called from 18 places + from more when getRootConfiguration() is considered
+    //  This is better after the init of this class just once - or as trace if in getConfig calls.
     private void dumpConfiguration(String componentName, Configuration sub) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Configuration for {}:", componentName);
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                if (key != null
-                        && !SENSITIVE_CONFIGURATION_VARIABLES.stream().filter(s -> key.contains(s)).collect(Collectors.toList()).isEmpty()) {
-                    LOGGER.debug("    {} = [value]", key);
-                } else {
-                    LOGGER.debug("    {} = {}", key, sub.getString(key));
-                }
+                LOGGER.debug("    {} = {}", key, valuePrintout(key, sub.getString(key)));
             }
         }
     }
@@ -293,10 +291,11 @@ public class StartupConfiguration implements MidpointConfiguration {
                 try {
                     String value = readFile(filename);
                     overrideProperty(valueKey, value);
-                    LOGGER.trace("Property '{}' was read from '{}': '{}'", valueKey, filename, value);
+                    LOGGER.trace("Property '{}' was read from '{}': '{}'",
+                            valueKey, filename, valuePrintout(key, value));
                 } catch (IOException e) {
                     String message = "Couldn't read the value of configuration key '" + valueKey
-                            + "' from the file '" + filename + "': " + e.toString();
+                            + "' from the file '" + filename + "': " + e;
                     LoggingUtils.logUnexpectedException(LOGGER, message, e);
                     System.err.println(message);
                     throw new SystemException(e);
@@ -305,16 +304,25 @@ public class StartupConfiguration implements MidpointConfiguration {
         });
     }
 
+    /**
+     * Returns provided value for printing or string replacement for sensitive values (passwords).
+     */
+    private String valuePrintout(String key, Object value) {
+        return SENSITIVE_CONFIGURATION_VARIABLES.stream().noneMatch(s -> key.contains(s))
+                ? String.valueOf(value)
+                : SENSITIVE_VALUE_OUTPUT;
+    }
+
     private String readFile(String filename) throws IOException {
         Path filePath = Path.of(filename.replace("${midpoint.home}", midPointHomePath))
-                .toAbsolutePath(); // if missing this provides better diagnostics
+                .toAbsolutePath(); // this provides better diagnostics when the file is not found
         return Files.readString(filePath, StandardCharsets.UTF_8);
     }
 
     private void applyEnvironmentProperties() {
         Properties properties = System.getProperties();
         properties.forEach((key, value) -> {
-            LOGGER.trace("Property {} = '{}'", key, value);
+            LOGGER.trace("Property {} = '{}'", key, valuePrintout(String.valueOf(key), value));
             if (key instanceof String && ((String) key).startsWith("midpoint.")) {
                 overrideProperty((String) key, value);
             }
@@ -322,7 +330,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private void overrideProperty(String key, Object value) {
-        LOGGER.debug("Overriding property {} to '{}'", key, value);
+        LOGGER.debug("Overriding property {} to '{}'", key, valuePrintout(key, value));
         config.setProperty(key, value);
     }
 
