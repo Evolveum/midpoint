@@ -10,6 +10,8 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
+
 import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
@@ -44,9 +46,10 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
         List<QName> typesList;
         if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())) {
             typesList = WebComponentUtil.createFocusTypeList();
-        } else if (ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) &&
-                panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
-                ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())) {
+        } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
+                && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
+                (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
+                        || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
             typesList = WebComponentUtil.createContainerableTypesQnameList();
         } else {
             typesList = WebComponentUtil.createObjectTypeList();

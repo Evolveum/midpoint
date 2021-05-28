@@ -41,7 +41,7 @@ public abstract class EngineController {
         this.reportService = reportService;
     }
 
-    public abstract String createReport(ReportType parentReport, FileFormatController fileFormatController, Task task, OperationResult result) throws Exception;
+    public abstract String createReport(ReportType parentReport, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception;
 
     public abstract FileFormatTypeType getDefaultFileFormat();
 

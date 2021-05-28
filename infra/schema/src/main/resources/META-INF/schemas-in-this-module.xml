@@ -49,7 +49,6 @@ Notes:
 
     <!-- WSDLs -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../xml/ns/public/common/fault-3.wsdl" />
 
     <!-- midPoint XSDs -->

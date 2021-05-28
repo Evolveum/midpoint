@@ -36,7 +36,7 @@ public class CollectionEngineController extends EngineController {
     }
 
     @Override
-    public String createReport(ReportType parentReport, FileFormatController fileFormatController, Task task, OperationResult result) throws Exception {
+    public String createReport(ReportType parentReport, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
         if (parentReport.getObjectCollection() != null && parentReport.getObjectCollection().getCollection() != null) {
             ObjectCollectionReportEngineConfigurationType collectionConfig = parentReport.getObjectCollection();
 

@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -108,7 +110,7 @@ public class AuditLogViewerPanel extends BasePanel {
                     }
 
                     @Override
-                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+                    protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
                         return AuditLogViewerPanel.this.createNameColumn();
                     }
 

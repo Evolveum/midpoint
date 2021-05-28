@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -45,7 +47,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
 
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(wrapper -> getVisibility(wrapper.getPath()))
+                    .visibilityHandler(wrapper -> getVisibility(wrapper))
                     .editabilityHandler(getEditabilityHandler())
                     .mandatoryHandler(getMandatoryHandler());
             Panel panel = getPageBase().initItemPanel(ID_CONTAINER, getTypeName(), getModel(), builder.build());
@@ -62,7 +64,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         return typeName;
     }
 
-    protected ItemVisibility getVisibility(ItemPath itemPath) {
+    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
         return ItemVisibility.AUTO;
     }
 

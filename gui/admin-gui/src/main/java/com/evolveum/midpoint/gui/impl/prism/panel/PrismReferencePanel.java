@@ -47,7 +47,7 @@ public class PrismReferencePanel<R extends Referencable>
     protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item) {
         PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<R>(ID_VALUE, item.getModel(), getSettings()) {
             @Override
-            protected void removeValue(
+            protected void remove(
                     PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target)
                     throws SchemaException {
                 PrismReferencePanel.this.removeValue(valueToRemove, target);

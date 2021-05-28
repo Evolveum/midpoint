@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -41,7 +42,8 @@ public class AssignmentConstructionPanel extends BasePanel<PrismContainerWrapper
         SingleContainerPanel<ConstructionType> baseConstructionPanel = new SingleContainerPanel<>(ID_BASIC, getModel(), ConstructionType.COMPLEX_TYPE) {
 
             @Override
-            protected ItemVisibility getVisibility(ItemPath itemPath) {
+            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                ItemPath itemPath = itemWrapper.getPath();
                 if (isAssociation(itemPath)) {
                     return ItemVisibility.HIDDEN;
                 }

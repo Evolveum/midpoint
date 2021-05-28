@@ -283,7 +283,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     @Override
-    protected void removeValue(CVW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+    protected void remove(CVW valueToRemove, AjaxRequestTarget target) throws SchemaException {
         throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
 

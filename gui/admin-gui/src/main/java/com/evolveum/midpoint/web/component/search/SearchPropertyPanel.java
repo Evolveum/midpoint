@@ -92,7 +92,8 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                 if (choices == null) {
                     choices = new ListModel(item.getAllowedValues(getPageBase()));
                 }
-                searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), choices, true);
+                searchItemField = WebComponentUtil.createDropDownChoices(
+                        ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value"), (IModel)choices, true, getPageBase());
                 ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {

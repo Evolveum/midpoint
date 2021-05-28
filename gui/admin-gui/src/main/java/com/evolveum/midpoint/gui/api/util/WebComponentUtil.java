@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -867,6 +869,8 @@ public final class WebComponentUtil {
         List<QName> qnameList = types.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
         //todo create enum for containerable types?
         qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
+        qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
+        qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
         return qnameList.stream().sorted((type1, type2) -> {
             Validate.notNull(type1);
             Validate.notNull(type2);
@@ -2412,10 +2416,11 @@ public final class WebComponentUtil {
             return;
         }
 
-        if (paging == null) {
+        if (paging == null || paging.getOffset() == null) {
             table.getDataTable().setCurrentPage(0);
             return;
         }
+
 
         long itemsPerPage = table.getDataTable().getItemsPerPage();
         long page = ((paging.getOffset() + itemsPerPage) / itemsPerPage) - 1;
@@ -2601,6 +2606,7 @@ public final class WebComponentUtil {
                         if (target != null) {
                             target.add(findParent(TabbedPanel.class));
                         }
+                        target.add(parentPage.getFeedbackPanel());
                     }
 
                 };
@@ -5085,6 +5091,71 @@ public final class WebComponentUtil {
         return Integer.toString(count);
     }
 
+    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+        List<DisplayableValue<?>> allowedValues = new ArrayList<>();
+
+        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
+            return allowedValues;
+        }
+        Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
+        ExpressionType expression = parameter.getAllowedValuesExpression();
+        Object value = null;
+        try {
+
+            value = ExpressionUtil.evaluateExpression(new VariablesMap(), null,
+                    expression, MiscSchemaUtil.getExpressionProfile(),
+                    pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
+        } catch (Exception e) {
+            LOGGER.error("Couldn't execute expression " + expression, e);
+            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            return allowedValues;
+        }
+        if (value instanceof PrismPropertyValue) {
+            value = ((PrismPropertyValue) value).getRealValue();
+        }
+
+        if (!(value instanceof List)) {
+            LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+            return allowedValues;
+        }
+
+        if (!((List<?>) value).isEmpty()) {
+            if (!(((List<?>) value).get(0) instanceof DisplayableValue)) {
+                LOGGER.error("Exception return unexpected type, expected List<DisplayableValue>, but was " + (value == null ? null : value.getClass()));
+                pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+                return allowedValues;
+            }
+            return (List<DisplayableValue<?>>) value;
+        }
+        return allowedValues;
+    }
+
+    public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,
+            boolean allowNull, PageBase pageBase) {
+        return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Object getDisplayValue(DisplayableValue val) {
+                if (val.getValue() instanceof Enum) {
+                    return pageBase.createStringResource((Enum<?>) val.getValue()).getString();
+                }
+                return pageBase.createStringResource(val.getLabel()).getString();
+            }
+
+            @Override
+            public String getIdValue(DisplayableValue val, int index) {
+                return Integer.toString(index);
+            }
+
+            @Override
+            public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+            }
+        }, allowNull);
+    }
+
     public static Map<IconCssStyle, IconType> createMainButtonLayerIcon(DisplayType mainButtonDisplayType) {
         if (mainButtonDisplayType.getIcon() != null && mainButtonDisplayType.getIcon().getCssClass() != null &&
                 mainButtonDisplayType.getIcon().getCssClass().contains(GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
@@ -5093,5 +5164,24 @@ public final class WebComponentUtil {
         Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
         layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
         return layerIconMap;
+    }
+
+    public static <T extends AssignmentHolderType> void addNewArchetype(PrismObjectWrapper<T> object, String archetypeOid, AjaxRequestTarget target, PageBase pageBase){
+        try {
+            PrismContainerWrapper<AssignmentType> archetypeAssignment = object.findContainer(TaskType.F_ASSIGNMENT);
+            PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
+            AssignmentType newArchetypeAssignment = archetypeAssignmentValue.asContainerable();
+            newArchetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+            WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, pageBase, target);
+        } catch (SchemaException e) {
+            LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
+            pageBase.error("Cannot set selected handler: " + e.getMessage());
+            return;
+        }
+    }
+
+    public static boolean isImportReport(ReportType report) {
+        ReportBehaviorType behavior = report.getBehavior();
+        return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
     }
 }

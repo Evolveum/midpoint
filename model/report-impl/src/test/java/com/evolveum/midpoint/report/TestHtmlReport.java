@@ -19,7 +19,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class TestHtmlReport extends BasicNewReportTest {
+public class TestHtmlReport extends AbstractReportIntegrationTest {
 
     @Override
     protected FileFormatConfigurationType getFileFormatConfiguration() {

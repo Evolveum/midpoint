@@ -53,8 +53,8 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
         PrismPropertyValuePanel<T> panel = new PrismPropertyValuePanel<T>("value", item.getModel(), getSettings()) {
 
             @Override
-            protected void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
-                PrismPropertyPanel.this.removeValue(valueToRemove, target);
+            protected void remove(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+                removeValue(valueToRemove, target);
             }
         };
         item.add(panel);
