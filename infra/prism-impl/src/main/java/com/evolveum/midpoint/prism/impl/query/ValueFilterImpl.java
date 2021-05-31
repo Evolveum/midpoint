@@ -323,7 +323,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("PATH: ");
-        sb.append(getFullPath().toString());
+        sb.append(getFullPath());
 
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
@@ -358,7 +358,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("RIGHT SIDE PATH: ");
-            sb.append(getFullPath().toString());
+            sb.append(getFullPath());
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("RIGHT SIDE DEF: ");
@@ -379,15 +379,15 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     }
 
     protected String toString(StringBuilder sb) {
-        sb.append(getFullPath().toString());
-        sb.append(",");
+        sb.append(getFullPath());
+        sb.append(", ");
         if (getValues() != null) {
             for (int i = 0; i < getValues().size(); i++) {
                 PrismValue value = getValues().get(i);
                 if (value == null) {
                     sb.append("null");
                 } else {
-                    sb.append(value.toString());
+                    sb.append(value);
                 }
                 if (i != getValues().size() - 1) {
                     sb.append(",");

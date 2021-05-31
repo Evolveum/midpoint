@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * This is default item delta processor that decides what to do with the modification.
@@ -40,7 +41,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
+    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         QName itemName = resolvePath(modification.getPath());
         if (itemName == null) {
             // This may indicate forgotten mapping, but normally it means that the item is simply

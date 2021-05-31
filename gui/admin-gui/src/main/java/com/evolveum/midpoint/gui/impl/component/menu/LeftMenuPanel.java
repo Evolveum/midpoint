@@ -604,6 +604,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {
+            MenuItem menu = new MenuItem("System NEW", PageSystemConfigurationNew.class);
+        systemConfigMenu.addMenuItem(menu);
+
         addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
         addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.objectPolicy",

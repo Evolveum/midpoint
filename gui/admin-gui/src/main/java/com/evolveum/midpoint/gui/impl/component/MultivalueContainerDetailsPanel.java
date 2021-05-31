@@ -42,7 +42,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DETAILS = "details";
 
-    private boolean isAddDefaultPanel;
+    private boolean isAddDefaultPanel = true;
 
     public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
         super(id, model);

@@ -10,6 +10,10 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.*;
+import com.evolveum.midpoint.web.page.admin.PageCreateFromTemplate;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,10 +43,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -50,6 +50,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katkav
@@ -108,8 +111,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
+//                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
     }
@@ -123,7 +126,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected List<Component> createToolbarButtonsList(String buttonId) {
         List<Component> buttonsList = new ArrayList<>();
 
-        buttonsList.add(createCreateNewObjectButton(buttonId));
+        buttonsList.add(createNewObjectButton(buttonId));
+//        buttonsList.add(createCreateNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
         buttonsList.add(createDownloadButton(buttonId));
         buttonsList.add(createCreateReportButton(buttonId));
@@ -131,6 +135,45 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         buttonsList.add(createPlayPauseButton(buttonId));
 
         return buttonsList;
+    }
+
+    private AjaxIconButton createNewObjectButton(String buttonId) {
+        AjaxIconButton newObjectButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
+                createStringResource("MainObjectListPanel.newObject")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+
+                if (isCollectionViewPanelForCompiledView()) {
+                    newObjectPerformed(target, null, getObjectCollectionView());
+                    return;
+                }
+
+                MultiCompositedButtonPanel buttonsPanel = new MultiCompositedButtonPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
+                        getPageBase().hideMainPopup(target);
+                        MainObjectListPanel.this.newObjectPerformed(target, relationSepc, collectionViews);
+                    }
+
+                };
+
+                getPageBase().showMainPopup(buttonsPanel, target);
+//                navigateToNew(compiledObjectCollectionViews, target);
+            }
+        };
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        return newObjectButton;
+    }
+
+    protected void navigateToNew(Collection<CompiledObjectCollectionView> compiledObjectCollectionViews, AjaxRequestTarget target) {
+        PageCreateFromTemplate newPage = new PageCreateFromTemplate(compiledObjectCollectionViews);
+        getPageBase().navigateToNext(newPage);
     }
 
     protected MultifunctionalButton createCreateNewObjectButton(String buttonId) {
@@ -147,7 +190,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return createNewObjectButton;
     }
 
-    private LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
+    protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
         return new LoadableModel<>(false) {
 
             @Override
@@ -189,8 +232,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                     CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
                     defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType))
-                            .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                            .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
+//                            .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
                     defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
                     additionalButtons.add(defaultButton);
@@ -400,6 +443,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return true;
     }
 
+    @NotNull
     protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         if (isCollectionViewPanelForCompiledView()) {
             return new ArrayList<>();

@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.lookuptable;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QLookupTable extends QObject<MLookupTable> {
+public class QLookupTable extends QAssignmentHolder<MLookupTable> {
 
     private static final long serialVersionUID = -2040531200445583676L;
 

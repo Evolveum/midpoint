@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
 
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class ObjectQueryImpl implements ObjectQuery {
@@ -74,6 +73,7 @@ public class ObjectQueryImpl implements ObjectQuery {
         return query;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectQueryImpl clone() {
         ObjectQueryImpl clone = cloneEmpty();
         if (this.filter != null) {
@@ -128,20 +128,20 @@ public class ObjectQueryImpl implements ObjectQuery {
         StringBuilder sb = new StringBuilder();
         sb.append("Q{");
         if (filter != null) {
-            sb.append(filter.toString());
-            sb.append(",");
+            sb.append(filter);
         } else {
             sb.append("null filter");
         }
+        sb.append(", ");
         if (paging != null) {
-            sb.append(paging.toString());
-            sb.append(",");
+            sb.append(paging);
         } else {
             sb.append("null paging");
         }
         if (allowPartialResults) {
-            sb.append(",partial");
+            sb.append(", partial");
         }
+        sb.append('}');
         return sb.toString();
     }
 
@@ -160,9 +160,6 @@ public class ObjectQueryImpl implements ObjectQuery {
         if (paging == null) {
             return null;
         }
-//        if (paging.getCookie() != null) {
-//            throw new UnsupportedOperationException("Paging cookie is not supported here.");
-//        }
         return paging.getOffset();
     }
 
@@ -171,9 +168,6 @@ public class ObjectQueryImpl implements ObjectQuery {
         if (paging == null) {
             return null;
         }
-//        if (paging.getCookie() != null) {
-//            throw new UnsupportedOperationException("Paging cookie is not supported here.");
-//        }
         return paging.getMaxSize();
     }
 
@@ -187,8 +181,12 @@ public class ObjectQueryImpl implements ObjectQuery {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ObjectQueryImpl that = (ObjectQueryImpl) o;
 
@@ -199,7 +197,6 @@ public class ObjectQueryImpl implements ObjectQuery {
             return false;
         }
         return paging != null ? paging.equals(that.paging, exact) : that.paging == null;
-
     }
 
     @Override

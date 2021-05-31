@@ -9,9 +9,13 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.component.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -31,8 +35,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -94,43 +96,20 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> bar = new ArrayList<>();
-        MultiCompositedButtonPanel newObjectIcon =
-                new MultiCompositedButtonPanel(idButton, createNewButtonDescriptionModel()) {
 
-            @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
-                newItemPerformed(target, relationSepc);
-            }
-        };
-        newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
-        newObjectIcon.add(new VisibleEnableBehaviour() {
+        AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
+                createStringResource("MainObjectListPanel.newObject")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible() {
-                return isCreateNewObjectVisible();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return isNewObjectButtonEnabled();
-            }
-        });
-        bar.add(newObjectIcon);
-        return bar;
-    }
-
-    private IModel<List<CompositedIconButtonDto>> createNewButtonDescriptionModel() {
-        return new LoadableModel<>(false) {
-            @Override
-            protected List<CompositedIconButtonDto> load() {
-                return createNewButtonDescription();
+            public void onClick(AjaxRequestTarget target) {
+                newItemPerformed(target, null);
             }
         };
-    }
-
-    protected List<CompositedIconButtonDto> createNewButtonDescription() {
-        return null;
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        bar.add(newObjectButton);
+        return bar;
     }
 
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {

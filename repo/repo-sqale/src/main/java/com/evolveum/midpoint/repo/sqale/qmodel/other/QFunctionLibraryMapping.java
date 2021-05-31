@@ -10,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 /**
  * Mapping between {@link QFunctionLibrary} and {@link FunctionLibraryType}.
  */
 public class QFunctionLibraryMapping
-        extends QObjectMapping<FunctionLibraryType, QFunctionLibrary, MObject> {
+        extends QAssignmentHolderMapping<FunctionLibraryType, QFunctionLibrary, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "flib";
 

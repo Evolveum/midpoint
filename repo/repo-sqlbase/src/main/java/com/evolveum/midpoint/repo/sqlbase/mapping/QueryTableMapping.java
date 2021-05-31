@@ -57,7 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * to the same schema type because of the nested mappings.
  * E.g. attribute `name` is part of the `S` object, but `metadata/createChannel` is based on nested
  * mapping for `metadata` for which `S` is `MetadataType`.
- * That's why these methods have flexible schema type parameter.
+ * That's why these methods have flexible schema type parameter, typically designated `MS`.
  * Because such nested mapping still uses the same table, types `Q` and `R` remain the same.
  *
  * Mapping for tables is initialized once and requires {@link SqlRepoContext}.

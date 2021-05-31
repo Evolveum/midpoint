@@ -471,7 +471,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     private void changeArchetypeButtonClicked(AjaxRequestTarget target) {
 
-        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId()) {
+        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId(), null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -761,7 +761,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         try {
-            return factory.createObjectWrapper(object, itemStatus, context);
+            PrismObjectWrapper<O> wrapper = factory.createObjectWrapper(object, itemStatus, context);
+            result.recordSuccess();
+            return wrapper;
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);

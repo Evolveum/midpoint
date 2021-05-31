@@ -9,7 +9,10 @@ package com.evolveum.midpoint.schema.processor;
 
 /**
  * @author mederly
+ *
+ * @deprecated Unused
  */
+@Deprecated
 public interface SpecificAttributesDefinition<RAD extends ResourceAttributeDefinition<?>> {
 
 

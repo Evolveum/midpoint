@@ -98,6 +98,8 @@ public class QAssignmentMapping<OR extends MObject>
                 q -> q.tenantRefTargetOid,
                 q -> q.tenantRefTargetType,
                 q -> q.tenantRefRelationId));
+        addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
+
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         // TODO ext mapping can't be done statically
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)

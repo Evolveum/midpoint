@@ -10,7 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.querydsl.core.types.Path;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -149,4 +152,12 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     }
 
     protected abstract void finishExecutionOwn() throws SchemaException, RepositoryException;
+
+    public <V extends PrismValue> Item<V, ?> findItem(@NotNull ItemPath path) {
+        if (parentContext == null) {
+            throw new UnsupportedOperationException(
+                    "findItem() is unsupported on non-root update context");
+        }
+        return parentContext.findItem(path);
+    }
 }

@@ -31,30 +31,30 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
  * from {@link PrismPropertyValue} to "real value" and then to convert it.
  * Both {@link #singleValue()} and {@link #allValues()} are handled the same way.
  *
- * If {@link #conversionFunction} is used any {@link IllegalArgumentException} will be rewrapped
+ * If {@link #conversionFunction} is used any {@link IllegalArgumentException} will be re-wrapped
  * as {@link QueryException}, other runtime exceptions are not intercepted.
  *
  * @param <T> type of filter value
- * @param <S> type of value after conversion (can by the same like T)
+ * @param <V> type of value after conversion (can by the same like T)
  */
-public class ValueFilterValues<T, S> {
+public class ValueFilterValues<T, V> {
 
     @NotNull private final PropertyValueFilter<T> filter;
-    @Nullable private final Function<T, S> conversionFunction;
+    @Nullable private final Function<T, V> conversionFunction;
 
     public static <T> ValueFilterValues<T, T> from(@NotNull PropertyValueFilter<T> filter) {
         return new ValueFilterValues<>(filter, null);
     }
 
-    public static <T, S> ValueFilterValues<T, S> from(
+    public static <T, V> ValueFilterValues<T, V> from(
             @NotNull PropertyValueFilter<T> filter,
-            @Nullable Function<T, S> conversionFunction) {
+            @Nullable Function<T, V> conversionFunction) {
         return new ValueFilterValues<>(filter, conversionFunction);
     }
 
     private ValueFilterValues(
             @NotNull PropertyValueFilter<T> filter,
-            @Nullable Function<T, S> conversionFunction) {
+            @Nullable Function<T, V> conversionFunction) {
         this.filter = Objects.requireNonNull(filter);
         this.conversionFunction = conversionFunction;
     }
@@ -79,14 +79,15 @@ public class ValueFilterValues<T, S> {
     /**
      * Returns multiple values, all converted, or empty list - never null.
      */
-    public @NotNull List<?> allValues() {
+    public @NotNull List<V> allValues() {
         if (filter.getValues() == null) {
             return Collections.emptyList();
         }
         Stream<T> realValueStream = filter.getValues().stream()
                 .map(ppv -> ppv.getRealValue());
         if (conversionFunction == null) {
-            return realValueStream.collect(Collectors.toList());
+            //noinspection unchecked
+            return (List<V>) realValueStream.collect(Collectors.toList());
         }
         return realValueStream
                 .map(conversionFunction)

@@ -34,11 +34,9 @@ public class FocusTasksTabPanel<F extends FocusType>
 
     protected static final String ID_TASK_TABLE = "taskTable";
     protected static final String ID_LABEL = "label";
-    protected boolean tasksExist;
 
-    public FocusTasksTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
+    public FocusTasksTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
         super(id, mainForm, focusModel);
-        this.tasksExist = tasksExist;
     }
 
     @Override
@@ -48,22 +46,12 @@ public class FocusTasksTabPanel<F extends FocusType>
     }
 
     private void initLayout() {
-        Label label = new Label(ID_LABEL, getPageBase().createStringResource(tasksExist ?
-                "pageAdminFocus.task.descriptionHasTasks" : "pageAdminFocus.task.descriptionNoTasks"));
-        label.setOutputMarkupId(true);
-        add(label);
-
         CasesTablePanel casesPanel = new CasesTablePanel(ID_TASK_TABLE) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectFilter getCasesFilter() {
-                String oid;
-                if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
-                    oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-                } else {
-                    oid = getObjectWrapper().getOid();
-                }
+                String oid = getObjectWrapper().getOid();
                 return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
                         .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                         .buildFilter();
@@ -79,7 +67,6 @@ public class FocusTasksTabPanel<F extends FocusType>
                 return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
             }
         };
-        casesPanel.add(new VisibleBehaviour(() -> tasksExist));
         casesPanel.setOutputMarkupId(true);
         add(casesPanel);
     }
