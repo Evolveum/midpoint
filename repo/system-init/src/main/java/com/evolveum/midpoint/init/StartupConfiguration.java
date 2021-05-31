@@ -400,7 +400,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             String key = i.next();
             sb.append(key);
             sb.append(" = ");
-            sb.append(config.getString(key));
+            sb.append(valuePrintout(key, config.getString(key)));
             sb.append("; ");
         }
         return sb.toString();
