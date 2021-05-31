@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.ObjectClassTypeDefinitionDelegator;
@@ -226,6 +229,21 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         TransformableComplexTypeDefinition copy = new TransformableComplexTypeDefinition(delegate());
         copy.overrides.putAll(overrides);
         return copy;
+    }
+
+    @Override
+    public void trimTo(@NotNull Collection<ItemPath> paths) {
+        for (ItemDefinition<?> itemDef : getDefinitions()) {
+            ItemPath itemPath = itemDef.getItemName();
+            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
+                delete(itemDef.getItemName());
+            } else if (itemDef instanceof PrismContainerDefinition) {
+                PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+                if (itemPcd.getComplexTypeDefinition() != null) {
+                    itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
+                }
+            }
+        }
     }
 
 
