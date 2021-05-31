@@ -1965,6 +1965,8 @@ public final class WebComponentUtil {
             return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
         } else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
+        } else if (QNameUtil.match(ReportType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_REPORT_ICON;
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
