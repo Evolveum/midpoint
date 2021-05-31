@@ -15,8 +15,10 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.Task;
@@ -88,7 +90,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     private Boolean runReport = false;
     private IModel<Boolean> isShowingPreview = Model.of(Boolean.FALSE);
-    private IModel<DisplayableValue<String>> archetypeOid;
 
     public PageReport() {
         initialize(null);
@@ -112,18 +113,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     @Override
-    protected void initializeModel(PrismObject<ReportType> objectToEdit, boolean isNewObject, boolean isReadonly) {
-        super.initializeModel(objectToEdit, isNewObject, isReadonly);
-        ReportType report = getObjectModel().getObject().getObject().asObjectable();
-        archetypeOid = new Model();
-        if (WebComponentUtil.hasArchetypeAssignment(report, SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value())) {
-            archetypeOid.setObject(getDisplayValue(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value()));
-        } else if (WebComponentUtil.hasArchetypeAssignment(report, SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value())) {
-            archetypeOid.setObject(getDisplayValue(SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value()));
-        }
-    }
-
-    @Override
     protected void initLayout() {
         super.initLayout();
 
@@ -140,15 +129,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         tableContainer.add(tableBox);
 
         tableBox.add(reportTable);
-    }
-
-    private SearchValue<String> getDisplayValue(String oid) {
-        for (DisplayableValue<String> value : TYPE_OF_REPORTS) {
-            if (oid.equals(value.getValue())) {
-                return (SearchValue<String>) value;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -253,36 +233,9 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     @Override
     protected void initOperationalButtons(RepeatingView repeatingView) {
-        String selectHeaderId = repeatingView.newChildId();
-        String selectTypeId = repeatingView.newChildId();
         String refreshId = repeatingView.newChildId();
         String showPreviewId = repeatingView.newChildId();
         String showPreviewInPopupId = repeatingView.newChildId();
-
-        Label label = new Label(selectHeaderId, createStringResource("PageReport.typeOfReport"));
-        label.add(AttributeAppender.append("style", "padding-right: 0px; padding-top: 4px;"));
-        label.add(new VisibleBehaviour(() -> archetypeOid.getObject() == null || archetypeOid.getObject().getValue() == null));
-        repeatingView.add(label);
-
-        DropDownChoicePanel dropDownPanel = WebComponentUtil.createDropDownChoices(selectTypeId, archetypeOid, Model.ofList(TYPE_OF_REPORTS), true, this);
-        dropDownPanel.add(new VisibleBehaviour(() -> archetypeOid.getObject() == null || archetypeOid.getObject().getValue() == null));
-        dropDownPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                addArchetype(target);
-                target.add(dropDownPanel);
-                target.add(repeatingView.get(showPreviewInPopupId));
-                target.add(repeatingView.get(showPreviewId));
-                target.add(getOperationalButtonsPanel());
-                refreshEngineTab(target);
-                target.add(getMainPanel().getTabbedPanel());
-                target.add(getMainPanel());
-                target.add(getFeedbackPanel());
-            }
-        });
-        dropDownPanel.add(AttributeAppender.append("style", "margin-top: -7px; margin-left: -12px;"));
-        dropDownPanel.setOutputMarkupId(true);
-        repeatingView.add(dropDownPanel);
 
         AjaxButton refresh = new AjaxButton(refreshId, createStringResource("pageCreateCollectionReport.button.refresh")) {
             @Override
@@ -444,41 +397,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    private void refreshEngineTab(AjaxRequestTarget target) {
-        Component panel = getMainPanel().getTabbedPanel().get(TabbedPanel.TAB_PANEL_ID);
-        if (panel instanceof EngineReportTabPanel) {
-            ((PanelTab) getMainPanel().getTabbedPanel().getTabs().getObject().get(
-                    getMainPanel().getTabbedPanel().getSelectedTab())).resetPanel();
-            getMainPanel().getTabbedPanel().setSelectedTab(getMainPanel().getTabbedPanel().getSelectedTab());
-            target.add(getMainPanel().getTabbedPanel());
-            target.add(getMainPanel());
-        }
-    }
-
-    private void addArchetype(AjaxRequestTarget target) {
-        WebComponentUtil.addNewArchetype(getObjectWrapper(), archetypeOid.getObject().getValue(), target, PageReport.this);
-        PrismObjectWrapperFactory<ReportType> wrapperFactory = findObjectWrapperFactory(getReport().asPrismObject().getDefinition());
-        Task task = createSimpleTask(OPERATION_UPDATE_WRAPPER);
-        OperationResult result = task.getResult();
-        WrapperContext ctx = new WrapperContext(task, result);
-        try {
-            wrapperFactory.updateWrapper(getObjectWrapper(), ctx);
-
-            //TODO ugly hack: after updateWrapper method is called, previously set assignment item
-            // are marked as NOT_CHANGED with the same value.
-
-            PrismContainerWrapper<AssignmentType> assignmentWrapper = getObjectWrapper().findContainer(ItemPath.create(TaskType.F_ASSIGNMENT));
-            for (PrismContainerValueWrapper<AssignmentType> assignmentWrapperValue : assignmentWrapper.getValues()) {
-                if (WebComponentUtil.isArchetypeAssignment(assignmentWrapperValue.getRealValue())) {
-                    assignmentWrapperValue.setStatus(ValueStatus.ADDED);
-                }
-            }
-
-        } catch (SchemaException e) {
-            LOGGER.error("Unexpected problem occurs during updating wrapper. Reason: {}", e.getMessage(), e);
-        }
-    }
-
     private ReportType getReport() {
         return getObjectWrapper().getObject().asObjectable();
     }
@@ -489,10 +407,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     private boolean isCollectionReport() {
-        if (archetypeOid.getObject() != null) {
-            return SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value().equals(archetypeOid.getObject().getValue());
-        }
-        return false;
+        return getObjectWrapper().findItemDefinition(ReportType.F_OBJECT_COLLECTION) != null;
     }
 
     private ReportObjectsListPanel getReportTable() {
@@ -506,5 +421,4 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     private Component getTableContainer() {
         return get(ID_TABLE_CONTAINER);
     }
-
 }

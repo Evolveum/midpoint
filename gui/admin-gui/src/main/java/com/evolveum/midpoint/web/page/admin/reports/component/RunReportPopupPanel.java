@@ -95,9 +95,19 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
         ReportObjectsListPanel table = new ReportObjectsListPanel(ID_TABLE, getModel()){
+
+            private final boolean checkViewAfterInitialize = true;
             @Override
             protected Component getFeedbackPanel() {
                 return feedback;
+            }
+
+            @Override
+            protected boolean checkViewAfterInicialize() {
+                if (checkViewAfterInitialize) {
+                    return true;
+                }
+                return super.checkViewAfterInicialize();
             }
         };
         table.setOutputMarkupId(true);

@@ -87,15 +87,8 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
             return IdiResolutionContext.fromAnyObject(variableValue);
         } else if (variableValue instanceof PrismValue) {
             return new ValueResolutionContext((PrismValue) variableValue, context.getContextDescription());
-        } else if (!(variableValue instanceof Containerable) && variableValueAndDefinition.getTypeClass().isAssignableFrom(variableValue.getClass())) {
-            V prismValue;
-            if (variableValue instanceof Referencable){
-                prismValue = (V) evaluator.getPrismContext().itemFactory().createReferenceValue(((Referencable) variableValue).getOid(), ((Referencable) variableValue).getType());
-                ((PrismReferenceValue)prismValue).setRelation(((Referencable)variableValue).getRelation());
-            } else {
-                prismValue = (V) evaluator.getPrismContext().itemFactory().createPropertyValue(variableValue);
-            }
-            return new ValueResolutionContext(prismValue, context.getContextDescription());
+        } else if (variableValueAndDefinition.getTypeClass().isAssignableFrom(variableValue.getClass())) {
+            return ValueResolutionContext.fromRealValue(variableValue, context.getContextDescription(), evaluator.getPrismContext());
         } else {
             throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
         }
