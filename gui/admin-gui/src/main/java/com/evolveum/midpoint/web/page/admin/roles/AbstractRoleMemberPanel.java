@@ -213,10 +213,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 super.refreshTable(target);
             }
 
-            @Override
-            protected MultifunctionalButton createCreateNewObjectButton(String buttonId) {
-                return AbstractRoleMemberPanel.this.createCreateNewObjectButton(buttonId);
-            }
+//            @Override
+//            protected MultifunctionalButton createCreateNewObjectButton(String buttonId) {
+//                return AbstractRoleMemberPanel.this.createCreateNewObjectButton(buttonId);
+//            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -272,20 +272,20 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         };
     }
 
-    private MultifunctionalButton createCreateNewObjectButton(String buttonId) {
-        MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, createAdditionalButtonsDescription()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation);
-            }
-
-        };
-//        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
-        return createNewObjectButton;
-    }
+//    private MultifunctionalButton createCreateNewObjectButton(String buttonId) {
+//        MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, createAdditionalButtonsDescription()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+//                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation);
+//            }
+//
+//        };
+////        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
+//        createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
+//        return createNewObjectButton;
+//    }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
@@ -353,7 +353,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return new SearchValue<>(typeClass, "ObjectType." + typeClass.getSimpleName());
     }
 
-    private LoadableModel<MultiFunctinalButtonDto> createAdditionalButtonsDescription() {
+    protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
 
         return new LoadableModel<>(false) {
 

@@ -1004,6 +1004,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainPopup.setOutputMarkupId(true);
         mainPopup.setOutputMarkupPlaceholderTag(true);
         mainPopup.showUnloadConfirmation(false);
+        mainPopup.setResizable(false);
         add(mainPopup);
     }
 
@@ -1044,6 +1045,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getMainPopup().setHeightUnit(popupable.getHeightUnit());
         getMainPopup().setWidthUnit(popupable.getWidthUnit());
         getMainPopup().setContent(popupable.getComponent());
+        getMainPopup().setUseInitialHeight(true);
         getMainPopup().setResizable(false);
         getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
         getMainPopup().show(target);

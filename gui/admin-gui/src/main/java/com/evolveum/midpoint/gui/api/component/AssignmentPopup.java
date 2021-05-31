@@ -12,6 +12,12 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -47,12 +53,24 @@ public class AssignmentPopup extends BasePanel implements Popupable {
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private static final String ID_ASSIGN_BUTTON = "assignButton";
+    private static final String ID_BACK_BUTTON = "backButton";
+    private static final String ID_COMPOSITED_BUTTONS = "compositedButtons";
     private static final String ID_FORM = "form";
 
     private final List<OrgType> selectedOrgsList = new ArrayList<>();
 
-    public AssignmentPopup(String id) {
-        super(id);
+    private boolean assignmentTableVisible = false;
+    private AssignmentObjectRelation relationSpec = null;
+
+    public AssignmentPopup(String id, IModel<List<CompositedIconButtonDto>> model) {
+        super(id, model);
+        if (model == null) {
+            assignmentTableVisible = true;
+        }
+    }
+
+    private void setRelationSpec(AssignmentObjectRelation relationSpec) {
+        this.relationSpec = relationSpec;
     }
 
     @Override
@@ -63,10 +81,24 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         form.setOutputMarkupId(true);
         add(form);
 
+        MultiCompositedButtonPanel newObjectIcon =
+                new MultiCompositedButtonPanel(ID_COMPOSITED_BUTTONS, getModel()) {
+
+                    @Override
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
+                        assignmentTableVisible = true;
+                        setRelationSpec(relationSepc);
+                        target.add(AssignmentPopup.this.get(ID_FORM));
+                    }
+                };
+        form.add(newObjectIcon);
+        newObjectIcon.add(new VisibleBehaviour(() -> !assignmentTableVisible));
+
         List<ITab> tabs = createAssignmentTabs();
         TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
+        tabPanel.add(new VisibleBehaviour(() -> assignmentTableVisible));
         form.add(tabPanel);
 
         MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
@@ -74,6 +106,13 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
         add(warningMessage);
 
+        form.add(createCancelButton());
+        form.add(createAddButton(tabs));
+        form.add(createBackButton());
+
+    }
+
+    private AjaxButton createCancelButton() {
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
@@ -85,8 +124,10 @@ public class AssignmentPopup extends BasePanel implements Popupable {
             }
         };
         cancelButton.setOutputMarkupId(true);
-        form.add(cancelButton);
+        return cancelButton;
+    }
 
+    private AjaxButton createAddButton(List<ITab> tabs) {
         AjaxButton addButton = new AjaxButton(ID_ASSIGN_BUTTON,
                 createStringResource("userBrowserDialog.button.addButton")) {
 
@@ -114,7 +155,24 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
         addButton.add(new EnableBehaviour(this::isAssignButtonEnabled));
         addButton.setOutputMarkupId(true);
-        form.add(addButton);
+        return addButton;
+    }
+
+    private AjaxButton createBackButton() {
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON,
+                createStringResource("userBrowserDialog.button.backButton")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                assignmentTableVisible = false;
+                target.add(AssignmentPopup.this.get(ID_FORM));
+            }
+        };
+        backButton.setOutputMarkupId(true);
+        backButton.add(new VisibleBehaviour(() -> getModel() != null && assignmentTableVisible));
+        return backButton;
     }
 
     protected List<ITab> createAssignmentTabs() {
@@ -384,6 +442,10 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         return WebComponentUtil.createAssignableTypesList();
     }
 
+    protected AssignmentObjectRelation getRelationSpec() {
+        return relationSpec;
+    }
+
     protected QName getPredefinedRelation() {
         return null;
     }
@@ -455,7 +517,7 @@ public class AssignmentPopup extends BasePanel implements Popupable {
     }
 
     public int getHeight() {
-        return 80;
+        return 60;
     }
 
     @Override

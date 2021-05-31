@@ -28,6 +28,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -84,6 +85,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -322,7 +325,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(
             ListItem<PrismContainerValueWrapper<ShadowType>> item) {
-        MultivalueContainerDetailsPanel<ShadowType> detailsPanel = new MultivalueContainerDetailsPanel<ShadowType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+        MultivalueContainerDetailsPanel<ShadowType> detailsPanel = new MultivalueContainerDetailsPanel<ShadowType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -338,17 +341,30 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             }
 
             @Override
-            protected AbstractTab addBasicContainerValuePanel() {
-                return new PanelTab(createStringResource("ShadowType.basic")) {
+            protected @NotNull List<ITab> createTabs() {
+                List<ITab> tabs = super.createTabs();
+                tabs.add(new PanelTab(createStringResource("ShadowType.basic")) {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         ShadowPanel shadowPanel = new ShadowPanel(panelId, getParentModel(getModel()));
                         return shadowPanel;
                     }
-                };
-
-//                add(new WebMarkupContainer(idPanel));
+                });
+                return tabs;
             }
+
+//            @Override
+//            protected AbstractTab addBasicContainerValuePanel() {
+//                return new PanelTab(createStringResource("ShadowType.basic")) {
+//                    @Override
+//                    public WebMarkupContainer createPanel(String panelId) {
+//                        ShadowPanel shadowPanel = new ShadowPanel(panelId, getParentModel(getModel()));
+//                        return shadowPanel;
+//                    }
+//                };
+//
+////                add(new WebMarkupContainer(idPanel));
+//            }
 
 //            @Override
 //            protected WebMarkupContainer getSpecificContainers(String contentAreaId) {

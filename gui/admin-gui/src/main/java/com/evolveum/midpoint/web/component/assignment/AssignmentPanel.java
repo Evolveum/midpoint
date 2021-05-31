@@ -13,11 +13,20 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.search.Search;
+
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -149,19 +158,37 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return null;
                     }
 
-                    @Override
-                    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-                        newAssignmentClickPerformed(target, assignmentTargetRelation);
-                    }
 
                     @Override
-                    protected List<CompositedIconButtonDto> createNewButtonDescription() {
-                        return newButtonDescription();
-                    }
+                    protected List<Component> createToolbarButtonsList(String idButton) {
+                        List<Component> bar = new ArrayList<>();
 
-                    @Override
-                    protected boolean isNewObjectButtonEnabled() {
-                        return !isAssignmentsLimitReached();
+                        AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
+                                createStringResource("MainObjectListPanel.newObject")) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                newAssignmentClickPerformed(target, null);
+                            }
+                        };
+                        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                        bar.add(newObjectButton);
+
+                        newObjectButton.add(new VisibleEnableBehaviour() {
+
+                            @Override
+                            public boolean isVisible() {
+                                return isNewObjectButtonVisible(getFocusObject());
+                            }
+
+                            @Override
+                            public boolean isEnabled() {
+                                return !isAssignmentsLimitReached();
+                            }
+                        });
+                        return bar;
                     }
 
                     @Override
@@ -620,8 +647,18 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
     }
 
+    private IModel<List<CompositedIconButtonDto>> createNewButtonDescriptionModel() {
+        return new LoadableModel<>(false) {
+            @Override
+            protected List<CompositedIconButtonDto> load() {
+                return newButtonDescription();
+            }
+        };
+    }
+
     protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-        AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
+
+        AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId(), createNewButtonDescriptionModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -633,24 +670,24 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
             @Override
             protected List<ObjectTypes> getAvailableObjectTypesList() {
-                if (assignmentTargetRelation == null || CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes())) {
+                if (getRelationSpec() == null || CollectionUtils.isEmpty(getRelationSpec().getObjectTypes())) {
                     return getObjectTypesList();
                 } else {
-                    return mergeNewAssignmentTargetTypeLists(assignmentTargetRelation.getObjectTypes(), getObjectTypesList());
+                    return mergeNewAssignmentTargetTypeLists(getRelationSpec().getObjectTypes(), getObjectTypesList());
                 }
             }
 
             @Override
             protected QName getPredefinedRelation() {
-                if (assignmentTargetRelation == null) {
+                if (getRelationSpec() == null) {
                     return AssignmentPanel.this.getPredefinedRelation();
                 }
-                return !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ? assignmentTargetRelation.getRelations().get(0) : null;
+                return !CollectionUtils.isEmpty(getRelationSpec().getRelations()) ? getRelationSpec().getRelations().get(0) : null;
             }
 
             @Override
             protected List<ObjectReferenceType> getArchetypeRefList() {
-                return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
+                return getRelationSpec() != null ? getRelationSpec().getArchetypeRefs() : null;
             }
 
             @Override
@@ -670,7 +707,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
             @Override
             protected boolean isOrgTreeTabVisible() {
-                return assignmentTargetRelation == null;
+                return getRelationSpec() == null;
             }
         };
         popupPanel.setOutputMarkupId(true);

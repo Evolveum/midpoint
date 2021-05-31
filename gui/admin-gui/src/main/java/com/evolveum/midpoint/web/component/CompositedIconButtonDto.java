@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
@@ -23,8 +24,18 @@ public class CompositedIconButtonDto implements Serializable {
     private AssignmentObjectRelation assignmentObjectRelation;
     private CompiledObjectCollectionView collectionView;
 
+    private ItemPath path;
+
     public CompositedIconButtonDto() {
 
+    }
+
+    public ItemPath getPath() {
+        return path;
+    }
+
+    public void setPath(ItemPath path) {
+        this.path = path;
     }
 
     public DisplayType getAdditionalButtonDisplayType() {

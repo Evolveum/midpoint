@@ -8,7 +8,15 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -19,11 +27,13 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> {
+import org.apache.wicket.model.StringResourceModel;
+
+public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> implements Popupable {
 
     private static final String ID_BUTTON_PANEL = "additionalButton";
+    private static final String ID_BUTTON_DESCRIPTION = "buttonDescription";
     private static final String ID_COMPOSITED_BUTTON = "compositedButton";
-
 
     public MultiCompositedButtonPanel(String id, IModel<List<CompositedIconButtonDto>> model) {
         super(id, model);
@@ -45,10 +55,12 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView());
+                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPath());
                     }
                 };
                 item.add(additionalButton);
+
+                item.add(new Label(ID_BUTTON_DESCRIPTION, getButtonDescription(item.getModelObject())));
             }
         };
         buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));
@@ -56,6 +68,13 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 
     }
 
+    private String getButtonDescription(CompositedIconButtonDto button) {
+        DisplayType displayType = button.getAdditionalButtonDisplayType();
+        if (displayType.getSingularLabel() != null) {
+            return WebComponentUtil.getTranslatedPolyString(displayType.getSingularLabel());
+        }
+        return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+    }
     /**
      * this method should return the display properties for the last button on the dropdown  panel with additional buttons.
      * The last button is supposed to produce a default action (an action with no additional objects to process)
@@ -63,7 +82,36 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 //    protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
     }
 
+    @Override
+    public int getWidth() {
+        return 90;
+    }
+
+    @Override
+    public int getHeight() {
+        return 60;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("Create from template");
+    }
+
+    @Override
+    public Component getComponent() {
+        return MultiCompositedButtonPanel.this;
+    }
 }
