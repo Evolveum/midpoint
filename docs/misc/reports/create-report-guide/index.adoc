@@ -3,16 +3,15 @@
 
 This guide describe how to create report in GUI. We chose the example report of accounts with resource as parameter and with columns which shows some attributes from owner, to demonstrate all the functionality.
 
-In first step we click on 'Reports' in left menu and next click on 'New report' in submenu.
-Also we can open page with new report via button on footer of reports table.
+In first step we click on 'Reports' in left menu and next click on 'All Reports' in submenu. In footer of showed report table we click on new report button.
 
-image::left-menu.png[]
+image::create-report-0.png[]
 
-Now we see page for editing/creating report. We want create Collection report, so we select 'Collection report' in dropdown in the upper left corner screen with label 'Type of report'.
+We want create Collection report, so we select 'Collection report' in showed popup.
 
 image::create-report-1.png[]
 
-Now we can fill basic properties, we need fill only name.
+Now we see page for editing/creating report. We can fill basic properties, we need fill only name.
 
 image::create-report-2.png[]
 
