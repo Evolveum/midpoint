@@ -69,15 +69,9 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
     private static final String ID_SAVE_AND_RUN = "saveAndRun";
 
-    private final PageBase pageBase;
 
     public ReportMainPanel(String id, LoadableModel<PrismObjectWrapper<ReportType>> objectModel, PageAdminObjectDetails<ReportType> parentPage) {
         super(id, objectModel, parentPage);
-        pageBase = parentPage;
-    }
-
-    public PageBase getPageBase() {
-        return pageBase;
     }
 
     @Override
@@ -177,8 +171,8 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
                         || hasDefinitionFor(ReportType.F_DASHBOARD) ;
             }
         });
-        tabs.addAll(createTabsForCollectionReports());
-        tabs.addAll(createTabsForDashboardReports());
+        tabs.addAll(createTabsForCollectionReports(parentPage));
+        tabs.addAll(createTabsForDashboardReports(parentPage));
 
         tabs.add(new PanelTab(parentPage.createStringResource("pageReport.export.title")) {
 
@@ -206,10 +200,10 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return getObjectModel().getObject().findItemDefinition(path) != null;
     }
 
-    private List<ITab> createTabsForDashboardReports() {
+    private List<ITab> createTabsForDashboardReports(PageAdminObjectDetails<ReportType> parentPage) {
         List<ITab> tabs = new ArrayList<>();
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("DashboardReportEngineConfigurationType.view")) {
+        tabs.add(new PanelTab(parentPage.createStringResource("DashboardReportEngineConfigurationType.view")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -226,10 +220,10 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return tabs;
     }
 
-    private List<ITab> createTabsForCollectionReports() {
+    private List<ITab> createTabsForCollectionReports(PageAdminObjectDetails<ReportType> parentPage) {
         List<ITab> tabs = new ArrayList<>();
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("ObjectCollectionReportEngineConfigurationType.collection")) {
+        tabs.add(new PanelTab(parentPage.createStringResource("ObjectCollectionReportEngineConfigurationType.collection")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -239,14 +233,11 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                if (hasDefinitionFor(ReportType.F_OBJECT_COLLECTION)) {
-
-                }
-                return false;
+                return hasDefinitionFor(ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_COLLECTION));
             }
         });
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("ObjectCollectionReportEngineConfigurationType.view")) {
+        tabs.add(new PanelTab(parentPage.createStringResource("ObjectCollectionReportEngineConfigurationType.view")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -254,12 +245,12 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
                 PrismPropertyWrapperModel<ReportType, Object> propertyModel = PrismPropertyWrapperModel.fromContainerWrapper(getObjectModel(),
                         ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_VIEW, GuiObjectListViewType.F_TYPE));
                 try {
-                    Panel propertyPanel = getPageBase().initItemPanel(panel.newChildId(), propertyModel.getObject().getTypeName(), propertyModel, null);
+                    Panel propertyPanel = parentPage.initItemPanel(panel.newChildId(), propertyModel.getObject().getTypeName(), propertyModel, null);
                     panel.add(propertyPanel);
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create panel for type element in view");
                 }
-                panel.add(createObjectListForColumns(panel.newChildId()));
+                panel.add(createObjectListForColumns(panel.newChildId(), parentPage));
                 return panel;
             }
 
@@ -269,11 +260,11 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
             }
         });
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("ObjectCollectionReportEngineConfigurationType.parameter")) {
+        tabs.add(new PanelTab(parentPage.createStringResource("ObjectCollectionReportEngineConfigurationType.parameter")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createObjectListForParameters(panelId);
+                return createObjectListForParameters(panelId, parentPage);
             }
 
             @Override
@@ -282,11 +273,11 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
             }
         });
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("ObjectCollectionReportEngineConfigurationType.subreport")) {
+        tabs.add(new PanelTab(parentPage.createStringResource("ObjectCollectionReportEngineConfigurationType.subreport")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createObjectListForSubreports(panelId);
+                return createObjectListForSubreports(panelId, parentPage);
             }
 
             @Override
@@ -298,7 +289,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return tabs;
     }
 
-    private WebMarkupContainer createObjectListForParameters(String panelId) {
+    private WebMarkupContainer createObjectListForParameters(String panelId, PageAdminObjectDetails<ReportType> parentPage) {
         return new BasicMultivalueContainerListPanel<>(panelId, SearchFilterParameterType.class) {
 
             @Override
@@ -319,7 +310,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<SearchFilterParameterType>, String>> createDefaultColumns() {
-                return createColumnsForParameters();
+                return createColumnsForParameters(parentPage);
             }
         };
     }
@@ -381,13 +372,13 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         };
     }
 
-    private List<IColumn<PrismContainerValueWrapper<SearchFilterParameterType>, String>> createColumnsForParameters() {
+    private List<IColumn<PrismContainerValueWrapper<SearchFilterParameterType>, String>> createColumnsForParameters(PageAdminObjectDetails<ReportType> parentPage) {
         PrismContainerWrapperModel<ReportType, SearchFilterParameterType> containerModel = PrismContainerWrapperModel.fromContainerWrapper(
                 getObjectModel(), ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_PARAMETER));
         List<IColumn<PrismContainerValueWrapper<SearchFilterParameterType>, String>> columns = new ArrayList<>();
 
         columns.add(new PrismPropertyWrapperColumn<SearchFilterParameterType, String>(
-                containerModel, SearchFilterParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, SearchFilterParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-sm-3 col-md-2";
@@ -395,7 +386,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         columns.add(new PrismPropertyWrapperColumn<SearchFilterParameterType, String>(
-                containerModel, SearchFilterParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, SearchFilterParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-md-3";
@@ -403,7 +394,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         PrismContainerDefinition<Containerable> def = containerModel.getObject().getComplexTypeDefinition().findContainerDefinition(SearchFilterParameterType.F_DISPLAY);
-        columns.add(new PrismPropertyWrapperColumn(Model.of(def), DisplayType.F_LABEL, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+        columns.add(new PrismPropertyWrapperColumn(Model.of(def), DisplayType.F_LABEL, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public IModel<?> getDataModel(IModel rowModel) {
                 return PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, ItemPath.create(SearchFilterParameterType.F_DISPLAY, DisplayType.F_LABEL));
@@ -412,7 +403,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return columns;
     }
 
-    private WebMarkupContainer createObjectListForSubreports(String panelId) {
+    private WebMarkupContainer createObjectListForSubreports(String panelId, PageAdminObjectDetails<ReportType> parentPage) {
         return new BasicMultivalueContainerListPanel<>(panelId, SubreportParameterType.class) {
 
             @Override
@@ -433,7 +424,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<SubreportParameterType>, String>> createDefaultColumns() {
-                return createColumnsForSubreports();
+                return createColumnsForSubreports(parentPage);
             }
         };
     }
@@ -457,13 +448,13 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         };
     }
 
-    private List<IColumn<PrismContainerValueWrapper<SubreportParameterType>, String>> createColumnsForSubreports() {
+    private List<IColumn<PrismContainerValueWrapper<SubreportParameterType>, String>> createColumnsForSubreports(PageAdminObjectDetails<ReportType> parentPage) {
         PrismContainerWrapperModel<ReportType, SubreportParameterType> containerModel = PrismContainerWrapperModel.fromContainerWrapper(
                 getObjectModel(), ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_SUBREPORT));
         List<IColumn<PrismContainerValueWrapper<SubreportParameterType>, String>> columns = new ArrayList<>();
 
         columns.add(new PrismPropertyWrapperColumn<SubreportParameterType, String>(
-                containerModel, SubreportParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, SubreportParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-sm-3 col-md-2";
@@ -471,7 +462,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         columns.add(new PrismPropertyWrapperColumn<SubreportParameterType, String>(
-                containerModel, SubreportParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, SubreportParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-md-3";
@@ -479,7 +470,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         columns.add(new PrismPropertyWrapperColumn<SubreportParameterType, String>(
-                containerModel, SubreportParameterType.F_EXPRESSION, AbstractItemWrapperColumn.ColumnType.EXISTENCE_OF_VALUE, getPageBase()) {
+                containerModel, SubreportParameterType.F_EXPRESSION, AbstractItemWrapperColumn.ColumnType.EXISTENCE_OF_VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-sm-3 col-md-2";
@@ -489,7 +480,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return columns;
     }
 
-    private WebMarkupContainer createObjectListForColumns(String panelId) {
+    private WebMarkupContainer createObjectListForColumns(String panelId, PageAdminObjectDetails<ReportType> parentPage) {
         return new BasicMultivalueContainerListPanel<>(panelId, GuiObjectColumnType.class) {
 
             @Override
@@ -517,7 +508,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<GuiObjectColumnType>, String>> createDefaultColumns() {
-                return createColumnsForColumns();
+                return createColumnsForColumns(parentPage);
             }
         };
     }
@@ -548,13 +539,13 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         };
     }
 
-    private List<IColumn<PrismContainerValueWrapper<GuiObjectColumnType>, String>> createColumnsForColumns() {
+    private List<IColumn<PrismContainerValueWrapper<GuiObjectColumnType>, String>> createColumnsForColumns(PageAdminObjectDetails<ReportType> parentPage) {
         PrismContainerWrapperModel<ReportType, GuiObjectColumnType> containerModel = PrismContainerWrapperModel.fromContainerWrapper(
                 getObjectModel(), ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_VIEW, GuiObjectListViewType.F_COLUMN));
         List<IColumn<PrismContainerValueWrapper<GuiObjectColumnType>, String>> columns = new ArrayList<>();
 
         columns.add(new PrismPropertyWrapperColumn<GuiObjectColumnType, String>(
-                containerModel, GuiObjectColumnType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, GuiObjectColumnType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-sm-3 col-md-2";
@@ -562,7 +553,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         columns.add(new PrismPropertyWrapperColumn<GuiObjectColumnType, String>(
-                containerModel, GuiObjectColumnType.F_PATH, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+                containerModel, GuiObjectColumnType.F_PATH, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public String getCssClass() {
                 return "col-md-3";
@@ -570,7 +561,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         });
 
         PrismContainerDefinition<Containerable> def = containerModel.getObject().getComplexTypeDefinition().findContainerDefinition(GuiObjectColumnType.F_DISPLAY);
-        columns.add(new PrismPropertyWrapperColumn(Model.of(def), DisplayType.F_LABEL, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+        columns.add(new PrismPropertyWrapperColumn(Model.of(def), DisplayType.F_LABEL, AbstractItemWrapperColumn.ColumnType.VALUE, parentPage) {
             @Override
             public IModel<?> getDataModel(IModel rowModel) {
                 return PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, ItemPath.create(GuiObjectColumnType.F_DISPLAY, DisplayType.F_LABEL));
