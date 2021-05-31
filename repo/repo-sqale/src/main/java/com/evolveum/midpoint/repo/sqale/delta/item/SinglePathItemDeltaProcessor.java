@@ -14,6 +14,8 @@ import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
+ * Processor for items represented by a single column (query path).
+ *
  * @param <T> type of real value after optional conversion ({@link #convertRealValue(Object)}
  * to match the column (attribute) type in the row bean (M-type)
  * @param <P> type of the corresponding path in the Q-type

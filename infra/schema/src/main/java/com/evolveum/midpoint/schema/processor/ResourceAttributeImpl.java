@@ -11,7 +11,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
+import com.evolveum.midpoint.util.Checks;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
@@ -95,8 +98,17 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "RA";
     }
 
+    @Override
+    public void applyDefinition(PrismPropertyDefinition<T> definition, boolean force) throws SchemaException {
+        if (definition != null) {
+            Checks.checkSchema(definition instanceof ResourceAttributeDefinition, "Definition should be %s not %s" ,
+                    ResourceAttributeDefinition.class.getSimpleName(), definition.getClass().getName());
+        }
+        super.applyDefinition(definition, force);
+    }
 }

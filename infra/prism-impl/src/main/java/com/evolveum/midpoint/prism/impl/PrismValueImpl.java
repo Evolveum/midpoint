@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -28,7 +29,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author semancik
  *
  */
-public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue {
+public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue, TransformableValue {
 
     private OriginType originType;
     private Objectable originObject;
@@ -468,4 +469,5 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     public void setTransient(boolean value) {
         isTransient = value;
     }
+
 }

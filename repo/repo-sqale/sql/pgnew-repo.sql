@@ -21,6 +21,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
+--CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes TODO for ext with LIKE and fulltext
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -215,17 +216,21 @@ INSERT INTO m_uri (id, uri)
 -- See https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/objecttype/
 -- Following is recommended for each concrete table (see m_resource for example):
 -- 1) override OID like this (PK+FK): oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
--- 2) define object type class (change value): objectType ObjectType GENERATED ALWAYS AS ('XY') STORED,
+-- 2) define object type class (change value as needed):
+--   objectType ObjectType GENERATED ALWAYS AS ('XY') STORED CHECK (objectType = 'XY'),
+--   The CHECK part helps with query optimization when the column is uses in WHERE.
 -- 3) add three triggers <table_name>_oid_{insert|update|delete}_tr
 -- 4) add indexes for nameOrig and nameNorm columns (nameNorm as unique)
 -- 5) the rest varies on the concrete table, other indexes or constraints, etc.
 -- 6) any required FK must be created on the concrete table, even for inherited columns
-
 CREATE TABLE m_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
     oid UUID NOT NULL,
     -- objectType will be overridden with GENERATED value in concrete table
-    objectType ObjectType NOT NULL,
+    -- CHECK helps optimizer to avoid this table when different type is asked, mind that
+    -- WHERE objectType = 'OBJECT' never returns anything (unlike select * from m_object).
+    -- We don't want this check to be inherited as it would prevent any inserts of other types.
+    objectType ObjectType NOT NULL CHECK (objectType = 'OBJECT') NO INHERIT,
     nameOrig TEXT NOT NULL,
     nameNorm TEXT NOT NULL,
     fullObject BYTEA,
@@ -237,9 +242,9 @@ CREATE TABLE m_object (
     version INTEGER NOT NULL DEFAULT 1,
     -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
     -- TODO compare with [] in JSONB, check performance, indexing, etc. first
-    policySituations INTEGER[], -- soft-references m_uri, add index per table as/if needed
-    subtypes TEXT[],
-    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet
+    policySituations INTEGER[], -- soft-references m_uri, only EQ filter
+    subtypes TEXT[], -- only EQ filter
+    textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -261,6 +266,16 @@ CREATE TABLE m_object (
     CHECK (FALSE) NO INHERIT
 );
 -- No indexes here, always add indexes and referential constraints on concrete sub-tables.
+
+-- Represents AssignmentHolderType (all objects except shadows)
+-- extending m_object, but still abstract, hence the CHECK (false)
+CREATE TABLE m_assignment_holder (
+    -- objectType will be overridden with GENERATED value in concrete table
+    objectType ObjectType NOT NULL CHECK (objectType = 'ASSIGNMENT_HOLDER') NO INHERIT,
+
+    CHECK (FALSE) NO INHERIT
+)
+    INHERITS (m_object);
 
 -- Purely abstract table (no entries are allowed). Represents Containerable/PrismContainerValue.
 -- Allows querying all separately persisted containers, but not necessary for the application.
@@ -302,7 +317,8 @@ CREATE TABLE m_reference (
 -- stores AssignmentHolderType/archetypeRef
 CREATE TABLE m_ref_archetype (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ARCHETYPE') STORED
+        CHECK (referenceType = 'ARCHETYPE'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -314,7 +330,8 @@ CREATE INDEX m_ref_archetypeTargetOidRelationId_idx
 -- stores AssignmentHolderType/delegatedRef
 CREATE TABLE m_ref_delegated (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('DELEGATED') STORED
+        CHECK (referenceType = 'DELEGATED'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -326,7 +343,8 @@ CREATE INDEX m_ref_delegatedTargetOidRelationId_idx
 -- stores ObjectType/metadata/createApproverRef
 CREATE TABLE m_ref_object_create_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_CREATE_APPROVER') STORED
+        CHECK (referenceType = 'OBJECT_CREATE_APPROVER'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -338,7 +356,8 @@ CREATE INDEX m_ref_object_create_approverTargetOidRelationId_idx
 -- stores ObjectType/metadata/modifyApproverRef
 CREATE TABLE m_ref_object_modify_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_MODIFY_APPROVER') STORED
+        CHECK (referenceType = 'OBJECT_MODIFY_APPROVER'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -350,7 +369,8 @@ CREATE INDEX m_ref_object_modify_approverTargetOidRelationId_idx
 -- stores AssignmentHolderType/roleMembershipRef
 CREATE TABLE m_ref_role_membership (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ROLE_MEMBERSHIP') STORED
+        CHECK (referenceType = 'ROLE_MEMBERSHIP'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -362,10 +382,10 @@ CREATE INDEX m_ref_role_memberTargetOidRelationId_idx
 
 -- region FOCUS related tables
 -- Represents FocusType (Users, Roles, ...), see https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
--- extending m_object, but still abstract, hence DEFAULT for objectType and CHECK (false)
+-- extending m_object, but still abstract, hence the CHECK (false)
 CREATE TABLE m_focus (
-    -- will be overridden with GENERATED value in concrete table
-    objectType ObjectType NOT NULL,
+    -- objectType will be overridden with GENERATED value in concrete table
+    objectType ObjectType NOT NULL CHECK (objectType = 'FOCUS') NO INHERIT,
     costCenter TEXT,
     emailAddress TEXT,
     photo BYTEA, -- will be TOAST-ed if necessary
@@ -393,12 +413,13 @@ CREATE TABLE m_focus (
 
     CHECK (FALSE) NO INHERIT
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 -- stores FocusType/personaRef
 CREATE TABLE m_ref_persona (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PERSONA') STORED
+        CHECK (referenceType = 'PERSONA'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -410,7 +431,8 @@ CREATE INDEX m_ref_personaTargetOidRelationId_idx
 -- stores FocusType/linkRef ("projection" is newer and better term)
 CREATE TABLE m_ref_projection (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('PROJECTION') STORED
+        CHECK (referenceType = 'PROJECTION'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -422,7 +444,8 @@ CREATE INDEX m_ref_projectionTargetOidRelationId_idx
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('GENERIC_OBJECT') STORED
+        CHECK (objectType = 'GENERIC_OBJECT'),
     genericObjectTypeId INTEGER NOT NULL REFERENCES m_uri(id) -- GenericObjectType#objectType
 )
     INHERITS (m_focus);
@@ -438,13 +461,15 @@ CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
 --  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 -- endregion
 
 -- region USER related tables
 -- Represents UserType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/
 CREATE TABLE m_user (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('USER') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('USER') STORED
+        CHECK (objectType = 'USER'),
     additionalNameOrig TEXT,
     additionalNameNorm TEXT,
     employeeNumber TEXT,
@@ -480,6 +505,7 @@ CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
 CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 
 /* TODO JSON of polystrings?
 CREATE TABLE m_user_organization (
@@ -498,8 +524,8 @@ CREATE TABLE m_user_organizational_unit (
 -- region ROLE related tables
 -- Represents AbstractRoleType, see https://docs.evolveum.com/midpoint/architecture/concepts/abstract-role/
 CREATE TABLE m_abstract_role (
-    -- will be overridden with GENERATED value in concrete table
-    objectType ObjectType NOT NULL,
+    -- objectType will be overridden with GENERATED value in concrete table
+    objectType ObjectType NOT NULL CHECK (objectType = 'ABSTRACT_ROLE') NO INHERIT,
     autoAssignEnabled BOOLEAN,
     displayNameOrig TEXT,
     displayNameNorm TEXT,
@@ -520,7 +546,8 @@ CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
 -- Represents RoleType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/
 CREATE TABLE m_role (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE') STORED
+        CHECK (objectType = 'ROLE'),
     roleType TEXT
 )
     INHERITS (m_abstract_role);
@@ -534,11 +561,13 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 
 CREATE INDEX m_role_nameOrig_idx ON m_role (nameOrig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
 
 -- Represents ServiceType, see https://wiki.evolveum.com/display/midPoint/Service+Account+Management
 CREATE TABLE m_service (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('SERVICE') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('SERVICE') STORED
+        CHECK (objectType = 'SERVICE'),
     displayOrder INTEGER
 )
     INHERITS (m_abstract_role);
@@ -557,6 +586,7 @@ ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
 CREATE TABLE m_archetype (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ARCHETYPE') STORED
+        CHECK (objectType = 'ARCHETYPE')
 )
     INHERITS (m_abstract_role);
 
@@ -569,13 +599,15 @@ CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
 
 CREATE INDEX m_archetype_nameOrig_idx ON m_archetype (nameOrig);
 ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
 -- endregion
 
 -- region Organization hierarchy support
 -- Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/
 CREATE TABLE m_org (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ORG') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('ORG') STORED
+        CHECK (objectType = 'ORG'),
     displayOrder INTEGER,
     tenant BOOLEAN
 )
@@ -591,11 +623,13 @@ CREATE TRIGGER m_org_oid_delete_tr AFTER DELETE ON m_org
 CREATE INDEX m_org_nameOrig_idx ON m_org (nameOrig);
 ALTER TABLE m_org ADD CONSTRAINT m_org_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_org_displayOrder_idx ON m_org (displayOrder);
+CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
 
 -- stores ObjectType/parentOrgRef
 CREATE TABLE m_ref_object_parent_org (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('OBJECT_PARENT_ORG') STORED
+        CHECK (referenceType = 'OBJECT_PARENT_ORG'),
 
     -- TODO wouldn't (ownerOid, targetOid, relationId) perform better for typical queries?
     PRIMARY KEY (ownerOid, relationId, targetOid)
@@ -702,14 +736,15 @@ END; $$;
 -- Represents ResourceType, see https://wiki.evolveum.com/display/midPoint/Resource+Configuration
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
+        CHECK (objectType = 'RESOURCE'),
     business_administrativeState ResourceAdministrativeStateType,
     operationalState_lastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_resource_oid_insert_tr BEFORE INSERT ON m_resource
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -720,6 +755,7 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
 
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 ALTER TABLE m_resource ADD CONSTRAINT m_resource_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
 
 -- stores ResourceType/business/approverRef
 CREATE TABLE m_ref_resource_business_configuration_approver (
@@ -738,7 +774,8 @@ CREATE INDEX m_ref_resource_biz_config_approverTargetOidRelationId_idx
 -- and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 CREATE TABLE m_shadow (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('SHADOW') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('SHADOW') STORED
+        CHECK (objectType = 'SHADOW'),
     objectClassId INTEGER REFERENCES m_uri(id),
     resourceRefTargetOid UUID,
     resourceRefTargetType ObjectType,
@@ -768,6 +805,7 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
 ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
 /*
@@ -788,10 +826,11 @@ ALTER TABLE m_shadow ADD CONSTRAINT iPrimaryIdentifierValueWithOC
 -- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED
+        CHECK (objectType = 'NODE'),
     nodeIdentifier TEXT
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_node_oid_insert_tr BEFORE INSERT ON m_node
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -802,14 +841,15 @@ CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
 
 CREATE INDEX m_node_nameOrig_idx ON m_node (nameOrig);
 ALTER TABLE m_node ADD CONSTRAINT m_node_nameNorm_key UNIQUE (nameNorm);
--- not interested in ext index for this one, this table will be small
+-- not interested in other indexes for this one, this table will be small
 
 -- Represents SystemConfigurationType, see https://wiki.evolveum.com/display/midPoint/System+Configuration+Object
 CREATE TABLE m_system_configuration (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SYSTEM_CONFIGURATION') STORED
+        CHECK (objectType = 'SYSTEM_CONFIGURATION')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_system_configuration_oid_insert_tr BEFORE INSERT ON m_system_configuration
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -818,14 +858,17 @@ CREATE TRIGGER m_system_configuration_update_tr BEFORE UPDATE ON m_system_config
 CREATE TRIGGER m_system_configuration_oid_delete_tr AFTER DELETE ON m_system_configuration
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
+ALTER TABLE m_system_configuration
+    ADD CONSTRAINT m_system_configuration_nameNorm_key UNIQUE (nameNorm);
 -- no need for the name index, m_system_configuration table is very small
 
 -- Represents SecurityPolicyType, see https://wiki.evolveum.com/display/midPoint/Security+Policy+Configuration
 CREATE TABLE m_security_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SECURITY_POLICY') STORED
+        CHECK (objectType = 'SECURITY_POLICY')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_security_policy_oid_insert_tr BEFORE INSERT ON m_security_policy
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -834,14 +877,19 @@ CREATE TRIGGER m_security_policy_update_tr BEFORE UPDATE ON m_security_policy
 CREATE TRIGGER m_security_policy_oid_delete_tr AFTER DELETE ON m_security_policy
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
--- no need for the name index, m_security_policy table is very small
+CREATE INDEX m_security_policy_nameOrig_idx ON m_security_policy (nameOrig);
+ALTER TABLE m_security_policy ADD CONSTRAINT m_security_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subtypes);
+CREATE INDEX m_security_policy_policySituation_idx
+    ON m_security_policy USING GIN(policysituations gin__int_ops);
 
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('OBJECT_COLLECTION') STORED
+        CHECK (objectType = 'OBJECT_COLLECTION')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_object_collection_oid_insert_tr BEFORE INSERT ON m_object_collection
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -852,13 +900,17 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
 
 CREATE INDEX m_object_collection_nameOrig_idx ON m_object_collection (nameOrig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(subtypes);
+CREATE INDEX m_object_collection_policySituation_idx
+    ON m_object_collection USING GIN(policysituations gin__int_ops);
 
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('DASHBOARD') STORED
+        CHECK (objectType = 'DASHBOARD')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_dashboard_oid_insert_tr BEFORE INSERT ON m_dashboard
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -869,13 +921,17 @@ CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
 
 CREATE INDEX m_dashboard_nameOrig_idx ON m_dashboard (nameOrig);
 ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_dashboard_subtypes_idx ON m_dashboard USING gin(subtypes);
+CREATE INDEX m_dashboard_policySituation_idx
+    ON m_dashboard USING GIN(policysituations gin__int_ops);
 
 -- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('VALUE_POLICY') STORED
+        CHECK (objectType = 'VALUE_POLICY')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_value_policy_oid_insert_tr BEFORE INSERT ON m_value_policy
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -886,15 +942,19 @@ CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
 
 CREATE INDEX m_value_policy_nameOrig_idx ON m_value_policy (nameOrig);
 ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_value_policy_subtypes_idx ON m_value_policy USING gin(subtypes);
+CREATE INDEX m_value_policy_policySituation_idx
+    ON m_value_policy USING GIN(policysituations gin__int_ops);
 
 -- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
+        CHECK (objectType = 'REPORT'),
     orientation OrientationType,
     parent BOOLEAN
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_report_oid_insert_tr BEFORE INSERT ON m_report
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -905,17 +965,20 @@ CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
 
 CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
+CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
 -- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('REPORT_DATA') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('REPORT_DATA') STORED
+        CHECK (objectType = 'REPORT_DATA'),
     reportRefTargetOid UUID,
     reportRefTargetType ObjectType,
     reportRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_report_data_oid_insert_tr BEFORE INSERT ON m_report_data
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -926,13 +989,17 @@ CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
 ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
+CREATE INDEX m_report_data_policySituation_idx
+    ON m_report_data USING GIN(policysituations gin__int_ops);
 
 -- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('LOOKUP_TABLE') STORED
+        CHECK (objectType = 'LOOKUP_TABLE')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_lookup_table_oid_insert_tr BEFORE INSERT ON m_lookup_table
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -943,11 +1010,15 @@ CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
 
 CREATE INDEX m_lookup_table_nameOrig_idx ON m_lookup_table (nameOrig);
 ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_lookup_table_subtypes_idx ON m_lookup_table USING gin(subtypes);
+CREATE INDEX m_lookup_table_policySituation_idx
+    ON m_lookup_table USING GIN(policysituations gin__int_ops);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
     ownerOid UUID NOT NULL REFERENCES m_lookup_table(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('LOOKUP_TABLE_ROW') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('LOOKUP_TABLE_ROW') STORED
+        CHECK (containerType = 'LOOKUP_TABLE_ROW'),
     key TEXT,
     value TEXT,
     labelOrig TEXT,
@@ -964,7 +1035,8 @@ ALTER TABLE m_lookup_table_row
 -- Represents ConnectorType, see https://wiki.evolveum.com/display/midPoint/Identity+Connectors
 CREATE TABLE m_connector (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR') STORED
+        CHECK (objectType = 'CONNECTOR'),
     connectorBundle TEXT, -- typically a package name
     connectorType TEXT, -- typically a class name
     connectorVersion TEXT,
@@ -974,7 +1046,7 @@ CREATE TABLE m_connector (
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
     targetSystemTypes TEXT[] -- TODO any strings? cached URIs?
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_connector_oid_insert_tr BEFORE INSERT ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -985,23 +1057,19 @@ CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
 
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
 ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
-
--- TODO array/json in m_connector table
--- CREATE TABLE m_connector_target_system (
---     connector_oid UUID NOT NULL,
---     targetSystemType TEXT
--- );
--- ALTER TABLE m_connector_target_system
---     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
+CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
+CREATE INDEX m_connector_policySituation_idx
+    ON m_connector USING GIN(policysituations gin__int_ops);
 
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_HOST') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_HOST') STORED
+        CHECK (objectType = 'CONNECTOR_HOST'),
     hostname TEXT,
     port TEXT
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_connector_host_oid_insert_tr BEFORE INSERT ON m_connector_host
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1012,11 +1080,15 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
 
 CREATE INDEX m_connector_host_nameOrig_idx ON m_connector_host (nameOrig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_connector_host_subtypes_idx ON m_connector_host USING gin(subtypes);
+CREATE INDEX m_connector_host_policySituation_idx
+    ON m_connector_host USING GIN(policysituations gin__int_ops);
 
 -- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('TASK') STORED
+        CHECK (objectType = 'TASK'),
     taskIdentifier TEXT,
     binding TaskBindingType,
     category TEXT,
@@ -1040,7 +1112,7 @@ CREATE TABLE m_task (
     waitingReason TaskWaitingReasonType,
     dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_task_oid_insert_tr BEFORE INSERT ON m_task
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1055,13 +1127,16 @@ CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
 CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
+CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
+CREATE INDEX m_task_policySituation_idx ON m_task USING GIN(policysituations gin__int_ops);
 -- endregion
 
 -- region cases
 -- Represents CaseType, see https://wiki.evolveum.com/display/midPoint/Case+Management
 CREATE TABLE m_case (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('CASE') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('CASE') STORED
+        CHECK (objectType = 'CASE'),
     state TEXT,
     closeTimestamp TIMESTAMPTZ,
     objectRefTargetOid UUID,
@@ -1077,7 +1152,7 @@ CREATE TABLE m_case (
     targetRefTargetType ObjectType,
     targetRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_case_oid_insert_tr BEFORE INSERT ON m_case
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1088,6 +1163,8 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
+CREATE INDEX m_case_policySituation_idx ON m_case USING GIN(policysituations gin__int_ops);
 
 CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
 CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
@@ -1097,7 +1174,8 @@ CREATE INDEX m_case_closeTimestamp_idx ON m_case(closeTimestamp);
 
 CREATE TABLE m_case_wi (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('CASE_WORK_ITEM') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('CASE_WORK_ITEM') STORED
+        CHECK (containerType = 'CASE_WORK_ITEM'),
     closeTimestamp TIMESTAMPTZ,
     createTimestamp TIMESTAMPTZ,
     deadline TIMESTAMPTZ,
@@ -1109,17 +1187,20 @@ CREATE TABLE m_case_wi (
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
+
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
+-- TODO INDEXES, old repo had no indexes either
 -- endregion
 
 -- region Access Certification object tables
 -- Represents AccessCertificationDefinitionType, see https://wiki.evolveum.com/display/midPoint/Access+Certification
 CREATE TABLE m_access_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_DEFINITION') STORED
+        CHECK (objectType = 'ACCESS_CERTIFICATION_DEFINITION'),
     handlerUriId INTEGER REFERENCES m_uri(id),
     lastCampaignStartedTimestamp TIMESTAMPTZ,
     lastCampaignClosedTimestamp TIMESTAMPTZ,
@@ -1127,7 +1208,7 @@ CREATE TABLE m_access_cert_definition (
     ownerRefTargetType ObjectType,
     ownerRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_access_cert_definition_oid_insert_tr BEFORE INSERT ON m_access_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1139,12 +1220,16 @@ CREATE TRIGGER m_access_cert_definition_oid_delete_tr AFTER DELETE ON m_access_c
 CREATE INDEX m_access_cert_definition_nameOrig_idx ON m_access_cert_definition (nameOrig);
 ALTER TABLE m_access_cert_definition
     ADD CONSTRAINT m_access_cert_definition_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_access_cert_definition_subtypes_idx ON m_access_cert_definition USING gin(subtypes);
+CREATE INDEX m_access_cert_definition_policySituation_idx
+    ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
 -- TODO not mapped yet
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED,
+    objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED
+        CHECK (objectType = 'ACCESS_CERTIFICATION_CAMPAIGN'),
     definitionRefTargetOid UUID,
     definitionRefTargetType ObjectType,
     definitionRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1158,7 +1243,7 @@ CREATE TABLE m_access_cert_campaign (
     startTimestamp TIMESTAMPTZ,
     state INTEGER
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_access_cert_campaign_oid_insert_tr BEFORE INSERT ON m_access_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1170,11 +1255,15 @@ CREATE TRIGGER m_access_cert_campaign_oid_delete_tr AFTER DELETE ON m_access_cer
 CREATE INDEX m_access_cert_campaign_nameOrig_idx ON m_access_cert_campaign (nameOrig);
 ALTER TABLE m_access_cert_campaign
     ADD CONSTRAINT m_access_cert_campaign_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_access_cert_campaign_subtypes_idx ON m_access_cert_campaign USING gin(subtypes);
+CREATE INDEX m_access_cert_campaign_policySituation_idx
+    ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
+        CHECK (containerType = 'ACCESS_CERTIFICATION_CASE'),
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason TEXT,
@@ -1213,7 +1302,8 @@ CREATE TABLE m_access_cert_case (
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
     accCertCaseCid INTEGER NOT NULL, -- PK+FK
-    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED
+        CHECK (containerType = 'ACCESS_CERTIFICATION_WORK_ITEM'),
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
     outcome TEXT,
@@ -1267,8 +1357,9 @@ CREATE INDEX iCertWorkItemRefTargetOid ON m_access_cert_wi_reference (targetOid)
 CREATE TABLE m_object_template (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('OBJECT_TEMPLATE') STORED
+        CHECK (objectType = 'OBJECT_TEMPLATE')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_object_template_oid_insert_tr BEFORE INSERT ON m_object_template
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1279,11 +1370,14 @@ CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
 
 CREATE INDEX m_object_template_nameOrig_idx ON m_object_template (nameOrig);
 ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_object_template_subtypes_idx ON m_object_template USING gin(subtypes);
+CREATE INDEX m_object_template_policySituation_idx ON m_object_template USING GIN(policysituations gin__int_ops);
 
 -- stores ObjectTemplateType/includeRef
 CREATE TABLE m_ref_include (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('INCLUDE') STORED
+        CHECK (referenceType = 'INCLUDE'),
 
     PRIMARY KEY (ownerOid, relationId, targetOid)
 )
@@ -1298,8 +1392,9 @@ CREATE INDEX m_ref_includeTargetOidRelationId_idx
 CREATE TABLE m_function_library (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('FUNCTION_LIBRARY') STORED
+        CHECK (objectType = 'FUNCTION_LIBRARY')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_function_library_oid_insert_tr BEFORE INSERT ON m_function_library
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1310,13 +1405,17 @@ CREATE TRIGGER m_function_library_oid_delete_tr AFTER DELETE ON m_function_libra
 
 CREATE INDEX m_function_library_nameOrig_idx ON m_function_library (nameOrig);
 ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_function_library_subtypes_idx ON m_function_library USING gin(subtypes);
+CREATE INDEX m_function_library_policySituation_idx
+    ON m_function_library USING GIN(policysituations gin__int_ops);
 
 -- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
 CREATE TABLE m_sequence (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
+        CHECK (objectType = 'SEQUENCE')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_sequence_oid_insert_tr BEFORE INSERT ON m_sequence
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1327,13 +1426,16 @@ CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
 
 CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_sequence_subtypes_idx ON m_sequence USING gin(subtypes);
+CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING GIN(policysituations gin__int_ops);
 
 -- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
 CREATE TABLE m_form (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('SEQUENCE') STORED
+    objectType ObjectType GENERATED ALWAYS AS ('FORM') STORED
+        CHECK (objectType = 'FORM')
 )
-    INHERITS (m_object);
+    INHERITS (m_assignment_holder);
 
 CREATE TRIGGER m_form_oid_insert_tr BEFORE INSERT ON m_form
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -1344,6 +1446,8 @@ CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
 
 CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_form_subtypes_idx ON m_form USING gin(subtypes);
+CREATE INDEX m_form_policySituation_idx ON m_form USING GIN(policysituations gin__int_ops);
 -- endregion
 
 -- region Assignment/Inducement table
@@ -1422,7 +1526,8 @@ CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefT
 CREATE TABLE m_assignment_ref_create_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED
+        CHECK (referenceType = 'ASSIGNMENT_CREATE_APPROVER'),
 
     PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
 )
@@ -1437,7 +1542,8 @@ ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_cre
 CREATE TABLE m_assignment_ref_modify_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
-    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED
+        CHECK (referenceType = 'ASSIGNMENT_MODIFY_APPROVER'),
 
     PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
 )
@@ -1453,7 +1559,8 @@ ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_mod
 -- stores ObjectType/trigger (TriggerType)
 CREATE TABLE m_trigger (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('TRIGGER') STORED
+        CHECK (containerType = 'TRIGGER'),
     handlerUriId INTEGER REFERENCES m_uri(id),
     timestampValue TIMESTAMPTZ,
 
@@ -1466,7 +1573,8 @@ CREATE INDEX m_trigger_timestampValue_idx ON m_trigger (timestampValue);
 -- stores ObjectType/operationExecution (OperationExecutionType)
 CREATE TABLE m_operation_execution (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED,
+    containerType ContainerType GENERATED ALWAYS AS ('OPERATION_EXECUTION') STORED
+        CHECK (containerType = 'OPERATION_EXECUTION'),
     status OperationResultStatusType,
     recordType OperationExecutionRecordTypeType,
     initiatorRefTargetOid UUID,

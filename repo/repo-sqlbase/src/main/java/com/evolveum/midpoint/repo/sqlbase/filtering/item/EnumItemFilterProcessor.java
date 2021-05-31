@@ -8,10 +8,13 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.Function;
 
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
 
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
@@ -38,5 +41,15 @@ public class EnumItemFilterProcessor<E extends Enum<E>>
     @Override
     public Predicate process(PropertyValueFilter<E> filter) throws QueryException {
         return createBinaryCondition(filter, path, ValueFilterValues.from(filter));
+    }
+
+    @Override
+    protected Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+        if (filter instanceof EqualFilter && filter.getMatchingRule() == null) {
+            return Ops.EQ;
+        } else {
+            throw new QueryException("Can't translate filter '" + filter + "' to operation."
+                    + " Enumeration value supports only equals with no matching rule.");
+        }
     }
 }

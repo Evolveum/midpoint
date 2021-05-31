@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Applies item delta values to an item and arranges necessary SQL changes using update context.
@@ -39,9 +40,14 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
         this.context = context;
     }
 
-    /** Default process implementation, most generic case covering especially multi-values. */
+    /**
+     * Default process implementation, most generic case covering especially multi-values
+     * stored in separate rows.
+     * This works when implementations of {@link #deleteRealValues} and {@link #addRealValues}
+     * are independent, it's not usable for array update where a single `SET` clause is allowed.
+     */
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
+    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         if (modification.isReplace()) {
             setRealValues(modification.getRealValuesToReplace());
             return;
@@ -80,7 +86,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
     }
 
     public void addValues(Collection<T> values) {
-        throw new UnsupportedOperationException("deleteRealValues not implemented");
+        throw new UnsupportedOperationException("addValues not implemented");
     }
 
     /** Adds the provided real values to the database, implements ADD modification. */
@@ -89,7 +95,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
     }
 
     public void deleteValues(Collection<T> values) {
-        throw new UnsupportedOperationException("deleteRealValues not implemented");
+        throw new UnsupportedOperationException("deleteValues not implemented");
     }
 
     /** Resets the database columns or deletes sub-entities like refs, containers, etc. */

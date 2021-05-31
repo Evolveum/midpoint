@@ -76,6 +76,6 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
 
     @Override
     public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        throw new UnsupportedOperationException("insert not implemented in the subclass");
+        throw new UnsupportedOperationException("insert must be implemented in the subclass");
     }
 }

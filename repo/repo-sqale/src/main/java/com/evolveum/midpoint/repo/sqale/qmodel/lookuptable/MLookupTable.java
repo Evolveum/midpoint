@@ -13,5 +13,5 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
  */
 public class MLookupTable extends MObject {
 
-    // TODO if no additional fields are needed (e.g. for rows) replace with MObject
+    // TODO if no additional fields are needed (e.g. for rows) replace with MAssignmentHolder
 }

@@ -28,7 +28,6 @@ public class QShadow extends QObject<MShadow> {
 
     public static final String TABLE_NAME = "m_shadow";
 
-    // TODO
     public static final ColumnMetadata OBJECT_CLASS_ID =
             ColumnMetadata.named("objectClassId").ofType(Types.INTEGER);
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =

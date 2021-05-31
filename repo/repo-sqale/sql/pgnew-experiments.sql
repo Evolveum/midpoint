@@ -86,7 +86,7 @@ SELECT 'resource-' || LPAD(r::text, 10, '0'),
     1
 from generate_series(1, 10) as r;
 
-INSERT INTO m_user (nameNorm, nameOrig, fullobject, ext, policySituations, version)
+INSERT INTO m_user (nameNorm, nameOrig, fullobject, ext, policySituations, subtypes, version)
 SELECT 'user-' || LPAD(r::text, 10, '0'),
     'user-' || LPAD(r::text, 10, '0'),
     random_bytea(100, 2000),
@@ -114,8 +114,13 @@ SELECT 'user-' || LPAD(r::text, 10, '0'),
             random_pick(ARRAY(SELECT a.n FROM generate_series(1, 100) AS a(n)), r % 10 / 100::decimal)
         -- ELSE NULL is default and redundant
         END,
+    CASE
+        WHEN r % 10 < random() * 2 THEN
+            random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo', 'writing', 'gaming'], 0.3)
+        -- ELSE NULL is default and redundant
+        END,
     1
-from generate_series(100001,1000000) as r;
+from generate_series(1, 50000) as r;
 
 EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 select oid, policysituations from m_user

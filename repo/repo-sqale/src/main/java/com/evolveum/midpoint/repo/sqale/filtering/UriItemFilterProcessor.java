@@ -8,10 +8,13 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.function.Function;
 
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberPath;
 
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -37,5 +40,15 @@ public class UriItemFilterProcessor
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter,
                         u -> ((SqaleRepoContext) context.repositoryContext()).searchCachedUriId(u)));
+    }
+
+    @Override
+    protected Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+        if (filter instanceof EqualFilter && filter.getMatchingRule() == null) {
+            return Ops.EQ;
+        } else {
+            throw new QueryException("Can't translate filter '" + filter + "' to operation."
+                    + " URI/QName value supports only equals with no matching rule.");
+        }
     }
 }
