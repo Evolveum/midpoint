@@ -10,7 +10,6 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -49,6 +48,8 @@
                         schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                         schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
+                    schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                         schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"

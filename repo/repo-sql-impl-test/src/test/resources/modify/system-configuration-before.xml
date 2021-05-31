@@ -57,26 +57,22 @@
             <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
         </classLogger>
         <classLogger id="84">
-            <level>OFF</level>
-            <package>net.sf.jasperreports.engine.fill.JRFillDataset</package>
-        </classLogger>
-        <classLogger id="85">
             <level>WARN</level>
             <package>org.apache.wicket.resource.PropertiesFactory</package>
         </classLogger>
-        <classLogger id="86">
+        <classLogger id="85">
             <level>ERROR</level>
             <package>org.springframework.context.support.ResourceBundleMessageSource</package>
         </classLogger>
-        <classLogger id="87">
+        <classLogger id="86">
             <level>INFO</level>
             <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
         </classLogger>
-        <classLogger id="88">
+        <classLogger id="87">
             <level>INFO</level>
             <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
         </classLogger>
-        <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="89" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:FileAppenderConfigurationType">
+        <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="88" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:FileAppenderConfigurationType">
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
             <name>MIDPOINT_LOG</name>
             <fileName>${midpoint.home}/log/midpoint.log</fileName>
@@ -85,7 +81,7 @@
             <maxFileSize>100MB</maxFileSize>
             <append>true</append>
         </appender>
-        <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="90" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:FileAppenderConfigurationType">
+        <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="89" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:FileAppenderConfigurationType">
             <pattern>%date %level: %msg%n</pattern>
             <name>MIDPOINT_PROFILE_LOG</name>
             <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
@@ -111,7 +107,7 @@
     </cleanupPolicy>
     <internals>
         <tracing>
-            <profile id="91">
+            <profile id="90">
                 <name>performance</name>
                 <displayName>Performance tracing</displayName>
                 <visible>true</visible>
@@ -120,7 +116,7 @@
                 <createRepoObject>true</createRepoObject>
                 <compressOutput>true</compressOutput>
             </profile>
-            <profile id="92">
+            <profile id="91">
                 <name>functional</name>
                 <displayName>Functional tracing</displayName>
                 <visible>true</visible>
@@ -128,11 +124,11 @@
                 <createRepoObject>true</createRepoObject>
                 <compressOutput>true</compressOutput>
                 <collectLogEntries>true</collectLogEntries>
-                <tracingTypeProfile id="95">
+                <tracingTypeProfile id="94">
                     <level>normal</level>
                 </tracingTypeProfile>
             </profile>
-            <profile id="93">
+            <profile id="92">
                 <name>functional-model-logging</name>
                 <displayName>Functional tracing (with model logging)</displayName>
                 <visible>true</visible>
@@ -141,16 +137,16 @@
                 <compressOutput>true</compressOutput>
                 <collectLogEntries>true</collectLogEntries>
                 <loggingOverride>
-                    <levelOverride id="96">
+                    <levelOverride id="95">
                         <logger>com.evolveum.midpoint.model</logger>
                         <level>TRACE</level>
                     </levelOverride>
                 </loggingOverride>
-                <tracingTypeProfile id="97">
+                <tracingTypeProfile id="96">
                     <level>normal</level>
                 </tracingTypeProfile>
             </profile>
-            <profile id="94">
+            <profile id="93">
                 <name>functional-sql-logging</name>
                 <displayName>Functional tracing (with SQL logging)</displayName>
                 <visible>true</visible>
@@ -159,19 +155,19 @@
                 <compressOutput>true</compressOutput>
                 <collectLogEntries>true</collectLogEntries>
                 <loggingOverride>
-                    <levelOverride id="98">
+                    <levelOverride id="97">
                         <logger>org.hibernate.SQL</logger>
                         <level>TRACE</level>
                     </levelOverride>
                 </loggingOverride>
-                <tracingTypeProfile id="99">
+                <tracingTypeProfile id="98">
                     <level>normal</level>
                 </tracingTypeProfile>
             </profile>
         </tracing>
     </internals>
     <adminGuiConfiguration>
-        <userDashboardLink id="100">
+        <userDashboardLink id="99">
             <targetUrl>/self/profile</targetUrl>
             <label>Profile</label>
             <description>View/edit your profile</description>
@@ -182,7 +178,7 @@
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
-        <userDashboardLink id="101">
+        <userDashboardLink id="100">
             <targetUrl>/self/credentials</targetUrl>
             <label>Credentials</label>
             <description>View/edit your credentials</description>
@@ -193,7 +189,7 @@
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
-        <userDashboardLink id="102">
+        <userDashboardLink id="101">
             <targetUrl>/admin/users</targetUrl>
             <label>List users</label>
             <icon>
@@ -202,7 +198,7 @@
             <color>red</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
         </userDashboardLink>
-        <userDashboardLink id="103">
+        <userDashboardLink id="102">
             <targetUrl>/admin/resources</targetUrl>
             <label>List resources</label>
             <icon>
@@ -212,7 +208,7 @@
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
         <objectCollectionViews>
-            <objectCollectionView id="104">
+            <objectCollectionView id="103">
                 <identifier>my-cases</identifier>
                 <display>
                     <label>My cases</label>
@@ -230,7 +226,7 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="105">
+            <objectCollectionView id="104">
                 <identifier>manual-case-view</identifier>
                 <display>
                     <label>Manual cases</label>
@@ -246,7 +242,7 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="106">
+            <objectCollectionView id="105">
                 <identifier>operation-request-case-view</identifier>
                 <display>
                     <label>Requests</label>
@@ -262,7 +258,7 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="107">
+            <objectCollectionView id="106">
                 <identifier>approval-case-view</identifier>
                 <display>
                     <label>Approvals</label>
@@ -278,7 +274,7 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="78">
+            <objectCollectionView id="77">
                 <identifier>recon-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
@@ -290,74 +286,74 @@
             </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
-            <objectDetailsPage id="108">
+            <objectDetailsPage id="107">
                 <type>c:TaskType</type>
-                <container id="109">
+                <container id="108">
                     <display>
                         <label>Advanced options</label>
                     </display>
                     <displayOrder>150</displayOrder>
-                    <item id="112">
+                    <item id="111">
                         <c:path xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">extension/mext:workerThreads</c:path>
                     </item>
-                    <item id="113">
+                    <item id="112">
                         <c:path>cleanupAfterCompletion</c:path>
                     </item>
-                    <item id="114">
+                    <item id="113">
                         <c:path>threadStopAction</c:path>
                     </item>
-                    <item id="115">
+                    <item id="114">
                         <c:path>binding</c:path>
                     </item>
                 </container>
-                <container id="110">
+                <container id="109">
                     <display>
                         <label>Operational attributes (state)</label>
                     </display>
                     <displayOrder>900</displayOrder>
-                    <item id="116">
+                    <item id="115">
                         <c:path>executionStatus</c:path>
                     </item>
-                    <item id="117">
+                    <item id="116">
                         <c:path>unpauseAction</c:path>
                     </item>
-                    <item id="118">
+                    <item id="117">
                         <c:path>taskIdentifier</c:path>
                     </item>
-                    <item id="119">
+                    <item id="118">
                         <c:path>parent</c:path>
                     </item>
-                    <item id="120">
+                    <item id="119">
                         <c:path>waitingReason</c:path>
                     </item>
-                    <item id="121">
+                    <item id="120">
                         <c:path>stateBeforeSuspend</c:path>
                     </item>
-                    <item id="122">
+                    <item id="121">
                         <c:path>category</c:path>
                     </item>
-                    <item id="123">
+                    <item id="122">
                         <c:path>handlerUri</c:path>
                     </item>
-                    <item id="124">
+                    <item id="123">
                         <c:path>lastRunStartTimestamp</c:path>
                     </item>
-                    <item id="125">
+                    <item id="124">
                         <c:path>lastRunFinishTimestamp</c:path>
                     </item>
-                    <item id="126">
+                    <item id="125">
                         <c:path>completionTimestamp</c:path>
                     </item>
                 </container>
-                <container id="111">
+                <container id="110">
                     <display>
                         <label>Operational attributes (progress)</label>
                     </display>
                     <displayOrder>910</displayOrder>
-                    <item id="127">
+                    <item id="126">
                         <c:path>progress</c:path>
                     </item>
-                    <item id="128">
+                    <item id="127">
                         <c:path>stalledSince</c:path>
                     </item>
                 </container>
@@ -365,7 +361,7 @@
         </objectDetails>
     </adminGuiConfiguration>
     <expressions>
-        <expressionProfile id="129">
+        <expressionProfile id="128">
             <identifier>safe</identifier>
             <description>
                 "Safe" expression profile. It is supposed to contain only operations that are "safe",
@@ -376,26 +372,26 @@
                 without any guarantees. Use at your own risk.
             </description>
             <decision>deny</decision>
-            <evaluator id="130">
+            <evaluator id="129">
                 <type>asIs</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="131">
+            <evaluator id="130">
                 <type>path</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="132">
+            <evaluator id="131">
                 <type>value</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="133">
+            <evaluator id="132">
                 <type>const</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="134">
+            <evaluator id="133">
                 <type>script</type>
                 <decision>deny</decision>
-                <script id="135">
+                <script id="134">
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                     <decision>allow</decision>
                     <typeChecking>true</typeChecking>
@@ -403,55 +399,64 @@
                 </script>
             </evaluator>
         </expressionProfile>
-        <permissionProfile id="136">
+        <permissionProfile id="135">
             <identifier>script-safe</identifier>
             <decision>deny</decision>
-            <package id="137">
+            <package id="136">
                 <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
                 <description>MidPoint common schema - generated bean classes</description>
                 <decision>allow</decision>
             </package>
-            <package id="138">
+            <package id="137">
                 <name>com.evolveum.prism.xml.ns._public.types_3</name>
                 <description>Prism schema - bean classes</description>
                 <decision>allow</decision>
             </package>
-            <class id="139">
+            <class id="138">
                 <name>java.lang.Integer</name>
                 <decision>allow</decision>
             </class>
-            <class id="140">
+            <class id="139">
                 <name>java.lang.Object</name>
                 <description>Basic Java operations.</description>
                 <decision>deny</decision>
-                <method id="158">
+                <method id="157">
                     <name>equals</name>
                     <decision>allow</decision>
                 </method>
-                <method id="159">
+                <method id="158">
                     <name>hashCode</name>
                     <decision>allow</decision>
                 </method>
             </class>
-            <class id="141">
+            <class id="140">
                 <name>java.lang.String</name>
                 <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method id="159">
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
+            </class>
+            <class id="141">
+                <name>java.lang.CharSequence</name>
+                <decision>allow</decision>
+            </class>
+            <class id="142">
+                <name>java.lang.Enum</name>
+                <decision>allow</decision>
+            </class>
+            <class id="143">
+                <name>java.util.List</name>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
                 <decision>allow</decision>
                 <method id="160">
                     <name>execute</name>
                     <decision>deny</decision>
                 </method>
             </class>
-            <class id="142">
-                <name>java.lang.CharSequence</name>
-                <decision>allow</decision>
-            </class>
-            <class id="143">
-                <name>java.lang.Enum</name>
-                <decision>allow</decision>
-            </class>
             <class id="144">
-                <name>java.util.List</name>
+                <name>java.util.ArrayList</name>
                 <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
                 <decision>allow</decision>
                 <method id="161">
@@ -460,69 +465,60 @@
                 </method>
             </class>
             <class id="145">
-                <name>java.util.ArrayList</name>
-                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                <decision>allow</decision>
-                <method id="162">
-                    <name>execute</name>
-                    <decision>deny</decision>
-                </method>
-            </class>
-            <class id="146">
                 <name>java.util.Map</name>
                 <decision>allow</decision>
             </class>
-            <class id="147">
+            <class id="146">
                 <name>java.util.HashMap</name>
                 <decision>allow</decision>
             </class>
-            <class id="148">
+            <class id="147">
                 <name>java.util.Date</name>
                 <decision>allow</decision>
             </class>
-            <class id="149">
+            <class id="148">
                 <name>javax.xml.namespace.QName</name>
                 <decision>allow</decision>
             </class>
-            <class id="150">
+            <class id="149">
                 <name>javax.xml.datatype.XMLGregorianCalendar</name>
                 <decision>allow</decision>
             </class>
-            <class id="151">
+            <class id="150">
                 <name>java.lang.System</name>
                 <description>Just a few methods of System are safe enough.</description>
                 <decision>deny</decision>
-                <method id="163">
+                <method id="162">
                     <name>currentTimeMillis</name>
                     <decision>allow</decision>
                 </method>
             </class>
-            <class id="152">
+            <class id="151">
                 <name>java.lang.IllegalStateException</name>
                 <description>Basic Java exception. Also used in test.</description>
                 <decision>allow</decision>
             </class>
-            <class id="153">
+            <class id="152">
                 <name>java.lang.IllegalArgumentException</name>
                 <description>Basic Java exception.</description>
                 <decision>allow</decision>
             </class>
-            <class id="154">
+            <class id="153">
                 <name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
                 <description>MidPoint basic functions library</description>
                 <decision>allow</decision>
             </class>
-            <class id="155">
+            <class id="154">
                 <name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
                 <description>MidPoint logging functions library</description>
                 <decision>allow</decision>
             </class>
-            <class id="156">
+            <class id="155">
                 <name>com.evolveum.midpoint.report.impl.ReportFunctions</name>
                 <description>MidPoint report functions library</description>
                 <decision>allow</decision>
             </class>
-            <class id="157">
+            <class id="156">
                 <name>org.apache.commons.lang.StringUtils</name>
                 <description>Apache Commons: Strings</description>
                 <decision>allow</decision>

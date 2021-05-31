@@ -8,16 +8,23 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -59,6 +66,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
             }
         });
         checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        checkPanel.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
 
         checkPanel.setOutputMarkupId(true);
         searchItemContainer.add(checkPanel);
@@ -75,10 +83,18 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
             IModel<List<DisplayableValue<?>>> choices = null;
             switch (inputType) {
                 case REFERENCE:
-                    getModelObject().setInput(new SearchValue<>(new ObjectReferenceType()));
+                    SearchFilterParameterType parameter = getModelObject().getPredefinedFilter().getParameter();
+                    MutablePrismReferenceDefinition def = null;
+                    if (parameter != null) {
+                        Class<?> clazz = getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
+                        QName type = getPrismContext().getSchemaRegistry().determineTypeForClass(clazz);
+                        def = getPrismContext().definitionFactory().createReferenceDefinition(
+                                new QName(parameter.getName()), type);
+                        def.setTargetTypeName(parameter.getTargetType());
+                    }
                     inputPanel = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                             new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
-                            null){
+                            def){
                         @Override
                         protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
                             searchPerformed(target);
@@ -94,7 +110,8 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                                 createEnumChoices((Class<? extends Enum>) inputClass) : Model.ofList(getModelObject().getAllowedValues(getPageBase()));
                     }
                     if (choices != null) {
-                        inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices, false);
+                        inputPanel = WebComponentUtil.createDropDownChoices(
+                                ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), FilterSearchItem.F_INPUT), (IModel)choices, true, getPageBase());
                         ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
                             @Override
                             protected void onUpdate(AjaxRequestTarget target) {

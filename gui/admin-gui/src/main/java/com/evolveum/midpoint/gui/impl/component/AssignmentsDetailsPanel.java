@@ -232,7 +232,8 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                         PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_ACTIVATION), ActivationType.COMPLEX_TYPE) {
 
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                        ItemPath itemPath = itemWrapper.getPath();
                         if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(itemPath.namedSegmentsOnly())) {
                             return ItemVisibility.HIDDEN;
                         }
@@ -249,7 +250,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                             return ItemVisibility.HIDDEN;
                         }
 
-                        return super.getVisibility(itemPath);
+                        return super.getVisibility(itemWrapper);
                     }
                 };
             }
@@ -264,9 +265,10 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                 return new SingleContainerPanel<>(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONDITION), MappingType.COMPLEX_TYPE) {
 
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
                         ItemPath assignmentConditionExpressionPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONDITION, MappingType.F_EXPRESSION);
                         ItemPath inducementConditionExpressionPath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONDITION, MappingType.F_EXPRESSION);
+                        ItemPath itemPath = itemWrapper.getPath();
                         if (itemPath.namedSegmentsOnly().equivalent(assignmentConditionExpressionPath) || itemPath.namedSegmentsOnly().equivalent(inducementConditionExpressionPath)) {
                             return ItemVisibility.AUTO;
                         } else {

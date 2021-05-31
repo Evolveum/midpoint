@@ -157,30 +157,6 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
         return Model.ofList(list);
     }
 
-    protected DropDownChoicePanel createDropDownChoices(String id, IModel<Object> model, IModel<List<DisplayableValue<?>>> choices, boolean allowNull) {
-        return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Object getDisplayValue(DisplayableValue val) {
-                if (val.getValue() instanceof Enum) {
-                    return getPageBase().createStringResource((Enum<?>) val.getValue()).getString();
-                }
-                return getPageBase().createStringResource(val.getLabel()).getString();
-            }
-
-            @Override
-            public String getIdValue(DisplayableValue val, int index) {
-                return Integer.toString(index);
-            }
-
-            @Override
-            public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-            }
-        }, allowNull);
-    }
-
     protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, LookupTableType lookupTable) {
         AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<String>(id, model, String.class,
                 true, lookupTable) {

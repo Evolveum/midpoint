@@ -271,7 +271,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         form.add(oidItem);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isCanConfigure()));
+        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible()));
         form.add(moreGroup);
 
         AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
@@ -345,6 +345,16 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                     Search search = getModelObject();
                     PrismContext ctx = getPageBase().getPrismContext();
                     return search.isAdvancedQueryValid(ctx);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                if (search.getAllowedSearchType().size() == 1
+                        && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
+                    return !search.getItems().isEmpty() || !search.getAvailableDefinitions().isEmpty();
                 }
                 return true;
             }

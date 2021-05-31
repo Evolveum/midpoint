@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,7 +206,7 @@ public class CollectionProcessor {
 
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
-        Class<O> targetClass = collectionView.getTargetClass();
+        Class<O> targetClass = collectionView.getTargetClass(prismContext);
         stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
         stats.setDomainCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getDomainFilter(), result, task), collectionView.getDomainOptions(), task, result));
         return stats;
@@ -232,7 +234,7 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
-        if (collectionRef != null) {
+        if (collectionRef != null && collectionRef.getOid() != null) {
             QName collectionRefType = collectionRef.getType();
 
             // TODO: support more cases
@@ -409,7 +411,7 @@ public class CollectionProcessor {
             return;
         }
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
-        targetTypeClass = existingView.getTargetClass();
+        targetTypeClass = existingView.getTargetClass(prismContext);
         if (targetTypeClass == null) {
             throw new IllegalArgumentException("UndefinedTypeForCollection type: " + baseCollectionRef);
         }
@@ -443,11 +445,12 @@ public class CollectionProcessor {
             compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
             compileSearchBox(existingView, objectListViewType, replaceIfExist);
             compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
+            compilePaging(existingView, objectListViewType, replaceIfExist);
         }
     }
 
     @Nullable
-    public ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+    private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         VariablesMap variables = new VariablesMap();      // do we want to put any variables here?
@@ -588,6 +591,18 @@ public class CollectionProcessor {
                 }
             }
             existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        }
+    }
+
+    private void compilePaging(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        PagingType newPaging = objectListViewType.getPaging();
+        if (newPaging == null) {
+            return;
+        }
+        if (existingView.getPaging() == null) {
+            existingView.setPaging(newPaging);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
         }
     }
 }

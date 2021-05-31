@@ -148,9 +148,9 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
                 return new SingleContainerPanel<CollectionRefSpecificationType>(panelId, createModel(getObjectModel(), ObjectCollectionType.F_BASE_COLLECTION),
                         CollectionRefSpecificationType.COMPLEX_TYPE) {
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
                         if (ItemPath.create(ObjectCollectionType.F_BASE_COLLECTION, CollectionRefSpecificationType.F_BASE_COLLECTION_REF)
-                                .isSuperPathOrEquivalent(itemPath)) {
+                                .isSuperPathOrEquivalent(itemWrapper.getPath())) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;

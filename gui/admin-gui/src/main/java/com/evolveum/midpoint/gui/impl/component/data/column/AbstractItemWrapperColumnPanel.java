@@ -18,6 +18,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -89,10 +90,22 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
             case VALUE:
                 item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
                 break;
+            case EXISTENCE_OF_VALUE:
+                IModel labelModel = Model.of("");
+                if (existenceOfValue(item.getModelObject())) {
+                    labelModel = getPageBase().createStringResource("AbstractItemWrapperColumnPanel.existValue");
+                }
+                Label existence = new Label(ID_VALUE, labelModel);
+                item.add(existence);
+                break;
         }
     }
 
     protected abstract String createLabel(VW object);
     protected abstract Panel createLink(String id, IModel<VW> object);
     protected abstract Panel createValuePanel(String id, IModel<IW> model, VW object);
+    protected boolean existenceOfValue(VW object) {
+        Object realValue = object.getRealValue();
+        return realValue != null;
+    }
 }

@@ -7,11 +7,12 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.*;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -216,19 +217,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         if (collection != null && (collection.getFilter() != null || collectionRef.getFilter() != null)) {
             try {
                 ObjectPaging paging = getPrismContext().queryFactory().createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
-                AuditResultHandler handler = new AuditResultHandler() {
-                    @Override
-                    public boolean handle(AuditEventRecordType auditRecord) {
-                        auditRecordList.add(auditRecord);
-                        return true;
-                    }
-
-                    @Override
-                    public int getProgress() {
-                        return 0;
-                    }
-                };
-                getPageBase().getDashboardService().searchObjectFromCollection(collectionRef, handler, paging, task, task.getResult(), false);
+                auditRecordList.addAll((Collection<? extends AuditEventRecordType>) getPageBase().getModelInteractionService().searchObjectsFromCollection(collectionRef, AuditEventRecordType.COMPLEX_TYPE,
+                        null, paging, null, task, task.getResult()));
             } catch (Exception e) {
                 result.recordFatalError(
                         getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);

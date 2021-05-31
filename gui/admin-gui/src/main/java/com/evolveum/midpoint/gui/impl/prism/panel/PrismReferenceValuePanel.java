@@ -118,7 +118,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
     }
 
     @Override
-    protected void removeValue(PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+    protected void remove(PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target) throws SchemaException {
         throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
 }

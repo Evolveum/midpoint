@@ -165,12 +165,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
                 Collections.singletonList(ObjectFactory.class.getPackage()));
 
-        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-3.wsdl",
-                Collections.singletonList(com.evolveum.midpoint.xml.ns._public.report.report_3.ObjectFactory.class.getPackage()));
-
-//        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-3.wsdl",
-//                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_3.ObjectFactory.class.getPackage()));
-
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-3.xsd", "ra");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-3.xsd", "cap",

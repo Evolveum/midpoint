@@ -38,15 +38,6 @@ public interface DashboardService {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException;
 
-    void searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, ResultHandler<ObjectType> handler,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
-
-    void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, AuditResultHandler handler,
-            ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException;
-
     ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 

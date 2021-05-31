@@ -388,7 +388,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         };
 
         opButtonPanel.setOutputMarkupId(true);
-        opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+        opButtonPanel.add(new VisibleBehaviour(() -> isOperationalButtonsVisible() && opButtonPanel.buttonsExist()));
 
         AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
             private static final long serialVersionUID = 1L;
@@ -407,6 +407,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         opButtonPanel.add(behavior);
 
         add(opButtonPanel);
+    }
+
+    protected Boolean isOperationalButtonsVisible() {
+        return isEditingFocus();
     }
 
     public boolean isRefreshEnabled() {

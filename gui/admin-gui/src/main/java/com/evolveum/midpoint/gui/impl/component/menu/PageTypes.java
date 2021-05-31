@@ -12,6 +12,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -35,7 +37,8 @@ public enum PageTypes {
     ORG("orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgs.class, PageOrgUnit.class, OrgType.COMPLEX_TYPE),
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class, TaskType.COMPLEX_TYPE),
     RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResourceWizard.class, ResourceType.COMPLEX_TYPE),
-    CASE("cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class, null, CaseType.COMPLEX_TYPE);
+    CASE("cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class, null, CaseType.COMPLEX_TYPE),
+    REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports .class, PageReport.class, ReportType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;
