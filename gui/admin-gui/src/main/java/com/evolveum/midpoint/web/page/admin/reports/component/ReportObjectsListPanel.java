@@ -75,8 +75,15 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             Task task = getPageBase().createSimpleTask("create compiled view");
             view = getPageBase().getReportManager().createCompiledView(getReport().getObjectCollection(), true, task, task.getResult());
         } catch (Exception e) {
-            LOGGER.error("Couldn't create compiled view for report " + getReport(), e);
+            LOGGER.debug("Couldn't create compiled view for report " + getReport(), e);
         }
+        if (checkViewAfterInicialize()) {
+            checkView();
+        }
+    }
+
+    protected boolean checkViewAfterInicialize() {
+        return false;
     }
 
     private ReportType getReport() {

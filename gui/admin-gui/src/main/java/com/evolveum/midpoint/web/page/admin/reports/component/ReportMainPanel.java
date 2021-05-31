@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -169,6 +170,12 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
             public WebMarkupContainer createPanel(String panelId) {
                 return new EngineReportTabPanel(panelId, getObjectModel());
             }
+
+            @Override
+            public boolean isVisible() {
+                return hasDefinitionFor(ReportType.F_OBJECT_COLLECTION)
+                        || hasDefinitionFor(ReportType.F_DASHBOARD) ;
+            }
         });
         tabs.addAll(createTabsForCollectionReports());
         tabs.addAll(createTabsForDashboardReports());
@@ -195,19 +202,8 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
         return tabs;
     }
 
-    private List<ITab> createTabs() {
-
-        if (WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value())) {
-            return createTabsForCollectionReports();
-        } else if (WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value())) {
-            return createTabsForDashboardReports();
-        }
-        warn(getPageBase().createStringResource("PageReport.message.selectTypeOfReport").getString());
-        return Collections.EMPTY_LIST;
-    }
-
-    private ReportType getReport() {
-        return getObjectModel().getObject().getObject().asObjectable();
+    private boolean hasDefinitionFor(ItemPath path){
+        return getObjectModel().getObject().findItemDefinition(path) != null;
     }
 
     private List<ITab> createTabsForDashboardReports() {
@@ -223,7 +219,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value());
+                return hasDefinitionFor(ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_VIEW));
             }
         });
 
@@ -243,7 +239,10 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value());
+                if (hasDefinitionFor(ReportType.F_OBJECT_COLLECTION)) {
+
+                }
+                return false;
             }
         });
 
@@ -266,7 +265,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value());
+                return hasDefinitionFor(ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_VIEW));
             }
         });
 
@@ -279,7 +278,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value());
+                return hasDefinitionFor(ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_PARAMETER));
             }
         });
 
@@ -292,7 +291,7 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public boolean isVisible() {
-                return WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value());
+                return hasDefinitionFor(ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_SUBREPORT));
             }
         });
 

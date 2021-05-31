@@ -84,4 +84,16 @@ class ValueResolutionContext extends ResolutionContext {
     boolean isNull() {
         return false;
     }
+
+    public static ResolutionContext fromRealValue(Object variableValue, String contextDescription, PrismContext prismContext) {
+        PrismValue prismValue;
+        if (variableValue instanceof Referencable){
+            prismValue = ((Referencable) variableValue).asReferenceValue();
+        } else if (variableValue instanceof Containerable){
+            prismValue = ((Containerable) variableValue).asPrismContainerValue();
+        } else {
+            prismValue = prismContext.itemFactory().createPropertyValue(variableValue);
+        }
+        return new ValueResolutionContext(prismValue, contextDescription);
+    }
 }

@@ -13,9 +13,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.ObjectBasicPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -32,9 +33,10 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
 
     @Override
     protected void initLayout() {
-
-        if (WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value())) {
-            add(new SingleContainerPanel(ID_PANEL, PrismContainerWrapperModel.fromContainerWrapper(
+        RepeatingView panel = new RepeatingView(ID_PANEL);
+        add(panel);
+        if (hasDefinition(ReportType.F_DASHBOARD)) {
+            panel.add(new SingleContainerPanel(panel.newChildId(), PrismContainerWrapperModel.fromContainerWrapper(
                     getModel(), ItemPath.create(ReportType.F_DASHBOARD)), DashboardReportEngineConfigurationType.COMPLEX_TYPE) {
                 @Override
                 protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
@@ -45,8 +47,9 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
                     return super.getVisibility(itemWrapper);
                 }
             });
-        } else if(WebComponentUtil.hasArchetypeAssignment(getReport(), SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value())) {
-            add(new SingleContainerPanel(ID_PANEL, PrismContainerWrapperModel.fromContainerWrapper(
+        }
+        if(hasDefinition(ReportType.F_OBJECT_COLLECTION)) {
+            panel.add(new SingleContainerPanel(panel.newChildId(), PrismContainerWrapperModel.fromContainerWrapper(
                     getModel(), ItemPath.create(ReportType.F_OBJECT_COLLECTION)), ObjectCollectionReportEngineConfigurationType.COMPLEX_TYPE) {
                 @Override
                 protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
@@ -57,13 +60,10 @@ public class EngineReportTabPanel extends ObjectBasicPanel<ReportType> {
                     return super.getVisibility(itemWrapper);
                 }
             });
-        } else {
-            warn(getPageBase().createStringResource("PageReport.message.selectTypeOfReport").getString());
-            add(new WebMarkupContainer(ID_PANEL));
         }
     }
 
-    private ReportType getReport() {
-        return getModelObject().getObject().asObjectable();
+    private boolean hasDefinition(ItemPath path){
+        return getModelObject().findItemDefinition(path) != null;
     }
 }

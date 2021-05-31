@@ -21,6 +21,15 @@ public class TestCsvReportSafe extends TestCsvReport{
         return SYSTEM_CONFIGURATION_SAFE_FILE;
     }
 
+    @Test( expectedExceptions = { AssertionError.class }, priority = 102)
+    public void test102CreateAuditCollectionReportWithView() throws Exception {
+        super.test102CreateAuditCollectionReportWithView();
+    }
+    @Test( expectedExceptions = { AssertionError.class }, priority = 103)
+    public void test103CreateAuditCollectionReportWithDoubleView() throws Exception {
+        super.test103CreateAuditCollectionReportWithDoubleView();
+    }
+
     @Test( expectedExceptions = { AssertionError.class }, priority = 200)
     public void test200ImportReportForUser() throws Exception {
         super.test200ImportReportForUser();
