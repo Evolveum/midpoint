@@ -1972,7 +1972,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             task.setExpectedTotal(count);
         }
         if (AuditEventRecordType.class.equals(type)) {
-            checkOrdering(query, AuditEventRecordType.F_TIMESTAMP);
+            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
             @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
