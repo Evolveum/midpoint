@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -52,6 +52,12 @@ public class LoggingConfigurationManager {
 
     public static void configure(LoggingConfigurationType config, String version,
             MidpointConfiguration midpointConfiguration, OperationResult result) throws SchemaException {
+
+        if (java.util.Objects.equals(currentlyUsedVersion, version)) {
+            LOGGER.debug("Skipped logging configuration because the same version {}"
+                    + " is already configured", version);
+            return;
+        }
 
         OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName() + ".configure");
 
