@@ -221,11 +221,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return new SqaleItemSqlMapper<>(
                 ctx -> new ArrayPathItemFilterProcessor<String, String>(
                         ctx, rootToQueryItem, "TEXT", String.class, null),
-                ctx -> null); // TODO
+                ctx -> new ArrayItemDeltaProcessor<String, String>(
+                        ctx, rootToQueryItem, String.class, null));
     }
 
     /**
-     * Returns the mapper creating integer multi-value filter/delta processors from context.
+     * Returns the mapper creating cached URI multi-value filter/delta processors from context.
      *
      * @param <MS> mapped schema type, see javadoc in {@link QueryTableMapping}
      */
@@ -235,7 +236,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ctx -> new ArrayPathItemFilterProcessor<>(
                         ctx, rootToQueryItem, "INTEGER", Integer.class,
                         ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
-                ctx -> null); // TODO
+                ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
+                        ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
     }
 
     @Override

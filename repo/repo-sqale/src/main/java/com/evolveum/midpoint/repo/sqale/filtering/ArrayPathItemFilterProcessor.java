@@ -27,6 +27,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Filter processor for multi-value property represented by single array column.
  * These paths support only value equality (of any value), which is "contains" in DB terminology.
  * Our filter "contains" (meaning substring) is *not* supported.
+ *
+ * @param <T> type of value in schema
+ * @param <E> type of element in DB (can be the same like `T`)
  */
 public class ArrayPathItemFilterProcessor<T, E>
         extends SinglePathItemFilterProcessor<T, ArrayPath<E[], E>> {
@@ -39,6 +42,8 @@ public class ArrayPathItemFilterProcessor<T, E>
      * Creates filter processor for array column.
      *
      * @param dbType name of the type for element in DB (without []) for the cast part of the condition
+     * @param elementType class of {@link E} necessary for array creation
+     * @param conversionFunction optional conversion function, can be null if no conversion is necessary
      */
     public <Q extends FlexibleRelationalPathBase<R>, R> ArrayPathItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,

@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.Checks;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -415,9 +416,20 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
         }
     }
 
+    @Override
+    public void applyDefinition(PrismContainerDefinition<ShadowAttributesType> definition, boolean force)
+            throws SchemaException {
+        if (definition != null) {
+            Checks.checkSchema(definition instanceof ResourceAttributeContainerDefinition, "Definition should be %s not %s" ,
+                    ResourceAttributeContainerDefinition.class.getSimpleName(), definition.getClass().getName());
+        }
+        super.applyDefinition(definition, force);
+    }
+
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "RAC";
     }

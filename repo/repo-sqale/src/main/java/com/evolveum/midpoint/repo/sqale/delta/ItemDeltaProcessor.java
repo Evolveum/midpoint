@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.delta;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Essential contract for processing item delta modifications.
@@ -16,5 +17,5 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
  */
 public interface ItemDeltaProcessor {
 
-    void process(ItemDelta<?, ?> modification) throws RepositoryException;
+    void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException;
 }
