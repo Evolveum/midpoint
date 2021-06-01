@@ -33,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * @author honchar
  */
@@ -115,6 +117,9 @@ public class FilterSearchItem extends SearchItem {
         }
         if (ItemPathType.class.isAssignableFrom(clazz)) {
             return Type.ITEM_PATH;
+        }
+        if (XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
+            return Type.DATE;
         }
         return Type.TEXT;
     }

@@ -45,6 +45,24 @@
             <name>deltaColumn</name>
             <path>delta</path>
             <previousColumn>messageColumn</previousColumn>
+            <export>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.schema.DeltaConvertor;
+                            import com.evolveum.midpoint.report.impl.ReportUtils;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+
+                            ret = new ArrayList();
+                            for (ObjectDeltaOperationType deltaType : input) {
+                                delta = DeltaConvertor.createObjectDeltaOperation(deltaType, prismContext);
+                                ret.add(ReportUtils.printDelta(delta));
+                            }
+                            return ret
+                        </code>
+                    </script>
+                </expression>
+            </export>
         </column>
     </defaultView>
 </objectCollection>

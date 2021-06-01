@@ -120,9 +120,23 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                         });
                         break;
                     }
+                case DATE:
+                    inputPanel = new DateSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE)){
+                        @Override
+                        public void searchPerformed(AjaxRequestTarget target) {
+                            SearchFilterPanel.this.searchPerformed(target);
+                        }
+                    };
+                    break;
                 case ITEM_PATH:
                     inputPanel = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
+                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE)){
+                        @Override
+                        public void searchPerformed(AjaxRequestTarget target) {
+                            SearchFilterPanel.this.searchPerformed(target);
+                        }
+                    };
                     break;
                 case TEXT:
                     LookupTableType lookupTable = getModelObject().getLookupTable(getPageBase());
