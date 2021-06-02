@@ -8,11 +8,13 @@
 :page-upkeep-status: yellow
 
 MidPoint logging is usually configured using the administration GUI.
-But sometimes there is a need to log events that happen before logging can be configured.
-Also the logging configuration is stored in midPoint repository (database).
-Therefore it can only be applied if basic system infrastructure and wiki:Repository+Subsystem[repository subsystem] is initialized.
-This page describes a method how to log events that happen before that.
-E.g. how to diagnose issues with low-level system initialization, database initialization, etc.
+This logging configuration is stored in the midPoint repository (database) so it can only be
+applied after basic system infrastructure and wiki:Repository+Subsystem[repository subsystem] is initialized.
+Many events are logged before that happens and these are logged using built-in logging configuration.
+
+This initial logging setup may be insufficient for troubleshooting purposes,
+but there are ways how to adjust it when the need arises.
+This way it's possible to diagnose issues with low-level system initialization, database initialization, etc.
 
 The trick is to put `logback.xml` file in wiki:MidPoint+Home+Directory[MidPoint Home Directory]. This file will be applied during very early phases of system initialization.
 The default initial logging configuration will be *replaced* with the content of this file.
@@ -49,7 +51,8 @@ Therefore there is a config.xml setting that forces midPoint to skip the applica
 </configuration>
 ----
 
+// TODO -DmidpointPrintSensitiveValues
 
 == See Also
 
-* wiki:MidPoint+Home+Directory[MidPoint Home Directory]
+* xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]
