@@ -59,7 +59,10 @@ public class StartupConfiguration implements MidpointConfiguration {
             "jdbcPassword",
             "keyStorePassword"
     );
-    public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
+    private static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
+    // For troubleshooting, enables like this: -DmidpointPrintSensitiveValues
+    private static final boolean PRINT_SENSITIVE_VALUES =
+            System.getProperty("midpointPrintSensitiveValues") != null;
 
     private boolean silent = false;
 
@@ -129,7 +132,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                LOGGER.debug("    {} = {}", key, valuePrintout(key, sub.getString(key)));
+                LOGGER.debug("    {} = '{}'", key, valuePrintout(key, sub.getString(key)));
             }
         }
     }
@@ -308,7 +311,8 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Returns provided value for printing or string replacement for sensitive values (passwords).
      */
     private String valuePrintout(String key, Object value) {
-        return SENSITIVE_CONFIGURATION_VARIABLES.stream().noneMatch(s -> key.contains(s))
+        return PRINT_SENSITIVE_VALUES
+                || SENSITIVE_CONFIGURATION_VARIABLES.stream().noneMatch(s -> key.contains(s))
                 ? String.valueOf(value)
                 : SENSITIVE_VALUE_OUTPUT;
     }
@@ -402,9 +406,9 @@ public class StartupConfiguration implements MidpointConfiguration {
         while (i.hasNext()) {
             String key = i.next();
             sb.append(key);
-            sb.append(" = ");
+            sb.append(" = '");
             sb.append(valuePrintout(key, config.getString(key)));
-            sb.append("; ");
+            sb.append("'; ");
         }
         return sb.toString();
     }
