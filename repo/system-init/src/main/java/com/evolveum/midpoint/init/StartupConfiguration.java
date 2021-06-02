@@ -308,7 +308,10 @@ public class StartupConfiguration implements MidpointConfiguration {
     private String readFile(String filename) throws IOException {
         Path filePath = Path.of(filename.replace("${midpoint.home}", midPointHomePath))
                 .toAbsolutePath(); // if missing this provides better diagnostics
-        return Files.readString(filePath, StandardCharsets.UTF_8);
+        // Files.readString leaves final line terminator on Linux as part of the value.
+        // This implementation tolerates also a single empty trailing line (but not more).
+        return String.join("\n",
+                Files.readAllLines(filePath, StandardCharsets.UTF_8));
     }
 
     private void applyEnvironmentProperties() {
