@@ -28,6 +28,14 @@ This file is only considered when no `logback.xml` is found.
 Both files follow the link:http://logback.qos.ch/manual/configuration.html[Logback configuration] format.
 When `logback.xml` is used, don't forget to set appenders otherwise logs go nowhere.
 
+[NOTE]
+MidPoint manages the logging configuration with custom application code.
+Although midPoint is technically an application based on https://spring.io/projects/spring-boot[Spring Boot],
+it currently does not support `logging.config` property described
+https://docs.spring.io/spring-boot/docs/current/reference/html/howto.html#howto.logging[here].
+Neither `-Dlogback.configurationFile`, described in the link:http://logback.qos.ch/manual/configuration.html[Logback documentation] has the desired effect.
+Support for a system property provided by `-D` JVM argument may appear in the future.
+
 == Overriding initial logging
 
 Example of minimalistic `logback.xml` configuration writing logs to the standard output:
@@ -84,7 +92,7 @@ All the logging goes to the files, or other outputs, where it would go before.
 
 The files above are useful but may be insufficient on their own if the problem happens after
 the normal logging is initialized.
-This logging is configured in the xref:/midpoint/reference/concepts/system-configuration-object.adoc[system
+This logging is configured in the link:/midpoint/reference/concepts/system-configuration-object/[system
 configuration object].
 If you can't log in or the GUI is otherwise unavailable, the problem may be reported on the level
 that does not make it to the log - but would with initial logging overridden as shown above!
@@ -120,19 +128,22 @@ Hopefully this will be reflected in this place.
 
 == Sensitive values (passwords)
 
-++++
-{% include since.html since="4.4" %}
-++++
-
-Initial setup can log values from `config.xml` file if `com.evolveum.midpoint.init.StartupConfiguration` logger is set to level `DEBUG` or `TRACE` - which can be a security issue if it's a value of some password.
+Initial setup can log values from `config.xml` file if `com.evolveum.midpoint.init.StartupConfiguration`
+logger is set to level `DEBUG` or `TRACE` - which can be a security issue if it's a value of some password.
 To avoid this, values are replaced by a placeholder string.
 In rare troubleshooting situations this may be a problem and actual values must be investigated.
 
 To allow this JVM argument `-DmidpointPrintSensitiveValues` must be added to the command line,
 value is not required and is ignored.
 This may require modifying `JAVA_OPTS` environment variable or otherwise changing `midpoint.sh` if
-stating scripts are used.
+starting scripts are used.
 Be sure to revert this change after the troubleshooting is finished.
+
+++++
+{% include since.html since="4.4" %}
+++++
+
+Sensitive values in logs are protected in all supported 4.x versions, but the override is possible only in 4.4 and later.
 
 == See Also
 
