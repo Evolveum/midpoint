@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -10,7 +10,7 @@
 
     <if condition='"true".equals(property("midpoint.logging.alt.enabled"))'>
         <then>
-            <include resource="logback-alt.xml" />
+            <include resource="logback-alt.xml"/>
         </then>
     </if>
 
@@ -60,16 +60,16 @@
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl" level="WARN"/>
 
-    <!-- MID-6512: 
-        JAXPParser only logs configuration exception it - is causing (it proactivelly tries to 
-        disable secure entity processing), but works fine even if exception is thrown.
+    <!-- MID-6512:
+        JAXPParser only logs configuration exception it is causing. It proactively tries to
+        disable secure entity processing, but works fine even if exception is thrown.
         Behaviour is hardcoded, and can not be prevented, so we mute it off in logs to not cause
         unnecessary concern.
     -->
-    <logger name="com.sun.xml.xsom.parser.JAXPParser" level="OFF" />
+    <logger name="com.sun.xml.xsom.parser.JAXPParser" level="OFF"/>
 
     <logger name="PROFILING" level="INFO"/>
-    <logger name="com.evolveum.midpoint" level="INFO" />
+    <logger name="com.evolveum.midpoint" level="INFO"/>
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
         <appender-ref ref="MIDPOINT_PROFILE_LOG"/>
     </logger>
