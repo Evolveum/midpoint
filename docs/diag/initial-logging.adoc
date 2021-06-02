@@ -84,7 +84,7 @@ All the logging goes to the files, or other outputs, where it would go before.
 
 The files above are useful but may be insufficient on their own if the problem happens after
 the normal logging is initialized.
-This logging is configured in the xref:/midpoint/reference/concepts/system-configuration-object/[system
+This logging is configured in the xref:/midpoint/reference/concepts/system-configuration-object.adoc[system
 configuration object].
 If you can't log in or the GUI is otherwise unavailable, the problem may be reported on the level
 that does not make it to the log - but would with initial logging overridden as shown above!
