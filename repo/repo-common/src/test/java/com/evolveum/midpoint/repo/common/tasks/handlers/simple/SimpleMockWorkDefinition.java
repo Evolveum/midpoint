@@ -12,11 +12,9 @@ import static com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper.Untyp
 
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -35,11 +33,6 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
 
     public String getMessage() {
         return message;
-    }
-
-    @Override
-    public @NotNull QName getType() {
-        return WORK_DEFINITION_TYPE_QNAME;
     }
 
     @Override

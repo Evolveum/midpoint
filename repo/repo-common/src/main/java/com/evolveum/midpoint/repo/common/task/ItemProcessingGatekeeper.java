@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -322,7 +322,7 @@ class ItemProcessingGatekeeper<I> {
 
         Throwable exception = processingResult.getExceptionRequired();
 
-        ActivityDefinition partDef = activityExecution.getActivityDefinition();
+        ActivityDefinition partDef = activityExecution.getActivity().getDefinition();
         if (partDef == null) {
             return getContinueOnError(result.getStatus(), exception, request, result);
         }

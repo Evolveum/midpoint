@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
-import javax.xml.namespace.QName;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.schema.util.task.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper;
@@ -44,8 +40,4 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent+1);
     }
 
-    @Override
-    public @NotNull QName getType() {
-        return PropagationWorkDefinitionType.COMPLEX_TYPE;
-    }
 }

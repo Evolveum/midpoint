@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.definition;
+package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -15,9 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionT
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,15 +38,9 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
     public List<ActivityDefinition<?>> createChildDefinitions() throws SchemaException {
         List<ActivityDefinition<?>> definitions = new ArrayList<>();
         for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
-            definitions.add(ActivityDefinition.createChild(activityDefinitionBean, getOwningActivity()));
+            definitions.add(ActivityDefinition.createChild(activityDefinitionBean, getOwningActivityDefinition()));
         }
-        LOGGER.trace("Child definitions:\n{}", DebugUtil.debugDumpLazily(definitions));
         return definitions;
-    }
-
-    @Override
-    public @NotNull QName getType() {
-        return ActivityCompositionType.COMPLEX_TYPE;
     }
 
     @Override

@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.task.*;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,9 +33,9 @@ class SearchIterativeMockActivityExecution
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchIterativeMockActivityExecution.class);
 
-    SearchIterativeMockActivityExecution(@NotNull ActivityInstantiationContext<SearchIterativeMockWorkDefinition> context,
-            @NotNull SearchIterativeMockActivityHandler handler) {
-        super(context, handler, "Search-iterative mock activity");
+    SearchIterativeMockActivityExecution(
+            @NotNull ExecutionInstantiationContext<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> context) {
+        super(context, "Search-iterative mock activity");
     }
 
     @Override
@@ -46,11 +47,16 @@ class SearchIterativeMockActivityExecution
     protected @NotNull ItemProcessor<PrismObject<ObjectType>> createItemProcessor(OperationResult opResult) {
         return createDefaultItemProcessor(
                 (object, request, workerTask, result) -> {
-                    String message = activityDefinition.getWorkDefinition().getMessage() + object.getName().getOrig();
+                    String message = activity.getWorkDefinition().getMessage() + object.getName().getOrig();
                     LOGGER.info("Message: {}", message);
-                    activityHandler.getRecorder().recordExecution(message);
+                    getRecorder().recordExecution(message);
                     return true;
                 });
+    }
+
+    @NotNull
+    private MockRecorder getRecorder() {
+        return activity.getHandler().getRecorder();
     }
 
     @Override
@@ -68,7 +74,7 @@ class SearchIterativeMockActivityExecution
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "current recorder state", activityHandler.getRecorder(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent + 1);
         return sb.toString();
     }
 }

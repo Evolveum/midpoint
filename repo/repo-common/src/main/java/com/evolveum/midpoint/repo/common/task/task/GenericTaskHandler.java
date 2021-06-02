@@ -14,7 +14,7 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil;
-import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

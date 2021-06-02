@@ -115,7 +115,7 @@ public class GetBucketOperation extends BucketOperation {
         Integer number = contentFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(partWorkState.getNumberOfBuckets())) {
             List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_NUMBER_OF_BUCKETS)
+                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_NUMBER_OF_BUCKETS)
                     .replace(number)
                     .asItemDeltas();
             repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
@@ -415,7 +415,7 @@ public class GetBucketOperation extends BucketOperation {
     private void markPartComplete(Task task, long pcvId, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_COMPLETE)
+                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_COMPLETE)
                 .replace(true)
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);

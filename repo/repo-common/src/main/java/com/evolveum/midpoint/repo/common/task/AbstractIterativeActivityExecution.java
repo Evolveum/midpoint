@@ -13,12 +13,11 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import java.util.Locale;
 import java.util.Objects;
 
-import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.task.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecutionResult;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -61,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class AbstractIterativeActivityExecution<
         I,
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD>>
+        AH extends ActivityHandler<WD, AH>>
         extends AbstractActivityExecution<WD, AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
@@ -130,10 +129,9 @@ public abstract class AbstractIterativeActivityExecution<
 
     @NotNull protected final CommonTaskBeans beans;
 
-    protected AbstractIterativeActivityExecution(@NotNull ActivityInstantiationContext<WD> context,
-            @NotNull AH activityHandler,
+    protected AbstractIterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
             @NotNull String shortNameCapitalized) {
-        super(context, activityHandler);
+        super(context);
         this.executionStatistics = new ActivityExecutionStatistics();
         this.activityShortNameCapitalized = shortNameCapitalized;
         this.contextDescription = "";
@@ -481,7 +479,7 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     public boolean isSimulate() {
-        return activityDefinition.getExecutionMode() == ExecutionModeType.SIMULATE;
+        return activity.getDefinition().getExecutionMode() == ExecutionModeType.SIMULATE;
     }
 
     public @NotNull String getRootTaskOid() {
@@ -519,9 +517,6 @@ public abstract class AbstractIterativeActivityExecution<
         this.activityNumber = activityNumber;
     }
 
-    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
-        return activityDefinition;
-    }
 
     public int getExpectedActivities() {
         return expectedActivities;

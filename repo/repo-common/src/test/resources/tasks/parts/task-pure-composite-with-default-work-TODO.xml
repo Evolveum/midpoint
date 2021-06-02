@@ -18,7 +18,7 @@
             <defaultWorkDefinition>
                 <extension>
                     <ext:compositeMock>
-                        <ext:identifier>A</ext:identifier>
+                        <ext:message>A</ext:message>
                     </ext:compositeMock>
                 </extension>
             </defaultWorkDefinition>
@@ -42,7 +42,7 @@
                 <work>
                     <extension>
                         <ext:compositeMock>
-                            <ext:identifier>B</ext:identifier>
+                            <ext:message>B</ext:message>
                         </ext:compositeMock>
                     </extension>
                 </work>

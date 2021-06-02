@@ -6,20 +6,23 @@
  */
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
-
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -27,7 +30,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * TODO
  */
 @Component
-public class CompositeMockActivityHandler implements ActivityHandler<CompositeMockWorkDefinition> {
+public class CompositeMockActivityHandler implements ActivityHandler<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/composite-mock/handler-3";
 
@@ -48,14 +51,41 @@ public class CompositeMockActivityHandler implements ActivityHandler<CompositeMo
         registry.unregisterHandler(CompositeMockWorkDefinition.class);
     }
 
+    @NotNull
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<CompositeMockWorkDefinition> context,
+    public AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler> createExecution(
+            @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new CompositeMockActivityExecution(context, this);
+        return new CompositeMockActivityExecution(context);
+    }
+
+    @Override
+    public List<Activity<?, ?>> createChildActivities(
+            Activity<CompositeMockWorkDefinition, CompositeMockActivityHandler> parentActivity) {
+        CompositeMockWorkDefinition workDefinition = parentActivity.getWorkDefinition();
+        List<Activity<?, ?>> children = new ArrayList<>();
+        if (workDefinition.isOpeningEnabled()) {
+            children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                    (context, result) -> new MockOpeningActivityExecution(context),
+                    (i) -> "opening",
+                    parentActivity));
+        }
+        if (workDefinition.isClosingEnabled()) {
+            children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                    (context, result) -> new MockClosingActivityExecution(context),
+                    (i) -> "closing",
+                    parentActivity));
+        }
+        return children;
     }
 
     @NotNull
     public MockRecorder getRecorder() {
         return recorder;
+    }
+
+    @Override
+    public String getIdentifierPrefix() {
+        return "mock-composite";
     }
 }

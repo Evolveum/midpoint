@@ -17,7 +17,7 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExe
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
 import com.evolveum.midpoint.repo.common.task.ItemProcessor;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -31,17 +31,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class PropagationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ShadowType,
-                        PropagationWorkDefinition,
-                        PropagationActivityHandler,
-                        PropagationActivityExecution> {
+                PropagationWorkDefinition,
+                PropagationActivityHandler,
+                PropagationActivityExecution> {
 
     private static final String SHORT_NAME = "Propagation";
 
     private PrismObject<ResourceType> resource;
 
-    PropagationActivityExecution(@NotNull ActivityInstantiationContext<PropagationWorkDefinition> context,
-            @NotNull PropagationActivityHandler activityHandler) {
-        super(context, activityHandler, SHORT_NAME);
+    PropagationActivityExecution(
+            @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context) {
+        super(context, SHORT_NAME);
     }
 
     @Override
@@ -56,9 +56,9 @@ public class PropagationActivityExecution
     protected void initializeExecution(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String resourceOid = MiscUtil.requireNonNull(
-                activityDefinition.getWorkDefinition().getResourceOid(),
+                activity.getWorkDefinition().getResourceOid(),
                 () -> "No resource specified");
-        resource = activityHandler.provisioningService
+        resource = activity.getHandler().provisioningService
                 .getObject(ResourceType.class, resourceOid, null, getTask(), opResult);
         setContextDescription("to " + resource);
     }
@@ -77,7 +77,7 @@ public class PropagationActivityExecution
         return createDefaultItemProcessor(
                 (shadow, request, workerTask, result) -> {
                     try {
-                        activityHandler.shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
+                        activity.getHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
                         return true;
                     } catch (GenericFrameworkException | EncryptionException e) {
                         throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);

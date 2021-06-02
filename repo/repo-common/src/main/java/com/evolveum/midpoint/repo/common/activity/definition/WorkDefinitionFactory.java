@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.definition;
+package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 import com.evolveum.midpoint.schema.util.task.LegacyWorkDefinitionSource;

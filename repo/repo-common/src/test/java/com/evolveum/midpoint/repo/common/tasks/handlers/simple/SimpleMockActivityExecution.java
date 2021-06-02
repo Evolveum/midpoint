@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
+import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -28,26 +29,31 @@ class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWo
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleMockActivityExecution.class);
 
-    SimpleMockActivityExecution(@NotNull ActivityInstantiationContext<SimpleMockWorkDefinition> context,
-            @NotNull SimpleMockActivityHandler handler) {
-        super(context, handler);
+    SimpleMockActivityExecution(
+            @NotNull ExecutionInstantiationContext<SimpleMockWorkDefinition, SimpleMockActivityHandler> context) {
+        super(context);
     }
 
     @Override
     public @NotNull ActivityExecutionResult execute(OperationResult result)
             throws CommonException, TaskException, PreconditionViolationException {
 
-        String message = activityDefinition.getWorkDefinition().getMessage();
+        String message = activity.getWorkDefinition().getMessage();
         LOGGER.info("Message: {}", message);
-        activityHandler.getRecorder().recordExecution(message);
+        getRecorder().recordExecution(message);
         return ActivityExecutionResult.finished();
+    }
+
+    @NotNull
+    private MockRecorder getRecorder() {
+        return activity.getHandler().getRecorder();
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "current recorder state", activityHandler.getRecorder(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
         return sb.toString();
     }
 }

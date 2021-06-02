@@ -9,11 +9,11 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * TODO
  */
 @Component
-public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWorkDefinition> {
+public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/simple-mock/handler-3";
 
@@ -46,12 +46,18 @@ public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWork
     }
 
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<SimpleMockWorkDefinition> context,
+    public @NotNull AbstractActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler> createExecution(
+            @NotNull ExecutionInstantiationContext<SimpleMockWorkDefinition, SimpleMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new SimpleMockActivityExecution(context, this);
+        return new SimpleMockActivityExecution(context);
     }
 
     public @NotNull MockRecorder getRecorder() {
         return recorder;
+    }
+
+    @Override
+    public String getIdentifierPrefix() {
+        return "mock-simple";
     }
 }

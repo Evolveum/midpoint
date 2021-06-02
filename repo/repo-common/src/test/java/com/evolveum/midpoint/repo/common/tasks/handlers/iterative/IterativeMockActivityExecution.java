@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.*;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -26,9 +27,8 @@ class IterativeMockActivityExecution
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeMockActivityExecution.class);
 
-    IterativeMockActivityExecution(@NotNull ActivityInstantiationContext<IterativeMockWorkDefinition> context,
-            @NotNull IterativeMockActivityHandler handler) {
-        super(context, handler, "Iterative Mock Activity");
+    IterativeMockActivityExecution(@NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context) {
+        super(context, "Iterative Mock Activity");
     }
 
     @Override
@@ -38,7 +38,7 @@ class IterativeMockActivityExecution
 
     @Override
     protected void processItems(OperationResult result) throws CommonException, PreconditionViolationException {
-        IterativeMockWorkDefinition workDef = getActivityDefinition().getWorkDefinition();
+        IterativeMockWorkDefinition workDef = getActivity().getWorkDefinition();
         for (int item = workDef.getFrom(); item <= workDef.getTo(); item++) {
             ItemProcessingRequest<Integer> request = new IterativeMockProcessingRequest(item, this);
             coordinator.submit(request, result);
@@ -48,9 +48,9 @@ class IterativeMockActivityExecution
     @Override
     protected @NotNull ItemProcessor<Integer> createItemProcessor(OperationResult opResult) {
         return (request, workerTask, parentResult) -> {
-            String message = activityDefinition.getWorkDefinition().getMessage() + request.getItem();
+            String message = activity.getWorkDefinition().getMessage() + request.getItem();
             LOGGER.info("Message: {}", message);
-            activityHandler.getRecorder().recordExecution(message);
+            getRecorder().recordExecution(message);
             return true;
         };
     }
@@ -70,8 +70,13 @@ class IterativeMockActivityExecution
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "current recorder state", activityHandler.getRecorder(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
         return sb.toString();
+    }
+
+    @NotNull
+    private MockRecorder getRecorder() {
+        return activity.getHandler().getRecorder();
     }
 
 }

@@ -25,8 +25,8 @@
         </distribution>
     </activity>
     <workState>
-        <part>
+        <activity>
             <bucketsProcessingRole>coordinator</bucketsProcessingRole>
-        </part>
+        </activity>
     </workState>
 </task>

@@ -2378,7 +2378,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="part" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="activity" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Work state for individual parts.
@@ -2409,7 +2409,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="partId" type="xsd:string" minOccurs="0">
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Identifier of the task part.
@@ -5239,5 +5239,28 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="propagationWorkDefinition" type="tns:PropagationWorkDefinitionType"/>
+
+    <xsd:complexType name="ActivityPathType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Path from the root of the activity tree to the specified activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <!-- Intentionally not a container because of the need of path segment ordering -->
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the activity. Note that the identifier of the root activity is NOT included here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="activityPath" type="tns:ActivityPathType"/>
 
 </xsd:schema>

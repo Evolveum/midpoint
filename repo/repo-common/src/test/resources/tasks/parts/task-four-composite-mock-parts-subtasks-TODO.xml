@@ -18,7 +18,7 @@
             <defaultWorkDefinition>
                 <extension>
                     <ext:compositeMock>
-                        <ext:identifier>1</ext:identifier>
+                        <ext:message>1</ext:message>
                         <ext:delay>100</ext:delay>
                         <ext:steps>3</ext:steps>
                     </ext:compositeMock>

@@ -7,18 +7,13 @@
 
 package com.evolveum.midpoint.repo.common.task.task;
 
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext.RootActivityInstantiationContext;
-
-import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecutionResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityTree;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -37,7 +32,7 @@ public class GenericTaskExecution implements TaskExecution {
     @NotNull private final RunningTask task;
     @NotNull private final GenericTaskHandler genericTaskHandler;
 
-    private ActivityExecution rootActivityExecution;
+    private ActivityTree activityTree;
 
     GenericTaskExecution(@NotNull RunningTask task, @NotNull GenericTaskHandler genericTaskHandler) {
         this.task = task;
@@ -49,30 +44,33 @@ public class GenericTaskExecution implements TaskExecution {
     public TaskRunResult run(OperationResult result)
             throws CommonException, TaskException, PreconditionViolationException {
 
-        createActivityExecution(result);
+        activityTree = ActivityTree.create(this);
 
-        LOGGER.trace("Root activity execution object before execution:\n{}", rootActivityExecution.debugDumpLazily());
-        ActivityExecutionResult executionResult = rootActivityExecution.execute(result);
+        LOGGER.trace("Activity tree before execution:\n{}", activityTree.debugDumpLazily());
+
+        AbstractActivityExecution<?, ?> rootExecution = activityTree.getRootActivity()
+                .createExecution(this, result);
+        ActivityExecutionResult executionResult = rootExecution.execute(result);
+
         LOGGER.trace("Root activity execution object after execution ({})\n{}",
-                executionResult.shortDumpLazily(), rootActivityExecution.debugDumpLazily());
+                executionResult.shortDumpLazily(), rootExecution.debugDumpLazily());
 
         return executionResult.getTaskRunResult();
     }
 
-    private <WD extends AbstractWorkDefinition> void createActivityExecution(OperationResult result) throws SchemaException {
-        ActivityDefinition<WD> activityDefinition = ActivityDefinition.createRoot(this);
-        rootActivityExecution = getBeans().activityHandlerRegistry
-                .getHandler(activityDefinition)
-                .createExecution(new RootActivityInstantiationContext<>(activityDefinition, this), result);
-    }
-
+    @NotNull
     @Override
-    public @NotNull RunningTask getTask() {
+    public RunningTask getTask() {
         return task;
     }
 
+    @NotNull
     @Override
-    public @NotNull CommonTaskBeans getBeans() {
+    public CommonTaskBeans getBeans() {
         return genericTaskHandler.getBeans();
+    }
+
+    public ActivityTree getActivityTree() {
+        return activityTree;
     }
 }

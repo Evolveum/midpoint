@@ -7,21 +7,10 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext.ComponentActivityInstantiationContext;
-
-import com.evolveum.midpoint.repo.common.task.execution.AbstractCompositeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractCompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
-
 import com.evolveum.midpoint.util.DebugUtil;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * Mock activity is a semi-composite one. It contains two tailorable activities - opening and closing.
@@ -30,40 +19,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 class CompositeMockActivityExecution
         extends AbstractCompositeActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
 
-    CompositeMockActivityExecution(ActivityInstantiationContext<CompositeMockWorkDefinition> context,
-            @NotNull CompositeMockActivityHandler handler) {
-        super(context, handler);
+    CompositeMockActivityExecution(ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context) {
+        super(context);
     }
 
-    @Override
-    @NotNull
-    protected List<ActivityExecution> createChildren(OperationResult result) {
-        List<ActivityExecution> executions = new ArrayList<>();
-        ComponentActivityInstantiationContext<CompositeMockWorkDefinition> context =
-                new ComponentActivityInstantiationContext<>(activityDefinition, this);
-        if (isOpeningEnabled()) {
-            executions.add(new MockOpeningActivityExecution(context, activityHandler));
-        }
-        if (isClosingEnabled()) {
-            executions.add(new MockClosingActivityExecution(context, activityHandler));
-        }
-        return executions;
-    }
-
-    private boolean isOpeningEnabled() {
-        return !Boolean.FALSE.equals(activityDefinition.getWorkDefinition().isOpening());
-    }
-
-    private boolean isClosingEnabled() {
-        return !Boolean.FALSE.equals(activityDefinition.getWorkDefinition().isClosing());
-    }
-
-    void recordExecution(String value) {
-        getRecorder().recordExecution(value);
-    }
-
-    MockRecorder getRecorder() {
-        return activityHandler.getRecorder();
+    private MockRecorder getRecorder() {
+        return activity.getHandler().getRecorder();
     }
 
     @Override

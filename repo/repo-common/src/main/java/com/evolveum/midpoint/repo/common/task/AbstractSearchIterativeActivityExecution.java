@@ -18,10 +18,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -73,7 +73,7 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectType,
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD>,
+        AH extends ActivityHandler<WD, AH>,
         AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE>>
     extends AbstractIterativeActivityExecution<PrismObject<O>, WD, AH> {
 
@@ -148,9 +148,9 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
      */
     protected WorkBucketType bucket = new WorkBucketType(); // FIXME
 
-    public AbstractSearchIterativeActivityExecution(@NotNull ActivityInstantiationContext<WD> context,
-            @NotNull AH activityHandler, @NotNull String shortNameCapitalized) {
-        super(context, activityHandler, shortNameCapitalized);
+    public AbstractSearchIterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
+            @NotNull String shortNameCapitalized) {
+        super(context, shortNameCapitalized);
     }
 
     /**
@@ -244,7 +244,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     private ObjectSetType getObjectSetSpecificationFromWorkDefinition() {
-        WD workDefinition = activityDefinition.getWorkDefinition();
+        WD workDefinition = activity.getWorkDefinition();
         if (workDefinition instanceof ObjectSetSpecificationProvider) {
             return ((ObjectSetSpecificationProvider) workDefinition).getObjectSetSpecification();
         } else {

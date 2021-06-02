@@ -8,8 +8,8 @@ package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -34,7 +34,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.NOT_APPL
 public abstract class AbstractSearchIterativeItemProcessor<
         O extends ObjectType,
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD>,
+        AH extends ActivityHandler<WD, AH>,
         AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE>>
         implements ItemProcessor<PrismObject<O>> {
 

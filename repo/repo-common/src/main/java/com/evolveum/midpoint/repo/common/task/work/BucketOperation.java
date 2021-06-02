@@ -180,13 +180,13 @@ class BucketOperation {
 
     Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(long pcvId, List<WorkBucketType> buckets) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_BUCKET)
+                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_BUCKET)
                 .replaceRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
     }
 
     Collection<ItemDelta<?, ?>> bucketsAddDeltas(long pcvId, List<WorkBucketType> buckets) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_BUCKET)
+                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_BUCKET)
                 .addRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
     }
 
@@ -200,7 +200,7 @@ class BucketOperation {
 
     @NotNull
     private ItemPath createBucketPath(long pcvId, WorkBucketType bucket) {
-        return ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_BUCKET, bucket.getId());
+        return ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_BUCKET, bucket.getId());
     }
 
     Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(long pcvId, WorkBucketType bucket, WorkBucketStateType newState,
@@ -217,7 +217,7 @@ class BucketOperation {
 
     Collection<ItemDelta<?, ?>> bucketDeleteDeltas(long pcvId, WorkBucketType bucket) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, pcvId, TaskPartWorkStateType.F_BUCKET)
+                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_BUCKET)
                 .delete(bucket.clone()).asItemDeltas();
     }
 
@@ -288,10 +288,10 @@ class BucketOperation {
 
         TaskPartWorkStateType newPartWorkState =
                 new TaskPartWorkStateType(prismContext)
-                        .partId(currentActivityId)
+                        .identifier(currentActivityId)
                         .bucketsProcessingRole(BucketsProcessingRoleType.STANDALONE);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART).add(newPartWorkState)
+                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY).add(newPartWorkState)
                 .asItemDeltas();
         try {
             repositoryService.modifyObject(TaskType.class, workerTaskOid, itemDeltas, result);

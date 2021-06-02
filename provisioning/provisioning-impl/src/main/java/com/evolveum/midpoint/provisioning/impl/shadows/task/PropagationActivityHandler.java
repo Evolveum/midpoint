@@ -9,17 +9,17 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefinitionType;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * TODO
  */
 @Component
-public class PropagationActivityHandler implements ActivityHandler<PropagationWorkDefinition> {
+public class PropagationActivityHandler implements ActivityHandler<PropagationWorkDefinition, PropagationActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(); // TODO
@@ -52,8 +52,14 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     }
 
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<PropagationWorkDefinition> context,
+    public @NotNull AbstractActivityExecution<PropagationWorkDefinition, PropagationActivityHandler> createExecution(
+            @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PropagationActivityExecution(context, this);
+        return new PropagationActivityExecution(context);
+    }
+
+    @Override
+    public String getIdentifierPrefix() {
+        return "propagation";
     }
 }

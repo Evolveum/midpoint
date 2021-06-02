@@ -11,7 +11,7 @@
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
     <name>task-mock-composite-legacy</name>
     <extension>
-        <ext:identifier>id1</ext:identifier>
+        <ext:message>id1</ext:message>
         <ext:delay>100</ext:delay>
         <ext:steps>3</ext:steps>
     </extension>

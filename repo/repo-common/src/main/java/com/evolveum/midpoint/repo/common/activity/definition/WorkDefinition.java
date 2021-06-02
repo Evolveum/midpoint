@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.definition;
+package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
@@ -19,11 +19,9 @@ import javax.xml.namespace.QName;
  */
 public interface WorkDefinition extends DebugDumpable {
 
-    @NotNull QName getType();
-
     @NotNull ExecutionModeType getExecutionMode();
 
-    ActivityDefinition<?> getOwningActivity();
+    ActivityDefinition<?> getOwningActivityDefinition();
 
-    void setOwningActivity(ActivityDefinition<?> activityDefinition);
+    void setOwningActivityDefinition(ActivityDefinition<?> activityDefinition);
 }

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.definition;
+package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
@@ -16,19 +16,19 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractWorkDefinition implements WorkDefinition {
 
-    private ActivityDefinition<?> owningActivity;
+    private ActivityDefinition<?> owningActivityDefinition;
 
     @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
 
     @NotNull private final ActivityTailoring activityTailoring = new ActivityTailoring();
 
     @Override
-    public ActivityDefinition<?> getOwningActivity() {
-        return owningActivity;
+    public ActivityDefinition<?> getOwningActivityDefinition() {
+        return owningActivityDefinition;
     }
 
-    public void setOwningActivity(ActivityDefinition<?> owningActivity) {
-        this.owningActivity = owningActivity;
+    public void setOwningActivityDefinition(ActivityDefinition<?> owningActivity) {
+        this.owningActivityDefinition = owningActivity;
     }
 
     @NotNull

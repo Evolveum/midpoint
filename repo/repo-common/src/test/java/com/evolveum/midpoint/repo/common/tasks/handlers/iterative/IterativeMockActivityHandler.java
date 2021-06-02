@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -24,7 +24,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * TODO
  */
 @Component
-public class IterativeMockActivityHandler implements ActivityHandler<IterativeMockWorkDefinition> {
+public class IterativeMockActivityHandler
+        implements ActivityHandler<IterativeMockWorkDefinition, IterativeMockActivityHandler> {
 
     @Autowired private ActivityHandlerRegistry handlerRegistry;
     @Autowired private MockRecorder recorder;
@@ -42,12 +43,18 @@ public class IterativeMockActivityHandler implements ActivityHandler<IterativeMo
     }
 
     @Override
-    public @NotNull ActivityExecution createExecution(@NotNull ActivityInstantiationContext<IterativeMockWorkDefinition> context,
+    public @NotNull AbstractActivityExecution<IterativeMockWorkDefinition, IterativeMockActivityHandler> createExecution(
+            @NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
-        return new IterativeMockActivityExecution(context, this);
+        return new IterativeMockActivityExecution(context);
     }
 
     public @NotNull MockRecorder getRecorder() {
         return recorder;
+    }
+
+    @Override
+    public String getIdentifierPrefix() {
+        return "mock-iterative";
     }
 }

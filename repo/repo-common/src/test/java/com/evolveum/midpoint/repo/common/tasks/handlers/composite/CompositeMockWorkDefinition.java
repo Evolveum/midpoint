@@ -14,16 +14,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.task.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
 
 public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
-    private static final ItemName IDENTIFIER_NAME = new ItemName(NS_EXT, "identifier");
+    private static final ItemName MESSAGE_NAME = new ItemName(NS_EXT, "message");
     private static final ItemName DELAY_NAME = new ItemName(NS_EXT, "delay");
     private static final ItemName STEPS_NAME = new ItemName(NS_EXT, "steps");
     private static final ItemName OPENING_NAME = new ItemName(NS_EXT, "opening");
@@ -31,7 +29,7 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "CompositeMockDefinitionType");
 
-    private final String identifier;
+    private final String message;
     private final long delay;
     private final int steps;
     private final Boolean opening;
@@ -39,15 +37,15 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
     public CompositeMockWorkDefinition(WorkDefinitionSource source) {
         PrismContainerValue<?> pcv = getPcv(source);
-        this.identifier = pcv != null ? pcv.getPropertyRealValue(IDENTIFIER_NAME, String.class) : null;
+        this.message = pcv != null ? pcv.getPropertyRealValue(MESSAGE_NAME, String.class) : null;
         this.delay = pcv != null ? pcv.getPropertyRealValue(DELAY_NAME, Long.class) : 0;
         this.steps = pcv != null ? pcv.getPropertyRealValue(STEPS_NAME, Integer.class) : 1;
         this.opening = pcv != null ? pcv.getPropertyRealValue(OPENING_NAME, Boolean.class) : null;
         this.closing = pcv != null ? pcv.getPropertyRealValue(CLOSING_NAME, Boolean.class) : null;
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String getMessage() {
+        return message;
     }
 
     public long getDelay() {
@@ -66,14 +64,17 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
         return closing;
     }
 
-    @Override
-    public @NotNull QName getType() {
-        return WORK_DEFINITION_TYPE_QNAME;
+    public boolean isOpeningEnabled() {
+        return !Boolean.FALSE.equals(isOpening());
+    }
+
+    public boolean isClosingEnabled() {
+        return !Boolean.FALSE.equals(isClosing());
     }
 
     @Override
     public void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "identifier", identifier, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "delay", delay, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "steps", steps, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "opening", opening, indent+1);

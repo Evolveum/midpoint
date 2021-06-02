@@ -751,7 +751,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         TaskType task = new TaskType(prismContext)
                 .name("test140")
                 .beginWorkState()
-                    .beginPart()
+                    .beginActivity()
                         .bucketsProcessingRole(BucketsProcessingRoleType.COORDINATOR)
                     .<TaskWorkStateType>end()
                 .end();
@@ -760,7 +760,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(task.asPrismObject(), null, result);
         long partPcvId = repositoryService.getObject(TaskType.class, oid, null, result)
                 .asObjectable()
-                .getWorkState().getPart().get(0).getId();
+                .getWorkState().getActivity().get(0).getId();
 
         displayValue("object added", oid);
 
@@ -775,14 +775,14 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 void runOnce(OperationResult result) throws Exception {
                     ModificationsSupplier<TaskType> modificationSupplier =
                             task -> prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_PART, partPcvId, TaskPartWorkStateType.F_BUCKET)
+                                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, partPcvId, TaskPartWorkStateType.F_BUCKET)
                                     .add(getNextBucket(task))
                                     .asItemDeltas();
                     repositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
                 }
 
                 private WorkBucketType getNextBucket(TaskType task) {
-                    int lastBucketNumber = task.getWorkState() != null ? getLastBucketNumber(task.getWorkState().getPart().get(0).getBucket()) : 0;
+                    int lastBucketNumber = task.getWorkState() != null ? getLastBucketNumber(task.getWorkState().getActivity().get(0).getBucket()) : 0;
                     return new WorkBucketType(prismContext)
                             .sequentialNumber(lastBucketNumber + 1)
                             .state(WorkBucketStateType.DELEGATED)
@@ -808,7 +808,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("user after", taskAfter);
 
-        assertCorrectBucketSequence(taskAfter.asObjectable().getWorkState().getPart().get(0).getBucket());
+        assertCorrectBucketSequence(taskAfter.asObjectable().getWorkState().getActivity().get(0).getBucket());
     }
 
     private void assertCorrectBucketSequence(List<WorkBucketType> buckets) {

@@ -940,8 +940,8 @@ Profiles: []</cachingConfiguration>
     <workState>
         <currentPartNumber>1</currentPartNumber>
         <expectedParts>1</expectedParts>
-        <part id="1">
-            <partId>resourceObjects:1</partId>
+        <activity id="1">
+            <identifier>resourceObjects:1</identifier>
             <progress>
                 <closed>
                     <outcome>
@@ -953,12 +953,12 @@ Profiles: []</cachingConfiguration>
             <complete>true</complete>
             <bucketsProcessingRole>worker</bucketsProcessingRole>
             <scavenger>true</scavenger>
-        </part>
-        <part id="100">
-            <partId>resourceObjects:1</partId> <!-- fake ID to check the aggregation -->
-        </part>
-        <part id="200">
-            <partId>resourceObjects:2</partId> <!-- fake ID to check the aggregation -->
+        </activity>
+        <activity id="100">
+            <identifier>resourceObjects:1</identifier> <!-- fake ID to check the aggregation -->
+        </activity>
+        <activity id="200">
+            <identifier>resourceObjects:2</identifier> <!-- fake ID to check the aggregation -->
             <progress>
                 <closed id="101"> <!-- intentionally the same as in child-2 -->
                     <outcome>
@@ -968,7 +968,7 @@ Profiles: []</cachingConfiguration>
                 </closed>
             </progress>
             <complete>true</complete>
-        </part>
+        </activity>
     </workState>
     <recurrence>single</recurrence>
     <binding>loose</binding>

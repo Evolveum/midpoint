@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.handlers;
+package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.task.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 
-import com.evolveum.midpoint.repo.common.task.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +45,13 @@ public class ActivityHandlerRegistry {
     /**
      * Contains activity implementation objects keyed by work definition class (e.g. PropagationWorkDefinition).
      */
-    private final Map<Class<? extends WorkDefinition>, ActivityHandler<?>> handlersMap = new ConcurrentHashMap<>();
+    private final Map<Class<? extends WorkDefinition>, ActivityHandler<?, ?>> handlersMap = new ConcurrentHashMap<>();
 
     /**
      * Registers both the work definition factory and the activity handler.
      */
     public void register(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass,
-            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?> activityHandler) {
+            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
         workDefinitionFactory.registerSupplier(typeName, legacyHandlerUri, supplier);
         registerHandler(definitionClass, activityHandler);
     }
@@ -59,7 +59,7 @@ public class ActivityHandlerRegistry {
     /**
      * Registers the activity handler.
      */
-    public void registerHandler(Class<? extends WorkDefinition> definitionClass, ActivityHandler<?> activityHandler) {
+    public void registerHandler(Class<? extends WorkDefinition> definitionClass, ActivityHandler<?, ?> activityHandler) {
         LOGGER.trace("Registering {} for {}", activityHandler, definitionClass);
         handlersMap.put(definitionClass, activityHandler);
     }
@@ -81,12 +81,12 @@ public class ActivityHandlerRegistry {
     }
 
     @NotNull
-    public <WD extends WorkDefinition> ActivityHandler<WD> getHandler(@NotNull ActivityDefinition<WD> activityDefinition) {
+    public <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> AH getHandler(
+            @NotNull ActivityDefinition<WD> activityDefinition) {
         WorkDefinition workDefinition = activityDefinition.getWorkDefinition();
         Class<? extends WorkDefinition> workDefinitionClass = workDefinition.getClass();
         //noinspection unchecked
-        return (ActivityHandler<WD>)
-                requireNonNull(handlersMap.get(workDefinitionClass),
+        return (AH) requireNonNull(handlersMap.get(workDefinitionClass),
                         () -> new IllegalStateException("Couldn't find implementation for " + workDefinitionClass +
                                 " in " + activityDefinition));
     }

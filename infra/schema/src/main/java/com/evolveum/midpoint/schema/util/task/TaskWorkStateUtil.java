@@ -230,7 +230,7 @@ public class TaskWorkStateUtil {
     @Nullable
     public static TaskPartWorkStateType getPartWorkState(TaskWorkStateType workState, String partId) {
         if (workState != null) {
-            return getPartWorkState(workState.getPart(), partId);
+            return getPartWorkState(workState.getActivity(), partId);
         } else {
             return null;
         }
@@ -239,7 +239,7 @@ public class TaskWorkStateUtil {
     @Nullable
     private static TaskPartWorkStateType getPartWorkState(List<TaskPartWorkStateType> parts, String partId) {
         for (TaskPartWorkStateType partState : parts) {
-            if (Objects.equals(partState.getPartId(), partId)) {
+            if (Objects.equals(partState.getIdentifier(), partId)) {
                 return partState;
             }
             TaskPartWorkStateType inChildren = getPartWorkState(partState.getPart(), partId);

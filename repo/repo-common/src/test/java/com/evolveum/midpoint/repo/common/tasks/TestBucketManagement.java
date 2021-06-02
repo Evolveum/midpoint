@@ -708,7 +708,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(4), WorkBucketStateType.READY, 5, 4, 5);        // pre-created
 
-        assertNoWorkBuckets(worker2.getWorkState().getPart().get(0));
+        assertNoWorkBuckets(worker2.getWorkState().getActivity().get(0));
 
         when("complete bucket #1");
 
@@ -766,7 +766,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(2), WorkBucketStateType.READY, 4, 3, 4);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        assertNoWorkBuckets(worker4.getWorkState().getPart().get(0));
+        assertNoWorkBuckets(worker4.getWorkState().getActivity().get(0));
 
         when("complete bucket #3");
 
@@ -791,7 +791,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        assertNoWorkBuckets(worker3.getWorkState().getPart().get(0));
+        assertNoWorkBuckets(worker3.getWorkState().getActivity().get(0));
 
         buckets = new ArrayList<>(getBuckets(worker5));
         assertEquals(1, buckets.size());
@@ -811,12 +811,12 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 5th bucket and closing worker5", coordinator);
 
-        buckets = new ArrayList<>(coordinator.getWorkState().getPart().get(0).getBucket());
+        buckets = new ArrayList<>(coordinator.getWorkState().getActivity().get(0).getBucket());
         assertEquals(2, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        assertNoWorkBuckets(worker1.getWorkState().getPart().get(0));
+        assertNoWorkBuckets(worker1.getWorkState().getActivity().get(0));
 
         when("reclaiming mis-allocated bucket");
 
@@ -856,7 +856,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertEquals(1, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        assertNoWorkBuckets(worker1.getWorkState().getPart().get(0));
+        assertNoWorkBuckets(worker1.getWorkState().getActivity().get(0));
     }
 
     private WorkBucketType assumeNextValue(BucketAllocator allocator, TaskPartWorkStateType workState,
@@ -925,11 +925,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     private List<WorkBucketType> getBuckets(Task task) {
-        return task.getWorkState().getPart().get(0).getBucket();
+        return task.getWorkState().getActivity().get(0).getBucket();
     }
 
     private Integer getNumberOfBuckets(Task task) {
-        return task.getWorkState().getPart().get(0).getNumberOfBuckets();
+        return task.getWorkState().getActivity().get(0).getNumberOfBuckets();
     }
 
     private ActivityDefinitionType getPartDefinition(Task task) {

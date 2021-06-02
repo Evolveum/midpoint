@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.definition;
+package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -35,21 +35,18 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     @NotNull private final ActivityDistributionDefinition distributionDefinition;
 
-    private final ActivityDefinition<?> parent;
-
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
 
     private ActivityDefinition(ActivityDefinitionType definitionBean, @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
-            ActivityDefinition<?> parent, @NotNull WorkDefinitionFactory workDefinitionFactory) {
+            @NotNull WorkDefinitionFactory workDefinitionFactory) {
         this.definitionBean = definitionBean;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
-        this.parent = parent;
         this.workDefinitionFactory = workDefinitionFactory;
-        workDefinition.setOwningActivity(this);
+        workDefinition.setOwningActivityDefinition(this);
     }
 
     /**
@@ -64,14 +61,14 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         WorkDefinitionFactory factory = taskExecution.getBeans().workDefinitionFactory;
 
         ActivityDefinitionType bean = task.getActivityDefinitionOrClone();
-        WD rootDefinition = createRootDefinition(bean, taskExecution, factory);
-        rootDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(task)));
-        rootDefinition.addTailoring(getTailoring(bean));
+        WD rootWorkDefinition = createRootWorkDefinition(bean, taskExecution, factory);
+        rootWorkDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(task)));
+        rootWorkDefinition.addTailoring(getTailoring(bean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean);
 
-        return new ActivityDefinition<>(bean, rootDefinition, controlFlowDefinition, distributionDefinition, null,
+        return new ActivityDefinition<>(bean, rootWorkDefinition, controlFlowDefinition, distributionDefinition,
                 factory);
     }
 
@@ -96,7 +93,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(activityBean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(activityBean);
 
-        return new ActivityDefinition<>(activityBean, definition, controlFlowDefinition, distributionDefinition, parent,
+        return new ActivityDefinition<>(activityBean, definition, controlFlowDefinition, distributionDefinition,
                 parent.workDefinitionFactory);
     }
 
@@ -109,7 +106,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     @NotNull
-    private static <WD extends AbstractWorkDefinition> WD createRootDefinition(ActivityDefinitionType activityBean,
+    private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(ActivityDefinitionType activityBean,
             TaskExecution taskExecution, WorkDefinitionFactory factory) throws SchemaException {
 
         RunningTask task = taskExecution.getTask();

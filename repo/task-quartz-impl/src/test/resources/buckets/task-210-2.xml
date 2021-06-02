@@ -12,10 +12,10 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <parent>336e4ded-82a6-432c-ade0-43844e59c3e4</parent>
     <executionStatus>suspended</executionStatus>
-    <workState>
-        <part>
-            <bucketsProcessingRole>worker</bucketsProcessingRole>
-        </part>
-    </workState>
     <recurrence>single</recurrence>
+    <workState>
+        <activity>
+            <bucketsProcessingRole>worker</bucketsProcessingRole>
+        </activity>
+    </workState>
 </task>

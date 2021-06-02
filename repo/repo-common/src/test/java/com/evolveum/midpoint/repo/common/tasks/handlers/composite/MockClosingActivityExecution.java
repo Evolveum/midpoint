@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 
 import org.jetbrains.annotations.NotNull;
 
 class MockClosingActivityExecution extends MockComponentActivityExecution {
 
-    MockClosingActivityExecution(@NotNull ActivityInstantiationContext<CompositeMockWorkDefinition> context,
-            @NotNull CompositeMockActivityHandler activityHandler) {
-        super(context, activityHandler);
+    MockClosingActivityExecution(
+            @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context) {
+        super(context);
     }
 
     @Override

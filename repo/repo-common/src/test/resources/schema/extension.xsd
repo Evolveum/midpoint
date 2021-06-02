@@ -30,7 +30,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="identifier" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="delay" type="xsd:long" minOccurs="0"/>
                     <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="opening" type="xsd:boolean" minOccurs="0"/>
@@ -94,7 +94,6 @@
 
     <!-- legacy way -->
     <xsd:element name="message" type="xsd:string" />
-    <xsd:element name="identifier" type="xsd:string" />
     <xsd:element name="delay" type="xsd:long" />
     <xsd:element name="steps" type="xsd:int" />
 

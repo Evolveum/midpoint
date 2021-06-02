@@ -8,10 +8,11 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
+import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -34,21 +35,21 @@ public abstract class MockComponentActivityExecution
 
     private static final Trace LOGGER = TraceManager.getTrace(MockComponentActivityExecution.class);
 
-    MockComponentActivityExecution(@NotNull ActivityInstantiationContext<CompositeMockWorkDefinition> context,
-            @NotNull CompositeMockActivityHandler activityHandler) {
-        super(context, activityHandler);
+    MockComponentActivityExecution(
+            @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context) {
+        super(context);
     }
 
     @Override
     public @NotNull ActivityExecutionResult execute(OperationResult result)
             throws CommonException, TaskException, PreconditionViolationException {
 
-        CompositeMockWorkDefinition workDef = activityDefinition.getWorkDefinition();
+        CompositeMockWorkDefinition workDef = activity.getWorkDefinition();
 
         int steps = workDef.getSteps();
         long delay = workDef.getDelay();
 
-        LOGGER.info("Mock activity starting: id={}, steps={}, delay={}, sub-activity={}:\n{}", workDef.getIdentifier(),
+        LOGGER.info("Mock activity starting: id={}, steps={}, delay={}, sub-activity={}:\n{}", workDef.getMessage(),
                 steps, delay, getSubActivity(), debugDumpLazily());
 
         ActivityExecutionResult executionResult = new ActivityExecutionResult();
@@ -66,16 +67,21 @@ public abstract class MockComponentActivityExecution
         // This "run" is finished. But the task goes on ...
         executionResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
 
-        ((CompositeMockActivityExecution) parent).recordExecution(workDef.getIdentifier() + ":" + getSubActivity());
+        getRecorder().recordExecution(workDef.getMessage() + ":" + getSubActivity());
 
-        LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getIdentifier(), getSubActivity(),
+        LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getMessage(), getSubActivity(),
                 debugDumpLazily());
 
         return executionResult;
     }
 
+    @NotNull
+    private MockRecorder getRecorder() {
+        return activity.getHandler().getRecorder();
+    }
+
     private void sleep(RunningTask task, long delay) {
-        LOGGER.trace("Sleeping for {} msec", delay);
+        LOGGER.trace("Sleeping for {} msecs", delay);
         long end = System.currentTimeMillis() + delay;
         while (task.canRun() && System.currentTimeMillis() < end) {
             try {
@@ -97,7 +103,7 @@ public abstract class MockComponentActivityExecution
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "current recorder state", ((CompositeMockActivityExecution) parent).getRecorder(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
         return sb.toString();
     }
 }

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.task.execution;
+package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
@@ -40,12 +40,5 @@ public interface ActivityExecution extends DebugDumpable {
      */
     @NotNull TaskExecution getTaskExecution();
 
-    /** TODO */
-    void setupIdentifier(Supplier<String> defaultIdentifierSupplier);
-
-    /**
-     * Returns activity identifier (unique among siblings).
-     */
-    @NotNull String getIdentifier();
 
 }

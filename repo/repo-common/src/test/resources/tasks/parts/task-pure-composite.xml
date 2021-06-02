@@ -20,7 +20,7 @@
                 <work>
                     <extension>
                         <ext:compositeMock>
-                            <ext:identifier>A</ext:identifier>
+                            <ext:message>A</ext:message>
                             <ext:delay>100</ext:delay>
                             <ext:steps>3</ext:steps>
                         </ext:compositeMock>
@@ -42,7 +42,7 @@
                 <work>
                     <extension>
                         <ext:compositeMock>
-                            <ext:identifier>B</ext:identifier>
+                            <ext:message>B</ext:message>
                             <ext:delay>200</ext:delay>
                             <ext:steps>1</ext:steps>
                         </ext:compositeMock>
@@ -54,7 +54,7 @@
                 <work>
                     <extension>
                         <ext:compositeMock>
-                            <ext:identifier>C</ext:identifier>
+                            <ext:message>C</ext:message>
                             <ext:delay>200</ext:delay>
                             <ext:steps>1</ext:steps>
                             <ext:opening>false</ext:opening>
