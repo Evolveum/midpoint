@@ -53,16 +53,17 @@ public class LoggingConfigurationManager {
     public static void configure(LoggingConfigurationType config, String version,
             MidpointConfiguration midpointConfiguration, OperationResult result) throws SchemaException {
 
-        if (java.util.Objects.equals(currentlyUsedVersion, version)) {
-            LOGGER.debug("Skipped logging configuration because the same version {}"
-                    + " is already configured", version);
-            return;
-        }
-
         OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName() + ".configure");
 
         if (InternalsConfig.isAvoidLoggingChange()) {
             LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
+            res.recordNotApplicableIfUnknown();
+            return;
+        }
+
+        if (java.util.Objects.equals(currentlyUsedVersion, version)) {
+            LOGGER.debug("Skipped logging configuration because the same version {}"
+                    + " is already configured", version);
             res.recordNotApplicableIfUnknown();
             return;
         }
