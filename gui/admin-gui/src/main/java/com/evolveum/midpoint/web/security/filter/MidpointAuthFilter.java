@@ -391,6 +391,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
         @Override
         public void doFilter(ServletRequest request, ServletResponse response)
                 throws IOException, ServletException {
+            // If the previous filter has already returned a response, skip the subsequent filters
+            // to prevent duplicate response writes
+            if (response.isCommitted()) {
+                return;
+            }
             if (currentPosition == size) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(UrlUtils.buildRequestUrl((HttpServletRequest) request)
