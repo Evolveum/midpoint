@@ -54,12 +54,40 @@
                             <extension>
                                 <ext:searchIterativeMock>
                                     <ext:objectSet>
-                                        <objectType>UserType</objectType>
+                                        <objectType>RoleType</objectType>
+                                        <objectQuery>
+                                            <q:filter>
+                                                <q:substring>
+                                                    <q:path>name</q:path>
+                                                    <q:value>r1</q:value>
+                                                    <q:anchorStart>true</q:anchorStart>
+                                                </q:substring>
+                                            </q:filter>
+                                        </objectQuery>
                                     </ext:objectSet>
-                                    <ext:message>Third-A (user): </ext:message>
+                                    <ext:message>Third-A (role): </ext:message>
                                 </ext:searchIterativeMock>
                             </extension>
                         </work>
+                        <distribution>
+                            <buckets>
+                                <stringSegmentation>
+                                    <discriminator>name</discriminator>
+                                    <boundary>
+                                        <position>1</position>
+                                        <characters>r</characters>
+                                    </boundary>
+                                    <boundary>
+                                        <position>2</position>
+                                        <characters>1</characters>
+                                    </boundary>
+                                    <boundary>
+                                        <position>3</position>
+                                        <characters>0-9</characters>
+                                    </boundary>
+                                </stringSegmentation>
+                            </buckets>
+                        </distribution>
                     </activity>
                     <activity>
                         <order>2</order>
@@ -84,12 +112,37 @@
                     <extension>
                         <ext:searchIterativeMock>
                             <ext:objectSet>
-                                <objectType>UserType</objectType>
+                                <objectType>RoleType</objectType>
+                                <objectQuery>
+                                    <q:filter>
+                                        <q:substring>
+                                            <q:path>name</q:path>
+                                            <q:value>r</q:value>
+                                            <q:anchorStart>true</q:anchorStart>
+                                        </q:substring>
+                                    </q:filter>
+                                </objectQuery>
                             </ext:objectSet>
-                            <ext:message>Fourth (user): </ext:message>
+                            <ext:message>Fourth (role): </ext:message>
                         </ext:searchIterativeMock>
                     </extension>
                 </work>
+                <distribution>
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>name</discriminator>
+                            <boundary>
+                                <position>1</position>
+                                <characters>r</characters>
+                            </boundary>
+                            <boundary>
+                                <position>2</position>
+                                <position>3</position>
+                                <characters>0-9</characters>
+                            </boundary>
+                        </stringSegmentation>
+                    </buckets>
+                </distribution>
             </activity>
         </composition>
     </activity>

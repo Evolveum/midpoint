@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +59,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     // TODO enable
 //    private static final long DEFAULT_TIMEOUT = 30000L;
 //
-    private static final File TEST_DIR = new File("src/test/resources/tasks/parts");
+    private static final File TEST_DIR = new File("src/test/resources/tasks/activities");
 
     private static final TestResource<TaskType> TASK_MOCK_SIMPLE_LEGACY = new TestResource<>(TEST_DIR, "task-mock-simple-legacy.xml", "7523433a-a537-4943-96e9-58b6c57566e8");
     private static final TestResource<TaskType> TASK_MOCK_COMPOSITE_LEGACY = new TestResource<>(TEST_DIR, "task-mock-composite-legacy.xml", "b5fd4ecf-2163-4079-99ec-d56e8a96ca94");
@@ -89,7 +90,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     @Autowired private MockRecorder recorder;
 
     private static final int ROLES = 100;
-    private static final String ROLE_NAME_PATTERN = "role-%02d";
+    private static final String ROLE_NAME_PATTERN = "r%02d";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -384,11 +385,21 @@ public class TestActivities extends AbstractRepoCommonTest {
 //                .isEqualTo(100);
 
         displayDumpable("recorder", recorder);
-//        Set<String> messages = IntStream.range(0, 100)
-//                .mapToObj(i -> String.format("Role: " + ROLE_NAME_PATTERN, i))
-//                .collect(Collectors.toSet());
-//        assertThat(recorder.getExecutions()).as("recorder")
-//                .containsExactlyInAnyOrderElementsOf(messages);
+        Set<String> messages = new HashSet<>();
+        // Nothing from the first activity (no system config in repo)
+        messages.add("Second (user): administrator");
+        messages.addAll(
+                IntStream.range(10, 20)
+                        .mapToObj(i -> String.format("Third-A (role): " + ROLE_NAME_PATTERN, i))
+                        .collect(Collectors.toSet()));
+        messages.add("Third-B (user): administrator");
+        messages.addAll(
+                IntStream.range(0, 100)
+                        .mapToObj(i -> String.format("Fourth (role): " + ROLE_NAME_PATTERN, i))
+                        .collect(Collectors.toSet()));
+
+        assertThat(recorder.getExecutions()).as("recorder")
+                .containsExactlyInAnyOrderElementsOf(messages);
 
         task1.setResult(null);
         displayValue("task after (XML)", prismContext.xmlSerializer().serialize(task1.getRawTaskObjectClone()));

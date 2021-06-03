@@ -24,7 +24,7 @@
                             <q:filter>
                                 <q:substring>
                                     <q:path>name</q:path>
-                                    <q:value>role-</q:value>
+                                    <q:value>r</q:value>
                                     <q:anchorStart>true</q:anchorStart>
                                 </q:substring>
                             </q:filter>
@@ -44,22 +44,6 @@
                     </boundary>
                     <boundary>
                         <position>2</position>
-                        <characters>o</characters>
-                    </boundary>
-                    <boundary>
-                        <position>3</position>
-                        <characters>l</characters>
-                    </boundary>
-                    <boundary>
-                        <position>4</position>
-                        <characters>e</characters>
-                    </boundary>
-                    <boundary>
-                        <position>5</position>
-                        <characters>\-</characters>
-                    </boundary>
-                    <boundary>
-                        <position>6</position>
                         <characters>0-9</characters>
                     </boundary>
                 </stringSegmentation>

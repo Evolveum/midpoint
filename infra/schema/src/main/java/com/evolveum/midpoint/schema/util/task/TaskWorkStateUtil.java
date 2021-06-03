@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -210,24 +211,49 @@ public class TaskWorkStateUtil {
 
     @NotNull
     public static List<WorkBucketType> getBuckets(@NotNull TaskWorkStateType workState, ActivityPath activityPath) {
-        return getActivityWorkState(workState, activityPath)
+        return getActivityWorkStateRequired(workState, activityPath)
                 .getBucket();
     }
 
+    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskType task, @NotNull ItemPath path) {
+        TaskWorkStateType workState = task.getWorkState();
+        if (workState != null) {
+            return getActivityWorkStateInternal(workState, path);
+        } else {
+            return null;
+        }
+    }
+
     @NotNull
-    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskWorkStateType workState,
+    public static ActivityWorkStateType getActivityWorkStateRequired(@NotNull TaskWorkStateType workState,
             @NotNull ActivityPath activityPath) {
-        return getActivityWorkState(workState,
+        return getActivityWorkStateRequired(
+                workState,
                 getWorkStatePath(workState, activityPath));
     }
 
     @NotNull
-    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskWorkStateType workState,
+    public static ActivityWorkStateType getActivityWorkStateRequired(@NotNull TaskWorkStateType workState,
             @NotNull ItemPath workStatePath) {
-        //noinspection unchecked
-        return ((PrismContainerValue<ActivityWorkStateType>) workState.asPrismContainerValue()
-                .find(workStatePath.rest()))
-                .asContainerable();
+        return MiscUtil.requireNonNull(
+                getActivityWorkStateInternal(workState, workStatePath),
+                () -> new IllegalArgumentException("No activity work state at prism item path '" + workStatePath + "'"));
+    }
+
+    private static ActivityWorkStateType getActivityWorkStateInternal(@NotNull TaskWorkStateType workState,
+            @NotNull ItemPath workStatePath) {
+        Object object = workState.asPrismContainerValue().find(workStatePath.rest());
+        if (object == null) {
+            return null;
+        } else if (object instanceof PrismContainer<?>) {
+            return ((PrismContainer<?>) object).getRealValue(ActivityWorkStateType.class);
+        } else if (object instanceof PrismContainerValue<?>) {
+            //noinspection unchecked
+            return ((PrismContainerValue<ActivityWorkStateType>) object).asContainerable(ActivityWorkStateType.class);
+        } else {
+            throw new IllegalArgumentException("Path '" + workStatePath + "' does not point to activity work state but instead"
+                    + " to an instance of " + object.getClass());
+        }
     }
 
     public static ActivityDefinitionType getPartDefinition(ActivityDefinitionType part, String partId) {
@@ -260,7 +286,7 @@ public class TaskWorkStateUtil {
     }
 
     public static BucketsProcessingRoleType getBucketsProcessingRole(TaskWorkStateType taskWorkState, ItemPath statePath) {
-        return TaskWorkStateUtil.getActivityWorkState(taskWorkState, statePath)
+        return TaskWorkStateUtil.getActivityWorkStateRequired(taskWorkState, statePath)
                 .getBucketsProcessingRole();
     }
 
@@ -274,7 +300,7 @@ public class TaskWorkStateUtil {
     }
 
     public static boolean isScavenger(TaskWorkStateType workState, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = getActivityWorkState(workState, activityPath);
+        ActivityWorkStateType partWorkState = getActivityWorkStateRequired(workState, activityPath);
         return Boolean.TRUE.equals(partWorkState.isScavenger());
     }
 

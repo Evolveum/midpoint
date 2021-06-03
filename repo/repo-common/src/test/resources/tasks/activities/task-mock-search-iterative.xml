@@ -24,7 +24,7 @@
                             <q:filter>
                                 <q:substring>
                                     <q:path>name</q:path>
-                                    <q:value>role-</q:value>
+                                    <q:value>r</q:value>
                                     <q:anchorStart>true</q:anchorStart>
                                 </q:substring>
                             </q:filter>

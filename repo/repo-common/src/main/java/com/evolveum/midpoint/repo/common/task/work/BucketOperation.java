@@ -172,7 +172,7 @@ class BucketOperation implements DebugDumpable {
 
     @NotNull
     ActivityWorkStateType getTaskActivityWorkState(Task workerTask) {
-        return requireNonNull(TaskWorkStateUtil.getActivityWorkState(workerTask.getWorkState(), workerStatePath),
+        return requireNonNull(TaskWorkStateUtil.getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath),
                 () -> "No current part work state in " + workerTask +
                         " (activity path: " + activityPath + ", item path: " + workerStatePath);
     }

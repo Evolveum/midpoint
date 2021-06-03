@@ -3227,7 +3227,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkState(task.getWorkState(), activityPath);
+        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
         long completed = partWorkState.getBucket().stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
@@ -3268,7 +3268,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkState(task.getWorkState(), activityPath);
+        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, partWorkState.getNumberOfBuckets());
     }
 
