@@ -57,6 +57,8 @@ import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
@@ -217,9 +219,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-        MutablePrismObjectDefinition<O> objectDefinition = object.getDefinition()
-                .deepClone(true, schemaTransformer::setFullAccessFlags)
-                .toMutable();
+        TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
         try {
             // Re-read the object from the repository to make sure we have all the properties.
             // the object from method parameters may be already processed by the security code
@@ -250,7 +250,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private <O extends ObjectType> void applyObjectClassDefinition(MutablePrismObjectDefinition<O> objectDefinition,
+    private <O extends ObjectType> void applyObjectClassDefinition(TransformableObjectDefinition<O> objectDefinition,
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
@@ -267,16 +267,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
             if (refinedObjectClassDefinition != null) {
-                objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
+                objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
                         refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 
-                objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION)).toMutable()
-                        .replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                PrismContainerDefinition<?> assocContainer = objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
+                TransformableContainerDefinition.require(assocContainer).replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
             }
         }
     }
 
-    private <O extends ObjectType> void applyArchetypePolicy(MutablePrismObjectDefinition<O> objectDefinition,
+    private <O extends ObjectType> void applyArchetypePolicy(PrismObjectDefinition<O> objectDefinition,
             PrismObject<O> object, OperationResult result) throws SchemaException {
         try {
             ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
@@ -408,6 +408,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    @Override
     public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         return securityEnforcer.getAllowedRequestAssignmentItems(securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null, task, result);
     }
@@ -665,6 +666,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    @Override
     @NotNull
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = null;
@@ -1062,6 +1064,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return defaultPolicy;
     }
 
+    @Override
     public <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
             Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {

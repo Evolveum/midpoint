@@ -1,32 +1,26 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.any;
+
+import java.util.Objects;
+import javax.persistence.*;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.*;
-import java.util.Objects;
-
-/**
- * @author mederly
- */
 @Ignore
 @Entity
-//@IdClass(ROExtStringId.class)
 @Table(name = "m_ext_item", indexes = {
         @Index(name = "iExtItemDefinition", unique = true, columnList = "itemName, itemType, kind")
 })
 public class RExtItem {
-
-    public static final String F_ID = "id";
 
     private Integer id;
     private String name;
@@ -50,10 +44,12 @@ public class RExtItem {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (!(o instanceof Key))
+            }
+            if (!(o instanceof Key)) {
                 return false;
+            }
             Key key = (Key) o;
             return Objects.equals(name, key.name) &&
                     Objects.equals(type, key.type) &&
@@ -137,6 +133,24 @@ public class RExtItem {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RExtItem)) {
+            return false;
+        }
+
+        RExtItem rExtItem = (RExtItem) o;
+        return id.equals(rExtItem.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
     public String toString() {
         return "RExtItem{" +
                 "id=" + id +
@@ -144,25 +158,5 @@ public class RExtItem {
                 ", type='" + type + '\'' +
                 ", kind=" + kind +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RExtItem)) return false;
-
-        RExtItem rExtItem = (RExtItem) o;
-
-        if (name != null ? !name.equals(rExtItem.name) : rExtItem.name != null) return false;
-        if (type != null ? !type.equals(rExtItem.type) : rExtItem.type != null) return false;
-        return kind == rExtItem.kind;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (kind != null ? kind.hashCode() : 0);
-        return result;
     }
 }
