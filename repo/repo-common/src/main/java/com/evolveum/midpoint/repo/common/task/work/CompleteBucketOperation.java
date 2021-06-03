@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -123,5 +124,11 @@ public class CompleteBucketOperation extends BucketOperation {
                     repositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
             statisticsKeeper.addToConflictCounts(modifyObjectResult);
         }
+    }
+
+    @Override
+    protected void extendDebugDump(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "sequentialNumber", sequentialNumber, indent + 1);
     }
 }

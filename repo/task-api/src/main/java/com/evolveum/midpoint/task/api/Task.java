@@ -786,6 +786,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /** TODO */
     <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type);
+
+    /** TODO */
+    ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path);
     //endregion
 
     //region Work management
@@ -795,7 +798,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Retrieves the definition of task parts.
-     * @return
      */
     default ActivityDefinitionType getRootActivityDefinitionOrClone() {
         return getContainerableOrClone(TaskType.F_ACTIVITY, ActivityDefinitionType.class);

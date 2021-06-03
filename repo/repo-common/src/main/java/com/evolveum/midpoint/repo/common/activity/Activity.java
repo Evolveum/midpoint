@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -69,6 +70,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     private boolean childrenMapInitialized;
 
+    @NotNull private final Lazy<ActivityPath> pathLazy = Lazy.from(this::computePath);
+
+    @NotNull private final Lazy<ActivityPath> localPathLazy = Lazy.from(this::computeLocalPath);
+
     Activity(@NotNull ActivityDefinition<WD> definition, @NotNull ActivityTree tree) {
         this.definition = definition;
         this.tree = tree;
@@ -124,12 +129,21 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName() + " [" + identifier + "]", indent); // TODO local-root
+        DebugUtil.debugDumpLabelLn(sb, getDebugDumpLabel(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "execution", execution, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "parent", String.valueOf(getParent()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "path", String.valueOf(getPath()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "local path", String.valueOf(getLocalPath()), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "children (initialized=" + childrenMapInitialized + ")", childrenMap, indent + 1);
         return sb.toString();
+    }
+
+    @NotNull
+    private String getDebugDumpLabel() {
+        return getClass().getSimpleName() + " [identifier '" + identifier + "']" +
+                (isRoot() ? " (root)" : "") +
+                (isLocalRoot() ? " (local root)" : "");
     }
 
     public AbstractActivityExecution<?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
@@ -229,17 +243,21 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     @Override
     public String toString() {
-        // TODO root/local-root
         return getClass().getSimpleName() + "{" +
-                "identifier='" + identifier + '\'' +
+                "path='" + getPath() + '\'' +
                 '}';
     }
 
     @NotNull
-    public ActivityPath getLocalPath() {
+    public ActivityPath getPath() {
+        return pathLazy.get();
+    }
+
+    @NotNull
+    private ActivityPath computePath() {
         LinkedList<String> identifiers = new LinkedList<>();
         Activity<?, ?> current = this;
-        while (!current.isLocalRoot()) {
+        while (!current.isRoot()) {
             identifiers.add(0, current.getIdentifier());
             current = current.getParent();
         }
@@ -247,10 +265,15 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     @NotNull
-    public ActivityPath getPath() {
+    public ActivityPath getLocalPath() {
+        return localPathLazy.get();
+    }
+
+    @NotNull
+    private ActivityPath computeLocalPath() {
         LinkedList<String> identifiers = new LinkedList<>();
         Activity<?, ?> current = this;
-        while (!current.isRoot()) {
+        while (!current.isLocalRoot()) {
             identifiers.add(0, current.getIdentifier());
             current = current.getParent();
         }

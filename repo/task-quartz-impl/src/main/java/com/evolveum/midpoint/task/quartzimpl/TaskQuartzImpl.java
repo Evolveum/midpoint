@@ -519,6 +519,26 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path) {
+        synchronized (prismAccess) {
+            Object object = taskPrism.find(path);
+            ActivityWorkStateType found;
+            if (object == null) {
+                return null;
+            } else if (object instanceof PrismContainer<?>) {
+                found = ((PrismContainer<?>) object).getRealValue(ActivityWorkStateType.class);
+            } else if (object instanceof PrismContainerValue<?>) {
+                //noinspection unchecked
+                found = ((PrismContainerValue<ActivityWorkStateType>) object).asContainerable(ActivityWorkStateType.class);
+            } else {
+                throw new IllegalArgumentException("Path '" + path + "' does not point to activity work state but instead"
+                        + " to a instance of " + object.getClass());
+            }
+            return cloneIfRunning(found);
+        }
+    }
+
+    @Override
     public <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type) {
         synchronized (prismAccess) {
             PrismContainer<C> container = taskPrism.findContainer(path);

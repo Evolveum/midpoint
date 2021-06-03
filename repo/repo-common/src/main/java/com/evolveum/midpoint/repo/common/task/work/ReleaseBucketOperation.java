@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task.work;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ReleaseBucketOperation extends BucketOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReleaseBucketOperation.class);
+
     private final int sequentialNumber;
 
     ReleaseBucketOperation(WorkStateManager workStateManager, @NotNull String workerTaskOid,
@@ -68,5 +70,11 @@ public class ReleaseBucketOperation extends BucketOperation {
         }
         deleteBucketFromWorker(sequentialNumber, result);
         statisticsKeeper.register(RELEASE_WORK_BUCKET);
+    }
+
+    @Override
+    protected void extendDebugDump(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "sequentialNumber", sequentialNumber, indent + 1);
     }
 }

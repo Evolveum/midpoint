@@ -18,6 +18,10 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Represents a bucket operation (get, complete, release).
  */
-class BucketOperation {
+class BucketOperation implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(BucketOperation.class);
 
@@ -58,13 +62,13 @@ class BucketOperation {
     static final String COMPLETE_WORK_BUCKET = "completeWorkBucket";
     static final String RELEASE_WORK_BUCKET = "releaseWorkBucket";
 
+    /** TODO */
+    @NotNull final ActivityPath activityPath;
+
     /**
      * OID of the worker task. For standalone situations, this is the only task we work with.
      */
     @NotNull final String workerTaskOid;
-
-    /** TODO */
-    @NotNull final ActivityPath activityPath;
 
     /**
      * Loaded worker task. Shouldn't be null.
@@ -249,5 +253,22 @@ class BucketOperation {
 
     private WorkBucketType cloneNoId(WorkBucketType bucket) {
         return bucket.clone().id(null);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Activity path", String.valueOf(activityPath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Worker task OID", workerTaskOid, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Worker task", workerTask, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Worker activity state path", String.valueOf(workerStatePath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Coordinator task", coordinatorTask, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Coordinator activity state path", String.valueOf(coordinatorStatePath), indent + 1);
+        extendDebugDump(sb, indent);
+        return sb.toString();
+    }
+
+    protected void extendDebugDump(StringBuilder sb, int indent) {
     }
 }

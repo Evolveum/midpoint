@@ -91,8 +91,25 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
 
         workStatePath = findOrCreateActivityWorkState(result);
 
+        logStart();
+
         // TODO check if not already executed
-        return executeInternal(result);
+        ActivityExecutionResult executionResult = executeInternal(result);
+
+        logEnd(executionResult);
+
+        return executionResult;
+    }
+
+    private void logStart() {
+        LOGGER.trace("Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
+                        + "prism item path: {}", activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
+                workStatePath);
+    }
+
+    private void logEnd(ActivityExecutionResult executionResult) {
+        LOGGER.trace("Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+                activity.getIdentifier(), activity.getPath(), activity.getLocalPath(), executionResult);
     }
 
     /**
@@ -107,12 +124,16 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
     @NotNull
     private ItemPath findOrCreateActivityWorkState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}", getPath(),
+                taskExecution.getRunningTask());
         AbstractActivityExecution<?, ?> localParentExecution = getLocalParentExecution();
         if (localParentExecution == null) {
+            LOGGER.trace("No local parent execution, checking or creating root work state");
             findOrCreateRootActivityWorkState(result);
             return ROOT_WORK_STATE_PATH;
         } else {
             ItemPath parentWorkStatePath = localParentExecution.findOrCreateActivityWorkState(result);
+            LOGGER.trace("Found parent work state prism item path: {}", parentWorkStatePath);
             return findOrCreateChildActivityWorkState(parentWorkStatePath, activity.getIdentifier(), result);
         }
     }
@@ -120,7 +141,7 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
     private void findOrCreateRootActivityWorkState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         RunningTask task = taskExecution.getRunningTask();
-        ActivityWorkStateType value = task.getContainerableOrClone(ROOT_WORK_STATE_PATH, ActivityWorkStateType.class);
+        ActivityWorkStateType value = task.getActivityWorkStateOrClone(ROOT_WORK_STATE_PATH);
         if (value == null) {
             addActivityWorkState(TaskType.F_WORK_STATE, result, task, activity.getIdentifier());
         }
@@ -132,19 +153,22 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
         RunningTask task = taskExecution.getRunningTask();
         ItemPath childPath = findChildWorkState(task, parentWorkStatePath, identifier);
         if (childPath != null) {
+            LOGGER.trace("Child work state exists with the path of '{}'", childPath);
             return childPath;
         }
 
         addActivityWorkState(parentWorkStatePath, result, task, identifier);
 
         ItemPath childPathAfter = findChildWorkState(task, parentWorkStatePath, identifier);
+        LOGGER.trace("Child work state created with the path of '{}'", childPathAfter);
+
         stateCheck(childPathAfter != null, "Child work state not found even after its creation in %s", task);
         return childPathAfter;
     }
 
     @Nullable
     private ItemPath findChildWorkState(RunningTask task, ItemPath parentWorkStatePath, String identifier) {
-        ActivityWorkStateType parentValue = task.getContainerableOrClone(parentWorkStatePath, ActivityWorkStateType.class);
+        ActivityWorkStateType parentValue = task.getActivityWorkStateOrClone(parentWorkStatePath);
         stateCheck(parentValue != null, "Parent activity work state does not exist in %s; path = %s",
                 task, parentWorkStatePath);
         for (ActivityWorkStateType childState : parentValue.getActivity()) {
@@ -199,8 +223,12 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
     }
 
     public AbstractActivityExecution<?, ?> getLocalParentExecution() {
+        if (activity.isLocalRoot()) {
+            return null;
+        }
+
         Activity<?, ?> parentActivity = activity.getParent();
-        if (parentActivity != null && !parentActivity.isLocalRoot()) {
+        if (parentActivity != null) {
             return parentActivity.getExecution();
         } else {
             return null;

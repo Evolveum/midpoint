@@ -61,4 +61,8 @@ public class ActivityPath {
     public boolean startsWith(ActivityPath otherPath) {
         return MiscUtil.startsWith(identifiers, otherPath.getIdentifiers());
     }
+
+    public int size() {
+        return identifiers.size();
+    }
 }

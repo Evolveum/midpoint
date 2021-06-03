@@ -680,7 +680,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I findCreateItem(ItemPath propPath, Class<I> type, ID itemDefinition, boolean create) throws SchemaException {
         Object first = propPath.first();
         if (!ItemPath.isName(first)) {
-            throw new IllegalArgumentException("Attempt to lookup item using a non-name path " + propPath + " in " + this);
+            throw new IllegalArgumentException("Attempt to lookup item using a non-name path '" + propPath + "' in " + this);
         }
         ItemName subName = ItemPath.toName(first);
         ItemPath rest = propPath.rest();

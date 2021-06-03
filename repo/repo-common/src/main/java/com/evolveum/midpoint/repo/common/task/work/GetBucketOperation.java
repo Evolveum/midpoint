@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -67,6 +68,9 @@ public class GetBucketOperation extends BucketOperation {
             ObjectAlreadyExistsException, InterruptedException {
 
         loadTasks(result);
+
+        LOGGER.trace("Task(s) loaded within 'get bucket' operation:\n{}", debugDumpLazily());
+
         try {
             if (isStandalone()) {
                 return getWorkBucketStandalone(result);
@@ -429,6 +433,13 @@ public class GetBucketOperation extends BucketOperation {
         coordinatorTask = taskManager.getTaskPlain(coordinatorTask.getOid(), null, result);
     }
 
+    @Override
+    protected void extendDebugDump(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "distributionDefinition", distributionDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "options", String.valueOf(options), indent + 1);
+    }
+
     static class Options {
 
         private final long freeBucketWaitTime;
@@ -437,6 +448,14 @@ public class GetBucketOperation extends BucketOperation {
         public Options(long freeBucketWaitTime, boolean executeInitialWait) {
             this.freeBucketWaitTime = freeBucketWaitTime;
             this.executeInitialWait = executeInitialWait;
+        }
+
+        @Override
+        public String toString() {
+            return "Options{" +
+                    "freeBucketWaitTime=" + freeBucketWaitTime +
+                    ", executeInitialWait=" + executeInitialWait +
+                    '}';
         }
     }
 }

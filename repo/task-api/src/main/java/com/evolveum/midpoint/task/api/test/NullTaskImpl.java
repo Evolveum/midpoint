@@ -678,6 +678,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path) {
+        return null;
+    }
+
+    @Override
     public TaskKindType getKind() {
         return null;
     }

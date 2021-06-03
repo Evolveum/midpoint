@@ -65,7 +65,7 @@ public class GenericTaskExecution implements TaskExecution {
     }
 
     private void logStart() {
-        LOGGER.trace("Activity tree before execution (local root = {}):\n{}",
+        LOGGER.trace("Activity tree before execution (local root = '{}'):\n{}",
                 localRootPath, activityTree.debugDumpLazily());
     }
 

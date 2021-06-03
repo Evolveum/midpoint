@@ -18,10 +18,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Utility methods related to task work state and work state management.
  */
 public class TaskWorkStateUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TaskWorkStateUtil.class);
 
     public static WorkBucketType findBucketByNumber(List<WorkBucketType> buckets, int sequentialNumber) {
         return buckets.stream()
@@ -220,9 +225,9 @@ public class TaskWorkStateUtil {
     public static ActivityWorkStateType getActivityWorkState(@NotNull TaskWorkStateType workState,
             @NotNull ItemPath workStatePath) {
         //noinspection unchecked
-        return ((PrismContainer<ActivityWorkStateType>) workState.asPrismContainerValue()
-                .findItem(workStatePath.rest(), PrismContainer.class))
-                .getRealValue(ActivityWorkStateType.class);
+        return ((PrismContainerValue<ActivityWorkStateType>) workState.asPrismContainerValue()
+                .find(workStatePath.rest()))
+                .asContainerable();
     }
 
     public static ActivityDefinitionType getPartDefinition(ActivityDefinitionType part, String partId) {
@@ -284,12 +289,14 @@ public class TaskWorkStateUtil {
     @NotNull
     public static ItemPath getWorkStatePath(@NotNull TaskWorkStateType workState, @NotNull ActivityPath activityPath) {
         ActivityPath localRootPath = getLocalRootPath(workState);
+        LOGGER.trace("getWorkStatePath: activityPath = {}, localRootPath = {}", activityPath, localRootPath);
         stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
                 activityPath, localRootPath);
 
         ActivityWorkStateType currentWorkState = workState.getActivity();
         ItemPath currentWorkStatePath = ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY);
-        for (String identifier : localRootPath.getIdentifiers()) {
+        List<String> localIdentifiers = activityPath.getIdentifiers().subList(localRootPath.size(), activityPath.size());
+        for (String identifier : localIdentifiers) {
             stateCheck(currentWorkState != null, "Current work state is not present; path = %s", currentWorkStatePath);
             List<ActivityWorkStateType> matching = currentWorkState.getActivity().stream()
                     .filter(state -> Objects.equals(state.getIdentifier(), identifier))
@@ -301,6 +308,7 @@ public class TaskWorkStateUtil {
             stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
             currentWorkStatePath = currentWorkStatePath.append(ActivityWorkStateType.F_ACTIVITY, currentWorkState.getId());
         }
+        LOGGER.trace(" -> resulting work state path: {}", currentWorkStatePath);
         return currentWorkStatePath;
     }
 
