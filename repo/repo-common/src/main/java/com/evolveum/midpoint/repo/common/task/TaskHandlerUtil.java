@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -25,14 +25,15 @@ class TaskHandlerUtil {
             appendLastFailuresInformation(operationNamePrefix, subtask, true, result);
         }
     }
+
     private static void appendLastFailuresInformation(String operationNamePrefix, Task task, boolean subtask, OperationResult result) {
         List<String> failures = task.getLastFailures();
         if (!failures.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
+            if (failures.size() < IterationInformation.LAST_FAILURES_KEPT) {
                 sb.append("Failures (").append(failures.size()).append(")");
             } else {
-                sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures");
+                sb.append("Last ").append(IterationInformation.LAST_FAILURES_KEPT).append(" failures");
             }
             if (subtask) {
                 sb.append(" in subtask ").append(task.getName());

@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityIterationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ public interface IterativeOperationCollector {
      * The operation end is recorded by calling appropriate method on the returned object.
      */
     @NotNull
-    default IterativeTaskInformation.Operation recordIterativeOperationStart(PrismObject<? extends ObjectType> object) {
+    default IterationInformation.Operation recordIterativeOperationStart(PrismObject<? extends ObjectType> object) {
         return recordIterativeOperationStart(new IterationItemInformation(object));
     }
 
@@ -31,7 +32,7 @@ public interface IterativeOperationCollector {
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull default IterativeTaskInformation.Operation recordIterativeOperationStart(IterationItemInformation info) {
+    @NotNull default IterationInformation.Operation recordIterativeOperationStart(IterationItemInformation info) {
         return recordIterativeOperationStart(new IterativeOperationStartInfo(info));
     }
 
@@ -39,17 +40,17 @@ public interface IterativeOperationCollector {
      * Records the start of iterative operation.
      * The operation end is recorded by calling appropriate method on the returned object.
      */
-    @NotNull IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
+    @NotNull IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
 
     /**
      * Records end of part execution: updates execution times.
      */
-    void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp);
+    void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp);
 
     /**
      * Resets iterative task information collection, starting from a given value.
      */
-    void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions);
+    void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions);
 
     /**
      * Returns last N failures. Deprecated.

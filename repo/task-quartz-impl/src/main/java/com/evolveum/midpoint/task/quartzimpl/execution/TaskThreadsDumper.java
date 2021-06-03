@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import java.util.*;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -163,9 +163,9 @@ public class TaskThreadsDumper {
         }
         output.append("\n");
         OperationStatsType stats = localTask.getAggregatedLiveOperationStats();
-        IterativeTaskInformationType info = stats != null ? stats.getIterativeTaskInformation() : null;
+        ActivityIterationInformationType info = stats != null ? stats.getIterationInformation() : null;
         if (info != null) {
-            output.append(IterativeTaskInformation.format(info));
+            output.append(IterationInformation.format(info));
         }
         output.append("\n");
         if (thread != null) {

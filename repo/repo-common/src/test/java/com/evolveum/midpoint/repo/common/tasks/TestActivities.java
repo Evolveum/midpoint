@@ -276,7 +276,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterativeTaskInformation().getPart().get(0).getProcessed().get(0).getCount())
+        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
                 .as("count of processed items in first activity")
                 .isEqualTo(5);
 
@@ -308,7 +308,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterativeTaskInformation().getPart().get(0).getProcessed().get(0).getCount())
+        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
                 .as("count of processed items in first activity")
                 .isEqualTo(100);
 
@@ -343,7 +343,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterativeTaskInformation().getPart().get(0).getProcessed().get(0).getCount())
+        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
                 .as("count of processed items in first activity")
                 .isEqualTo(100);
 

@@ -863,6 +863,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
+            <xsd:element name="iterationInformation" type="tns:ActivityIterationInformationType" minOccurs="0"/>
             <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/>
             <xsd:element name="synchronizationInformation" type="tns:SynchronizationInformationType" minOccurs="0"/>
             <xsd:element name="actionsExecutedInformation" type="tns:ActionsExecutedInformationType" minOccurs="0"/>
@@ -4088,6 +4089,57 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Iterative task information for individual task parts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityIterationInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about iteration process in given activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity identifier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processed" type="tns:ProcessedItemSetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items that have been processed, with a given outcome.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="current" type="tns:ProcessedItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items that are currently being processed by the task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about individual activity executions. Needed e.g. to compute real throughput.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activity" type="tns:ActivityIterationInformationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Iteration information for sub-activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

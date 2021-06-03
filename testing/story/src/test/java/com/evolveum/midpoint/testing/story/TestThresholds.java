@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -289,7 +289,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     int getFailureCount(Task taskAfter) {
         // TODO separate the statistics dump
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        displayValue("Iterative statistics", IterationInformation.format(stats.getIterativeTaskInformation()));
         return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
     }
 }

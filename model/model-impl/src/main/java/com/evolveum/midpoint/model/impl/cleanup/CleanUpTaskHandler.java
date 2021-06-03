@@ -193,9 +193,9 @@ public class CleanUpTaskHandler implements TaskHandler {
 
     private enum Part {
         AUDIT_RECORDS("Audit records cleanup", SchemaConstants.AUDIT_RECORDS_CLEANUP_TASK_PART_URI),
-        CLOSED_TASKS("Closed tasks", SchemaConstants.CLOSED_TASKS_CLEANUP_TASK_PART_URI),
-        CLOSED_CASES("Closed cases", SchemaConstants.CLOSED_CASES_CLEANUP_TASK_PART_URI),
-        DEAD_NODES("Dead nodes", SchemaConstants.DEAD_NODES_CLEANUP_TASK_PART_URI),
+        CLOSED_TASKS("Closed tasks", SchemaConstants.ID_CLOSED_TASKS_CLEANUP),
+        CLOSED_CASES("Closed cases", SchemaConstants.ID_CLOSED_CASES_CLEANUP),
+        DEAD_NODES("Dead nodes", SchemaConstants.ID_DEAD_NODES_CLEANUP),
         OUTPUT_REPORTS("Output reports", SchemaConstants.OUTPUT_REPORTS_CLEANUP_TASK_PART_URI),
         CLOSED_CERTIFICATION_CAMPAIGNS("Closed certification campaigns",
                 SchemaConstants.CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP_TASK_PART_URI);

@@ -9,69 +9,69 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityIterationInformationType;
 
 /**
  *  Asserter that checks iterative task information.
  */
 @SuppressWarnings("WeakerAccess")
-public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
+public class IterationInformationAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final IterativeTaskInformationType information;
+    private final ActivityIterationInformationType information;
 
-    IterativeTaskInfoAsserter(IterativeTaskInformationType information, RA returnAsserter, String details) {
+    IterationInformationAsserter(ActivityIterationInformationType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
+    public IterationInformationAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
         assertNonFailureCount(nonFailure);
         assertFailureCount(failure);
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
+    public IterationInformationAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
         assertSuccessCount(success);
         assertFailureCount(failure);
         assertSkipCount(skip);
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertNonFailureCount(int success) {
+    public IterationInformationAsserter<RA> assertNonFailureCount(int success) {
         assertEquals("Wrong value of total 'non-failure' counter", success, getNonFailureCount());
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertSuccessCount(int success) {
+    public IterationInformationAsserter<RA> assertSuccessCount(int success) {
         assertEquals("Wrong value of total success counter", success, getSuccessCount());
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertSkipCount(int skip) {
+    public IterationInformationAsserter<RA> assertSkipCount(int skip) {
         assertEquals("Wrong value of total skip counter", skip, getSkipCount());
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertSuccessCount(int min, int max) {
+    public IterationInformationAsserter<RA> assertSuccessCount(int min, int max) {
         assertBetween(getSuccessCount(), min, max, "Total success counter");
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertFailureCount(int failure) {
+    public IterationInformationAsserter<RA> assertFailureCount(int failure) {
         assertEquals("Wrong value of total failure counter", failure, getFailureCount());
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertFailureCount(int min, int max) {
+    public IterationInformationAsserter<RA> assertFailureCount(int min, int max) {
         assertBetween(getFailureCount(), min, max, "Total failure counter");
         return this;
     }
 
-    public IterativeTaskInfoAsserter<RA> assertLastFailureObjectName(String expected) {
+    public IterationInformationAsserter<RA> assertLastFailureObjectName(String expected) {
         assertEquals("Wrong 'last failure' object name", expected, getLastFailedObjectName());
         return this;
     }
@@ -89,27 +89,31 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
         return getDetails();
     }
 
-    public IterativeTaskInfoAsserter<RA> display() {
-        IntegrationTestTools.display(desc(), IterativeTaskInformation.format(information));
+    public IterationInformationAsserter<RA> display() {
+        IntegrationTestTools.display(desc(), IterationInformation.format(information));
         return this;
     }
 
+    // TODO deep or shallow?
     private int getSuccessCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithSuccess(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithSuccessShallow(information);
     }
 
+    // TODO deep or shallow?
     private int getFailureCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithFailure(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithFailureShallow(information);
     }
 
+    // TODO deep or shallow?
     private int getSkipCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithSkip(information);
+        return TaskOperationStatsUtil.getItemsProcessedWithSkipShallow(information);
     }
 
     private int getNonFailureCount() {
         return getSuccessCount() + getSkipCount();
     }
 
+    // TODO deep or shallow?
     private String getLastFailedObjectName() {
         return TaskOperationStatsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
     }

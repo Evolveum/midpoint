@@ -15,7 +15,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -83,7 +84,8 @@ public class TaskCleaner {
             }
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
-                    new IterationItemInformation(rootTaskPrism), SchemaConstants.CLOSED_TASKS_CLEANUP_TASK_PART_URI);
+                    new IterationItemInformation(rootTaskPrism),
+                    ActivityPath.fromId(SchemaConstants.ID_CLOSED_TASKS_CLEANUP));
             iterativeOperationStartInfo.setStructuredProgressCollector(executionTask);
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {

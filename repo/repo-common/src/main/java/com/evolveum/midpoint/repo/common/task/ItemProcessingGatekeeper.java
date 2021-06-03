@@ -19,9 +19,9 @@ import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -260,17 +260,18 @@ class ItemProcessingGatekeeper<I> {
 
         OperationStatsType operationStats = coordinatorTask.getStoredOperationStatsOrClone();
         StructuredTaskProgressType structuredProgress = coordinatorTask.getStructuredProgressOrClone();
-        TaskPartPerformanceInformation partStatistics =
-                TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
+        ActivityPerformanceInformation activityStatistics =
+                ActivityPerformanceInformation.forGivenActivity(
+                        activityExecution.getActivityPath(), operationStats, structuredProgress);
 
         String mainMessage = String.format(Locale.US, "%s of %s %s done with status %s.",
                 getActivityShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus());
 
         String briefStats = String.format(Locale.US, "Items processed: %,d (%,d in part), errors: %,d (%,d in part).",
-                bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
-                bucketStatistics.getErrors(), partStatistics.getErrors());
+                bucketStatistics.getItemsProcessed(), activityStatistics.getItemsProcessed(),
+                bucketStatistics.getErrors(), activityStatistics.getErrors());
 
-        Double partThroughput = partStatistics.getThroughput();
+        Double partThroughput = activityStatistics.getThroughput();
         if (partThroughput != null) {
             briefStats += String.format(Locale.US, " Overall throughput: %,.1f items per minute.", partThroughput);
         }
@@ -288,16 +289,16 @@ class ItemProcessingGatekeeper<I> {
                         + " - for current bucket: %s\n"
                         + " - for current part:   %s\n",
 
-                bucketStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
-                bucketStatistics.getErrors(), partStatistics.getErrors(),
-                partStatistics.getProgress(),
-                operation.getDurationRounded(), bucketStatistics.getAverageTime(), partStatistics.getAverageTime(),
-                bucketStatistics.getAverageWallClockTime(now), partStatistics.getAverageWallClockTime(),
+                bucketStatistics.getItemsProcessed(), activityStatistics.getItemsProcessed(),
+                bucketStatistics.getErrors(), activityStatistics.getErrors(),
+                activityStatistics.getProgress(),
+                operation.getDurationRounded(), bucketStatistics.getAverageTime(), activityStatistics.getAverageTime(),
+                bucketStatistics.getAverageWallClockTime(now), activityStatistics.getAverageWallClockTime(),
                 bucketStatistics.getThroughput(now), partThroughput,
-                bucketStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
-                bucketStatistics.getWallClockTime(now), partStatistics.getWallClockTime(),
+                bucketStatistics.getProcessingTime(), activityStatistics.getProcessingTime(),
+                bucketStatistics.getWallClockTime(now), activityStatistics.getWallClockTime(),
                 XmlTypeConverter.createXMLGregorianCalendar(bucketStatistics.getStartTimeMillis()),
-                partStatistics.getEarliestStartTime());
+                activityStatistics.getEarliestStartTime());
 
         TaskLoggingOptionType logging = getReportingOptions().getItemCompletionLogging();
         if (logging == TaskLoggingOptionType.FULL) {
@@ -358,7 +359,7 @@ class ItemProcessingGatekeeper<I> {
     private Operation recordIterativeOperationStart() {
         return workerTask.recordIterativeOperationStart(
                 new IterativeOperationStartInfo(
-                        iterationItemInformation, activityExecution.getActivityIdentifier(), activityExecution.getPartStartTimestamp()));
+                        iterationItemInformation, activityExecution.getActivityPath(), activityExecution.getPartStartTimestamp()));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {

@@ -23,7 +23,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -2144,8 +2145,8 @@ public class TaskQuartzImpl implements Task {
         return statistics.recordIterativeOperationStart(operation);
     }
 
-    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
-        statistics.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
+    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
+        statistics.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
 
     @Override
@@ -2209,7 +2210,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
 

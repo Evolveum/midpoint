@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;

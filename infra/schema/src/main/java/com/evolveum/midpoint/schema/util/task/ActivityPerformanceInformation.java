@@ -11,13 +11,14 @@ import java.io.Serializable;
 import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityIterationInformationType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskPartItemsProcessingInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
 
@@ -25,12 +26,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgre
  * Extract of the most relevant performance information about a task part.
  */
 @Experimental
-public class TaskPartPerformanceInformation implements DebugDumpable, Serializable {
+public class ActivityPerformanceInformation implements DebugDumpable, Serializable {
 
     /**
      * FIXME Sometimes we put handler URI here. That is not correct.
      */
-    private final String partUri;
+    private final ActivityPath activityPath;
 
     /**
      * Items processed. Good indicator for avg wall clock time and throughput.
@@ -68,9 +69,9 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     @VisibleForTesting
     private final XMLGregorianCalendar earliestStartTime;
 
-    private TaskPartPerformanceInformation(String partUri, int itemsProcessed, int errors, int progress, double processingTime,
+    private ActivityPerformanceInformation(ActivityPath activityPath, int itemsProcessed, int errors, int progress, double processingTime,
             Long wallClockTime, XMLGregorianCalendar earliestStartTime) {
-        this.partUri = partUri;
+        this.activityPath = activityPath;
         this.itemsProcessed = itemsProcessed;
         this.errors = errors;
         this.progress = progress;
@@ -80,35 +81,42 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     }
 
     @NotNull
-    public static TaskPartPerformanceInformation forPart(@NotNull IterativeTaskPartItemsProcessingInformationType info,
-            StructuredTaskProgressType structuredProgress) {
+    public static ActivityPerformanceInformation forActivity(@NotNull ActivityPath path,
+            ActivityIterationInformationType info, StructuredTaskProgressType structuredProgress) {
 
-        String partUri = info.getPartIdentifier();
+        // TODO or should we require info non-null-ness?
 
-        int itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(info);
-        int errors = TaskOperationStatsUtil.getErrors(info);
-        int progress = TaskProgressUtil.getTotalProgressForPart(structuredProgress, partUri);
+        int itemsProcessed = TaskOperationStatsUtil.getItemsProcessedShallow(info);
+        int errors = TaskOperationStatsUtil.getErrorsShallow(info);
+//        int progress = TaskProgressUtil.getTotalProgressForPart(structuredProgress, partUri); TODO
+        int progress = 0;
         double processingTime = TaskOperationStatsUtil.getProcessingTime(info);
 
-        WallClockTimeComputer wallClockTimeComputer = new WallClockTimeComputer(info.getExecution());
+        long wallClockTime;
+        XMLGregorianCalendar earliestStartTime;
+        if (info != null) {
+            WallClockTimeComputer wallClockTimeComputer = new WallClockTimeComputer(info.getExecution());
+            wallClockTime = wallClockTimeComputer.getSummaryTime();
+            earliestStartTime = wallClockTimeComputer.getEarliestStartTime();
+        } else {
+            wallClockTime = 0;
+            earliestStartTime = null;
+        }
 
-        long wallClockTime = wallClockTimeComputer.getSummaryTime();
-        XMLGregorianCalendar earliestStartTime = wallClockTimeComputer.getEarliestStartTime();
-
-        return new TaskPartPerformanceInformation(partUri, itemsProcessed, errors, progress, processingTime,
+        return new ActivityPerformanceInformation(path, itemsProcessed, errors, progress, processingTime,
                 wallClockTime, earliestStartTime);
     }
 
-    @NotNull
-    public static TaskPartPerformanceInformation forCurrentPart(OperationStatsType operationStats,
-            StructuredTaskProgressType structuredProgress) {
-        IterativeTaskPartItemsProcessingInformationType info = TaskOperationStatsUtil
-                .getIterativeInfoForCurrentPart(operationStats, structuredProgress);
-        return forPart(info, structuredProgress);
+    @NotNull // TODO RENAME
+    public static ActivityPerformanceInformation forGivenActivity(ActivityPath activityPath,
+            OperationStatsType operationStats, StructuredTaskProgressType structuredProgress) {
+        ActivityIterationInformationType info = TaskOperationStatsUtil
+                .getIterationInfoForActivity(operationStats, activityPath);
+        return forActivity(activityPath, info, structuredProgress);
     }
 
-    public String getPartIdentifier() {
-        return partUri;
+    public ActivityPath getActivityPath() {
+        return activityPath;
     }
 
     public int getItemsProcessed() {
@@ -163,7 +171,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     @Override
     public String toString() {
         return "TaskPartPerformanceInformation{" +
-                "URI=" + partUri +
+                "activityPath=" + activityPath +
                 ", itemsProcessed=" + itemsProcessed +
                 ", errors=" + errors +
                 ", progress=" + progress +
@@ -186,7 +194,7 @@ public class TaskPartPerformanceInformation implements DebugDumpable, Serializab
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpWithLabelLn(sb, "URI", partUri, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Activity path", String.valueOf(activityPath), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Items processed", itemsProcessed, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Errors", errors, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Progress", progress, indent);

@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -39,7 +39,7 @@ public class TaskIterativeProgressType implements Serializable {
 //    private String title = "";
 //    private String wallClockThroughput;
 
-    TaskPartPerformanceInformation performanceInformation;
+    ActivityPerformanceInformation performanceInformation;
 
     public TaskIterativeProgressType(IterativeTaskPartItemsProcessingInformationType processingInfoType, TaskType taskType) {
         for (ProcessedItemSetType processedItem : processingInfoType.getProcessed()) {
@@ -118,14 +118,15 @@ public class TaskIterativeProgressType implements Serializable {
         return WebComponentUtil.formatDate(end == 0 ? processedItem.getStartTimestamp() : processedItem.getEndTimestamp());
     }
 
-    private TaskPartPerformanceInformation createPerformanceInformation(TaskType taskType, String partUri) {
+    private ActivityPerformanceInformation createPerformanceInformation(TaskType taskType, String partUri) {
         TaskPerformanceInformation taskPerformanceInformation = TaskPerformanceInformation.fromTaskTree(taskType);
-        return taskPerformanceInformation.getParts().get(partUri);
+        //return taskPerformanceInformation.getActivities().get(partUri);
+        return null; // FIXME
     }
 
     public String getTitle() {
-        if (performanceInformation.getPartIdentifier() != null) {
-            return getString("TaskIterativeProgress.part." + performanceInformation.getPartIdentifier(), performanceInformation.getItemsProcessed());
+        if (performanceInformation.getActivityPath() != null) {
+            return getString("TaskIterativeProgress.part." + performanceInformation.getActivityPath(), performanceInformation.getItemsProcessed());
         }
         return getString("TaskOperationStatisticsPanel.processingInfo", performanceInformation.getItemsProcessed());
     }

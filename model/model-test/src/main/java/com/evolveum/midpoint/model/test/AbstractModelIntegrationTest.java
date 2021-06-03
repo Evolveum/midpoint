@@ -6782,7 +6782,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void dumpStatistics(Task task) {
         OperationStatsType stats = task.getStoredOperationStatsOrClone();
-        displayValue("Iterative information", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+        displayValue("Iterative information", IterationInformation.format(stats.getIterativeTaskInformation()));
         displayValue("Structured progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
         SynchronizationInformationType synchronizationInfo = stats.getSynchronizationInformation();
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInfo));

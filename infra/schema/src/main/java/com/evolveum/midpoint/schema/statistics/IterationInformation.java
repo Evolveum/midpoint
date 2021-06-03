@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,25 +30,25 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static java.util.Objects.requireNonNull;
 
 /**
- * This is "live" iterative task information.
+ * This is "live" iteration information.
  *
  * BEWARE: When explicitly enabled, automatically updates also the structured progress when recording operation end.
  * This is somewhat experimental and should be reconsidered.
  *
  * Thread safety: Must be thread safe.
  *
- * 1. Updates are invoked in the context of the thread executing the task.
+ * 1. Updates are invoked in the context of the thread executing the activity.
  * 2. But queries are invoked either from this thread, or from some observer (task manager or GUI thread).
  *
- * Implementation: Because the iterative task information grew to quite complex structure,
- * we no longer keep "native" form and "bean" form separately. Now we simply store the native
+ * Implementation: Because the iteration information grew to quite complex structure,
+ * we no longer keep "native" form and "bean" form separately. Now we simply store the bean
  * form, and provide the necessary synchronization.
  *
  * Also, we no longer distinguish start value and delta. Everything is kept in the {@link #value}.
  */
-public class IterativeTaskInformation {
+public class IterationInformation {
 
-    private static final Trace LOGGER = TraceManager.getTrace(IterativeTaskInformation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IterationInformation.class);
 
     private static final AtomicLong ID_COUNTER = new AtomicLong(0);
 
@@ -55,27 +56,26 @@ public class IterativeTaskInformation {
     public static final int LAST_FAILURES_KEPT = 30;
 
     /** Current value */
-    @NotNull private final IterativeTaskInformationType value = new IterativeTaskInformationType();
+    @NotNull private final ActivityIterationInformationType value = new ActivityIterationInformationType();
 
     @Deprecated
     protected CircularFifoBuffer lastFailures = new CircularFifoBuffer(LAST_FAILURES_KEPT);
 
-    @NotNull
-    private final PrismContext prismContext;
+    @NotNull private final PrismContext prismContext;
 
     /**
-     * For tasks that aggregate operation statistics over significant periods of time (i.e. those that
+     * For activities that aggregate operation statistics over significant periods of time (i.e. those that
      * do not start from zero) we would like to avoid execution records to grow indefinitely.
      * As the easiest solution (for 4.3) is to simply stop collecting this information for such tasks.
      */
     private final boolean collectExecutions;
 
-    public IterativeTaskInformation(@NotNull PrismContext prismContext) {
+    public IterationInformation(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
         this.collectExecutions = false;
     }
 
-    public IterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions,
+    public IterationInformation(ActivityIterationInformationType value, boolean collectExecutions,
             @NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
         this.collectExecutions = collectExecutions;
@@ -85,7 +85,7 @@ public class IterativeTaskInformation {
     }
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */
-    public synchronized IterativeTaskInformationType getValueCopy() {
+    public synchronized ActivityIterationInformationType getValueCopy() {
         return value.cloneWithoutId();
     }
 
@@ -104,35 +104,33 @@ public class IterativeTaskInformation {
                 .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startInfo.getStartTimeMillis()))
                 .operationId(getNextOperationId());
 
-        IterativeTaskPartItemsProcessingInformationType matchingPart =
-                findOrCreateMatchingPart(value.getPart(), startInfo.getPartIdentifier());
-        updatePartExecutions(matchingPart, startInfo.getPartStartTimestamp(), System.currentTimeMillis());
+        ActivityIterationInformationType matchingActivityInfo =
+                findOrCreateMatchingInfo(value, startInfo.getActivityPath(), true);
+        updatePartExecutions(matchingActivityInfo, startInfo.getPartStartTimestamp(), System.currentTimeMillis());
 
-        List<ProcessedItemType> currentList = matchingPart.getCurrent();
+        List<ProcessedItemType> currentList = matchingActivityInfo.getCurrent();
         currentList.add(processedItem);
         LOGGER.trace("Recorded current operation. Current list size: {}. Operation: {}", currentList.size(), startInfo);
         return new OperationImpl(startInfo, processedItem);
     }
 
-    public synchronized void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
-        IterativeTaskPartItemsProcessingInformationType matchingPart =
-                findOrCreateMatchingPart(value.getPart(), partUri);
+    public synchronized void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
+        ActivityIterationInformationType matchingPart = findOrCreateMatchingInfo(value, activityPath, true);
         updatePartExecutions(matchingPart, partStartTimestamp, partEndTimestamp);
     }
 
-    private void updatePartExecutions(IterativeTaskPartItemsProcessingInformationType part, Long partStartTimestamp,
-            long currentTimeMillis) {
+    private void updatePartExecutions(ActivityIterationInformationType info, Long startTimestamp, long currentTimeMillis) {
         if (!collectExecutions) {
             return;
         }
-        if (partStartTimestamp == null) {
+        if (startTimestamp == null) {
             return;
         }
-        findOrCreateMatchingExecutionRecord(part.getExecution(), partStartTimestamp)
+        findOrCreateMatchingExecutionRecord(info.getExecution(), startTimestamp)
                 .setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(currentTimeMillis));
     }
 
-    private TaskPartExecutionRecordType findOrCreateMatchingExecutionRecord(List<TaskPartExecutionRecordType> records,
+    public static TaskPartExecutionRecordType findOrCreateMatchingExecutionRecord(List<TaskPartExecutionRecordType> records,
             long partStartTimestamp) {
         XMLGregorianCalendar startAsGregorian = XmlTypeConverter.createXMLGregorianCalendar(partStartTimestamp);
         for (TaskPartExecutionRecordType record : records) {
@@ -140,7 +138,7 @@ public class IterativeTaskInformation {
                 return record;
             }
         }
-        TaskPartExecutionRecordType newRecord = new TaskPartExecutionRecordType(prismContext)
+        TaskPartExecutionRecordType newRecord = new TaskPartExecutionRecordType(PrismContext.get())
                 .startTimestamp(startAsGregorian);
         records.add(newRecord);
         return newRecord;
@@ -151,20 +149,20 @@ public class IterativeTaskInformation {
      */
     private synchronized void recordOperationEnd(OperationImpl operation, QualifiedItemProcessingOutcomeType outcome,
             Throwable exception) {
-        String partUri = operation.startInfo.getPartIdentifier();
+        ActivityPath activityPath = operation.startInfo.getActivityPath();
 
-        Optional<IterativeTaskPartItemsProcessingInformationType> matchingPartOptional =
-                findMatchingPart(value.getPart(), partUri);
-        if (matchingPartOptional.isPresent()) {
-            recordOperationEndToPart(matchingPartOptional.get(), operation, outcome, exception);
+        ActivityIterationInformationType matchingInfoOptional =
+                findOrCreateMatchingInfo(value, activityPath, false);
+        if (matchingInfoOptional != null) {
+            recordOperationEnd(matchingInfoOptional, operation, outcome, exception);
         } else {
-            LOGGER.warn("Couldn't record operation end. Task part {} was not found for {}",
-                    partUri, operation);
+            LOGGER.warn("Couldn't record operation end. Activity with the path '{}' was not found for {}",
+                    activityPath, operation);
         }
     }
 
     /** The actual recording of operation end. */
-    private void recordOperationEndToPart(IterativeTaskPartItemsProcessingInformationType part, OperationImpl operation,
+    private void recordOperationEnd(ActivityIterationInformationType part, OperationImpl operation,
             QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
 
         removeFromCurrentOperations(part, operation.operationId);
@@ -175,7 +173,7 @@ public class IterativeTaskInformation {
     }
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
-    private void addToProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part, OperationImpl operation,
+    private void addToProcessedItemSet(ActivityIterationInformationType part, OperationImpl operation,
             QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
 
         ProcessedItemSetType itemSet = findOrCreateProcessedItemSet(part, outcome);
@@ -191,7 +189,7 @@ public class IterativeTaskInformation {
     }
 
     /** Finds item set, creating _and adding to the list_ if necessary. */
-    private ProcessedItemSetType findOrCreateProcessedItemSet(IterativeTaskPartItemsProcessingInformationType part,
+    private ProcessedItemSetType findOrCreateProcessedItemSet(ActivityIterationInformationType part,
             QualifiedItemProcessingOutcomeType outcome) {
         return part.getProcessed().stream()
                 .filter(itemSet -> Objects.equals(itemSet.getOutcome(), outcome))
@@ -207,7 +205,7 @@ public class IterativeTaskInformation {
     }
 
     /** Removes operation (given by id) from current operations in given task part. */
-    private void removeFromCurrentOperations(IterativeTaskPartItemsProcessingInformationType part, long operationId) {
+    private void removeFromCurrentOperations(ActivityIterationInformationType part, long operationId) {
         boolean removed = part.getCurrent().removeIf(item -> Objects.equals(operationId, item.getOperationId()));
         if (!removed) {
             LOGGER.warn("Couldn't remove operation {} from the list of current operations: {}", operationId, part.getCurrent());
@@ -219,45 +217,60 @@ public class IterativeTaskInformation {
     }
 
     /** Updates specified summary with given delta. */
-    public static void addTo(@NotNull IterativeTaskInformationType sum, @Nullable IterativeTaskInformationType delta) {
+    public static void addTo(@NotNull ActivityIterationInformationType sum, @Nullable ActivityIterationInformationType delta) {
         if (delta != null) {
-            addMatchingParts(sum.getPart(), delta.getPart());
+            addPartInformation(sum, delta);
+            addMatchingSubActivities(sum.getActivity(), delta.getActivity());
         }
     }
 
     /** Looks for matching parts (created if necessary) and adds them. */
-    private static void addMatchingParts(List<IterativeTaskPartItemsProcessingInformationType> sumParts,
-            List<IterativeTaskPartItemsProcessingInformationType> deltaParts) {
-        for (IterativeTaskPartItemsProcessingInformationType deltaPart : deltaParts) {
-            IterativeTaskPartItemsProcessingInformationType matchingPart =
-                    findOrCreateMatchingPart(sumParts, deltaPart.getPartIdentifier());
-            addPartInformation(matchingPart, deltaPart);
+    private static void addMatchingSubActivities(List<ActivityIterationInformationType> sumInfos,
+            List<ActivityIterationInformationType> deltaInfos) {
+        for (ActivityIterationInformationType deltaInfo : deltaInfos) {
+            ActivityIterationInformationType matchingInfo =
+                    findOrCreateMatchingInfo(sumInfos, deltaInfo.getIdentifier(), true);
+            addPartInformation(matchingInfo, deltaInfo);
         }
     }
 
-    private static IterativeTaskPartItemsProcessingInformationType findOrCreateMatchingPart(
-            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
-        return findMatchingPart(list, partUri)
-                .orElseGet(
-                        () -> add(list, new IterativeTaskPartItemsProcessingInformationType().partIdentifier(partUri)));
+    public static ActivityIterationInformationType findOrCreateMatchingInfo(
+            @NotNull ActivityIterationInformationType current, ActivityPath activityPath, boolean create) {
+        if (activityPath.isEmpty()) {
+            return current;
+        }
+
+        ActivityIterationInformationType childInfo = findOrCreateMatchingInfo(current.getActivity(), activityPath.first(), create);
+        return findOrCreateMatchingInfo(
+                childInfo,
+                activityPath.rest(),
+                create);
     }
 
-    private static Optional<IterativeTaskPartItemsProcessingInformationType> findMatchingPart(
-            @NotNull List<IterativeTaskPartItemsProcessingInformationType> list, String partUri) {
+    private static ActivityIterationInformationType findOrCreateMatchingInfo(List<ActivityIterationInformationType> infos,
+            String identifier, boolean create) {
+        return findMatchingInfo(infos, identifier)
+                .orElseGet(
+                        () -> create ? add(infos, new ActivityIterationInformationType().identifier(identifier)) : null);
+    }
+
+    private static Optional<ActivityIterationInformationType> findMatchingInfo(
+            @NotNull List<ActivityIterationInformationType> list, String id) {
         return list.stream()
-                .filter(item -> Objects.equals(item.getPartIdentifier(), partUri))
+                .filter(item -> Objects.equals(item.getIdentifier(), id))
                 .findFirst();
     }
 
     /** Adds two "part information" */
-    private static void addPartInformation(@NotNull IterativeTaskPartItemsProcessingInformationType sum,
-            @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
+    private static void addPartInformation(@NotNull ActivityIterationInformationType sum,
+            @NotNull ActivityIterationInformationType delta) {
         addProcessed(sum.getProcessed(), delta.getProcessed());
         addCurrent(sum.getCurrent(), delta.getCurrent());
         addExecutionRecords(sum, delta);
     }
 
-    private static void addExecutionRecords(@NotNull IterativeTaskPartItemsProcessingInformationType sum, @NotNull IterativeTaskPartItemsProcessingInformationType delta) {
+    private static void addExecutionRecords(@NotNull ActivityIterationInformationType sum,
+            @NotNull ActivityIterationInformationType delta) {
         List<TaskPartExecutionRecordType> nonOverlappingRecords =
                 new WallClockTimeComputer(sum.getExecution(), delta.getExecution())
                         .getNonOverlappingRecords();
@@ -307,23 +320,23 @@ public class IterativeTaskInformation {
         return new ArrayList<>(lastFailures);
     }
 
-    public static String format(IterativeTaskInformationType source) {
+    public static String format(ActivityIterationInformationType source) {
         return format(source, null);
     }
 
     // TODO reconsider
-    public static String format(List<IterativeTaskInformationType> sources) {
+    public static String format(List<ActivityIterationInformationType> sources) {
         StringBuilder sb = new StringBuilder();
-        for (IterativeTaskInformationType source : sources) {
+        for (ActivityIterationInformationType source : sources) {
             sb.append(format(source));
         }
         return sb.toString();
     }
 
     /** Formats the information. */
-    public static String format(IterativeTaskInformationType source, AbstractStatisticsPrinter.Options options) {
-        IterativeTaskInformationType information = source != null ? source : new IterativeTaskInformationType();
-        return new IterativeTaskInformationPrinter(information, options).print();
+    public static String format(ActivityIterationInformationType source, AbstractStatisticsPrinter.Options options) {
+        ActivityIterationInformationType information = source != null ? source : new ActivityIterationInformationType();
+        return new IterationInformationPrinter(information, options).print();
     }
 
     public boolean isCollectExecutions() {
@@ -396,7 +409,8 @@ public class IterativeTaskInformation {
             recordOperationEnd(this, outcome, exception);
             StructuredProgressCollector progressCollector = startInfo.getStructuredProgressCollector();
             if (progressCollector != null) {
-                progressCollector.incrementStructuredProgress(startInfo.getPartIdentifier(), outcome);
+                ActivityPath activityPath = startInfo.getActivityPath();
+                progressCollector.incrementStructuredProgress("TODO", outcome); // TODO
             }
         }
 

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
-    private final String partIdentifier;
+    private final ActivityPath activityPath;
     private final Long partStartTimestamp;
 
     private final long startTimeMillis;
@@ -36,13 +37,13 @@ public class IterativeOperationStartInfo {
         this(item, null);
     }
 
-    public IterativeOperationStartInfo(IterationItemInformation item, String partIdentifier) {
-        this(item, partIdentifier, null);
+    public IterativeOperationStartInfo(IterationItemInformation item, ActivityPath activityPath) {
+        this(item, activityPath, null);
     }
 
-    public IterativeOperationStartInfo(IterationItemInformation item, String partIdentifier, Long partStartTimestamp) {
+    public IterativeOperationStartInfo(IterationItemInformation item, ActivityPath activityPath, Long partStartTimestamp) {
         this.item = item;
-        this.partIdentifier = partIdentifier;
+        this.activityPath = activityPath;
         this.partStartTimestamp = partStartTimestamp;
 
         this.startTimeMillis = System.currentTimeMillis();
@@ -65,8 +66,8 @@ public class IterativeOperationStartInfo {
         return partStartTimestamp;
     }
 
-    public String getPartIdentifier() {
-        return partIdentifier;
+    public ActivityPath getActivityPath() {
+        return activityPath;
     }
 
     public StructuredProgressCollector getStructuredProgressCollector() {
@@ -83,7 +84,7 @@ public class IterativeOperationStartInfo {
                 "item=" + item +
                 ", startTimeMillis=" + startTimeMillis +
                 ", partStartTimestamp=" + partStartTimestamp +
-                ", partUri=" + partIdentifier +
+                ", activityPath=" + activityPath +
                 ", structuredProgressCollector=" + structuredProgressCollector +
                 '}';
     }

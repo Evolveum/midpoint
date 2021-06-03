@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -586,15 +587,15 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
     }
 
     @Override
-    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
     }
 
     @Override
-    public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+    public IterationInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         throw new UnsupportedOperationException();
     }
 

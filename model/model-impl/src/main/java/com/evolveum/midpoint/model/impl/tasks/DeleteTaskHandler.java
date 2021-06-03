@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.*;
+import static com.evolveum.midpoint.schema.statistics.IterationInformation.*;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 

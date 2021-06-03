@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
@@ -65,7 +66,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     private volatile EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
     private volatile SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
-    private volatile IterativeTaskInformation iterativeTaskInformation = new IterativeTaskInformation(PrismContext.get()); // just to have any value
+    private volatile IterationInformation iterationInformation = new IterationInformation(PrismContext.get()); // just to have any value
     private volatile ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
 
     private volatile StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
@@ -115,8 +116,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return synchronizationInformation;
     }
 
-    private IterativeTaskInformation getIterativeTaskInformation() {
-        return iterativeTaskInformation;
+    private IterationInformation getIterativeTaskInformation() {
+        return iterationInformation;
     }
 
     private ActionsExecutedInformation getActionsExecutedInformation() {
@@ -128,7 +129,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     @NotNull
     @Deprecated
     public List<String> getLastFailures() {
-        return iterativeTaskInformation.getLastFailures();
+        return iterationInformation.getLastFailures();
     }
 
     private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation(Collection<Statistics> children) {
@@ -147,12 +148,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     /** We assume that the children have compatible part numbers. */
-    private IterativeTaskInformationType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
-        IterativeTaskInformationType sum = iterativeTaskInformation.getValueCopy();
+    private ActivityIterationInformationType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
+        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
         for (Statistics child : children) {
-            IterativeTaskInformation info = child.getIterativeTaskInformation();
+            IterationInformation info = child.getIterativeTaskInformation();
             if (info != null) {
-                IterativeTaskInformation.addTo(sum, info.getValueCopy());
+                IterationInformation.addTo(sum, info.getValueCopy());
             }
         }
         return sum;
@@ -237,7 +238,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
      */
     public OperationStatsType getAggregatedOperationStats(Collection<Statistics> children) {
         EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
-        IterativeTaskInformationType itit = getAggregateIterativeTaskInformation(children);
+        ActivityIterationInformationType itit = getAggregateIterativeTaskInformation(children);
         SynchronizationInformationType sit = getAggregateSynchronizationInformation(children);
         ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation(children);
         RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
@@ -252,7 +253,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
         OperationStatsType rv = new OperationStatsType();
         rv.setEnvironmentalPerformanceInformation(env);
-        rv.setIterativeTaskInformation(itit);
+        rv.setIterationInformation(itit);
         rv.setSynchronizationInformation(sit);
         rv.setActionsExecutedInformation(aeit);
         rv.setRepositoryPerformanceInformation(repo);
@@ -337,12 +338,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     @NotNull
-    public IterativeTaskInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-        return iterativeTaskInformation.recordOperationStart(operation);
+    public IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+        return iterationInformation.recordOperationStart(operation);
     }
 
-    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
-        iterativeTaskInformation.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
+    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
+        iterationInformation.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
 
     public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
@@ -438,8 +439,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
         synchronizationInformation = new SynchronizationInformation(value, prismContext);
     }
 
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
-        iterativeTaskInformation = new IterativeTaskInformation(value, collectExecutions, prismContext);
+    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
+        iterationInformation = new IterationInformation(value, collectExecutions, prismContext);
     }
 
     public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
@@ -466,7 +467,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
         startOrRestartCollectingRegularOperationStats(newInitialValues,
                 synchronizationInformation != null,
                 actionsExecutedInformation != null,
-                iterativeTaskInformation.isCollectExecutions());
+                iterationInformation.isCollectExecutions());
         startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
         // Structured progress restart is not needed, as it is not maintained in LATs.
     }
@@ -480,7 +481,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     private void startOrRestartCollectingRegularOperationStats(OperationStatsType initialOperationStats,
             boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics, boolean collectExecutions) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
-        resetIterativeTaskInformation(initialOperationStats.getIterativeTaskInformation(), collectExecutions);
+        resetIterativeTaskInformation(initialOperationStats.getIterationInformation(), collectExecutions);
         if (maintainSynchronizationStatistics) {
             resetSynchronizationInformation(initialOperationStats.getSynchronizationInformation());
         } else {

@@ -21,14 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.*;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 /**
@@ -63,6 +64,10 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    public static int getItemsProcessedWithFailureShallow(ActivityIterationInformationType info) {
+        return getCountsNew(getOne(info), OutcomeKeyedCounterTypeUtil::isFailure);
+    }
+
     public static int getItemsProcessedWithSuccess(TaskType task) {
         return getItemsProcessedWithSuccess(task.getOperationStats());
     }
@@ -79,12 +84,32 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    public static int getItemsProcessedWithSuccessShallow(ActivityIterationInformationType info) {
+        return getCountsNew(getOne(info), OutcomeKeyedCounterTypeUtil::isSuccess);
+    }
+
+    private static Collection<ActivityIterationInformationType> getOne(ActivityIterationInformationType info) {
+        return info != null ? singleton(info) : emptySet();
+    }
+
+    private static Collection<ActivityIterationInformationType> getAll(ActivityIterationInformationType root) {
+        List<ActivityIterationInformationType> all = new ArrayList<>();
+        if (root != null) {
+            traverseIterationInformation(root, (p, info) -> all.add(info));
+        }
+        return all;
+    }
+
     public static int getItemsProcessedWithSkip(IterativeTaskInformationType info) {
         if (info != null) {
             return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil::isSkip);
         } else {
             return 0;
         }
+    }
+
+    public static int getItemsProcessedWithSkipShallow(ActivityIterationInformationType info) {
+        return getCountsNew(getOne(info), OutcomeKeyedCounterTypeUtil::isSkip);
     }
 
     /**
@@ -118,7 +143,7 @@ public class TaskOperationStatsUtil {
         subTasks.forEach(subTask -> {
             OperationStatsType operationStatsBean = subTask.getOperationStats();
             if (operationStatsBean != null) {
-                IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), operationStatsBean.getIterativeTaskInformation());
+                IterationInformation.addTo(aggregate.getIterationInformation(), operationStatsBean.getIterationInformation());
                 SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), operationStatsBean.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), operationStatsBean.getActionsExecutedInformation());
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
@@ -148,6 +173,15 @@ public class TaskOperationStatsUtil {
             return getCounts(statistics.getIterativeTaskInformation().getPart(), set -> true);
         }
     }
+
+    public static ActivityIterationInformationType getIterationInfoForActivity(OperationStatsType statistics,
+            ActivityPath activityPath) {
+        if (statistics.getIterationInformation() == null) {
+            return null;
+        }
+        return IterationInformation.findOrCreateMatchingInfo(statistics.getIterationInformation(), activityPath, false);
+    }
+
 
     @SuppressWarnings("WeakerAccess")
     public static IterativeTaskPartItemsProcessingInformationType getIterativeInfoForCurrentPart(OperationStatsType statistics,
@@ -182,6 +216,14 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    public static int getItemsProcessedShallow(ActivityIterationInformationType info) {
+        if (info == null) {
+            return 0;
+        } else {
+            return getCountsNew(singleton(info), set -> true);
+        }
+    }
+
     public static int getErrors(IterativeTaskPartItemsProcessingInformationType info) {
         if (info == null) {
             return 0;
@@ -190,11 +232,27 @@ public class TaskOperationStatsUtil {
         }
     }
 
+    public static int getErrorsShallow(ActivityIterationInformationType info) {
+        if (info == null) {
+            return 0;
+        } else {
+            return getCountsNew(singleton(info), OutcomeKeyedCounterTypeUtil::isFailure);
+        }
+    }
+
     public static double getProcessingTime(IterativeTaskPartItemsProcessingInformationType info) {
         if (info == null) {
             return 0;
         } else {
             return getProcessingTime(singleton(info), set -> true);
+        }
+    }
+
+    public static double getProcessingTime(ActivityIterationInformationType info) {
+        if (info == null) {
+            return 0;
+        } else {
+            return getProcessingTimeNew(singleton(info), set -> true);
         }
     }
 
@@ -210,8 +268,30 @@ public class TaskOperationStatsUtil {
                 .mapToInt(p -> or0(p.getCount()))
                 .sum();
     }
+    /**
+     * Returns sum of `count` values from processing information conforming to given predicate.
+     */
+    private static int getCountsNew(Collection<ActivityIterationInformationType> activities,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        return activities.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(Objects::nonNull)
+                .filter(itemSetFilter)
+                .mapToInt(p -> or0(p.getCount()))
+                .sum();
+    }
 
     private static double getProcessingTime(Collection<IterativeTaskPartItemsProcessingInformationType> parts,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        return parts.stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(Objects::nonNull)
+                .filter(itemSetFilter)
+                .mapToDouble(p -> or0(p.getDuration()))
+                .sum();
+    }
+
+    private static double getProcessingTimeNew(Collection<ActivityIterationInformationType> parts,
             Predicate<ProcessedItemSetType> itemSetFilter) {
         return parts.stream()
                 .flatMap(component -> component.getProcessed().stream())
@@ -242,6 +322,21 @@ public class TaskOperationStatsUtil {
             return null;
         }
         ProcessedItemType lastSuccess = info.getPart().stream()
+                .flatMap(component -> component.getProcessed().stream())
+                .filter(itemSetFilter)
+                .map(ProcessedItemSetType::getLastItem)
+                .filter(Objects::nonNull)
+                .max(Comparator.nullsFirst(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getEndTimestamp()))))
+                .orElse(null);
+        return lastSuccess != null ? lastSuccess.getName() : null;
+    }
+
+    /**
+     * Returns object that was last processed by given task in item set defined by the filter.
+     */
+    public static String getLastProcessedObjectName(ActivityIterationInformationType info,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        ProcessedItemType lastSuccess = getAll(info).stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(itemSetFilter)
                 .map(ProcessedItemSetType::getLastItem)
@@ -347,7 +442,7 @@ public class TaskOperationStatsUtil {
             }
             EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
         }
-        IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation());
+        IterationInformation.addTo(aggregate.getIterationInformation(), increment.getIterationInformation());
         if (increment.getSynchronizationInformation() != null) {
             if (aggregate.getSynchronizationInformation() == null) {
                 aggregate.setSynchronizationInformation(new SynchronizationInformationType());
@@ -379,9 +474,9 @@ public class TaskOperationStatsUtil {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-        if (statistics.getIterativeTaskInformation() != null) {
-            sb.append("Iterative task information\n\n")
-                    .append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
+        if (statistics.getIterationInformation() != null) {
+            sb.append("Iteration information\n\n")
+                    .append(IterationInformation.format(statistics.getIterationInformation()))
                     .append("\n");
         }
         if (statistics.getActionsExecutedInformation() != null) {
@@ -429,5 +524,22 @@ public class TaskOperationStatsUtil {
 
     public static Double toSeconds(Long time) {
         return time != null ? time / 1000.0 : null;
+    }
+
+    public static void traverseIterationInformation(@NotNull ActivityIterationInformationType root,
+            @NotNull BiConsumer<ActivityPath, ActivityIterationInformationType> consumer) {
+        traverseIterationInformationInternal(ActivityPath.empty(), root, consumer);
+    }
+
+    private static void traverseIterationInformationInternal(
+            @NotNull ActivityPath currentPath,
+            @NotNull ActivityIterationInformationType currentNode,
+            @NotNull BiConsumer<ActivityPath, ActivityIterationInformationType> consumer) {
+        consumer.accept(currentPath, currentNode);
+        currentNode.getActivity()
+                .forEach(child -> traverseIterationInformationInternal(
+                        currentPath.append(child.getIdentifier()),
+                        child,
+                        consumer));
     }
 }

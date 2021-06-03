@@ -31,7 +31,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPartPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -341,7 +341,7 @@ public abstract class AbstractIterativeActivityExecution<
         RunningTask task = getTask();
 
         executionStatistics.recordEnd();
-        task.recordPartExecutionEnd(activityIdentifier, getPartStartTimestamp(), executionStatistics.getEndTimeMillis());
+        task.recordPartExecutionEnd(getActivityPath(), getPartStartTimestamp(), executionStatistics.getEndTimeMillis());
         task.updateStatisticsInTaskPrism(true);
 
         // TODO eventually remove
@@ -359,8 +359,8 @@ public abstract class AbstractIterativeActivityExecution<
 
         OperationStatsType operationStats = task.getStoredOperationStatsOrClone();
         StructuredTaskProgressType structuredProgress = task.getStructuredProgressOrClone();
-        TaskPartPerformanceInformation partStatistics =
-                TaskPartPerformanceInformation.forCurrentPart(operationStats, structuredProgress);
+        ActivityPerformanceInformation partStatistics =
+                ActivityPerformanceInformation.forGivenActivity(getActivityPath(), operationStats, structuredProgress);
 
         String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredProgress);
 

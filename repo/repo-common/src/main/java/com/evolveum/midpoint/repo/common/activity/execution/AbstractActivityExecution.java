@@ -238,4 +238,8 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
     public ItemPath getWorkStatePath() {
         return workStatePath;
     }
+
+    public ActivityPath getActivityPath() {
+        return activity.getPath();
+    }
 }

@@ -6,27 +6,6 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
-import com.evolveum.midpoint.schema.statistics.StructuredTaskProgress;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * TODO
  */

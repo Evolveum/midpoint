@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 
 import org.jetbrains.annotations.NotNull;
 

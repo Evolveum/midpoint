@@ -174,11 +174,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    public IterativeTaskInfoAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
+    public IterationInformationAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
         OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        IterativeTaskInformationType information = operationStats != null ?
-                operationStats.getIterativeTaskInformation() : new IterativeTaskInformationType();
-        IterativeTaskInfoAsserter<TaskAsserter<RA>> asserter = new IterativeTaskInfoAsserter<>(information, this, getDetails());
+        ActivityIterationInformationType information = operationStats != null ?
+                operationStats.getIterationInformation() : new ActivityIterationInformationType();
+        IterationInformationAsserter<TaskAsserter<RA>> asserter = new IterationInformationAsserter<>(information, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

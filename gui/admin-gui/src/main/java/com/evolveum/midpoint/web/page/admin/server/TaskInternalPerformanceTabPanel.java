@@ -159,7 +159,7 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
         sb.append("Other performance-related information that is shown elsewhere (provided here just for completeness):\n\n");
         if (statistics.getIterativeTaskInformation() != null) {
             sb.append("Iterative task information\n\n")
-                    .append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation(), options))
+                    .append(IterationInformation.format(statistics.getIterativeTaskInformation(), options))
                     .append("\n");
         }
         if (statistics.getActionsExecutedInformation() != null) {
