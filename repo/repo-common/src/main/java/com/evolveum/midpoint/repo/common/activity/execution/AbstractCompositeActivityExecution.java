@@ -40,7 +40,7 @@ public abstract class AbstractCompositeActivityExecution<WD extends WorkDefiniti
     }
 
     @Override
-    public @NotNull ActivityExecutionResult execute(OperationResult result)
+    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result)
             throws CommonException, TaskException, PreconditionViolationException {
 
         activity.initializeChildrenMapIfNeeded();

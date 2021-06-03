@@ -1096,8 +1096,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @VisibleForTesting
     @Override
-    public RunningTaskQuartzImpl createFakeRunningTask(Task task, String rootTaskOid) {
-        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, rootTaskOid);
+    public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
+        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }

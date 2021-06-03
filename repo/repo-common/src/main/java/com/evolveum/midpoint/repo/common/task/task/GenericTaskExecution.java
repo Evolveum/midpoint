@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.task.task;
 
+import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityTree;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
@@ -29,13 +32,15 @@ public class GenericTaskExecution implements TaskExecution {
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericTaskExecution.class);
 
-    @NotNull private final RunningTask task;
+    @NotNull private final RunningTask runningTask;
     @NotNull private final GenericTaskHandler genericTaskHandler;
 
     private ActivityTree activityTree;
+    private ActivityPath localRootPath;
+    private Activity<?, ?> localRoot;
 
-    GenericTaskExecution(@NotNull RunningTask task, @NotNull GenericTaskHandler genericTaskHandler) {
-        this.task = task;
+    GenericTaskExecution(@NotNull RunningTask runningTask, @NotNull GenericTaskHandler genericTaskHandler) {
+        this.runningTask = runningTask;
         this.genericTaskHandler = genericTaskHandler;
     }
 
@@ -44,24 +49,35 @@ public class GenericTaskExecution implements TaskExecution {
     public TaskRunResult run(OperationResult result)
             throws CommonException, TaskException, PreconditionViolationException {
 
-        activityTree = ActivityTree.create(this);
+        localRootPath = TaskWorkStateUtil.getLocalRootPath(runningTask.getWorkState());
+        activityTree = ActivityTree.create(getRootTask(), getBeans());
+        localRoot = activityTree.getActivity(localRootPath);
+        localRoot.setLocalRoot(true);
 
-        LOGGER.trace("Activity tree before execution:\n{}", activityTree.debugDumpLazily());
+        logStart();
 
-        AbstractActivityExecution<?, ?> rootExecution = activityTree.getRootActivity()
-                .createExecution(this, result);
-        ActivityExecutionResult executionResult = rootExecution.execute(result);
+        AbstractActivityExecution<?, ?> localRootExecution = localRoot.createExecution(this, result);
+        ActivityExecutionResult executionResult = localRootExecution.execute(result);
 
-        LOGGER.trace("Root activity execution object after execution ({})\n{}",
-                executionResult.shortDumpLazily(), rootExecution.debugDumpLazily());
+        logEnd(localRootExecution, executionResult);
 
         return executionResult.getTaskRunResult();
     }
 
+    private void logStart() {
+        LOGGER.trace("Activity tree before execution (local root = {}):\n{}",
+                localRootPath, activityTree.debugDumpLazily());
+    }
+
+    private void logEnd(AbstractActivityExecution<?, ?> localRootExecution, ActivityExecutionResult executionResult) {
+        LOGGER.trace("Local root activity execution object after execution ({})\n{}",
+                executionResult.shortDumpLazily(), localRootExecution.debugDumpLazily());
+    }
+
     @NotNull
     @Override
-    public RunningTask getTask() {
-        return task;
+    public RunningTask getRunningTask() {
+        return runningTask;
     }
 
     @NotNull
@@ -72,5 +88,9 @@ public class GenericTaskExecution implements TaskExecution {
 
     public ActivityTree getActivityTree() {
         return activityTree;
+    }
+
+    public Activity<?, ?> getLocalRoot() {
+        return localRoot;
     }
 }

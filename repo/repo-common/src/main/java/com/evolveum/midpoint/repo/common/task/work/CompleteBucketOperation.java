@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,15 +35,15 @@ public class CompleteBucketOperation extends BucketOperation {
     private final int sequentialNumber;
 
     CompleteBucketOperation(WorkStateManager workStateManager, @NotNull String workerTaskOid,
-            WorkBucketStatisticsCollector collector, int sequentialNumber) {
-        super(workerTaskOid, collector, workStateManager);
+            @NotNull ActivityPath activityPath, WorkBucketStatisticsCollector collector, int sequentialNumber) {
+        super(workerTaskOid, activityPath, collector, workStateManager);
         this.sequentialNumber = sequentialNumber;
     }
 
     public void execute(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-        loadTasks(result, true);
+        loadTasks(result);
         LOGGER.trace("Completing work bucket #{} in {} (coordinator {})", sequentialNumber, workerTask, coordinatorTask);
 
         if (isStandalone()) {
@@ -53,7 +55,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private void completeWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TaskPartWorkStateType partWorkState = getWorkerTaskPartWorkStateRequired();
+        ActivityWorkStateType partWorkState = getWorkerTaskActivityWorkState();
         WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(partWorkState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
@@ -62,17 +64,17 @@ public class CompleteBucketOperation extends BucketOperation {
             throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + workerTask
                     + " cannot be marked as complete, as it is not ready; its state = " + bucket.getState());
         }
-        Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(workerPartPcvId, bucket, WorkBucketStateType.COMPLETE);
+        Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(workerStatePath, bucket, WorkBucketStateType.COMPLETE);
         repositoryService.modifyObject(TaskType.class, workerTask.getOid(), modifications, null, result);
         workerTask.applyModificationsTransient(modifications);
         workerTask.applyDeltasImmediate(modifications, result);
-        compressCompletedBuckets(workerTask, workerPartPcvId, result);
+        compressCompletedBuckets(workerTask, workerStatePath, result);
         statisticsKeeper.register(COMPLETE_WORK_BUCKET);
     }
 
     private void completeWorkBucketMultiNode(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TaskPartWorkStateType workState = getCoordinatorTaskPartWorkStateRequired();
+        ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
         WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
@@ -83,7 +85,7 @@ public class CompleteBucketOperation extends BucketOperation {
         }
         checkWorkerRefOnDelegatedBucket(bucket);
         Collection<ItemDelta<?, ?>> modifications =
-                bucketStateChangeDeltas(coordinatorPartPcvId, bucket, WorkBucketStateType.COMPLETE);
+                bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.COMPLETE);
         try {
             ModifyObjectResult<TaskType> modifyObjectResult = repositoryService.modifyObject(TaskType.class,
                     coordinatorTask.getOid(), modifications, bucketUnchangedPrecondition(bucket), null, result);
@@ -92,14 +94,14 @@ public class CompleteBucketOperation extends BucketOperation {
             throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + coordinatorTask, e);
         }
         coordinatorTask.applyModificationsTransient(modifications);
-        compressCompletedBuckets(coordinatorTask, coordinatorPartPcvId, result);
+        compressCompletedBuckets(coordinatorTask, coordinatorStatePath, result);
         deleteBucketFromWorker(sequentialNumber, result);
         statisticsKeeper.register(COMPLETE_WORK_BUCKET);
     }
 
-    private void compressCompletedBuckets(Task task, long pcvId, OperationResult result)
+    private void compressCompletedBuckets(Task task, ItemPath statePath, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<WorkBucketType> buckets = new ArrayList<>(TaskWorkStateUtil.getBuckets(task.getWorkState()));
+        List<WorkBucketType> buckets = new ArrayList<>(TaskWorkStateUtil.getBuckets(task.getWorkState(), activityPath));
         TaskWorkStateUtil.sortBucketsBySequentialNumber(buckets);
         List<WorkBucketType> completeBuckets = buckets.stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
@@ -112,7 +114,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
         List<ItemDelta<?, ?>> deleteItemDeltas = new ArrayList<>();
         for (int i = 0; i < completeBuckets.size() - 1; i++) {
-            deleteItemDeltas.addAll(bucketDeleteDeltas(pcvId, completeBuckets.get(i)));
+            deleteItemDeltas.addAll(bucketDeleteDeltas(statePath, completeBuckets.get(i)));
         }
         LOGGER.trace("Compression of completed buckets: deleting {} buckets before last completed one in {}", deleteItemDeltas.size(), task);
         // these buckets should not be touched by anyone (as they are already completed); so we can execute without preconditions

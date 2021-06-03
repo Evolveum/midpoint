@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.*;
@@ -662,17 +663,17 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public ActivityDefinitionType getActivityDefinitionOrClone() {
-        return null;
-    }
-
-    @Override
     public TaskWorkStateType getWorkState() {
         return null;
     }
 
     @Override
     public TaskWorkStateType getWorkStateOrClone() {
+        return null;
+    }
+
+    @Override
+    public <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type) {
         return null;
     }
 

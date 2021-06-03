@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,9 +62,9 @@ public class RunningLightweightTaskImpl extends RunningTaskQuartzImpl implements
      */
     private volatile boolean lightweightHandlerExecuting;
 
-    public RunningLightweightTaskImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrismObject, String rootTaskOid,
-            @NotNull RunningTaskQuartzImpl parent, @NotNull LightweightTaskHandler handler) {
-        super(taskManager, taskPrismObject, rootTaskOid);
+    public RunningLightweightTaskImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrismObject,
+            @NotNull Task rootTask, @NotNull RunningTaskQuartzImpl parent, @NotNull LightweightTaskHandler handler) {
+        super(taskManager, taskPrismObject, rootTask);
         this.parent = parent;
         lightweightTaskHandler = handler;
     }

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketsManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,5 +38,9 @@ public class ActivityDistributionDefinition implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         return bean.debugDump(indent);
+    }
+
+    public WorkBucketsManagementType getBuckets() {
+        return bean.getBuckets();
     }
 }

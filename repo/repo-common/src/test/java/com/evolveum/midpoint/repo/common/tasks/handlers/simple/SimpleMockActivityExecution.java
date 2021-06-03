@@ -35,9 +35,7 @@ class SimpleMockActivityExecution extends AbstractActivityExecution<SimpleMockWo
     }
 
     @Override
-    public @NotNull ActivityExecutionResult execute(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException {
-
+    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result) {
         String message = activity.getWorkDefinition().getMessage();
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);

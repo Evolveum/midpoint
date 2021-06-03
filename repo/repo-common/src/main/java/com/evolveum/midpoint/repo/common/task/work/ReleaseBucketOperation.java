@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,15 +28,15 @@ public class ReleaseBucketOperation extends BucketOperation {
     private final int sequentialNumber;
 
     ReleaseBucketOperation(WorkStateManager workStateManager, @NotNull String workerTaskOid,
-            WorkBucketStatisticsCollector collector, int sequentialNumber) {
-        super(workerTaskOid, collector, workStateManager);
+            @NotNull ActivityPath activityPath, WorkBucketStatisticsCollector collector, int sequentialNumber) {
+        super(workerTaskOid, activityPath, collector, workStateManager);
         this.sequentialNumber = sequentialNumber;
     }
 
     public void execute(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-        loadTasks(result, true);
+        loadTasks(result);
         LOGGER.trace("Releasing bucket {} in {} (coordinator {})", sequentialNumber, workerTask, coordinatorTask);
 
         if (isStandalone()) {
@@ -47,7 +48,7 @@ public class ReleaseBucketOperation extends BucketOperation {
 
     private void releaseWorkBucketMultiNode(int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TaskPartWorkStateType workState = getCoordinatorTaskPartWorkStateRequired();
+        ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
         WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
@@ -59,7 +60,7 @@ public class ReleaseBucketOperation extends BucketOperation {
         checkWorkerRefOnDelegatedBucket(bucket);
         try {
             repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
-                    bucketStateChangeDeltas(coordinatorPartPcvId, bucket, WorkBucketStateType.READY, null),
+                    bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.READY, null),
                     bucketUnchangedPrecondition(bucket), null, result);
         } catch (PreconditionViolationException e) {
             // just for sure

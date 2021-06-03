@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.repo.common.task.work.GetBucketOperation;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.FoundExisting;
@@ -49,10 +50,9 @@ public class BucketAllocator {
         return new BucketAllocator(bucketingConfig, strategy);
     }
 
-    public static BucketAllocator create(ActivityDefinitionType partDef, BucketContentFactoryCreator strategyFactory) {
-        WorkDistributionType workDistribution = partDef != null ? partDef.getDistribution() : null;
-        WorkBucketsManagementType bucketingConfig = workDistribution != null ? workDistribution.getBuckets() : null;
-        return create(bucketingConfig, strategyFactory);
+    public static BucketAllocator create(@NotNull ActivityDistributionDefinition distributionDefinition,
+            BucketContentFactoryCreator strategyFactory) {
+        return create(distributionDefinition.getBuckets(), strategyFactory);
     }
 
     /**

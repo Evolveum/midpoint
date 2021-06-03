@@ -41,8 +41,7 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    public @NotNull ActivityExecutionResult execute(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException {
+    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result) {
 
         CompositeMockWorkDefinition workDef = activity.getWorkDefinition();
 
@@ -54,7 +53,7 @@ public abstract class MockComponentActivityExecution
 
         ActivityExecutionResult executionResult = new ActivityExecutionResult();
 
-        RunningTask task = taskExecution.getTask();
+        RunningTask task = taskExecution.getRunningTask();
 
         task.incrementProgressAndStoreStatisticsIfTimePassed(result);
 

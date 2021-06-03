@@ -8,11 +8,13 @@
 package com.evolveum.midpoint.repo.common.activity;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +59,8 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
      */
     @NotNull private final ActivityTree tree;
 
+    /** TODO */
+    private boolean localRoot;
 
     /**
      * References to the children, indexed by their identifier.
@@ -106,6 +110,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return tree;
     }
 
+    public void setLocalRoot(boolean localRoot) {
+        this.localRoot = localRoot;
+    }
+
     public abstract Activity<?, ?> getParent();
 
     @NotNull
@@ -116,7 +124,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpLabelLn(sb, "Activity [" + identifier + "]", indent);
+        DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName() + " [" + identifier + "]", indent); // TODO local-root
         DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "execution", execution, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "parent", String.valueOf(getParent()), indent + 1);
@@ -212,10 +220,40 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return getParent() == null;
     }
 
+    /**
+     * Is this activity the local root i.e. root of execution in the current task?
+     */
+    public boolean isLocalRoot() {
+        return localRoot;
+    }
+
     @Override
     public String toString() {
-        return "Activity{" +
+        // TODO root/local-root
+        return getClass().getSimpleName() + "{" +
                 "identifier='" + identifier + '\'' +
                 '}';
+    }
+
+    @NotNull
+    public ActivityPath getLocalPath() {
+        LinkedList<String> identifiers = new LinkedList<>();
+        Activity<?, ?> current = this;
+        while (!current.isLocalRoot()) {
+            identifiers.add(0, current.getIdentifier());
+            current = current.getParent();
+        }
+        return ActivityPath.fromList(identifiers);
+    }
+
+    @NotNull
+    public ActivityPath getPath() {
+        LinkedList<String> identifiers = new LinkedList<>();
+        Activity<?, ?> current = this;
+        while (!current.isRoot()) {
+            identifiers.add(0, current.getIdentifier());
+            current = current.getParent();
+        }
+        return ActivityPath.fromList(identifiers);
     }
 }

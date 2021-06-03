@@ -11,12 +11,11 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,10 +38,9 @@ public class ActivityTree implements DebugDumpable {
         this.beans = beans;
     }
 
-    public static ActivityTree create(GenericTaskExecution taskExecution) throws SchemaException {
-        return new ActivityTree(
-                ActivityDefinition.createRoot(taskExecution),
-                taskExecution.getBeans());
+    public static ActivityTree create(Task rootTask, CommonTaskBeans beans) throws SchemaException {
+        ActivityDefinition<?> rootDefinition = ActivityDefinition.createRoot(rootTask, beans);
+        return new ActivityTree(rootDefinition, beans);
     }
 
     @NotNull
@@ -68,9 +66,9 @@ public class ActivityTree implements DebugDumpable {
     }
 
     @NotNull
-    public Activity<?, ?> getActivity(ActivityPathType path) throws SchemaException {
+    public Activity<?, ?> getActivity(ActivityPath path) throws SchemaException {
         Activity<?, ?> current = rootActivity;
-        for (String identifier : path.getIdentifier()) {
+        for (String identifier : path.getIdentifiers()) {
             current = current.getChild(identifier);
         }
         return current;

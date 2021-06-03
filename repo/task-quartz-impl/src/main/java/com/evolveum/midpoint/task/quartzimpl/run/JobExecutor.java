@@ -292,8 +292,8 @@ public class JobExecutor implements InterruptableJob {
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
         try {
             TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
-            String rootOid = beans.taskRetriever.getRootTaskOid(taskWithResult, result);
-            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootOid);
+            Task rootTask = beans.taskRetriever.getRootTask(taskWithResult, result);
+            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootTask);
         } catch (ObjectNotFoundException e) {
             beans.localScheduler.deleteTaskFromQuartz(oid, false, result);
             throw new StopJobException(ERROR, "Task with OID %s no longer exists. "

@@ -7,19 +7,24 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static java.util.Collections.singleton;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Utility methods related to task work state and work state management.
@@ -35,14 +40,6 @@ public class TaskWorkStateUtil {
     // beware: do not call this on prism structure directly (it does not support setting values)
     public static void sortBucketsBySequentialNumber(List<WorkBucketType> buckets) {
         buckets.sort(Comparator.comparingInt(WorkBucketType::getSequentialNumber));
-    }
-
-    public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(WorkDistributionType cfg) {
-        if (cfg != null) {
-            return getWorkSegmentationConfiguration(cfg.getBuckets());
-        } else {
-            return null;
-        }
     }
 
     @Nullable
@@ -207,47 +204,25 @@ public class TaskWorkStateUtil {
     }
 
     @NotNull
-    public static List<WorkBucketType> getBuckets(TaskWorkStateType workState) {
-        if (workState == null) {
-            return emptyList();
-        }
-        TaskPartWorkStateType partWorkState = getCurrentPartWorkState(workState);
-        if (partWorkState == null) {
-            return emptyList();
-        }
-        return partWorkState.getBucket();
+    public static List<WorkBucketType> getBuckets(@NotNull TaskWorkStateType workState, ActivityPath activityPath) {
+        return getActivityWorkState(workState, activityPath)
+                .getBucket();
     }
 
-    @Nullable
-    public static TaskPartWorkStateType getCurrentPartWorkState(TaskWorkStateType workState) {
-        if (workState != null) {
-            return getPartWorkState(workState, getCurrentActivityId(workState));
-        } else {
-            return null;
-        }
+    @NotNull
+    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskWorkStateType workState,
+            @NotNull ActivityPath activityPath) {
+        return getActivityWorkState(workState,
+                getWorkStatePath(workState, activityPath));
     }
 
-    @Nullable
-    public static TaskPartWorkStateType getPartWorkState(TaskWorkStateType workState, String partId) {
-        if (workState != null) {
-            return getPartWorkState(workState.getActivity(), partId);
-        } else {
-            return null;
-        }
-    }
-
-    @Nullable
-    private static TaskPartWorkStateType getPartWorkState(List<TaskPartWorkStateType> parts, String partId) {
-        for (TaskPartWorkStateType partState : parts) {
-            if (Objects.equals(partState.getIdentifier(), partId)) {
-                return partState;
-            }
-            TaskPartWorkStateType inChildren = getPartWorkState(partState.getPart(), partId);
-            if (inChildren != null) {
-                return inChildren;
-            }
-        }
-        return null;
+    @NotNull
+    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskWorkStateType workState,
+            @NotNull ItemPath workStatePath) {
+        //noinspection unchecked
+        return ((PrismContainer<ActivityWorkStateType>) workState.asPrismContainerValue()
+                .findItem(workStatePath.rest(), PrismContainer.class))
+                .getRealValue(ActivityWorkStateType.class);
     }
 
     public static ActivityDefinitionType getPartDefinition(ActivityDefinitionType part, String partId) {
@@ -274,14 +249,14 @@ public class TaskWorkStateUtil {
         return null;
     }
 
-    public static boolean isStandalone(TaskWorkStateType workState) {
-        BucketsProcessingRoleType bucketsProcessingRole = getBucketsProcessingRole(workState);
+    public static boolean isStandalone(TaskWorkStateType workState, ItemPath statePath) {
+        BucketsProcessingRoleType bucketsProcessingRole = getBucketsProcessingRole(workState, statePath);
         return bucketsProcessingRole == null || bucketsProcessingRole == BucketsProcessingRoleType.STANDALONE;
     }
 
-    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskWorkStateType workState) {
-        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(workState);
-        return partWorkState != null ? partWorkState.getBucketsProcessingRole() : null;
+    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskWorkStateType taskWorkState, ItemPath statePath) {
+        return TaskWorkStateUtil.getActivityWorkState(taskWorkState, statePath)
+                .getBucketsProcessingRole();
     }
 
     public static WorkDistributionType getWorkDistribution(ActivityDefinitionType work, String partId) {
@@ -293,8 +268,45 @@ public class TaskWorkStateUtil {
         return workState != null ? workState.getCurrentPartId() : null;
     }
 
-    public static boolean isScavenger(TaskWorkStateType workState) {
-        TaskPartWorkStateType partWorkState = getCurrentPartWorkState(workState);
-        return partWorkState != null && Boolean.TRUE.equals(partWorkState.isScavenger());
+    public static boolean isScavenger(TaskWorkStateType workState, ActivityPath activityPath) {
+        ActivityWorkStateType partWorkState = getActivityWorkState(workState, activityPath);
+        return Boolean.TRUE.equals(partWorkState.isScavenger());
     }
+
+    public static ActivityPathType getLocalRootPathBean(TaskWorkStateType workState) {
+        return workState != null ? workState.getLocalRoot() : null;
+    }
+
+    public static ActivityPath getLocalRootPath(TaskWorkStateType workState) {
+        return ActivityPath.fromBean(getLocalRootPathBean(workState));
+    }
+
+    @NotNull
+    public static ItemPath getWorkStatePath(@NotNull TaskWorkStateType workState, @NotNull ActivityPath activityPath) {
+        ActivityPath localRootPath = getLocalRootPath(workState);
+        stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
+                activityPath, localRootPath);
+
+        ActivityWorkStateType currentWorkState = workState.getActivity();
+        ItemPath currentWorkStatePath = ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY);
+        for (String identifier : localRootPath.getIdentifiers()) {
+            stateCheck(currentWorkState != null, "Current work state is not present; path = %s", currentWorkStatePath);
+            List<ActivityWorkStateType> matching = currentWorkState.getActivity().stream()
+                    .filter(state -> Objects.equals(state.getIdentifier(), identifier))
+                    .collect(Collectors.toList());
+            var context = currentWorkState;
+            currentWorkState = MiscUtil.extractSingletonRequired(matching,
+                    () -> new IllegalStateException("More than one matching activity work state for " + identifier + " in " + context),
+                    () -> new IllegalStateException("No matching activity work state for " + identifier + " in " + context));
+            stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
+            currentWorkStatePath = currentWorkStatePath.append(ActivityWorkStateType.F_ACTIVITY, currentWorkState.getId());
+        }
+        return currentWorkStatePath;
+    }
+
+    @NotNull
+    private static List<String> getLocalRootSegments(@NotNull TaskWorkStateType workState) {
+        return workState.getLocalRoot() != null ? workState.getLocalRoot().getIdentifier() : List.of();
+    }
+
 }

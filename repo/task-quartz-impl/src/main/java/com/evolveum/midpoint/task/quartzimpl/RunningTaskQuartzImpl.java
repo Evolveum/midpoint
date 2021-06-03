@@ -50,11 +50,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Long lastOperationStatsUpdateTimestamp;
 
     /**
-     * OID of the root of this task hierarchy.
-     * (Note that each running task must have a persistent root.)
+     * Root of the task hierarchy. It is not guaranteed to be current. It is initialized when the task is started.
+     * Can even point to the this task object.
      */
     @Experimental
-    @NotNull private final String rootTaskOid;
+    @NotNull private final Task rootTask;
 
     /**
      * Lightweight asynchronous subtasks.
@@ -83,9 +83,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Level originalProfilingLevel;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
-            @NotNull String rootTaskOid) {
+            @NotNull Task rootTask) {
         super(taskManager, taskPrism);
-        this.rootTaskOid = rootTaskOid;
+        this.rootTask = rootTask;
     }
 
     //region Task execution (canRun, executing thread)
@@ -120,7 +120,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public @NotNull RunningLightweightTask createSubtask(@NotNull LightweightTaskHandler handler) {
         RunningLightweightTaskImpl sub = beans.taskInstantiator
-                .toRunningLightweightTaskInstance(createSubtask(), rootTaskOid, this, handler);
+                .toRunningLightweightTaskInstance(createSubtask(), rootTask, this, handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
             lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
@@ -406,7 +406,13 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     //region Misc
     @Override
     public @NotNull String getRootTaskOid() {
-        return rootTaskOid;
+        return rootTask.getOid();
+    }
+
+    @Override
+    @NotNull
+    public Task getRootTask() {
+        return rootTask;
     }
     //endregion
 }

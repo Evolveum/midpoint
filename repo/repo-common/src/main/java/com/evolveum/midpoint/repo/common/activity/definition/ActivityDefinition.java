@@ -7,19 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Supplier;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
  * Definition of an activity. It is analogous to ActivityDefinitionType, but contains the complete information
@@ -55,21 +56,19 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * 1. "activity" bean
      * 2. handler URI
      */
-    public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(TaskExecution taskExecution)
+    public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask, CommonTaskBeans beans)
             throws SchemaException {
-        RunningTask task = taskExecution.getTask();
-        WorkDefinitionFactory factory = taskExecution.getBeans().workDefinitionFactory;
+        WorkDefinitionFactory factory = beans.workDefinitionFactory;
 
-        ActivityDefinitionType bean = task.getActivityDefinitionOrClone();
-        WD rootWorkDefinition = createRootWorkDefinition(bean, taskExecution, factory);
-        rootWorkDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(task)));
+        ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
+        WD rootWorkDefinition = createRootWorkDefinition(bean, rootTask, factory);
+        rootWorkDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(rootTask)));
         rootWorkDefinition.addTailoring(getTailoring(bean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean);
 
-        return new ActivityDefinition<>(bean, rootWorkDefinition, controlFlowDefinition, distributionDefinition,
-                factory);
+        return new ActivityDefinition<>(bean, rootWorkDefinition, controlFlowDefinition, distributionDefinition, factory);
     }
 
     /**
@@ -97,19 +96,9 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 parent.workDefinitionFactory);
     }
 
-    /**
-     * Creates a definition for a child that is inserted before/after other sub-activity by tailoring.
-     * It is taken purely from the "activity" bean.
-     */
-    public static ActivityDefinition<?> createInsertedChild() {
-        throw new UnsupportedOperationException();
-    }
-
     @NotNull
     private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(ActivityDefinitionType activityBean,
-            TaskExecution taskExecution, WorkDefinitionFactory factory) throws SchemaException {
-
-        RunningTask task = taskExecution.getTask();
+            Task rootTask, WorkDefinitionFactory factory) throws SchemaException {
 
         if (activityBean != null) {
             WD def = createFromBean(activityBean, factory);
@@ -119,13 +108,13 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         }
 
         //noinspection unchecked
-        WD def = (WD) factory.getWorkFromTaskLegacy(task);
+        WD def = (WD) factory.getWorkFromTaskLegacy(rootTask);
         if (def != null) {
             return def;
         }
 
-        throw new SchemaException("Root work definition cannot be obtained for " + task + ": no activity nor "
-                + "known task handler URI is provided. Handler URI = " + task.getHandlerUri());
+        throw new SchemaException("Root work definition cannot be obtained for " + rootTask + ": no activity nor "
+                + "known task handler URI is provided. Handler URI = " + rootTask.getHandlerUri());
     }
 
     private static <WD extends AbstractWorkDefinition> WD createFromBean(ActivityDefinitionType bean,
@@ -158,7 +147,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return workDefinition.getExecutionMode();
     }
 
-    private static Supplier<ExecutionModeType> getModeSupplier(RunningTask task) {
+    private static Supplier<ExecutionModeType> getModeSupplier(Task task) {
         return () -> {
             Boolean taskDryRun = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             return Boolean.TRUE.equals(taskDryRun) ? ExecutionModeType.DRY_RUN : ExecutionModeType.EXECUTE;
@@ -178,21 +167,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return workDefinition;
     }
 
-    private ActivityDefinitionType getParent(ActivityDefinitionType partDef) {
-        PrismContainer<?> container = (PrismContainer<?>) partDef.asPrismContainerValue().getParent();
-        if (container == null) {
-            return null;
-        }
-        PrismContainerValue<?> parent = container.getParent();
-        if (parent == null) {
-            return null;
-        }
-
-        if (ActivityDefinitionType.class.equals(parent.getCompileTimeClass())) {
-            return (ActivityDefinitionType) parent.asContainerable();
-        } else {
-            return null;
-        }
+    public @NotNull ActivityDistributionDefinition getDistributionDefinition() {
+        return distributionDefinition;
     }
 
     @Override

@@ -93,4 +93,8 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector {
      * EXPERIMENTAL
      */
     @NotNull String getRootTaskOid();
+
+    /** TODO EXPERIMENTAL */
+    @Experimental
+    @NotNull Task getRootTask();
 }

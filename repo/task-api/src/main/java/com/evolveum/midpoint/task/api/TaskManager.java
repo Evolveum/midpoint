@@ -672,7 +672,7 @@ public interface TaskManager {
      * Use only for tests. (Even in that case it is an ugly hack.)
      */
     @VisibleForTesting
-    RunningTask createFakeRunningTask(Task task, String rootTaskOid);
+    RunningTask createFakeRunningTask(Task task);
 
     TaskHandler getHandler(String handlerUri);
 

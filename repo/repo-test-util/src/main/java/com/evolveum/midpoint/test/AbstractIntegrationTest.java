@@ -44,6 +44,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
@@ -3185,7 +3186,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .sum();
     }
 
-    protected void assertNoWorkBuckets(TaskPartWorkStateType ws) {
+    protected void assertNoWorkBuckets(ActivityWorkStateType ws) {
         assertTrue(ws == null || ws.getBucket().isEmpty());
     }
 
@@ -3225,11 +3226,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return integer != null ? BigInteger.valueOf(integer) : null;
     }
 
-    protected void assertOptimizedCompletedBuckets(Task task) {
-        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(task.getWorkState());
-        if (partWorkState == null) {
-            return;
-        }
+    protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
+        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkState(task.getWorkState(), activityPath);
         long completed = partWorkState.getBucket().stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
@@ -3269,9 +3267,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void assertNumberOfBuckets(Task task, Integer expectedNumber) {
-        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(task.getWorkState());
-        assert partWorkState != null;
+    protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
+        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkState(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, partWorkState.getNumberOfBuckets());
     }
 

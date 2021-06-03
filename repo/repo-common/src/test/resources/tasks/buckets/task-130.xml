@@ -6,9 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="c65a656e-75e9-4d03-a5bc-7e082a19bfb1"
+<task oid="1339d0e9-eb92-4e1a-a48e-86406d1f37c1"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>task-140</name>
+    <name>task-130</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
     <recurrence>single</recurrence>
@@ -19,7 +19,13 @@
                     <numberOfBuckets>1000</numberOfBuckets>
                     <bucketSize>100</bucketSize>
                 </numericSegmentation>
+                <allocation>
+                    <bucketCreationBatch>7</bucketCreationBatch>
+                </allocation>
             </buckets>
         </distribution>
     </activity>
+    <workState>
+        <activity/>
+    </workState>
 </task>

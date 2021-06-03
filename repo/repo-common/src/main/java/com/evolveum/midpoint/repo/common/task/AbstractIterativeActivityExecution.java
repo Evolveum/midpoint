@@ -148,7 +148,7 @@ public abstract class AbstractIterativeActivityExecution<
     @NotNull
     public abstract ActivityReportingOptions getDefaultReportingOptions();
 
-    public @NotNull ActivityExecutionResult execute(OperationResult opResult)
+    protected @NotNull ActivityExecutionResult executeInternal(OperationResult opResult)
             throws CommonException, TaskException, PreconditionViolationException {
 
         ActivityExecutionResult runResult = new ActivityExecutionResult();
@@ -274,7 +274,7 @@ public abstract class AbstractIterativeActivityExecution<
 
     @NotNull
     public RunningTask getTask() {
-        return taskExecution.getTask();
+        return taskExecution.getRunningTask();
     }
 
     /**

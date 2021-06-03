@@ -11,6 +11,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.ShortDumpable;
@@ -34,7 +35,7 @@ public interface TaskExecution extends ShortDumpable {
     /**
      * Returns the task associated with this execution.
      */
-    @NotNull RunningTask getTask();
+    @NotNull RunningTask getRunningTask();
 
     @NotNull CommonTaskBeans getBeans();
 
@@ -43,6 +44,10 @@ public interface TaskExecution extends ShortDumpable {
     }
 
     default void shortDump(StringBuilder sb) {
-        sb.append("execution of ").append(getTask());
+        sb.append("execution of ").append(getRunningTask());
+    }
+
+    default Task getRootTask() {
+        return getRunningTask().getRootTask();
     }
 }

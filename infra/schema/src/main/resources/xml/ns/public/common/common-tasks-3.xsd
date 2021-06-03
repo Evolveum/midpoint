@@ -2371,17 +2371,24 @@
             <xsd:element name="currentPartId" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Current part identifier.
+                        Current part identifier. TODO???
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="activity" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="localRoot" type="tns:ActivityPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work state for individual parts.
+                        In what part of the tree the execution in this task should start.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work state for individual activities, organized in the tree.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2397,10 +2404,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskPartWorkStateType">
+    <xsd:complexType name="ActivityWorkStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the work state of a task part.
+                Describes the work state of an activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -2412,7 +2419,7 @@
             <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of the task part.
+                        Identifier of the activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2439,7 +2446,7 @@
             <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Progress of this part. Relevant for worker and standalone tasks.
+                        Progress of this activity. Relevant for worker and standalone tasks.
                         (Can be copied to coordinator e.g. if workers are deleted.)
                     </xsd:documentation>
                 </xsd:annotation>
@@ -2466,10 +2473,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="part" type="tns:TaskPartWorkStateType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work state of child parts.
+                        Work state of child activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

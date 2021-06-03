@@ -35,7 +35,7 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private final Boolean opening;
     private final Boolean closing;
 
-    public CompositeMockWorkDefinition(WorkDefinitionSource source) {
+    CompositeMockWorkDefinition(WorkDefinitionSource source) {
         PrismContainerValue<?> pcv = getPcv(source);
         this.message = pcv != null ? pcv.getPropertyRealValue(MESSAGE_NAME, String.class) : null;
         this.delay = pcv != null ? pcv.getPropertyRealValue(DELAY_NAME, Long.class) : 0;

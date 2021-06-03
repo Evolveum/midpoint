@@ -19,6 +19,12 @@ import java.util.Arrays;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -51,14 +57,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Tests 100-199 exercise get bucket / complete bucket cycle within a single (standalone) task.
  * Tests 200-299 check the situation with multiple tasks (coordinators + workers).
  */
-@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-repo-common-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestBucketManagement extends AbstractRepoCommonTest {
 
     @Autowired private WorkStateManager workStateManager;
     @Autowired private BucketContentFactoryCreator contentFactoryCreator;
 
-    private static final File TEST_DIR = new File("src/test/resources/buckets");
+    private static final File TEST_DIR = new File("src/test/resources/tasks/buckets");
 
     private static final TestResource<TaskType> TASK_010 = new TestResource<>(TEST_DIR, "task-010.xml", "758f79bb-800c-42b2-8d85-44416a29d956");
     private static final TestResource<TaskType> TASK_020 = new TestResource<>(TEST_DIR, "task-020.xml", "62490d1d-244c-4f36-b0d1-cc3a8df26743");
@@ -99,11 +105,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_010, result);
 
         Task task = taskManager.getTaskPlain(TASK_010.oid, result);
-        TaskPartWorkStateType workState = new TaskPartWorkStateType(prismContext);
+        ActivityWorkStateType workState = new ActivityWorkStateType(prismContext);
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getPartDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -115,8 +121,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).startsWith("a00").matchingNorm()
-                        .build(),
-                result);
+                        .build()
+        );
 
         assumeNextPrefix(allocator, workState, "a01", 2);
         assumeNextPrefix(allocator, workState, "a0a", 3);
@@ -154,11 +160,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_020, result);
 
         Task task = taskManager.getTaskPlain(TASK_020.oid, result);
-        TaskPartWorkStateType workState = new TaskPartWorkStateType(prismContext);
+        ActivityWorkStateType workState = new ActivityWorkStateType(prismContext);
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getPartDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -170,8 +176,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).eq("a00").matchingNorm()
-                        .build(),
-                result);
+                        .build()
+        );
 
         assumeNextValue(allocator, workState, "a01", 2);
         assumeNextValue(allocator, workState, "a0a", 3);
@@ -209,11 +215,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_030, result);
 
         Task task = taskManager.getTaskPlain(TASK_030.oid, result);
-        TaskPartWorkStateType workState = new TaskPartWorkStateType(prismContext);
+        ActivityWorkStateType workState = new ActivityWorkStateType(prismContext);
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getPartDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -225,8 +231,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).lt("00").matchingNorm()
-                        .build(),
-                result);
+                        .build()
+        );
 
         bucket = assumeNextInterval(allocator, workState, "00", "0a", 2);
 
@@ -234,8 +240,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_NAME).ge("00").matchingNorm()
                         .and().item(UserType.F_NAME).lt("0a").matchingNorm()
-                        .build(),
-                result);
+                        .build()
+        );
 
         assumeNextInterval(allocator, workState, "0a", "0m", 3);
         assumeNextInterval(allocator, workState, "0m", "50", 4);
@@ -263,7 +269,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getPartDefinition(task));
+        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
 
         then();
 
@@ -282,7 +288,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getPartDefinition(task));
+        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
 
         then();
 
@@ -301,7 +307,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("1st get");
 
-        WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        WorkBucketType bucket = getWorkBucket(task, result);
 
         then("1st get");
 
@@ -309,15 +315,15 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_ITERATION).lt(BigInteger.valueOf(123))
-                        .build(),
-                result);
+                        .build()
+        );
 
         getTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 2nd get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 1, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 2nd get");
 
@@ -326,15 +332,15 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_ITERATION).ge(BigInteger.valueOf(123))
                         .and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(200))
-                        .build(),
-                result);
+                        .build()
+        );
 
         getTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 3rd get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 2, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
 
@@ -342,21 +348,36 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(UserType.class)
                         .item(UserType.F_ITERATION).ge(BigInteger.valueOf(200))
-                        .build(),
-                result);
+                        .build()
+        );
 
         getTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 4th get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 3, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 3, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
 
         assertNull("Non-null bucket obtained", bucket);
 
         getTaskAndAssertOptimizedBuckets(task, result);
+    }
+
+    private WorkBucketType getWorkBucket(Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
+        return getWorkBucket(task, 0, result);
+    }
+
+    /**
+     * Tests the get-complete cycle (4x) with explicit, filter-based segmentation providing 3 buckets.
+     */
+    private WorkBucketType getWorkBucket(Task task, int freeBucketWaitTime, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
+        ActivityDistributionDefinition distributionDefinition =
+                ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone());
+        return workStateManager.getWorkBucket(task.getOid(), distributionDefinition, freeBucketWaitTime, result);
     }
 
     /**
@@ -368,11 +389,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_110, result);
 
         Task task = taskManager.getTaskPlain(TASK_110.oid, result);
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getPartDefinition(task));
+        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
 
         when("1st get");
 
-        WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        WorkBucketType bucket = getWorkBucket(task, result);
         Integer numberOfBuckets = contentFactory.estimateNumberOfBuckets();
 
         then("1st get");
@@ -381,8 +402,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_NAME).lt(new PolyString("a", "a"))
-                        .build(),
-                result);
+                        .build()
+        );
 
         Task taskAfter = getTaskAndAssertOptimizedBuckets(task, result);
         assertEquals("Wrong # of estimated buckets (task)", Integer.valueOf(3), getNumberOfBuckets(taskAfter));
@@ -390,8 +411,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete and 2nd get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 1, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 2nd get");
 
@@ -400,14 +421,14 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_NAME).ge(new PolyString("a", "a"))
                         .and().item(ShadowType.F_NAME).lt(new PolyString("m", "m"))
-                        .build(),
-                result);
+                        .build()
+        );
         getTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 3rd get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 2, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 3rd get");
 
@@ -415,14 +436,14 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNarrowedQuery(task, bucket,
                 prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_NAME).ge(new PolyString("m", "m"))
-                        .build(),
-                result);
+                        .build()
+        );
         getTaskAndAssertOptimizedBuckets(task, result);
 
         when("complete and 4th get");
 
-        workStateManager.completeWorkBucket(task.getOid(), 3, null, result);
-        bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 3, null, result);
+        bucket = getWorkBucket(task, result);
 
         then("complete and 4th get");
 
@@ -445,7 +466,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        WorkBucketType bucket = getWorkBucket(task, result);
 
         then();
 
@@ -457,7 +478,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertEquals("Wrong # of buckets", 1, wBuckets.size());
         assertBucket(wBuckets.get(0), WorkBucketStateType.READY, 1);
         assertEquals(wBuckets.get(0).getContent(), new NullWorkBucketContentType());
-        assertNumberOfBuckets(taskAfter, 1);
+        assertNumberOfBuckets(taskAfter, 1, ActivityPath.empty());
     }
 
     /**
@@ -474,7 +495,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        WorkBucketType bucket = getWorkBucket(task, result);
 
         then();
 
@@ -485,7 +506,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         List<WorkBucketType> wBuckets = getBuckets(taskAfter);
         assertEquals("Wrong # of buckets", 7, wBuckets.size());
         assertBucket(wBuckets.get(0), WorkBucketStateType.READY, 1);
-        assertNumberOfBuckets(taskAfter, 1000);
+        assertNumberOfBuckets(taskAfter, 1000, ActivityPath.empty());
     }
 
     /**
@@ -502,8 +523,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket1 = workStateManager.getWorkBucket(task.getOid(), 0, result);
-        WorkBucketType bucket2 = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        WorkBucketType bucket1 = getWorkBucket(task, result);
+        WorkBucketType bucket2 = getWorkBucket(task, result);
 
         then();
 
@@ -520,8 +541,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete");
 
-        workStateManager.completeWorkBucket(task.getOid(), 1, null, result);
-        WorkBucketType bucket3 = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 1, null, result);
+        WorkBucketType bucket3 = getWorkBucket(task, result);
 
         then("complete");
 
@@ -538,8 +559,8 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete 2");
 
-        workStateManager.completeWorkBucket(task.getOid(), 2, null, result);
-        WorkBucketType bucket4 = workStateManager.getWorkBucket(task.getOid(), 0, result);
+        workStateManager.completeWorkBucket(task.getOid(), ActivityPath.empty(), 2, null, result);
+        WorkBucketType bucket4 = getWorkBucket(task, result);
 
         then("complete 2");
 
@@ -570,7 +591,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         try {
             when();
 
-            workStateManager.getWorkBucket(task.getOid(), 0, result);
+            getWorkBucket(task, result);
             fail("unexpected success");
         } catch (IllegalStateException e) {
 
@@ -594,7 +615,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket = workStateManager.getWorkBucket(worker.getOid(), 0, result);
+        WorkBucketType bucket = getWorkBucket(worker, result);
 
         then();
 
@@ -609,9 +630,9 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
         List<WorkBucketType> cBuckets = getBuckets(coordinatorAfter);
         assertNumericBucket(cBuckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1000);
-        assertNumberOfBuckets(coordinatorAfter, 100);
+        assertNumberOfBuckets(coordinatorAfter, 100, ActivityPath.empty());
 
-        assertOptimizedCompletedBuckets(coordinatorAfter);
+        assertOptimizedCompletedBuckets(coordinatorAfter, ActivityPath.empty());
     }
 
     /**
@@ -635,12 +656,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket1 = workStateManager.getWorkBucket(worker1.getOid(), 0, result);
-        WorkBucketType bucket2 = workStateManager.getWorkBucket(worker2.getOid(), 0, result);
-        WorkBucketType bucket3 = workStateManager.getWorkBucket(worker3.getOid(), 0, result);
-        WorkBucketType bucket4 = workStateManager.getWorkBucket(worker4.getOid(), 0, result);
-        WorkBucketType bucket4a = workStateManager
-                .getWorkBucket(worker4.getOid(), 0, result);     // should be the same as bucket4
+        WorkBucketType bucket1 = getWorkBucket(worker1, result);
+        WorkBucketType bucket2 = getWorkBucket(worker2, result);
+        WorkBucketType bucket3 = getWorkBucket(worker3, result);
+        WorkBucketType bucket4 = getWorkBucket(worker4, result);
+        WorkBucketType bucket4a = getWorkBucket(worker4, result);     // should be the same as bucket4
 
         then();
 
@@ -689,7 +709,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete bucket #2");
 
-        workStateManager.completeWorkBucket(worker2.getOid(), 2, null, result);
+        workStateManager.completeWorkBucket(worker2.getOid(), ActivityPath.empty(), 2, null, result);
 
         then("complete bucket #2");
 
@@ -708,12 +728,12 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(4), WorkBucketStateType.READY, 5, 4, 5);        // pre-created
 
-        assertNoWorkBuckets(worker2.getWorkState().getActivity().get(0));
+        assertNoWorkBuckets(worker2.getWorkState().getActivity());
 
         when("complete bucket #1");
 
-        workStateManager.completeWorkBucket(worker1.getOid(), 1, null, result);
-        WorkBucketType bucket = workStateManager.getWorkBucket(worker1.getOid(), 0, result);
+        workStateManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 1, null, result);
+        WorkBucketType bucket = getWorkBucket(worker1, result);
 
         then("complete bucket #1");
 
@@ -739,7 +759,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("no more buckets");
 
-        WorkBucketType nothing = workStateManager.getWorkBucket(worker5.getOid(), 0, result);
+        WorkBucketType nothing = getWorkBucket(worker5, result);
 
         then("no more buckets");
 
@@ -748,7 +768,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         when("release bucket #4");
 
         // TODO set some state here and check its transfer to coordinator task
-        workStateManager.releaseWorkBucket(worker4.getOid(), 4, null, result);
+        workStateManager.releaseWorkBucket(worker4.getOid(), ActivityPath.empty(), 4, null, result);
 
         then("release bucket #4");
 
@@ -766,12 +786,12 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(2), WorkBucketStateType.READY, 4, 3, 4);
         assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        assertNoWorkBuckets(worker4.getWorkState().getActivity().get(0));
+        assertNoWorkBuckets(worker4.getWorkState().getActivity());
 
         when("complete bucket #3");
 
-        workStateManager.completeWorkBucket(worker3.getOid(), 3, null, result);
-        bucket = workStateManager.getWorkBucket(worker5.getOid(), 0, result);
+        workStateManager.completeWorkBucket(worker3.getOid(), ActivityPath.empty(), 3, null, result);
+        bucket = getWorkBucket(worker5, result);
 
         then("complete bucket #3");
 
@@ -791,7 +811,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
-        assertNoWorkBuckets(worker3.getWorkState().getActivity().get(0));
+        assertNoWorkBuckets(worker3.getWorkState().getActivity());
 
         buckets = new ArrayList<>(getBuckets(worker5));
         assertEquals(1, buckets.size());
@@ -799,7 +819,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete bucket #5");
 
-        workStateManager.completeWorkBucket(worker1.getOid(), 5, null, result);
+        workStateManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 5, null, result);
         taskManager.closeTask(worker5, result);
 
         then("complete bucket #5");
@@ -811,16 +831,16 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         coordinator = taskManager.getTaskPlain(coordinator.getOid(), result);
         displayDumpable("coordinator after completion of 5th bucket and closing worker5", coordinator);
 
-        buckets = new ArrayList<>(coordinator.getWorkState().getActivity().get(0).getBucket());
+        buckets = new ArrayList<>(coordinator.getWorkState().getActivity().getBucket());
         assertEquals(2, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 4, 3, 4);
         assertNumericBucket(buckets.get(1), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        assertNoWorkBuckets(worker1.getWorkState().getActivity().get(0));
+        assertNoWorkBuckets(worker1.getWorkState().getActivity());
 
         when("reclaiming mis-allocated bucket");
 
-        bucket = workStateManager.getWorkBucket(worker1.getOid(), -1, result);
+        bucket = getWorkBucket(worker1, -1, result);
         assertThat(bucket).isNotNull();
 
         then("reclaiming mis-allocated bucket");
@@ -843,7 +863,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("complete bucket #4");
 
-        workStateManager.completeWorkBucket(worker1.getOid(), 4, null, result);
+        workStateManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 4, null, result);
 
         then("complete bucket #4");
 
@@ -856,10 +876,10 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertEquals(1, buckets.size());
         assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
-        assertNoWorkBuckets(worker1.getWorkState().getActivity().get(0));
+        assertNoWorkBuckets(worker1.getWorkState().getActivity());
     }
 
-    private WorkBucketType assumeNextValue(BucketAllocator allocator, TaskPartWorkStateType workState,
+    private WorkBucketType assumeNextValue(BucketAllocator allocator, ActivityWorkStateType workState,
             String expectedNextValue, int expectedSequentialNumber) throws SchemaException {
         WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
@@ -873,7 +893,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         return newBucket;
     }
 
-    private WorkBucketType assumeNextPrefix(BucketAllocator allocator, TaskPartWorkStateType workState,
+    private WorkBucketType assumeNextPrefix(BucketAllocator allocator, ActivityWorkStateType workState,
             String expectedNextPrefix, int expectedSequentialNumber) throws SchemaException {
         WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
@@ -887,7 +907,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         return newBucket;
     }
 
-    private WorkBucketType assumeNextInterval(BucketAllocator allocator, TaskPartWorkStateType workState,
+    private WorkBucketType assumeNextInterval(BucketAllocator allocator, ActivityWorkStateType workState,
             String expectedNextFrom, String expectedNextTo, int expectedSequentialNumber) throws SchemaException {
         WorkBucketType newBucket = getNextBucket(allocator, workState, expectedSequentialNumber);
         AbstractWorkBucketContentType content = newBucket.getContent();
@@ -902,7 +922,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     @NotNull
-    private WorkBucketType getNextBucket(BucketAllocator allocator, TaskPartWorkStateType workState,
+    private WorkBucketType getNextBucket(BucketAllocator allocator, ActivityWorkStateType workState,
             int expectedSequentialNumber) throws SchemaException {
         BucketAllocator.Response response = allocator.getBucket(workState.getBucket());
         displayValue("get bucket response", response);
@@ -915,7 +935,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         return newBucket;
     }
 
-    private void assumeNoNextBucket(BucketAllocator allocator, TaskPartWorkStateType workState) throws SchemaException {
+    private void assumeNoNextBucket(BucketAllocator allocator, ActivityWorkStateType workState) throws SchemaException {
         BucketAllocator.Response response = allocator.getBucket(workState.getBucket());
         displayValue("get bucket response", response);
         assertTrue("Wrong answer", response instanceof BucketAllocator.Response.NothingFound);
@@ -925,15 +945,15 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     private List<WorkBucketType> getBuckets(Task task) {
-        return task.getWorkState().getActivity().get(0).getBucket();
+        return task.getWorkState().getActivity().getBucket();
     }
 
     private Integer getNumberOfBuckets(Task task) {
-        return task.getWorkState().getActivity().get(0).getNumberOfBuckets();
+        return task.getWorkState().getActivity().getNumberOfBuckets();
     }
 
-    private ActivityDefinitionType getPartDefinition(Task task) {
-        return task.getActivityDefinitionOrClone();
+    private ActivityDistributionDefinition getDistributionDefinition(Task task) {
+        return ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone());
     }
 
     private void assertBoundariesAndBucketCount(BucketContentFactory contentFactory,
@@ -947,10 +967,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
                 ((StringBucketContentFactory) contentFactory).getBoundaries());
     }
 
-    private void assertNarrowedQuery(Task task, WorkBucketType bucket, ObjectQuery expectedQuery, OperationResult result)
+    private void assertNarrowedQuery(Task task, WorkBucketType bucket, ObjectQuery expectedQuery)
             throws SchemaException, ObjectNotFoundException {
+        ActivityDistributionDefinition distributionDefinition = getDistributionDefinition(task);
         ObjectQuery narrowedQuery = workStateManager
-                .narrowQueryForWorkBucket(UserType.class, null, task, null, bucket, result);
+                .narrowQueryForWorkBucket(UserType.class, null, distributionDefinition, null, bucket);
         displayDumpable("narrowed query", narrowedQuery);
         PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
     }
@@ -959,7 +980,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
             throws ObjectNotFoundException, SchemaException {
         Task taskAfter = taskManager.getTaskPlain(task.getOid(), result);
         displayDumpable("task after", taskAfter);
-        assertOptimizedCompletedBuckets(taskAfter);
+        assertOptimizedCompletedBuckets(taskAfter, ActivityPath.empty());
         return taskAfter;
     }
 }

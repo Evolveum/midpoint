@@ -160,7 +160,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     protected void executeInitialized(OperationResult opResult)
             throws TaskException, PreconditionViolationException, CommonException {
 
-        RunningTask task = taskExecution.getTask();
+        RunningTask task = taskExecution.getRunningTask();
         boolean initialExecution = true;
 
 //        resetWorkStateAndStatisticsIfWorkComplete(result);
@@ -192,11 +192,12 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
-        RunningTask task = taskExecution.getTask();
+        RunningTask task = taskExecution.getRunningTask();
 
         WorkBucketType bucket;
         try {
-            bucket = beans.workStateManager.getWorkBucket(task, FREE_BUCKET_WAIT_TIME, initialExecution, result);
+            bucket = beans.workStateManager.getWorkBucket(task, activity.getPath(),
+                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution, result);
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
             if (!task.canRun()) {
@@ -213,9 +214,9 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     private void completeWorkBucketAndUpdateStructuredProgress(OperationResult result) {
-        RunningTask task = taskExecution.getTask();
+        RunningTask task = taskExecution.getRunningTask();
         try {
-            beans.workStateManager.completeWorkBucket(task, bucket, result);
+            beans.workStateManager.completeWorkBucket(task, getPath(), bucket, result);
 //            task.changeStructuredProgressOnWorkBucketCompletion();
 //            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
@@ -335,7 +336,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromHandler); // logging is inside
 
             ObjectQuery bucketNarrowedQuery = beans.workStateManager.narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
-                    getTask(), createItemDefinitionProvider(), bucket, opResult);
+                    activity.getDefinition().getDistributionDefinition(), createItemDefinitionProvider(), bucket);
 
             LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", activityShortNameCapitalized,
                     DebugUtil.debugDumpLazily(bucketNarrowedQuery));

@@ -518,6 +518,14 @@ public class TaskQuartzImpl implements Task {
         addPendingModification(setPropertyAndCreateDeltaIfPersistent(name, value));
     }
 
+    @Override
+    public <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type) {
+        synchronized (prismAccess) {
+            PrismContainer<C> container = taskPrism.findContainer(path);
+            return container != null && !container.hasNoValues() ? cloneIfRunning(container.getRealValue(type)) : null;
+        }
+    }
+
     private <C extends Containerable> C getContainerableOrClone(ItemName name) {
         synchronized (prismAccess) {
             PrismContainer<C> container = taskPrism.findContainer(name);
@@ -1763,11 +1771,6 @@ public class TaskQuartzImpl implements Task {
             return null;
 //            return taskPrism.asObjectable().getWorkManagement();
         }
-    }
-
-    @Override
-    public ActivityDefinitionType getActivityDefinitionOrClone() {
-        return getContainerableOrClone(TaskType.F_ACTIVITY);
     }
 
     // todo thread safety (creating a clone?)

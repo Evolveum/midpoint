@@ -1091,4 +1091,14 @@ public class MiscUtil {
             return Math.max(a, b);
         }
     }
+
+    public static boolean startsWith(List<?> wholeList, List<?> subList) {
+        Iterator<?> wholeIterator = wholeList.iterator();
+        for (Object subListItem : subList) {
+            if (!wholeIterator.hasNext() || !Objects.equals(subListItem, wholeIterator.next())) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

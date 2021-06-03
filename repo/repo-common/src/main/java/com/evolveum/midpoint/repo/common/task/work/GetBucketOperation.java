@@ -9,9 +9,12 @@ package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,8 +37,6 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -48,12 +49,16 @@ public class GetBucketOperation extends BucketOperation {
 
     private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
+    @NotNull private final ActivityDistributionDefinition distributionDefinition;
     private final Supplier<Boolean> canRunSupplier;
     private final Options options;
 
-    GetBucketOperation(@NotNull String workerTaskOid, WorkBucketStatisticsCollector statisticsCollector,
-            WorkStateManager workStateManager, Supplier<Boolean> canRunSupplier, Options options) {
-        super(workerTaskOid, statisticsCollector, workStateManager);
+    GetBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
+            @NotNull ActivityDistributionDefinition distributionDefinition,
+            WorkBucketStatisticsCollector statisticsCollector, WorkStateManager workStateManager,
+            Supplier<Boolean> canRunSupplier, Options options) {
+        super(workerTaskOid, activityPath, statisticsCollector, workStateManager);
+        this.distributionDefinition = distributionDefinition;
         this.canRunSupplier = canRunSupplier;
         this.options = options;
     }
@@ -61,7 +66,7 @@ public class GetBucketOperation extends BucketOperation {
     public WorkBucketType execute(OperationResult result) throws SchemaException, ObjectNotFoundException,
             ObjectAlreadyExistsException, InterruptedException {
 
-        loadTasks(result, false);
+        loadTasks(result);
         try {
             if (isStandalone()) {
                 return getWorkBucketStandalone(result);
@@ -77,12 +82,11 @@ public class GetBucketOperation extends BucketOperation {
     private WorkBucketType getWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        ActivityDefinitionType partDef = getWorkerTaskPartDefinition();
-        BucketAllocator allocator = BucketAllocator.create(partDef, workStateManager.getStrategyFactory());
+        BucketAllocator allocator = BucketAllocator.create(distributionDefinition, workStateManager.getStrategyFactory());
 
-        setOrUpdateEstimatedNumberOfBuckets(workerTask, workerPartPcvId, allocator.getContentFactory(), result);
+        setOrUpdateEstimatedNumberOfBuckets(workerTask, workerStatePath, allocator.getContentFactory(), result);
 
-        TaskPartWorkStateType partWorkState = getWorkerTaskPartWorkStateRequired();
+        ActivityWorkStateType partWorkState = getWorkerTaskActivityWorkState();
         BucketAllocator.Response response = allocator.getBucket(partWorkState.getBucket());
         LOGGER.trace("getWorkBucketStandalone: segmentation strategy returned {} for standalone task {}", response, workerTask);
 
@@ -92,7 +96,7 @@ public class GetBucketOperation extends BucketOperation {
         } else if (response instanceof BucketAllocator.Response.NewBuckets) {
             BucketAllocator.Response.NewBuckets newBucketsResponse = (BucketAllocator.Response.NewBuckets) response;
             repositoryService.modifyObject(TaskType.class, workerTask.getOid(),
-                    bucketsAddDeltas(workerPartPcvId, newBucketsResponse.newBuckets), null, result);
+                    bucketsAddDeltas(workerStatePath, newBucketsResponse.newBuckets), null, result);
             statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);
             return newBucketsResponse.newBuckets.get(newBucketsResponse.selected);
         } else if (response instanceof BucketAllocator.Response.NothingFound) {
@@ -100,22 +104,21 @@ public class GetBucketOperation extends BucketOperation {
                 throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + workerTask);
             }
             statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
-            markPartComplete(workerTask, workerPartPcvId, result);
+            markPartComplete(workerTask, workerStatePath, result);
             return null;
         } else {
             throw new AssertionError(response);
         }
     }
 
-    private void setOrUpdateEstimatedNumberOfBuckets(Task task, long pcvId, BucketContentFactory contentFactory,
+    private void setOrUpdateEstimatedNumberOfBuckets(Task task, ItemPath statePath, BucketContentFactory contentFactory,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        TaskPartWorkStateType partWorkState = TaskWorkStateUtil.getCurrentPartWorkState(task.getWorkState());
-        stateCheck(partWorkState != null, "No current part work state in %s", task);
+        @NotNull ActivityWorkStateType partWorkState = getTaskActivityWorkState(task);
 
         Integer number = contentFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(partWorkState.getNumberOfBuckets())) {
             List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                    .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_NUMBER_OF_BUCKETS)
+                    .item(statePath.append(ActivityWorkStateType.F_NUMBER_OF_BUCKETS))
                     .replace(number)
                     .asItemDeltas();
             repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
@@ -137,7 +140,7 @@ public class GetBucketOperation extends BucketOperation {
         WorkBucketsManagementType bucketingConfig = getCoordinatorBucketingConfig();
         BucketAllocator allocator = BucketAllocator.create(bucketingConfig, workStateManager.getStrategyFactory());
 
-        setOrUpdateEstimatedNumberOfBuckets(coordinatorTask, coordinatorPartPcvId, allocator.getContentFactory(), result);
+        setOrUpdateEstimatedNumberOfBuckets(coordinatorTask, coordinatorStatePath, allocator.getContentFactory(), result);
 
         for (;;) {
 
@@ -158,7 +161,7 @@ public class GetBucketOperation extends BucketOperation {
             } if (response instanceof BucketAllocator.Response.FoundExisting) {
                 return recordExistingBucketInWorkerTask((BucketAllocator.Response.FoundExisting) response, result);
             } else if (response instanceof BucketAllocator.Response.NothingFound) {
-                if (!TaskWorkStateUtil.isScavenger(workerTask.getWorkState())) {
+                if (!TaskWorkStateUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
                     processNothingFoundForNonScavenger();
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
@@ -246,7 +249,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private void processNothingFoundWithWaitTimeElapsed(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        markPartComplete(coordinatorTask, coordinatorPartPcvId, result); // TODO also if response is not definite?
+        markPartComplete(coordinatorTask, coordinatorStatePath, result); // TODO also if response is not definite?
         CONTENTION_LOGGER.trace("'No bucket' found (wait time elapsed) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED);
@@ -259,7 +262,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private void processNothingFoundDefinite(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        markPartComplete(coordinatorTask, coordinatorPartPcvId, result);
+        markPartComplete(coordinatorTask, coordinatorStatePath, result);
         CONTENTION_LOGGER.trace("'No bucket' found after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
@@ -269,7 +272,7 @@ public class GetBucketOperation extends BucketOperation {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         WorkBucketType selectedBucket = newBucketsResult.newBuckets.get(newBucketsResult.selected).clone();
         repositoryService.modifyObject(TaskType.class, workerTask.getOid(),
-                bucketsAddDeltas(workerPartPcvId, singletonList(selectedBucket)), null, result);
+                bucketsAddDeltas(workerStatePath, singletonList(selectedBucket)), null, result);
         CONTENTION_LOGGER.info("New bucket(s) acquired after {} ms (retries: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_CREATED_NEW);
@@ -280,7 +283,7 @@ public class GetBucketOperation extends BucketOperation {
             OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         WorkBucketType foundBucket = foundExistingResult.bucket.clone();
         repositoryService.modifyObject(TaskType.class, workerTask.getOid(),
-                bucketsAddDeltas(workerPartPcvId, singletonList(foundBucket)), null, result);
+                bucketsAddDeltas(workerStatePath, singletonList(foundBucket)), null, result);
         CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_DELEGATED);
@@ -302,7 +305,7 @@ public class GetBucketOperation extends BucketOperation {
             BucketAllocator allocator, Holder<BucketAllocator.Response> lastAllocatorResponseHolder)
             throws SchemaException {
 
-        TaskPartWorkStateType workState = getCoordinatorTaskPartWorkStateRequired();
+        ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
         BucketAllocator.Response response = allocator.getBucket(workState.getBucket());
         lastAllocatorResponseHolder.setValue(response);
         LOGGER.trace("computeWorkBucketModifications: bucket allocator returned {} for worker task {}, coordinator {}",
@@ -318,7 +321,7 @@ public class GetBucketOperation extends BucketOperation {
         }
     }
 
-    private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForNewBuckets(TaskPartWorkStateType workState,
+    private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForNewBuckets(ActivityWorkStateType workState,
             BucketAllocator.Response.NewBuckets response) throws SchemaException {
         List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(workState.getBucket());
         for (int i = 0; i < response.newBuckets.size(); i++) {
@@ -330,12 +333,12 @@ public class GetBucketOperation extends BucketOperation {
                 newCoordinatorBuckets.add(response.newBuckets.get(i).clone());
             }
         }
-        return bucketsReplaceDeltas(coordinatorPartPcvId, newCoordinatorBuckets);
+        return bucketsReplaceDeltas(coordinatorStatePath, newCoordinatorBuckets);
     }
 
     private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForExistingBucket(BucketAllocator.Response.FoundExisting response)
             throws SchemaException {
-        return bucketStateChangeDeltas(coordinatorPartPcvId, response.bucket, WorkBucketStateType.DELEGATED, workerTask.getOid());
+        return bucketStateChangeDeltas(coordinatorStatePath, response.bucket, WorkBucketStateType.DELEGATED, workerTask.getOid());
     }
 
     /**
@@ -345,8 +348,8 @@ public class GetBucketOperation extends BucketOperation {
     private void reclaimWronglyAllocatedBuckets(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         reloadCoordinatorTask(result);
-        TaskPartWorkStateType partWorkState = getCoordinatorTaskPartWorkStateRequired();
-        TaskPartWorkStateType newState = partWorkState.clone();
+        ActivityWorkStateType partWorkState = getCoordinatorTaskPartWorkState();
+        ActivityWorkStateType newState = partWorkState.clone();
         int reclaiming = 0;
         Set<String> deadWorkers = new HashSet<>();
         Set<String> liveWorkers = new HashSet<>();
@@ -370,7 +373,7 @@ public class GetBucketOperation extends BucketOperation {
                 // state originally contains (wrongly) DELEGATED bucket plus e.g. last COMPLETE one, and this bucket is reclaimed
                 // by two subtasks at once, each of them see the same state afterwards: READY + COMPLETE.
                 repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
-                        bucketsReplaceDeltas(coordinatorPartPcvId, newState.getBucket()),
+                        bucketsReplaceDeltas(coordinatorStatePath, newState.getBucket()),
                         new VersionPrecondition<>(coordinatorTask.getVersion()), null, result);
                 statisticsKeeper.addReclaims(reclaiming);
             } catch (PreconditionViolationException e) {
@@ -412,10 +415,11 @@ public class GetBucketOperation extends BucketOperation {
         }
     }
 
-    private void markPartComplete(Task task, long pcvId, OperationResult result)
+    // TODO this should be the responsibility of activity execution, shouldn't it?
+    private void markPartComplete(Task task, ItemPath statePath, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY, pcvId, TaskPartWorkStateType.F_COMPLETE)
+                .item(statePath.append(ActivityWorkStateType.F_COMPLETE))
                 .replace(true)
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);

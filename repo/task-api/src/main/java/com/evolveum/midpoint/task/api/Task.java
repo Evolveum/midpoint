@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -720,7 +721,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     List<? extends Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
     //endregion
 
-    //region Task object as a whole
+    //region Task object as a whole, plus generic path-based access
 
     /**
      * Returns backing task prism object without updating with current operation result.
@@ -783,6 +784,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException;
 
+    /** TODO */
+    <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type);
     //endregion
 
     //region Work management
@@ -794,7 +797,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Retrieves the definition of task parts.
      * @return
      */
-    ActivityDefinitionType getActivityDefinitionOrClone();
+    default ActivityDefinitionType getRootActivityDefinitionOrClone() {
+        return getContainerableOrClone(TaskType.F_ACTIVITY, ActivityDefinitionType.class);
+    }
 
     /**
      * Gets task work state. NOT THREAD SAFE!
@@ -888,5 +893,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     //region TODO
     String getCurrentPartId();
+
     //endregion
 }

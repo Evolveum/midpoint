@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task.work.segmentation;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,10 +37,8 @@ public class BucketContentFactoryCreator {
     }
 
     @NotNull
-    public BucketContentFactory createContentFactory(ActivityDefinitionType partDef) {
-        WorkDistributionType workManagement = partDef != null ? partDef.getDistribution() : null;
-        WorkBucketsManagementType buckets = workManagement != null ? workManagement.getBuckets() : null;
-        return createContentFactory(buckets);
+    public BucketContentFactory createContentFactory(@NotNull ActivityDistributionDefinition distributionDefinition) {
+        return createContentFactory(distributionDefinition.getBuckets());
     }
 
     /**

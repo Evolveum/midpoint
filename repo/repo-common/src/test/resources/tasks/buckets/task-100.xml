@@ -32,4 +32,7 @@
             </buckets>
         </distribution>
     </activity>
+    <workState>
+        <activity/>
+    </workState>
 </task>
