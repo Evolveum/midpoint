@@ -38,6 +38,12 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType.F_BUCKETING;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -90,8 +96,8 @@ public class GetBucketOperation extends BucketOperation {
 
         setOrUpdateEstimatedNumberOfBuckets(workerTask, workerStatePath, allocator.getContentFactory(), result);
 
-        ActivityWorkStateType partWorkState = getWorkerTaskActivityWorkState();
-        BucketAllocator.Response response = allocator.getBucket(partWorkState.getBucket());
+        ActivityWorkStateType workState = getWorkerTaskActivityWorkState();
+        BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
         LOGGER.trace("getWorkBucketStandalone: segmentation strategy returned {} for standalone task {}", response, workerTask);
 
         if (response instanceof BucketAllocator.Response.FoundExisting) {
@@ -117,12 +123,12 @@ public class GetBucketOperation extends BucketOperation {
 
     private void setOrUpdateEstimatedNumberOfBuckets(Task task, ItemPath statePath, BucketContentFactory contentFactory,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        @NotNull ActivityWorkStateType partWorkState = getTaskActivityWorkState(task);
+        @NotNull ActivityWorkStateType workState = getTaskActivityWorkState(task);
 
         Integer number = contentFactory.estimateNumberOfBuckets();
-        if (number != null && !number.equals(partWorkState.getNumberOfBuckets())) {
+        if (number != null && !number.equals(getNumberOfBuckets(workState))) {
             List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                    .item(statePath.append(ActivityWorkStateType.F_NUMBER_OF_BUCKETS))
+                    .item(statePath.append(F_BUCKETING, F_NUMBER_OF_BUCKETS))
                     .replace(number)
                     .asItemDeltas();
             repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
@@ -310,7 +316,7 @@ public class GetBucketOperation extends BucketOperation {
             throws SchemaException {
 
         ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
-        BucketAllocator.Response response = allocator.getBucket(workState.getBucket());
+        BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
         lastAllocatorResponseHolder.setValue(response);
         LOGGER.trace("computeWorkBucketModifications: bucket allocator returned {} for worker task {}, coordinator {}",
                 response, workerTask, coordinatorTask);
@@ -327,7 +333,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForNewBuckets(ActivityWorkStateType workState,
             BucketAllocator.Response.NewBuckets response) throws SchemaException {
-        List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(workState.getBucket());
+        List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(getBuckets(workState));
         for (int i = 0; i < response.newBuckets.size(); i++) {
             if (i == response.selected) {
                 newCoordinatorBuckets.add(response.newBuckets.get(i).clone()
@@ -357,7 +363,7 @@ public class GetBucketOperation extends BucketOperation {
         int reclaiming = 0;
         Set<String> deadWorkers = new HashSet<>();
         Set<String> liveWorkers = new HashSet<>();
-        for (WorkBucketType bucket : newState.getBucket()) {
+        for (WorkBucketType bucket : getBuckets(newState)) {
             if (bucket.getState() == WorkBucketStateType.DELEGATED) {
                 String workerOid = getWorkerOid(bucket);
                 if (isDead(workerOid, deadWorkers, liveWorkers, result)) {
@@ -377,7 +383,7 @@ public class GetBucketOperation extends BucketOperation {
                 // state originally contains (wrongly) DELEGATED bucket plus e.g. last COMPLETE one, and this bucket is reclaimed
                 // by two subtasks at once, each of them see the same state afterwards: READY + COMPLETE.
                 repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
-                        bucketsReplaceDeltas(coordinatorStatePath, newState.getBucket()),
+                        bucketsReplaceDeltas(coordinatorStatePath, getBuckets(newState)),
                         new VersionPrecondition<>(coordinatorTask.getVersion()), null, result);
                 statisticsKeeper.addReclaims(reclaiming);
             } catch (PreconditionViolationException e) {
@@ -423,8 +429,8 @@ public class GetBucketOperation extends BucketOperation {
     private void markPartComplete(Task task, ItemPath statePath, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityWorkStateType.F_COMPLETE))
-                .replace(true)
+                .item(statePath.append(ActivityWorkStateType.F_EXECUTION_STATE))
+                .replace(ActivityExecutionStateType.COMPLETE)
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
     }

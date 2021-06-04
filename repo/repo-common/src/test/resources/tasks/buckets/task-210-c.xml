@@ -29,7 +29,9 @@
     </activity>
     <workState>
         <activity>
-            <bucketsProcessingRole>coordinator</bucketsProcessingRole>
+            <bucketing>
+                <bucketsProcessingRole>coordinator</bucketsProcessingRole>
+            </bucketing>
         </activity>
     </workState>
 </task>

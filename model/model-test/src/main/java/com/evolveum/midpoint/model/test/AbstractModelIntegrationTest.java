@@ -3831,20 +3831,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
-    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
-            throws ObjectNotFoundException, SchemaException {
-        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
-        Task task = taskManager.getTaskPlain(taskOid, result);
-        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
-    }
-
-    protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)
-            throws ObjectNotFoundException, SchemaException {
-        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
-        Task task = taskManager.getTaskPlain(taskOid, result);
-        assertEquals("Wrong schedulingState in " + task, expectedState, task.getSchedulingState());
-    }
-
     protected String getSecurityContextUserOid() {
         return ((MidPointPrincipal) (SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getOid();
     }
@@ -6021,28 +6007,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> PrismObjectAsserter<O, Void> assertObject(PrismObject<O> object, String message) {
         return PrismObjectAsserter.forObject(object, message);
-    }
-
-    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
-        Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
-        return assertTask(task, message);
-    }
-
-    protected TaskAsserter<Void> assertTaskTree(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
-        var options = schemaService.getOperationOptionsBuilder()
-                .item(TaskType.F_RESULT).retrieve()
-                .item(TaskType.F_SUBTASK_REF).retrieve()
-                .build();
-        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, taskOid, options, getTestOperationResult());
-        return assertTask(task.asObjectable(), message);
-    }
-
-    protected TaskAsserter<Void> assertTask(Task task, String message) {
-        return assertTask(task.getUpdatedTaskObject().asObjectable(), message);
-    }
-
-    protected TaskAsserter<Void> assertTask(TaskType task, String message) {
-        return TaskAsserter.forTask(task.asPrismObject(), message);
     }
 
     protected TaskProgressInformationAsserter<Void> assertTaskProgress(TaskProgressInformation info, String message) {

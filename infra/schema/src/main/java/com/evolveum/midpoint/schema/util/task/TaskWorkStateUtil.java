@@ -211,8 +211,18 @@ public class TaskWorkStateUtil {
 
     @NotNull
     public static List<WorkBucketType> getBuckets(@NotNull TaskWorkStateType workState, ActivityPath activityPath) {
-        return getActivityWorkStateRequired(workState, activityPath)
-                .getBucket();
+        return getBuckets(getActivityWorkStateRequired(workState, activityPath));
+    }
+
+    @NotNull
+    public static List<WorkBucketType> getBuckets(@NotNull ActivityWorkStateType workState) {
+        ActivityBucketingStateType bucketing = workState.getBucketing();
+        return bucketing != null ? bucketing.getBucket() : List.of();
+    }
+
+    public static Integer getNumberOfBuckets(@NotNull ActivityWorkStateType workState) {
+        ActivityBucketingStateType bucketing = workState.getBucketing();
+        return bucketing != null ? bucketing.getNumberOfBuckets() : null;
     }
 
     public static ActivityWorkStateType getActivityWorkState(@NotNull TaskType task, @NotNull ItemPath path) {
@@ -286,8 +296,8 @@ public class TaskWorkStateUtil {
     }
 
     public static BucketsProcessingRoleType getBucketsProcessingRole(TaskWorkStateType taskWorkState, ItemPath statePath) {
-        return TaskWorkStateUtil.getActivityWorkStateRequired(taskWorkState, statePath)
-                .getBucketsProcessingRole();
+        ActivityBucketingStateType bucketing = getActivityWorkStateRequired(taskWorkState, statePath).getBucketing();
+        return bucketing != null ? bucketing.getBucketsProcessingRole() : null;
     }
 
     public static WorkDistributionType getWorkDistribution(ActivityDefinitionType work, String partId) {
@@ -299,9 +309,9 @@ public class TaskWorkStateUtil {
         return workState != null ? workState.getCurrentPartId() : null;
     }
 
-    public static boolean isScavenger(TaskWorkStateType workState, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = getActivityWorkStateRequired(workState, activityPath);
-        return Boolean.TRUE.equals(partWorkState.isScavenger());
+    public static boolean isScavenger(TaskWorkStateType taskWorkState, ActivityPath activityPath) {
+        ActivityBucketingStateType bucketing = getActivityWorkStateRequired(taskWorkState, activityPath).getBucketing();
+        return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
     }
 
     public static ActivityPathType getLocalRootPathBean(TaskWorkStateType workState) {

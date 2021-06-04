@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType.F_BUCKETING;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.findBucketByNumber;
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getCurrentActivityId;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
@@ -145,7 +148,7 @@ class BucketOperation implements DebugDumpable {
     }
 
     List<WorkBucketType> getWorkerTaskBuckets() {
-        return getWorkerTaskActivityWorkState().getBucket();
+        return getBuckets(getWorkerTaskActivityWorkState());
     }
 
     @NotNull
@@ -179,13 +182,13 @@ class BucketOperation implements DebugDumpable {
 
     Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(ItemPath statePath, List<WorkBucketType> buckets) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityWorkStateType.F_BUCKET))
+                .item(statePath.append(F_BUCKETING, F_BUCKET))
                 .replaceRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
     }
 
     Collection<ItemDelta<?, ?>> bucketsAddDeltas(ItemPath statePath, List<WorkBucketType> buckets) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityWorkStateType.F_BUCKET))
+                .item(statePath.append(F_BUCKETING, F_BUCKET))
                 .addRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
     }
 
@@ -199,7 +202,7 @@ class BucketOperation implements DebugDumpable {
 
     @NotNull
     private ItemPath createBucketPath(ItemPath statePath, WorkBucketType bucket) {
-        return statePath.append(ActivityWorkStateType.F_BUCKET, bucket.getId());
+        return statePath.append(F_BUCKETING, F_BUCKET, bucket.getId());
     }
 
     Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(ItemPath statePath, WorkBucketType bucket, WorkBucketStateType newState,
@@ -216,14 +219,14 @@ class BucketOperation implements DebugDumpable {
 
     Collection<ItemDelta<?, ?>> bucketDeleteDeltas(ItemPath statePath, WorkBucketType bucket) throws SchemaException {
         return prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityWorkStateType.F_BUCKET))
+                .item(statePath.append(F_BUCKETING, F_BUCKET))
                 .delete(bucket.clone()).asItemDeltas();
     }
 
     ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
         return taskObject -> {
             WorkBucketType currentBucket = findBucketByNumber(
-                    TaskWorkStateUtil.getBuckets(taskObject.asObjectable().getWorkState(), activityPath),
+                    getBuckets(taskObject.asObjectable().getWorkState(), activityPath),
                     originalBucket.getSequentialNumber());
             // performance is not optimal but OK for precondition checking
             return currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
@@ -233,7 +236,7 @@ class BucketOperation implements DebugDumpable {
     void deleteBucketFromWorker(int sequentialNumber, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ObjectAlreadyExistsException {
         ActivityWorkStateType workState = getWorkerTaskActivityWorkState();
-        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (workerBucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber +
                     " in worker task " + workerTask);

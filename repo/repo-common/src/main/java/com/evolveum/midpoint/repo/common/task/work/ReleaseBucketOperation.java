@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+
 public class ReleaseBucketOperation extends BucketOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReleaseBucketOperation.class);
@@ -51,7 +53,7 @@ public class ReleaseBucketOperation extends BucketOperation {
     private void releaseWorkBucketMultiNode(int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
         }

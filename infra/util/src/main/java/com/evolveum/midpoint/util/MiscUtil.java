@@ -1014,6 +1014,12 @@ public class MiscUtil {
         }
     }
 
+    public static void assertCheck(boolean condition, String template, Object... arguments) {
+        if (!condition) {
+            throw new AssertionError(Strings.lenientFormat(template, arguments));
+        }
+    }
+
     public static void argCheck(boolean condition, String template, Object... arguments) {
         if (!condition) {
             throw new IllegalArgumentException(Strings.lenientFormat(template, arguments));

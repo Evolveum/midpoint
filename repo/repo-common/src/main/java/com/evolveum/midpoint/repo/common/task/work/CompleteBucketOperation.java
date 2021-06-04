@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+
 public class CompleteBucketOperation extends BucketOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(CompleteBucketOperation.class);
@@ -57,7 +59,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private void completeWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityWorkStateType partWorkState = getWorkerTaskActivityWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(partWorkState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
         }
@@ -76,7 +78,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private void completeWorkBucketMultiNode(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
         }
@@ -102,7 +104,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private void compressCompletedBuckets(Task task, ItemPath statePath, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<WorkBucketType> buckets = new ArrayList<>(TaskWorkStateUtil.getBuckets(task.getWorkState(), activityPath));
+        List<WorkBucketType> buckets = new ArrayList<>(getBuckets(task.getWorkState(), activityPath));
         TaskWorkStateUtil.sortBucketsBySequentialNumber(buckets);
         List<WorkBucketType> completeBuckets = buckets.stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)

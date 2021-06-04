@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -188,7 +189,7 @@ public abstract class AbstractActivityExecution<WD extends WorkDefinition,
                 .item(workStatePath.append(ActivityWorkStateType.F_ACTIVITY))
                 .add(new ActivityWorkStateType(getBeans().prismContext)
                         .identifier(identifier)
-                        .complete(false))
+                        .executionState(ActivityExecutionStateType.EXECUTING))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);

@@ -20,7 +20,11 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.List;
+
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
+
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -277,7 +281,12 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtask(int index) {
-        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(getObjectable().getSubtaskRef().get(index));
+        List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
+        assertCheck(subtasks.size() > index, "Expected to see at least %s subtask(s), but only %s are present",
+                index + 1, subtasks.size());
+
+        ObjectReferenceType subtaskRef = subtasks.get(index);
+        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(subtaskRef);
         assertThat(subtask).withFailMessage(() -> "No subtask #" + index + " found").isNotNull();
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this,

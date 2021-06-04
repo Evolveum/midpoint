@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
 
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -3187,7 +3191,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNoWorkBuckets(ActivityWorkStateType ws) {
-        assertTrue(ws == null || ws.getBucket().isEmpty());
+        assertTrue(ws == null || ws.getBucketing() == null || ws.getBucketing().getBucket().isEmpty());
     }
 
     protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, Integer start, Integer end) {
@@ -3227,8 +3231,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
-        long completed = partWorkState.getBucket().stream()
+        ActivityWorkStateType workState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        long completed = getBuckets(workState).stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
         if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
@@ -3268,8 +3272,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
-        ActivityWorkStateType partWorkState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
-        assertEquals("Wrong # of expected buckets", expectedNumber, partWorkState.getNumberOfBuckets());
+        ActivityWorkStateType workState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));
     }
 
     protected void assertCachingProfiles(Task task, String... expectedProfiles) {
@@ -3294,4 +3298,41 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .asItemDeltas();
         repositoryService.modifyObject(ResourceType.class, oid, deltas, result);
     }
+
+    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
+        return assertTask(task, message);
+    }
+
+    protected TaskAsserter<Void> assertTaskTree(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, taskOid, options, getTestOperationResult());
+        return assertTask(task.asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(Task task, String message) {
+        return assertTask(task.getUpdatedTaskObject().asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(TaskType task, String message) {
+        return TaskAsserter.forTask(task.asPrismObject(), message);
+    }
+
+    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
+    }
+
+    protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong schedulingState in " + task, expectedState, task.getSchedulingState());
+    }
+
 }

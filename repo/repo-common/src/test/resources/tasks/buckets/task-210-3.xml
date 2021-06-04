@@ -15,7 +15,9 @@
     <recurrence>single</recurrence>
     <workState>
         <activity>
-            <bucketsProcessingRole>worker</bucketsProcessingRole>
+            <bucketing>
+                <bucketsProcessingRole>worker</bucketsProcessingRole>
+            </bucketing>
         </activity>
     </workState>
 </task>

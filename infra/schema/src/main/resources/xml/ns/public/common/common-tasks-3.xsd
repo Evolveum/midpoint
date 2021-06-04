@@ -2372,7 +2372,7 @@
             <xsd:element name="currentPartId" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Current part identifier. TODO???
+                        Current part identifier. REMOVE!!
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
@@ -2382,7 +2382,7 @@
             <xsd:element name="localRoot" type="tns:ActivityPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        In what part of the tree the execution in this task should start.
+                        In what part of the activity tree the execution in this task should start.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2424,6 +2424,115 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executionState" type="tns:ActivityExecutionStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State of the activity execution.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the activity execution takes place in a separate task, the reference to it is stored here.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Progress of this activity. Relevant for worker and standalone tasks.
+                        (Can be copied to coordinator e.g. if workers are deleted.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bucketing" type="tns:ActivityBucketingStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the bucket processing within the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work state of child activities.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ActivityExecutionStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Execution state of an activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ready">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity has not been started yet. (Currently unused.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="READY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is executing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delegated">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity execution was delegated to a subtask or subtasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELEGATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity execution was completed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ActivityBucketingStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the bucket processing within an activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
             <xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2444,14 +2553,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Progress of this activity. Relevant for worker and standalone tasks.
-                        (Can be copied to coordinator e.g. if workers are deleted.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="bucketsProcessingRole" type="tns:BucketsProcessingRoleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2464,20 +2565,6 @@
                     <xsd:documentation>
                         Is this task a scavenger i.e. will it wait until the work is done, looking
                         for buckets that could be reclaimed? Applicable only to worker tasks.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="complete" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if all the work in this part is complete.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Work state of child activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
