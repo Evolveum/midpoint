@@ -12,8 +12,10 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+
+import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
+import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +28,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * TODO
  */
 @Component
-public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
+public class SimpleMockActivityHandler extends AbstractMockActivityHandler<SimpleMockWorkDefinition, SimpleMockActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/simple-mock/handler-3";
 
     @Autowired private ActivityHandlerRegistry handlerRegistry;
+    @Autowired private CommonMockActivityHelper mockHelper;
     @Autowired private MockRecorder recorder;
 
     @PostConstruct
@@ -46,10 +49,14 @@ public class SimpleMockActivityHandler implements ActivityHandler<SimpleMockWork
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler> createExecution(
+    public @NotNull AbstractActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<SimpleMockWorkDefinition, SimpleMockActivityHandler> context,
             @NotNull OperationResult result) {
         return new SimpleMockActivityExecution(context);
+    }
+
+    public @NotNull CommonMockActivityHelper getMockHelper() {
+        return mockHelper;
     }
 
     public @NotNull MockRecorder getRecorder() {

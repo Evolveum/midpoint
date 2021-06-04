@@ -42,7 +42,7 @@ import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBucket
 
 import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType.F_BUCKETING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -62,9 +62,9 @@ public class GetBucketOperation extends BucketOperation {
 
     GetBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
             @NotNull ActivityDistributionDefinition distributionDefinition,
-            WorkBucketStatisticsCollector statisticsCollector, WorkStateManager workStateManager,
+            WorkBucketStatisticsCollector statisticsCollector, BucketingManager bucketingManager,
             Supplier<Boolean> canRunSupplier, Options options) {
-        super(workerTaskOid, activityPath, statisticsCollector, workStateManager);
+        super(workerTaskOid, activityPath, statisticsCollector, bucketingManager);
         this.distributionDefinition = distributionDefinition;
         this.canRunSupplier = canRunSupplier;
         this.options = options;
@@ -92,11 +92,11 @@ public class GetBucketOperation extends BucketOperation {
     private WorkBucketType getWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        BucketAllocator allocator = BucketAllocator.create(distributionDefinition, workStateManager.getStrategyFactory());
+        BucketAllocator allocator = BucketAllocator.create(distributionDefinition, bucketingManager.getStrategyFactory());
 
         setOrUpdateEstimatedNumberOfBuckets(workerTask, workerStatePath, allocator.getContentFactory(), result);
 
-        ActivityWorkStateType workState = getWorkerTaskActivityWorkState();
+        ActivityStateType workState = getWorkerTaskActivityWorkState();
         BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
         LOGGER.trace("getWorkBucketStandalone: segmentation strategy returned {} for standalone task {}", response, workerTask);
 
@@ -123,7 +123,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private void setOrUpdateEstimatedNumberOfBuckets(Task task, ItemPath statePath, BucketContentFactory contentFactory,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        @NotNull ActivityWorkStateType workState = getTaskActivityWorkState(task);
+        @NotNull ActivityStateType workState = getTaskActivityWorkState(task);
 
         Integer number = contentFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(getNumberOfBuckets(workState))) {
@@ -148,7 +148,7 @@ public class GetBucketOperation extends BucketOperation {
         executeInitialDelayForMultiNode();
 
         WorkBucketsManagementType bucketingConfig = getCoordinatorBucketingConfig();
-        BucketAllocator allocator = BucketAllocator.create(bucketingConfig, workStateManager.getStrategyFactory());
+        BucketAllocator allocator = BucketAllocator.create(bucketingConfig, bucketingManager.getStrategyFactory());
 
         setOrUpdateEstimatedNumberOfBuckets(coordinatorTask, coordinatorStatePath, allocator.getContentFactory(), result);
 
@@ -251,7 +251,7 @@ public class GetBucketOperation extends BucketOperation {
         if (ac != null && ac.getWorkAllocationFreeBucketWaitInterval() != null) {
             return ac.getWorkAllocationFreeBucketWaitInterval();
         } else {
-            Long freeBucketWaitIntervalOverride = workStateManager.getFreeBucketWaitIntervalOverride();
+            Long freeBucketWaitIntervalOverride = bucketingManager.getFreeBucketWaitIntervalOverride();
             return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
                     20000; // TODO workStateManager.getConfiguration().getWorkAllocationDefaultFreeBucketWaitInterval();
         }
@@ -315,7 +315,7 @@ public class GetBucketOperation extends BucketOperation {
             BucketAllocator allocator, Holder<BucketAllocator.Response> lastAllocatorResponseHolder)
             throws SchemaException {
 
-        ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
+        ActivityStateType workState = getCoordinatorTaskPartWorkState();
         BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
         lastAllocatorResponseHolder.setValue(response);
         LOGGER.trace("computeWorkBucketModifications: bucket allocator returned {} for worker task {}, coordinator {}",
@@ -331,7 +331,7 @@ public class GetBucketOperation extends BucketOperation {
         }
     }
 
-    private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForNewBuckets(ActivityWorkStateType workState,
+    private Collection<ItemDelta<?, ?>> computeCoordinatorModificationsForNewBuckets(ActivityStateType workState,
             BucketAllocator.Response.NewBuckets response) throws SchemaException {
         List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(getBuckets(workState));
         for (int i = 0; i < response.newBuckets.size(); i++) {
@@ -358,8 +358,8 @@ public class GetBucketOperation extends BucketOperation {
     private void reclaimWronglyAllocatedBuckets(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         reloadCoordinatorTask(result);
-        ActivityWorkStateType partWorkState = getCoordinatorTaskPartWorkState();
-        ActivityWorkStateType newState = partWorkState.clone();
+        ActivityStateType partWorkState = getCoordinatorTaskPartWorkState();
+        ActivityStateType newState = partWorkState.clone();
         int reclaiming = 0;
         Set<String> deadWorkers = new HashSet<>();
         Set<String> liveWorkers = new HashSet<>();
@@ -429,7 +429,7 @@ public class GetBucketOperation extends BucketOperation {
     private void markPartComplete(Task task, ItemPath statePath, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityWorkStateType.F_EXECUTION_STATE))
+                .item(statePath.append(ActivityStateType.F_EXECUTION_STATE))
                 .replace(ActivityExecutionStateType.COMPLETE)
                 .asItemDeltas();
         repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);

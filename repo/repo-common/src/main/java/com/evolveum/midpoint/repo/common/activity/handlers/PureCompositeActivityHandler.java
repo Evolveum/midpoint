@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.StandaloneActivity;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefini
 import com.evolveum.midpoint.repo.common.activity.execution.PureCompositeActivityExecution;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PureCompositeWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +52,7 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler> createExecution(
+    public @NotNull AbstractActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context,
             @NotNull OperationResult result) {
         return new PureCompositeActivityExecution(context);
@@ -72,5 +75,10 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     @Override
     public String getIdentifierPrefix() {
         return "composition";
+    }
+
+    @Override
+    public @NotNull QName getWorkStateTypeName() {
+        return PureCompositeWorkStateType.COMPLEX_TYPE;
     }
 }

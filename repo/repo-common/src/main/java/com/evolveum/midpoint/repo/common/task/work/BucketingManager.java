@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
  * (The last method should be probably moved to a separate class.)
  */
 @Component
-public class WorkStateManager {
+public class BucketingManager {
 
     @Autowired private TaskManager taskManager;
     @Autowired private RepositoryService repositoryService;

@@ -48,6 +48,11 @@ public class ActivityExecutionResult implements ShortDumpable {
         return new ActivityExecutionResult(TaskRunResultStatus.FINISHED);
     }
 
+    public static ActivityExecutionResult exception(TaskRunResultStatus status, Throwable t) {
+        // TODO what with t?
+        return new ActivityExecutionResult(status);
+    }
+
     @Override
     public String toString() {
         return "ActivityExecutionResult{" +

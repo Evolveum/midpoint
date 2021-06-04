@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,7 +35,8 @@ public class PropagationActivityExecution
         <ShadowType,
                 PropagationWorkDefinition,
                 PropagationActivityHandler,
-                PropagationActivityExecution> {
+                PropagationActivityExecution,
+                AbstractActivityWorkStateType> {
 
     private static final String SHORT_NAME = "Propagation";
 

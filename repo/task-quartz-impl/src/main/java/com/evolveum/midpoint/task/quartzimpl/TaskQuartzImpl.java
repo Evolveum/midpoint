@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static java.util.Collections.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -521,7 +520,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path) {
+    public ActivityStateType getActivityWorkStateOrClone(ItemPath path) {
         synchronized (prismAccess) {
             return cloneIfRunning(TaskWorkStateUtil.getActivityWorkState(taskPrism.asObjectable(), path));
         }
@@ -1414,10 +1413,10 @@ public class TaskQuartzImpl implements Task {
 
     // todo should return clone for running task?
     @Override
-    public <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         synchronized (prismAccess) {
-            PrismProperty<T> property = getExtensionPropertyUnsynchronized(propertyName);
-            return property != null && !property.isEmpty() ? property.getRealValue() : null;
+            PrismProperty<T> property = taskPrism.findProperty(path);
+            return property != null && !property.isEmpty() ? property.getRealValue(expectedType) : null;
         }
     }
 
@@ -1489,18 +1488,12 @@ public class TaskQuartzImpl implements Task {
                 PrismValueCollectionsUtil.cloneCollection(container.getValues())));
     }
 
-    // use this method to avoid cloning the value
     @Override
-    public <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
-        //noinspection unchecked
-        PrismPropertyDefinition<T> propertyDef = beans.prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(propertyName);
-        if (propertyDef == null) {
-            throw new SchemaException("Unknown property " + propertyName);
-        }
-        addPendingModification(
-                setExtensionPropertyAndPrepareDelta(propertyName, propertyDef,
-                        singletonList(beans.prismContext.itemFactory().createPropertyValue(value))));
+    public <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException {
+        modify(
+                taskManager.getPrismContext().deltaFor(TaskType.class)
+                        .item(path).add(value)
+                        .asItemDelta());
     }
 
     // use this method to avoid cloning the value
@@ -1784,15 +1777,15 @@ public class TaskQuartzImpl implements Task {
 
     // todo thread safety (creating a clone?)
     @Override
-    public TaskWorkStateType getWorkState() {
+    public TaskActivityStateType getWorkState() {
         synchronized (prismAccess) {
-            return taskPrism.asObjectable().getWorkState();
+            return taskPrism.asObjectable().getActivityState();
         }
     }
 
     @Override
-    public TaskWorkStateType getWorkStateOrClone() {
-        return getContainerableOrClone(TaskType.F_WORK_STATE);
+    public TaskActivityStateType getWorkStateOrClone() {
+        return getContainerableOrClone(TaskType.F_ACTIVITY_STATE);
     }
 
     @Override
@@ -2231,7 +2224,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public String getCurrentPartId() {
-        return getProperty(ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_CURRENT_PART_ID));
+        return getProperty(ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_CURRENT_PART_ID));
     }
 
     //endregion

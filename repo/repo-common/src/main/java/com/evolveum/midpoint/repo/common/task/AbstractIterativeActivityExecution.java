@@ -60,8 +60,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class AbstractIterativeActivityExecution<
         I,
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD, AH>>
-        extends AbstractActivityExecution<WD, AH> {
+        AH extends ActivityHandler<WD, AH>,
+        BS extends AbstractActivityWorkStateType>
+        extends AbstractActivityExecution<WD, AH, BS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 

@@ -8,9 +8,8 @@ package com.evolveum.midpoint.repo.sql;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType.F_BUCKETING;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType.F_ACTIVITY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_ACTIVITY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -756,12 +755,12 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         TaskType task = new TaskType(prismContext)
                 .name("test140")
-                .beginWorkState()
+                .beginActivityState()
                     .beginActivity()
                         .beginBucketing()
                             .bucketsProcessingRole(BucketsProcessingRoleType.COORDINATOR)
-                        .<ActivityWorkStateType>end()
-                    .<TaskWorkStateType>end()
+                        .<ActivityStateType>end()
+                    .<TaskActivityStateType>end()
                 .end();
 
         OperationResult result = new OperationResult("test140WorkBuckets");
@@ -780,15 +779,15 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 void runOnce(OperationResult result) throws Exception {
                     ModificationsSupplier<TaskType> modificationSupplier =
                             task -> prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_WORK_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
+                                    .item(TaskType.F_ACTIVITY_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
                                     .add(getNextBucket(task))
                                     .asItemDeltas();
                     repositoryService.modifyObjectDynamically(TaskType.class, oid, null, modificationSupplier, null, result);
                 }
 
                 private WorkBucketType getNextBucket(TaskType task) {
-                    int lastBucketNumber = task.getWorkState() != null ?
-                            getLastBucketNumber(task.getWorkState().getActivity().getBucketing().getBucket()) : 0;
+                    int lastBucketNumber = task.getActivityState() != null ?
+                            getLastBucketNumber(task.getActivityState().getActivity().getBucketing().getBucket()) : 0;
                     return new WorkBucketType(prismContext)
                             .sequentialNumber(lastBucketNumber + 1)
                             .state(WorkBucketStateType.DELEGATED)
@@ -814,7 +813,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("user after", taskAfter);
 
-        assertCorrectBucketSequence(taskAfter.asObjectable().getWorkState().getActivity().getBucketing().getBucket());
+        assertCorrectBucketSequence(taskAfter.asObjectable().getActivityState().getActivity().getBucketing().getBucket());
     }
 
     private void assertCorrectBucketSequence(List<WorkBucketType> buckets) {

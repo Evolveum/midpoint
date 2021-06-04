@@ -74,8 +74,9 @@ import static java.util.Objects.requireNonNull;
 public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectType,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE>>
-    extends AbstractIterativeActivityExecution<PrismObject<O>, WD, AH> {
+        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE, BS>,
+        BS extends AbstractActivityWorkStateType>
+    extends AbstractIterativeActivityExecution<PrismObject<O>, WD, AH, BS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeActivityExecution.class);
 
@@ -196,7 +197,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
         WorkBucketType bucket;
         try {
-            bucket = beans.workStateManager.getWorkBucket(task, activity.getPath(),
+            bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
                     activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution, result);
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
@@ -216,7 +217,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     private void completeWorkBucketAndUpdateStructuredProgress(OperationResult result) {
         RunningTask task = taskExecution.getRunningTask();
         try {
-            beans.workStateManager.completeWorkBucket(task, getPath(), bucket, result);
+            beans.bucketingManager.completeWorkBucket(task, getPath(), bucket, result);
 //            task.changeStructuredProgressOnWorkBucketCompletion();
 //            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
@@ -335,7 +336,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
             ObjectQuery failureNarrowedQuery = narrowQueryToProcessFailedObjectsOnly(queryFromHandler); // logging is inside
 
-            ObjectQuery bucketNarrowedQuery = beans.workStateManager.narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
+            ObjectQuery bucketNarrowedQuery = beans.bucketingManager.narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
                     activity.getDefinition().getDistributionDefinition(), createItemDefinitionProvider(), bucket);
 
             LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", activityShortNameCapitalized,

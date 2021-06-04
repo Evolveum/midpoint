@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common.task.work;
 import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityWorkStateType.F_BUCKETING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -96,17 +96,17 @@ class BucketOperation implements DebugDumpable {
 
     // Useful beans
 
-    final WorkStateManager workStateManager;
+    final BucketingManager bucketingManager;
     final TaskManager taskManager;
     final RepositoryService repositoryService;
     final PrismContext prismContext;
 
     BucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
-            WorkBucketStatisticsCollector collector, WorkStateManager workStateManager) {
-        this.workStateManager = workStateManager;
-        this.taskManager = workStateManager.getTaskManager();
-        this.repositoryService = workStateManager.getRepositoryService();
-        this.prismContext = workStateManager.getPrismContext();
+            WorkBucketStatisticsCollector collector, BucketingManager bucketingManager) {
+        this.bucketingManager = bucketingManager;
+        this.taskManager = bucketingManager.getTaskManager();
+        this.repositoryService = bucketingManager.getRepositoryService();
+        this.prismContext = bucketingManager.getPrismContext();
         this.workerTaskOid = workerTaskOid;
         this.activityPath = activityPath;
         this.statisticsKeeper = new BucketOperationStatisticsKeeper(collector);
@@ -165,16 +165,16 @@ class BucketOperation implements DebugDumpable {
                 () -> "No bucketing configuration for the current part in coordinator task " + coordinatorTask);
     }
 
-    @NotNull ActivityWorkStateType getWorkerTaskActivityWorkState() {
+    @NotNull ActivityStateType getWorkerTaskActivityWorkState() {
         return getTaskActivityWorkState(workerTask);
     }
 
-    @NotNull ActivityWorkStateType getCoordinatorTaskPartWorkState() {
+    @NotNull ActivityStateType getCoordinatorTaskPartWorkState() {
         return getTaskActivityWorkState(coordinatorTask);
     }
 
     @NotNull
-    ActivityWorkStateType getTaskActivityWorkState(Task workerTask) {
+    ActivityStateType getTaskActivityWorkState(Task workerTask) {
         return requireNonNull(TaskWorkStateUtil.getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath),
                 () -> "No current part work state in " + workerTask +
                         " (activity path: " + activityPath + ", item path: " + workerStatePath);
@@ -226,7 +226,7 @@ class BucketOperation implements DebugDumpable {
     ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
         return taskObject -> {
             WorkBucketType currentBucket = findBucketByNumber(
-                    getBuckets(taskObject.asObjectable().getWorkState(), activityPath),
+                    getBuckets(taskObject.asObjectable().getActivityState(), activityPath),
                     originalBucket.getSequentialNumber());
             // performance is not optimal but OK for precondition checking
             return currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
@@ -235,8 +235,8 @@ class BucketOperation implements DebugDumpable {
 
     void deleteBucketFromWorker(int sequentialNumber, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ObjectAlreadyExistsException {
-        ActivityWorkStateType workState = getWorkerTaskActivityWorkState();
-        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
+        ActivityStateType state = getWorkerTaskActivityWorkState();
+        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(state), sequentialNumber);
         if (workerBucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber +
                     " in worker task " + workerTask);

@@ -17,13 +17,16 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
  */
 class IterativeMockActivityExecution
-        extends AbstractIterativeActivityExecution<Integer, IterativeMockWorkDefinition, IterativeMockActivityHandler> {
+        extends AbstractIterativeActivityExecution<Integer, IterativeMockWorkDefinition, IterativeMockActivityHandler,
+        AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeMockActivityExecution.class);
 

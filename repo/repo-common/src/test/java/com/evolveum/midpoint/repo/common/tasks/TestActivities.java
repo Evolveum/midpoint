@@ -70,7 +70,8 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestResource<TaskType> TASK_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
     private static final TestResource<TaskType> TASK_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
-    private static final TestResource<TaskType> TASK_190_SUBTASK = new TestResource<>(TEST_DIR, "task-190-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
+    private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
+    private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
 
     //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
 //    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
@@ -409,7 +410,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     }
 
     @Test(enabled = false)
-    public void test190PhysicalSubtask() throws Exception {
+    public void test190SuspendingComposite() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -417,7 +418,32 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_190_SUBTASK, result);
+        Task task1 = taskAdd(TASK_190_SUSPENDING_COMPOSITE, result);
+
+        when();
+
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+
+        then();
+
+        assertTask(task1.getOid(), "after")
+                .display()
+                .assertFatalError()
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+
+        displayDumpable("recorder", recorder);
+    }
+
+    @Test(enabled = false)
+    public void test200Subtask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task task1 = taskAdd(TASK_200_SUBTASK, result);
 
         when();
 

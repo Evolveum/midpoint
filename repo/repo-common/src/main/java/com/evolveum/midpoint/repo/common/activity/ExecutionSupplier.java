@@ -18,6 +18,6 @@ import org.jetbrains.annotations.NotNull;
 @FunctionalInterface
 public interface ExecutionSupplier<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> {
 
-    AbstractActivityExecution<WD, AH> createExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
+    AbstractActivityExecution<WD, AH, ?> createExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
             @NotNull OperationResult result);
 }

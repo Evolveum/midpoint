@@ -11,7 +11,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressOldType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.io.Serializable;
@@ -87,7 +86,7 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
             // Workers do not have complete information about buckets.
             return null;
         } else {
-            return BucketsProgressInformation.fromWorkState(task.getWorkState());
+            return BucketsProgressInformation.fromTaskActivityState(task.getActivityState());
         }
     }
 

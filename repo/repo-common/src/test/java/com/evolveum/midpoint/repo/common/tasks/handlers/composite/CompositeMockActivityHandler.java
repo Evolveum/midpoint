@@ -13,6 +13,8 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
+import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,7 +31,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  * TODO
  */
 @Component
-public class CompositeMockActivityHandler implements ActivityHandler<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
+public class CompositeMockActivityHandler
+        extends AbstractMockActivityHandler<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/composite-mock/handler-3";
 
@@ -53,7 +55,7 @@ public class CompositeMockActivityHandler implements ActivityHandler<CompositeMo
 
     @NotNull
     @Override
-    public AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler> createExecution(
+    public AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<CompositeMockWorkDefinition, CompositeMockActivityHandler> context,
             @NotNull OperationResult result) {
         return new CompositeMockActivityExecution(context);

@@ -9,9 +9,10 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.PureCompositeActivityHandler;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PureCompositeWorkStateType;
 
 public class PureCompositeActivityExecution
-        extends AbstractCompositeActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler> {
+        extends AbstractCompositeActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler, PureCompositeWorkStateType> {
 
     public PureCompositeActivityExecution(
             ExecutionInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context) {

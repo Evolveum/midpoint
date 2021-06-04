@@ -780,8 +780,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
-            assertTrue("Handler has not run", handler.hasRun());
-            assertTrue("Handler has not exited", handler.hasExited());
+            assertTrue("Handler has not run in " + subtask, handler.hasRun());
+            assertTrue("Handler has not exited in " + subtask, handler.hasExited());
         }
     }
 

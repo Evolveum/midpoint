@@ -183,7 +183,7 @@
         </cachingConfiguration>
         <timestamp>2021-04-08T09:15:41.127+02:00</timestamp>
     </operationStats>
-    <workState>
+    <activityState>
         <bucket id="7">
             <sequentialNumber>3</sequentialNumber>
             <state>complete</state>
@@ -194,7 +194,7 @@
         </bucket>
         <numberOfBuckets>3</numberOfBuckets>
         <allWorkComplete>true</allWorkComplete>
-    </workState>
+    </activityState>
     <workManagement>
         <taskKind>coordinator</taskKind>
         <partitionSequentialNumber>2</partitionSequentialNumber>

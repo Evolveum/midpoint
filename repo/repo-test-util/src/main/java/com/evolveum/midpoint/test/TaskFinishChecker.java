@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.test;
+package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -20,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateT
 
 import java.util.function.Consumer;
 
-import static com.evolveum.midpoint.model.test.AbstractModelIntegrationTest.*;
+import static com.evolveum.midpoint.test.AbstractIntegrationTest.*;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.display;
 
 /**
@@ -28,7 +27,7 @@ import static com.evolveum.midpoint.test.AbstractIntegrationTest.display;
  */
 public class TaskFinishChecker implements Checker {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskFinishChecker.class);
 
     private final TaskManager taskManager;
     private final String taskOid;

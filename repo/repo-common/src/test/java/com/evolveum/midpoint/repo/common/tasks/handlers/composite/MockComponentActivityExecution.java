@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
@@ -15,13 +14,13 @@ import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Execution of mock opening or closing activity.
  */
 public abstract class MockComponentActivityExecution
-        extends AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler> {
+        extends AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, AbstractActivityWorkStateType> {
 
     public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/repo-common-test/extension";
 

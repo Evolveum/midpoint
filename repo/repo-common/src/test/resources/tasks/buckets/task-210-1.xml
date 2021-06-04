@@ -13,12 +13,12 @@
     <parent>336e4ded-82a6-432c-ade0-43844e59c3e4</parent>
     <executionStatus>suspended</executionStatus>
     <recurrence>single</recurrence>
-    <workState>
+    <activityState>
         <activity>
             <bucketing>
                 <bucketsProcessingRole>worker</bucketsProcessingRole>
                 <scavenger>true</scavenger>
             </bucketing>
         </activity>
-    </workState>
+    </activityState>
 </task>

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,9 +28,10 @@ import org.jetbrains.annotations.NotNull;
 class SearchIterativeMockActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ObjectType,
-                        SearchIterativeMockWorkDefinition,
-                        SearchIterativeMockActivityHandler,
-                        SearchIterativeMockActivityExecution> {
+                SearchIterativeMockWorkDefinition,
+                SearchIterativeMockActivityHandler,
+                SearchIterativeMockActivityExecution,
+                AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchIterativeMockActivityExecution.class);
 

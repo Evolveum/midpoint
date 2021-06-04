@@ -937,7 +937,7 @@
 Profiles: []</cachingConfiguration>
         <timestamp>2021-04-08T09:15:45.903+02:00</timestamp>
     </operationStats>
-    <workState>
+    <activityState>
         <currentPartNumber>1</currentPartNumber>
         <expectedParts>1</expectedParts>
         <activity id="1">
@@ -969,7 +969,7 @@ Profiles: []</cachingConfiguration>
             </progress>
             <complete>true</complete>
         </activity>
-    </workState>
+    </activityState>
     <recurrence>single</recurrence>
     <binding>loose</binding>
     <executionConstraints>

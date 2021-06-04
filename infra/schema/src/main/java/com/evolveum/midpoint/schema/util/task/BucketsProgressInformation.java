@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.util.task;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 
 import java.io.Serializable;
 
@@ -35,12 +35,12 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         this.completedBuckets = completedBuckets;
     }
 
-    static BucketsProgressInformation fromWorkState(TaskWorkStateType workState) {
-        if (workState == null) {
+    static BucketsProgressInformation fromTaskActivityState(TaskActivityStateType state) {
+        if (state == null) {
             return new BucketsProgressInformation(null, 0);
         } else {
             return new BucketsProgressInformation(null, /*workState.getNumberOfBuckets(), */
-                    TaskWorkStateUtil.getCompleteBucketsNumber(workState));
+                    TaskWorkStateUtil.getCompleteBucketsNumber(state));
         }
     }
 

@@ -9,7 +9,7 @@
 <task oid="1e7cf975-7253-4991-a707-661d3c52f203"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
-    <name>task-200</name>
+    <name>task-190</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
     <recurrence>single</recurrence>

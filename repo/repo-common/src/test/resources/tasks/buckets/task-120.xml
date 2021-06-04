@@ -12,7 +12,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
     <recurrence>single</recurrence>
-    <workState>
+    <activityState>
         <activity/>
-    </workState>
+    </activityState>
 </task>

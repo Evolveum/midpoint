@@ -283,7 +283,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> void setExtensionPropertyValue(QName propertyName, T value) {
+    public <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException {
         throw new UnsupportedOperationException();
     }
 
@@ -419,7 +419,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         return null;
     }
 
@@ -664,12 +664,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskWorkStateType getWorkState() {
+    public TaskActivityStateType getWorkState() {
         return null;
     }
 
     @Override
-    public TaskWorkStateType getWorkStateOrClone() {
+    public TaskActivityStateType getWorkStateOrClone() {
         return null;
     }
 
@@ -679,7 +679,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path) {
+    public ActivityStateType getActivityWorkStateOrClone(ItemPath path) {
         throw new UnsupportedOperationException();
     }
 

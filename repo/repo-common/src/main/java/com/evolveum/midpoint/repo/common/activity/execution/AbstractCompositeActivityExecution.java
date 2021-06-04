@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -25,8 +27,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * @param <WD> Type of work definition.
  */
-public abstract class AbstractCompositeActivityExecution<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
-        extends AbstractActivityExecution<WD, AH> {
+public abstract class AbstractCompositeActivityExecution<
+        WD extends WorkDefinition,
+        AH extends ActivityHandler<WD, AH>,
+        BS extends AbstractActivityWorkStateType>
+        extends AbstractActivityExecution<WD, AH, BS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCompositeActivityExecution.class);
 

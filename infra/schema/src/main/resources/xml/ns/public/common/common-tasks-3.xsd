@@ -520,7 +520,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="workState" type="tns:TaskWorkStateType" minOccurs="0">
+                    <xsd:element name="activityState" type="tns:TaskActivityStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 State of the work the task is supposed to do (or has done). This information is used e.g. to
@@ -2347,7 +2347,7 @@
     </xsd:complexType>
     <xsd:element name="schedulerInformation" type="tns:SchedulerInformationType"/>
 
-    <xsd:complexType name="TaskWorkStateType">
+    <xsd:complexType name="TaskActivityStateType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes the task work state: what has been processed, what is being processed and what is yet to be done.
@@ -2386,7 +2386,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0">
+            <xsd:element name="activity" type="tns:ActivityStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Work state for individual activities, organized in the tree.
@@ -2405,7 +2405,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityWorkStateType">
+    <xsd:complexType name="ActivityStateType">
         <xsd:annotation>
             <xsd:documentation>
                 Describes the work state of an activity.
@@ -2449,6 +2449,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="businessState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business state of the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="bucketing" type="tns:ActivityBucketingStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2456,7 +2463,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="activity" type="tns:ActivityWorkStateType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="activity" type="tns:ActivityStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Work state of child activities.
@@ -5336,7 +5343,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractPartParameters" type="tns:AbstractWorkDefinitionType" />
+    <xsd:element name="abstractWorKDefinition" type="tns:AbstractWorkDefinitionType" />
 
     <xsd:complexType name="ResourceBasedWorkDefinitionType">
         <xsd:annotation>
@@ -5408,5 +5415,74 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPath" type="tns:ActivityPathType"/>
+
+    <xsd:complexType name="AbstractActivityWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType" />
+
+    <xsd:complexType name="RuntimeDefinedActivityWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                    </xsd:any>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="runtimeDefinedActivityWorkState" type="tns:RuntimeDefinedActivityWorkStateType" />
+
+    <xsd:complexType name="PureCompositeWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+
+    <xsd:complexType name="PropagationWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="propagationWorkState" type="tns:PropagationWorkStateType" />
 
 </xsd:schema>

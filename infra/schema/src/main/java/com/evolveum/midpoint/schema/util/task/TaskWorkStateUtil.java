@@ -63,11 +63,11 @@ public class TaskWorkStateUtil {
     }
 
     public static int getCompleteBucketsNumber(TaskType taskType) {
-        return getCompleteBucketsNumber(taskType.getWorkState());
+        return getCompleteBucketsNumber(taskType.getActivityState());
     }
 
-    public static int getCompleteBucketsNumber(TaskWorkStateType workState) {
-        if (workState == null) {
+    public static int getCompleteBucketsNumber(TaskActivityStateType state) {
+        if (state == null) {
             return 0;
         }
         Integer max = null;
@@ -94,7 +94,7 @@ public class TaskWorkStateUtil {
         return null; // TODO task.getWorkState() != null ? task.getWorkState().getNumberOfBuckets() : null;
     }
 
-    private static Integer getFirstBucketNumber(@NotNull TaskWorkStateType workState) {
+    private static Integer getFirstBucketNumber(@NotNull TaskActivityStateType workState) {
         return null; // TODO
 //        return workState.getBucket().stream()
 //                .map(WorkBucketType::getSequentialNumber)
@@ -184,7 +184,7 @@ public class TaskWorkStateUtil {
     }
 
     static boolean hasBuckets(TaskType taskType) {
-        if (taskType.getWorkState() == null) {
+        if (taskType.getActivityState() == null) {
             return false;
         }
         //TODO
@@ -206,27 +206,27 @@ public class TaskWorkStateUtil {
     }
 
     public static boolean isAllWorkComplete(TaskType task) {
-        return task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
+        return task.getActivityState() != null && Boolean.TRUE.equals(task.getActivityState().isAllWorkComplete());
     }
 
     @NotNull
-    public static List<WorkBucketType> getBuckets(@NotNull TaskWorkStateType workState, ActivityPath activityPath) {
+    public static List<WorkBucketType> getBuckets(@NotNull TaskActivityStateType workState, ActivityPath activityPath) {
         return getBuckets(getActivityWorkStateRequired(workState, activityPath));
     }
 
     @NotNull
-    public static List<WorkBucketType> getBuckets(@NotNull ActivityWorkStateType workState) {
+    public static List<WorkBucketType> getBuckets(@NotNull ActivityStateType workState) {
         ActivityBucketingStateType bucketing = workState.getBucketing();
         return bucketing != null ? bucketing.getBucket() : List.of();
     }
 
-    public static Integer getNumberOfBuckets(@NotNull ActivityWorkStateType workState) {
+    public static Integer getNumberOfBuckets(@NotNull ActivityStateType workState) {
         ActivityBucketingStateType bucketing = workState.getBucketing();
         return bucketing != null ? bucketing.getNumberOfBuckets() : null;
     }
 
-    public static ActivityWorkStateType getActivityWorkState(@NotNull TaskType task, @NotNull ItemPath path) {
-        TaskWorkStateType workState = task.getWorkState();
+    public static ActivityStateType getActivityWorkState(@NotNull TaskType task, @NotNull ItemPath path) {
+        TaskActivityStateType workState = task.getActivityState();
         if (workState != null) {
             return getActivityWorkStateInternal(workState, path);
         } else {
@@ -235,7 +235,7 @@ public class TaskWorkStateUtil {
     }
 
     @NotNull
-    public static ActivityWorkStateType getActivityWorkStateRequired(@NotNull TaskWorkStateType workState,
+    public static ActivityStateType getActivityWorkStateRequired(@NotNull TaskActivityStateType workState,
             @NotNull ActivityPath activityPath) {
         return getActivityWorkStateRequired(
                 workState,
@@ -243,23 +243,23 @@ public class TaskWorkStateUtil {
     }
 
     @NotNull
-    public static ActivityWorkStateType getActivityWorkStateRequired(@NotNull TaskWorkStateType workState,
+    public static ActivityStateType getActivityWorkStateRequired(@NotNull TaskActivityStateType workState,
             @NotNull ItemPath workStatePath) {
         return MiscUtil.requireNonNull(
                 getActivityWorkStateInternal(workState, workStatePath),
                 () -> new IllegalArgumentException("No activity work state at prism item path '" + workStatePath + "'"));
     }
 
-    private static ActivityWorkStateType getActivityWorkStateInternal(@NotNull TaskWorkStateType workState,
+    private static ActivityStateType getActivityWorkStateInternal(@NotNull TaskActivityStateType workState,
             @NotNull ItemPath workStatePath) {
         Object object = workState.asPrismContainerValue().find(workStatePath.rest());
         if (object == null) {
             return null;
         } else if (object instanceof PrismContainer<?>) {
-            return ((PrismContainer<?>) object).getRealValue(ActivityWorkStateType.class);
+            return ((PrismContainer<?>) object).getRealValue(ActivityStateType.class);
         } else if (object instanceof PrismContainerValue<?>) {
             //noinspection unchecked
-            return ((PrismContainerValue<ActivityWorkStateType>) object).asContainerable(ActivityWorkStateType.class);
+            return ((PrismContainerValue<ActivityStateType>) object).asContainerable(ActivityStateType.class);
         } else {
             throw new IllegalArgumentException("Path '" + workStatePath + "' does not point to activity work state but instead"
                     + " to an instance of " + object.getClass());
@@ -290,12 +290,12 @@ public class TaskWorkStateUtil {
         return null;
     }
 
-    public static boolean isStandalone(TaskWorkStateType workState, ItemPath statePath) {
+    public static boolean isStandalone(TaskActivityStateType workState, ItemPath statePath) {
         BucketsProcessingRoleType bucketsProcessingRole = getBucketsProcessingRole(workState, statePath);
         return bucketsProcessingRole == null || bucketsProcessingRole == BucketsProcessingRoleType.STANDALONE;
     }
 
-    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskWorkStateType taskWorkState, ItemPath statePath) {
+    public static BucketsProcessingRoleType getBucketsProcessingRole(TaskActivityStateType taskWorkState, ItemPath statePath) {
         ActivityBucketingStateType bucketing = getActivityWorkStateRequired(taskWorkState, statePath).getBucketing();
         return bucketing != null ? bucketing.getBucketsProcessingRole() : null;
     }
@@ -305,36 +305,36 @@ public class TaskWorkStateUtil {
         return partDef != null ? partDef.getDistribution() : null;
     }
 
-    public static String getCurrentActivityId(TaskWorkStateType workState) {
+    public static String getCurrentActivityId(TaskActivityStateType workState) {
         return workState != null ? workState.getCurrentPartId() : null;
     }
 
-    public static boolean isScavenger(TaskWorkStateType taskWorkState, ActivityPath activityPath) {
+    public static boolean isScavenger(TaskActivityStateType taskWorkState, ActivityPath activityPath) {
         ActivityBucketingStateType bucketing = getActivityWorkStateRequired(taskWorkState, activityPath).getBucketing();
         return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
     }
 
-    public static ActivityPathType getLocalRootPathBean(TaskWorkStateType workState) {
+    public static ActivityPathType getLocalRootPathBean(TaskActivityStateType workState) {
         return workState != null ? workState.getLocalRoot() : null;
     }
 
-    public static ActivityPath getLocalRootPath(TaskWorkStateType workState) {
+    public static ActivityPath getLocalRootPath(TaskActivityStateType workState) {
         return ActivityPath.fromBean(getLocalRootPathBean(workState));
     }
 
     @NotNull
-    public static ItemPath getWorkStatePath(@NotNull TaskWorkStateType workState, @NotNull ActivityPath activityPath) {
+    public static ItemPath getWorkStatePath(@NotNull TaskActivityStateType workState, @NotNull ActivityPath activityPath) {
         ActivityPath localRootPath = getLocalRootPath(workState);
         LOGGER.trace("getWorkStatePath: activityPath = {}, localRootPath = {}", activityPath, localRootPath);
         stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
                 activityPath, localRootPath);
 
-        ActivityWorkStateType currentWorkState = workState.getActivity();
-        ItemPath currentWorkStatePath = ItemPath.create(TaskType.F_WORK_STATE, TaskWorkStateType.F_ACTIVITY);
+        ActivityStateType currentWorkState = workState.getActivity();
+        ItemPath currentWorkStatePath = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
         List<String> localIdentifiers = activityPath.getIdentifiers().subList(localRootPath.size(), activityPath.size());
         for (String identifier : localIdentifiers) {
             stateCheck(currentWorkState != null, "Current work state is not present; path = %s", currentWorkStatePath);
-            List<ActivityWorkStateType> matching = currentWorkState.getActivity().stream()
+            List<ActivityStateType> matching = currentWorkState.getActivity().stream()
                     .filter(state -> Objects.equals(state.getIdentifier(), identifier))
                     .collect(Collectors.toList());
             var context = currentWorkState;
@@ -342,14 +342,14 @@ public class TaskWorkStateUtil {
                     () -> new IllegalStateException("More than one matching activity work state for " + identifier + " in " + context),
                     () -> new IllegalStateException("No matching activity work state for " + identifier + " in " + context));
             stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
-            currentWorkStatePath = currentWorkStatePath.append(ActivityWorkStateType.F_ACTIVITY, currentWorkState.getId());
+            currentWorkStatePath = currentWorkStatePath.append(ActivityStateType.F_ACTIVITY, currentWorkState.getId());
         }
         LOGGER.trace(" -> resulting work state path: {}", currentWorkStatePath);
         return currentWorkStatePath;
     }
 
     @NotNull
-    private static List<String> getLocalRootSegments(@NotNull TaskWorkStateType workState) {
+    private static List<String> getLocalRootSegments(@NotNull TaskActivityStateType workState) {
         return workState.getLocalRoot() != null ? workState.getLocalRoot().getIdentifier() : List.of();
     }
 

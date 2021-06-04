@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.CandidateIdentifierFormatter;
 import com.evolveum.midpoint.repo.common.activity.ExecutionSupplier;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecution;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -21,9 +19,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -51,4 +49,6 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
     default String getIdentifierPrefix() {
         return getClass().getSimpleName(); // should be overridden as this does not look nice
     }
+
+    @NotNull QName getWorkStateTypeName();
 }

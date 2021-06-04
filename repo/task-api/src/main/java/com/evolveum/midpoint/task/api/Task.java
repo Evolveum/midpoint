@@ -408,7 +408,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void addArchetypeInformationIfMissing(String archetypeOid);
     //endregion
 
-    //region Task extension ("get" operations)
+    //region Task extension "get" operations + also arbitrary "get" operations
     /**
      * Returns task extension.
      *
@@ -441,7 +441,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Returns specified single-valued property real value from the extension
      * (null if extension or property does not exist).
      */
-    <T> T getExtensionPropertyRealValue(ItemName propertyName);
+    default <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+        //noinspection unchecked
+        return (T) getPropertyRealValue(ItemPath.create(TaskType.F_EXTENSION, propertyName), Object.class);
+    }
+
+    <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType);
 
     /**
      * Returns specified single-valued container real value from the extension
@@ -464,7 +469,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName itemName);
     //endregion
 
-    //region Task extension ("set" operations)
+    //region Task extension "set" operations + also arbitrary "set" operations
     /**
      * Sets a property in the extension - replaces existing value(s), if any, by the one(s) provided.
      */
@@ -481,7 +486,11 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @param propertyName name of the property
      * @param value value of the property
      */
-    <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
+    default <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
+        setPropertyRealValue(ItemPath.create(TaskType.F_EXTENSION, propertyName), value);
+    }
+
+    <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException;
 
     /**
      * Sets a reference in the extension - replaces existing value(s), if any, by the one(s) provided.
@@ -788,7 +797,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type);
 
     /** TODO */
-    ActivityWorkStateType getActivityWorkStateOrClone(ItemPath path);
+    ActivityStateType getActivityWorkStateOrClone(ItemPath path);
     //endregion
 
     //region Work management
@@ -808,12 +817,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      *
      * TODO throw exception for RunningTask. (After revising of all uses.)
      */
-    TaskWorkStateType getWorkState();
+    TaskActivityStateType getWorkState();
 
     /**
      * Gets task work state or its clone (for running tasks).
      */
-    TaskWorkStateType getWorkStateOrClone();
+    TaskActivityStateType getWorkStateOrClone();
 
     /** Gets task kind (related to work management) */
     @Deprecated

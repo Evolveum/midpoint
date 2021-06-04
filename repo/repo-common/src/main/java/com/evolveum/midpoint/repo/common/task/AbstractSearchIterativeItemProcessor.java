@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -35,7 +36,7 @@ public abstract class AbstractSearchIterativeItemProcessor<
         O extends ObjectType,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE>>
+        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE, ? extends AbstractActivityWorkStateType>>
         implements ItemProcessor<PrismObject<O>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeItemProcessor.class);

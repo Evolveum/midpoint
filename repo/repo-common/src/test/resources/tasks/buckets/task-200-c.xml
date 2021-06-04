@@ -24,11 +24,11 @@
             </buckets>
         </distribution>
     </activity>
-    <workState>
+    <activityState>
         <activity>
             <bucketing>
                 <bucketsProcessingRole>coordinator</bucketsProcessingRole>
             </bucketing>
         </activity>
-    </workState>
+    </activityState>
 </task>

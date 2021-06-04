@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 @Component
 public class IterativeMockActivityHandler
-        implements ActivityHandler<IterativeMockWorkDefinition, IterativeMockActivityHandler> {
+        extends AbstractMockActivityHandler<IterativeMockWorkDefinition, IterativeMockActivityHandler> {
 
     @Autowired private ActivityHandlerRegistry handlerRegistry;
     @Autowired private MockRecorder recorder;
@@ -43,7 +43,7 @@ public class IterativeMockActivityHandler
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<IterativeMockWorkDefinition, IterativeMockActivityHandler> createExecution(
+    public @NotNull AbstractActivityExecution<IterativeMockWorkDefinition, IterativeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
         return new IterativeMockActivityExecution(context);

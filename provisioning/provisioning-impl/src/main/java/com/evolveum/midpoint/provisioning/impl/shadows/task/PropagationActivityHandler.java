@@ -8,8 +8,10 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,7 +54,7 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<PropagationWorkDefinition, PropagationActivityHandler> createExecution(
+    public @NotNull PropagationActivityExecution createExecution(
             @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
             @NotNull OperationResult result) {
         return new PropagationActivityExecution(context);
@@ -61,5 +63,10 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     @Override
     public String getIdentifierPrefix() {
         return "propagation";
+    }
+
+    @Override
+    public @NotNull QName getWorkStateTypeName() {
+        return PropagationWorkStateType.COMPLEX_TYPE;
     }
 }

@@ -6,25 +6,26 @@
  */
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
+import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * TODO
  */
 @Component
-public class SearchIterativeMockActivityHandler implements ActivityHandler<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> {
+public class SearchIterativeMockActivityHandler
+        extends AbstractMockActivityHandler<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> {
 
     @Autowired private ActivityHandlerRegistry handlerRegistry;
     @Autowired private MockRecorder recorder;
@@ -42,7 +43,7 @@ public class SearchIterativeMockActivityHandler implements ActivityHandler<Searc
     }
 
     @Override
-    public @NotNull AbstractActivityExecution<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> createExecution(
+    public @NotNull AbstractActivityExecution<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<SearchIterativeMockWorkDefinition, SearchIterativeMockActivityHandler> context,
             @NotNull OperationResult result) {
         return new SearchIterativeMockActivityExecution(context);

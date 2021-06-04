@@ -56,7 +56,7 @@ public class GenericTaskExecution implements TaskExecution {
 
         logStart();
 
-        AbstractActivityExecution<?, ?> localRootExecution = localRoot.createExecution(this, result);
+        AbstractActivityExecution<?, ?, ?> localRootExecution = localRoot.createExecution(this, result);
         ActivityExecutionResult executionResult = localRootExecution.execute(result);
 
         logEnd(localRootExecution, executionResult);
@@ -69,7 +69,7 @@ public class GenericTaskExecution implements TaskExecution {
                 localRootPath, activityTree.debugDumpLazily());
     }
 
-    private void logEnd(AbstractActivityExecution<?, ?> localRootExecution, ActivityExecutionResult executionResult) {
+    private void logEnd(AbstractActivityExecution<?, ?, ?> localRootExecution, ActivityExecutionResult executionResult) {
         LOGGER.trace("Local root activity execution object after execution ({})\n{}",
                 executionResult.shortDumpLazily(), localRootExecution.debugDumpLazily());
     }

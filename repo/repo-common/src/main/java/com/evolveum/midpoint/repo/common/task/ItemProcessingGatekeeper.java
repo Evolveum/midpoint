@@ -67,7 +67,7 @@ class ItemProcessingGatekeeper<I> {
     @NotNull private final ItemProcessingRequest<I> request;
 
     /** Task part execution that requested processing of this item. */
-    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?> activityExecution;
+    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /** Local coordinator task that drives fetching items for processing. */
     @NotNull private final RunningTask coordinatorTask;
@@ -100,7 +100,7 @@ class ItemProcessingGatekeeper<I> {
     private boolean canContinue = true;
 
     ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
-            @NotNull AbstractIterativeActivityExecution<I, ?, ?> activityExecution,
+            @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution,
             @NotNull RunningTask workerTask) {
         this.request = request;
         this.activityExecution = activityExecution;

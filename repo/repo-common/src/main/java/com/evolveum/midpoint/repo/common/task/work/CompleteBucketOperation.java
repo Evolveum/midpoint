@@ -37,9 +37,9 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private final int sequentialNumber;
 
-    CompleteBucketOperation(WorkStateManager workStateManager, @NotNull String workerTaskOid,
+    CompleteBucketOperation(BucketingManager bucketingManager, @NotNull String workerTaskOid,
             @NotNull ActivityPath activityPath, WorkBucketStatisticsCollector collector, int sequentialNumber) {
-        super(workerTaskOid, activityPath, collector, workStateManager);
+        super(workerTaskOid, activityPath, collector, bucketingManager);
         this.sequentialNumber = sequentialNumber;
     }
 
@@ -58,7 +58,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private void completeWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityWorkStateType partWorkState = getWorkerTaskActivityWorkState();
+        ActivityStateType partWorkState = getWorkerTaskActivityWorkState();
         WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
@@ -77,7 +77,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private void completeWorkBucketMultiNode(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityWorkStateType workState = getCoordinatorTaskPartWorkState();
+        ActivityStateType workState = getCoordinatorTaskPartWorkState();
         WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);

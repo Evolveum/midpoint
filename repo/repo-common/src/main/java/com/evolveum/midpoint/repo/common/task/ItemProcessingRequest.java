@@ -37,7 +37,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
     @NotNull protected final I item;
-    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?> activityExecution;
+    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /**
      * Unique identifier of this request. Not to be confused with requestIdentifier used for auditing purposes!
@@ -47,7 +47,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @Experimental // maybe will be removed
     @NotNull protected final String identifier;
 
-    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeActivityExecution<I, ?, ?> activityExecution) {
+    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution) {
         this.item = item;
         this.activityExecution = activityExecution;
         this.identifier = activityExecution.beans.lightweightIdentifierGenerator.generate().toString();

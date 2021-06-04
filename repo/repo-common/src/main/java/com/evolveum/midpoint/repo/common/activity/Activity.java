@@ -53,7 +53,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     /**
      * Execution of the activity. May be null.
      */
-    private AbstractActivityExecution<WD, ?> execution;
+    private AbstractActivityExecution<WD, AH, ?> execution;
 
     /**
      * Reference to the tree object.
@@ -106,7 +106,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     @NotNull
     protected abstract CandidateIdentifierFormatter getCandidateIdentifierFormatter();
 
-    public AbstractActivityExecution<WD, ?> getExecution() {
+    public AbstractActivityExecution<WD, AH, ?> getExecution() {
         return execution;
     }
 
@@ -146,7 +146,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
                 (isLocalRoot() ? " (local root)" : "");
     }
 
-    public AbstractActivityExecution<?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
+    public AbstractActivityExecution<?, ?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
         stateCheck(execution == null, "Execution is already created in %s", this);
         execution = getExecutionSupplier().createExecution(new ExecutionInstantiationContext<>(this, taskExecution), result);
         return execution;
