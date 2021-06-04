@@ -41,6 +41,8 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
 
     @Override
     public Predicate process(RefFilter filter) {
+        // TODO change to EXISTS to fix SqaleRepoSearchObjectTest.test401SearchObjectNotHavingSpecifiedRef
+        // This also fixes the number of right result for such filter, or for filter using multiple values
         SqlQueryContext<?, Q, R> refContext =
                 context.leftJoin(referenceMapping, referenceMapping.joinOnPredicate());
         QReference<?, ?> ref = refContext.path();
