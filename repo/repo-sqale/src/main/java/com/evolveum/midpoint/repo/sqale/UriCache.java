@@ -27,13 +27,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Component hiding details of how QNames are stored in {@link QUri}.
  * Following prefixes are used for its methods:
  *
- * * `get` returns URI or ID for ID or URI, may return null, no DB access;
+ * * `get` returns URI or ID for ID or URI, may return null, no DB access; TODO: later possible access when not found
  * * `search` like `get` but returns {@link #UNKNOWN_ID} instead of null, used for query predicates,
- * no DB access by the URI cache itself;
+ * no DB access by the URI cache itself; TODO: later possible access when not found
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
- * where the entry for URI is expected to exist already, still no DB access required;
- * * finally, {@link #processCacheableUri(String)} is the only operation that accesses
- * the database if the URI is not found in the cache in order to write it there.
+ * where the entry for URI is expected to exist already, still no DB access required; TODO: later possible access when not found
+ * * finally, {@link #processCacheableUri(String)} accesses the database if the URI is not found
+ * in the cache in order to write it there.
+ *
+ * URIs are stored either as is when provided as a String or using {@link QNameUtil#qNameToUri(QName)}
+ * when provided as a {@link QName}.
+ * This component does not know anything about relations (represented as QName-s), but these are
+ * systematically normalized before they get here (if not, it's surely a bug).
  *
  * [NOTE]
  * URI is added in the database in its own separate transaction.
