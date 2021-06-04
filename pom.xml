@@ -604,7 +604,7 @@
                      Therefore explicitly use the custom version. -->
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.3.e3</version>
+                <version>4.5.13</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
