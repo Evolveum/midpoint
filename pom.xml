@@ -204,7 +204,7 @@
         <groovy.version>2.5.14</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
         <connid.version>1.5.0.17</connid.version>
-        <jasper.version>6.5.0</jasper.version>
+        <jasper.version>6.17.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.9.0</wro4j.version>
         <surefire.version>3.0.0-M3</surefire.version>
@@ -225,6 +225,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.64</bouncycastle.version>
         <protobuf.version>3.12.2</protobuf.version>
+        <graalvm.version>21.1.0</graalvm.version>
 
         <!--
         Coming in different versions from org.glassfish.jaxb:xsom and from
@@ -1558,6 +1559,23 @@
                 <version>2.1.8</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graalvm.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js-scriptengine</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+
             <!-- Test support dependencies -->
             <dependency>
                 <groupId>org.testng</groupId>
@@ -1748,11 +1766,17 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- maven-dependency-plugin wait for 3.1.2 version because MDEP-613 Analyze failed: Unsupported class file major version 55 (Java 11) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1e1</version>
+                <version>3.1.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>9.1</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>analyze</id>
@@ -1857,8 +1881,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
-                    <version>3.6.0</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.graalvm.polyglot.Context;
+
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  * <p>
@@ -33,6 +35,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
             Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
 
+        System.setProperty("polyglot.js.nashorn-compat", "true");
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
         if (scriptEngine == null) {
@@ -41,13 +44,31 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     }
 
     @Override
-    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception {
-        return ((Compilable) scriptEngine).compile(codeString);
+    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext) throws Exception {
+        return new CompiledScript() {
+            @Override
+            public Object eval(ScriptContext Scriptcontext) throws ScriptException {
+                Context context = Context.newBuilder()
+                        .allowExperimentalOptions(true)
+                        .option("js.nashorn-compat", "true")
+                        .allowAllAccess(true)
+                        .build();
+                Bindings bindings = Scriptcontext.getBindings(ScriptContext.ENGINE_SCOPE);
+                bindings.entrySet().forEach(entry -> {
+                    context.getBindings("js").putMember(entry.getKey(), entry.getValue());
+                });
+                return context.eval("js", codeString).as(Object.class);
+            }
+
+            @Override
+            public ScriptEngine getEngine() {
+                return scriptEngine;
+            }
+        };
     }
 
     @Override
     protected Object evaluateScript(CompiledScript compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
-
         Bindings bindings = convertToBindings(context);
         return compiledScript.eval(bindings);
     }
@@ -58,36 +79,6 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         bindings.putAll(prepareScriptVariablesValueMap(context));
         return bindings;
     }
-
-//    public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
-//            ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
-//
-//        Bindings bindings = convertToBindings(context);
-//
-////        String codeString = code;
-//        if (codeString == null) {
-//            throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
-//        }
-//
-//        boolean allowEmptyValues = true;
-////        if (expressionType.isAllowEmptyValues() != null) {
-////            allowEmptyValues = expressionType.isAllowEmptyValues();
-////        }
-//
-//        CompiledScript compiledScript = getCompiledScript(codeString, context);
-//
-//        Object evalRawResult;
-//        try {
-//            InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-//            evalRawResult = compiledScript.eval(bindings);
-//        } catch (Throwable e) {
-//            throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
-//        }
-//
-//
-//
-//        return evalRawResult;
-//    }
 
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#getLanguageName()
