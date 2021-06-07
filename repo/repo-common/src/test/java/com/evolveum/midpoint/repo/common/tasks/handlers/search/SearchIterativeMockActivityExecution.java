@@ -68,8 +68,8 @@ class SearchIterativeMockActivityExecution
 
     @Override
     @NotNull
-    protected ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
-        return ErrorHandlingStrategyExecutor.Action.CONTINUE;
+    protected ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 
     @Override

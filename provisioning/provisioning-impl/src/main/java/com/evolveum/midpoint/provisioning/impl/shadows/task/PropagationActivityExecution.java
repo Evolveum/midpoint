@@ -56,13 +56,12 @@ public class PropagationActivityExecution
     }
 
     @Override
-    protected void initializeExecution(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void initializeExecution(OperationResult opResult) throws CommonException {
         String resourceOid = MiscUtil.requireNonNull(
                 activity.getWorkDefinition().getResourceOid(),
                 () -> "No resource specified");
         resource = activity.getHandler().provisioningService
-                .getObject(ResourceType.class, resourceOid, null, getTask(), opResult);
+                .getObject(ResourceType.class, resourceOid, null, getRunningTask(), opResult);
         setContextDescription("to " + resource);
     }
 

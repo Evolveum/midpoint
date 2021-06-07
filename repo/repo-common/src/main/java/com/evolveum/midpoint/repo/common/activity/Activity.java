@@ -18,6 +18,8 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
@@ -278,5 +280,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
             current = current.getParent();
         }
         return ActivityPath.fromList(identifiers);
+    }
+
+    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+        // TODO implement inheritance of the error handling strategy among activities
+        return definition.getControlFlowDefinition().getErrorHandlingStrategy();
     }
 }

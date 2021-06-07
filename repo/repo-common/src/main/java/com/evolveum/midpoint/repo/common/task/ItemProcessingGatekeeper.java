@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -104,7 +102,7 @@ class ItemProcessingGatekeeper<I> {
             @NotNull RunningTask workerTask) {
         this.request = request;
         this.activityExecution = activityExecution;
-        this.coordinatorTask = activityExecution.getTask();
+        this.coordinatorTask = activityExecution.getRunningTask();
         this.workerTask = workerTask;
         this.iterationItemInformation = request.getIterationItemInformation();
     }
@@ -123,7 +121,9 @@ class ItemProcessingGatekeeper<I> {
                 stopTracingAndDynamicProfiling(result, parentResult);
                 writeOperationExecutionRecord(result);
 
-                canContinue = checkIfCanContinue(result) && canContinue;
+                if (isError()) {
+                    canContinue = handleError(result) && canContinue;
+                }
 
                 acknowledgeItemProcessed(result);
 
@@ -149,7 +149,7 @@ class ItemProcessingGatekeeper<I> {
             // Just throwing the exception would simply kill one worker thread. This is something
             // that would easily be lost in the logs.
 
-            activityExecution.errorState.setPermanentErrorException(e);
+            activityExecution.errorState.setStoppingException(e);
 
             LoggingUtils.logUnexpectedException(LOGGER, "Fatal error while doing administration over "
                             + "processing item {} in {}:{}. Stopping the whole processing.",
@@ -315,44 +315,22 @@ class ItemProcessingGatekeeper<I> {
      * Determines whether to continue, stop, or suspend.
      * TODO implement better
      */
-    private boolean checkIfCanContinue(OperationResult result) {
-
-        if (!isError()) {
-            return true;
-        }
-
+    private boolean handleError(OperationResult result) {
+        OperationResultStatus status = result.getStatus();
         Throwable exception = processingResult.getExceptionRequired();
+        LOGGER.debug("Starting handling error with status={}, exception={}", status, exception);
 
-        ActivityDefinition partDef = activityExecution.getActivity().getDefinition();
-        if (partDef == null) {
-            return getContinueOnError(result.getStatus(), exception, request, result);
-        }
+        ErrorHandlingStrategyExecutor.FollowUpAction followUpAction =
+                activityExecution.handleError(status, exception, request, result);
 
-        ErrorSelectorType errorCriticality = null; //partDef.getErrorCriticality(); FIXME
-        CriticalityType criticality = ExceptionUtil.getCriticality(errorCriticality, exception, CriticalityType.PARTIAL);
-        try {
-            RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, exception, result);
-            return true; // If we are here, the error is not fatal and we can continue.
-        } catch (Throwable e) {
-            // Exception means fatal error.
-            throw new UnsupportedOperationException();
-//            taskExecution.setPermanentErrorEncountered(e);
-//            return false;
-        }
-    }
-
-    private boolean getContinueOnError(@NotNull OperationResultStatus status, @NotNull Throwable exception,
-            ItemProcessingRequest<?> request, OperationResult result) {
-        ErrorHandlingStrategyExecutor.Action action = activityExecution.determineErrorAction(status, exception, request, result);
-        switch (action) {
+        switch (followUpAction) {
             case CONTINUE:
                 return true;
-            case SUSPEND:
-                throw new UnsupportedOperationException();
-//                taskExecution.setPermanentErrorEncountered(exception);
             case STOP:
-            default:
+                activityExecution.errorState.setStoppingException(exception);
                 return false;
+            default:
+                throw new AssertionError(followUpAction);
         }
     }
 

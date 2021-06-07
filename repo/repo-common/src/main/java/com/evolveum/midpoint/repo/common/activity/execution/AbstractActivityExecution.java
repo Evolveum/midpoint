@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityState;
 import com.evolveum.midpoint.task.api.RunningTask;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -84,23 +84,40 @@ public abstract class AbstractActivityExecution<
     }
 
     @Override
-    public @NotNull ActivityExecutionResult execute(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException {
+    public @NotNull ActivityExecutionResult execute(OperationResult result) throws ActivityExecutionException {
 
         workState.initialize(result);
 
-        logStart();
+        if (workState.isComplete()) {
+            logComplete();
+            return ActivityExecutionResult.finished();
+        } else {
+            logStart();
 
-        // TODO check if not already executed
-        ActivityExecutionResult executionResult = null;
+            ActivityExecutionResult executionResult = executeCatchingExceptions(result);
+            logEnd(executionResult);
+
+            if (executionResult.isFinished()) {
+                workState.markComplete(result);
+            }
+
+            return executionResult;
+        }
+    }
+
+    @NotNull
+    private ActivityExecutionResult executeCatchingExceptions(OperationResult result) {
+        ActivityExecutionResult executionResult;
         try {
             executionResult = executeInternal(result);
+        } catch (ActivityExecutionException e) {
+            executionResult = e.getActivityExecutionResult();
         } catch (Exception e) {
+            LOGGER.warn("Unhandled exception in {}: {}", this, MiscUtil.getClassWithMessage(e));
             executionResult = ActivityExecutionResult.exception(PERMANENT_ERROR, e);
-            throw e; // TODO?
-        } finally {
-            logEnd(executionResult);
         }
+
+        executionResult.markFinishedIfNoError();
 
         return executionResult;
     }
@@ -116,11 +133,16 @@ public abstract class AbstractActivityExecution<
                 activity.getIdentifier(), activity.getPath(), activity.getLocalPath(), executionResult);
     }
 
+    private void logComplete() {
+        LOGGER.trace("Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
+                activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
+    }
+
     /**
      * Carries out the actual execution of this activity.
      */
-    protected abstract ActivityExecutionResult executeInternal(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException;
+    protected abstract @NotNull ActivityExecutionResult executeInternal(OperationResult result)
+            throws ActivityExecutionException, CommonException;
 
     @Override
     public String toString() {
@@ -172,7 +194,7 @@ public abstract class AbstractActivityExecution<
         return workState;
     }
 
-    public RunningTask getRunningTask() {
+    public @NotNull RunningTask getRunningTask() {
         return taskExecution.getRunningTask();
     }
 

@@ -28,9 +28,8 @@ public interface TaskExecution extends ShortDumpable {
      * Passes control to the execution object.
      *
      * The object is now responsible for the whole execution of this task.
-     * @param result
      */
-    @NotNull TaskRunResult run(OperationResult result) throws TaskException, PreconditionViolationException, CommonException;
+    @NotNull TaskRunResult run(OperationResult result) throws TaskException;
 
     /**
      * Returns the task associated with this execution.

@@ -12,6 +12,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
+
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityControlFlowDefinition implements DebugDumpable {
@@ -36,5 +38,9 @@ public class ActivityControlFlowDefinition implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         return bean.debugDump(indent);
+    }
+
+    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+        return bean.getErrorHandling();
     }
 }

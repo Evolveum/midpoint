@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,9 +35,9 @@ public abstract class AbstractCompositeActivityExecution<
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCompositeActivityExecution.class);
 
     /**
-     * Execution result from the last activity executed so far.
+     * TODO
      */
-    private ActivityExecutionResult executionResult;
+    @NotNull private final ActivityExecutionResult executionResult = new ActivityExecutionResult();
 
     protected AbstractCompositeActivityExecution(ExecutionInstantiationContext<WD, AH> context) {
         super(context);
@@ -46,7 +45,7 @@ public abstract class AbstractCompositeActivityExecution<
 
     @Override
     protected @NotNull ActivityExecutionResult executeInternal(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException {
+            throws ActivityExecutionException, CommonException {
 
         activity.initializeChildrenMapIfNeeded();
 
@@ -60,24 +59,15 @@ public abstract class AbstractCompositeActivityExecution<
     }
 
     /** Executes child activities. */
-    private void executeChildren(OperationResult result)
-            throws TaskException, CommonException, PreconditionViolationException {
+    private void executeChildren(OperationResult result) throws ActivityExecutionException, CommonException {
         for (Activity<?, ?> child : activity.getChildrenMap().values()) {
-            executionResult = child
+            ActivityExecutionResult childExecutionResult = child
                     .createExecution(taskExecution, result)
                     .execute(result);
-            applyErrorCriticality();
-        }
-        treatNullExecutionResult();
-    }
-
-    private void applyErrorCriticality() {
-        LOGGER.warn("Error criticality checking is not implemented yet."); // TODO
-    }
-
-    private void treatNullExecutionResult() {
-        if (executionResult == null) {
-            executionResult = ActivityExecutionResult.finished();
+            executionResult.update(childExecutionResult);
+            if (executionResult.isError()) {
+                break;
+            }
         }
     }
 

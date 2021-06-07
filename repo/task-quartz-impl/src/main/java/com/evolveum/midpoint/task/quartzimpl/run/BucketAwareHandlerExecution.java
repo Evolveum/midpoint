@@ -7,35 +7,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.run;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.StopHandlerExecutionException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
-import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
-import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.task.api.TaskRunResult.createInterruptedTaskRunResult;
-import static com.evolveum.midpoint.task.api.TaskRunResult.createSuccessTaskRunResult;
-import static com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor.*;
-
 /**
  * An execution of bucket-aware task handler.
  *

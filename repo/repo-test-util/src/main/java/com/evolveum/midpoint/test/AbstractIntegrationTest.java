@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
 
+import static java.util.Collections.singleton;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -51,6 +52,8 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
@@ -3549,5 +3552,165 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;
+    }
+
+    protected OperationResult resumeTaskAndWaitForNextFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskResume");
+        Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
+
+        final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
+        final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+
+        taskManager.resumeTask(origTask, waitResult);
+
+        final Holder<OperationResult> taskResultHolder = new Holder<>();
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+                OperationResult taskResult = freshTask.getResult();
+                if (verbose) { display("Check result", taskResult); }
+                taskResultHolder.setValue(taskResult);
+                if (isError(taskResult, checkSubresult)) {
+                    return true;
+                }
+                if (isUnknown(taskResult, checkSubresult)) {
+                    return false;
+                }
+                if (freshTask.getLastRunFinishTimestamp() == null) {
+                    return false;
+                }
+                if (freshTask.getLastRunStartTimestamp() == null) {
+                    return false;
+                }
+                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
+                //  It is because it requires that the task is not running. And this can be a problem if the
+                //  typical run time is approximately the same (or even larger) than the interval.
+                return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+                        && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+                        && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
+            }
+
+            @Override
+            public void timeout() {
+                try {
+                    Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+                    OperationResult result = freshTask.getResult();
+                    logger.debug("Timed-out task:\n{}", freshTask.debugDump());
+                    displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                            + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+                            + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+                            + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+                    assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " next run. Last result " + result;
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for resumed task " + origTask + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+        Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+        logger.debug("Final task:\n{}", freshTask.debugDump());
+        displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+                + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+                + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+
+        return taskResultHolder.getValue();
+    }
+
+    protected void restartTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".restartTask");
+        try {
+            restartTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    protected void restartTask(String taskOid, OperationResult result) throws CommonException {
+        // Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
+        // executed and then restarted and executed within the same millisecond then the second execution will not be
+        // detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
+        // timestamps are different. And 1ms is not that long to significantly affect test run times.
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            logger.warn("Sleep interrupted: {}", e.getMessage(), e);
+        }
+
+        Task task = taskManager.getTaskWithResult(taskOid, result);
+        logger.info("Restarting task {}", taskOid);
+        if (task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
+            logger.debug("Task {} is suspended, resuming it", task);
+            taskManager.resumeTask(task, result);
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
+            logger.debug("Task {} is closed, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
+            if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+                // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+                logger.debug("Task {} is running, waiting while it finishes before restarting", task);
+                waitForTaskFinish(taskOid, false);
+            }
+            logger.debug("Task {} is finished, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else {
+            throw new IllegalStateException(
+                    "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionState());
+        }
+    }
+
+    protected boolean suspendTask(String taskOid) throws CommonException {
+        return suspendTask(taskOid, 3000);
+    }
+
+    protected boolean suspendTask(String taskOid, int waitTime) throws CommonException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".suspendTask");
+        Task task = taskManager.getTaskWithResult(taskOid, result);
+        logger.info("Suspending task {}", taskOid);
+        try {
+            return taskManager.suspendTask(task, waitTime, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't suspend task {}", e, task);
+            return false;
+        }
+    }
+
+    /**
+     * Restarts task and waits for finish.
+     */
+    protected Task rerunTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".rerunTask");
+        try {
+            return rerunTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    protected Task rerunTask(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+    }
+
+    protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
+    }
+
+    protected String longTimeToString(Long longTime) {
+        if (longTime == null) {
+            return "null";
+        }
+        return longTime.toString();
     }
 }

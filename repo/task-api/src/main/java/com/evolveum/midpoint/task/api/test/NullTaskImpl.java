@@ -679,7 +679,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public ActivityStateType getActivityWorkStateOrClone(ItemPath path) {
+    public boolean doesItemExist(ItemPath path) {
+        return false;
+    }
+
+    @Override
+    public ActivityStateType getActivityStateOrClone(ItemPath path) {
         throw new UnsupportedOperationException();
     }
 

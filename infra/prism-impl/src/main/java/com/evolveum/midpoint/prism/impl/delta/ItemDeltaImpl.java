@@ -1215,7 +1215,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
     }
 
     private void cleanupAllTheWayUp(Item<?, ?> item) {
-        if (item.isEmpty()) {
+        if (item.hasNoValues()) {
             PrismValue itemParent = item.getParent();
             if (itemParent != null) {
                 ((PrismContainerValue<?>) itemParent).remove(item);

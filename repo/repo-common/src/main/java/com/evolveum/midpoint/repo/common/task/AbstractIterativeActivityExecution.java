@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -26,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -137,12 +136,11 @@ public abstract class AbstractIterativeActivityExecution<
         this.activityShortNameCapitalized = shortNameCapitalized;
         this.contextDescription = "";
         this.beans = taskExecution.getBeans();
-        this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
-                getTask(), beans.prismContext, beans.repositoryService,
-                getDefaultErrorAction());
+        this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(getActivity(), getRunningTask(),
+                getDefaultErrorAction(), beans);
         this.reportingOptions = getDefaultReportingOptions()
                 .cloneWithConfiguration(
-                        getTask().getExtensionContainerRealValueOrClone(
+                        getRunningTask().getExtensionContainerRealValueOrClone(
                                 SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS)); // TODO move into activity definition
     }
 
@@ -150,11 +148,11 @@ public abstract class AbstractIterativeActivityExecution<
     public abstract ActivityReportingOptions getDefaultReportingOptions();
 
     protected @NotNull ActivityExecutionResult executeInternal(OperationResult opResult)
-            throws CommonException, TaskException, PreconditionViolationException {
+            throws ActivityExecutionException, CommonException {
 
         ActivityExecutionResult runResult = new ActivityExecutionResult();
 
-        LOGGER.trace("{}: Starting with local coordinator task {}", activityShortNameCapitalized, getTask());
+        LOGGER.trace("{}: Starting with local coordinator task {}", activityShortNameCapitalized, getRunningTask());
 
         checkTaskPersistence();
 
@@ -166,7 +164,9 @@ public abstract class AbstractIterativeActivityExecution<
 
         finishExecution(opResult);
 
-        LOGGER.trace("{} run finished (task {}, run result {})", activityShortNameCapitalized, getTask(), runResult);
+        runResult.update(errorState);
+
+        LOGGER.trace("{} run finished (task {}, run result {})", activityShortNameCapitalized, getRunningTask(), runResult);
         return runResult;
     }
 
@@ -175,7 +175,7 @@ public abstract class AbstractIterativeActivityExecution<
      *
      * TODO better name
      */
-    protected void executeInitialized(OperationResult opResult) throws TaskException, PreconditionViolationException, CommonException {
+    protected void executeInitialized(OperationResult opResult) throws ActivityExecutionException, CommonException {
         executeSingleBucket(opResult);
     }
 
@@ -184,7 +184,7 @@ public abstract class AbstractIterativeActivityExecution<
      *
      * TODO better name, independent of the bucketing
      */
-    protected void executeSingleBucket(OperationResult opResult) throws TaskException, PreconditionViolationException, CommonException {
+    protected void executeSingleBucket(OperationResult opResult) throws ActivityExecutionException, CommonException {
         prepareItemSource(opResult);
         setExpectedTotal(opResult);
 
@@ -202,20 +202,20 @@ public abstract class AbstractIterativeActivityExecution<
             coordinator.finishProcessing(opResult);
         }
 
-        setOperationResultStatus(opResult);
+        updateOperationResultStatus(opResult);
 
         updateStatisticsOnFinish(opResult);
         logFinishInfo(opResult);
     }
 
-    // TODO finish this method
-    private void setOperationResultStatus(OperationResult opResult) {
-        if (errorState.isPermanentErrorEncountered()) {
+    // TODO reconsider this method
+    private void updateOperationResultStatus(OperationResult opResult) {
+        if (errorState.wasStoppingExceptionEncountered()) {
             // We assume the error occurred within this part (otherwise that part would not even start).
             opResult.setStatus(FATAL_ERROR);
         } else if (executionStatistics.getErrors() > 0) {
             opResult.setStatus(PARTIAL_ERROR);
-        } else {
+        } else if (!opResult.isError()) {
             opResult.setStatus(SUCCESS);
         }
     }
@@ -223,25 +223,20 @@ public abstract class AbstractIterativeActivityExecution<
     /**
      * Initializes task part execution.
      */
-    protected void initializeExecution(OperationResult opResult) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException, TaskException {
+    protected void initializeExecution(OperationResult opResult) throws CommonException {
     }
 
     /**
      * Prepares the item source. E.g. for search-iterative tasks we prepare object type, query, and options here.
      */
-    protected void prepareItemSource(OperationResult opResult) throws TaskException, CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException {
+    protected void prepareItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
     }
 
     /**
      * Computes expected total and sets the value in the task. E.g. for search-iterative tasks we count the objects here.
      * TODO reconsider
      */
-    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+    protected void setExpectedTotal(OperationResult opResult) throws CommonException {
     }
 
     /**
@@ -270,12 +265,7 @@ public abstract class AbstractIterativeActivityExecution<
      * Creates the processing coordinator. Usually no customization is needed here.
      */
     private ProcessingCoordinator<I> setupCoordinator() {
-        return new ProcessingCoordinator<>(getTask(), beans.taskManager);
-    }
-
-    @NotNull
-    public RunningTask getTask() {
-        return taskExecution.getRunningTask();
+        return new ProcessingCoordinator<>(getRunningTask(), beans.taskManager);
     }
 
     /**
@@ -288,7 +278,7 @@ public abstract class AbstractIterativeActivityExecution<
      * - for live sync task, this returns after all changes were fetched and acknowledged, and the resulting token was written
      * - for async update task, this returns also after all changes were fetched and acknowledged and confirmed to the source
      */
-    protected abstract void processItems(OperationResult opResult) throws PreconditionViolationException, CommonException;
+    protected abstract void processItems(OperationResult opResult) throws CommonException;
 
     /**
      * Ends the processing.
@@ -297,9 +287,9 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     private void checkTaskPersistence() {
-        if (getTask().getOid() == null) {
+        if (getRunningTask().getOid() == null) {
             throw new IllegalArgumentException(
-                    "Transient tasks cannot be run by " + getClass() + ": " + getTask());
+                    "Transient tasks cannot be run by " + getClass() + ": " + getRunningTask());
         }
     }
 
@@ -319,7 +309,7 @@ public abstract class AbstractIterativeActivityExecution<
 
     public Long heartbeat() {
         // If we exist then we run. So just return the progress count.
-        return getTask().getProgress();
+        return getRunningTask().getProgress();
     }
 
     private void updateStatisticsOnStart() {
@@ -331,15 +321,15 @@ public abstract class AbstractIterativeActivityExecution<
      * FIXME!!!
      */
     private void setStructuredProgressPartInformation() {
-        getTask().setStructuredProgressPartInformation(activityIdentifier, activityNumber, expectedActivities);
+        getRunningTask().setStructuredProgressPartInformation(activityIdentifier, activityNumber, expectedActivities);
 
         // The task progress can be out of sync with the actual progress e.g. because of open items (that have been zeroed above).
-        StructuredTaskProgressType structuredProgress = getTask().getStructuredProgressOrClone();
-        getTask().setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
+        StructuredTaskProgressType structuredProgress = getRunningTask().getStructuredProgressOrClone();
+        getRunningTask().setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
     }
 
     private void updateStatisticsOnFinish(OperationResult result) {
-        RunningTask task = getTask();
+        RunningTask task = getRunningTask();
 
         executionStatistics.recordEnd();
         task.recordPartExecutionEnd(getActivityPath(), getPartStartTimestamp(), executionStatistics.getEndTimeMillis());
@@ -353,7 +343,7 @@ public abstract class AbstractIterativeActivityExecution<
     // TODO decide on the final form of these messages
     private void logFinishInfo(OperationResult result) {
 
-        RunningTask task = getTask();
+        RunningTask task = getRunningTask();
 
         long endTime = Objects.requireNonNull(executionStatistics.endTimeMillis, "No end timestamp?");
         // Note: part statistics should be consistent with this end time.
@@ -433,7 +423,7 @@ public abstract class AbstractIterativeActivityExecution<
 
     private Integer getWorkerThreadsCount() {
         // FIXME - take also from distribution definition
-        return getTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+        return getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
     }
 
     protected void ensureNoWorkerThreads() {
@@ -465,15 +455,15 @@ public abstract class AbstractIterativeActivityExecution<
         this.contextDescription = ObjectUtils.defaultIfNull(value, "");
     }
 
-    ErrorHandlingStrategyExecutor.Action determineErrorAction(@NotNull OperationResultStatus status,
+    ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
             @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
-        return errorHandlingStrategyExecutor.determineAction(status, exception, request.getObjectOidToRecordRetryTrigger(), result);
+        return errorHandlingStrategyExecutor.handleError(status, exception, request.getObjectOidToRecordRetryTrigger(), result);
     }
 
     /**
      * @return Default error action if no policy is specified or if no policy entry matches.
      */
-    protected @NotNull abstract ErrorHandlingStrategyExecutor.Action getDefaultErrorAction();
+    protected @NotNull abstract ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction();
 
     public @NotNull ActivityReportingOptions getReportingOptions() {
         return reportingOptions;
@@ -484,12 +474,12 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     public @NotNull String getRootTaskOid() {
-        return getTask().getRootTaskOid();
+        return getRunningTask().getRootTaskOid();
     }
 
     protected @NotNull Task getRootTask(OperationResult result) throws SchemaException {
         String rootTaskOid = getRootTaskOid();
-        RunningTask task = getTask();
+        RunningTask task = getRunningTask();
         if (task.getOid().equals(rootTaskOid)) {
             return task;
         } else {
@@ -529,8 +519,8 @@ public abstract class AbstractIterativeActivityExecution<
 
     void markStructuredProgressComplete(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException {
-        getTask().markStructuredProgressAsComplete();
-        getTask().flushPendingModifications(result);
+        getRunningTask().markStructuredProgressAsComplete();
+        getRunningTask().flushPendingModifications(result);
     }
 
     /**

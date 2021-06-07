@@ -2080,6 +2080,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="repeatedExecution" type="tns:ActivityRepeatedExecutionStrategyType" minOccurs="0" default="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should be the activity re-executed when the task is restarted (e.g. resumed)?
+                        NOT IMPLEMENTED YET.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="parallelExecution" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2091,6 +2099,69 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="ActivityRepeatedExecutionStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Should be an activity re-executed when the task is restarted (e.g. resumed)?
+                NOT IMPLEMENTED YET.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Once executed, the activity should not be re-executed again.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The activity should be always executed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The activity should be re-executed if it ended with partial or fatal error before.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifFatalError">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The activity should be re-executed if it ended with fatal error before.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_FATAL_ERROR"/>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="PartsSubtasksRealizationType">
         <xsd:annotation>
@@ -2431,6 +2502,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executionResult" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result of the current (or last completed) activity execution.
+                        The semantics of individual values (like partial error or fatal error) is up to the activity.
+                        NOT IMPLEMENTED YET.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2449,10 +2529,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="businessState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
+            <xsd:element name="workState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Business state of the activity.
+                        Work (business) state of the activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2527,6 +2607,40 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <!--<xsd:simpleType name="ActivityExecutionResultType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            Result of an activity execution.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:since>4.4</a:since>-->
+    <!--            <a:experimental>true</a:experimental>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:restriction base="xsd:string">-->
+    <!--        <xsd:enumeration value="partialError">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Partial error. TODO what does it mean?-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="PARTIAL_ERROR"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--        <xsd:enumeration value="fatalError">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Fatal error. TODO what does it mean?-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="FATAL_ERROR"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--    </xsd:restriction>-->
+    <!--</xsd:simpleType>-->
 
     <xsd:complexType name="ActivityBucketingStateType">
         <xsd:annotation>
@@ -4632,7 +4746,10 @@
     <xsd:complexType name="IgnoreErrorReactionType">
         <xsd:annotation>
             <xsd:documentation>
-                Error should be ignored. E.g. for live sync tasks, the token is advanced to the next item.
+                Error should be ignored and the processing should continue.
+                E.g. for live sync tasks, the token is advanced to the next item.
+                The ignorance is not complete, though. For example, the error is recorded
+                into the operationExecution item of the object being processed.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -4655,6 +4772,19 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
+        <!--<xsd:sequence>-->
+        <!--    <xsd:element name="status" type="c:OperationResultStatusType" minOccurs="0">-->
+        <!--        <xsd:annotation>-->
+        <!--            <xsd:documentation>-->
+        <!--                Status that is reported as a reason for stopping the task. The default is the current operation-->
+        <!--                result status.-->
+        <!--            </xsd:documentation>-->
+        <!--            <xsd:appinfo>-->
+        <!--                <a:since>4.4</a:since>-->
+        <!--            </xsd:appinfo>-->
+        <!--        </xsd:annotation>-->
+        <!--    </xsd:element>-->
+        <!--</xsd:sequence>-->
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="stopProcessingReaction" type="tns:StopProcessingReactionType"/>
@@ -5427,31 +5557,32 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <!-- TEMPORARY -->
+            <xsd:element name="extension" type="c:ExtensionType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType" />
 
-    <xsd:complexType name="RuntimeDefinedActivityWorkStateType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractActivityWorkStateType">
-                <xsd:sequence>
-                    <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                    </xsd:any>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="runtimeDefinedActivityWorkState" type="tns:RuntimeDefinedActivityWorkStateType" />
+    <!--<xsd:complexType name="RuntimeDefinedActivityWorkStateType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            TODO-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container>true</a:container>-->
+    <!--            <a:since>4.4</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:complexContent>-->
+    <!--        <xsd:extension base="tns:AbstractActivityWorkStateType">-->
+    <!--            <xsd:sequence>-->
+    <!--                -->
+    <!--            </xsd:sequence>-->
+    <!--        </xsd:extension>-->
+    <!--    </xsd:complexContent>-->
+    <!--</xsd:complexType>-->
+    <!--<xsd:element name="runtimeDefinedActivityWorkState" type="tns:RuntimeDefinedActivityWorkStateType" />-->
 
     <xsd:complexType name="PureCompositeWorkStateType">
         <xsd:annotation>

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
@@ -40,7 +39,7 @@ class IterativeMockActivityExecution
     }
 
     @Override
-    protected void processItems(OperationResult result) throws CommonException, PreconditionViolationException {
+    protected void processItems(OperationResult result) throws CommonException {
         IterativeMockWorkDefinition workDef = getActivity().getWorkDefinition();
         for (int item = workDef.getFrom(); item <= workDef.getTo(); item++) {
             ItemProcessingRequest<Integer> request = new IterativeMockProcessingRequest(item, this);
@@ -65,8 +64,8 @@ class IterativeMockActivityExecution
 
     @Override
     @NotNull
-    protected ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
-        return ErrorHandlingStrategyExecutor.Action.CONTINUE;
+    protected ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 
     @Override

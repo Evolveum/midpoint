@@ -7,20 +7,17 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -44,7 +43,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     @NotNull private final ComplexTypeDefinition workStateDefinition;
 
     /** Path to the work state container value related to this execution. */
-    private ItemPath itemPath;
+    private ItemPath stateItemPath;
 
     public ActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
         this.activityExecution = activityExecution;
@@ -59,9 +58,17 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 () -> new SystemException("Couldn't find definition for " + activityExecution.getWorkStateTypeName()));
     }
 
-    public void initialize(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        itemPath = findOrCreateActivityState(result);
+    public void initialize(OperationResult result) throws ActivityExecutionException {
+        try {
+            stateItemPath = findOrCreateActivityState(result);
+            if (getActivityHandler().shouldCreateWorkStateOnInitialization()) {
+                createWorkStateIfNeeded(result);
+            }
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
+            // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
+            throw new ActivityExecutionException("Couldn't initialize activity state for " + getActivity() + ": " + e.getMessage(),
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
 
     /**
@@ -71,7 +78,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     private ItemPath findOrCreateActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}", activityExecution.getPath(),
-                activityExecution.getRunningTask());
+                getRunningTask());
         AbstractActivityExecution<?, ?, ?> localParentExecution = activityExecution.getLocalParentExecution();
         if (localParentExecution == null) {
             LOGGER.trace("No local parent execution, checking or creating root work state");
@@ -91,8 +98,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
 
     private void findOrCreateRootActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        RunningTask task = activityExecution.getRunningTask();
-        ActivityStateType value = task.getActivityWorkStateOrClone(ROOT_WORK_STATE_PATH);
+        RunningTask task = getRunningTask();
+        ActivityStateType value = task.getActivityStateOrClone(ROOT_WORK_STATE_PATH);
         if (value == null) {
             addActivityState(TaskType.F_ACTIVITY_STATE, result, task, getActivity().getIdentifier());
         }
@@ -101,7 +108,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     @NotNull
     private ItemPath findOrCreateChildActivityState(ItemPath parentWorkStatePath, String identifier, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        RunningTask task = activityExecution.getRunningTask();
+        RunningTask task = getRunningTask();
         ItemPath childPath = findChildState(task, parentWorkStatePath, identifier);
         if (childPath != null) {
             LOGGER.trace("Child work state exists with the path of '{}'", childPath);
@@ -119,7 +126,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
 
     @Nullable
     private ItemPath findChildState(RunningTask task, ItemPath parentWorkStatePath, String identifier) {
-        ActivityStateType parentValue = task.getActivityWorkStateOrClone(parentWorkStatePath);
+        ActivityStateType parentValue = task.getActivityStateOrClone(parentWorkStatePath);
         stateCheck(parentValue != null, "Parent activity work state does not exist in %s; path = %s",
                 task, parentWorkStatePath);
         for (ActivityStateType childState : parentValue.getActivity()) {
@@ -147,26 +154,57 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
         LOGGER.debug("Activity state created for activity identifier={} in {} in {}", identifier, stateItemPath, task);
     }
 
+    private void createWorkStateIfNeeded(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        ItemPath path = stateItemPath.append(ActivityStateType.F_WORK_STATE);
+        if (!getRunningTask().doesItemExist(path)) {
+            createWorkState(path, result);
+        }
+    }
+
+    private void createWorkState(ItemPath path, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        Task task = getRunningTask();
+        PrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(
+                ActivityStateType.F_WORK_STATE, workStateDefinition);
+        PrismContainer<?> workStateContainer = def.instantiate();
+        PrismContainerValue<?> newWorkStateValue = workStateContainer.createNewValue().clone();
+        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                .item(path)
+                .add(newWorkStateValue)
+                .asItemDelta();
+        task.modify(itemDelta);
+        task.flushPendingModifications(result);
+        task.refresh(result);
+        LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
+    }
+
     private CommonTaskBeans getBeans() {
         return activityExecution.getBeans();
     }
 
     public ItemPath getItemPath() {
-        return itemPath;
+        return stateItemPath;
     }
 
     public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
-        return activityExecution.getRunningTask()
-                .getPropertyRealValue(itemPath.append(path), expectedType);
+        return getRunningTask()
+                .getPropertyRealValue(getWorkStateItemPath().append(path), expectedType);
+    }
+
+    private RunningTask getRunningTask() {
+        return activityExecution.getRunningTask();
     }
 
     public void setPropertyRealValue(ItemPath path, Object value) throws SchemaException {
-        activityExecution.getRunningTask()
-                .modify(
-                        getPrismContext().deltaFor(TaskType.class)
-                                .item(itemPath.append(path), getWorkStateItemDefinition(path))
-                                .replace(value)
-                                .asItemDelta());
+        RunningTask task = getRunningTask();
+        LOGGER.trace("setPropertyRealValue: path={}, value={} in {}", path, value, task);
+
+        task.modify(
+                getPrismContext().deltaFor(TaskType.class)
+                        .item(getWorkStateItemPath().append(path), getWorkStateItemDefinition(path))
+                        .replace(value)
+                        .asItemDelta());
     }
 
     @NotNull
@@ -186,7 +224,45 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
 
     public void flushPendingModifications(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        activityExecution.getRunningTask()
-                .flushPendingModifications(result);
+        getRunningTask().flushPendingModifications(result);
+    }
+
+    @NotNull ActivityHandler<?, ?> getActivityHandler() {
+        return activityExecution.getActivityHandler();
+    }
+
+    public boolean isComplete() {
+        return getExecutionState() == ActivityExecutionStateType.COMPLETE;
+    }
+
+    private ActivityExecutionStateType getExecutionState() {
+        return getRunningTask().getPropertyRealValue(getExecutionStateItemPath(), ActivityExecutionStateType.class);
+    }
+
+    @NotNull ItemPath getWorkStateItemPath() {
+        return stateItemPath.append(ActivityStateType.F_WORK_STATE);
+    }
+
+    @NotNull
+    private ItemPath getExecutionStateItemPath() {
+        return stateItemPath.append(ActivityStateType.F_EXECUTION_STATE);
+    }
+
+    public void markComplete(OperationResult result) throws ActivityExecutionException {
+        setExecutionState(ActivityExecutionStateType.COMPLETE, result);
+    }
+
+    public void setExecutionState(ActivityExecutionStateType value, OperationResult result) throws ActivityExecutionException {
+        try {
+            ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                    .item(getExecutionStateItemPath()).replace(value)
+                    .asItemDelta();
+            getRunningTask().modify(itemDelta);
+            flushPendingModifications(result);
+            LOGGER.info("Execution state was set to {} for {}", value, activityExecution);
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't set activity execution state to " + value,
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
 }

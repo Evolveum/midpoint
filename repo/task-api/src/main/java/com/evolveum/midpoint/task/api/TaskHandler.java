@@ -10,8 +10,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 /**
  * @author Radovan Semancik
  *
@@ -23,7 +21,7 @@ public interface TaskHandler {
      *
      * TODO better description
      */
-    TaskRunResult run(@NotNull RunningTask task) throws StopHandlerExecutionException;
+    TaskRunResult run(@NotNull RunningTask task) throws TaskException;
 
     default Long heartbeat(Task task) {
         return null;

@@ -797,7 +797,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type);
 
     /** TODO */
-    ActivityStateType getActivityWorkStateOrClone(ItemPath path);
+    boolean doesItemExist(ItemPath path);
+
+    /** TODO */
+    ActivityStateType getActivityStateOrClone(ItemPath path);
     //endregion
 
     //region Work management

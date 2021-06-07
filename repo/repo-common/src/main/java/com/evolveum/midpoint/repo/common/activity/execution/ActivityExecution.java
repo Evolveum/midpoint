@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -33,7 +34,7 @@ public interface ActivityExecution extends DebugDumpable {
      * task execution, or of activities executed as separate subtasks.
      */
     @NotNull ActivityExecutionResult execute(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException;
+            throws CommonException, TaskException, PreconditionViolationException, ActivityExecutionException;
 
     /**
      * Returns task execution that contains this activity execution.

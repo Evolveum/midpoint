@@ -17,6 +17,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.task.api.TaskRunResult.createFailureTaskRunResult;
+
 /**
  * @author katka
  *
@@ -27,43 +29,30 @@ public class HandlerExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(HandlerExecutor.class);
 
     @NotNull TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskHandler handler, OperationResult executionResult) {
+        // TODO?
+        startCollectingStatistics(task, handler);
+
+        LOGGER.trace("Executing task handler {}", handler.getClass().getName());
+        TaskRunResult runResult;
         try {
-            try {
-                // TODO?
-                startCollectingStatistics(task, handler);
-
-                LOGGER.trace("Executing task handler {}", handler.getClass().getName());
-                TaskRunResult runResult;
-                try {
-                    runResult = handler.run(task);
-                } catch (StopHandlerExecutionException e) {
-                    runResult = e.getRunResult();
-                }
-                LOGGER.trace("runResult is {} for {}", runResult, task);
-
-                // TODO?
-                updateAndStoreStatisticsIntoRepository(task, executionResult);
-
-                treatNullRunResult(task, runResult);
-                return runResult;
-            } catch (Throwable t) {
-                return processHandlerException(task, t);
+            runResult = handler.run(task);
+            if (runResult == null) { // Obviously an error in task handler
+                LOGGER.error("Unable to record run finish: task returned null result");
+                runResult = createFailureTaskRunResult(task, "Task returned null result", null);
             }
-        } catch (StopHandlerExecutionException e) {
-            return e.getRunResult();
+        } catch (TaskException e) {
+            runResult = TaskRunResult.createFromTaskException(task, e);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Task handler threw unexpected exception: {}: {}; task = {}",
+                    t, t.getClass().getName(), t.getMessage(), task);
+            runResult = createFailureTaskRunResult(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
         }
-    }
+        LOGGER.trace("runResult is {} for {}", runResult, task);
 
-    private static TaskRunResult processHandlerException(RunningTaskQuartzImpl task, Throwable t) throws StopHandlerExecutionException {
-        LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-        throw new StopHandlerExecutionException(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
-    }
+        // TODO?
+        updateAndStoreStatisticsIntoRepository(task, executionResult);
 
-    private static void treatNullRunResult(RunningTask task, TaskRunResult runResult) throws StopHandlerExecutionException {
-        if (runResult == null) { // Obviously an error in task handler
-            LOGGER.error("Unable to record run finish: task returned null result");
-            throw new StopHandlerExecutionException(task, "Task returned null result", null);
-        }
+        return runResult;
     }
 
     private static void startCollectingStatistics(RunningTask task, TaskHandler handler) {

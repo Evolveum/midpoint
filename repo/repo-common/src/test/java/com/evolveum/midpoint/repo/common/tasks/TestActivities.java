@@ -409,7 +409,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         // TODO assert the bucketing
     }
 
-    @Test(enabled = false)
+    @Test
     public void test190SuspendingComposite() throws Exception {
         given();
 
@@ -420,18 +420,46 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         Task task1 = taskAdd(TASK_190_SUSPENDING_COMPOSITE, result);
 
-        when();
+        when("1st");
 
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
-        then();
+        then("1st");
 
-        assertTask(task1.getOid(), "after")
+        assertTask(task1.getOid(), "after 1st")
                 .display()
-                .assertFatalError()
+                //.assertFatalError() // TODO
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
 
-        displayDumpable("recorder", recorder);
+        displayDumpable("recorder after 1st", recorder);
+
+        when("2nd");
+
+        restartTask(task1.getOid(), result);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+
+        then("2nd");
+
+        assertTask(task1.getOid(), "after 2nd")
+                .display()
+                //.assertFatalError() // TODO
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+
+        displayDumpable("recorder after 2nd", recorder);
+
+        when("3rd");
+
+        restartTask(task1.getOid(), result);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+
+        then("3rd");
+
+        assertTask(task1.getOid(), "after 3rd")
+                .display()
+                //.assertFatalError() // TODO
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+
+        displayDumpable("recorder after 3rd", recorder);
     }
 
     @Test(enabled = false)

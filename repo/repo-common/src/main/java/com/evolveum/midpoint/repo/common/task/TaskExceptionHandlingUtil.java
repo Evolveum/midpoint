@@ -99,8 +99,8 @@ public class TaskExceptionHandlingUtil {
     public static <TRR extends TaskRunResult> TRR processFinish(Trace logger, ActivityDefinition<?> activityDefinition,
             String ctx, TRR runResult, ErrorState errorState) {
 
-        if (errorState.isPermanentErrorEncountered()) {
-            return processException(errorState.getPermanentErrorException(), logger, activityDefinition, ctx, runResult);
+        if (errorState.wasStoppingExceptionEncountered()) {
+            return processException(errorState.getStoppingException(), logger, activityDefinition, ctx, runResult);
         }
         // TODO what in case of not permanent error?
 

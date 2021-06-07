@@ -229,8 +229,8 @@ class TaskCycleExecutor {
             LOGGER.info("Task encountered temporary error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR) {
-            LOGGER.trace("Task encountered permanent error. Closing it. Task = {}", task);
-            beans.taskStateManager.closeTask(task, result);
+            LOGGER.trace("Task encountered permanent error. Suspending it. Task = {}", task);
+            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);

@@ -51,4 +51,8 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
     }
 
     @NotNull QName getWorkStateTypeName();
+
+    default boolean shouldCreateWorkStateOnInitialization() {
+        return false;
+    }
 }

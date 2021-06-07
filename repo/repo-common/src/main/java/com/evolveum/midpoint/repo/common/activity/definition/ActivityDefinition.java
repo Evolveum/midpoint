@@ -171,6 +171,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return distributionDefinition;
     }
 
+    public @NotNull ActivityControlFlowDefinition getControlFlowDefinition() {
+        return controlFlowDefinition;
+    }
+
     @Override
     public String toString() {
         return "ActivityDefinition{" +

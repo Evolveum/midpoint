@@ -8,8 +8,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 
-import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.CONTINUE;
-import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.STOP;
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.FollowUpAction.STOP;
 
 import javax.annotation.PostConstruct;
 
@@ -148,7 +148,7 @@ public class LiveSyncTaskHandler
         }
 
         @Override
-        protected @NotNull ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
+        protected @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
             // This could be a bit tricky if combined with partially-specified error handling strategy.
             // So, please, do NOT combine these two! If you specify a strategy, do not use retryLiveSyncErrors extension item.
             boolean retryErrors = isNotFalse(localCoordinatorTask.getExtensionPropertyRealValue(

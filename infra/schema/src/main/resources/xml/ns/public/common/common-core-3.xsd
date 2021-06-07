@@ -4525,6 +4525,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="policyThreshold" type="tns:CriticalityType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy threshold violations. The operation failed because it matched given policy rule more than defined
+                        times (a threshold). This is a subtype of "policy" category.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="schema" type="tns:CriticalityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4610,6 +4621,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="policyThreshold">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy threshold violations. The operation failed because it matched given policy rule more than defined
+                        times (a threshold). This is a subtype of "policy" category.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY_THRESHOLD"/>
+                        <a:since>4.4</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

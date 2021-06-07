@@ -135,8 +135,8 @@ public class AsyncUpdateTaskHandler
         }
 
         @Override
-        protected @NotNull ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
-            return ErrorHandlingStrategyExecutor.Action.STOP; // We do not want to miss any change by default
+        protected @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
+            return ErrorHandlingStrategyExecutor.FollowUpAction.STOP; // We do not want to miss any change by default
         }
     }
 

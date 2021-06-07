@@ -150,16 +150,19 @@ public class TaskRunResult implements Serializable {
         return runResult;
     }
 
-    private static TaskRunResult createRunResult(RunningTask task) {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = new OperationResult(TaskConstants.OP_EXECUTE_HANDLER);
-        }
-        runResult.setOperationResult(opResult);
+    @NotNull public static TaskRunResult createFromTaskException(RunningTask task, TaskException e) {
+        TaskRunResult runResult = createRunResult(task);
+        runResult.getOperationResult().recordStatus(e.getOpResultStatus(), e.getFullMessage(), e.getCause());
+        runResult.setRunResultStatus(e.getRunResultStatus());
         return runResult;
     }
 
+    private static TaskRunResult createRunResult(RunningTask task) {
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(
+                Objects.requireNonNullElseGet(
+                        task.getResult(),
+                        () -> new OperationResult(TaskConstants.OP_EXECUTE_HANDLER)));
+        return runResult;
+    }
 }

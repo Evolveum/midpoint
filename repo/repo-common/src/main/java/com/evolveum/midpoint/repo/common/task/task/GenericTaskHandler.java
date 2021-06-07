@@ -16,14 +16,12 @@ import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 
+import com.evolveum.midpoint.task.api.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.logging.Trace;
 
 /**
@@ -72,13 +70,12 @@ public class GenericTaskHandler implements TaskHandler {
      * method.
      */
     @Override
-    public TaskRunResult run(@NotNull RunningTask localCoordinatorTask) {
+    public TaskRunResult run(@NotNull RunningTask localCoordinatorTask)
+            throws TaskException {
         TaskExecution taskExecution = new GenericTaskExecution(localCoordinatorTask, this);
         try {
             registerExecution(localCoordinatorTask, taskExecution);
             return taskExecution.run(localCoordinatorTask.getResult());
-        } catch (Throwable t) {
-            throw new IllegalStateException(t); // TODO
         } finally {
             unregisterExecution(localCoordinatorTask);
         }

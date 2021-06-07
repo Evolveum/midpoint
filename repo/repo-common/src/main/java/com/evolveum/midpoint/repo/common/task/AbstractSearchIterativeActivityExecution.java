@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -84,18 +84,18 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     /**
      * Object set specification (in the "modern" way), if present.
-     * Set up in {@link #prepareItemSource(OperationResult)}.
+     * Set up in {@link AbstractIterativeActivityExecution#prepareItemSource(OperationResult)}.
      */
     private ObjectSetType objectSetSpecification;
 
     /**
-     * Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}.
+     * Object type provided when counting and retrieving objects. Set up in {@link AbstractIterativeActivityExecution#prepareItemSource(OperationResult)}.
      *
      * Never null after initialization.
      */
     protected Class<O> objectType;
 
-    /** Object query specifying what objects to process. Set up in {@link #prepareItemSource(OperationResult)}. */
+    /** Object query specifying what objects to process. Set up in {@link AbstractIterativeActivityExecution#prepareItemSource(OperationResult)}. */
     protected ObjectQuery query;
 
     /**
@@ -115,14 +115,14 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     ObjectPreprocessor<O> preprocessor;
 
     /**
-     * Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}.
+     * Options to be used during counting and searching. Set up in {@link AbstractIterativeActivityExecution#prepareItemSource(OperationResult)}.
      *
      * Never null after initialization.
      */
     protected Collection<SelectorOptions<GetOperationOptions>> searchOptions;
 
     /**
-     * Whether we want to use repository directly when counting/searching. Set up in {@link #prepareItemSource(OperationResult)}.
+     * Whether we want to use repository directly when counting/searching. Set up in {@link AbstractIterativeActivityExecution#prepareItemSource(OperationResult)}.
      * Can be "built-in" in the task (see {@link #requiresDirectRepositoryAccess}), or requested explicitly by the user.
      * In the latter case the raw authorization is checked.
      *
@@ -159,7 +159,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
      */
     @Override
     protected void executeInitialized(OperationResult opResult)
-            throws TaskException, PreconditionViolationException, CommonException {
+            throws ActivityExecutionException, CommonException {
 
         RunningTask task = taskExecution.getRunningTask();
         boolean initialExecution = true;
@@ -182,7 +182,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
             executeSingleBucket(opResult);
 
-            if (!task.canRun()) {
+            if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
                 break;
             }
 
@@ -226,9 +226,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     @Override
-    protected void prepareItemSource(OperationResult opResult) throws TaskException, CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException {
+    protected void prepareItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
 
         objectSetSpecification = getObjectSetSpecification();
 
@@ -255,21 +253,18 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     @Override
-    protected void setExpectedTotal(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+    protected void setExpectedTotal(OperationResult opResult) throws CommonException {
         Long expectedTotal = computeExpectedTotal(opResult);
-        getTask().setExpectedTotal(expectedTotal);
-        getTask().flushPendingModifications(opResult);
+        getRunningTask().setExpectedTotal(expectedTotal);
+        getRunningTask().flushPendingModifications(opResult);
     }
 
-    private boolean prepareUseRepositoryFlag(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private boolean prepareUseRepositoryFlag(OperationResult opResult) throws CommonException {
         Boolean useRepositoryDirectlyExplicit = getUseRepositoryDirectlyFromTask();
         if (useRepositoryDirectlyExplicit != null) {
             // if we requested this mode explicitly we need to have appropriate authorization
             if (useRepositoryDirectlyExplicit) {
-                checkRawAuthorization(getTask(), opResult);
+                checkRawAuthorization(getRunningTask(), opResult);
             }
             return useRepositoryDirectlyExplicit;
         } else {
@@ -322,7 +317,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         }
     }
 
-    private ObjectQuery prepareQuery(OperationResult opResult) throws TaskException {
+    private ObjectQuery prepareQuery(OperationResult opResult) throws ActivityExecutionException {
 
         stateCheck(objectType != null, "uninitialized objectType");
         stateCheck(searchOptions != null, "uninitialized searchOptions");
@@ -339,14 +334,16 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             ObjectQuery bucketNarrowedQuery = beans.bucketingManager.narrowQueryForWorkBucket(objectType, failureNarrowedQuery,
                     activity.getDefinition().getDistributionDefinition(), createItemDefinitionProvider(), bucket);
 
-            LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", activityShortNameCapitalized,
-                    DebugUtil.debugDumpLazily(bucketNarrowedQuery));
+            LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}",
+                    activityShortNameCapitalized, DebugUtil.debugDumpLazily(bucketNarrowedQuery));
 
             return preProcessQuery(bucketNarrowedQuery, opResult);
 
         } catch (Throwable t) {
-            // Most probably we have nothing more to do here.
-            throw new TaskException("Couldn't create object query", FATAL_ERROR, PERMANENT_ERROR, t);
+            // This is most probably a permanent error. (The real communication with a resource is carried out when the
+            // query is issued. With an exception of untested resource. But it is generally advised to do the connection test
+            // before running any tasks.)
+            throw new ActivityExecutionException("Couldn't create object query", FATAL_ERROR, PERMANENT_ERROR, t);
         }
     }
 
@@ -357,7 +354,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             return query;
         } else {
             ObjectFilter failedObjectsFilter =
-                    new FailedObjectsFilterCreator(selector, getTask(), getPrismContext())
+                    new FailedObjectsFilterCreator(selector, getRunningTask(), getPrismContext())
                             .createFilter();
 
             FailedObjectsSelectionMethodType selectionMethod = getFailedObjectsSelectionMethod(selector);
@@ -446,8 +443,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     @Override
-    protected void processItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected void processItems(OperationResult opResult) throws CommonException {
         searchIterative(opResult);
     }
 
@@ -579,7 +575,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         Class<? extends ObjectType> objectType = determineObjectType();
         LOGGER.trace("Object type = {}", objectType);
 
-        QueryType queryFromTask = getObjectQueryTypeFromTask(getTask());
+        QueryType queryFromTask = getObjectQueryTypeFromTask(getRunningTask());
         if (queryFromTask != null) {
             ObjectQuery query = getPrismContext().getQueryConverter().createObjectQuery(objectType, queryFromTask);
             LOGGER.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
@@ -660,12 +656,12 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
 
     // FIXME
     private <X> X getTaskPropertyRealValue(ItemName propertyName) {
-        return getTask().getExtensionPropertyRealValue(propertyName);
+        return getRunningTask().getExtensionPropertyRealValue(propertyName);
     }
 
     @SuppressWarnings("SameParameterValue")
     private <C extends Containerable> C getTaskContainerRealValue(ItemName containerName) {
-        return getTask().getExtensionContainerRealValueOrClone(containerName);
+        return getRunningTask().getExtensionContainerRealValueOrClone(containerName);
     }
 
     /**
@@ -693,10 +689,10 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     }
 
     @Override
-    protected ErrorHandlingStrategyExecutor.@NotNull Action getDefaultErrorAction() {
+    protected @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         // This is the default for search-iterative tasks. It is a legacy behavior, and also the most logical:
         // we do not need to stop on error, because there's always possible to re-run the whole task.
-        return ErrorHandlingStrategyExecutor.Action.CONTINUE;
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {

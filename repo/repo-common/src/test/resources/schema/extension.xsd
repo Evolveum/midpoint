@@ -98,20 +98,21 @@
     <xsd:element name="delay" type="xsd:long" />
     <xsd:element name="steps" type="xsd:int" />
 
-    <xsd:complexType name="CommonMockWorkStateType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:restriction base="c:RuntimeDefinedActivityWorkStateType">
-                <xsd:sequence>
-                    <xsd:element name="executionCount" type="xsd:int" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:restriction>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="commonMockWorkState" type="tns:CommonMockWorkStateType" />
+    <!--<xsd:complexType name="CommonMockWorkStateType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container>true</a:container>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:complexContent>-->
+    <!--        <xsd:restriction base="c:RuntimeDefinedActivityWorkStateType">-->
+    <!--            <xsd:sequence>-->
+    <!--                <xsd:element name="executionCount" type="xsd:int" minOccurs="0"/>-->
+    <!--            </xsd:sequence>-->
+    <!--        </xsd:restriction>-->
+    <!--    </xsd:complexContent>-->
+    <!--</xsd:complexType>-->
+    <!--<xsd:element name="commonMockWorkState" type="tns:CommonMockWorkStateType" />-->
 
+    <xsd:element name="executionCount" type="xsd:int" />
 </xsd:schema>

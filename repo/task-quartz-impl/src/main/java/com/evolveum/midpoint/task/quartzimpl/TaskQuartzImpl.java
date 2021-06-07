@@ -338,6 +338,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void modify(ItemDelta<?, ?> delta) throws SchemaException {
+        LOGGER.debug("Applying {} to {}", delta, this);
         if (isPersistent()) {
             addPendingModification(delta);
         }
@@ -520,7 +521,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public ActivityStateType getActivityWorkStateOrClone(ItemPath path) {
+    public ActivityStateType getActivityStateOrClone(ItemPath path) {
         synchronized (prismAccess) {
             return cloneIfRunning(TaskWorkStateUtil.getActivityWorkState(taskPrism.asObjectable(), path));
         }
@@ -538,6 +539,13 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             PrismContainer<C> container = taskPrism.findContainer(name);
             return container != null && !container.hasNoValues() ? cloneIfRunning(container.getRealValue()) : null;
+        }
+    }
+
+    @Override
+    public boolean doesItemExist(ItemPath path) {
+        synchronized (prismAccess) {
+            return taskPrism.findItem(path) != null;
         }
     }
 

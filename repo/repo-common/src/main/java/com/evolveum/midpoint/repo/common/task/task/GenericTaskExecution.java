@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.repo.common.task.task;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityTree;
@@ -24,6 +27,9 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 /**
  * Execution of a generic task, i.e. task that is driven by definition of its activities.
@@ -46,22 +52,33 @@ public class GenericTaskExecution implements TaskExecution {
 
     @NotNull
     @Override
-    public TaskRunResult run(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException {
+    public TaskRunResult run(OperationResult result) throws TaskException {
 
-        localRootPath = TaskWorkStateUtil.getLocalRootPath(runningTask.getWorkState());
-        activityTree = ActivityTree.create(getRootTask(), getBeans());
-        localRoot = activityTree.getActivity(localRootPath);
-        localRoot.setLocalRoot(true);
+        try {
+            activityTree = ActivityTree.create(getRootTask(), getBeans());
+            localRootPath = TaskWorkStateUtil.getLocalRootPath(runningTask.getWorkState());
+
+            localRoot = activityTree.getActivity(localRootPath);
+            localRoot.setLocalRoot(true);
+        } catch (CommonException e) {
+            throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
 
         logStart();
 
-        AbstractActivityExecution<?, ?, ?> localRootExecution = localRoot.createExecution(this, result);
-        ActivityExecutionResult executionResult = localRootExecution.execute(result);
+        try {
+            AbstractActivityExecution<?, ?, ?> localRootExecution = localRoot.createExecution(this, result);
+            ActivityExecutionResult executionResult = localRootExecution.execute(result);
 
-        logEnd(localRootExecution, executionResult);
-
-        return executionResult.getTaskRunResult();
+            logEnd(localRootExecution, executionResult);
+            return executionResult.getTaskRunResult();
+        } catch (ActivityExecutionException e) {
+            logException(e);
+            throw e.toTaskException();
+        } catch (Throwable t) {
+            logException(t);
+            throw t;
+        }
     }
 
     private void logStart() {
@@ -72,6 +89,10 @@ public class GenericTaskExecution implements TaskExecution {
     private void logEnd(AbstractActivityExecution<?, ?, ?> localRootExecution, ActivityExecutionResult executionResult) {
         LOGGER.trace("Local root activity execution object after execution ({})\n{}",
                 executionResult.shortDumpLazily(), localRootExecution.debugDumpLazily());
+    }
+
+    private void logException(Throwable t) {
+        LOGGER.debug("Activity tree execution finished with exception: {}", t.getMessage(), t);
     }
 
     @NotNull

@@ -24,17 +24,17 @@ public class ErrorState {
     /**
      * TODO
      */
-    @NotNull private final AtomicReference<Throwable> permanentErrorEncounteredRef = new AtomicReference<>();
+    @NotNull private final AtomicReference<Throwable> stoppingExceptionRef = new AtomicReference<>();
 
-    public Throwable getPermanentErrorException() {
-        return permanentErrorEncounteredRef.get();
+    public Throwable getStoppingException() {
+        return stoppingExceptionRef.get();
     }
 
-    public void setPermanentErrorException(@NotNull Throwable reason) {
-        permanentErrorEncounteredRef.set(reason);
+    void setStoppingException(@NotNull Throwable reason) {
+        stoppingExceptionRef.set(reason);
     }
 
-    public boolean isPermanentErrorEncountered() {
-        return getPermanentErrorException() != null;
+    boolean wasStoppingExceptionEncountered() {
+        return getStoppingException() != null;
     }
 }
