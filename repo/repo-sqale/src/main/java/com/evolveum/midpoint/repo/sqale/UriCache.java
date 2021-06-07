@@ -177,9 +177,11 @@ public class UriCache {
             id = jdbcSession.newInsert(qu)
                     .set(qu.uri, uri)
                     .executeWithKey(qu.id);
-            updateMaps(MUri.of(id, uri));
             jdbcSession.commit();
+
+            updateMaps(MUri.of(id, uri));
         }
+        // TODO query when constraint violation
 
         LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;

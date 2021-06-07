@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -198,7 +199,7 @@ public class QAssignmentMapping<OR extends MObject>
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
         row.policySituations = processCacheableUris(assignment.getPolicySituation());
-        // TODO extensions stored inline (JSON)
+        row.ext = processExtensions(assignment.getExtension(), MExtItemHolderType.EXTENSION);
 
         ConstructionType construction = assignment.getConstruction();
         if (construction != null) {

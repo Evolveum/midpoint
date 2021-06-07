@@ -798,7 +798,8 @@ CREATE TABLE m_shadow (
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
-    synchronizationTimestamp TIMESTAMPTZ
+    synchronizationTimestamp TIMESTAMPTZ,
+    attributes JSONB
 )
     INHERITS (m_object);
 
@@ -816,6 +817,7 @@ ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
+CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin (attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
  Also consider partitioning by some of the attributes (class/kind/intent?)

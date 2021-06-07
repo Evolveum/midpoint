@@ -26,6 +26,7 @@ import org.testng.annotations.BeforeClass;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -251,5 +252,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected PrismReferenceValue ref(String targetOid, QName relation) {
         return prismContext.itemFactory()
                 .createReferenceValue(targetOid).relation(relation);
+    }
+
+    /** Returns Q-name from extension schema with specified local part name. */
+    protected ItemName exampleItemName(String name) {
+        return new ItemName("http://example.com/p", name);
     }
 }
