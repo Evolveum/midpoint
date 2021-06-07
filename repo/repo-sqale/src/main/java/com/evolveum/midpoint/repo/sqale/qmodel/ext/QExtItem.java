@@ -10,6 +10,7 @@ import java.sql.Types;
 
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
@@ -30,18 +31,18 @@ public class QExtItem extends FlexibleRelationalPathBase<MExtItem> {
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.INTEGER).notNull();
-    public static final ColumnMetadata ITEM_NAME_ID =
-            ColumnMetadata.named("itemNameId").ofType(Types.INTEGER).notNull();
-    public static final ColumnMetadata VALUE_TYPE_ID =
-            ColumnMetadata.named("valueTypeId").ofType(Types.INTEGER).notNull();
+    public static final ColumnMetadata ITEM_NAME =
+            ColumnMetadata.named("itemName").ofType(Types.VARCHAR).notNull();
+    public static final ColumnMetadata VALUE_TYPE =
+            ColumnMetadata.named("valueType").ofType(Types.VARCHAR).notNull();
     public static final ColumnMetadata HOLDER_TYPE =
             ColumnMetadata.named("holderType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata CARDINALITY =
             ColumnMetadata.named("cardinality").ofType(Types.OTHER).notNull();
 
     public final NumberPath<Integer> id = createInteger("id", ID);
-    public final NumberPath<Integer> itemNameId = createInteger("itemNameId", ITEM_NAME_ID);
-    public final NumberPath<Integer> valueTypeId = createInteger("valueTypeId", VALUE_TYPE_ID);
+    public final StringPath itemName = createString("itemName", ITEM_NAME);
+    public final StringPath valueType = createString("valueType", VALUE_TYPE);
     public final EnumPath<MExtItemHolderType> holderType =
             createEnum("holderType", MExtItemHolderType.class, HOLDER_TYPE);
     public final EnumPath<MExtItemCardinality> cardinality =

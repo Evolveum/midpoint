@@ -1607,10 +1607,14 @@ CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (
 -- endregion
 
 -- region Extension support
+-- Catalog table of known indexed extension items.
+-- While itemName and valueType are both Q-names they are not cached via m_uri because this
+-- table is small, itemName does not repeat (valueType does) and readability is also better.
+-- This has similar function as m_uri - it translates something to IDs, no need to nest it.
 CREATE TABLE m_ext_item (
     id SERIAL NOT NULL PRIMARY KEY,
-    itemNameId INTEGER NOT NULL REFERENCES m_uri(id),
-    valueTypeId INTEGER NOT NULL REFERENCES m_uri(id),
+    itemName TEXT NOT NULL,
+    valueType TEXT NOT NULL,
     holderType ExtItemHolderType NOT NULL,
     cardinality ExtItemCardinality NOT NULL
     -- information about storage mechanism (JSON common/separate, column, table separate/common, etc.)

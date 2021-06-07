@@ -6,25 +6,72 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import java.util.Objects;
 
 /**
- * Querydsl "row bean" type related to {@link QUri}.
+ * Querydsl "row bean" type related to {@link QExtItem}.
  */
 public class MExtItem {
 
     public Integer id;
-    public Integer itemNameId;
-    public Integer valueTypeId; // references use ObjectReferenceType#COMPLEX_TYPE
+    public String itemName;
+    public String valueType; // references use ObjectReferenceType#COMPLEX_TYPE
     public MExtItemHolderType holderType;
     public MExtItemCardinality cardinality;
+
+    public static MExtItem of(Integer id, Key key) {
+        MExtItem row = new MExtItem();
+        row.id = id;
+        row.itemName = key.itemName;
+        row.valueType = key.valueType;
+        row.holderType = key.holderType;
+        row.cardinality = key.cardinality;
+        return row;
+    }
+
+    public Key key() {
+        Key key = new Key();
+        key.itemName = this.itemName;
+        key.valueType = this.valueType;
+        key.holderType = this.holderType;
+        key.cardinality = this.cardinality;
+        return key;
+    }
+
+    public static class Key {
+        public String itemName;
+        public String valueType;
+        public MExtItemHolderType holderType;
+        public MExtItemCardinality cardinality;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Key key = (Key) o;
+
+            return Objects.equals(itemName, key.itemName)
+                    && Objects.equals(valueType, key.valueType)
+                    && holderType == key.holderType
+                    && cardinality == key.cardinality;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(itemName, valueType, holderType, cardinality);
+        }
+    }
 
     @Override
     public String toString() {
         return "MExtItem{" +
                 "id=" + id +
-                ", itemNameId=" + itemNameId +
-                ", valueTypeId=" + valueTypeId +
+                ", itemName=" + itemName +
+                ", valueType=" + valueType +
                 ", holderType=" + holderType +
                 ", cardinality=" + cardinality +
                 '}';
