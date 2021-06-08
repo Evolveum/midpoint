@@ -425,24 +425,36 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
         var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
+            PrismContext prismContext = rctx.lensContext.getPrismContext();
             AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
             var.put(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget(), actx.evaluatedAssignment.getTarget().getDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
             AssignmentType assignment = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, assignment.asPrismContainerValue().getDefinition());
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, getAssignmentDefinition(assignment, prismContext));
         } else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
-            PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            PrismContext prismContext = rctx.lensContext.getPrismContext();
+            PrismObjectDefinition<ObjectType> targetDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
             var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
-            PrismContainerDefinition<AssignmentType> assignmentDef = rctx.lensContext.getPrismContext().getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
-                    .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, null, assignmentDef);
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, null, getAssignmentDefinition(null, prismContext));
         } else if (rctx != null) {
             throw new AssertionError(rctx);
         }
         var.put(VAR_RULE_EVALUATION_CONTEXT, rctx, PolicyRuleEvaluationContext.class);
         return var;
+    }
+
+    private PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
+        if (assignment != null) {
+            PrismContainerDefinition<?> definition = assignment.asPrismContainerValue().getDefinition();
+            if (definition != null) {
+                return definition;
+            }
+        }
+
+        return prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+                .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
     }
 
     @Override
