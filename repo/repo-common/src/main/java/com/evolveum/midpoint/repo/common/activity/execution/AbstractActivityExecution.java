@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityState;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -58,7 +59,7 @@ public abstract class AbstractActivityExecution<
     /**
      * TODO
      */
-    @NotNull private final ActivityState<BS> workState;
+    @NotNull protected final ActivityState<BS> activityState;
 
     @NotNull private final QName workStateTypeName;
 
@@ -66,7 +67,7 @@ public abstract class AbstractActivityExecution<
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
         this.workStateTypeName = context.getActivity().getHandler().getWorkStateTypeName();
-        this.workState = new ActivityState<>(this);
+        this.activityState = new ActivityState<>(this);
     }
 
     @NotNull
@@ -86,22 +87,30 @@ public abstract class AbstractActivityExecution<
     @Override
     public @NotNull ActivityExecutionResult execute(OperationResult result) throws ActivityExecutionException {
 
-        workState.initialize(result);
+        activityState.initialize(result);
 
-        if (workState.isComplete()) {
+        if (activityState.isComplete()) {
             logComplete();
-            return ActivityExecutionResult.finished();
+            return ActivityExecutionResult.finished(activityState.getResultStatus());
         } else {
             logStart();
 
             ActivityExecutionResult executionResult = executeCatchingExceptions(result);
             logEnd(executionResult);
 
-            if (executionResult.isFinished()) {
-                workState.markComplete(result);
-            }
+            updateActivityState(executionResult, result);
 
             return executionResult;
+        }
+    }
+
+    private void updateActivityState(ActivityExecutionResult executionResult, OperationResult result)
+            throws ActivityExecutionException {
+        OperationResultStatus currentResultStatus = executionResult.getOperationResultStatus();
+        if (executionResult.isFinished()) {
+            activityState.markComplete(currentResultStatus, result);
+        } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
+            activityState.setResultStatus(currentResultStatus, result);
         }
     }
 
@@ -114,10 +123,10 @@ public abstract class AbstractActivityExecution<
             executionResult = e.getActivityExecutionResult();
         } catch (Exception e) {
             LOGGER.warn("Unhandled exception in {}: {}", this, MiscUtil.getClassWithMessage(e));
-            executionResult = ActivityExecutionResult.exception(PERMANENT_ERROR, e);
+            executionResult = ActivityExecutionResult.exception(OperationResultStatus.FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
-        executionResult.markFinishedIfNoError();
+        executionResult.completeIfNoError(getRunningTask());
 
         return executionResult;
     }
@@ -125,7 +134,7 @@ public abstract class AbstractActivityExecution<
     private void logStart() {
         LOGGER.trace("Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
                         + "prism item path: {}", activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
-                workState.getItemPath());
+                activityState.getItemPath());
     }
 
     private void logEnd(ActivityExecutionResult executionResult) {
@@ -190,8 +199,8 @@ public abstract class AbstractActivityExecution<
         return activity.getHandler();
     }
 
-    public @NotNull ActivityState<BS> getWorkState() {
-        return workState;
+    public @NotNull ActivityState<BS> getActivityState() {
+        return activityState;
     }
 
     public @NotNull RunningTask getRunningTask() {

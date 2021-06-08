@@ -2468,7 +2468,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         True if all the work is complete. This means that on next run the task should start from
-                        the beginning. (We do not simply erase workState e.g. because of progress reporting needs.)
+                        the beginning. (We do not simply erase the whole state e.g. because of progress reporting needs.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2479,7 +2479,7 @@
     <xsd:complexType name="ActivityStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the work state of an activity.
+                Describes the state of an activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -2495,19 +2495,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionState" type="tns:ActivityExecutionStateType" minOccurs="0">
+            <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        State of the activity execution.
+                        State of the activity realization: in progress local, in progress delegated, complete.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionResult" type="tns:OperationResultStatusType" minOccurs="0">
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Result of the current (or last completed) activity execution.
-                        The semantics of individual values (like partial error or fatal error) is up to the activity.
-                        NOT IMPLEMENTED YET.
+                        Operation result status of this activity. TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2554,7 +2552,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="ActivityExecutionStateType">
+    <xsd:simpleType name="ActivityRealizationStateType">
         <xsd:annotation>
             <xsd:documentation>
                 Execution state of an activity.
@@ -2565,40 +2563,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="ready">
+            <xsd:enumeration value="inProgressLocal">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity has not been started yet. (Currently unused.)
+                        Activity is in progress, treated by the current task.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="READY"/>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS_LOCAL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="executing">
+            <xsd:enumeration value="inProgressDelegated">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity is executing.
+                        Activity is in progress and it was delegated to a subtask or subtasks.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXECUTING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="delegated">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Activity execution was delegated to a subtask or subtasks.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DELEGATED"/>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS_DELEGATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="complete">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity execution was completed.
+                        Activity is complete.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COMPLETE"/>

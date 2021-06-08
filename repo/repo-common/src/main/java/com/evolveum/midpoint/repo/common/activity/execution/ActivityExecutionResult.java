@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.common.task.ErrorState;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.CanRunSupplier;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 
@@ -21,14 +23,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ActivityExecutionResult implements ShortDumpable {
 
-    // TODO restrict to supported values only (permanent/temporary error, finished)
+    /** TODO */
+    private OperationResultStatus operationResultStatus;
+
+    /** TODO */
     private TaskRunResultStatus runResultStatus;
 
     public ActivityExecutionResult() {
     }
 
-    public ActivityExecutionResult(TaskRunResultStatus runResultStatus) {
+    public ActivityExecutionResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus) {
         this.runResultStatus = runResultStatus;
+        this.operationResultStatus = operationResultStatus;
     }
 
     public TaskRunResult getTaskRunResult() {
@@ -39,21 +45,29 @@ public class ActivityExecutionResult implements ShortDumpable {
         return runResult;
     }
 
-    public void setRunResultStatus(TaskRunResultStatus runResultStatus) {
-        this.runResultStatus = runResultStatus;
-    }
-
     public TaskRunResultStatus getRunResultStatus() {
         return runResultStatus;
     }
 
-    public static ActivityExecutionResult finished() {
-        return new ActivityExecutionResult(TaskRunResultStatus.FINISHED);
+    public void setRunResultStatus(TaskRunResultStatus runResultStatus) {
+        this.runResultStatus = runResultStatus;
     }
 
-    public static ActivityExecutionResult exception(TaskRunResultStatus status, Throwable t) {
+    public OperationResultStatus getOperationResultStatus() {
+        return operationResultStatus;
+    }
+
+    public void setOperationResultStatus(OperationResultStatus operationResultStatus) {
+        this.operationResultStatus = operationResultStatus;
+    }
+
+    public static ActivityExecutionResult finished(OperationResultStatus operationResultStatus) {
+        return new ActivityExecutionResult(operationResultStatus, TaskRunResultStatus.FINISHED);
+    }
+
+    public static ActivityExecutionResult exception(OperationResultStatus opStatus, TaskRunResultStatus runStatus, Throwable t) {
         // TODO what with t?
-        return new ActivityExecutionResult(status);
+        return new ActivityExecutionResult(opStatus, runStatus);
     }
 
     @Override
@@ -87,7 +101,6 @@ public class ActivityExecutionResult implements ShortDumpable {
     }
 
     public boolean isError() {
-        assert runResultStatus != TaskRunResultStatus.INTERRUPTED;
         assert runResultStatus != TaskRunResultStatus.IS_WAITING;
         return runResultStatus == TaskRunResultStatus.PERMANENT_ERROR || runResultStatus == TaskRunResultStatus.TEMPORARY_ERROR;
     }
@@ -100,9 +113,13 @@ public class ActivityExecutionResult implements ShortDumpable {
         return runResultStatus == TaskRunResultStatus.TEMPORARY_ERROR;
     }
 
-    public void markFinishedIfNoError() {
+    public void completeIfNoError(CanRunSupplier canRunSupplier) {
         if (runResultStatus == null) {
-            runResultStatus = TaskRunResultStatus.FINISHED;
+            runResultStatus = canRunSupplier.canRun() ?
+                    TaskRunResultStatus.FINISHED : TaskRunResultStatus.INTERRUPTED;
+        }
+        if (operationResultStatus == null) {
+            operationResultStatus = OperationResultStatus.SUCCESS;
         }
     }
 

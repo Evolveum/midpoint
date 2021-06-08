@@ -114,7 +114,6 @@ public class GetBucketOperation extends BucketOperation {
                 throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + workerTask);
             }
             statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
-            markPartComplete(workerTask, workerStatePath, result);
             return null;
         } else {
             throw new AssertionError(response);
@@ -175,12 +174,12 @@ public class GetBucketOperation extends BucketOperation {
                     processNothingFoundForNonScavenger();
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
-                    processNothingFoundDefinite(result);
+                    processNothingFoundDefinite();
                     return null;
                 } else {
                     long toWait = getRemainingTimeToWait();
                     if (toWait <= 0) {
-                        processNothingFoundWithWaitTimeElapsed(result);
+                        processNothingFoundWithWaitTimeElapsed();
                         return null;
                     } else {
                         sleep(toWait, bucketingConfig);
@@ -257,9 +256,7 @@ public class GetBucketOperation extends BucketOperation {
         }
     }
 
-    private void processNothingFoundWithWaitTimeElapsed(OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        markPartComplete(coordinatorTask, coordinatorStatePath, result); // TODO also if response is not definite?
+    private void processNothingFoundWithWaitTimeElapsed() {
         CONTENTION_LOGGER.trace("'No bucket' found (wait time elapsed) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED);
@@ -270,9 +267,7 @@ public class GetBucketOperation extends BucketOperation {
         return waitDeadline - System.currentTimeMillis();
     }
 
-    private void processNothingFoundDefinite(OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        markPartComplete(coordinatorTask, coordinatorStatePath, result);
+    private void processNothingFoundDefinite() {
         CONTENTION_LOGGER.trace("'No bucket' found after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
@@ -423,16 +418,6 @@ public class GetBucketOperation extends BucketOperation {
                 return false;
             }
         }
-    }
-
-    // TODO this should be the responsibility of activity execution, shouldn't it?
-    private void markPartComplete(Task task, ItemPath statePath, OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
-                .item(statePath.append(ActivityStateType.F_EXECUTION_STATE))
-                .replace(ActivityExecutionStateType.COMPLETE)
-                .asItemDeltas();
-        repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
     }
 
     private void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {

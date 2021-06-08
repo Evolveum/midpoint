@@ -33,15 +33,15 @@ public class CommonMockActivityHelper {
 
     public void increaseExecutionCount(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        ActivityState<?> activityState = activityExecution.getWorkState();
+        ActivityState<?> activityState = activityExecution.getActivityState();
 
-        int count = or0(activityState.getPropertyRealValue(EXECUTION_COUNT_PATH, Integer.class));
-        activityState.setPropertyRealValue(EXECUTION_COUNT_PATH, count + 1);
+        int count = or0(activityState.getWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, Integer.class));
+        activityState.setWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, count + 1);
         activityState.flushPendingModifications(result);
     }
 
     public void failIfNeeded(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution, int initialFailures) {
-        int count = activityExecution.getWorkState().getPropertyRealValue(EXECUTION_COUNT_PATH, Integer.class);
+        int count = activityExecution.getActivityState().getWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, Integer.class);
         if (count <= initialFailures) {
             throw new SystemException(String.format("Failed execution #%d. Expected initial failures: %d.",
                     count, initialFailures));

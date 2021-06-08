@@ -29,19 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
  *  Some information related to task execution (e.g. list of lightweight asynchronous tasks, information on task thread, etc)
  *  is relevant only for running tasks. Therefore they are moved here.
  */
-public interface RunningTask extends Task, RunningTaskStatisticsCollector {
-
-    /**
-     * Returns true if the task can run (was not interrupted).
-     *
-     * Will return false e.g. if shutdown was signaled.
-     *
-     * BEWARE: this flag is present only on the instance of the task that is being "executed", i.e. passed to
-     * task execution routine and task handler(s).
-     *
-     * @return true if the task can run
-     */
-    boolean canRun();
+public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRunSupplier {
 
     /**
      * Creates a transient subtask, ready to execute a given LightweightTaskHandler.

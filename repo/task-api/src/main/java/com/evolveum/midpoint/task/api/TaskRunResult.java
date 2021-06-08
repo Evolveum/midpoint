@@ -8,6 +8,8 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -68,7 +70,8 @@ public class TaskRunResult implements Serializable {
 
     protected Long progress; // null means "do not update, take whatever is in the task"
     protected TaskRunResultStatus runResultStatus;
-    protected OperationResult operationResult;
+    @Deprecated protected OperationResult operationResult;
+    protected OperationResultStatus operationResultStatus;
 
     /**
      * @return the progress
@@ -95,12 +98,22 @@ public class TaskRunResult implements Serializable {
         this.runResultStatus = status;
     }
 
+    @Deprecated
     public OperationResult getOperationResult() {
         return operationResult;
     }
 
+    @Deprecated
     public void setOperationResult(OperationResult operationResult) {
         this.operationResult = operationResult;
+    }
+
+    public OperationResultStatus getOperationResultStatus() {
+        return operationResultStatus;
+    }
+
+    public void setOperationResultStatus(OperationResultStatus operationResultStatus) {
+        this.operationResultStatus = operationResultStatus;
     }
 
     @Override
@@ -110,18 +123,19 @@ public class TaskRunResult implements Serializable {
         TaskRunResult that = (TaskRunResult) o;
         return Objects.equals(progress, that.progress) &&
                 runResultStatus == that.runResultStatus &&
-                Objects.equals(operationResult, that.operationResult);
+                Objects.equals(operationResult, that.operationResult) &&
+                operationResultStatus == that.operationResultStatus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(progress, runResultStatus, operationResult);
+        return Objects.hash(progress, runResultStatus, operationResult, operationResultStatus);
     }
 
     @Override
     public String toString() {
         return "TaskRunResult(progress=" + progress + ", status="
-                + runResultStatus + ", result=" + operationResult
+                + runResultStatus + ", result status=" + operationResultStatus
                 + ")";
     }
 
@@ -132,6 +146,7 @@ public class TaskRunResult implements Serializable {
         } else {
             runResult.getOperationResult().recordFatalError(message);
         }
+        runResult.setOperationResultStatus(OperationResultStatus.FATAL_ERROR);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
         return runResult;
     }
@@ -139,13 +154,15 @@ public class TaskRunResult implements Serializable {
     @NotNull public static TaskRunResult createSuccessTaskRunResult(RunningTask task) {
         TaskRunResult runResult = createRunResult(task);
         runResult.getOperationResult().recordSuccess();
+        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         return runResult;
     }
 
     @NotNull public static TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
         TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordSuccess();
+        runResult.getOperationResult().recordSuccess(); // TODO ok?
+        runResult.setOperationResultStatus(OperationResultStatus.SUCCESS); // TODO ok?
         runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
         return runResult;
     }
@@ -153,6 +170,7 @@ public class TaskRunResult implements Serializable {
     @NotNull public static TaskRunResult createFromTaskException(RunningTask task, TaskException e) {
         TaskRunResult runResult = createRunResult(task);
         runResult.getOperationResult().recordStatus(e.getOpResultStatus(), e.getFullMessage(), e.getCause());
+        runResult.setOperationResultStatus(e.getOpResultStatus());
         runResult.setRunResultStatus(e.getRunResultStatus());
         return runResult;
     }

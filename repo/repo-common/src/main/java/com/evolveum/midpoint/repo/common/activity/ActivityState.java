@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExec
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -36,7 +37,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
-    private static final @NotNull ItemPath ROOT_WORK_STATE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+    private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH =
+            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
 
     @NotNull private final AbstractActivityExecution<?, ?, WS> activityExecution;
 
@@ -83,9 +85,9 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
         if (localParentExecution == null) {
             LOGGER.trace("No local parent execution, checking or creating root work state");
             findOrCreateRootActivityState(result);
-            return ROOT_WORK_STATE_PATH;
+            return ROOT_ACTIVITY_STATE_PATH;
         } else {
-            ItemPath parentWorkStatePath = localParentExecution.getWorkState().findOrCreateActivityState(result);
+            ItemPath parentWorkStatePath = localParentExecution.getActivityState().findOrCreateActivityState(result);
             LOGGER.trace("Found parent work state prism item path: {}", parentWorkStatePath);
             return findOrCreateChildActivityState(parentWorkStatePath, getActivity().getIdentifier(), result);
         }
@@ -99,7 +101,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     private void findOrCreateRootActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         RunningTask task = getRunningTask();
-        ActivityStateType value = task.getActivityStateOrClone(ROOT_WORK_STATE_PATH);
+        ActivityStateType value = task.getActivityStateOrClone(ROOT_ACTIVITY_STATE_PATH);
         if (value == null) {
             addActivityState(TaskType.F_ACTIVITY_STATE, result, task, getActivity().getIdentifier());
         }
@@ -146,7 +148,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType(getPrismContext())
                         .identifier(identifier)
-                        .executionState(ActivityExecutionStateType.EXECUTING))
+                        .realizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);
@@ -187,7 +189,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
         return stateItemPath;
     }
 
-    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
+    public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
         return getRunningTask()
                 .getPropertyRealValue(getWorkStateItemPath().append(path), expectedType);
     }
@@ -196,9 +198,9 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
         return activityExecution.getRunningTask();
     }
 
-    public void setPropertyRealValue(ItemPath path, Object value) throws SchemaException {
+    public void setWorkStatePropertyRealValue(ItemPath path, Object value) throws SchemaException {
         RunningTask task = getRunningTask();
-        LOGGER.trace("setPropertyRealValue: path={}, value={} in {}", path, value, task);
+        LOGGER.trace("setWorkStatePropertyRealValue: path={}, value={} in {}", path, value, task);
 
         task.modify(
                 getPrismContext().deltaFor(TaskType.class)
@@ -232,11 +234,19 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     }
 
     public boolean isComplete() {
-        return getExecutionState() == ActivityExecutionStateType.COMPLETE;
+        return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    private ActivityExecutionStateType getExecutionState() {
-        return getRunningTask().getPropertyRealValue(getExecutionStateItemPath(), ActivityExecutionStateType.class);
+    private ActivityRealizationStateType getRealizationState() {
+        return getRunningTask().getPropertyRealValue(getRealizationStateItemPath(), ActivityRealizationStateType.class);
+    }
+
+    private OperationResultStatusType getResultStatusRaw() {
+        return getRunningTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
+    }
+
+    public OperationResultStatus getResultStatus() {
+        return OperationResultStatus.parseStatusType(getResultStatusRaw());
     }
 
     @NotNull ItemPath getWorkStateItemPath() {
@@ -244,24 +254,44 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     }
 
     @NotNull
-    private ItemPath getExecutionStateItemPath() {
-        return stateItemPath.append(ActivityStateType.F_EXECUTION_STATE);
+    private ItemPath getRealizationStateItemPath() {
+        return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
     }
 
-    public void markComplete(OperationResult result) throws ActivityExecutionException {
-        setExecutionState(ActivityExecutionStateType.COMPLETE, result);
+    @NotNull
+    private ItemPath getResultStatusItemPath() {
+        return stateItemPath.append(ActivityStateType.F_RESULT_STATUS);
     }
 
-    public void setExecutionState(ActivityExecutionStateType value, OperationResult result) throws ActivityExecutionException {
+    public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {
+        setRealizationStateAndResultStatus(ActivityRealizationStateType.COMPLETE, resultStatus, result);
+    }
+
+    public void setResultStatus(@NotNull OperationResultStatus status, OperationResult result)
+            throws ActivityExecutionException {
+        setRealizationStateAndResultStatus(null, status, result);
+    }
+
+    public void setRealizationStateAndResultStatus(ActivityRealizationStateType value, OperationResultStatus resultStatus,
+            OperationResult result) throws ActivityExecutionException {
         try {
-            ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                    .item(getExecutionStateItemPath()).replace(value)
-                    .asItemDelta();
-            getRunningTask().modify(itemDelta);
+            if (value != null) {
+                ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                        .item(getRealizationStateItemPath()).replace(value)
+                        .asItemDelta();
+                getRunningTask().modify(itemDelta);
+                LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
+            }
+            if (resultStatus != null) {
+                ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                        .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
+                        .asItemDelta();
+                getRunningTask().modify(itemDelta);
+                LOGGER.info("Setting result status to {} for {}", value, activityExecution);
+            }
             flushPendingModifications(result);
-            LOGGER.info("Execution state was set to {} for {}", value, activityExecution);
         } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't set activity execution state to " + value,
+            throw new ActivityExecutionException("Couldn't update activity realization state and/or result status",
                     FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }

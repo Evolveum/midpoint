@@ -58,7 +58,7 @@
                     <extension>
                         <ext:simpleMock>
                             <ext:message>#3</ext:message>
-                            <ext:initialFailures>2</ext:initialFailures>
+                            <ext:initialFailures>1</ext:initialFailures>
                         </ext:simpleMock>
                     </extension>
                 </work>

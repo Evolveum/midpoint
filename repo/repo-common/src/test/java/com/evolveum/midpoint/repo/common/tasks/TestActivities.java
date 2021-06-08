@@ -9,10 +9,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
@@ -417,49 +414,107 @@ public class TestActivities extends AbstractRepoCommonTest {
         OperationResult result = task.getResult();
 
         recorder.reset();
+        List<String> expectedRecords = new ArrayList<>();
 
         Task task1 = taskAdd(TASK_190_SUSPENDING_COMPOSITE, result);
 
-        when("1st");
+        // ------------------------------------------------------------------------------------ run 1
+
+        when("run 1");
 
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
-        then("1st");
+        then("run 1");
 
-        assertTask(task1.getOid(), "after 1st")
+        assertTask(task1.getOid(), "after run 1")
                 .display()
                 //.assertFatalError() // TODO
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
 
-        displayDumpable("recorder after 1st", recorder);
+        displayDumpable("recorder after run 1", recorder);
 
-        when("2nd");
+        expectedRecords.add("#1"); // 1st failed attempt
+        assertThat(recorder.getExecutions()).as("recorder after run 2")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 2
+
+        when("run 2");
 
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
-        then("2nd");
+        then("run 2");
 
-        assertTask(task1.getOid(), "after 2nd")
+        assertTask(task1.getOid(), "after run 2")
                 .display()
                 //.assertFatalError() // TODO
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
 
-        displayDumpable("recorder after 2nd", recorder);
+        displayDumpable("recorder after run 2", recorder);
+        expectedRecords.add("#1"); // 2nd failed attempt
+        assertThat(recorder.getExecutions()).as("recorder after run 2")
+                .containsExactlyElementsOf(expectedRecords);
 
-        when("3rd");
+        // ------------------------------------------------------------------------------------ run 3
+
+        when("run 3");
 
         restartTask(task1.getOid(), result);
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
-        then("3rd");
+        then("run 3");
 
-        assertTask(task1.getOid(), "after 3rd")
+        assertTask(task1.getOid(), "after run 3")
                 .display()
                 //.assertFatalError() // TODO
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
 
-        displayDumpable("recorder after 3rd", recorder);
+        displayDumpable("recorder after run 3", recorder);
+        expectedRecords.add("#1"); // success after 2 failures
+        expectedRecords.add("#2.1"); // immediate success
+        expectedRecords.add("#2.2"); // 1st failure
+        assertThat(recorder.getExecutions()).as("recorder after run 3")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 4
+
+        when("run 4");
+
+        restartTask(task1.getOid(), result);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+
+        then("run 4");
+
+        assertTask(task1.getOid(), "after run 4")
+                .display()
+                //.assertFatalError() // TODO
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+
+        displayDumpable("recorder after run 4", recorder);
+        expectedRecords.add("#2.2"); // success after 1 failure
+        expectedRecords.add("#3"); // 1st failure
+        assertThat(recorder.getExecutions()).as("recorder after run 4")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 5
+
+        when("run 5");
+
+        restartTask(task1.getOid(), result);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+
+        then("run 5");
+
+        assertTask(task1.getOid(), "after run 5")
+                .display()
+                //.assertFatalError() // TODO
+                .assertExecutionStatus(TaskExecutionStateType.CLOSED);
+
+        displayDumpable("recorder after run 5", recorder);
+        expectedRecords.add("#3"); // success after 1 failure
+        assertThat(recorder.getExecutions()).as("recorder after run 5")
+                .containsExactlyElementsOf(expectedRecords);
     }
 
     @Test(enabled = false)
