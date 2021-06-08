@@ -49,6 +49,9 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
+
 /**
  * @author skublik
  */
@@ -82,21 +85,21 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
                 getBeanConfiguration().samlConfigurationFilter(),
                 BasicAuthenticationFilter.class
         )
-                .addFilterAfter(
+                .addFilterBefore(
                         getBeanConfiguration().spMetadataFilter(),
-                        getBeanConfiguration().samlConfigurationFilter().getClass()
+                        RequestCacheAwareFilter.class
                 )
-                .addFilterAfter(
+                .addFilterAt(
                         getBeanConfiguration().spAuthenticationRequestFilter(),
-                        getBeanConfiguration().spMetadataFilter().getClass()
+                        RequestCacheAwareFilter.class
                 )
                 .addFilterAfter(
                         getBeanConfiguration().spAuthenticationResponseFilter(),
-                        getBeanConfiguration().spAuthenticationRequestFilter().getClass()
+                        RequestCacheAwareFilter.class
                 )
-                .addFilterAfter(
+                .addFilterBefore(
                         getBeanConfiguration().spSamlLogoutFilter(),
-                        getBeanConfiguration().spAuthenticationResponseFilter().getClass()
+                        SecurityContextHolderAwareRequestFilter.class
                 );
     }
 
