@@ -173,7 +173,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 new ShadowType(prismContext).name("shadow-1").asPrismObject(),
                 null, result);
         service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1").asPrismObject(),
+                new ServiceType(prismContext).name("service-1")
+                        // TODO integer attribute
+                        .asPrismObject(),
                 null, result);
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
@@ -503,12 +505,12 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         searchCaseWorkItemByAssignee(NONEXIST_OID, null);
     }
 
-    private void searchCaseWorkItemByAssignee(String asigneeOid, String expectedCaseOid) throws Exception {
-        when("searching case with query for workitem/assigneeRef OID " + asigneeOid);
+    private void searchCaseWorkItemByAssignee(String assigneeOid, String expectedCaseOid) throws Exception {
+        when("searching case with query for workitem/assigneeRef OID " + assigneeOid);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
                 prismContext.queryFor(CaseType.class)
-                        .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_ASSIGNEE_REF).ref(asigneeOid)
+                        .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_ASSIGNEE_REF).ref(assigneeOid)
                         .build(),
                 operationResult);
 

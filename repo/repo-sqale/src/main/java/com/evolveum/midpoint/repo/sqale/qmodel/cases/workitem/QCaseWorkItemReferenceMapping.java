@@ -9,14 +9,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -41,9 +38,7 @@ public class QCaseWorkItemReferenceMapping
         return getForCaseWorkItemAssignee();
     }
 
-    public static QCaseWorkItemReferenceMapping
-    getForCaseWorkItemAssignee() {
-        //noinspection unchecked
+    public static QCaseWorkItemReferenceMapping getForCaseWorkItemAssignee() {
         return Objects.requireNonNull(instanceAssignee);
     }
 
@@ -56,13 +51,9 @@ public class QCaseWorkItemReferenceMapping
         return getForCaseWorkItemCandidate();
     }
 
-    public static QCaseWorkItemReferenceMapping
-    getForCaseWorkItemCandidate() {
-        //noinspection unchecked
+    public static QCaseWorkItemReferenceMapping getForCaseWorkItemCandidate() {
         return Objects.requireNonNull(instanceCandidate);
     }
-
-
 
     private QCaseWorkItemReferenceMapping(
             String tableName,

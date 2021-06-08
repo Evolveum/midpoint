@@ -1202,6 +1202,8 @@ CREATE TABLE m_case_wi (
 )
     INHERITS(m_container);
 
+-- TODO INDEXES, old repo had no indexes either
+
 -- stores workItem/assigneeRef
 CREATE TABLE m_case_wi_assignee (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
@@ -1227,8 +1229,6 @@ CREATE TABLE m_case_wi_candidate (
 
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
-
--- TODO INDEXES, old repo had no indexes either
 -- endregion
 
 -- region Access Certification object tables
