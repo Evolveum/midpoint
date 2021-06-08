@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -250,7 +251,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(2)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid, user2Oid);
     }
 
@@ -268,7 +269,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(3)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid, user2Oid, user4Oid);
     }
 
@@ -288,7 +289,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(1)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid);
     }
 
@@ -337,7 +338,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(2)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid, org21Oid);
     }
 
@@ -355,7 +356,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(1)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(org21Oid);
     }
 
@@ -373,7 +374,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(3)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
     }
 
@@ -405,7 +406,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(1)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(task1Oid);
     }
 
@@ -424,7 +425,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .hasSize(2)
-                .extracting(row -> row.getOid())
+                .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(task1Oid, task2Oid);
     }
 
@@ -561,8 +562,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
                 prismContext.queryFor(ObjectType.class)
-                        .isDirectChildOf(prismContext.itemFactory()
-                                .createReferenceValue(org11Oid).relation(relation1))
+                        .isDirectChildOf(ref(org11Oid, relation1))
                         .build(),
                 operationResult);
 
@@ -596,8 +596,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
                 prismContext.queryFor(ObjectType.class)
-                        .isChildOf(prismContext.itemFactory()
-                                .createReferenceValue(org2Oid).relation(relation1))
+                        .isChildOf(ref(org2Oid, relation1))
                         .build(),
                 operationResult);
 
@@ -664,8 +663,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<OrgType> result = searchObjects(OrgType.class,
                 prismContext.queryFor(OrgType.class)
-                        .isParentOf(prismContext.itemFactory()
-                                .createReferenceValue(org112Oid).relation(relation2))
+                        .isParentOf(ref(org112Oid, relation2))
                         .build(),
                 operationResult);
 
@@ -825,6 +823,38 @@ AND(
 , null paging}
 */
     // endregion
+
+    @Test
+    public void test400SearchObjectHavingSpecifiedRef() throws SchemaException {
+        when("searching users by parent org ref (one of multi-value)");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_PARENT_ORG_REF).ref(ref(org11Oid, PrismConstants.Q_ANY))
+                        .build(),
+                operationResult);
+
+        then("the users having parent org ref with specified OID are returned");
+        assertThat(result).hasSize(1)
+                .anyMatch(o -> o.getOid().equals(user2Oid));
+    }
+
+    @Test(enabled = false) // TODO ref matching must be changed to SQL EXISTS, then it may work
+    public void test401SearchObjectNotHavingSpecifiedRef() throws SchemaException {
+        when("searching users not having specified value of parent org ref");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .not()
+                        .item(UserType.F_PARENT_ORG_REF).ref(ref(org11Oid, PrismConstants.Q_ANY))
+                        .build(),
+                operationResult);
+
+        then("the users having parent org ref with specified OID are returned");
+        assertThat(result).hasSize(3)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
+    }
 
     // region special cases
     @Test

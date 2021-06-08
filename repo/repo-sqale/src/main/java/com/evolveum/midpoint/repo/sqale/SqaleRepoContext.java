@@ -15,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SqaleRepoContext extends SqlRepoContext {
 
     private final UriCache uriCache;
+    private final ExtItemCache extItemCache;
 
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
@@ -43,6 +47,8 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
@@ -63,12 +69,14 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
+        extItemCache = new ExtItemCache();
     }
 
     // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
     public void clearCaches() {
         uriCache.initialize(this::newJdbcSession);
+        extItemCache.initialize(this::newJdbcSession);
     }
 
     /** @see UriCache#searchId(String) */
@@ -98,5 +106,9 @@ public class SqaleRepoContext extends SqlRepoContext {
     public Integer processCacheableRelation(QName qName) {
         return processCacheableUri(
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
+    }
+
+    public MExtItem resolveExtensionItem(MExtItem.Key extItemKey) {
+        return extItemCache.resolveExtensionItem(extItemKey);
     }
 }

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
@@ -196,7 +197,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         row.subtypes = listToArray(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
-        // TODO extensions stored inline (JSON) - that is ext column
+        row.ext = processExtensions(schemaObject.getExtension(), MExtItemHolderType.EXTENSION);
 
         // This is duplicate code with QAssignmentMapping.insert, but making interface
         // and needed setters (fields are not "interface-able") would create much more code.

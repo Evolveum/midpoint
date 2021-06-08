@@ -15,11 +15,18 @@ import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -60,6 +67,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -71,6 +79,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
+    // region basic object/container and various item types tests
     @Test
     public void test100AddNamedUserWithoutOidWorksOk()
             throws ObjectAlreadyExistsException, SchemaException {
@@ -568,6 +577,47 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         and("no new object is created in the database (transaction is rolled back)");
         assertThat(count(QUser.class)).isEqualTo(previousUserCount);
     }
+    // endregion
+
+    // region extension attributes
+    @Test
+    public void test300AddObjectWithExtension()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension items");
+        String objectName = "genobj" + getTestNumber();
+        GenericObjectType object = new GenericObjectType(prismContext)
+                .name(objectName)
+                .objectType("gen-object-type-1")
+                .extension(new ExtensionType(prismContext));
+        addExtensionValue(object.getExtension(), "stringType", "string-value");
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and user row for it is created");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MGenericObject row = selectObjectByOid(QGenericObject.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap).containsEntry("1", "VAL"); // TODO
+    }
+
+    private <V> void addExtensionValue(Containerable extContainer, String itemName, V value)
+            throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<PrismProperty<V>> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        PrismProperty<V> property = itemDefinition.instantiate();
+        property.setRealValue(value);
+        pcv.add(property);
+    }
+
+    // endregion
 
     // region insertion of various types
 

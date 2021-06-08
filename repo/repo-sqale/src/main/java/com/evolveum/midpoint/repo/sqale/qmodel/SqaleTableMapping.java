@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -19,6 +18,10 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
@@ -26,6 +29,9 @@ import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
@@ -38,12 +44,14 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProc
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -381,5 +389,51 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         jdbcSession.newInsert(defaultAlias())
                 .populate(row)
                 .execute();
+    }
+
+    protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
+        if (extContainer == null) {
+            return null;
+        }
+
+        // TODO
+        //  copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
+        Map<String, Object> extMap = new LinkedHashMap<>();
+        PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
+        for (Item<?, ?> item : prismContainerValue.getItems()) {
+            MExtItem extItem = findExtensionItem(item, holderType);
+            extMap.put(extItem.id.toString(), extItemValue(item, holderType));
+//            Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, ownerType);
+//            if (generatorResult.isGeneratedOid()) {
+//                converted.forEach(v -> v.setTransient(true));
+//            }
+//            values.addAll(converted);
+        }
+
+        try {
+            return Jsonb.from(extMap);
+        } catch (IOException e) {
+            throw new SystemException(e);
+        }
+    }
+
+    private MExtItem findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
+        Objects.requireNonNull(item, "Object for converting must not be null.");
+
+        ItemDefinition<?> definition = item.getDefinition();
+        Objects.requireNonNull(definition, "Item '" + item.getElementName() + "' without definition can't be saved.");
+
+        MExtItem.Key extItemKey = new MExtItem.Key();
+        extItemKey.itemName = QNameUtil.qNameToUri(definition.getItemName());
+        extItemKey.valueType = QNameUtil.qNameToUri(definition.getTypeName());
+        extItemKey.cardinality = definition.getMaxOccurs() == 1
+                ? MExtItemCardinality.SCALAR : MExtItemCardinality.ARRAY;
+        extItemKey.holderType = holderType;
+
+        return repositoryContext().resolveExtensionItem(extItemKey);
+    }
+
+    private Object extItemValue(Item<?, ?> item, MExtItemHolderType holderType) {
+        return "VAL"; // TODO
     }
 }
