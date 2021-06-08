@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDe
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -576,32 +577,103 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     // region extension attributes
     @Test
-    public void test300AddObjectWithExtension()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+    public void test300AddObjectWithIndexedStringExtension()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
-        given("object with extension items");
-        String objectName = "genobj" + getTestNumber();
-        GenericObjectType object = new GenericObjectType(prismContext)
+        given("object with string extension item");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
                 .name(objectName)
-                .objectType("gen-object-type-1")
                 .extension(new ExtensionType(prismContext));
         ExtensionType extensionContainer = object.getExtension();
-        addExtensionValue(extensionContainer, "stringType", "string-value");
+        addExtensionValue(extensionContainer, "string", "string-value");
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
 
-        then("operation is successful and user row for it is created");
+        then("operation is successful and ext column contains the value");
         assertThatOperationResult(result).isSuccess();
         assertThat(returnedOid).isEqualTo(object.getOid());
 
-        MGenericObject row = selectObjectByOid(QGenericObject.class, returnedOid);
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
-                .containsEntry(extensionKey(extensionContainer, "stringType"), "string-value");
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value");
+
+        and("stored object contains the extension item");
+        PrismObject<UserType> storedObject =
+                repositoryService.getObject(UserType.class, returnedOid, null, result);
+        assertThat(storedObject.getExtension().findItem(new ItemName("string")))
+                .isNotNull()
+                .extracting(i -> i.getRealValue())
+                .isEqualTo("string-value");
+    }
+
+    @Test
+    public void test301AddObjectWithNonIndexedStringExtension()
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("object with string extension item");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "string-ni", "string-value");
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column is null");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNull();
+
+        and("stored object contains the extension item");
+        PrismObject<UserType> storedObject =
+                repositoryService.getObject(UserType.class, returnedOid, null, result);
+        assertThat(storedObject.getExtension().findItem(new ItemName("string-ni")))
+                .isNotNull()
+                .extracting(i -> i.getRealValue())
+                .isEqualTo("string-value");
+    }
+
+    @Test
+    public void test302AddObjectWithExtensionItemOfNonIndexableType()
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension item of non-indexable type");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "blob", "bytes".getBytes(StandardCharsets.UTF_8));
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column is null");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNull();
+
+        and("stored object contains the extension item");
+        PrismObject<UserType> storedObject =
+                repositoryService.getObject(UserType.class, returnedOid, null, result);
+        assertThat(storedObject.getExtension().findItem(new ItemName("blob")))
+                .isNotNull();
     }
 
     // endregion

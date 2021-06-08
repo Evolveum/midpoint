@@ -262,6 +262,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<PrismProperty<V>> itemDefinition =
                 pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        assertThat(itemDefinition)
+                .withFailMessage("No definition found for item name '%s' in %s", itemName, pcv)
+                .isNotNull();
         PrismProperty<V> property = itemDefinition.instantiate();
         property.setRealValue(value);
         pcv.add(property);

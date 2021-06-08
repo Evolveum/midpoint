@@ -18,10 +18,7 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
@@ -48,6 +45,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -402,6 +400,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         for (Item<?, ?> item : prismContainerValue.getItems()) {
             // TODO indexed check: RAnyConverter.isIndexed + getValueType
             MExtItem extItem = findExtensionItem(item, holderType);
+            if (extItem == null) {
+                continue; // not-indexed, skipping this item
+            }
             extMap.put(extItem.id.toString(), extItemValue(item, extItem));
         }
 
@@ -412,6 +413,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
+    public static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
+            DOMUtil.XSD_BOOLEAN,
+            DOMUtil.XSD_INT,
+            DOMUtil.XSD_LONG,
+            DOMUtil.XSD_SHORT,
+            DOMUtil.XSD_INTEGER,
+            DOMUtil.XSD_DECIMAL,
+            DOMUtil.XSD_STRING,
+            DOMUtil.XSD_DOUBLE,
+            DOMUtil.XSD_FLOAT,
+            DOMUtil.XSD_DATETIME,
+            PolyStringType.COMPLEX_TYPE);
+
+    /** Returns ext item definition or null if the item is not indexed and should be skipped. */
     private MExtItem findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
         Objects.requireNonNull(item, "Object for converting must not be null.");
 
@@ -419,11 +434,24 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         Objects.requireNonNull(definition,
                 "Item '" + item.getElementName() + "' without definition can't be saved.");
 
+        if (definition instanceof PrismPropertyDefinition) {
+            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
+            if (indexed != null && !indexed) {
+                return null;
+            }
+        } else if (!(definition instanceof PrismReferenceDefinition)) {
+            throw new UnsupportedOperationException("Unknown definition type '"
+                    + definition + "', can't say if '" + item + "' is indexed or not.");
+        }
+        if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())) {
+            return null;
+        }
+
         return repositoryContext().resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
     }
 
-    private Object extItemValue(Item<?, ?> item, MExtItem holderType) {
-        if (holderType.cardinality == MExtItemCardinality.ARRAY) {
+    private Object extItemValue(Item<?, ?> item, MExtItem extItem) {
+        if (extItem.cardinality == MExtItemCardinality.ARRAY) {
             List<Object> vals = new ArrayList<>();
             for (Object realValue : item.getRealValues()) {
                 vals.add(convertExtItemValue(realValue));

@@ -46,18 +46,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <!-- account shadow extension -->
-
-    <xsd:complexType name="AccountShadowExtensionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:extension ref="c:ShadowType"/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="stringType" type="xsd:string"/>
-        </xsd:sequence>
-    </xsd:complexType>
 
     <!-- generic object extension -->
 
@@ -122,6 +110,40 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <!-- values stored as JSON strings -->
+            <xsd:element name="string" type="xsd:string"/>
+            <xsd:element name="dateTime" type="xsd:dateTime"/>
+            <xsd:element name="enum" type="c:BeforeAfterType"/>
+
+            <!-- values stored as JSON numbers -->
+            <xsd:element name="int" type="xsd:int"/>
+            <xsd:element name="short" type="xsd:short"/>
+            <xsd:element name="long" type="xsd:long"/>
+            <xsd:element name="integer" type="xsd:integer"/>
+            <xsd:element name="decimal" type="xsd:decimal"/>
+            <xsd:element name="double" type="xsd:double"/>
+            <xsd:element name="float" type="xsd:float"/>
+
+            <!-- values stored as JSON boolean -->
+            <xsd:element name="boolean" type="xsd:boolean"/>
+
+            <!-- values stored as JSON objects -->
+            <xsd:element name="poly" type="t:PolyStringType"/>
+            <xsd:element name="ref" type="c:ObjectReferenceType"/>
+
+            <!-- custom type, not recognized for indexing -->
+            <xsd:element name="blob" type="xsd:base64Binary"/>
+            <xsd:element name="locations" type="tns:LocationsType"/>
+
+            <xsd:element name="string-ni" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- TODO review/remove -->
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -180,7 +202,7 @@
             <xsd:element name="unstable" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:indexed>false</a:indexed>            <!-- changed to true in ModifyTestReindex -->
+                        <a:indexed>false</a:indexed>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -243,6 +265,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+
+            <!-- TODO review/remove -->
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -304,4 +328,15 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO: review -->
+    <xsd:complexType name="ShadowExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ShadowType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stringType" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>
