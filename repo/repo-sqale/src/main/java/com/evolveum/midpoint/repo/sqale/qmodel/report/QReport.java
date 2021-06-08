@@ -12,14 +12,14 @@ import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QReport extends QObject<MReport> {
+public class QReport extends QAssignmentHolder<MReport> {
 
     private static final long serialVersionUID = -5738006878845987541L;
 

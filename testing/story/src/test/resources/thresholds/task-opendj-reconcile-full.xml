@@ -45,7 +45,7 @@
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
     <recurrence>recurring</recurrence>
     <schedule>
-        <interval>3</interval>
+        <interval>5</interval>
     </schedule>
 
     <assignment>

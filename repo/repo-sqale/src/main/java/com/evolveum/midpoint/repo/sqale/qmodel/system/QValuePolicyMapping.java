@@ -10,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * Mapping between {@link QValuePolicy} and {@link ValuePolicyType}.
  */
 public class QValuePolicyMapping
-        extends QObjectMapping<ValuePolicyType, QValuePolicy, MObject> {
+        extends QAssignmentHolderMapping<ValuePolicyType, QValuePolicy, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "vp";
 

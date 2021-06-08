@@ -316,7 +316,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         return super.createTestMonitor()
                 .addReportCallback(TestReportUtil::reportGlobalPerfData)
-                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQuerySummary(queryListener))
+                .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
@@ -2140,7 +2141,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         TestUtil.assertSuccess(result);
     }
 
-    protected void assertHadnledError(OperationResult result) {
+    protected void assertInProgressOrSuccess(OperationResult result) {
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+        displayValue("Operation " + result.getOperation() + " result status", result.getStatus());
+        TestUtil.assertInProgressOrSuccess(result);
+    }
+
+    protected void assertHandledError(OperationResult result) {
         if (result.isUnknown()) {
             result.computeStatus();
         }
@@ -3016,5 +3025,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .filter(a -> name.equals(a.getName().getOrig()))
                 .findAny()
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
+    }
+
+    protected void setMaxAttempts(String oid, int number, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)
+                .item(ResourceType.F_CONSISTENCY, ResourceConsistencyType.F_OPERATION_RETRY_MAX_ATTEMPTS)
+                .replace(number)
+                .asItemDeltas();
+        repositoryService.modifyObject(ResourceType.class, oid, deltas, result);
     }
 }

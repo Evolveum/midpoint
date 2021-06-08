@@ -36,7 +36,7 @@ public class QContainer<R extends MContainer, OR> extends FlexibleRelationalPath
     public static final String TABLE_NAME = "m_container";
 
     public static final ColumnMetadata OWNER_OID =
-            ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE).notNull();
+            ColumnMetadata.named("ownerOid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata CID =
             ColumnMetadata.named("cid").ofType(Types.BIGINT).notNull();
     public static final ColumnMetadata CONTAINER_TYPE =

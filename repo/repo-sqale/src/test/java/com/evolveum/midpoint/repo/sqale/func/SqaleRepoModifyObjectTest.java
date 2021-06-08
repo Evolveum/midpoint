@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -1107,7 +1109,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("externalized refs are inserted to the dedicated table");
-        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForCreateApprover().defaultAlias();
         UUID ownerOid = UUID.fromString(user1Oid);
         List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
         assertThat(refs).hasSize(2)
@@ -1143,10 +1145,228 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QObjectReference<?> r = QObjectReferenceMapping.getForObjectCreateApprover().defaultAlias();
+        QObjectReference<?> r = QObjectReferenceMapping.getForCreateApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
-        r = QObjectReferenceMapping.getForObjectModifyApprover().defaultAlias();
+        r = QObjectReferenceMapping.getForModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
+    }
+
+    @Test
+    public void test180ReplacingSubtypeValuesSetsArrayColumn() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace subtypes with a couple of values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE).replace("subtype-1", "subtype-2")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has provided subtypes");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getSubtype())
+                .containsExactlyInAnyOrder("subtype-1", "subtype-2");
+
+        and("column with subtypes is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.subtypes).containsExactlyInAnyOrder("subtype-1", "subtype-2");
+    }
+
+    @Test
+    public void test181AddingAndDeletingSubtypeValuesSetsArrayColumn() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta for subtypes with both delete and add values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE).delete("subtype-2", "wrong").add("subtype-3", "subtype-4")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has expected subtypes");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getSubtype())
+                .containsExactlyInAnyOrder("subtype-1", "subtype-3", "subtype-4");
+
+        and("column with subtypes is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.subtypes).containsExactlyInAnyOrder("subtype-1", "subtype-3", "subtype-4");
+    }
+
+    @Test
+    public void test182DeletingAllSubtypesByValuesSetsColumnToNull() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta deleting all subtype values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_SUBTYPE).delete("subtype-1", "subtype-3", "subtype-4")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no subtypes now");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getSubtype()).isNullOrEmpty();
+
+        and("column with subtypes is set to null");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.subtypes).isNull();
+    }
+
+    // this section tests two things: array in container, and integer[] requiring conversion (URIs)
+    @Test
+    public void test185AddingAssignmentWithPolicySituations() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        // Container tests are in 3xx category, but let's focus on policy situations.
+        given("delta adding assignment with policy situations");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(new AssignmentType(prismContext)
+                        .policySituation("policy-situation-1")
+                        .policySituation("policy-situation-2"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getAssignment().get(0).getPolicySituation())
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-2");
+
+        and("policySituation column is set in the assignment row");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.policySituations)
+                .extracting(uriId -> cachedUriById(uriId))
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-2");
+    }
+
+    @Test
+    public void test186AddingAndDeletingAssignmentPolicySituations() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        long assignmentId = originalRow.containerIdSeq - 1;
+
+        given("delta both adding and deleting assignment's policy situations");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_POLICY_SITUATION)
+                .delete("policy-situation-2", "wrong").add("policy-situation-3")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getAssignment().get(0).getPolicySituation())
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-3");
+
+        and("column with subtypes is updated accordingly");
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.policySituations)
+                .extracting(uriId -> cachedUriById(uriId))
+                .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-3");
+    }
+
+    @Test
+    public void test187ReplacingAssignmentPolicySituationsValues() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        long assignmentId = originalRow.containerIdSeq - 1;
+
+        given("delta replacing assignment's policy situations");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_POLICY_SITUATION)
+                .replace("policy-situation-a", "policy-situation-z")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getAssignment().get(0).getPolicySituation())
+                .containsExactlyInAnyOrder("policy-situation-a", "policy-situation-z");
+
+        and("column with subtypes is updated accordingly");
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.policySituations)
+                .extracting(uriId -> cachedUriById(uriId))
+                .containsExactlyInAnyOrder("policy-situation-a", "policy-situation-z");
+    }
+
+    @Test
+    public void test188ReplacingAssignmentPolicySituationsWithNoValue() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        long assignmentId = originalRow.containerIdSeq - 1;
+
+        given("delta replacing assignment's policy situations with no value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_POLICY_SITUATION)
+                .replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getAssignment().get(0).getPolicySituation()).isNullOrEmpty();
+
+        and("column with policy situations is set to null");
+        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRow.policySituations).isNull();
     }
     // endregion
 
@@ -1629,16 +1849,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     // region multi-value containers (e.g. assignments)
     @Test
-    public void test300AddAssignmentStoresItAndGeneratesMissingId()
+    public void test300AddedAssignmentStoresItAndGeneratesMissingId()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta adding assignment for user 1");
+        given("delta replacing assignments for user 1 with a single one");
         UUID roleOid = UUID.randomUUID();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .replace(new AssignmentType(prismContext)
                         .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
                 .asObjectDelta(user1Oid);
 
@@ -1881,7 +2101,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test305DeleteAssignmentByContent()
+    public void test305DeleteAssignmentByContent() // or by value, or by equality
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2038,10 +2258,46 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         && aRow.orderValue == 1);
     }
 
-    // TODO delete by pattern - as per ItemImpl.remove(V, EquivalenceStrategy)
+    @Test
+    public void test320AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta adding assignment to path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).add(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
 
     @Test
-    public void test319DeleteAllAssignments()
+    public void test321AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta replacing assignment at path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).replace(
+                                new AssignmentType(prismContext).order(5))
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test322DeleteAssignmentWithItemPathEndingWithCidIsIllegal() {
+        expect("creating delta deleting assignment path ending with CID throws exception");
+        assertThatThrownBy(
+                () -> prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, 5).delete()
+                        .asObjectDelta(user1Oid))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid delta path assignment/5."
+                        + " Delta path must always point to item, not to value");
+    }
+
+    @Test
+    public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2074,10 +2330,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
     // endregion
 
-    // TODO test for multi-value (e.g. subtypes) with item delta with both add and delete lists
-    //  But with current implementation this can go to the first hundred section...?
-
-    // TODO: photo test, should work fine, but it is kinda special, not part of full object
+    // TODO: photo test, currently it puts it into fullObject and not into column.
+    //  It should be other way around.
 
     // region other tests
     @Test
@@ -2113,6 +2367,27 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("operation is fatal error");
         assertThatOperationResult(result).isFatalError();
+    }
+
+    @Test
+    public void test920ModifyOperationUpdatesPerformanceMonitor()
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+
+        given("object modification and cleared performance information");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMAIL_ADDRESS).add(getTestNameShort() + "@email.com")
+                .asObjectDelta(user1Oid);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is modified in the repository");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_MODIFY_OBJECT);
     }
 
     @Test

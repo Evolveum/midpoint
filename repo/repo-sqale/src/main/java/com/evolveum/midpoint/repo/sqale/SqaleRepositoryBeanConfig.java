@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
@@ -129,6 +132,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(AssignmentType.COMPLEX_TYPE,
                         QAssignmentMapping.initAssignment(repositoryContext))
                 .register(CaseType.COMPLEX_TYPE, QCaseMapping.init(repositoryContext))
+                .register(CaseWorkItemType.COMPLEX_TYPE, QCaseWorkItemMapping.init(repositoryContext))
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.init(repositoryContext))
                 .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))
@@ -150,6 +154,7 @@ public class SqaleRepositoryBeanConfig {
                         QObjectTemplateMapping.init(repositoryContext))
                 .register(OperationExecutionType.COMPLEX_TYPE,
                         QOperationExecutionMapping.init(repositoryContext))
+                .register(OrgType.COMPLEX_TYPE, QOrgMapping.init(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
@@ -180,11 +185,9 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryService repositoryService(
             SqaleRepoContext sqlRepoContext,
-            SchemaService schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         return new SqaleRepositoryService(
                 sqlRepoContext,
-                schemaService,
                 sqlPerformanceMonitorsCollection);
     }
 

@@ -38,7 +38,9 @@ public class QReference<R extends MReference, OR> extends FlexibleRelationalPath
     public static final String TABLE_NAME = "m_reference";
 
     public static final ColumnMetadata OWNER_OID =
-            ColumnMetadata.named("owner_oid").ofType(UuidPath.UUID_TYPE).notNull();
+            ColumnMetadata.named("ownerOid").ofType(UuidPath.UUID_TYPE).notNull();
+    public static final ColumnMetadata OWNER_TYPE =
+            ColumnMetadata.named("ownerType").ofType(Types.OTHER);
     public static final ColumnMetadata REFERENCE_TYPE =
             ColumnMetadata.named("referenceType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata TARGET_OID =
@@ -46,9 +48,11 @@ public class QReference<R extends MReference, OR> extends FlexibleRelationalPath
     public static final ColumnMetadata TARGET_TYPE =
             ColumnMetadata.named("targetType").ofType(Types.OTHER).notNull();
     public static final ColumnMetadata RELATION_ID =
-            ColumnMetadata.named("relation_id").ofType(Types.INTEGER).notNull();
+            ColumnMetadata.named("relationId").ofType(Types.INTEGER).notNull();
 
     public final UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
+    public final EnumPath<MObjectType> ownerType =
+            createEnum("ownerType", MObjectType.class, OWNER_TYPE);
     public final EnumPath<MReferenceType> referenceType =
             createEnum("referenceType", MReferenceType.class, REFERENCE_TYPE);
     public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinitionTransformer.TransformableValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -28,7 +29,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author semancik
  *
  */
-public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue {
+public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue, TransformableValue {
 
     private OriginType originType;
     private Objectable originObject;
@@ -70,14 +71,17 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         this.parent = parent;
     }
 
+    @Override
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
+    @Override
     public void setOriginObject(Objectable source) {
         this.originObject = source;
     }
 
+    @Override
     public void setOriginType(OriginType type) {
         this.originType = type;
     }
@@ -92,6 +96,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         return originObject;
     }
 
+    @Override
     public Map<String, Object> getUserData() {
         return userData;
     }
@@ -175,6 +180,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         // Do nothing by default
     }
 
+    @Override
     public void revive(PrismContext prismContext) throws SchemaException {
         if (this.prismContext == null) {
             this.prismContext = prismContext;
@@ -193,6 +199,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         recompute(getPrismContext());
     }
 
+    @Override
     public abstract void recompute(PrismContext prismContext);
 
     @Override
@@ -211,8 +218,10 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         }
     }
 
+    @Override
     public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
+    @Override
     public boolean representsSameValue(PrismValue other, boolean lax) {
         return false;
     }
@@ -225,6 +234,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     /**
      * Literal clone.
      */
+    @Override
     public abstract PrismValue clone();
 
     @Override
@@ -238,6 +248,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
      * Complex clone with different cloning strategies.
      * @see CloneStrategy
      */
+    @Override
     public abstract PrismValue cloneComplex(CloneStrategy strategy);
 
     protected void copyValues(CloneStrategy strategy, PrismValueImpl clone) {
@@ -282,6 +293,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         }
     }
 
+    @Override
     @SuppressWarnings("SimplifiableIfStatement")
     public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         // parent is not considered at all. it is not relevant.
@@ -295,6 +307,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     // original equals was "isLiteral = false"!
+    @Override
     public boolean equals(Object other) {
         return this == other ||
                 (other == null || other instanceof PrismValue) &&
@@ -312,9 +325,15 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         return itemDeltas;
     }
 
-    public void diffMatchingRepresentation(PrismValue otherValue,
+    public final void diffMatchingRepresentation(PrismValue otherValue,
             Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
+        diffMatchingRepresentation(otherValue, deltas, strategy, false);
+    }
+
+    public boolean diffMatchingRepresentation(PrismValue otherValue,
+            Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy, boolean exitOnDiff) {
         // Nothing to do by default
+        return false;
     }
 
     protected void appendOriginDump(StringBuilder builder) {
@@ -328,11 +347,14 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         }
     }
 
+    @Override
     public abstract String toHumanReadableString();
 
+    @Override
     @Nullable
     abstract public Class<?> getRealClass();
 
+    @Override
     @Nullable
     abstract public <T> T getRealValue();
 
@@ -341,6 +363,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     // of AccessCertificationCampaignType.
     //
     // Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
+    @Override
     public PrismValue getRootValue() {
         PrismValue current = this;
         for (;;) {
@@ -352,10 +375,12 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         }
     }
 
+    @Override
     public PrismContainerValue<?> getParentContainerValue() {
         return PrismValueUtil.getParentContainerValue(this);
     }
 
+    @Override
     public QName getTypeName() {
         ItemDefinition definition = getDefinition();
         return definition != null ? definition.getTypeName() : null;
@@ -363,6 +388,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     // Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
     // Note that the path can contain name segments only (at least for now)
+    @Override
     @NotNull
     public Collection<PrismValue> getAllValues(ItemPath path) {
         if (path.isEmpty()) {
@@ -443,4 +469,5 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     public void setTransient(boolean value) {
         isTransient = value;
     }
+
 }

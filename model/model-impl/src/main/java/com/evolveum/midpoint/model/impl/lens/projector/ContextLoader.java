@@ -92,6 +92,7 @@ public class ContextLoader implements ProjectorProcessor {
     @Autowired private SecurityHelper securityHelper;
     @Autowired private ClockworkMedic medic;
     @Autowired private RelationRegistry relationRegistry;
+    @Autowired private SchemaService schemaService;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
@@ -665,10 +666,7 @@ public class ContextLoader implements ProjectorProcessor {
             if (!relationRegistry.isMember(linkRefVal.getRelation())) {
                 LOGGER.trace("Inactive linkRef: will only refresh it, no processing. Relation={}, ref={}",
                         linkRefVal.getRelation(), linkRefVal);
-                // We do this just to restore old behavior that ensures that linked shadows are quick-refreshed,
-                // deleting e.g. expired pending operations (see TestMultiResource.test429).
-                var options = createGetOptions(context);
-                refreshLinkedShadow(oid, options, task, result);
+                refreshInactiveLinkedShadow(oid, context, task, result);
                 continue;
             }
             if (StringUtils.isBlank(oid)) {
@@ -686,7 +684,7 @@ public class ContextLoader implements ProjectorProcessor {
             //noinspection unchecked
             PrismObject<ShadowType> shadowFromLink = linkRefVal.getObject();
             if (shadowFromLink == null) {
-                var options = createGetOptions(context);
+                var options = createStandardGetOptions();
                 LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
                 try {
                     shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
@@ -726,21 +724,35 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> Collection<SelectorOptions<GetOperationOptions>> createGetOptions(LensContext<F> context) {
-        GetOperationOptions rootOpts;
-        if (context.isDoReconciliationForAllProjections()) {
-            rootOpts = GetOperationOptions.createForceRetry();
-        } else {
-            // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
-            // We need to fetch from provisioning and not repository so the correct definition will be set.
-            rootOpts = GetOperationOptions.createNoFetch();
-            rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
-        }
-        return SelectorOptions.createCollection(rootOpts);
+    private <F extends FocusType> Collection<SelectorOptions<GetOperationOptions>> createStandardGetOptions() {
+        // Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+        // We need to fetch from provisioning and not repository so the correct definition will be set.
+        return schemaService.getOperationOptionsBuilder()
+                .noFetch()
+                .pointInTime(PointInTimeType.FUTURE)
+                .build();
     }
 
-    private void refreshLinkedShadow(String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
-            OperationResult result) {
+    /**
+     * We do this just to restore old behavior that ensures that linked shadows are quick-refreshed,
+     * deleting e.g. expired pending operations (see TestMultiResource.test429).
+     */
+    private void refreshInactiveLinkedShadow(String oid, LensContext<?> context, Task task, OperationResult result) {
+        Collection<SelectorOptions<GetOperationOptions>> options;
+        if (context.isDoReconciliationForAllProjections()) {
+            // Ensures an attempt to complete any pending operations.
+            // TODO Shouldn't we include FUTURE option as well? E.g. to avoid failing on not-yet-created accounts?
+            //  (Fortunately, we ignore any exceptions but anyway: FUTURE is used in other cases in this class.)
+            options = schemaService.getOperationOptionsBuilder()
+                    .forceRetry()
+                    .build();
+        } else {
+            // This ensures only minimal processing, e.g. the quick shadow refresh is done.
+            options = schemaService.getOperationOptionsBuilder()
+                    .noFetch()
+                    .pointInTime(PointInTimeType.FUTURE)
+                    .build();
+        }
         try {
             provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (Exception e) {
@@ -1262,23 +1274,14 @@ public class ContextLoader implements ProjectorProcessor {
                                 "Projection "+projContext.getHumanReadableName()+" with null OID, no representation and no resource OID in account sync context "+projContext);
                     }
                 } else {
-                    GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
-                    if (projContext.isDoReconciliation()) {
-                        rootOptions.setForceRefresh(true);
-                        if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
-                            // Avoid discovery loops
-                            rootOptions.setDoNotDiscovery(true);
-                        }
-                    } else {
-                        rootOptions.setNoFetch(true);
-                    }
-                    rootOptions.setAllowNotFound(true);
-                    Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-                    LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projContext.getHumanReadableName(), options);
+                    Collection<SelectorOptions<GetOperationOptions>> options = createProjectionLoadingOptions(projContext);
+                    LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid,
+                            projContext.getHumanReadableName(), options);
 
                     try {
                         PrismObject<ShadowType> objectOld = provisioningService.getObject(
                                 projContext.getObjectTypeClass(), projectionObjectOid, options, task, result);
+                        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
                         if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
                             LOGGER.trace("Full shadow loaded for {}:\n{}", projContext.getHumanReadableName(), objectOld.debugDumpLazily(1));
                         }
@@ -1428,6 +1431,35 @@ public class ContextLoader implements ProjectorProcessor {
         }
 
         setPrimaryDeltaOldValue(projContext);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions(LensProjectionContext projContext) {
+        GetOperationOptionsBuilder builder = schemaService.getOperationOptionsBuilder()
+                .pointInTime(PointInTimeType.FUTURE)
+                .allowNotFound();
+
+        LensContext<?> context = projContext.getLensContext();
+
+        // Most probably reconciliation for all projections implies reconciliation for projContext
+        // but we include both conditions just to be sure.
+        if (projContext.isDoReconciliation() || context.isDoReconciliationForAllProjections()) {
+            builder = builder.forceRefresh();
+
+            // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.
+            // This is to avoid useless repetition of retries (pushing attempt number quickly too high).
+            if (context.isDoReconciliationForAllProjections() && context.getProjectionWave() == 0) {
+                builder = builder.forceRetry();
+            }
+
+            if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
+                // Avoid discovery loops
+                builder = builder.doNotDiscovery();
+            }
+        } else {
+            builder = builder.noFetch();
+        }
+
+        return builder.build();
     }
 
     private <F extends ObjectType> boolean needToReload(LensContext<F> context,

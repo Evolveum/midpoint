@@ -739,6 +739,7 @@
     </capabilities>
 
     <consistency>
+        <operationRetryMaxAttempts>10</operationRetryMaxAttempts> <!-- to cover increased number of retries during tests -->
         <shadowConstraintsCheck>light</shadowConstraintsCheck>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>

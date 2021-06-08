@@ -14,20 +14,20 @@ select * from pg_available_extensions order by name;
 
 -- DB data initialization (after pgnew-repo.sql)
 -- one user with random name
-INSERT INTO m_user (oid, name_norm, name_orig, version)
+INSERT INTO m_user (oid, nameNorm, nameOrig, version)
 VALUES (gen_random_uuid(), md5(random()::TEXT), md5(random()::TEXT), 1);
 
-INSERT INTO m_user (name_norm, name_orig, createtimestamp, modifytimestamp, version)
+INSERT INTO m_user (nameNorm, nameOrig, createtimestamp, modifytimestamp, version)
 VALUES (md5(random()::TEXT), md5(random()::TEXT), current_timestamp, current_timestamp, 1);
 
 select * from m_resource;
--- creates new row with generated UUID, repeated run must fail on unique name_norm
-insert into m_resource (name_norm, name_orig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
--- should fail the second time because oid is PK of the table (even with changed name_norm)
-insert into m_resource (oid, name_norm, name_orig, version)
+-- creates new row with generated UUID, repeated run must fail on unique nameNorm
+insert into m_resource (nameNorm, nameOrig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
+-- should fail the second time because oid is PK of the table (even with changed nameNorm)
+insert into m_resource (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 -- this should fail after previous due to cross-table m_object unique constraint
-insert into m_user (oid, name_norm, name_orig, version)
+insert into m_user (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
 -- must fail, update trigger does not allow OID changes
 update m_object set oid='66eb4861-867d-4a41-b6f0-41a3874bd48e'
@@ -45,11 +45,11 @@ SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
 delete from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 -- switch Tx to manual in IDE to avoid autocommit
 START TRANSACTION;
-insert into m_resource (oid, name_norm, name_orig, version)
+insert into m_resource (oid, nameNorm, nameOrig, version)
     VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 
     START TRANSACTION;
-    insert into m_user (oid, name_norm, name_orig, version)
+    insert into m_user (oid, nameNorm, nameOrig, version)
         VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
     commit;
 commit;
@@ -60,7 +60,7 @@ select * from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 -- Delete in two steps without trigger, much faster than normal.
 SET session_replication_role = replica; -- disables triggers for the current session
 -- HERE the delete you want, e.g.:
-delete from m_user where name_norm > 'user-0001000000';
+delete from m_user where nameNorm > 'user-0001000000';
 
 -- this is the cleanup of unused OIDs
 DELETE FROM m_object_oid oo WHERE NOT EXISTS (SELECT * from m_object o WHERE o.oid = oo.oid);
@@ -79,14 +79,14 @@ select count(*) from m_user;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
 
-INSERT INTO m_resource (name_norm, name_orig, fullobject, version)
+INSERT INTO m_resource (nameNorm, nameOrig, fullobject, version)
 SELECT 'resource-' || LPAD(r::text, 10, '0'),
     'resource-' || LPAD(r::text, 10, '0'),
     random_bytea(100, 20000),
     1
 from generate_series(1, 10) as r;
 
-INSERT INTO m_user (name_norm, name_orig, fullobject, ext, policySituations, version)
+INSERT INTO m_user (nameNorm, nameOrig, fullobject, ext, policySituations, subtypes, version)
 SELECT 'user-' || LPAD(r::text, 10, '0'),
     'user-' || LPAD(r::text, 10, '0'),
     random_bytea(100, 2000),
@@ -114,13 +114,18 @@ SELECT 'user-' || LPAD(r::text, 10, '0'),
             random_pick(ARRAY(SELECT a.n FROM generate_series(1, 100) AS a(n)), r % 10 / 100::decimal)
         -- ELSE NULL is default and redundant
         END,
+    CASE
+        WHEN r % 10 < random() * 2 THEN
+            random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo', 'writing', 'gaming'], 0.3)
+        -- ELSE NULL is default and redundant
+        END,
     1
-from generate_series(100001,1000000) as r;
+from generate_series(1, 50000) as r;
 
 EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 select oid, policysituations from m_user
 where policysituations @> '{10}'
--- order by name_norm desc
+-- order by nameNorm desc
 ;
 
 /* 1k rows
@@ -244,7 +249,7 @@ CREATE INDEX m_user_ext_hired2_idx ON m_user ((ext ->> 'hired')) WHERE ext ? 'hi
 -- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
 EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- select count(*)
-select oid, name_norm, ext
+select oid, nameNorm, ext
 from m_user
     where
 --           ext?'hobbies' and -- faster, uses GIN index
@@ -299,6 +304,56 @@ where
         where upper(v::text) LIKE '%ING')
 --     and oid > 14000000
 order by oid
+;
+
+-- more JSONB experiments with matching various types or nested structures (e.g. poly-strings)
+/*
+insert into m_user (nameorig, namenorm, ext)
+    values ('usera', 'usera', '{"polys":[{"o":"orig1", "n":"norm1"}, {"o":"orig2", "n":"norm2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userb', 'userb', '{"polys":[]}'); -- hypothetic, we will NOT save the key at all
+insert into m_user (nameorig, namenorm, ext)
+    values ('userc', 'userc', '{"polys":[{"o":"CORIG1", "n":"CNORM1"}, {"o":"CORIG2", "n":"CNORM2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userd', 'userd', '{"polys":[{"o":"dORIG1", "n":"dNORM1"}, {"o":"ORIG2", "n":"NORM2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userx', 'userx', '{"number":123456789012345678901234567890, "float": 1234567890.1234567890}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('usery', 'usery', '{"number":23456789012345678901234567890, "float": 234567890.1234567890}');
+*/
+
+select ext->'number' from m_object
+where (ext->'number')::numeric > 2345678901234567890
+order by ext->'number';
+
+select nameorig, ext from m_object
+--     where (ext->'number')::numeric > 2345678901234567890
+order by ext->'float';
+
+-- set enable_seqscan=false
+-- set enable_seqscan=true
+explain
+select oid, nameorig, ext
+from m_user
+-- where ext @> '{"float": 1234567890.1234567890}' -- can use index
+-- where ext @> '{"float": [1234567890.1234567890]}' -- does not match
+-- where (ext->'float')::numeric = 1234567890.1234567890 -- works, doesn't using GIN index
+-- where (ext->'float'->0)::numeric = 1234567890.1234567890 -- works for arrays too, doesn't using GIN index
+-- the last two can benefit from adding: and ext ? 'float' -- that actually utilizes the index
+;
+
+-- matching poly-strings
+explain
+-- select oid, nameorig, ext, jsonb_array_elements_text(ext->'polys')
+select oid, nameorig, ext
+from m_user
+-- where ext @> '{"polys": []}' -- this matches ANY polys, empty or not
+-- where ext @> '{"polys": [{"o":"orig1"}]}' -- exact match is easy
+-- where ext->'polys'->'n' is not null -- doesn't match anything, 'n' is nested in array
+-- where ext->'polys'->0->>'n' ilike 'NO%' -- works but only for first value, we want also "userd"
+-- ^^above the last ->> (double >) is critical, if -> ::text is used, it returns values with " around
+-- where ext->'polys'->0->'n'#>>'{}' ilike 'NO%' -- alternative with #>>'{}', see https://dba.stackexchange.com/a/234047/157622
+where exists (select 1 from jsonb_array_elements(ext->'polys') val WHERE val->>'n' ilike 'NO%')
 ;
 
 -- MANAGEMENT queries

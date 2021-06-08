@@ -30,7 +30,6 @@ import javax.xml.namespace.QName;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -80,6 +79,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      *
      * @return the target oid
      */
+    @Override
     public String getOid() {
         if (oid != null) {
             return oid;
@@ -90,6 +90,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return null;
     }
 
+    @Override
     public void setOid(String oid) {
         checkMutable();
         this.oid = oid;
@@ -104,10 +105,12 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      * expect that the object can disappear when serialization boundary is crossed.
      * The client must expect that the object is null.
      */
+    @Override
     public PrismObject getObject() {
         return object;
     }
 
+    @Override
     public void setObject(PrismObject object) {
         checkMutable();
         this.object = object;
@@ -121,6 +124,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      *
      * @return the target type name
      */
+    @Override
     public QName getTargetType() {
         if (targetType != null) {
             return targetType;
@@ -131,6 +135,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return null;
     }
 
+    @Override
     public void setTargetType(QName targetType) {
         setTargetType(targetType, false);
     }
@@ -138,6 +143,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     /**
      * @param allowEmptyNamespace This is an ugly hack. See comment in DOMUtil.validateNonEmptyQName.
      */
+    @Override
     public void setTargetType(QName targetType, boolean allowEmptyNamespace) {
         checkMutable();
         // Null value is OK
@@ -158,6 +164,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      * mechanism.
      * @return cached name of the target object.
      */
+    @Override
     public PolyString getTargetName() {
         if (targetName != null) {
             return targetName;
@@ -168,11 +175,13 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return null;
     }
 
+    @Override
     public void setTargetName(PolyString name) {
         checkMutable();
         this.targetName = name;
     }
 
+    @Override
     public void setTargetName(PolyStringType name) {
         checkMutable();
         if (name == null) {
@@ -183,11 +192,13 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     // The PRV (this object) should have a parent with a prism context
+    @Override
     public Class<Objectable> getTargetTypeCompileTimeClass() {
         PrismContext prismContext = getPrismContext();
         return prismContext != null ? getTargetTypeCompileTimeClass(prismContext) : null;
     }
 
+    @Override
     public Class<Objectable> getTargetTypeCompileTimeClass(PrismContext prismContext) {
         QName type = getTargetType();
         if (type == null) {
@@ -198,42 +209,51 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         }
     }
 
+    @Override
     public QName getRelation() {
         return relation;
     }
 
+    @Override
     public void setRelation(QName relation) {
         checkMutable();
         this.relation = relation;
     }
 
+    @Override
     public PrismReferenceValueImpl relation(QName relation) {
         setRelation(relation);
         return this;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public void setDescription(String description) {
         checkMutable();
         this.description = description;
     }
 
+    @Override
     public SearchFilterType getFilter() {
         return filter;
     }
 
+    @Override
     public void setFilter(SearchFilterType filter) {
         checkMutable();
         this.filter = filter;
     }
 
+    @Override
     public EvaluationTimeType getResolutionTime() {
         return resolutionTime;
     }
 
+    @Override
     public void setResolutionTime(EvaluationTimeType resolutionTime) {
         checkMutable();
         this.resolutionTime = resolutionTime;
@@ -311,6 +331,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         applyDefinition((PrismReferenceDefinition)definition, force);
     }
 
+    @Override
     public void applyDefinition(PrismReferenceDefinition definition, boolean force) throws SchemaException {
         super.applyDefinition(definition, force);
         if (object == null) {
@@ -395,6 +416,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      * Returns a version of this value that is canonical, that means it has the minimal form.
      * E.g. it will have only OID and no object.
      */
+    @Override
     public PrismReferenceValueImpl toCanonical() {
         PrismReferenceValueImpl can = new PrismReferenceValueImpl();
         can.setOid(getOid());
@@ -407,6 +429,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return can;
     }
 
+    @Override
     public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         return other instanceof PrismReferenceValue && equals((PrismReferenceValue) other, strategy);
     }
@@ -550,6 +573,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return sb.toString();
     }
 
+    @Override
     public Referencable asReferencable() {
         if (referencable != null) {
             return referencable;
@@ -598,6 +622,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return debugDump(indent, false);
     }
 
+    @Override
     public String debugDump(int indent, boolean expandObject) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -708,5 +733,11 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
             //noinspection unchecked
             object.accept(visitor);
         }
+    }
+
+    @Override
+    public void transformDefinition(ComplexTypeDefinition parentDef, ItemDefinition<?> itemDef,
+            ItemDefinitionTransformer transformation) {
+        // NOOP
     }
 }

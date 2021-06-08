@@ -147,8 +147,10 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     //region --- ADD, MODIFY, DELETE and other modifications -------------------------------------------------------
 
+    @NotNull
     @Override
-    public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult)
+    public <T extends ObjectType> String addObject(@NotNull PrismObject<T> object, RepoAddOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException {
         return modificationOpHandler.addObject(object, options, parentResult);
     }

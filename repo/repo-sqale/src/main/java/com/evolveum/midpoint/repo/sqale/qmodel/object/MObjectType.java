@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
@@ -48,7 +47,7 @@ public enum MObjectType {
     ACCESS_CERTIFICATION_DEFINITION(
             QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class),
     ARCHETYPE(QArchetype.class, ArchetypeType.class),
-    ASSIGNMENT_HOLDER(QAssignmentHolder.class, AssignmentHolderType.class),
+    ASSIGNMENT_HOLDER(QAssignmentHolder.CLASS, AssignmentHolderType.class),
     CASE(QCase.class, CaseType.class),
     CONNECTOR(QConnector.class, ConnectorType.class),
     CONNECTOR_HOST(QConnectorHost.class, ConnectorHostType.class),

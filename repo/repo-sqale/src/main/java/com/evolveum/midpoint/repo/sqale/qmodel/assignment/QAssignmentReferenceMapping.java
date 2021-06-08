@@ -81,6 +81,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     public MAssignmentReference newRowObject(MAssignment ownerRow) {
         MAssignmentReference row = new MAssignmentReference();
         row.ownerOid = ownerRow.ownerOid;
+        row.ownerType = ownerRow.ownerType;
         row.assignmentCid = ownerRow.cid;
         return row;
     }

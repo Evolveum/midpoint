@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHost
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
  * Mapping between {@link QConnectorHost} and {@link ConnectorHostType}.
  */
 public class QConnectorHostMapping
-        extends QObjectMapping<ConnectorHostType, QConnectorHost, MConnectorHost> {
+        extends QAssignmentHolderMapping<ConnectorHostType, QConnectorHost, MConnectorHost> {
 
     public static final String DEFAULT_ALIAS_NAME = "conh";
 

@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
@@ -23,13 +24,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
@@ -230,5 +235,27 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return ref -> ref.targetOid.equals(targetOid)
                 && ref.targetType == targetType
                 && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
+    }
+
+    protected void assertSingleOperationRecorded(SqlPerformanceMonitorImpl pm, String opKind) {
+        Map<String, OperationPerformanceInformation> pmAllData =
+                pm.getGlobalPerformanceInformation().getAllData();
+        assertThat(pmAllData).hasSize(1);
+        Map.Entry<String, OperationPerformanceInformation> perfEntry =
+                pmAllData.entrySet().iterator().next();
+        assertThat(perfEntry.getKey()).isEqualTo(opKind);
+        OperationPerformanceInformation operationInfo = perfEntry.getValue();
+        assertThat(operationInfo.getInvocationCount()).isEqualTo(1);
+        assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
+    }
+
+    protected PrismReferenceValue ref(String targetOid, QName relation) {
+        return prismContext.itemFactory()
+                .createReferenceValue(targetOid).relation(relation);
+    }
+
+    /** Returns Q-name from extension schema with specified local part name. */
+    protected ItemName exampleItemName(String name) {
+        return new ItemName("http://example.com/p", name);
     }
 }

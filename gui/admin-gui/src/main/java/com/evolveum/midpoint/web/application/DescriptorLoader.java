@@ -1,18 +1,12 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.application;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +56,7 @@ public final class DescriptorLoader implements DebugDumpable {
             "com.evolveum.midpoint.web.component.prism.show"
     };
 
+    // All could be final, but then Checkstyle complains about lower-case, although these are not constants.
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
     private static List<String> permitAllUrls = new ArrayList<>();
     private static List<String> loginPages = new ArrayList<>();
@@ -94,10 +89,8 @@ public final class DescriptorLoader implements DebugDumpable {
             }
         } catch (InstantiationException | IllegalAccessException e) {
             LOGGER.error("Error scanning packages for pages: {}", e.getMessage(), e);
-            throw new SystemException("Error scanning packages for pages: "+e.getMessage(), e);
+            throw new SystemException("Error scanning packages for pages: " + e.getMessage(), e);
         }
-
-
 
     }
 
@@ -105,7 +98,7 @@ public final class DescriptorLoader implements DebugDumpable {
             throws InstantiationException, IllegalAccessException {
 
         for (String pac : PACKAGES_TO_SCAN) {
-            LOGGER.debug("Scanning package package {} for page annotations", pac);
+            LOGGER.debug("Scanning package {} for page annotations", pac);
 
             Set<Class<?>> classes = ClassPathUtil.listClasses(pac);
             for (Class<?> clazz : classes) {
@@ -126,7 +119,7 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private void loadActions(PageDescriptor descriptor) {
 
-        if(descriptor.loginPage()) {
+        if (descriptor.loginPage()) {
             foreachUrl(descriptor, url -> loginPages.add(url));
         }
 
@@ -154,13 +147,11 @@ public final class DescriptorLoader implements DebugDumpable {
 
         //add http://.../..#guiAll authorization only for displayable pages, not for pages used for development..
         if (canAccess) {
-
-//            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
             actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }
 
-        foreachUrl(descriptor, url -> this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
+        foreachUrl(descriptor, url -> DescriptorLoader.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
     }
 
     private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {

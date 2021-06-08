@@ -43,17 +43,17 @@ public class QOperationExecution<OR extends MObject> extends QContainer<MOperati
     public static final ColumnMetadata RECORD_TYPE =
             ColumnMetadata.named("recordType").ofType(Types.OTHER);
     public static final ColumnMetadata INITIATOR_REF_TARGET_OID =
-            ColumnMetadata.named("initiatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("initiatorRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata INITIATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("initiatorRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("initiatorRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata INITIATOR_REF_RELATION_ID =
-            ColumnMetadata.named("initiatorRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("initiatorRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TASK_REF_TARGET_OID =
-            ColumnMetadata.named("taskRef_targetOid").ofType(UuidPath.UUID_TYPE);
+            ColumnMetadata.named("taskRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TASK_REF_TARGET_TYPE =
-            ColumnMetadata.named("taskRef_targetType").ofType(Types.OTHER);
+            ColumnMetadata.named("taskRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata TASK_REF_RELATION_ID =
-            ColumnMetadata.named("taskRef_relation_id").ofType(Types.INTEGER);
+            ColumnMetadata.named("taskRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TIMESTAMP_VALUE =
             ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 

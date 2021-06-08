@@ -3704,6 +3704,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 if (freshTask.getLastRunStartTimestamp() == null) {
                     return false;
                 }
+                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
+                //  It is because it requires that the task is not running. And this can be a problem if the
+                //  typical run time is approximately the same (or even larger) than the interval.
                 return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
                         && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
                         && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
@@ -5629,17 +5632,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
     }
 
-    protected void resetTriggerTask(String taskOid, File taskFile, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
+    // Use this when you want to start the task manually.
+    protected void reimportWithNoSchedule(String taskOid, File taskFile, Task opTask, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException,
+            PolicyViolationException {
         taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
-        importObjectFromFile(taskFile, result);
-        taskManager.suspendTasks(Collections.singletonList(taskOid), 60000L, result);
-        modifySystemObjectInRepo(TaskType.class, taskOid,
-                prismContext.deltaFor(TaskType.class)
-                        .item(TaskType.F_SCHEDULE).replace()
-                        .asItemDeltas(),
-                result);
-        taskManager.resumeTasks(singleton(taskOid), result);
+        addObject(taskFile, opTask, result, taskObject ->
+                ((TaskType) taskObject.asObjectable())
+                        .schedule(null)
+                        .binding(TaskBindingType.LOOSE)); // tightly-bound tasks must have interval set
     }
 
     protected void repoAddObjects(List<ObjectType> objects, OperationResult result)

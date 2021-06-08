@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAcces
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
  * and {@link AccessCertificationDefinitionType}.
  */
 public class QAccessCertificationDefinitionMapping
-        extends QObjectMapping<AccessCertificationDefinitionType,
+        extends QAssignmentHolderMapping<AccessCertificationDefinitionType,
         QAccessCertificationDefinition, MAccessCertificationDefinition> {
 
     public static final String DEFAULT_ALIAS_NAME = "acd";

@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -50,6 +51,7 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
+        // TODO attributes JSONB
     }
 
     @Override
@@ -83,9 +85,7 @@ public class QShadowMapping
         row.primaryIdentifierValue = shadow.getPrimaryIdentifierValue();
         row.synchronizationSituation = shadow.getSynchronizationSituation();
         row.synchronizationTimestamp = MiscUtil.asInstant(shadow.getSynchronizationTimestamp());
-
-        // TODO extension attributes
-        //  copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
+        row.attributes = processExtensions(shadow.getAttributes(), MExtItemHolderType.ATTRIBUTES);
         return row;
     }
 }

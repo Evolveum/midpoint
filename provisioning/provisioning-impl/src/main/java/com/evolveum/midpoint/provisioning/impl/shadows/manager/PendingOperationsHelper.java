@@ -108,7 +108,7 @@ class PendingOperationsHelper {
                 // This must be a new operation
                 ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().create(
                         ShadowType.F_PENDING_OPERATION, containerDefinition);
-                cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
+                cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue().clone());
                 shadowChanges.add(cdelta);
             } else {
                 ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();

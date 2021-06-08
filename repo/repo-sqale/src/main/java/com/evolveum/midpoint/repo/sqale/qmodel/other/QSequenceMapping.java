@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
 /**
  * Mapping between {@link QSequence} and {@link SequenceType}.
  */
-public class QSequenceMapping extends QObjectMapping<SequenceType, QSequence, MObject> {
+public class QSequenceMapping extends QAssignmentHolderMapping<SequenceType, QSequence, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "seq";
 

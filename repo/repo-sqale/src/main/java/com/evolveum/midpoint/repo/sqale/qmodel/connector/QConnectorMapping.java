@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
  * Mapping between {@link QConnector} and {@link ConnectorType}.
  */
 public class QConnectorMapping
-        extends QObjectMapping<ConnectorType, QConnector, MConnector> {
+        extends QAssignmentHolderMapping<ConnectorType, QConnector, MConnector> {
 
     public static final String DEFAULT_ALIAS_NAME = "con";
 
@@ -68,7 +68,7 @@ public class QConnectorMapping
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);
 
-        row.targetSystemTypes = arrayFor(schemaObject.getTargetSystemType());
+        row.targetSystemTypes = listToArray(schemaObject.getTargetSystemType());
 
         return row;
     }

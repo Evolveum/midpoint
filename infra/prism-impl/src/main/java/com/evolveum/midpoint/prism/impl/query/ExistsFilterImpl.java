@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
+
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -16,7 +19,6 @@ import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO think about creating abstract ItemFilter (ItemRelatedFilter) for this filter and ValueFilter.
@@ -27,10 +29,10 @@ import org.jetbrains.annotations.NotNull;
 public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
     @NotNull private final ItemPath fullPath;
-    private final ItemDefinition definition;
+    private final ItemDefinition<?> definition;
     private ObjectFilter filter;
 
-    private ExistsFilterImpl(@NotNull ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
+    private ExistsFilterImpl(@NotNull ItemPath fullPath, ItemDefinition<?> definition, ObjectFilter filter) {
         this.fullPath = fullPath;
         this.definition = definition;
         this.filter = filter;
@@ -65,18 +67,17 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
-                                                                      ObjectFilter filter) throws SchemaException {
-        ItemDefinition itemDefinition = FilterImplUtil.findItemDefinition(itemPath, containerDef);
+            ObjectFilter filter) throws SchemaException {
+        ItemDefinition<?> itemDefinition = FilterImplUtil.findItemDefinition(itemPath, containerDef);
         return new ExistsFilterImpl(itemPath, itemDefinition, filter);
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, Class<C> clazz, PrismContext prismContext,
-                                                                      ObjectFilter filter) {
-        ItemDefinition itemDefinition = FilterImplUtil.findItemDefinition(itemPath, clazz, prismContext);
+            ObjectFilter filter) {
+        ItemDefinition<?> itemDefinition = FilterImplUtil.findItemDefinition(itemPath, clazz, prismContext);
         return new ExistsFilterImpl(itemPath, itemDefinition, filter);
     }
 
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public ExistsFilterImpl clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
@@ -111,10 +112,10 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
     @Override
     public void checkConsistence(boolean requireDefinitions) {
         if (fullPath.isEmpty()) {
-            throw new IllegalArgumentException("Null or empty path in "+this);
+            throw new IllegalArgumentException("Null or empty path in " + this);
         }
         if (requireDefinitions && definition == null) {
-            throw new IllegalArgumentException("Null definition in "+this);
+            throw new IllegalArgumentException("Null definition in " + this);
         }
         // null subfilter is legal. It means "ALL".
         if (filter != null) {
@@ -132,7 +133,7 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("DEF: ");
         if (getDefinition() != null) {
-            sb.append(getDefinition().toString());
+            sb.append(getDefinition());
         } else {
             sb.append("null");
         }
@@ -145,13 +146,11 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("EXISTS(");
-        sb.append(PrettyPrinter.prettyPrint(fullPath));
-        sb.append(",");
-        sb.append(filter);
-        sb.append(")");
-        return sb.toString();
+        return "EXISTS("
+                + PrettyPrinter.prettyPrint(fullPath)
+                + ", "
+                + filter
+                + ")";
     }
 
     @Override
@@ -164,16 +163,20 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ExistsFilterImpl that = (ExistsFilterImpl) o;
 
-        if (!fullPath.equals(that.fullPath, exact)) return false;
-        if (exact) {
-            if (definition != null ? !definition.equals(that.definition) : that.definition != null) {
-                return false;
-            }
+        if (!fullPath.equals(that.fullPath, exact)) {
+            return false;
+        }
+        if (exact && !Objects.equals(definition, that.definition)) {
+            return false;
         }
         return filter != null ? filter.equals(that.filter, exact) : that.filter == null;
     }

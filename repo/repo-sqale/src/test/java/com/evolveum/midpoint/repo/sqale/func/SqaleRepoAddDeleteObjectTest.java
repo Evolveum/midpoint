@@ -15,16 +15,28 @@ import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
@@ -54,6 +66,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -61,9 +75,11 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
+    // region basic object/container and various item types tests
     @Test
     public void test100AddNamedUserWithoutOidWorksOk()
             throws ObjectAlreadyExistsException, SchemaException {
@@ -72,7 +88,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         given("user with a name");
         String userName = "user" + getTestNumber();
         UserType userType = new UserType(prismContext)
-                .name(userName);
+                .name(userName)
+                .version("5"); // version will be ignored and set to 1
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(userType.asPrismObject(), null, result);
@@ -85,7 +102,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MUser row = selectOne(u, u.nameOrig.eq(userName));
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.nameNorm).isNotNull(); // normalized name is stored
-        assertThat(row.version).isEqualTo(1); // initial version is set
+        assertThat(row.version).isEqualTo(1); // initial version is set, ignoring provided version
         // read-only column with value generated/stored in the database
         assertThat(row.objectType).isEqualTo(MObjectType.USER);
         assertThat(row.subtypes).isNull(); // we don't store empty lists as empty arrays
@@ -135,7 +152,126 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test110AddUserWithProvidedOidWorksOk()
+    public void test110AddWithOverwriteOption()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user already in the repository");
+        long baseCount = count(QUser.class);
+        String userName = "user" + getTestNumber();
+        UserType userType = new UserType(prismContext)
+                .name(userName);
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1);
+
+        when("adding it to the repository again with overwrite option");
+        userType.setFullName(PolyStringType.fromOrig("Overwritten User"));
+        userType.setVersion("5"); // should be ignored
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("existing user row is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, userType.getOid());
+        assertThat(row.fullNameOrig).isEqualTo("Overwritten User");
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(2);
+    }
+
+    @Test
+    public void test111AddWithOverwriteOptionWithNewOidActsLikeNormalAdd()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with random OID is not in the repository");
+        long baseCount = count(QUser.class);
+        UUID oid = UUID.randomUUID();
+        assertThat(selectNullableObjectByOid(QUser.class, oid)).isNull();
+
+        when("adding it to the repository again with overwrite option");
+        String userName = "user" + getTestNumber();
+        UserType userType = new UserType(prismContext)
+                .oid(oid.toString())
+                .name(userName)
+                .version("5");
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("existing user row is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, userType.getOid());
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(1);
+    }
+
+    // detailed container tests are from test200 on, this one has overwrite priority :-)
+    @Test
+    public void test112OverwriteWithContainers()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with container in the repository");
+        long baseCount = count(QUser.class);
+
+        UUID assConstructionRef = UUID.randomUUID();
+        QName assConstructionRel = QName.valueOf("{https://random.org/ns}const-rel");
+        String userName = "user" + getTestNumber();
+        UserType user1 = new UserType(prismContext)
+                .name(userName)
+                .assignment(new AssignmentType(prismContext)
+                        .id(2L) // assigned CID to make things simple for tracking
+                        .construction(new ConstructionType(prismContext)
+                                .resourceRef(assConstructionRef.toString(),
+                                        ResourceType.COMPLEX_TYPE, assConstructionRel)));
+        repositoryService.addObject(user1.asPrismObject(), null, result);
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1);
+
+        UUID userOid = UUID.fromString(user1.getOid());
+        QAssignment<?> qa = QAssignmentMapping.getAssignment().defaultAlias();
+        List<MAssignment> assRows = select(qa, qa.ownerOid.eq(userOid));
+        assertThat(assRows).hasSize(1)
+                // construction/resourceRef is set
+                .anyMatch(aRow -> aRow.resourceRefTargetOid != null
+                        && aRow.resourceRefTargetType != null
+                        && aRow.resourceRefRelationId != null);
+
+        when("using overwrite with changed container identified by id");
+        UserType user2 = new UserType(prismContext)
+                .oid(user1.getOid())
+                .version("5") // should be ignored
+                .name(userName)
+                .assignment(new AssignmentType(prismContext)
+                        .id(2L)
+                        // no construction
+                        .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        repositoryService.addObject(user2.asPrismObject(), createOverwrite(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("identified container is modified/overwritten");
+        assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
+        MUser row = selectObjectByOid(QUser.class, user2.getOid());
+        assRows = select(qa, qa.ownerOid.eq(UUID.fromString(user2.getOid())));
+        assertThat(assRows).hasSize(1)
+                .anyMatch(aRow -> aRow.resourceRefTargetOid == null // removed
+                        && aRow.resourceRefTargetType == null // removed
+                        && aRow.resourceRefRelationId == null // removed
+                        && aRow.targetRefTargetOid != null // added
+                        && aRow.targetRefTargetType == MObjectType.ROLE);
+
+        and("provided version for overwrite is ignored");
+        assertThat(row.version).isEqualTo(2);
+    }
+
+    @Test
+    public void test120AddUserWithProvidedOidWorksOk()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -162,7 +298,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test111AddSecondObjectWithTheSameOidThrowsObjectAlreadyExists()
+    public void test121AddSecondObjectWithTheSameOidThrowsObjectAlreadyExists()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
@@ -177,7 +313,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         long baseCount = count(QUser.class);
         UserType user2 = new UserType(prismContext)
                 .oid(providedOid.toString())
-                .name("user" + getTestNumber() + "-different-name");
+                .name("user" + getTestNumber());
 
         then("operation fails and no new user row is created");
         assertThatThrownBy(() -> repositoryService.addObject(user2.asPrismObject(), null, result))
@@ -185,6 +321,72 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isFatalError()
                 .hasMessageMatching("Provided OID .* already exists");
         assertCount(QUser.class, baseCount);
+    }
+
+    @Test
+    public void test122AddSecondObjectWithTheSameOidWithOverwriteIsOk()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with provided OID already exists");
+        UUID providedOid = UUID.randomUUID();
+        UserType user1 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber());
+        repositoryService.addObject(user1.asPrismObject(), null, result);
+
+        when("adding it again with overwrite without any changes");
+        long baseCount = count(QObject.CLASS);
+        UserType user2 = new UserType(prismContext)
+                .oid(providedOid.toString())
+                .name("user" + getTestNumber());
+        repositoryService.addObject(user2.asPrismObject(), createOverwrite(), result);
+
+        then("operation is success and no changes are made (delta is empty)");
+        assertThatOperationResult(result).isSuccess();
+        assertCount(QObject.CLASS, baseCount); // no new object was created
+        MUser row = selectObjectByOid(QUser.class, providedOid);
+        assertThat(row.version).isEqualTo(1); // version is still initial, no change
+    }
+
+    @Test
+    public void test150AddOperationUpdatesPerformanceMonitor()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("object to add and cleared performance information");
+        UserType userType = new UserType(prismContext).name("user" + getTestNumber());
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is added to the repository");
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
+    }
+
+    @Test
+    public void test151OverwriteOperationUpdatesPerformanceMonitor()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("existing object for overwrite and cleared performance information");
+        UserType userType = new UserType(prismContext).name("user" + getTestNumber());
+        repositoryService.addObject(userType.asPrismObject(), null, result);
+
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is added to the repository");
+        repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
@@ -316,7 +518,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String userName = "user" + getTestNumber();
         UUID approverRef1 = UUID.randomUUID();
         UUID approverRef2 = UUID.randomUUID();
-        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel"); // TODO
+        QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel");
         UserType user = new UserType(prismContext)
                 .name(userName)
                 .assignment(new AssignmentType()
@@ -375,6 +577,47 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         and("no new object is created in the database (transaction is rolled back)");
         assertThat(count(QUser.class)).isEqualTo(previousUserCount);
     }
+    // endregion
+
+    // region extension attributes
+    @Test
+    public void test300AddObjectWithExtension()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension items");
+        String objectName = "genobj" + getTestNumber();
+        GenericObjectType object = new GenericObjectType(prismContext)
+                .name(objectName)
+                .objectType("gen-object-type-1")
+                .extension(new ExtensionType(prismContext));
+        addExtensionValue(object.getExtension(), "stringType", "string-value");
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and user row for it is created");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MGenericObject row = selectObjectByOid(QGenericObject.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap).containsEntry("1", "VAL"); // TODO
+    }
+
+    private <V> void addExtensionValue(Containerable extContainer, String itemName, V value)
+            throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<PrismProperty<V>> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        PrismProperty<V> property = itemDefinition.instantiate();
+        property.setRealValue(value);
+        pcv.add(property);
+    }
+
+    // endregion
 
     // region insertion of various types
 
@@ -1118,6 +1361,209 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
     }
+
+    @Test
+    public void test850Case() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("case");
+        String objectName = "case" + getTestNumber();
+        UUID parentOid = UUID.randomUUID();
+        QName parentRelation = QName.valueOf("{https://random.org/ns}case-parent-rel");
+        UUID objectOid = UUID.randomUUID();
+        QName objectRelation = QName.valueOf("{https://random.org/ns}case-object-rel");
+        UUID requestorOid = UUID.randomUUID();
+        QName requestorRelation = QName.valueOf("{https://random.org/ns}case-requestor-rel");
+        UUID targetOid = UUID.randomUUID();
+        QName targetRelation = QName.valueOf("{https://random.org/ns}case-target-rel");
+        UUID originalAssignee1Oid = UUID.randomUUID();
+        QName originalAssignee1Relation = QName.valueOf("{https://random.org/ns}original-assignee1-rel");
+        UUID performer1Oid = UUID.randomUUID();
+        QName performer1Relation = QName.valueOf("{https://random.org/ns}performer1-rel");
+        UUID originalAssignee2Oid = UUID.randomUUID();
+        QName originalAssignee2Relation = QName.valueOf("{https://random.org/ns}original-assignee2-rel");
+        UUID performer2Oid = UUID.randomUUID();
+        QName performer2Relation = QName.valueOf("{https://random.org/ns}performer2-rel");
+
+        UUID wi1AssigneeRef1Oid = UUID.fromString("4be487d2-c833-11eb-ba67-6768439d49a8"); // explicit UUID, to ensure ordering
+        QName wi1AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}wi-1-assignee-1-rel");
+        UUID wi1CandidateRef1Oid = UUID.fromString("ac4d4a54-c834-11eb-ba57-8b9fef95c25d"); // explicit UUID, to ensure ordering
+        QName wi1CandidateRef1Relation = QName.valueOf("{https://random.org/ns}wi-1-candidate-1-rel");
+        UUID wi1CandidateRef2Oid = UUID.fromString("9dc675dc-c834-11eb-b31a-17ac6f7bab4f"); // explicit UUID, to ensure ordering
+        QName wi1CandidateRef2Relation = QName.valueOf("{https://random.org/ns}wi-1-candidate-2-rel");
+
+        UUID wi2AssigneeRef1Oid = UUID.fromString("d867f3e0-c830-11eb-b7cf-abba51968ecb"); // explicit UUID, to ensure ordering
+        QName wi2AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}wi-2-assignee-1-rel");
+        UUID wi2AssigneeRef2Oid = UUID.fromString("6a92b1ec-c831-11eb-a075-5f6be1e16c34"); // explicit UUID, to ensure ordering
+        QName wi2AssigneeRef2Relation = QName.valueOf("{https://random.org/ns}wi-2-assignee-2-rel");
+        UUID wi2CandidateRef1Oid = UUID.fromString("df6388b8-c834-11eb-946a-efa73de3615b"); // explicit UUID, to ensure ordering
+        QName wi2CandidateRef1Relation = QName.valueOf("{https://random.org/ns}wi-2-candidate-1-rel");
+
+        CaseType acase = new CaseType(prismContext)
+                .name(objectName)
+                .state("closed")
+                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(321L))
+                .parentRef(parentOid.toString(),
+                        CaseType.COMPLEX_TYPE, parentRelation)
+                .objectRef(objectOid.toString(),
+                        RoleType.COMPLEX_TYPE, objectRelation)
+                .requestorRef(requestorOid.toString(),
+                        UserType.COMPLEX_TYPE, requestorRelation)
+                .targetRef(targetOid.toString(),
+                        OrgType.COMPLEX_TYPE, targetRelation)
+                .workItem(new CaseWorkItemType(prismContext)
+                        .id(41L)
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
+                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
+                        .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
+                        .originalAssigneeRef(originalAssignee1Oid.toString(),
+                                OrgType.COMPLEX_TYPE, originalAssignee1Relation)
+                        .performerRef(performer1Oid.toString(),
+                                UserType.COMPLEX_TYPE, performer1Relation)
+                        .stageNumber(1)
+                        .assigneeRef(wi1AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef1Relation)
+                        .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation)
+                        .candidateRef(wi1CandidateRef2Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef2Relation)
+                        .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
+                .workItem(new CaseWorkItemType(prismContext)
+                        .id(42L)
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
+                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
+                        .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
+                        .originalAssigneeRef(originalAssignee2Oid.toString(),
+                                UserType.COMPLEX_TYPE, originalAssignee2Relation)
+                        .performerRef(performer2Oid.toString(),
+                                UserType.COMPLEX_TYPE, performer2Relation)
+                        .stageNumber(2)
+                        .assigneeRef(wi2AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2AssigneeRef1Relation)
+                        .assigneeRef(wi2AssigneeRef2Oid.toString(), UserType.COMPLEX_TYPE, wi2AssigneeRef2Relation)
+                        .candidateRef(wi2CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2CandidateRef1Relation)
+                        .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME two")));
+
+        when("adding it to the repository");
+        repositoryService.addObject(acase.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MCase caseRow = selectObjectByOid(QCase.class, acase.getOid());
+        assertThat(caseRow.state).isEqualTo("closed");
+        assertThat(caseRow.closeTimestamp).isEqualTo(Instant.ofEpochMilli(321));
+        assertThat(caseRow.parentRefTargetOid).isEqualTo(parentOid);
+        assertThat(caseRow.parentRefTargetType).isEqualTo(MObjectType.CASE);
+        assertCachedUri(caseRow.parentRefRelationId, parentRelation);
+        assertThat(caseRow.objectRefTargetOid).isEqualTo(objectOid);
+        assertThat(caseRow.objectRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(caseRow.objectRefRelationId, objectRelation);
+        assertThat(caseRow.requestorRefTargetOid).isEqualTo(requestorOid);
+        assertThat(caseRow.requestorRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(caseRow.requestorRefRelationId, requestorRelation);
+        assertThat(caseRow.targetRefTargetOid).isEqualTo(targetOid);
+        assertThat(caseRow.targetRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(caseRow.targetRefRelationId, targetRelation);
+
+        QCaseWorkItem wiAlias = aliasFor(QCaseWorkItem.class);
+        List<MCaseWorkItem> wiRows = select(wiAlias, wiAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        assertThat(wiRows).hasSize(2);
+        wiRows.sort(comparing(tr -> tr.cid));
+
+        MCaseWorkItem wiRow = wiRows.get(0);
+        assertThat(wiRow.cid).isEqualTo(41); // assigned in advance
+        assertThat(wiRow.ownerOid.toString()).isEqualTo(acase.getOid());
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.CASE_WORK_ITEM);
+        assertThat(wiRow.createTimestamp).isEqualTo(Instant.ofEpochMilli(10000));
+        assertThat(wiRow.closeTimestamp).isEqualTo(Instant.ofEpochMilli(10100));
+        assertThat(wiRow.deadline).isEqualTo(Instant.ofEpochMilli(10200));
+        assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee1Oid);
+        assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee1Relation);
+        assertThat(wiRow.outcome).isEqualTo("OUTCOME one");
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer1Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer1Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(1);
+
+        wiRow = wiRows.get(1);
+        assertThat(wiRow.cid).isEqualTo(42); // assigned in advance
+        assertThat(wiRow.ownerOid.toString()).isEqualTo(acase.getOid());
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.CASE_WORK_ITEM);
+        assertThat(wiRow.createTimestamp).isEqualTo(Instant.ofEpochMilli(20000));
+        assertThat(wiRow.closeTimestamp).isEqualTo(Instant.ofEpochMilli(20100));
+        assertThat(wiRow.deadline).isEqualTo(Instant.ofEpochMilli(20200));
+        assertThat(wiRow.originalAssigneeRefTargetOid).isEqualTo(originalAssignee2Oid);
+        assertThat(wiRow.originalAssigneeRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.originalAssigneeRefRelationId, originalAssignee2Relation);
+        assertThat(wiRow.outcome).isEqualTo("OUTCOME two");
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer2Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer2Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(2);
+
+        QCaseWorkItemReference assigneeRefAlias = QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee().defaultAlias();
+        List<MCaseWorkItemReference> assigneeRefRows = select(assigneeRefAlias, assigneeRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        assertThat(assigneeRefRows).hasSize(3);
+        assigneeRefRows.sort(comparing(tr -> tr.targetOid));
+
+        MCaseWorkItemReference assigneeRefRow = assigneeRefRows.get(0);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi2AssigneeRef1Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi2AssigneeRef1Relation);
+        assertThat(assigneeRefRow.workItemCid).isEqualTo(42);
+
+        assigneeRefRow = assigneeRefRows.get(2);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi2AssigneeRef2Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi2AssigneeRef2Relation);
+        assertThat(assigneeRefRow.workItemCid).isEqualTo(42);
+
+        assigneeRefRow = assigneeRefRows.get(1);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi1AssigneeRef1Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi1AssigneeRef1Relation);
+        assertThat(assigneeRefRow.workItemCid).isEqualTo(41);
+
+        QCaseWorkItemReference candidateRefAlias = QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate().defaultAlias();
+        List<MCaseWorkItemReference> candidateRefRows = select(candidateRefAlias, candidateRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        assertThat(candidateRefRows).hasSize(3);
+        candidateRefRows.sort(comparing(tr -> tr.targetOid));
+
+        MCaseWorkItemReference candidateRefRow = candidateRefRows.get(0);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi1CandidateRef2Oid);
+        assertCachedUri(candidateRefRow.relationId, wi1CandidateRef2Relation);
+        assertThat(candidateRefRow.workItemCid).isEqualTo(41);
+
+        candidateRefRow = candidateRefRows.get(1);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi1CandidateRef1Oid);
+        assertCachedUri(candidateRefRow.relationId, wi1CandidateRef1Relation);
+        assertThat(candidateRefRow.workItemCid).isEqualTo(41);
+
+        candidateRefRow = candidateRefRows.get(2);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(acase.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.CASE);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.CASE_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi2CandidateRef1Oid);
+        assertCachedUri(candidateRefRow.relationId, wi2CandidateRef1Relation);
+        assertThat(candidateRefRow.workItemCid).isEqualTo(42);
+    }
+
     // endregion
 
     // region delete tests
@@ -1182,7 +1628,26 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test920DeleteAllOtherObjects() throws Exception {
+    public void test920DeleteOperationUpdatesPerformanceMonitor()
+            throws ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        given("object to delete and cleared performance information");
+        UUID userOid = randomExistingOid(QUser.class);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+
+        when("object is deleted from the repository");
+        repositoryService.deleteObject(FocusType.class, userOid.toString(), result);
+
+        then("performance monitor is updated");
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_DELETE_OBJECT);
+    }
+
+    @Test
+    public void test999DeleteAllOtherObjects() throws Exception {
         // this doesn't follow given-when-then, sorry
         OperationResult result = createOperationResult();
 
