@@ -94,6 +94,8 @@ public abstract class AbstractActivityExecution<
             logComplete();
             return ActivityExecutionResult.finished(activityState.getResultStatus());
         } else {
+            activityState.markInProgress(result);
+
             logStart();
             ActivityExecutionResult executionResult = executeTreatingExceptions(result);
             logEnd(executionResult);

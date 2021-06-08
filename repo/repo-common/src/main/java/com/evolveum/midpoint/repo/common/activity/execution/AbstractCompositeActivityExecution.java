@@ -57,7 +57,7 @@ public abstract class AbstractCompositeActivityExecution<
     }
 
     /** Executes child activities. */
-    private void executeChildren(OperationResult result) throws ActivityExecutionException, CommonException {
+    private void executeChildren(OperationResult result) throws ActivityExecutionException {
         for (Activity<?, ?> child : activity.getChildrenMap().values()) {
             ActivityExecutionResult childExecutionResult = child
                     .createExecution(taskExecution, result)

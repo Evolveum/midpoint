@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.common.task.ErrorState;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.CanRunSupplier;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 
@@ -41,6 +40,7 @@ public class ActivityExecutionResult implements ShortDumpable {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setRunResultStatus(
                 MoreObjects.firstNonNull(runResultStatus, TaskRunResultStatus.FINISHED));
+        runResult.setOperationResultStatus(operationResultStatus);
         // progress and operation result are intentionally kept null (meaning "do not update these in the task")
         return runResult;
     }
@@ -97,12 +97,25 @@ public class ActivityExecutionResult implements ShortDumpable {
     }
 
     public void update(@NotNull ActivityExecutionResult childExecutionResult) {
+        updateRunResultStatus(childExecutionResult);
+        updateOperationResultStatus(childExecutionResult);
+    }
+
+    private void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult) {
         if (childExecutionResult.isPermanentError()) {
             runResultStatus = TaskRunResultStatus.PERMANENT_ERROR;
         } else if (childExecutionResult.isTemporaryError()) {
             runResultStatus = TaskRunResultStatus.TEMPORARY_ERROR;
-        } else {
-            // probably OK
+        }
+    }
+
+    private void updateOperationResultStatus(@NotNull ActivityExecutionResult childExecutionResult) {
+        if (childExecutionResult.getOperationResultStatus() == OperationResultStatus.FATAL_ERROR) {
+            operationResultStatus = OperationResultStatus.FATAL_ERROR;
+        } else if (childExecutionResult.getOperationResultStatus() == OperationResultStatus.PARTIAL_ERROR) {
+            if (operationResultStatus != OperationResultStatus.FATAL_ERROR) {
+                operationResultStatus = OperationResultStatus.PARTIAL_ERROR;
+            }
         }
     }
 

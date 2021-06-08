@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -262,6 +263,10 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     @NotNull
     private ItemPath getResultStatusItemPath() {
         return stateItemPath.append(ActivityStateType.F_RESULT_STATUS);
+    }
+
+    public void markInProgress(OperationResult result) throws ActivityExecutionException {
+        setRealizationStateAndResultStatus(ActivityRealizationStateType.IN_PROGRESS_LOCAL, IN_PROGRESS, result);
     }
 
     public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {

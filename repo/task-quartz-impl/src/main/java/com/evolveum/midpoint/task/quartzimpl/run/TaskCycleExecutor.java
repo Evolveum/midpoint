@@ -17,7 +17,6 @@ import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 
 import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
 
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,8 +27,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Executes so called "task cycles" i.e. executions of the task handler.
@@ -208,7 +205,11 @@ class TaskCycleExecutor {
                 }
             } else {
                 // This updates the result in the task object. TODO improve
-                task.setResult(task.getResult());
+                OperationResult taskResult = task.getResult();
+                if (runResult.getOperationResultStatus() != null) {
+                    taskResult.recordStatus(runResult.getOperationResultStatus(), ""); // TODO
+                }
+                task.setResult(taskResult);
             }
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             task.flushPendingModifications(result);
