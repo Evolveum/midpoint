@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.common.task.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.repo.common.task.work.GetBucketOperation;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.FoundExisting;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -86,7 +86,7 @@ public class BucketAllocator {
     @NotNull
     private List<WorkBucketType> createNewBuckets(@NotNull List<WorkBucketType> buckets, List<? extends AbstractWorkBucketContentType> newBucketsContent) {
         List<WorkBucketType> newBuckets = new ArrayList<>(newBucketsContent.size());
-        WorkBucketType lastBucket = TaskWorkStateUtil.getLastBucket(buckets);
+        WorkBucketType lastBucket = BucketingUtil.getLastBucket(buckets);
         int sequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
         for (AbstractWorkBucketContentType newBucketContent : newBucketsContent) {
             newBuckets.add(new WorkBucketType(prismContext)
@@ -112,7 +112,7 @@ public class BucketAllocator {
     @NotNull
     private List<? extends AbstractWorkBucketContentType> createNewBucketsContent(@NotNull List<WorkBucketType> buckets)
             throws SchemaException {
-        WorkBucketType lastBucket = TaskWorkStateUtil.getLastBucket(buckets);
+        WorkBucketType lastBucket = BucketingUtil.getLastBucket(buckets);
         AbstractWorkBucketContentType lastContent = lastBucket != null ? lastBucket.getContent() : null;
         Integer lastSequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() : null;
         int count = getBucketCreationBatch();

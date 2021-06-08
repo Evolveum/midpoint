@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -303,7 +303,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (!getReportingOptions().isDetermineExpectedTotal()) {
             return null;
-        } else if (TaskWorkStateUtil.hasLimitations(bucket)) {
+        } else if (BucketingUtil.hasLimitations(bucket)) {
             // We avoid computing expected total if we are processing a bucket: actually we could do it,
             // but we should not display the result as 'task expected total'.
             return null;

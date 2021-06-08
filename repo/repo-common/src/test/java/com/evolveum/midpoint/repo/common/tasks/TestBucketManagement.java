@@ -10,7 +10,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.sortBucketsBySequentialNumber;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.sortBucketsBySequentialNumber;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 
 import org.jetbrains.annotations.NotNull;
@@ -950,7 +950,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     private List<WorkBucketType> getBuckets(ActivityStateType workState) {
-        return TaskWorkStateUtil.getBuckets(workState);
+        return BucketingUtil.getBuckets(workState);
     }
 
     private List<WorkBucketType> getOrCreateBuckets(ActivityStateType workState) {
@@ -961,7 +961,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     private Integer getNumberOfBuckets(Task task) {
-        return TaskWorkStateUtil.getNumberOfBuckets(task.getWorkState().getActivity());
+        return BucketingUtil.getNumberOfBuckets(task.getWorkState().getActivity());
     }
 
     private ActivityDistributionDefinition getDistributionDefinition(Task task) {

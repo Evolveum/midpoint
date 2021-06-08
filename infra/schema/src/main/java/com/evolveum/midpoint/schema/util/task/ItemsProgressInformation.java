@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.hasBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.hasBuckets;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**

@@ -75,14 +75,14 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
      * Task is not internally partitioned. It can be bucketed and can have subtasks.
      */
     static TaskPartProgressInformation fromSimpleTask(TaskType task) {
-        boolean complete = TaskWorkStateUtil.isAllWorkComplete(task);
+        boolean complete = ActivityStateUtil.isAllWorkComplete(task);
         BucketsProgressInformation bucketsProgress = getBucketsProgressInformation(task);
         ItemsProgressInformation itemsProgress = ItemsProgressInformation.fromTask(task);
         return new TaskPartProgressInformation(null, complete, bucketsProgress, itemsProgress);
     }
 
     private static BucketsProgressInformation getBucketsProgressInformation(TaskType task) {
-        if (TaskWorkStateUtil.isWorker(task)) {
+        if (BucketingUtil.isWorker(task)) {
             // Workers do not have complete information about buckets.
             return null;
         } else {
@@ -127,7 +127,7 @@ public class TaskPartProgressInformation implements DebugDumpable, Serializable 
     }
 
     /**
-     * Related to {@link TaskWorkStateUtil#hasBuckets(TaskType)}. But unfortunately we do not have the full information
+     * Related to {@link BucketingUtil#hasBuckets(TaskType)}. But unfortunately we do not have the full information
      * here, in particular we don't see the actual buckets. This should be probably fixed in the pre-processing phase
      * i.e. when {@link TaskPartProgressInformation} is created.
      */

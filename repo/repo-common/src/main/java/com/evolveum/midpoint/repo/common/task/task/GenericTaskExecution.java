@@ -8,9 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.task;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +54,7 @@ public class GenericTaskExecution implements TaskExecution {
 
         try {
             activityTree = ActivityTree.create(getRootTask(), getBeans());
-            localRootPath = TaskWorkStateUtil.getLocalRootPath(runningTask.getWorkState());
+            localRootPath = ActivityStateUtil.getLocalRootPath(runningTask.getWorkState());
 
             localRoot = activityTree.getActivity(localRootPath);
             localRoot.setLocalRoot(true);
@@ -71,7 +69,7 @@ public class GenericTaskExecution implements TaskExecution {
             ActivityExecutionResult executionResult = localRootExecution.execute(result);
 
             logEnd(localRootExecution, executionResult);
-            return executionResult.getTaskRunResult();
+            return executionResult.createTaskRunResult();
         } catch (ActivityExecutionException e) {
             logException(e);
             throw e.toTaskException();

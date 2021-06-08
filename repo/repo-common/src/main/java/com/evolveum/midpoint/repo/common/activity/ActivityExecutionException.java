@@ -52,7 +52,7 @@ public class ActivityExecutionException extends Exception {
         return getMessage() + (cause != null ? ": " + cause.getMessage() : "");
     }
 
-    public ActivityExecutionResult getActivityExecutionResult() {
+    public ActivityExecutionResult toActivityExecutionResult() {
         return new ActivityExecutionResult(opResultStatus, runResultStatus);
     }
 

@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -255,7 +256,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
-                if (!TaskWorkStateUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
+                if (!ActivityStateUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
                     cellItem.add(new Label(componentId,
                             (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
@@ -782,7 +783,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskWorkStateUtil.isCoordinator(task);
+        return task != null && BucketingUtil.isCoordinator(task);
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
@@ -792,7 +793,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskWorkStateUtil.isManageableTreeRoot(task);
+        return task != null && ActivityStateUtil.isManageableTreeRoot(task);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

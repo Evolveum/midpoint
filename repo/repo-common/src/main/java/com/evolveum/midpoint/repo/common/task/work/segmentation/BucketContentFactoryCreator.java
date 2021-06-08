@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.work.segmentation;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class BucketContentFactoryCreator {
      */
     @NotNull BucketContentFactory createContentFactory(@Nullable WorkBucketsManagementType bucketingConfig) {
 
-        AbstractWorkSegmentationType segmentationConfig = TaskWorkStateUtil.getWorkSegmentationConfiguration(bucketingConfig);
+        AbstractWorkSegmentationType segmentationConfig = BucketingUtil.getWorkSegmentationConfiguration(bucketingConfig);
 
         if (segmentationConfig == null) {
             return new NullBucketContentFactory();

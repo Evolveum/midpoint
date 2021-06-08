@@ -37,7 +37,7 @@ public class ActivityExecutionResult implements ShortDumpable {
         this.operationResultStatus = operationResultStatus;
     }
 
-    public TaskRunResult getTaskRunResult() {
+    public TaskRunResult createTaskRunResult() {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setRunResultStatus(
                 MoreObjects.firstNonNull(runResultStatus, TaskRunResultStatus.FINISHED));
@@ -61,6 +61,10 @@ public class ActivityExecutionResult implements ShortDumpable {
         this.operationResultStatus = operationResultStatus;
     }
 
+    public static ActivityExecutionResult finishedWithSuccess() {
+        return finished(OperationResultStatus.SUCCESS);
+    }
+
     public static ActivityExecutionResult finished(OperationResultStatus operationResultStatus) {
         return new ActivityExecutionResult(operationResultStatus, TaskRunResultStatus.FINISHED);
     }
@@ -73,13 +77,15 @@ public class ActivityExecutionResult implements ShortDumpable {
     @Override
     public String toString() {
         return "ActivityExecutionResult{" +
-                "runResultStatus=" + runResultStatus +
+                "opStatus=" + operationResultStatus +
+                ",runStatus=" + runResultStatus +
                 '}';
     }
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append("status: ").append(runResultStatus);
+        sb.append("opStatus: ").append(operationResultStatus);
+        sb.append("runStatus: ").append(runResultStatus);
     }
 
     public void update(ErrorState errorState) {
@@ -111,16 +117,6 @@ public class ActivityExecutionResult implements ShortDumpable {
 
     public boolean isTemporaryError() {
         return runResultStatus == TaskRunResultStatus.TEMPORARY_ERROR;
-    }
-
-    public void completeIfNoError(CanRunSupplier canRunSupplier) {
-        if (runResultStatus == null) {
-            runResultStatus = canRunSupplier.canRun() ?
-                    TaskRunResultStatus.FINISHED : TaskRunResultStatus.INTERRUPTED;
-        }
-        if (operationResultStatus == null) {
-            operationResultStatus = OperationResultStatus.SUCCESS;
-        }
     }
 
     public boolean isFinished() {

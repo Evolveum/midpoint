@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -113,7 +115,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -3779,14 +3780,14 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType) obj)) {
+        if (obj instanceof TaskType && BucketingUtil.isCoordinator((TaskType) obj)) {
             IconType icon = new IconType();
             icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
             builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             if (title.length() > 0) {
                 title.append("\n");
             }
-            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType) obj)).getString());
+            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
         }
 
         if (StringUtils.isNotEmpty(title.toString())) {

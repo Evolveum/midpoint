@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.repo.common.task.work.segmentation.content.WorkBuck
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
@@ -119,7 +120,7 @@ public class BucketingManager {
         WorkBucketContentHandler contentHandler = handlerFactory.getHandler(workBucket.getContent());
 
         AbstractWorkSegmentationType segmentationConfig =
-                TaskWorkStateUtil.getWorkSegmentationConfiguration(distributionDefinition.getBuckets());
+                BucketingUtil.getWorkSegmentationConfiguration(distributionDefinition.getBuckets());
 
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 contentHandler.createSpecificFilters(workBucket, segmentationConfig, type, itemDefinitionProvider));

@@ -48,7 +48,7 @@ class SimpleMockActivityExecution
         helper.increaseExecutionCount(this, result);
         helper.failIfNeeded(this, activity.getWorkDefinition().getInitialFailures());
 
-        return ActivityExecutionResult.finished(activityState.getResultStatus());
+        return ActivityExecutionResult.finishedWithSuccess();
     }
 
     @NotNull

@@ -127,7 +127,7 @@ public class TaskOperationStatsUtil {
      * 5. cachingConfiguration.
      */
     public static OperationStatsType getOperationStatsFromTree(TaskType task, PrismContext prismContext) {
-        if (!TaskWorkStateUtil.isPartitionedMaster(task) && !TaskWorkStateUtil.isWorkStateHolder(task)) {
+        if (!ActivityStateUtil.isPartitionedMaster(task) && !ActivityStateUtil.isWorkStateHolder(task)) {
             return task.getOperationStats();
         }
 

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
 public class ReleaseBucketOperation extends BucketOperation {
 
@@ -53,7 +53,7 @@ public class ReleaseBucketOperation extends BucketOperation {
     private void releaseWorkBucketMultiNode(int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityStateType workState = getCoordinatorTaskPartWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
         }

@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -3238,7 +3238,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
-        ActivityStateType workState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        ActivityStateType workState = ActivityStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
         long completed = getBuckets(workState).stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
@@ -3279,7 +3279,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
-        ActivityStateType workState = TaskWorkStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        ActivityStateType workState = ActivityStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));
     }
 

@@ -148,7 +148,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType(getPrismContext())
                         .identifier(identifier)
-                        .realizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL))
+                        .realizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .resultStatus(OperationResultStatusType.IN_PROGRESS))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 @Component
 public class CommonMockActivityHelper {
 
-    private static final ItemName EXECUTION_COUNT_NAME = new ItemName(NS_EXT, "executionCount");
+    public static final ItemName EXECUTION_COUNT_NAME = new ItemName(NS_EXT, "executionCount");
     private static final ItemPath EXECUTION_COUNT_PATH = ItemPath.create(F_EXTENSION, EXECUTION_COUNT_NAME);
 
     public void increaseExecutionCount(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution, OperationResult result)

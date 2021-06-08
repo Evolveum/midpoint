@@ -13,7 +13,7 @@ import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
 public class CompleteBucketOperation extends BucketOperation {
 
@@ -59,7 +59,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private void completeWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityStateType partWorkState = getWorkerTaskActivityWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
         }
@@ -78,7 +78,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private void completeWorkBucketMultiNode(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ActivityStateType workState = getCoordinatorTaskPartWorkState();
-        WorkBucketType bucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
         }
@@ -105,7 +105,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private void compressCompletedBuckets(Task task, ItemPath statePath, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         List<WorkBucketType> buckets = new ArrayList<>(getBuckets(task.getWorkState(), activityPath));
-        TaskWorkStateUtil.sortBucketsBySequentialNumber(buckets);
+        BucketingUtil.sortBucketsBySequentialNumber(buckets);
         List<WorkBucketType> completeBuckets = buckets.stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .collect(Collectors.toList());

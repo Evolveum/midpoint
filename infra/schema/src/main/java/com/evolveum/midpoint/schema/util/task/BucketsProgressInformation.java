@@ -40,7 +40,7 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
             return new BucketsProgressInformation(null, 0);
         } else {
             return new BucketsProgressInformation(null, /*workState.getNumberOfBuckets(), */
-                    TaskWorkStateUtil.getCompleteBucketsNumber(state));
+                    BucketingUtil.getCompleteBucketsNumber(state));
         }
     }
 

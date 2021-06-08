@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -187,6 +187,13 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
+    public TaskActivityStateAsserter<TaskAsserter<RA>> activityState() {
+        TaskActivityStateType activityState = getObject().asObjectable().getActivityState();
+        TaskActivityStateAsserter<TaskAsserter<RA>> asserter = new TaskActivityStateAsserter<>(activityState, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     public StructuredTaskProgressAsserter<TaskAsserter<RA>> structuredProgress() {
         throw new UnsupportedOperationException();
 //        StructuredTaskProgressType progress = getObject().asObjectable().getStructuredProgress();
@@ -270,7 +277,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
         TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
-                .filter(t -> Integer.valueOf(number).equals(TaskWorkStateUtil.getPartitionSequentialNumber(t)))
+                .filter(t -> Integer.valueOf(number).equals(ActivityStateUtil.getPartitionSequentialNumber(t)))
                 .findAny().orElse(null);
         assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
 

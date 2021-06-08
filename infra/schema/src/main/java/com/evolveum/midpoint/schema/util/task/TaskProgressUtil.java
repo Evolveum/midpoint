@@ -67,7 +67,7 @@ public class TaskProgressUtil {
     }
 
     private static String getRealProgressDescription(TaskType task) {
-        if (TaskWorkStateUtil.isWorkStateHolder(task)) {
+        if (ActivityStateUtil.isWorkStateHolder(task)) {
             return getBucketedTaskProgressDescription(task);
         } else {
             return getPlainTaskProgressDescription(task);
@@ -89,7 +89,7 @@ public class TaskProgressUtil {
     }
 
     private static Integer getCompleteBuckets(TaskType taskType) {
-        return TaskWorkStateUtil.getCompleteBucketsNumber(taskType);
+        return BucketingUtil.getCompleteBucketsNumber(taskType);
     }
 
     public static String getPlainTaskProgressDescription(TaskType taskType) {

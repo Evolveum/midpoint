@@ -59,7 +59,7 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
      * Precondition: the task contains fully retrieved and resolved subtasks.
      */
     public static TaskProgressInformation fromTaskTree(TaskType task) {
-        if (TaskWorkStateUtil.isPartitionedMaster(task)) {
+        if (ActivityStateUtil.isPartitionedMaster(task)) {
             return fromPartitionedMaster(task);
         } else {
             return fromSimpleTask(task);
@@ -80,7 +80,7 @@ public class TaskProgressInformation implements DebugDumpable, Serializable {
 
             TaskPartProgressInformation partInfo = TaskPartProgressInformation.fromPersistentSubtask(subtask);
             partsByUri.put(partInfo.getPartOrHandlerUri(), partInfo);
-            Integer index = TaskWorkStateUtil.getPartitionSequentialNumber(subtask);
+            Integer index = ActivityStateUtil.getPartitionSequentialNumber(subtask);
             if (index != null) {
                 partsByIndex.put(index, partInfo);
             } else {

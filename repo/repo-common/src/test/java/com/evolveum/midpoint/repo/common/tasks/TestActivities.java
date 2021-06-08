@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.common.tasks;
 
+import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -426,10 +428,22 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then("run 1");
 
+        // @formatter:off
         assertTask(task1.getOid(), "after run 1")
                 .display()
                 //.assertFatalError() // TODO
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+        // @formatter:on
 
         displayDumpable("recorder after run 1", recorder);
 
@@ -446,10 +460,22 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then("run 2");
 
+        // @formatter:off
         assertTask(task1.getOid(), "after run 2")
                 .display()
                 //.assertFatalError() // TODO
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2);
+        // @formatter:on
 
         displayDumpable("recorder after run 2", recorder);
         expectedRecords.add("#1"); // 2nd failed attempt
@@ -465,10 +491,39 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then("run 3");
 
+        // @formatter:off
         assertTask(task1.getOid(), "after run 3")
                 .display()
                 //.assertFatalError() // TODO
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+                            .end()
+                        .end()
+                        .activity("composition:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                            .activity("mock-simple:1")
+                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                                .end()
+                            .end()
+                            .activity("mock-simple:2")
+                                .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+        // @formatter:on
 
         displayDumpable("recorder after run 3", recorder);
         expectedRecords.add("#1"); // success after 2 failures
@@ -486,10 +541,47 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then("run 4");
 
+        // @formatter:off
         assertTask(task1.getOid(), "after run 4")
                 .display()
                 //.assertFatalError() // TODO
-                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+                            .end()
+                        .end()
+                        .activity("composition:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .activity("mock-simple:1")
+                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                                .end()
+                            .end()
+                            .activity("mock-simple:2")
+                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+                                .end()
+                            .end()
+                        .end()
+                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+        // @formatter:on
 
         displayDumpable("recorder after run 4", recorder);
         expectedRecords.add("#2.2"); // success after 1 failure
@@ -506,10 +598,47 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then("run 5");
 
-        assertTask(task1.getOid(), "after run 5")
+        // @formatter:off
+        assertTask(task1.getOid(), "after run 4")
                 .display()
                 //.assertFatalError() // TODO
-                .assertExecutionStatus(TaskExecutionStateType.CLOSED);
+                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+                            .end()
+                        .end()
+                        .activity("composition:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .activity("mock-simple:1")
+                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                                .end()
+                            .end()
+                            .activity("mock-simple:2")
+                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                                .workStateExtension()
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+                                .end()
+                            .end()
+                        .end()
+                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2);
+        // @formatter:on
 
         displayDumpable("recorder after run 5", recorder);
         expectedRecords.add("#3"); // success after 1 failure

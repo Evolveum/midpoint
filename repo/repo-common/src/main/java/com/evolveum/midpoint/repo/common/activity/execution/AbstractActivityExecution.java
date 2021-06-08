@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -94,8 +95,7 @@ public abstract class AbstractActivityExecution<
             return ActivityExecutionResult.finished(activityState.getResultStatus());
         } else {
             logStart();
-
-            ActivityExecutionResult executionResult = executeCatchingExceptions(result);
+            ActivityExecutionResult executionResult = executeTreatingExceptions(result);
             logEnd(executionResult);
 
             updateActivityState(executionResult, result);
@@ -104,8 +104,26 @@ public abstract class AbstractActivityExecution<
         }
     }
 
+    @NotNull
+    private ActivityExecutionResult executeTreatingExceptions(OperationResult result) {
+        ActivityExecutionResult executionResult;
+        try {
+            executionResult = executeInternal(result);
+        } catch (ActivityExecutionException e) {
+            executionResult = e.toActivityExecutionResult();
+        } catch (Exception e) {
+            LOGGER.warn("Unhandled exception in {}: {}", this, MiscUtil.getClassWithMessage(e));
+            executionResult = ActivityExecutionResult.exception(OperationResultStatus.FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+
+        return executionResult;
+    }
+
     private void updateActivityState(ActivityExecutionResult executionResult, OperationResult result)
             throws ActivityExecutionException {
+
+        completeExecutionResult(executionResult);
+
         OperationResultStatus currentResultStatus = executionResult.getOperationResultStatus();
         if (executionResult.isFinished()) {
             activityState.markComplete(currentResultStatus, result);
@@ -114,36 +132,33 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    @NotNull
-    private ActivityExecutionResult executeCatchingExceptions(OperationResult result) {
-        ActivityExecutionResult executionResult;
-        try {
-            executionResult = executeInternal(result);
-        } catch (ActivityExecutionException e) {
-            executionResult = e.getActivityExecutionResult();
-        } catch (Exception e) {
-            LOGGER.warn("Unhandled exception in {}: {}", this, MiscUtil.getClassWithMessage(e));
-            executionResult = ActivityExecutionResult.exception(OperationResultStatus.FATAL_ERROR, PERMANENT_ERROR, e);
+    private void completeExecutionResult(ActivityExecutionResult executionResult) {
+        if (executionResult.getRunResultStatus() == null) {
+            executionResult.setRunResultStatus(getTaskExecution().canRun() ?
+                    TaskRunResult.TaskRunResultStatus.FINISHED : TaskRunResult.TaskRunResultStatus.INTERRUPTED);
         }
-
-        executionResult.completeIfNoError(getRunningTask());
-
-        return executionResult;
+        if (executionResult.getOperationResultStatus() == null) {
+            executionResult.setOperationResultStatus(activityState.getResultStatus());
+        }
+        if ((executionResult.getOperationResultStatus() == null ||
+                executionResult.getOperationResultStatus() == OperationResultStatus.IN_PROGRESS) && executionResult.isFinished()) {
+            executionResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
+        }
     }
 
-    private void logStart() {
-        LOGGER.trace("Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
+    private void logStart() { // todo debug
+        LOGGER.info("Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
                         + "prism item path: {}", activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 activityState.getItemPath());
     }
 
-    private void logEnd(ActivityExecutionResult executionResult) {
-        LOGGER.trace("Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+    private void logEnd(ActivityExecutionResult executionResult) { // todo debug
+        LOGGER.info("Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
                 activity.getIdentifier(), activity.getPath(), activity.getLocalPath(), executionResult);
     }
 
-    private void logComplete() {
-        LOGGER.trace("Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
+    private void logComplete() { // todo debug
+        LOGGER.info("Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
                 activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 

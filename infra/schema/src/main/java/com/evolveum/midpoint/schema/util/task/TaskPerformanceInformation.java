@@ -10,9 +10,7 @@ package com.evolveum.midpoint.schema.util.task;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -51,7 +49,7 @@ public class TaskPerformanceInformation implements DebugDumpable, Serializable {
      * Precondition: the task contains fully retrieved and resolved subtasks.
      */
     public static TaskPerformanceInformation fromTaskTree(TaskType task) {
-        if (TaskWorkStateUtil.isPartitionedMaster(task)) {
+        if (ActivityStateUtil.isPartitionedMaster(task)) {
             return fromPartitionedMaster(task);
         } else {
             return fromOtherTask(task);

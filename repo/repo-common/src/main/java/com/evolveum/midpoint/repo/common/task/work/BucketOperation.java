@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.*;
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
@@ -113,20 +114,20 @@ class BucketOperation implements DebugDumpable {
     }
 
     public boolean isStandalone() {
-        return TaskWorkStateUtil.isStandalone(workerTask.getWorkState(), workerStatePath);
+        return ActivityStateUtil.isStandalone(workerTask.getWorkState(), workerStatePath);
     }
 
     private BucketsProcessingRoleType getWorkerTaskRole() {
-        return TaskWorkStateUtil.getBucketsProcessingRole(workerTask.getWorkState(), workerStatePath);
+        return BucketingUtil.getBucketsProcessingRole(workerTask.getWorkState(), workerStatePath);
     }
 
     private BucketsProcessingRoleType getCoordinatorTaskRole() {
-        return TaskWorkStateUtil.getBucketsProcessingRole(coordinatorTask.getWorkState(), coordinatorStatePath);
+        return BucketingUtil.getBucketsProcessingRole(coordinatorTask.getWorkState(), coordinatorStatePath);
     }
 
     void loadTasks(OperationResult result) throws ObjectNotFoundException, SchemaException {
         workerTask = taskManager.getTaskPlain(workerTaskOid, result);
-        workerStatePath = TaskWorkStateUtil.getWorkStatePath(workerTask.getWorkState(), activityPath);
+        workerStatePath = ActivityStateUtil.getWorkStatePath(workerTask.getWorkState(), activityPath);
 
         BucketsProcessingRoleType workerRole = getWorkerTaskRole();
         if (workerRole == BucketsProcessingRoleType.WORKER) {
@@ -140,7 +141,7 @@ class BucketOperation implements DebugDumpable {
 
     private void loadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
         coordinatorTask = workerTask.getParentTask(result);
-        coordinatorStatePath = TaskWorkStateUtil.getWorkStatePath(coordinatorTask.getWorkState(), activityPath);
+        coordinatorStatePath = ActivityStateUtil.getWorkStatePath(coordinatorTask.getWorkState(), activityPath);
 
         stateCheck(coordinatorTask != null, "No coordinator task for worker task %s", workerTask);
         stateCheck(getCoordinatorTaskRole() == BucketsProcessingRoleType.COORDINATOR,
@@ -148,13 +149,13 @@ class BucketOperation implements DebugDumpable {
     }
 
     List<WorkBucketType> getWorkerTaskBuckets() {
-        return getBuckets(getWorkerTaskActivityWorkState());
+        return BucketingUtil.getBuckets(getWorkerTaskActivityWorkState());
     }
 
     @NotNull
     private WorkDistributionType getCoordinatorWorkManagement() {
         return requireNonNull(
-                TaskWorkStateUtil.getWorkDistribution(coordinatorTask.getRootActivityDefinitionOrClone(),
+                ActivityStateUtil.getWorkDistribution(coordinatorTask.getRootActivityDefinitionOrClone(),
                         getCurrentActivityId(coordinatorTask.getWorkState())),
                 () -> "No work management for the current part in coordinator task " + coordinatorTask);
     }
@@ -175,7 +176,7 @@ class BucketOperation implements DebugDumpable {
 
     @NotNull
     ActivityStateType getTaskActivityWorkState(Task workerTask) {
-        return requireNonNull(TaskWorkStateUtil.getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath),
+        return requireNonNull(ActivityStateUtil.getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath),
                 () -> "No current part work state in " + workerTask +
                         " (activity path: " + activityPath + ", item path: " + workerStatePath);
     }
@@ -225,8 +226,8 @@ class BucketOperation implements DebugDumpable {
 
     ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
         return taskObject -> {
-            WorkBucketType currentBucket = findBucketByNumber(
-                    getBuckets(taskObject.asObjectable().getActivityState(), activityPath),
+            WorkBucketType currentBucket = BucketingUtil.findBucketByNumber(
+                    BucketingUtil.getBuckets(taskObject.asObjectable().getActivityState(), activityPath),
                     originalBucket.getSequentialNumber());
             // performance is not optimal but OK for precondition checking
             return currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
@@ -236,7 +237,7 @@ class BucketOperation implements DebugDumpable {
     void deleteBucketFromWorker(int sequentialNumber, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ObjectAlreadyExistsException {
         ActivityStateType state = getWorkerTaskActivityWorkState();
-        WorkBucketType workerBucket = TaskWorkStateUtil.findBucketByNumber(getBuckets(state), sequentialNumber);
+        WorkBucketType workerBucket = BucketingUtil.findBucketByNumber(BucketingUtil.getBuckets(state), sequentialNumber);
         if (workerBucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber +
                     " in worker task " + workerTask);

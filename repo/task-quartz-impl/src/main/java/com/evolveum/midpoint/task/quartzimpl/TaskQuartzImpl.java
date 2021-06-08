@@ -24,7 +24,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -523,7 +523,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public ActivityStateType getActivityStateOrClone(ItemPath path) {
         synchronized (prismAccess) {
-            return cloneIfRunning(TaskWorkStateUtil.getActivityWorkState(taskPrism.asObjectable(), path));
+            return cloneIfRunning(ActivityStateUtil.getActivityWorkState(taskPrism.asObjectable(), path));
         }
     }
 

@@ -49,11 +49,9 @@ public abstract class AbstractCompositeActivityExecution<
 
         activity.initializeChildrenMapIfNeeded();
 
-        LOGGER.trace("Activity before execution:\n{}", activity.debugDumpLazily());
-
+        logStart();
         executeChildren(result);
-
-        LOGGER.trace("After children execution ({}):\n{}", executionResult.shortDumpLazily(), debugDumpLazily());
+        logEnd();
 
         return executionResult;
     }
@@ -69,6 +67,14 @@ public abstract class AbstractCompositeActivityExecution<
                 break;
             }
         }
+    }
+
+    private void logEnd() {
+        LOGGER.trace("After children execution ({}):\n{}", executionResult.shortDumpLazily(), debugDumpLazily());
+    }
+
+    private void logStart() {
+        LOGGER.trace("Activity before execution:\n{}", activity.debugDumpLazily());
     }
 
     @Override

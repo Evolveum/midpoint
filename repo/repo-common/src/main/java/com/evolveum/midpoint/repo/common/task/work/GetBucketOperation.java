@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributio
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -38,9 +38,9 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
-import static com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
@@ -170,7 +170,7 @@ public class GetBucketOperation extends BucketOperation {
             } if (response instanceof BucketAllocator.Response.FoundExisting) {
                 return recordExistingBucketInWorkerTask((BucketAllocator.Response.FoundExisting) response, result);
             } else if (response instanceof BucketAllocator.Response.NothingFound) {
-                if (!TaskWorkStateUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
+                if (!ActivityStateUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
                     processNothingFoundForNonScavenger();
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
