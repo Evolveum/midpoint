@@ -23,12 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.QExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -254,8 +256,41 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 .createReferenceValue(targetOid).relation(relation);
     }
 
-    /** Returns Q-name from extension schema with specified local part name. */
-    protected ItemName exampleItemName(String name) {
-        return new ItemName("http://example.com/p", name);
+    // region extension support
+    protected <V> void addExtensionValue(
+            Containerable extContainer, String itemName, V value) throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<PrismProperty<V>> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        PrismProperty<V> property = itemDefinition.instantiate();
+        property.setRealValue(value);
+        pcv.add(property);
     }
+
+    protected String extensionKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
+    }
+
+    protected String shadowAttributeKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
+    }
+
+    private String extKey(Containerable extContainer, String itemName, MExtItemHolderType holder) {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        MExtItem.Key key = MExtItem.keyFrom(def, holder);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            QExtItem ei = QExtItem.DEFAULT;
+            return jdbcSession.newQuery()
+                    .from(ei)
+                    .where(ei.itemName.eq(key.itemName)
+                            .and(ei.valueType.eq(key.valueType))
+                            .and(ei.holderType.eq(key.holderType))
+                            .and(ei.cardinality.eq(key.cardinality)))
+                    .select(ei.id)
+                    .fetchFirst()
+                    .toString();
+        }
+    }
+    // endregion
 }

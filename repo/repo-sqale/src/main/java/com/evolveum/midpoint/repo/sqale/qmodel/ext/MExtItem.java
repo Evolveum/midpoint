@@ -8,6 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ext;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
+
 /**
  * Querydsl "row bean" type related to {@link QExtItem}.
  */
@@ -64,6 +67,18 @@ public class MExtItem {
         public int hashCode() {
             return Objects.hash(itemName, valueType, holderType, cardinality);
         }
+    }
+
+    /** Creates ext item key from item definition and holder type. */
+    public static Key keyFrom(ItemDefinition<?> definition, MExtItemHolderType holderType) {
+        MExtItem.Key key = new MExtItem.Key();
+        key.itemName = QNameUtil.qNameToUri(definition.getItemName());
+        key.valueType = QNameUtil.qNameToUri(definition.getTypeName());
+        key.cardinality = definition.getMaxOccurs() == 1
+                ? MExtItemCardinality.SCALAR : MExtItemCardinality.ARRAY;
+        key.holderType = holderType;
+
+        return key;
     }
 
     @Override
