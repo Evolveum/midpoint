@@ -24,11 +24,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -591,7 +586,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .name(objectName)
                 .objectType("gen-object-type-1")
                 .extension(new ExtensionType(prismContext));
-        addExtensionValue(object.getExtension(), "stringType", "string-value");
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "stringType", "string-value");
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
@@ -604,17 +600,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap).containsEntry("1", "VAL"); // TODO
-    }
-
-    private <V> void addExtensionValue(Containerable extContainer, String itemName, V value)
-            throws SchemaException {
-        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
-        ItemDefinition<PrismProperty<V>> itemDefinition =
-                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
-        PrismProperty<V> property = itemDefinition.instantiate();
-        property.setRealValue(value);
-        pcv.add(property);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "stringType"), "string-value");
     }
 
     // endregion

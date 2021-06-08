@@ -391,23 +391,18 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .execute();
     }
 
+    // region extension processing
     protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
         if (extContainer == null) {
             return null;
         }
 
-        // TODO
-        //  copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
         Map<String, Object> extMap = new LinkedHashMap<>();
         PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
         for (Item<?, ?> item : prismContainerValue.getItems()) {
+            // TODO indexed check: RAnyConverter.isIndexed + getValueType
             MExtItem extItem = findExtensionItem(item, holderType);
-            extMap.put(extItem.id.toString(), extItemValue(item, holderType));
-//            Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, ownerType);
-//            if (generatorResult.isGeneratedOid()) {
-//                converted.forEach(v -> v.setTransient(true));
-//            }
-//            values.addAll(converted);
+            extMap.put(extItem.id.toString(), extItemValue(item, extItem));
         }
 
         try {
@@ -421,19 +416,37 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         Objects.requireNonNull(item, "Object for converting must not be null.");
 
         ItemDefinition<?> definition = item.getDefinition();
-        Objects.requireNonNull(definition, "Item '" + item.getElementName() + "' without definition can't be saved.");
+        Objects.requireNonNull(definition,
+                "Item '" + item.getElementName() + "' without definition can't be saved.");
 
-        MExtItem.Key extItemKey = new MExtItem.Key();
-        extItemKey.itemName = QNameUtil.qNameToUri(definition.getItemName());
-        extItemKey.valueType = QNameUtil.qNameToUri(definition.getTypeName());
-        extItemKey.cardinality = definition.getMaxOccurs() == 1
-                ? MExtItemCardinality.SCALAR : MExtItemCardinality.ARRAY;
-        extItemKey.holderType = holderType;
-
-        return repositoryContext().resolveExtensionItem(extItemKey);
+        return repositoryContext().resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
     }
 
-    private Object extItemValue(Item<?, ?> item, MExtItemHolderType holderType) {
-        return "VAL"; // TODO
+    private Object extItemValue(Item<?, ?> item, MExtItem holderType) {
+        if (holderType.cardinality == MExtItemCardinality.ARRAY) {
+            List<Object> vals = new ArrayList<>();
+            for (Object realValue : item.getRealValues()) {
+                vals.add(convertExtItemValue(realValue));
+            }
+            return vals;
+        } else {
+            return convertExtItemValue(item.getRealValue());
+        }
     }
+
+    private Object convertExtItemValue(Object realValue) {
+        if (realValue instanceof String
+                || realValue instanceof Number
+                || realValue instanceof Boolean) {
+            return realValue;
+        }
+        // TODO enum
+        // TODO polystring
+        // TODO reference
+        // TODO datetime
+
+        throw new IllegalArgumentException(
+                "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
+    }
+    // endregion
 }
