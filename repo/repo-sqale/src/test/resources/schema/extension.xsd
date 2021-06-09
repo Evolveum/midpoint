@@ -121,8 +121,12 @@
             <xsd:element name="long" type="xsd:long"/>
             <xsd:element name="integer" type="xsd:integer"/>
             <xsd:element name="decimal" type="xsd:decimal"/>
+            <xsd:element name="decimal-2" type="xsd:decimal"/>
+            <xsd:element name="decimal-3" type="xsd:decimal"/>
             <xsd:element name="double" type="xsd:double"/>
+            <xsd:element name="double-2" type="xsd:double"/>
             <xsd:element name="float" type="xsd:float"/>
+            <xsd:element name="float-2" type="xsd:float"/>
 
             <!-- values stored as JSON boolean -->
             <xsd:element name="boolean" type="xsd:boolean"/>

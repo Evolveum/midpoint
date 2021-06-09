@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.api.RepoAddOptions.createOverwrite;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -676,6 +678,70 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .isNotNull();
     }
 
+    @Test
+    public void test305AddObjectWithExtensionItemsOfVariousSimpleTypes()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension items of various simple types");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "int", 1);
+        addExtensionValue(extensionContainer, "short", (short) 2);
+        addExtensionValue(extensionContainer, "long", 3L);
+        addExtensionValue(extensionContainer, "integer", 4);
+        addExtensionValue(extensionContainer, "decimal",
+                new BigDecimal("12345678901234567890.12345678901234567890"));
+        addExtensionValue(extensionContainer, "decimal-2", new BigDecimal("12345678901234567890"));
+        addExtensionValue(extensionContainer, "decimal-3", new BigDecimal("-1"));
+        addExtensionValue(extensionContainer, "double", Double.MAX_VALUE);
+        addExtensionValue(extensionContainer, "double-2", -Double.MIN_VALUE);
+        addExtensionValue(extensionContainer, "float", Float.MAX_VALUE);
+        addExtensionValue(extensionContainer, "float-2", -Float.MIN_VALUE);
+        addExtensionValue(extensionContainer, "boolean", true);
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column stores the values");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "int"), 1)
+                .containsEntry(extensionKey(extensionContainer, "short"), 2) // returned as Integer
+                .containsEntry(extensionKey(extensionContainer, "long"), 3) // returned as Integer
+                .containsEntry(extensionKey(extensionContainer, "integer"), 4)
+                .containsEntry(extensionKey(extensionContainer, "decimal"),
+                        new BigDecimal("12345678901234567890.12345678901234567890"))
+                .containsEntry(extensionKey(extensionContainer, "decimal-2"),
+                        new BigInteger("12345678901234567890")) // no decimal part, returned as BInt
+                .containsEntry(extensionKey(extensionContainer, "decimal-3"), -1) // Integer
+                // Returned as BigInteger. Always prefer String constructor for BigDecimal or
+                // BigInteger (that doesn't offer anything for float/double, understandably).
+                // The value is "whole number", but string output is in scientific notation, so
+                // we need BigDecimal first.
+                .containsEntry(extensionKey(extensionContainer, "double"),
+                        new BigDecimal(Double.toString(Double.MAX_VALUE)).toBigInteger())
+                .containsEntry(extensionKey(extensionContainer, "double-2"),
+                        new BigDecimal(Double.toString(-Double.MIN_VALUE)))
+                // Returned as BigInteger. Don't use new BD(float), neither BD.valueOf(double),
+                // because it changes the float and "thinks up" more non-zero numbers.
+                .containsEntry(extensionKey(extensionContainer, "float"),
+                        new BigDecimal(Float.toString(Float.MAX_VALUE)).toBigInteger())
+                .containsEntry(extensionKey(extensionContainer, "float-2"),
+                        new BigDecimal(Float.toString(-Float.MIN_VALUE)))
+                .containsEntry(extensionKey(extensionContainer, "boolean"), true);
+        // The different types are OK here, must be treated only for index-only extensions.
+        // In that case value must be converted to the expected target type; not part of this test.
+    }
     // endregion
 
     // region insertion of various types
