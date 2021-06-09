@@ -49,7 +49,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
@@ -59,7 +59,7 @@
         <plugins>
             <plugin>
                 <!-- Used to pull XSD files from the JAR -->
-                <groupId>com.evolveum.midpoint.tools</groupId>
+                <groupId>com.evolveum.prism.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
                 <version>4.4-SNAPSHOT</version>
                 <executions>
@@ -72,7 +72,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <groupId>com.evolveum.prism</groupId>
                                     <artifactId>prism-impl</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
