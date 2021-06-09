@@ -197,7 +197,7 @@
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.8 is also default for Spring Boot 2.5.0 -->
         <groovy.version>3.0.8</groovy.version>
-        <xmlsec.version>2.1.4</xmlsec.version>
+        <xmlsec.version>2.2.2</xmlsec.version>
         <connid.version>1.5.0.17</connid.version>
         <jasper.version>6.17.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
@@ -677,6 +677,11 @@
                     <exclusion>
                         <groupId>com.sun.activation</groupId>
                         <artifactId>javax.activation</artifactId>
+                    </exclusion>
+                    <!-- in favor of wss4j version -->
+                    <exclusion>
+                        <groupId>com.fasterxml.woodstox</groupId>
+                        <artifactId>woodstox-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
