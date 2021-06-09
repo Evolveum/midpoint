@@ -16,7 +16,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,6 +74,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
     private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
     private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
+    private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
 
     //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
 //    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
@@ -89,6 +93,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 //    private static final TestResource<TaskType> TASK_300_WORKER = new TestResource<>(TEST_DIR, "task-300-w.xml", "44444444-2222-2222-2222-300w00000000");
 //
     @Autowired private MockRecorder recorder;
+    @Autowired private TaskActivityManager activityManager;
 
     private static final int ROLES = 100;
     private static final String ROLE_NAME_PATTERN = "r%02d";
@@ -424,7 +429,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
 
         then("run 1");
 
@@ -448,15 +453,16 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder after run 1", recorder);
 
         expectedRecords.add("#1"); // 1st failed attempt
-        assertThat(recorder.getExecutions()).as("recorder after run 2")
+        assertThat(recorder.getExecutions()).as("recorder after run 1")
                 .containsExactlyElementsOf(expectedRecords);
 
         // ------------------------------------------------------------------------------------ run 2
 
         when("run 2");
 
+        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
 
         then("run 2");
 
@@ -486,8 +492,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 3");
 
+        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
 
         then("run 3");
 
@@ -536,8 +543,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 4");
 
+        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
 
         then("run 4");
 
@@ -593,8 +601,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 5");
 
+        activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
 
         then("run 5");
 
@@ -646,7 +655,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .containsExactlyElementsOf(expectedRecords);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test200Subtask() throws Exception {
         given();
 
@@ -675,6 +684,304 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
     }
+
+    @Test
+    public void test210SuspendingCompositeWithSubtasks() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+        List<String> expectedRecords = new ArrayList<>();
+
+        Task root = taskAdd(TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS, result);
+
+        // ------------------------------------------------------------------------------------ run 1
+
+        when("run 1");
+
+        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+
+        then("run 1");
+
+        root.refresh(result);
+        displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
+
+        // @formatter:off
+        String oidOfSubtask1 = assertTaskTree(root.getOid(), "after run 1")
+                .display()
+                // state?
+                .assertExecutionStatus(TaskExecutionStateType.RUNNING)
+                .assertSchedulingState(TaskSchedulingStateType.WAITING)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
+                            .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .end()
+                    .end()
+                .end()
+                .subtask(0)
+                    .display()
+                    .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                    .assertSchedulingState(TaskSchedulingStateType.SUSPENDED)
+                    .assertFatalError()
+                    .activityState()
+                        .rootActivity()
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                            .end()
+                        .end()
+                    .end()
+                    .getObject().getOid();
+        // @formatter:on
+
+        displayDumpable("recorder after run 1", recorder);
+
+        expectedRecords.add("#1"); // 1st failed attempt
+        assertThat(recorder.getExecutions()).as("recorder after run 1")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 2
+
+        when("run 2");
+
+        activityManager.clearFailedActivityState(root.getOid(), result);
+        taskManager.resumeTask(oidOfSubtask1, result);
+        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+
+        then("run 2");
+
+        root.refresh(result);
+        displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
+
+        // @formatter:off
+        assertTaskTree(root.getOid(), "after run 2")
+                .display()
+                // state?
+                .assertExecutionStatus(TaskExecutionStateType.RUNNING)
+                .assertSchedulingState(TaskSchedulingStateType.WAITING)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
+                            .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .end()
+                    .end()
+                .end()
+                .subtask(0)
+                    .display()
+                    .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+                    .assertSchedulingState(TaskSchedulingStateType.SUSPENDED)
+                    .assertFatalError()
+                    .activityState()
+                        .rootActivity()
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+                            .end()
+                        .end()
+                    .end();
+        // @formatter:on
+
+        displayDumpable("recorder after run 2", recorder);
+        expectedRecords.add("#1"); // 2nd failed attempt
+        assertThat(recorder.getExecutions()).as("recorder after run 2")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 3
+
+        when("run 3");
+
+        activityManager.clearFailedActivityState(root.getOid(), result);
+        taskManager.resumeTask(oidOfSubtask1, result);
+        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+
+        then("run 3");
+
+        root.refresh(result);
+        displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
+
+        // @formatter:off
+        assertTaskTree(root.getOid(), "after run 3")
+                .display()
+                // state?
+                .assertExecutionStatus(TaskExecutionStateType.RUNNING)
+                .assertSchedulingState(TaskSchedulingStateType.WAITING)
+                .activityState()
+                    .assertNotAllWorkComplete()
+                    .rootActivity()
+                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .activity("mock-simple:1")
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .assertHasTaskRef()
+                        .end()
+                        .activity("composition:1")
+                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
+                            .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                            .assertHasTaskRef()
+                        .end()
+                    .end()
+                .end()
+                .subtaskForPath(ActivityPath.fromId("mock-simple:1"))
+                    .display()
+                    .assertExecutionStatus(TaskExecutionStateType.CLOSED)
+                    .assertSchedulingState(TaskSchedulingStateType.CLOSED)
+                    .assertSuccess()
+                    .activityState()
+                        .rootActivity()
+                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                            .assertNoTaskRef()
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .subtaskForPath(ActivityPath.fromId("composition:1"))
+                    .display()
+                    .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:1"))
+                        .display()
+                    .end()
+                    .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:2"))
+                        .display()
+                    .end();
+        // @formatter:on
+
+        displayDumpable("recorder after run 3", recorder);
+        expectedRecords.add("#1"); // success after 2 failures
+        expectedRecords.add("#2.1"); // immediate success
+        expectedRecords.add("#2.2"); // 1st failure
+        assertThat(recorder.getExecutions()).as("recorder after run 3")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 4
+//
+//        when("run 4");
+//
+//        restartTask(root.getOid(), result);
+//        waitForTaskCloseOrSuspend(root.getOid(), 10000, 200);
+//
+//        then("run 4");
+//
+//        // @formatter:off
+//        assertTask(root.getOid(), "after run 4")
+//                .display()
+//                .assertFatalError()
+//                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
+//                .activityState()
+//                    .assertNotAllWorkComplete()
+//                    .rootActivity()
+//                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+//                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+//                        .activity("mock-simple:1")
+//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                            .workStateExtension()
+//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+//                            .end()
+//                        .end()
+//                        .activity("composition:1")
+//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                            .activity("mock-simple:1")
+//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                                .workStateExtension()
+//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+//                                .end()
+//                            .end()
+//                            .activity("mock-simple:2")
+//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                                .workStateExtension()
+//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+//                                .end()
+//                            .end()
+//                        .end()
+//                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+//                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
+//                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+//                            .workStateExtension()
+//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+//        // @formatter:on
+//
+//        displayDumpable("recorder after run 4", recorder);
+//        expectedRecords.add("#2.2"); // success after 1 failure
+//        expectedRecords.add("#3"); // 1st failure
+//        assertThat(recorder.getExecutions()).as("recorder after run 4")
+//                .containsExactlyElementsOf(expectedRecords);
+//
+//        // ------------------------------------------------------------------------------------ run 5
+//
+//        when("run 5");
+//
+//        restartTask(root.getOid(), result);
+//        waitForTaskCloseOrSuspend(root.getOid(), 10000, 200);
+//
+//        then("run 5");
+//
+//        // @formatter:off
+//        assertTask(root.getOid(), "after run 4")
+//                .display()
+//                .assertSuccess()
+//                .assertExecutionStatus(TaskExecutionStateType.CLOSED)
+//                .activityState()
+//                    .assertNotAllWorkComplete()
+//                    .rootActivity()
+//                        .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                        .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                        .activity("mock-simple:1")
+//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                            .workStateExtension()
+//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
+//                            .end()
+//                        .end()
+//                        .activity("composition:1")
+//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                            .activity("mock-simple:1")
+//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                                .workStateExtension()
+//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+//                                .end()
+//                            .end()
+//                            .activity("mock-simple:2")
+//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                                .workStateExtension()
+//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+//                                .end()
+//                            .end()
+//                        .end()
+//                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
+//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+//                            .workStateExtension()
+//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2);
+//        // @formatter:on
+//
+//        displayDumpable("recorder after run 5", recorder);
+//        expectedRecords.add("#3"); // success after 1 failure
+//        assertThat(recorder.getExecutions()).as("recorder after run 5")
+//                .containsExactlyElementsOf(expectedRecords);
+    }
+
 
 //    @Test
 //    public void test200OneWorkerTask() throws Exception {

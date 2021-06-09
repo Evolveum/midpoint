@@ -9,11 +9,12 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -93,17 +96,15 @@ public abstract class AbstractActivityExecution<
         if (activityState.isComplete()) {
             logComplete();
             return ActivityExecutionResult.finished(activityState.getResultStatus());
-        } else {
-            activityState.markInProgress(result);
-
-            logStart();
-            ActivityExecutionResult executionResult = executeTreatingExceptions(result);
-            logEnd(executionResult);
-
-            updateActivityState(executionResult, result);
-
-            return executionResult;
         }
+
+        logStart();
+        ActivityExecutionResult executionResult = executeTreatingExceptions(result);
+        logEnd(executionResult);
+
+        updateActivityState(executionResult, result);
+
+        return executionResult;
     }
 
     @NotNull
@@ -112,9 +113,10 @@ public abstract class AbstractActivityExecution<
         try {
             executionResult = executeInternal(result);
         } catch (ActivityExecutionException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, this);
             executionResult = e.toActivityExecutionResult();
         } catch (Exception e) {
-            LOGGER.warn("Unhandled exception in {}: {}", this, MiscUtil.getClassWithMessage(e));
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, this);
             executionResult = ActivityExecutionResult.exception(OperationResultStatus.FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
@@ -184,14 +186,18 @@ public abstract class AbstractActivityExecution<
         if (activity.isRoot()) {
             DebugUtil.debugDumpWithLabelLn(sb, "task execution", taskExecution.shortDump(), indent + 1);
         }
+        DebugUtil.debugDumpWithLabelLn(sb, "State", activityState, indent + 1);
+        debugDumpExtra(sb, indent);
         return sb.toString();
     }
 
-    public ActivityPath getLocalPath() {
+    protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+
+    public @Nullable ActivityPath getActivityLocalPath() {
         return activity.getLocalPath();
     }
 
-    public ActivityPath getPath() {
+    public @NotNull ActivityPath getActivityPath() {
         return activity.getPath();
     }
 
@@ -208,10 +214,6 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    public @NotNull ActivityPath getActivityPath() {
-        return activity.getPath();
-    }
-
     public @NotNull AH getActivityHandler() {
         return activity.getHandler();
     }
@@ -226,5 +228,17 @@ public abstract class AbstractActivityExecution<
 
     public @NotNull QName getWorkStateTypeName() {
         return workStateTypeName;
+    }
+
+    public @NotNull ActivityTreeStateOverview getTreeStateOverview() {
+        return activity.getTree().getTreeStateOverview();
+    }
+
+    protected ActivityExecutionResult standardExitResult() {
+        return ActivityExecutionResult.standardExitResult(canRun());
+    }
+
+    public boolean canRun() {
+        return taskExecution.canRun();
     }
 }

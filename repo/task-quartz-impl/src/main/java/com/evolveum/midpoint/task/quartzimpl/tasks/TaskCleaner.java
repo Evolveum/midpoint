@@ -73,7 +73,7 @@ public class TaskCleaner {
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
-        int bigProblems = 0;
+        int subtasksProblems = 0;
         for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
 
             if (!executionTask.canRun()) {
@@ -107,7 +107,7 @@ public class TaskCleaner {
                         lastProblem = e;
                         problems++;
                         if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
-                            bigProblems++;
+                            subtasksProblems++;
                         }
                     }
                 }
@@ -127,10 +127,10 @@ public class TaskCleaner {
 
         LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished")
                 + ". Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
-        if (bigProblems > 0) {
+        if (subtasksProblems > 0) {
             LOGGER.error(
                     "{} subtask(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.",
-                    bigProblems);
+                    subtasksProblems);
         }
         String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
@@ -140,8 +140,8 @@ public class TaskCleaner {
             result.createSubresult(OP_STATISTICS)
                     .recordPartialError("Successfully deleted " + deleted + " task(s), "
                             + "there was problems with deleting " + problems + " tasks." + suffix
-                            + (bigProblems > 0 ?
-                            (" " + bigProblems + " subtask(s) couldn't be deleted, please see the log.") :
+                            + (subtasksProblems > 0 ?
+                            (" " + subtasksProblems + " subtask(s) couldn't be deleted, please see the log.") :
                             ""));
         }
     }

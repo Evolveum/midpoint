@@ -50,7 +50,7 @@ public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHa
     }
 
     @Override
-    protected @NotNull ExecutionSupplier<WD, AH> getExecutionSupplier() {
+    protected @NotNull ExecutionSupplier<WD, AH> getLocalExecutionSupplier() {
         return handler;
     }
 

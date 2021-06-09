@@ -193,7 +193,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         addObject(TASK_RECOMPUTE_MULTI, task, result);
         addObject(TASK_ASYNC_UPDATE_MULTI, task, result);
 
-        waitForTaskCloseOrSuspend(TASK_RECOMPUTE_MULTI.oid, 1800000);
+        waitForTaskCloseOrSuspendOrActivityFail(TASK_RECOMPUTE_MULTI.oid, 1800000);
         waitForTaskProgress(TASK_ASYNC_UPDATE_MULTI.oid, users, () -> countUsers(result) - usersAtStart >= users*2,
                 1800000, 5000, result);
 

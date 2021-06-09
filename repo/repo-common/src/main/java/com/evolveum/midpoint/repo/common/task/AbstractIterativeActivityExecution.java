@@ -9,15 +9,16 @@ package com.evolveum.midpoint.repo.common.task;
 
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Locale;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -61,7 +62,7 @@ public abstract class AbstractIterativeActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         BS extends AbstractActivityWorkStateType>
-        extends AbstractActivityExecution<WD, AH, BS> {
+        extends LocalActivityExecution<WD, AH, BS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 
@@ -147,10 +148,8 @@ public abstract class AbstractIterativeActivityExecution<
     @NotNull
     public abstract ActivityReportingOptions getDefaultReportingOptions();
 
-    protected @NotNull ActivityExecutionResult executeInternal(OperationResult opResult)
+    protected @NotNull ActivityExecutionResult executeLocal(OperationResult opResult)
             throws ActivityExecutionException, CommonException {
-
-        ActivityExecutionResult runResult = new ActivityExecutionResult();
 
         LOGGER.trace("{}: Starting with local coordinator task {}", activityShortNameCapitalized, getRunningTask());
 
@@ -164,10 +163,26 @@ public abstract class AbstractIterativeActivityExecution<
 
         finishExecution(opResult);
 
-        runResult.update(errorState);
+        ActivityExecutionResult executionResult = createExecutionResult();
 
-        LOGGER.trace("{} run finished (task {}, run result {})", activityShortNameCapitalized, getRunningTask(), runResult);
-        return runResult;
+        LOGGER.trace("{} run finished (task {}, run result {})", activityShortNameCapitalized, getRunningTask(), executionResult);
+        return executionResult;
+    }
+
+    private ActivityExecutionResult createExecutionResult() {
+        if (!canRun()) {
+            return ActivityExecutionResult.interrupted();
+        }
+
+        Throwable stoppingException = errorState.getStoppingException();
+        if (stoppingException != null) {
+            // TODO In the future we should distinguish between permanent and temporary errors here.
+            return ActivityExecutionResult.exception(FATAL_ERROR, PERMANENT_ERROR, stoppingException);
+        } else if (executionStatistics.getErrors() > 0) {
+            return ActivityExecutionResult.finished(PARTIAL_ERROR);
+        } else {
+            return ActivityExecutionResult.success();
+        }
     }
 
     /**

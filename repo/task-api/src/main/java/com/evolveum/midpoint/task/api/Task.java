@@ -28,6 +28,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
+
 /**
  * Task instance - a logical unit of work.
  *
@@ -448,6 +450,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType);
 
+    <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType);
+
+    ObjectReferenceType getReferenceRealValue(ItemPath path);
+
     /**
      * Returns specified single-valued container real value from the extension
      * To ensure thread safety, in the case of running tasks the returned value is a clone of the live one.
@@ -826,6 +832,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Gets task work state or its clone (for running tasks).
      */
     TaskActivityStateType getWorkStateOrClone();
+
+    default ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
+        return getPropertyRealValueOrClone(ACTIVITY_TREE_STATE_OVERVIEW_PATH, ActivityStateOverviewType.class);
+    }
 
     /** Gets task kind (related to work management) */
     @Deprecated

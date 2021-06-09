@@ -7,17 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
 
 /**
  * Implements and represents an execution of an activity.
@@ -33,13 +28,11 @@ public interface ActivityExecution extends DebugDumpable {
      * Note that the work can be delegated to other (asynchronous) tasks. This is the case of worker tasks in multi-node
      * task execution, or of activities executed as separate subtasks.
      */
-    @NotNull ActivityExecutionResult execute(OperationResult result)
-            throws CommonException, TaskException, PreconditionViolationException, ActivityExecutionException;
+    @NotNull ActivityExecutionResult execute(OperationResult result) throws ActivityExecutionException;
 
     /**
      * Returns task execution that contains this activity execution.
      */
     @NotNull TaskExecution getTaskExecution();
-
 
 }

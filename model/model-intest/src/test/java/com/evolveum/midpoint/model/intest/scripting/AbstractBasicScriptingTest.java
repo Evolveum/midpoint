@@ -1192,8 +1192,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         String oid1 = ((PrismObjectValue<?>) data.getData().get(0).getValue()).getOid();
         String oid2 = ((PrismObjectValue<?>) data.getData().get(1).getValue()).getOid();
 
-        waitForTaskCloseOrSuspend(oid1, 20000);
-        waitForTaskCloseOrSuspend(oid2, 20000);
+        waitForTaskCloseOrSuspendOrActivityFail(oid1, 20000);
+        waitForTaskCloseOrSuspendOrActivityFail(oid2, 20000);
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);

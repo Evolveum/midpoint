@@ -516,7 +516,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    private <X> void setProperty(ItemName name, X value) {
+    protected <X> void setProperty(ItemName name, X value) {
         addPendingModification(setPropertyAndCreateDeltaIfPersistent(name, value));
     }
 
@@ -942,27 +942,6 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    /**
-     * Changes scheduling status to WAITING. Does not change execution state.
-     * Currently use only on transient tasks OR from within task handler.
-     */
-    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
-        setSchedulingState(TaskSchedulingStateType.WAITING);
-        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
-        setUnpauseAction(unpauseAction);
-    }
-
-    /**
-     * Changes scheduling status to WAITING, and execution state to the given value.
-     * Currently use only on transient tasks OR from within task handler.
-     */
-    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
-        setExecutionState(execState);
-        setSchedulingState(TaskSchedulingStateType.WAITING);
-        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
-        setUnpauseAction(unpauseAction);
-    }
-
     @Override
     public TaskWaitingReasonType getWaitingReason() {
         return getProperty(TaskType.F_WAITING_REASON);
@@ -970,10 +949,6 @@ public class TaskQuartzImpl implements Task {
 
     public void setWaitingReason(TaskWaitingReasonType value) {
         setProperty(TaskType.F_WAITING_REASON, value);
-    }
-
-    private void setUnpauseAction(TaskUnpauseActionType value) {
-        setProperty(TaskType.F_UNPAUSE_ACTION, value);
     }
 
     public TaskRecurrenceType getRecurrence() {
@@ -1425,6 +1400,22 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             PrismProperty<T> property = taskPrism.findProperty(path);
             return property != null && !property.isEmpty() ? property.getRealValue(expectedType) : null;
+        }
+    }
+
+    @Override
+    public <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            PrismProperty<T> property = taskPrism.findProperty(path);
+            return property != null && !property.isEmpty() ? cloneIfRunning(property.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
+    public ObjectReferenceType getReferenceRealValue(ItemPath path) {
+        synchronized (prismAccess) {
+            PrismReference reference = taskPrism.findReference(path);
+            return reference != null && !reference.isEmpty() ? ObjectTypeUtil.createObjectRef(reference.getValue()) : null;
         }
     }
 

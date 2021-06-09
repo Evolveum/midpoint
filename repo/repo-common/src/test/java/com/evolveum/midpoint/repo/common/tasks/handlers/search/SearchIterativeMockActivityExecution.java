@@ -73,10 +73,7 @@ class SearchIterativeMockActivityExecution
     }
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(super.debugDump(indent));
-        sb.append("\n");
+    public void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent + 1);
-        return sb.toString();
     }
 }

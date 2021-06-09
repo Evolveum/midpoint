@@ -190,6 +190,8 @@ public interface TaskManager {
      */
     void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    /** TODO */
+    void deleteTaskTree(String rootTaskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Basic working with tasks (create instance, get, modify, delete)

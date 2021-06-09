@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,13 +30,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityState.Wrapper.w;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-public class ActivityState<WS extends AbstractActivityWorkStateType> {
+public class ActivityState<WS extends AbstractActivityWorkStateType> implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
@@ -61,6 +64,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 () -> new SystemException("Couldn't find definition for " + activityExecution.getWorkStateTypeName()));
     }
 
+    //region Initialization
     public void initialize(OperationResult result) throws ActivityExecutionException {
         try {
             stateItemPath = findOrCreateActivityState(result);
@@ -80,7 +84,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     @NotNull
     private ItemPath findOrCreateActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}", activityExecution.getPath(),
+        LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}", activityExecution.getActivityPath(),
                 getRunningTask());
         AbstractActivityExecution<?, ?, ?> localParentExecution = activityExecution.getLocalParentExecution();
         if (localParentExecution == null) {
@@ -92,11 +96,6 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
             LOGGER.trace("Found parent work state prism item path: {}", parentWorkStatePath);
             return findOrCreateChildActivityState(parentWorkStatePath, getActivity().getIdentifier(), result);
         }
-    }
-
-    @NotNull
-    private Activity<?, ?> getActivity() {
-        return activityExecution.getActivity();
     }
 
     private void findOrCreateRootActivityState(OperationResult result)
@@ -149,7 +148,6 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType(getPrismContext())
                         .identifier(identifier)
-                        .realizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .resultStatus(OperationResultStatusType.IN_PROGRESS))
                 .asItemDelta();
         task.modify(itemDelta);
@@ -182,22 +180,96 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
         task.refresh(result);
         LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
     }
+    //endregion
 
-    private CommonTaskBeans getBeans() {
-        return activityExecution.getBeans();
+    //region Realization state
+    public ActivityRealizationStateType getRealizationState() {
+        return getRunningTask().getPropertyRealValue(getRealizationStateItemPath(), ActivityRealizationStateType.class);
     }
 
-    public ItemPath getItemPath() {
-        return stateItemPath;
+    private @NotNull ItemPath getRealizationStateItemPath() {
+        return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
+    }
+
+    public void markInProgressLocal(OperationResult result) throws ActivityExecutionException {
+        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_LOCAL), w(IN_PROGRESS), w(null), result);
+    }
+
+    public void markInProgressDelegated(ObjectReferenceType taskRef, OperationResult result) throws ActivityExecutionException {
+        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DELEGATED), w(IN_PROGRESS), w(taskRef), result);
+    }
+
+    public boolean isComplete() {
+        return getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    }
+
+    public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {
+        setCombined(w(ActivityRealizationStateType.COMPLETE), w(resultStatus), null, result);
+    }
+
+    private void setRealizationStateWithoutCommit(ActivityRealizationStateType value) throws SchemaException {
+        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                .item(getRealizationStateItemPath()).replace(value)
+                .asItemDelta();
+        getRunningTask().modify(itemDelta);
+        LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
+    }
+
+    //endregion
+
+    //region Result status
+    public OperationResultStatusType getResultStatusRaw() {
+        return getRunningTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
+    }
+
+    public OperationResultStatus getResultStatus() {
+        return OperationResultStatus.parseStatusType(getResultStatusRaw());
+    }
+
+    public void setResultStatus(@NotNull OperationResultStatus status, OperationResult result)
+            throws ActivityExecutionException {
+        setCombined(null, w(status), null, result);
+    }
+
+    private void setResultStateWithoutCommit(OperationResultStatus resultStatus) throws SchemaException {
+        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
+                .asItemDelta();
+        getRunningTask().modify(itemDelta);
+        LOGGER.info("Setting result status to {} for {}", resultStatus, activityExecution);
+    }
+
+    private @NotNull ItemPath getResultStatusItemPath() {
+        return stateItemPath.append(ActivityStateType.F_RESULT_STATUS);
+    }
+    //endregion
+
+    //region Task ref
+    public ObjectReferenceType getTaskRef() {
+        return getRunningTask().getReferenceRealValue(getTaskRefItemPath());
+    }
+
+    private void setTaskRefWithoutCommit(ObjectReferenceType taskRef) throws SchemaException {
+        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
+                .item(getTaskRefItemPath()).replace(taskRef)
+                .asItemDelta();
+        getRunningTask().modify(itemDelta);
+        LOGGER.info("Setting taskRef to {} for {}", taskRef, activityExecution);
+    }
+
+    private @NotNull ItemPath getTaskRefItemPath() {
+        return stateItemPath.append(ActivityStateType.F_TASK_REF);
+    }
+    //endregion
+
+    //region Work state
+    public @NotNull ComplexTypeDefinition getWorkStateDefinition() {
+        return workStateDefinition;
     }
 
     public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
         return getRunningTask()
                 .getPropertyRealValue(getWorkStateItemPath().append(path), expectedType);
-    }
-
-    private RunningTask getRunningTask() {
-        return activityExecution.getRunningTask();
     }
 
     public void setWorkStatePropertyRealValue(ItemPath path, Object value) throws SchemaException {
@@ -218,12 +290,62 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
                 () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateDefinition));
     }
 
-    private PrismContext getPrismContext() {
-        return getBeans().prismContext;
+    @NotNull ItemPath getWorkStateItemPath() {
+        return stateItemPath.append(ActivityStateType.F_WORK_STATE);
+    }
+    //endregion
+
+    //region Combined operations
+    private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
+            Wrapper<ObjectReferenceType> taskRef, OperationResult result) throws ActivityExecutionException {
+        try {
+            if (realizationState != null) {
+                setRealizationStateWithoutCommit(realizationState.value);
+            }
+            if (resultStatus != null) {
+                setResultStateWithoutCommit(resultStatus.value);
+            }
+            if (taskRef != null) {
+                setTaskRefWithoutCommit(taskRef.value);
+            }
+            flushPendingModifications(result);
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't update activity state", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
 
-    public @NotNull ComplexTypeDefinition getWorkStateDefinition() {
-        return workStateDefinition;
+    static class Wrapper<T> {
+        final T value;
+
+        private Wrapper(T value) {
+            this.value = value;
+        }
+
+        static <T> Wrapper<T> w(T value) {
+            return new Wrapper<>(value);
+        }
+    }
+    //endregion
+
+    //region Misc
+    private @NotNull Activity<?, ?> getActivity() {
+        return activityExecution.getActivity();
+    }
+
+    private CommonTaskBeans getBeans() {
+        return activityExecution.getBeans();
+    }
+
+    public ItemPath getItemPath() {
+        return stateItemPath;
+    }
+
+    private RunningTask getRunningTask() {
+        return activityExecution.getRunningTask();
+    }
+
+    private PrismContext getPrismContext() {
+        return getBeans().prismContext;
     }
 
     public void flushPendingModifications(OperationResult result)
@@ -234,71 +356,34 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> {
     @NotNull ActivityHandler<?, ?> getActivityHandler() {
         return activityExecution.getActivityHandler();
     }
+    //endregion
 
-    public boolean isComplete() {
-        return getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    //region debugDump + toString
+    @Override
+    public String toString() {
+        return "ActivityState{" +
+                "stateItemPath=" + stateItemPath +
+                '}';
     }
 
-    private ActivityRealizationStateType getRealizationState() {
-        return getRunningTask().getPropertyRealValue(getRealizationStateItemPath(), ActivityRealizationStateType.class);
-    }
-
-    private OperationResultStatusType getResultStatusRaw() {
-        return getRunningTask().getPropertyRealValue(getResultStatusItemPath(), OperationResultStatusType.class);
-    }
-
-    public OperationResultStatus getResultStatus() {
-        return OperationResultStatus.parseStatusType(getResultStatusRaw());
-    }
-
-    @NotNull ItemPath getWorkStateItemPath() {
-        return stateItemPath.append(ActivityStateType.F_WORK_STATE);
-    }
-
-    @NotNull
-    private ItemPath getRealizationStateItemPath() {
-        return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
-    }
-
-    @NotNull
-    private ItemPath getResultStatusItemPath() {
-        return stateItemPath.append(ActivityStateType.F_RESULT_STATUS);
-    }
-
-    public void markInProgress(OperationResult result) throws ActivityExecutionException {
-        setRealizationStateAndResultStatus(ActivityRealizationStateType.IN_PROGRESS_LOCAL, IN_PROGRESS, result);
-    }
-
-    public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {
-        setRealizationStateAndResultStatus(ActivityRealizationStateType.COMPLETE, resultStatus, result);
-    }
-
-    public void setResultStatus(@NotNull OperationResultStatus status, OperationResult result)
-            throws ActivityExecutionException {
-        setRealizationStateAndResultStatus(null, status, result);
-    }
-
-    public void setRealizationStateAndResultStatus(ActivityRealizationStateType value, OperationResultStatus resultStatus,
-            OperationResult result) throws ActivityExecutionException {
-        try {
-            if (value != null) {
-                ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                        .item(getRealizationStateItemPath()).replace(value)
-                        .asItemDelta();
-                getRunningTask().modify(itemDelta);
-                LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
-            }
-            if (resultStatus != null) {
-                ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                        .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
-                        .asItemDelta();
-                getRunningTask().modify(itemDelta);
-                LOGGER.info("Setting result status to {} for {}", value, activityExecution);
-            }
-            flushPendingModifications(result);
-        } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't update activity realization state and/or result status",
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, getEnhancedClassName(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Item path", String.valueOf(stateItemPath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Realization state", String.valueOf(getRealizationState()), indent + 1);
+        ObjectReferenceType taskRef = getTaskRef();
+        if (taskRef != null) {
+            DebugUtil.debugDumpWithLabelLn(sb, "Task ref", String.valueOf(taskRef), indent + 1);
         }
+        DebugUtil.debugDumpWithLabel(sb, "Result status", String.valueOf(getResultStatusRaw()), indent + 1);
+        // Consider adding work state here, maybe bucketing etc
+        return sb.toString();
     }
+
+    @NotNull
+    private String getEnhancedClassName() {
+        return getClass().getSimpleName() + "<" + workStateDefinition.getTypeName().getLocalPart() + ">";
+    }
+    //endregion
 }

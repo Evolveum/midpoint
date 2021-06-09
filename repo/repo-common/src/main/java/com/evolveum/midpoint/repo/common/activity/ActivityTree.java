@@ -29,18 +29,23 @@ public class ActivityTree implements DebugDumpable {
      */
     @NotNull private final StandaloneActivity<?, ?> rootActivity;
 
+    @NotNull private final ActivityTreeStateOverview treeStateOverview;
+
     @NotNull private final CommonTaskBeans beans;
 
-    private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> ActivityTree(@NotNull ActivityDefinition<WD> rootDefinition,
+    private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> ActivityTree(
+            @NotNull ActivityDefinition<WD> rootDefinition,
+            @NotNull Task rootTask,
             @NotNull CommonTaskBeans beans) {
         AH handler = beans.activityHandlerRegistry.getHandler(rootDefinition);
         this.rootActivity = StandaloneActivity.createRoot(rootDefinition, handler,  this);
         this.beans = beans;
+        this.treeStateOverview = new ActivityTreeStateOverview(rootTask, beans);
     }
 
     public static ActivityTree create(Task rootTask, CommonTaskBeans beans) throws SchemaException {
         ActivityDefinition<?> rootDefinition = ActivityDefinition.createRoot(rootTask, beans);
-        return new ActivityTree(rootDefinition, beans);
+        return new ActivityTree(rootDefinition, rootTask, beans);
     }
 
     @NotNull
@@ -72,5 +77,9 @@ public class ActivityTree implements DebugDumpable {
             current = current.getChild(identifier);
         }
         return current;
+    }
+
+    public @NotNull ActivityTreeStateOverview getTreeStateOverview() {
+        return treeStateOverview;
     }
 }

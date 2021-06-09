@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -233,22 +234,52 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertSuccess() {
-        TestUtil.assertSuccess(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertSuccess(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isIn(OperationResultStatusType.SUCCESS,
+                            OperationResultStatusType.NOT_APPLICABLE,
+                            OperationResultStatusType.HANDLED_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertHandledError() {
-        TestUtil.assertStatus(getTaskBean().getResult(), OperationResultStatusType.HANDLED_ERROR);
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertStatus(result, OperationResultStatusType.HANDLED_ERROR);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.HANDLED_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertPartialError() {
-        TestUtil.assertPartialError(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertPartialError(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.PARTIAL_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertFatalError() {
-        TestUtil.assertFatalError(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertFatalError(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.FATAL_ERROR);
+        }
         return this;
     }
 
@@ -283,6 +314,18 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
                 number + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtaskForPath(ActivityPath activityPath) {
+        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
+                .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
+                .findAny().orElse(null);
+        assertThat(subtask).withFailMessage(() -> "No subtask for activity path '" + activityPath + "' found").isNotNull();
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for path '" +
+                activityPath + "' in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

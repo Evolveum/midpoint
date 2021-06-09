@@ -29,10 +29,9 @@ class CompositeMockActivityExecution
     }
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(super.debugDump(indent));
+    public void debugDumpExtra(StringBuilder sb, int indent) {
+        super.debugDumpExtra(sb, indent);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
-        return sb.toString();
     }
 }

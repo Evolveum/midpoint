@@ -403,6 +403,28 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
     //endregion
 
+    //region Switching to waiting state
+    @Override
+    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    @Override
+    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
+        setExecutionState(execState);
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    private void setUnpauseAction(TaskUnpauseActionType value) {
+        setProperty(TaskType.F_UNPAUSE_ACTION, value);
+    }
+
+    //endregion
+
     //region Misc
     @Override
     public @NotNull String getRootTaskOid() {

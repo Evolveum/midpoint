@@ -217,7 +217,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     private void completeWorkBucketAndUpdateStructuredProgress(OperationResult result) {
         RunningTask task = taskExecution.getRunningTask();
         try {
-            beans.bucketingManager.completeWorkBucket(task, getPath(), bucket, result);
+            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket, result);
 //            task.changeStructuredProgressOnWorkBucketCompletion();
 //            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {

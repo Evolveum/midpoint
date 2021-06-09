@@ -14,11 +14,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.execution.DelegatedActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +35,8 @@ import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -103,7 +110,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public abstract AH getHandler();
 
     @NotNull
-    protected abstract ExecutionSupplier<WD, AH> getExecutionSupplier();
+    protected abstract ExecutionSupplier<WD, AH> getLocalExecutionSupplier();
 
     @NotNull
     protected abstract CandidateIdentifierFormatter getCandidateIdentifierFormatter();
@@ -150,8 +157,35 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public AbstractActivityExecution<?, ?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
         stateCheck(execution == null, "Execution is already created in %s", this);
-        execution = getExecutionSupplier().createExecution(new ExecutionInstantiationContext<>(this, taskExecution), result);
+        ExecutionInstantiationContext<WD, AH> context = new ExecutionInstantiationContext<>(this, taskExecution);
+        if (definition.getDistributionDefinition().isSubtask() && !isInDelegatedExecution(taskExecution)) {
+            execution = createDelegatedExecution(context);
+        } else {
+            execution = createLocalExecution(context, result);
+        }
         return execution;
+    }
+
+    private Boolean isInDelegatedExecution(TaskExecution taskExecution) {
+        return isLocalRoot() && isDelegatedFlagTrue(taskExecution);
+    }
+
+    private boolean isDelegatedFlagTrue(TaskExecution taskExecution) {
+        return Boolean.TRUE.equals(
+                taskExecution.getRunningTask()
+                        .getPropertyRealValue(
+                                ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_DELEGATED),
+                                Boolean.class));
+    }
+
+    private AbstractActivityExecution<WD, AH, ?> createDelegatedExecution(ExecutionInstantiationContext<WD, AH> context) {
+        return new DelegatedActivityExecution<>(context);
+    }
+
+    private AbstractActivityExecution<WD, AH, ?> createLocalExecution(ExecutionInstantiationContext<WD, AH> context,
+            OperationResult result) {
+        return getLocalExecutionSupplier()
+                .createExecution(context, result);
     }
 
     @NotNull
@@ -266,18 +300,22 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return ActivityPath.fromList(identifiers);
     }
 
-    @NotNull
+    @Nullable
     public ActivityPath getLocalPath() {
         return localPathLazy.get();
     }
 
-    @NotNull
+    @Nullable
     private ActivityPath computeLocalPath() {
         LinkedList<String> identifiers = new LinkedList<>();
         Activity<?, ?> current = this;
         while (!current.isLocalRoot()) {
             identifiers.add(0, current.getIdentifier());
             current = current.getParent();
+            if (current == null) {
+                // This means we are outside local root
+                return null;
+            }
         }
         return ActivityPath.fromList(identifiers);
     }

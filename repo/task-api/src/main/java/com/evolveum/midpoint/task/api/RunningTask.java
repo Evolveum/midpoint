@@ -11,6 +11,9 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
@@ -85,4 +88,16 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
     /** TODO EXPERIMENTAL */
     @Experimental
     @NotNull Task getRootTask();
+
+    /**
+     * Changes scheduling status to WAITING. Does not change execution state.
+     * Currently use only on transient tasks OR from within task handler.
+     */
+    void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction);
+
+    /**
+     * Changes scheduling status to WAITING, and execution state to the given value.
+     * Currently use only on transient tasks OR from within task handler.
+     */
+    void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction);
 }

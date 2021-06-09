@@ -8,13 +8,12 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * Execution of mock opening or closing activity.
  */
 public abstract class MockComponentActivityExecution
-        extends AbstractActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, AbstractActivityWorkStateType> {
+        extends LocalActivityExecution<CompositeMockWorkDefinition, CompositeMockActivityHandler, AbstractActivityWorkStateType> {
 
     public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/repo-common-test/extension";
 
@@ -40,7 +39,7 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result) {
+    protected @NotNull ActivityExecutionResult executeLocal(OperationResult result) {
 
         CompositeMockWorkDefinition workDef = activity.getWorkDefinition();
 
@@ -49,8 +48,6 @@ public abstract class MockComponentActivityExecution
 
         LOGGER.info("Mock activity starting: id={}, steps={}, delay={}, sub-activity={}:\n{}", workDef.getMessage(),
                 steps, delay, getSubActivity(), debugDumpLazily());
-
-        ActivityExecutionResult executionResult = new ActivityExecutionResult();
 
         RunningTask task = taskExecution.getRunningTask();
 
@@ -62,15 +59,12 @@ public abstract class MockComponentActivityExecution
 
         result.recordSuccess();
 
-        // This "run" is finished. But the task goes on ...
-        executionResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-
         getRecorder().recordExecution(workDef.getMessage() + ":" + getSubActivity());
 
         LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getMessage(), getSubActivity(),
                 debugDumpLazily());
 
-        return executionResult;
+        return standardExitResult();
     }
 
     @NotNull
@@ -98,10 +92,7 @@ public abstract class MockComponentActivityExecution
     abstract String getSubActivity();
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(super.debugDump(indent));
-        sb.append("\n");
+    public void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
-        return sb.toString();
     }
 }

@@ -43,4 +43,8 @@ public class ActivityDistributionDefinition implements DebugDumpable {
     public WorkBucketsManagementType getBuckets() {
         return bean.getBuckets();
     }
+
+    public boolean isSubtask() {
+        return bean.getSubtask() != null;
+    }
 }

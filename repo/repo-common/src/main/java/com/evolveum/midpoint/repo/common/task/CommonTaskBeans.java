@@ -32,6 +32,7 @@ public class CommonTaskBeans {
     @Autowired public Tracer tracer;
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
+    @Autowired @Qualifier("repositoryService") public RepositoryService plainRepositoryService;
     @Autowired public PrismContext prismContext;
     @Autowired public SchemaService schemaService;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;

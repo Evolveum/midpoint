@@ -3383,15 +3383,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
     }
 
-    protected void waitForTaskCloseOrSuspend(String taskOid) throws Exception {
-        waitForTaskCloseOrSuspend(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected void waitForTaskCloseOrSuspendOrActivityFail(String taskOid) throws Exception {
+        waitForTaskCloseOrSuspendOrActivityFail(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskCloseOrSuspend(String taskOid, final int timeout) throws Exception {
-        waitForTaskCloseOrSuspend(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
+    protected void waitForTaskCloseOrSuspendOrActivityFail(String taskOid, final int timeout) throws Exception {
+        waitForTaskCloseOrSuspendOrActivityFail(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskCloseOrSuspend(
+    protected void waitForTaskCloseOrSuspendOrActivityFail(
             final String taskOid, final int timeout, long sleepTime) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskCloseOrSuspend");
         Checker checker = new Checker() {
@@ -3401,7 +3401,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 waitResult.summarize();
                 display("Task execution status = " + task.getExecutionState());
                 return task.getExecutionState() == TaskExecutionStateType.CLOSED
-                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
+                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                        || ActivityStateOverviewUtil.containsFailedExecution(task.getActivityTreeStateOverviewOrClone());
             }
 
             @Override

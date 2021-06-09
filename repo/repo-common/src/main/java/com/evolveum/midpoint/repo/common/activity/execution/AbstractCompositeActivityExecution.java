@@ -21,6 +21,12 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.INTERRUPTED;
+
 /**
  * Abstract superclass for both pure- and semi-composite activities.
  *
@@ -30,7 +36,7 @@ public abstract class AbstractCompositeActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         BS extends AbstractActivityWorkStateType>
-        extends AbstractActivityExecution<WD, AH, BS> {
+        extends LocalActivityExecution<WD, AH, BS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractCompositeActivityExecution.class);
 
@@ -44,7 +50,7 @@ public abstract class AbstractCompositeActivityExecution<
     }
 
     @Override
-    protected @NotNull ActivityExecutionResult executeInternal(OperationResult result)
+    protected @NotNull ActivityExecutionResult executeLocal(OperationResult result)
             throws ActivityExecutionException, CommonException {
 
         activity.initializeChildrenMapIfNeeded();
@@ -58,15 +64,28 @@ public abstract class AbstractCompositeActivityExecution<
 
     /** Executes child activities. */
     private void executeChildren(OperationResult result) throws ActivityExecutionException {
+        List<ActivityExecutionResult> childResults = new ArrayList<>();
+
+        boolean allChildrenFinished = true;
+
         for (Activity<?, ?> child : activity.getChildrenMap().values()) {
             ActivityExecutionResult childExecutionResult = child
                     .createExecution(taskExecution, result)
                     .execute(result);
-            executionResult.update(childExecutionResult);
-            if (executionResult.isError()) {
-                break;
+            childResults.add(childExecutionResult);
+            executionResult.updateRunResultStatus(childExecutionResult, canRun());
+            if (!childExecutionResult.isFinished()) {
+                allChildrenFinished = false;
+                break; // Can be error, waiting, or interruption.
             }
         }
+
+        if (allChildrenFinished) {
+            executionResult.setRunResultStatus(canRun() ? FINISHED : INTERRUPTED);
+        } else {
+            // keeping run result status as updated by the last child
+        }
+        executionResult.updateOperationResultStatus(childResults);
     }
 
     private void logEnd() {
@@ -85,10 +104,7 @@ public abstract class AbstractCompositeActivityExecution<
     }
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(super.debugDump(indent));
-        sb.append("\n");
+    public void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "result", String.valueOf(executionResult), indent+1);
-        return sb.toString();
     }
 }

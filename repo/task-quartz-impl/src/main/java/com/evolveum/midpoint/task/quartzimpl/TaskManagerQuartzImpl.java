@@ -474,6 +474,21 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             result.computeStatusIfUnknown();
         }
     }
+
+    @Override
+    public void deleteTaskTree(String rootTaskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTaskTree");
+        result.addParam("rootTaskOid", rootTaskOid);
+        try {
+            taskStateManager.deleteTaskTree(rootTaskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
     //endregion
 
     //region Transient and lightweight tasks

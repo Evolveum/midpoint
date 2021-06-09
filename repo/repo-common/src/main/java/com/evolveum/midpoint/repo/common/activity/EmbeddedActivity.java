@@ -49,7 +49,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     }
 
     @Override
-    protected @NotNull ExecutionSupplier<WD, AH> getExecutionSupplier() {
+    protected @NotNull ExecutionSupplier<WD, AH> getLocalExecutionSupplier() {
         return executionSupplier;
     }
 

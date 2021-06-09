@@ -76,7 +76,7 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
 
         // WHEN
         when();
-        waitForTaskCloseOrSuspend(TASK_SHADOW_INTEGRITY_CHECK_OID);
+        waitForTaskCloseOrSuspendOrActivityFail(TASK_SHADOW_INTEGRITY_CHECK_OID);
 
         // THEN
         then();

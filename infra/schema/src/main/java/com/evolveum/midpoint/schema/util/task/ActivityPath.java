@@ -108,4 +108,14 @@ public class ActivityPath {
         union.add(identifier);
         return ActivityPath.fromList(union);
     }
+
+    public ActivityPathType toBean() {
+        ActivityPathType bean = new ActivityPathType();
+        bean.getIdentifier().addAll(identifiers);
+        return bean;
+    }
+
+    public boolean equalsBean(ActivityPathType bean) {
+        return bean != null && identifiers.equals(bean.getIdentifier());
+    }
 }

@@ -2457,6 +2457,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="delegated" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if the execution of the local root activity was delegated to this task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="activity" type="tns:ActivityStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2469,6 +2476,14 @@
                     <xsd:documentation>
                         True if all the work is complete. This means that on next run the task should start from
                         the beginning. (We do not simply erase the whole state e.g. because of progress reporting needs.)
+                        Present only on the root task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="treeOverview" type="tns:ActivityStateOverviewType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Overview of the state of the whole activity tree.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2552,6 +2567,68 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="ActivityStateOverviewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes the overview of the state of an activity.
+                This information is maintained in the root task only,
+                and is an excerpt from state information distributed throughout
+                the tree. It is intentionally not a container.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="realizationState" type="tns:ActivitySimplifiedRealizationStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State of the activity processing: null (not started), in progress, complete.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionState" type="tns:ActivityExecutionStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the activity really executing now?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result status of this activity. TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The task in which the activity execution takes place.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activity" type="tns:ActivityStateOverviewType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work state overview of child activities.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="ActivityRealizationStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2580,6 +2657,95 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IN_PROGRESS_DELEGATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is complete.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityExecutionStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Execution state of an activity - to be used in activity overview.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="executing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is executing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executingReduced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is executing, although the speed of execution may be reduced e.g. because of some
+                        of the tasks or threads failed. NOT IMPLEMENTED YET.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTING_REDUCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notExecuting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity execution was suspended or interrupted before the activity was complete.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_EXECUTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is complete.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivitySimplifiedRealizationStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Realization state of an activity - simplified for the sake of activity overview.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inProgress">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

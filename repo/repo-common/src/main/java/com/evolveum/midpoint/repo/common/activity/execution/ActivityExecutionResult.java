@@ -7,15 +7,22 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
-import com.evolveum.midpoint.repo.common.task.ErrorState;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
 
-import com.evolveum.midpoint.util.ShortDumpable;
+import java.util.Collection;
+import java.util.List;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * Result of an execution of an activity.
@@ -39,7 +46,7 @@ public class ActivityExecutionResult implements ShortDumpable {
     public TaskRunResult createTaskRunResult() {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setRunResultStatus(
-                MoreObjects.firstNonNull(runResultStatus, TaskRunResultStatus.FINISHED));
+                MoreObjects.firstNonNull(runResultStatus, FINISHED));
         runResult.setOperationResultStatus(operationResultStatus);
         // progress and operation result are intentionally kept null (meaning "do not update these in the task")
         return runResult;
@@ -61,12 +68,28 @@ public class ActivityExecutionResult implements ShortDumpable {
         this.operationResultStatus = operationResultStatus;
     }
 
-    public static ActivityExecutionResult finishedWithSuccess() {
-        return finished(OperationResultStatus.SUCCESS);
+    public static ActivityExecutionResult standardExitResult(boolean canRun) {
+        return canRun ? finished(SUCCESS) : interrupted();
     }
 
-    public static ActivityExecutionResult finished(OperationResultStatus operationResultStatus) {
-        return new ActivityExecutionResult(operationResultStatus, TaskRunResultStatus.FINISHED);
+    public static ActivityExecutionResult success() {
+        return finished(SUCCESS);
+    }
+
+    public static ActivityExecutionResult interrupted() {
+        return new ActivityExecutionResult(IN_PROGRESS, INTERRUPTED);
+    }
+
+    public static ActivityExecutionResult finished(OperationResultStatus opResultStatus) {
+        return new ActivityExecutionResult(opResultStatus, FINISHED);
+    }
+
+    public static ActivityExecutionResult finished(OperationResultStatusType opResultStatusBean) {
+        return new ActivityExecutionResult(parseStatusType(opResultStatusBean), FINISHED);
+    }
+
+    public static ActivityExecutionResult waiting() {
+        return new ActivityExecutionResult(OperationResultStatus.IN_PROGRESS, IS_WAITING);
     }
 
     public static ActivityExecutionResult exception(OperationResultStatus opStatus, TaskRunResultStatus runStatus, Throwable t) {
@@ -78,61 +101,83 @@ public class ActivityExecutionResult implements ShortDumpable {
     public String toString() {
         return "ActivityExecutionResult{" +
                 "opStatus=" + operationResultStatus +
-                ",runStatus=" + runResultStatus +
+                ", runStatus=" + runResultStatus +
                 '}';
     }
 
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("opStatus: ").append(operationResultStatus);
-        sb.append("runStatus: ").append(runResultStatus);
+        sb.append(", runStatus: ").append(runResultStatus);
     }
 
-    public void update(ErrorState errorState) {
-        Throwable stoppingException = errorState.getStoppingException();
-        if (stoppingException != null) {
-            runResultStatus = TaskRunResultStatus.PERMANENT_ERROR;
-            // TODO In the future we should distinguish between permanent and temporary errors here.
-        }
-    }
-
-    public void update(@NotNull ActivityExecutionResult childExecutionResult) {
-        updateRunResultStatus(childExecutionResult);
-        updateOperationResultStatus(childExecutionResult);
-    }
-
-    private void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult) {
-        if (childExecutionResult.isPermanentError()) {
-            runResultStatus = TaskRunResultStatus.PERMANENT_ERROR;
+    // TODO move to AbstractCompositeActivityExecution?
+    public void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult, boolean canRun) {
+        assert runResultStatus == null;
+        if (childExecutionResult.isInterrupted() || !canRun) {
+            runResultStatus = INTERRUPTED;
+        } else if (childExecutionResult.isPermanentError()) {
+            runResultStatus = PERMANENT_ERROR;
         } else if (childExecutionResult.isTemporaryError()) {
-            runResultStatus = TaskRunResultStatus.TEMPORARY_ERROR;
+            runResultStatus = TEMPORARY_ERROR;
+        } else if (childExecutionResult.isWaiting()) {
+            runResultStatus = IS_WAITING;
         }
     }
 
-    private void updateOperationResultStatus(@NotNull ActivityExecutionResult childExecutionResult) {
-        if (childExecutionResult.getOperationResultStatus() == OperationResultStatus.FATAL_ERROR) {
-            operationResultStatus = OperationResultStatus.FATAL_ERROR;
-        } else if (childExecutionResult.getOperationResultStatus() == OperationResultStatus.PARTIAL_ERROR) {
-            if (operationResultStatus != OperationResultStatus.FATAL_ERROR) {
-                operationResultStatus = OperationResultStatus.PARTIAL_ERROR;
-            }
+    // TODO move to AbstractCompositeActivityExecution?
+    public void updateOperationResultStatus(List<ActivityExecutionResult> childResults) {
+        if (isWaiting() || isInterrupted()) {
+            operationResultStatus = IN_PROGRESS;
+            return;
         }
+
+        if (has(childResults, FATAL_ERROR)) {
+            operationResultStatus = FATAL_ERROR;
+        } else if (has(childResults, PARTIAL_ERROR)) {
+            operationResultStatus = PARTIAL_ERROR;
+        } else if (has(childResults, WARNING)) {
+            operationResultStatus = WARNING;
+        } else {
+            // Note that we intentionally do not check for run result being error here.
+            // In all such cases, the corresponding operation result status should also be set.
+            operationResultStatus = SUCCESS;
+        }
+    }
+
+    private boolean has(Collection<ActivityExecutionResult> childResults, OperationResultStatus status) {
+        return childResults.stream().anyMatch(r -> r.getOperationResultStatus() == status);
     }
 
     public boolean isError() {
-        assert runResultStatus != TaskRunResultStatus.IS_WAITING;
-        return runResultStatus == TaskRunResultStatus.PERMANENT_ERROR || runResultStatus == TaskRunResultStatus.TEMPORARY_ERROR;
+        return runResultStatus == PERMANENT_ERROR || runResultStatus == TEMPORARY_ERROR;
     }
 
     public boolean isPermanentError() {
-        return runResultStatus == TaskRunResultStatus.PERMANENT_ERROR;
+        return runResultStatus == PERMANENT_ERROR;
     }
 
     public boolean isTemporaryError() {
-        return runResultStatus == TaskRunResultStatus.TEMPORARY_ERROR;
+        return runResultStatus == TEMPORARY_ERROR;
     }
 
     public boolean isFinished() {
-        return runResultStatus == TaskRunResultStatus.FINISHED;
+        return runResultStatus == FINISHED;
+    }
+
+    public boolean isWaiting() {
+        return runResultStatus == IS_WAITING;
+    }
+
+    public boolean isInterrupted() {
+        return runResultStatus == INTERRUPTED;
+    }
+
+    public ActivitySimplifiedRealizationStateType getSimplifiedRealizationState() {
+        return isFinished() ? ActivitySimplifiedRealizationStateType.COMPLETE : ActivitySimplifiedRealizationStateType.IN_PROGRESS;
+    }
+
+    public ActivityExecutionStateType getExecutionState() {
+        return isFinished() ? ActivityExecutionStateType.COMPLETE : ActivityExecutionStateType.NOT_EXECUTING;
     }
 }
