@@ -195,8 +195,8 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>8.6.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
-        <!-- Groovy 2.5.14 is also default for Spring Boot 2.4.3 -->
-        <groovy.version>2.5.14</groovy.version>
+        <!-- Groovy 3.0.8 is also default for Spring Boot 2.5.0 -->
+        <groovy.version>3.0.8</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
         <connid.version>1.5.0.17</connid.version>
         <jasper.version>6.17.0</jasper.version>
