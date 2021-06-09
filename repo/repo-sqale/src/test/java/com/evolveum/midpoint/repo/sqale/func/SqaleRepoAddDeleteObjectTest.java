@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -702,6 +704,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "float", Float.MAX_VALUE);
         addExtensionValue(extensionContainer, "float-2", -Float.MIN_VALUE);
         addExtensionValue(extensionContainer, "boolean", true);
+        addExtensionValue(extensionContainer, "enum", BeforeAfterType.AFTER);
+        Instant dateTime = Instant.now();
+        addExtensionValue(extensionContainer, "dateTime",
+                MiscUtil.asXMLGregorianCalendar(dateTime));
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
@@ -738,9 +744,50 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         new BigDecimal(Float.toString(Float.MAX_VALUE)).toBigInteger())
                 .containsEntry(extensionKey(extensionContainer, "float-2"),
                         new BigDecimal(Float.toString(-Float.MIN_VALUE)))
-                .containsEntry(extensionKey(extensionContainer, "boolean"), true);
+                .containsEntry(extensionKey(extensionContainer, "boolean"), true)
+                .containsEntry(extensionKey(extensionContainer, "enum"), "AFTER")
+                // Must be truncated to millis, because XML dateTime drops nanos.
+                .containsEntry(extensionKey(extensionContainer, "dateTime"),
+                        dateTime.truncatedTo(ChronoUnit.MILLIS).toString());
         // The different types are OK here, must be treated only for index-only extensions.
         // In that case value must be converted to the expected target type; not part of this test.
+    }
+
+    @Test
+    public void test307AddObjectWithExtensionReferenceAndPolyString()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension reference and poly string");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "poly", PolyString.fromOrig("poly-value"));
+        String targetOid = UUID.randomUUID().toString();
+        QName relation = QName.valueOf("{https://random.org/ns}random-rel-1");
+        addExtensionValue(extensionContainer, "ref", ref(targetOid,
+                UserType.COMPLEX_TYPE, relation));
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column stores the values as nested objects");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "poly"),
+                        Map.of("o", "poly-value", "n", "polyvalue"))
+                .containsEntry(extensionKey(extensionContainer, "ref"),
+                        Map.of("o", targetOid,
+                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "r", cachedUriId(relation)));
     }
     // endregion
 
@@ -1588,7 +1635,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(caseRow.targetRefRelationId, targetRelation);
 
         QCaseWorkItem wiAlias = aliasFor(QCaseWorkItem.class);
-        List<MCaseWorkItem> wiRows = select(wiAlias, wiAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        List<MCaseWorkItem> wiRows = select(wiAlias,
+                wiAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
         assertThat(wiRows).hasSize(2);
         wiRows.sort(comparing(tr -> tr.cid));
 
@@ -1624,8 +1672,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(wiRow.performerRefRelationId, performer2Relation);
         assertThat(wiRow.stageNumber).isEqualTo(2);
 
-        QCaseWorkItemReference assigneeRefAlias = QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee().defaultAlias();
-        List<MCaseWorkItemReference> assigneeRefRows = select(assigneeRefAlias, assigneeRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        QCaseWorkItemReference assigneeRefAlias =
+                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee().defaultAlias();
+        List<MCaseWorkItemReference> assigneeRefRows = select(assigneeRefAlias,
+                assigneeRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
         assertThat(assigneeRefRows).hasSize(3);
         assigneeRefRows.sort(comparing(tr -> tr.targetOid));
 
@@ -1656,8 +1706,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(assigneeRefRow.relationId, wi1AssigneeRef1Relation);
         assertThat(assigneeRefRow.workItemCid).isEqualTo(41);
 
-        QCaseWorkItemReference candidateRefAlias = QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate().defaultAlias();
-        List<MCaseWorkItemReference> candidateRefRows = select(candidateRefAlias, candidateRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
+        QCaseWorkItemReference candidateRefAlias =
+                QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate().defaultAlias();
+        List<MCaseWorkItemReference> candidateRefRows = select(candidateRefAlias,
+                candidateRefAlias.ownerOid.eq(UUID.fromString(acase.getOid())));
         assertThat(candidateRefRows).hasSize(3);
         candidateRefRows.sort(comparing(tr -> tr.targetOid));
 

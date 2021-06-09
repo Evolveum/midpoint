@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -413,6 +416,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
+    // supported types for extension properties, references ignore this
     public static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
             DOMUtil.XSD_BOOLEAN,
             DOMUtil.XSD_INT,
@@ -436,16 +440,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         if (definition instanceof PrismPropertyDefinition) {
             Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
+            // null is default which is "indexed"
             if (indexed != null && !indexed) {
+                return null;
+            }
+            // enum is recognized by having allowed values
+            Collection<? extends DisplayableValue<?>> allowedValues =
+                    ((PrismPropertyDefinition<?>) definition).getAllowedValues();
+            if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+                    && (allowedValues == null || allowedValues.isEmpty())) {
                 return null;
             }
         } else if (!(definition instanceof PrismReferenceDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
                     + definition + "', can't say if '" + item + "' is indexed or not.");
-        }
-        if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())) {
-            return null;
-        }
+        } // else it's reference which is indexed implicitly
 
         return repositoryContext().resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
     }
@@ -468,10 +477,28 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 || realValue instanceof Boolean) {
             return realValue;
         }
-        // TODO enum
-        // TODO polystring
-        // TODO reference
-        // TODO datetime
+
+        if (realValue instanceof PolyString) {
+            PolyString poly = (PolyString) realValue;
+            return Map.of("o", poly.getOrig(),
+                    "n", poly.getNorm());
+        }
+
+        if (realValue instanceof Referencable) {
+            Referencable ref = (Referencable) realValue;
+            return Map.of("o", ref.getOid(),
+                    "t", processCacheableUri(ref.getType()),
+                    "r", processCacheableRelation(ref.getRelation()));
+        }
+
+        if (realValue instanceof Enum) {
+            return realValue.toString();
+        }
+
+        if (realValue instanceof XMLGregorianCalendar) {
+            //noinspection ConstantConditions
+            return MiscUtil.asInstant((XMLGregorianCalendar) realValue).toString();
+        }
 
         throw new IllegalArgumentException(
                 "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");

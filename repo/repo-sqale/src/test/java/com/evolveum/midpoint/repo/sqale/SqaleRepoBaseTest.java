@@ -198,6 +198,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return selectOne(qUri, qUri.id.eq(uriId)).uri;
     }
 
+    protected Integer cachedUriId(QName qName) {
+        return cachedUriId(QNameUtil.qNameToUri(qName));
+    }
+
+    protected Integer cachedUriId(String uri) {
+        QUri qUri = QUri.DEFAULT;
+        return selectOne(qUri, qUri.uri.eq(uri)).id;
+    }
+
     protected void assertCachedUri(Integer uriId, QName qName) {
         assertCachedUri(uriId, QNameUtil.qNameToUri(qName));
     }
@@ -256,18 +265,32 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 .createReferenceValue(targetOid).relation(relation);
     }
 
+    protected PrismReferenceValue ref(String targetOid, QName targetType, QName relation) {
+        return prismContext.itemFactory()
+                .createReferenceValue(targetOid, targetType).relation(relation);
+    }
+
     // region extension support
     protected <V> void addExtensionValue(
             Containerable extContainer, String itemName, V value) throws SchemaException {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
-        ItemDefinition<PrismProperty<V>> itemDefinition =
+        ItemDefinition<?> itemDefinition =
                 pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         assertThat(itemDefinition)
                 .withFailMessage("No definition found for item name '%s' in %s", itemName, pcv)
                 .isNotNull();
-        PrismProperty<V> property = itemDefinition.instantiate();
-        property.setRealValue(value);
-        pcv.add(property);
+        if (itemDefinition instanceof PrismReferenceDefinition) {
+            PrismReference ref = (PrismReference) itemDefinition.instantiate();
+            ref.add(value instanceof PrismReferenceValue
+                    ? (PrismReferenceValue) value
+                    : ((Referencable) value).asReferenceValue());
+            pcv.add(ref);
+        } else {
+            //noinspection unchecked
+            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+            property.setRealValue(value);
+            pcv.add(property);
+        }
     }
 
     protected String extensionKey(Containerable extContainer, String itemName) {
