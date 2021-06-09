@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -50,8 +52,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     private static final Trace LOGGER = TraceManager.getTrace(FocusTypeAssignmentPopupTabPanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
-    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type) {
-        super(id, type);
+    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type, AssignmentObjectRelation relationSpec) {
+        super(id, type, relationSpec);
     }
 
     @Override
@@ -72,7 +74,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected QName getPredefinedRelation() {
-        return null;
+        return getAssignmentObjectRelation() != null && !CollectionUtils.isEmpty(getAssignmentObjectRelation().getRelations()) ? getAssignmentObjectRelation().getRelations().get(0) : null;
     }
 
     private QName getDefaultRelationIfInList(List<QName> relationsList) {
@@ -142,8 +144,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         return null;
     }
 
-    @Override
-    protected ObjectTypes getObjectType() {
-        return ObjectTypes.FOCUS_TYPE;
-    }
+//    @Override
+//    protected ObjectTypes getObjectType() {
+//        return ObjectTypes.FOCUS_TYPE;
+//    }
 }

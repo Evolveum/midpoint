@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -64,19 +63,12 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
     @Override
-    protected void initCustomPaging() {
-//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-//                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
-
-    }
-
-    @Override
     protected TableId getTableId() {
         return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
     }
 
     @Override
-    protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
+    protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         AssignmentType assignmentType = newAssignment.asContainerable();
         try {

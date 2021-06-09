@@ -10,6 +10,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
+
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -22,6 +27,7 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -107,6 +113,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_PROGRESS_PANEL = "progressPanel";
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_NAVIGATION = "detailsNavigation";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
@@ -329,9 +336,25 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         mainPanel.setOutputMarkupId(true);
         add(mainPanel);
 
+//        add(createDetailsNavigation());
+
         progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
         add(progressPanel);
     }
+
+//    protected Panel createDetailsNavigation() {
+//        return new DetailsNavigationPanel(ID_NAVIGATION, createNavigationModel());
+//    }
+//
+//    protected IModel<List<DetailsNavigationMainItem>> createNavigationModel() {
+//        return new LoadableModel<List<DetailsNavigationMainItem>>(false) {
+//
+//            @Override
+//            protected List<DetailsNavigationMainItem> load() {
+//                return Arrays.asList(new DetailsNavigationMainItem("Assignments"), new DetailsNavigationMainItem("Projections"), new DetailsNavigationMainItem("Bla"));
+//            }
+//        };
+//    }
 
     protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);
 
@@ -514,7 +537,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             }
 
             @Override
-            protected List<ITab> createAssignmentTabs() {
+            protected List<ITab> createAssignmentTabs(AssignmentObjectRelation assignmentObjectRelation) {
                 List<ITab> tabs = new ArrayList<>();
 
                 tabs.add(new PanelTab(getPageBase().createStringResource("ObjectTypes.ARCHETYPE"),
@@ -524,7 +547,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel<ArchetypeType>(panelId, ObjectTypes.ARCHETYPE) {
+                        return new FocusTypeAssignmentPopupTabPanel<ArchetypeType>(panelId, ObjectTypes.ARCHETYPE, null) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
