@@ -98,6 +98,8 @@ public class XmlTypeConverterInternal {
             return ((Long) val).toString();
         } else if (type.equals(byte.class) || type.equals(Byte.class)) {
             return ((Byte) val).toString();
+        } else if (type.equals(short.class) || type.equals(Short.class)) {
+            return val.toString();
         } else if (type.equals(float.class) || type.equals(Float.class)) {
             return ((Float) val).toString();
         } else if (type.equals(double.class) || type.equals(Double.class)) {
