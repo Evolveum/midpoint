@@ -39,6 +39,7 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private static final String[] PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.page",
+            "com.evolveum.midpoint.web.page.admin",
             "com.evolveum.midpoint.web.page.admin.home",
             "com.evolveum.midpoint.web.page.admin.users",
             "com.evolveum.midpoint.web.page.admin.orgs",

@@ -8,11 +8,11 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.*;
-import com.evolveum.midpoint.web.page.admin.PageCreateFromTemplate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,7 +85,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             collectionView = getObjectCollectionView();
         }
 
-        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
                     WebComponentUtil.classToQName(getPrismContext(), getType()),
@@ -95,15 +94,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
-    }
-
-    protected List<ObjectReferenceType> getReferencesList(CompiledObjectCollectionView collectionView) {
-        if (!isArchetypedCollectionView(collectionView)) {
-            return null;
-        }
-
-        ObjectReferenceType ref = collectionView.getCollection().getCollectionRef();
-        return Collections.singletonList(ref);
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
@@ -171,25 +161,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return newObjectButton;
     }
 
-    protected void navigateToNew(Collection<CompiledObjectCollectionView> compiledObjectCollectionViews, AjaxRequestTarget target) {
-        PageCreateFromTemplate newPage = new PageCreateFromTemplate(compiledObjectCollectionViews);
-        getPageBase().navigateToNext(newPage);
-    }
-
-    protected MultifunctionalButton createCreateNewObjectButton(String buttonId) {
-        MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, loadButtonDescriptions()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionView) {
-                newObjectPerformed(target, relationSpec, collectionView);
-            }
-        };
-        createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
-        createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
-        return createNewObjectButton;
-    }
-
     protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
         return new LoadableModel<>(false) {
 
@@ -225,7 +196,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     });
                 }
 
-                if (!isCollectionViewPanel() && getNewObjectGenericButtonVisibility()) {
+                if (!(isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()) && getNewObjectGenericButtonVisibility()) {
                     CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
                     DisplayType defaultButtonDisplayType = getNewObjectButtonSpecialDisplayType();
                     defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
@@ -260,7 +231,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         if (isCollectionViewPanelForCompiledView()) {
 
             CompiledObjectCollectionView view = getObjectCollectionView();
-            if (isArchetypedCollectionView(view)) {
+            if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
                 return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
             }
         }
@@ -449,24 +420,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return new ArrayList<>();
         }
         return getAllApplicableArchetypeViews();
-    }
-
-    private boolean isArchetypedCollectionView(CompiledObjectCollectionView view) {
-        if (view == null) {
-            return false;
-        }
-
-        CollectionRefSpecificationType collectionRefSpecificationType = view.getCollection();
-        if (collectionRefSpecificationType == null) {
-            return false;
-        }
-
-        ObjectReferenceType collectionRef = collectionRefSpecificationType.getCollectionRef();
-        if (collectionRef == null) {
-            return false;
-        }
-
-        return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType());
     }
 
 }

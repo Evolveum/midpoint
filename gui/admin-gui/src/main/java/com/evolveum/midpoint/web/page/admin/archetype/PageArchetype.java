@@ -63,7 +63,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
     }
 
     public PageArchetype(final PrismObject<ArchetypeType> role) {
-        super(role);
+        super(role, false);
     }
 
     public PageArchetype(final PrismObject<ArchetypeType> userToEdit, boolean isNewObject) {
@@ -93,7 +93,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
     @Override
     protected AbstractObjectMainPanel<ArchetypeType> createMainPanel(String id) {
-        return new AbstractRoleMainPanel<ArchetypeType>(id, getObjectModel(), getProjectionModel(), this) {
+        return new AbstractRoleMainPanel<>(id, getObjectModel(), getProjectionModel(), this) {
 
             private static final long serialVersionUID = 1L;
 
@@ -104,7 +104,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
             @Override
             protected List<ITab> createTabs(PageAdminObjectDetails<ArchetypeType> parentPage) {
-                List<ITab> tabs =  super.createTabs(parentPage);
+                List<ITab> tabs = super.createTabs(parentPage);
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("PageArchetype.archetypePolicy"),
                                 getTabVisibility(ComponentConstants.UI_ARCHTYPE_TAB_ARCHETYPE_POLICY_URL, false, parentPage)) {

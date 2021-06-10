@@ -43,16 +43,16 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
         super(parameters);
     }
 
-    public PageService(final PrismObject<ServiceType> role) {
-        super(role);
+    public PageService(final PrismObject<ServiceType> serviceHistory) {
+        super(serviceHistory, false);
     }
 
-    public PageService(final PrismObject<ServiceType> userToEdit, boolean isNewObject) {
-        super(userToEdit, isNewObject);
+    public PageService(final PrismObject<ServiceType> serviceToEdit, boolean isNewObject) {
+        super(serviceToEdit, isNewObject);
     }
 
-    public PageService(final PrismObject<ServiceType> abstractRole, boolean isNewObject, boolean isReadonly) {
-        super(abstractRole, isNewObject, isReadonly);
+    public PageService(final PrismObject<ServiceType> service, boolean isNewObject, boolean isReadonly) {
+        super(service, isNewObject, isReadonly);
     }
 
     @Override

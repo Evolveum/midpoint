@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
@@ -140,7 +141,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
                             collectionView = getObjectCollectionView();
                         }
 
-                        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+                        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
                         try {
                             PrismContext prismContext = getPrismContext();
                             PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);

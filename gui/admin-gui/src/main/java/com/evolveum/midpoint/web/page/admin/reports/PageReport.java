@@ -96,20 +96,14 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
     }
 
     public PageReport(PageParameters parameters) {
+        super(parameters);
         getPageParameters().overwriteWith(parameters);
         initialize(null);
     }
 
-    public PageReport(final PrismObject<ReportType> userToEdit) {
-        initialize(userToEdit);
-    }
-
     public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject) {
+        super(unitToEdit, isNewObject);
         initialize(unitToEdit, isNewObject);
-    }
-
-    public PageReport(final PrismObject<ReportType> unitToEdit, boolean isNewObject, boolean isReadonly) {
-        initialize(unitToEdit, isNewObject, isReadonly);
     }
 
     @Override

@@ -60,11 +60,12 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
     }
 
     public PageCase(PrismObject<CaseType> unitToEdit, boolean isNewObject) {
+        super(unitToEdit, isNewObject);
         initialize(unitToEdit, isNewObject, true);
     }
 
     public PageCase(PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);
+        super(parameters);
         initialize(null, false, true);
     }
 

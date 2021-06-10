@@ -50,12 +50,12 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
         super(parameters);
     }
 
-    public PageRole(final PrismObject<RoleType> role) {
-        super(role);
+    public PageRole(final PrismObject<RoleType> historyRole) {
+        this(historyRole, false);
     }
 
-    public PageRole(final PrismObject<RoleType> userToEdit, boolean isNewObject) {
-        super(userToEdit, isNewObject);
+    public PageRole(final PrismObject<RoleType> roleToEdit, boolean isNewObject) {
+        super(roleToEdit, isNewObject);
     }
 
     public PageRole(final PrismObject<RoleType> abstractRole, boolean isNewObject, boolean isReadonly) {

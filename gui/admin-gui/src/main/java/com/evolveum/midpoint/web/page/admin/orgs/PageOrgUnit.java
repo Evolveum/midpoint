@@ -56,16 +56,16 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
         super(parameters);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> role) {
-        super(role);
+    public PageOrgUnit(final PrismObject<OrgType> historyOrg) {
+        super(historyOrg, false);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
-        super(userToEdit, isNewObject);
+    public PageOrgUnit(final PrismObject<OrgType> orgToEdit, boolean isNewObject) {
+        super(orgToEdit, isNewObject);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
-        super(abstractRole, isNewObject, isReadonly);
+    public PageOrgUnit(final PrismObject<OrgType> org, boolean isNewObject, boolean isReadonly) {
+        super(org, isNewObject, isReadonly);
     }
 
     @Override
