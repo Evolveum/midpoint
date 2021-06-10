@@ -401,12 +401,18 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         Map<String, Object> extMap = new LinkedHashMap<>();
         PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
         for (Item<?, ?> item : prismContainerValue.getItems()) {
-            // TODO indexed check: RAnyConverter.isIndexed + getValueType
-            MExtItem extItem = findExtensionItem(item, holderType);
-            if (extItem == null) {
-                continue; // not-indexed, skipping this item
+            try {
+                // TODO indexed check: RAnyConverter.isIndexed + getValueType
+                MExtItem extItem = findExtensionItem(item, holderType);
+                if (extItem == null) {
+                    continue; // not-indexed, skipping this item
+                }
+                extMap.put(extItem.id.toString(), extItemValue(item, extItem));
+            } catch (RuntimeException e) {
+                // If anything happens (like NPE in Map.of) we want to capture the "bad" item.
+                throw new SystemException(
+                        "Unexpected exception while processing extension item " + item, e);
             }
-            extMap.put(extItem.id.toString(), extItemValue(item, extItem));
         }
 
         try {
@@ -486,9 +492,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         if (realValue instanceof Referencable) {
             Referencable ref = (Referencable) realValue;
-            return Map.of("o", ref.getOid(),
-                    "t", processCacheableUri(ref.getType()),
-                    "r", processCacheableRelation(ref.getRelation()));
+            if (ref.getType() != null) {
+                return Map.of("o", ref.getOid(),
+                        "t", processCacheableUri(ref.getType()),
+                        "r", processCacheableRelation(ref.getRelation()));
+            } else {
+                return Map.of("o", ref.getOid(),
+                        "r", processCacheableRelation(ref.getRelation()));
+            }
         }
 
         if (realValue instanceof Enum) {

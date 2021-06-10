@@ -135,6 +135,11 @@
             <xsd:element name="poly" type="t:PolyStringType"/>
             <xsd:element name="ref" type="c:ObjectReferenceType"/>
 
+            <!-- multi-value stored as JSON arrays -->
+            <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded"/>
+            <xsd:element name="poly-mv" type="t:PolyStringType" maxOccurs="unbounded"/>
+            <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded"/>
+
             <!-- custom type, not recognized for indexing -->
             <xsd:element name="blob" type="xsd:base64Binary"/>
             <xsd:element name="locations" type="tns:LocationsType"/>

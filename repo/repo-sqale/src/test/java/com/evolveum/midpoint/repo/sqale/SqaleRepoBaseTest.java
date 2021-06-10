@@ -260,11 +260,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
     }
 
-    protected PrismReferenceValue ref(String targetOid, QName relation) {
-        return prismContext.itemFactory()
-                .createReferenceValue(targetOid).relation(relation);
+    /** Creates a reference with specified type and default relation. */
+    protected PrismReferenceValue ref(String targetOid, QName targetType) {
+        return ref(targetOid, targetType, null);
     }
 
+    /** Creates a reference with specified target type and relation. */
     protected PrismReferenceValue ref(String targetOid, QName targetType, QName relation) {
         return prismContext.itemFactory()
                 .createReferenceValue(targetOid, targetType).relation(relation);
@@ -272,7 +273,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     // region extension support
     protected <V> void addExtensionValue(
-            Containerable extContainer, String itemName, V value) throws SchemaException {
+            Containerable extContainer, String itemName, V... values) throws SchemaException {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> itemDefinition =
                 pcv.getDefinition().findItemDefinition(new ItemName(itemName));
@@ -281,14 +282,16 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 .isNotNull();
         if (itemDefinition instanceof PrismReferenceDefinition) {
             PrismReference ref = (PrismReference) itemDefinition.instantiate();
-            ref.add(value instanceof PrismReferenceValue
-                    ? (PrismReferenceValue) value
-                    : ((Referencable) value).asReferenceValue());
+            for (V value : values) {
+                ref.add(value instanceof PrismReferenceValue
+                        ? (PrismReferenceValue) value
+                        : ((Referencable) value).asReferenceValue());
+            }
             pcv.add(ref);
         } else {
             //noinspection unchecked
             PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
-            property.setRealValue(value);
+            property.setRealValues(values);
             pcv.add(property);
         }
     }

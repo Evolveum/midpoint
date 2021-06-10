@@ -767,8 +767,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "poly", PolyString.fromOrig("poly-value"));
         String targetOid = UUID.randomUUID().toString();
         QName relation = QName.valueOf("{https://random.org/ns}random-rel-1");
-        addExtensionValue(extensionContainer, "ref", ref(targetOid,
-                UserType.COMPLEX_TYPE, relation));
+        addExtensionValue(extensionContainer, "ref",
+                ref(targetOid, UserType.COMPLEX_TYPE, relation));
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
@@ -788,6 +788,55 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", targetOid,
                                 "t", cachedUriId(UserType.COMPLEX_TYPE),
                                 "r", cachedUriId(relation)));
+    }
+
+    @Test
+    public void test308AddObjectWithExtensionMultiValueItems()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension reference and poly string");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(extensionContainer, "poly-mv",
+                PolyString.fromOrig("poly-value1"),
+                PolyString.fromOrig("poly-value2"),
+                PolyString.fromOrig("poly-value3"));
+        String targetOid1 = UUID.randomUUID().toString();
+        String targetOid2 = UUID.randomUUID().toString();
+        QName relation = QName.valueOf("{https://random.org/ns}random-rel-1");
+        addExtensionValue(extensionContainer, "ref-mv",
+                ref(targetOid1, null, relation), // type is nullable
+                ref(targetOid2, UserType.COMPLEX_TYPE));
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column stores the values as nested objects");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string-mv"),
+                        List.of("string-value1", "string-value2"))
+                .containsEntry(extensionKey(extensionContainer, "poly-mv"), List.of(
+                        Map.of("o", "poly-value1", "n", "polyvalue1"),
+                        Map.of("o", "poly-value2", "n", "polyvalue2"),
+                        Map.of("o", "poly-value3", "n", "polyvalue3")))
+                .containsEntry(extensionKey(extensionContainer, "ref-mv"), List.of(
+                        Map.of("o", targetOid1,
+                                "r", cachedUriId(relation)),
+                        Map.of("o", targetOid2,
+                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "r", cachedUriId(SchemaConstants.ORG_DEFAULT))));
     }
     // endregion
 

@@ -20,12 +20,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * TODO
+ * Cache for {@link MExtItem} catalog.
+ * TODO: fix for multi-node
  */
 public class ExtItemCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExtItemCache.class);
 
+    // TODO: id->ext item will be used for index only
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
 
@@ -62,50 +64,6 @@ public class ExtItemCache {
         idToExtItem.put(row.id, row);
         keyToExtItem.put(row.key(), row);
     }
-
-/*
-    public @Nullable Integer getId(@NotNull QName qName) {
-        return getId(QNameUtil.qNameToUri(qName));
-    }
-
-    public @NotNull Integer searchId(@NotNull QName qName) {
-        return searchId(QNameUtil.qNameToUri(qName));
-    }
-
-    public @NotNull Integer resolveUriToId(@NotNull QName qName) {
-        return resolveUriToId(QNameUtil.qNameToUri(qName));
-    }
-
-    public @Nullable Integer getId(@NotNull String uri) {
-        Integer id = extItemKeyToId.get(uri);
-        LOGGER.trace("URI cache 'get' returned ID={} for URI={}", id, uri);
-        return id;
-    }
-
-    public @NotNull Integer searchId(@NotNull String uri) {
-        Integer id = extItemKeyToId.getOrDefault(uri, UNKNOWN_ID);
-        LOGGER.trace("URI cache 'search' returned ID={} for URI={}", id, uri);
-        return id;
-    }
-
-    public @NotNull Integer resolveUriToId(@NotNull String uri) {
-        Integer id = getId(uri);
-        LOGGER.trace("URI cache 'resolve' returned ID={} for URI={}", id, uri);
-        return Objects.requireNonNull(id, () -> "URI not cached: " + uri);
-    }
-
-    public String getUri(Integer id) {
-        String uri = idToExtItem.get(id);
-        LOGGER.trace("URI cache 'get' returned URI={} for ID={}", uri, id);
-        return uri;
-    }
-
-    public @NotNull String resolveToUri(Integer id) {
-        String uri = idToExtItem.get(id);
-        LOGGER.trace("URI cache 'resolve' returned URI={} for ID={}", uri, id);
-        return Objects.requireNonNull(uri, () -> "No URI cached under ID " + id);
-    }
-*/
 
     public synchronized @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
         if (jdbcSessionSupplier == null) {

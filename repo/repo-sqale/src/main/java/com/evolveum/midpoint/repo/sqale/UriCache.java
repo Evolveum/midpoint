@@ -64,6 +64,7 @@ public class UriCache {
      */
     public static final int UNKNOWN_ID = -1;
 
+    // TODO is this necessary? At this moment it's used only in tests, perhaps can be removed.
     private final Map<Integer, String> idToUri = new ConcurrentHashMap<>();
     private final Map<String, Integer> uriToId = new ConcurrentHashMap<>();
 

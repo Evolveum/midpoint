@@ -603,7 +603,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
                 prismContext.queryFor(ObjectType.class)
-                        .isDirectChildOf(ref(org11Oid, relation1))
+                        .isDirectChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, relation1))
                         .build(),
                 operationResult);
 
@@ -637,7 +637,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
                 prismContext.queryFor(ObjectType.class)
-                        .isChildOf(ref(org2Oid, relation1))
+                        .isChildOf(ref(org2Oid, OrgType.COMPLEX_TYPE, relation1))
                         .build(),
                 operationResult);
 
@@ -704,7 +704,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         OperationResult operationResult = createOperationResult();
         SearchResultList<OrgType> result = searchObjects(OrgType.class,
                 prismContext.queryFor(OrgType.class)
-                        .isParentOf(ref(org112Oid, relation2))
+                        .isParentOf(ref(org112Oid, OrgType.COMPLEX_TYPE, relation2))
                         .build(),
                 operationResult);
 
@@ -871,7 +871,8 @@ AND(
         OperationResult operationResult = createOperationResult();
         SearchResultList<UserType> result = searchObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
-                        .item(UserType.F_PARENT_ORG_REF).ref(ref(org11Oid, PrismConstants.Q_ANY))
+                        .item(UserType.F_PARENT_ORG_REF)
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY))
                         .build(),
                 operationResult);
 
@@ -887,7 +888,8 @@ AND(
         SearchResultList<UserType> result = searchObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
                         .not()
-                        .item(UserType.F_PARENT_ORG_REF).ref(ref(org11Oid, PrismConstants.Q_ANY))
+                        .item(UserType.F_PARENT_ORG_REF)
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY))
                         .build(),
                 operationResult);
 
