@@ -61,7 +61,6 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
     private static final String ID_MAIN_FORM = "mainForm";
 
-    private static final String ID_TITLE = "title";
     private static final String ID_RUN_BUTTON = "runReport";
     private static final String ID_CANCEL_BUTTON = "cancel";
     private static final String ID_POPUP_FEEDBACK = "popupFeedback";
@@ -90,8 +89,6 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     protected void initLayout() {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
-
-        mainForm.add(new Label(ID_TITLE, getTitle()));
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
         ReportObjectsListPanel table = new ReportObjectsListPanel(ID_TABLE, getModel()){

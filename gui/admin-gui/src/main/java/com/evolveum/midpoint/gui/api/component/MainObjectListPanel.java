@@ -256,7 +256,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        return WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
+        DisplayType display = WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
+        display.setLabel(WebComponentUtil.createPolyFromOrigString(
+                getType().getSimpleName(), "ObjectType." + getType().getSimpleName()));
+        return display;
     }
 
     protected boolean getNewObjectGenericButtonVisibility() {
