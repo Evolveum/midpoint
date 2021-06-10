@@ -223,12 +223,6 @@
         <graalvm.version>21.1.0</graalvm.version>
         <javax.persistence.version>2.2</javax.persistence.version>
 
-        <!--
-        Coming in different versions from org.glassfish.jaxb:xsom and from
-        org.glassfish.jaxb:jaxb-xjc/com.sun.xml.bind.external:rngom. Review on upgrades.
-        -->
-        <relaxng-datatype.version>2.3.3</relaxng-datatype.version>
-
         <asciidoclet.version>1.5.6</asciidoclet.version>
     </properties>
 
@@ -240,11 +234,6 @@
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
                 <version>${geronimo-ws-metadata_2.0_spec.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind.external</groupId>
-                <artifactId>relaxng-datatype</artifactId>
-                <version>${relaxng-datatype.version}</version>
             </dependency>
 
             <dependency>
@@ -363,7 +352,7 @@
             <dependency>
                 <groupId>org.python</groupId>
                 <artifactId>jython</artifactId>
-                <version>2.5.3</version>
+                <version>2.7.2</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
