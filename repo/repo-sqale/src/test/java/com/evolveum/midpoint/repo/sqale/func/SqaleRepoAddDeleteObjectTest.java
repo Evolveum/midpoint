@@ -637,7 +637,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNull();
 
         and("stored object contains the extension item");
@@ -670,7 +669,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNull();
 
         and("stored object contains the extension item");
@@ -717,7 +715,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -778,7 +775,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -816,12 +812,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
 
-        then("operation is successful and ext column stores the values as nested objects");
+        then("operation is successful and ext column stores the values as JSON arrays");
         assertThatOperationResult(result).isSuccess();
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -837,6 +832,45 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", targetOid2,
                                 "t", cachedUriId(UserType.COMPLEX_TYPE),
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT))));
+    }
+
+    @Test
+    public void test310AddObjectWithAssignmentExtensions()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension items in assignment");
+        String objectName = "user" + getTestNumber();
+        AssignmentType assignment = new AssignmentType(prismContext)
+                .extension(new ExtensionType(prismContext));
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .assignment(assignment);
+        ExtensionType extensionContainer = assignment.getExtension();
+        addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(extensionContainer, "integer", 1);
+        String targetOid = UUID.randomUUID().toString();
+        addExtensionValue(extensionContainer, "ref", ref(targetOid, UserType.COMPLEX_TYPE));
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and assignment's ext column stores the values");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        QAssignment<MUser> a = QAssignmentMapping.<MUser>getAssignment().defaultAlias();
+        MAssignment row = selectOne(a, a.ownerOid.eq(UUID.fromString(returnedOid)));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string-mv"),
+                        List.of("string-value1", "string-value2"))
+                .containsEntry(extensionKey(extensionContainer, "integer"), 1)
+                .containsEntry(extensionKey(extensionContainer, "ref"),
+                        Map.of("o", targetOid,
+                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "r", cachedUriId(SchemaConstants.ORG_DEFAULT)));
     }
     // endregion
 
