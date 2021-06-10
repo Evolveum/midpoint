@@ -14,6 +14,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
@@ -68,6 +70,7 @@ public abstract class DefinitionImpl extends AbstractFreezable implements Mutabl
     protected boolean elaborate = false;
     private Map<QName,Object> annotations;
     private List<SchemaMigration> schemaMigrations = null;
+    private List<ItemDiagramSpecification> diagrams = null;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -309,6 +312,20 @@ public abstract class DefinitionImpl extends AbstractFreezable implements Mutabl
         }
         if (!schemaMigrations.contains(schemaMigration)) {
             schemaMigrations.add(schemaMigration);
+        }
+    }
+
+    public List<ItemDiagramSpecification> getDiagrams() {
+        return diagrams;
+    }
+
+    public void addDiagram(ItemDiagramSpecification diagram) {
+        checkMutable();
+        if (diagrams == null) {
+            diagrams = new ArrayList<>();
+        }
+        if (!diagrams.contains(diagram)) {
+            diagrams.add(diagram);
         }
     }
 

@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.prism.impl.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.DiagramElementFormType;
+import com.evolveum.midpoint.prism.annotation.DiagramElementInclusionType;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.impl.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
@@ -190,6 +193,7 @@ class DomToSchemaPostProcessor {
             }
 
             parseSchemaMigrations(ctd, annotation);
+            parseDiagrams(ctd, annotation);
         }
 
         markRuntime(ctd);
@@ -1118,6 +1122,9 @@ class DomToSchemaPostProcessor {
 
         // schemaMigration
         parseSchemaMigrations(itemDef, annotation);
+
+        // diagram
+        parseDiagrams(itemDef, annotation);
     }
 
     private void parseSchemaMigrations(MutableDefinition def, XSAnnotation annotation) throws SchemaException {
@@ -1143,6 +1150,42 @@ class DomToSchemaPostProcessor {
         }
         SchemaMigrationOperation op = SchemaMigrationOperation.parse(org.apache.commons.lang3.StringUtils.trim(operationElement.getTextContent()));
         return new SchemaMigration(elementName, org.apache.commons.lang3.StringUtils.trim(versionElement.getTextContent()), op);
+    }
+
+    private void parseDiagrams(MutableDefinition def, XSAnnotation annotation) throws SchemaException {
+        for (Element diagramElement : SchemaProcessorUtil.getAnnotationElements(annotation, A_DIAGRAM)) {
+            ItemDiagramSpecification diagram = parseDiagram(def, diagramElement);
+            def.addDiagram(diagram);
+        }
+    }
+
+    private ItemDiagramSpecification parseDiagram(MutableDefinition def, Element diagramElement) throws SchemaException {
+        Element nameElement = DOMUtil.getChildElement(diagramElement, A_DIAGRAM_NAME);
+        if (nameElement == null) {
+            throw new SchemaException("Missing name element in "+def);
+        }
+        String name = org.apache.commons.lang3.StringUtils.trim(nameElement.getTextContent());
+
+        Element formElement = DOMUtil.getChildElement(diagramElement, A_DIAGRAM_FORM);
+
+        DiagramElementFormType form = null;
+        if (formElement != null) {
+            form = DiagramElementFormType.parse(org.apache.commons.lang3.StringUtils.trim(formElement.getTextContent()));
+        }
+
+        Element inclusionElement = DOMUtil.getChildElement(diagramElement, A_DIAGRAM_INCLUSION);
+        DiagramElementInclusionType inclusion = null;
+        if (inclusionElement != null) {
+            inclusion = DiagramElementInclusionType.parse(org.apache.commons.lang3.StringUtils.trim(inclusionElement.getTextContent()));
+        }
+
+        Element subitemInclusionElement = DOMUtil.getChildElement(diagramElement, A_DIAGRAM_SUBITEM_INCLUSION);
+        DiagramElementInclusionType subitemInclusion = null;
+        if (subitemInclusionElement != null) {
+            subitemInclusion = DiagramElementInclusionType.parse(org.apache.commons.lang3.StringUtils.trim(subitemInclusionElement.getTextContent()));
+        }
+
+        return new ItemDiagramSpecification(name, form, inclusion, subitemInclusion);
     }
 
     private boolean isDeprecated(XSElementDecl xsElementDecl) throws SchemaException {

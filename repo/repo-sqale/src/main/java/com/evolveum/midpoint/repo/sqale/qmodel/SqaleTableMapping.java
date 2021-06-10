@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -19,6 +19,8 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
@@ -26,6 +28,9 @@ import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
@@ -38,12 +43,16 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProc
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -382,4 +391,128 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .populate(row)
                 .execute();
     }
+
+    // region extension processing
+    protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
+        if (extContainer == null) {
+            return null;
+        }
+
+        Map<String, Object> extMap = new LinkedHashMap<>();
+        PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
+        for (Item<?, ?> item : prismContainerValue.getItems()) {
+            try {
+                // TODO indexed check: RAnyConverter.isIndexed + getValueType
+                MExtItem extItem = findExtensionItem(item, holderType);
+                if (extItem == null) {
+                    continue; // not-indexed, skipping this item
+                }
+                extMap.put(extItem.id.toString(), extItemValue(item, extItem));
+            } catch (RuntimeException e) {
+                // If anything happens (like NPE in Map.of) we want to capture the "bad" item.
+                throw new SystemException(
+                        "Unexpected exception while processing extension item " + item, e);
+            }
+        }
+
+        try {
+            return Jsonb.from(extMap);
+        } catch (IOException e) {
+            throw new SystemException(e);
+        }
+    }
+
+    // supported types for extension properties, references ignore this
+    public static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
+            DOMUtil.XSD_BOOLEAN,
+            DOMUtil.XSD_INT,
+            DOMUtil.XSD_LONG,
+            DOMUtil.XSD_SHORT,
+            DOMUtil.XSD_INTEGER,
+            DOMUtil.XSD_DECIMAL,
+            DOMUtil.XSD_STRING,
+            DOMUtil.XSD_DOUBLE,
+            DOMUtil.XSD_FLOAT,
+            DOMUtil.XSD_DATETIME,
+            PolyStringType.COMPLEX_TYPE);
+
+    /** Returns ext item definition or null if the item is not indexed and should be skipped. */
+    private MExtItem findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
+        Objects.requireNonNull(item, "Object for converting must not be null.");
+
+        ItemDefinition<?> definition = item.getDefinition();
+        Objects.requireNonNull(definition,
+                "Item '" + item.getElementName() + "' without definition can't be saved.");
+
+        if (definition instanceof PrismPropertyDefinition) {
+            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
+            // null is default which is "indexed"
+            if (indexed != null && !indexed) {
+                return null;
+            }
+            // enum is recognized by having allowed values
+            Collection<? extends DisplayableValue<?>> allowedValues =
+                    ((PrismPropertyDefinition<?>) definition).getAllowedValues();
+            if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+                    && (allowedValues == null || allowedValues.isEmpty())) {
+                return null;
+            }
+        } else if (!(definition instanceof PrismReferenceDefinition)) {
+            throw new UnsupportedOperationException("Unknown definition type '"
+                    + definition + "', can't say if '" + item + "' is indexed or not.");
+        } // else it's reference which is indexed implicitly
+
+        return repositoryContext().resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+    }
+
+    private Object extItemValue(Item<?, ?> item, MExtItem extItem) {
+        if (extItem.cardinality == MExtItemCardinality.ARRAY) {
+            List<Object> vals = new ArrayList<>();
+            for (Object realValue : item.getRealValues()) {
+                vals.add(convertExtItemValue(realValue));
+            }
+            return vals;
+        } else {
+            return convertExtItemValue(item.getRealValue());
+        }
+    }
+
+    private Object convertExtItemValue(Object realValue) {
+        if (realValue instanceof String
+                || realValue instanceof Number
+                || realValue instanceof Boolean) {
+            return realValue;
+        }
+
+        if (realValue instanceof PolyString) {
+            PolyString poly = (PolyString) realValue;
+            return Map.of("o", poly.getOrig(),
+                    "n", poly.getNorm());
+        }
+
+        if (realValue instanceof Referencable) {
+            Referencable ref = (Referencable) realValue;
+            if (ref.getType() != null) {
+                return Map.of("o", ref.getOid(),
+                        "t", processCacheableUri(ref.getType()),
+                        "r", processCacheableRelation(ref.getRelation()));
+            } else {
+                return Map.of("o", ref.getOid(),
+                        "r", processCacheableRelation(ref.getRelation()));
+            }
+        }
+
+        if (realValue instanceof Enum) {
+            return realValue.toString();
+        }
+
+        if (realValue instanceof XMLGregorianCalendar) {
+            //noinspection ConstantConditions
+            return MiscUtil.asInstant((XMLGregorianCalendar) realValue).toString();
+        }
+
+        throw new IllegalArgumentException(
+                "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
+    }
+    // endregion
 }

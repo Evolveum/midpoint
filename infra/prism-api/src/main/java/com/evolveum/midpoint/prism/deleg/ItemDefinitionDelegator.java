@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.prism.deleg;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -93,6 +96,11 @@ public interface ItemDefinitionDelegator<I extends Item<?,?>> extends Definition
     @Override
     default boolean canAdd() {
         return delegate().canAdd();
+    }
+
+    @Override
+    default List<ItemDiagramSpecification> getDiagrams() {
+        return delegate().getDiagrams();
     }
 
     @Override

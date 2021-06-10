@@ -64,6 +64,11 @@ public class QCaseWorkItemMapping
                 q -> q.performerRefTargetType,
                 q -> q.performerRefRelationId));
 
+        addRefMapping(F_ASSIGNEE_REF,
+                QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
+        addRefMapping(F_CANDIDATE_REF,
+                QCaseWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
+
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
 
     }
@@ -75,8 +80,7 @@ public class QCaseWorkItemMapping
 
     @Override
     public MCaseWorkItem newRowObject() {
-        MCaseWorkItem row = new MCaseWorkItem();
-        return row;
+        return new MCaseWorkItem();
     }
 
     @Override
@@ -112,6 +116,11 @@ public class QCaseWorkItemMapping
         row.stageNumber = workItem.getStageNumber();
 
         insert(row, jdbcSession);
+
+        storeRefs(row, workItem.getAssigneeRef(),
+                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
+        storeRefs(row, workItem.getCandidateRef(),
+                QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
 
         return row;
     }

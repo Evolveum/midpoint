@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -382,6 +383,11 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
 
     @Override
     public List<SchemaMigration> getSchemaMigrations() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams()  {
         throw new UnsupportedOperationException();
     }
 

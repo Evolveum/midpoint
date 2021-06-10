@@ -23,10 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.QExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -194,6 +198,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return selectOne(qUri, qUri.id.eq(uriId)).uri;
     }
 
+    protected Integer cachedUriId(QName qName) {
+        return cachedUriId(QNameUtil.qNameToUri(qName));
+    }
+
+    protected Integer cachedUriId(String uri) {
+        QUri qUri = QUri.DEFAULT;
+        return selectOne(qUri, qUri.uri.eq(uri)).id;
+    }
+
     protected void assertCachedUri(Integer uriId, QName qName) {
         assertCachedUri(uriId, QNameUtil.qNameToUri(qName));
     }
@@ -246,4 +259,67 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         assertThat(operationInfo.getInvocationCount()).isEqualTo(1);
         assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
     }
+
+    /** Creates a reference with specified type and default relation. */
+    protected PrismReferenceValue ref(String targetOid, QName targetType) {
+        return ref(targetOid, targetType, null);
+    }
+
+    /** Creates a reference with specified target type and relation. */
+    protected PrismReferenceValue ref(String targetOid, QName targetType, QName relation) {
+        return prismContext.itemFactory()
+                .createReferenceValue(targetOid, targetType).relation(relation);
+    }
+
+    // region extension support
+    protected <V> void addExtensionValue(
+            Containerable extContainer, String itemName, V... values) throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        assertThat(itemDefinition)
+                .withFailMessage("No definition found for item name '%s' in %s", itemName, pcv)
+                .isNotNull();
+        if (itemDefinition instanceof PrismReferenceDefinition) {
+            PrismReference ref = (PrismReference) itemDefinition.instantiate();
+            for (V value : values) {
+                ref.add(value instanceof PrismReferenceValue
+                        ? (PrismReferenceValue) value
+                        : ((Referencable) value).asReferenceValue());
+            }
+            pcv.add(ref);
+        } else {
+            //noinspection unchecked
+            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+            property.setRealValues(values);
+            pcv.add(property);
+        }
+    }
+
+    protected String extensionKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
+    }
+
+    protected String shadowAttributeKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
+    }
+
+    private String extKey(Containerable extContainer, String itemName, MExtItemHolderType holder) {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        MExtItem.Key key = MExtItem.keyFrom(def, holder);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            QExtItem ei = QExtItem.DEFAULT;
+            return jdbcSession.newQuery()
+                    .from(ei)
+                    .where(ei.itemName.eq(key.itemName)
+                            .and(ei.valueType.eq(key.valueType))
+                            .and(ei.holderType.eq(key.holderType))
+                            .and(ei.cardinality.eq(key.cardinality)))
+                    .select(ei.id)
+                    .fetchFirst()
+                    .toString();
+        }
+    }
+    // endregion
 }

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 public interface ComplexTypeDefinitionDelegator extends TypeDefinitionDelegator, ComplexTypeDefinition {
 
     @Override
@@ -166,6 +168,11 @@ public interface ComplexTypeDefinitionDelegator extends TypeDefinitionDelegator,
     @Override
     default @NotNull List<? extends ItemDefinition> getDefinitions() {
         return delegate().getDefinitions();
+    }
+
+    @Override
+    default List<ItemDiagramSpecification> getDiagrams() {
+        return delegate().getDiagrams();
     }
 
 }

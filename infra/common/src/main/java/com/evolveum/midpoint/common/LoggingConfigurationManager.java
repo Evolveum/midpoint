@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -57,6 +57,13 @@ public class LoggingConfigurationManager {
 
         if (InternalsConfig.isAvoidLoggingChange()) {
             LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
+            res.recordNotApplicableIfUnknown();
+            return;
+        }
+
+        if (java.util.Objects.equals(currentlyUsedVersion, version)) {
+            LOGGER.debug("Skipped logging configuration because the same version {}"
+                    + " is already configured", version);
             res.recordNotApplicableIfUnknown();
             return;
         }
