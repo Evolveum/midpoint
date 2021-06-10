@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
 import org.apache.wicket.Page;
@@ -37,7 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
-        url  = "/admin/archetype",
+        urls = {
+                @Url(mountUrl = "/admin/archetype", matchUrlForSecurity = "/admin/archetype")
+        },
         encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

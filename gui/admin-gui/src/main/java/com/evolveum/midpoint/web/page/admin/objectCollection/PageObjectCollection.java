@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectBasicPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
@@ -54,7 +55,9 @@ import java.util.concurrent.TimeUnit;
  * @author skublik
  */
 @PageDescriptor(
-        url  = "/admin/objectCollection",
+        urls = {
+                @Url(mountUrl = "/admin/objectCollection", matchUrlForSecurity = "/admin/objectCollection")
+        },
         encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

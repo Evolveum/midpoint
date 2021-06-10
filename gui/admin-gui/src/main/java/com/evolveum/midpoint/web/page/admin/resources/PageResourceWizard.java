@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
@@ -53,7 +54,11 @@ import java.util.Iterator;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/wizard", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/resources/wizard")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
             label = "PageAdminResources.auth.resourcesAll.label",
             description = "PageAdminResources.auth.resourcesAll.description"),

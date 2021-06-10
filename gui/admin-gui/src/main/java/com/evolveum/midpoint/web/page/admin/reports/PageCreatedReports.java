@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
@@ -82,7 +83,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/reports/created", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/reports/created")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -37,7 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/config/bulk", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/bulk", matchUrlForSecurity = "/admin/config/bulk")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_BULK_ACTION_URL,

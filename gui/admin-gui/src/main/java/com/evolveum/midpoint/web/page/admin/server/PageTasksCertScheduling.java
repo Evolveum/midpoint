@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -19,7 +21,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  *
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationSchedulingTasks", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/certificationSchedulingTasks")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
                 label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
                 description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),

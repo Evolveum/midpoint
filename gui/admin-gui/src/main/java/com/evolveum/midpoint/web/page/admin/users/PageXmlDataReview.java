@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
@@ -20,7 +21,11 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/admin/xmlDataReview", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/xmlDataReview")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 label = "PageAdminUsers.auth.usersAll.label",
                 description = "PageAdminUsers.auth.usersAll.description"),

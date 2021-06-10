@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -43,7 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/admin/mergeObjects", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/mergeObjects")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 label = "PageAdminUsers.auth.usersAll.label",
                 description = "PageAdminUsers.auth.usersAll.description"),

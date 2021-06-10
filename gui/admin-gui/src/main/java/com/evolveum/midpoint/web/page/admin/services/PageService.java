@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -24,7 +26,11 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
-@PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/service")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                 label = "PageAdminServices.auth.servicesAll.label",
                 description = "PageAdminServices.auth.servicesAll.description"),

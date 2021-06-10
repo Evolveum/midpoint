@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -45,7 +46,11 @@ import java.util.List;
  * @author katkav
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/services", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/services")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                 label = "PageAdminServices.auth.servicesAll.label",
                 description = "PageAdminServices.auth.servicesAll.description"),

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -26,7 +27,11 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-@PageDescriptor(url = {"/self/profile/service"}, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/profile/service")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

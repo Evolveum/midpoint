@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -37,7 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/org/unit", matchUrlForSecurity = "/admin/org/unit")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
                 label = "PageAdminUsers.auth.orgAll.label",
                 description = "PageAdminUsers.auth.orgAll.description"),

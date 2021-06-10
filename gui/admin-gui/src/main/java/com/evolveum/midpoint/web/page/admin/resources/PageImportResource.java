@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 
 /**
@@ -17,7 +18,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
  * menu item to a separate class (to fix menu item enabling issue)
  *
  */
-@PageDescriptor(url = "/admin/config/importResource", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/importResource")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 label = "PageAdminResources.auth.resourcesAll.label",
                 description = "PageAdminResources.auth.resourcesAll.description"),

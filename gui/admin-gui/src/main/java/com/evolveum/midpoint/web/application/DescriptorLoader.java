@@ -165,10 +165,6 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {
-        for (String url : descriptor.url()) {
-            urlConsumer.accept(buildPrefixUrl(url));
-        }
-
         for (Url url : descriptor.urls()) {
             String urlForSecurity = url.matchUrlForSecurity();
             if (StringUtils.isEmpty(urlForSecurity)) {
@@ -192,17 +188,6 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private void mountPage(PageDescriptor descriptor, Class clazz, MidPointApplication application)
             throws InstantiationException, IllegalAccessException {
-
-        //todo remove for cycle later
-        for (String url : descriptor.url()) {
-            IPageParametersEncoder encoder = descriptor.encoder().newInstance();
-
-            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.",
-                    clazz.getName(), url, encoder.getClass().getSimpleName());
-
-            application.mount(new ExactMatchMountedMapper(url, clazz, encoder));
-            urlClassMap.put(url, clazz);
-        }
 
         for (Url url : descriptor.urls()) {
             IPageParametersEncoder encoder = descriptor.encoder().newInstance();

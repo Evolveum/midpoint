@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,7 +75,11 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * @author lazyman
  * @author mederly
  */
-@PageDescriptor(url = "/admin/config/repositoryQuery", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/repositoryQuery", matchUrlForSecurity = "/admin/config/repositoryQuery")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
