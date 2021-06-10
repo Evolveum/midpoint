@@ -7,61 +7,57 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import java.util.*;
+import java.util.Collection;
 
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.reports.component.*;
-import com.evolveum.midpoint.web.page.admin.server.TaskBasicTabPanel;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportMainPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportObjectsListPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/report", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/report", matchUrlForSecurity = "/admin/report")
+        },
+        encoder = OnePageParameterEncoder.class,
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
@@ -70,23 +66,13 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
                 description = "PageReport.auth.report.description") })
 public class PageReport extends PageAdminObjectDetails<ReportType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
-
     private static final String ID_TABLE_CONTAINER = "tableContainer";
     private static final String ID_TABLE_BOX = "tableBox";
     private static final String ID_REPORT_TABLE = "reportTable";
 
-    private static final List<DisplayableValue<String>> TYPE_OF_REPORTS;
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateReportWrapper";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
     private static final String OPERATION_IMPORT_REPORT = DOT_CLASS + "importReport";
-
-    static {
-        TYPE_OF_REPORTS = Arrays.asList(
-                new SearchValue<>(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), "CollectionReports.title"),
-                new SearchValue<>(SystemObjectsType.ARCHETYPE_DASHBOARD_REPORT.value(), "DashboardReports.title"));
-    }
 
     private Boolean runReport = false;
     private IModel<Boolean> isShowingPreview = Model.of(Boolean.FALSE);
@@ -97,7 +83,6 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
 
     public PageReport(PageParameters parameters) {
         super(parameters);
-        getPageParameters().overwriteWith(parameters);
         initialize(null);
     }
 
@@ -275,7 +260,7 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
                 target.add(getFeedbackPanel());
             }
         };
-        showPreview.add(new VisibleBehaviour(() -> isCollectionReport()));
+        showPreview.add(new VisibleBehaviour(this::isCollectionReport));
         showPreview.add(AttributeAppender.append("class", "btn-default btn-sm"));
         showPreview.setOutputMarkupId(true);
         repeatingView.add(showPreview);
