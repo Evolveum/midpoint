@@ -205,7 +205,7 @@
         <surefire.version>3.0.0-M5</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>30.1.1-jre</guava.version>
-        <jcommander.version>1.72</jcommander.version>
+        <jcommander.version>1.81</jcommander.version>
         <failsafe.version>3.0.0-M3</failsafe.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
         <apache-artemis.version>2.15.0</apache-artemis.version> <!-- matching Spring Boot Artemis dependency -->
