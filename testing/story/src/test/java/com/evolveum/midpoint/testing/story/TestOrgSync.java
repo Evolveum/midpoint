@@ -948,7 +948,7 @@ public class TestOrgSync extends AbstractStoryTest {
         then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
-        waitForTaskCloseOrSuspendOrActivityFail(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
         then();
@@ -986,7 +986,7 @@ public class TestOrgSync extends AbstractStoryTest {
         then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
-        waitForTaskCloseOrSuspendOrActivityFail(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
         then();
@@ -1024,7 +1024,7 @@ public class TestOrgSync extends AbstractStoryTest {
         then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
-        waitForTaskCloseOrSuspendOrActivityFail(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
         then();
@@ -1071,7 +1071,7 @@ public class TestOrgSync extends AbstractStoryTest {
         then();
 
         waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
-        waitForTaskCloseOrSuspendOrActivityFail(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
         then();

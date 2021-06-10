@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -3115,6 +3116,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }, timeoutInterval, sleepInterval);
     }
 
+    // TODO reconsider this method, see e.g. waitForTaskCloseCheckingSubtaskSuspension
     @SuppressWarnings("SameParameterValue")
     protected void waitForTaskCloseCheckingSubtasks(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
             CommonException {
@@ -3132,6 +3134,29 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     display("Error detected in subtask, finishing waiting: " + subtask);
                     return true;
                 }
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskTreeCloseCheckingSuspensionWithError(String taskOid, OperationResult result,
+            long timeoutInterval, long sleepInterval) throws CommonException {
+        waitFor("Waiting for task manager to finish the task", () -> {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    .item(TaskType.F_RESULT).retrieve()
+                    .build();
+            Task task = taskManager.getTaskPlain(taskOid, options, result);
+            List<Task> suspendedWithError = new ArrayList<>();
+            String dump = TaskDebugUtil.dumpTaskTree(task, suspendedWithErrorCollector(suspendedWithError), result);
+            displayValue("Task tree while waiting", dump);
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+
+            if (!suspendedWithError.isEmpty()) {
+                display("Some of tasks are suspended with error, finishing waiting: " + suspendedWithError);
+                return true;
             }
             return false;
         }, timeoutInterval, sleepInterval);
@@ -3383,15 +3408,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
     }
 
-    protected void waitForTaskCloseOrSuspendOrActivityFail(String taskOid) throws Exception {
-        waitForTaskCloseOrSuspendOrActivityFail(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected void waitForTaskCloseOrSuspend(String taskOid) throws Exception {
+        waitForTaskCloseOrSuspend(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskCloseOrSuspendOrActivityFail(String taskOid, final int timeout) throws Exception {
-        waitForTaskCloseOrSuspendOrActivityFail(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
+    protected void waitForTaskCloseOrSuspend(String taskOid, final int timeout) throws Exception {
+        waitForTaskCloseOrSuspend(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskCloseOrSuspendOrActivityFail(
+    protected void waitForTaskCloseOrSuspend(
             final String taskOid, final int timeout, long sleepTime) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskCloseOrSuspend");
         Checker checker = new Checker() {
@@ -3401,8 +3426,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 waitResult.summarize();
                 display("Task execution status = " + task.getExecutionState());
                 return task.getExecutionState() == TaskExecutionStateType.CLOSED
-                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED
-                        || ActivityStateOverviewUtil.containsFailedExecution(task.getActivityTreeStateOverviewOrClone());
+                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
             }
 
             @Override

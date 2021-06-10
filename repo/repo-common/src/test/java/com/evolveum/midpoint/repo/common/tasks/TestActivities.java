@@ -429,7 +429,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 1");
 
@@ -462,7 +462,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 2");
 
@@ -494,7 +494,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 3");
 
@@ -545,7 +545,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 4");
 
@@ -603,7 +603,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(task1.getOid(), result);
         restartTask(task1.getOid(), result);
-        waitForTaskCloseOrSuspendOrActivityFail(task1.getOid(), 10000, 200);
+        waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 5");
 
@@ -701,7 +701,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
         then("run 1");
 
@@ -754,7 +754,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
         then("run 2");
 
@@ -805,7 +805,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         activityManager.clearFailedActivityState(root.getOid(), result);
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskCloseOrSuspendOrActivityFail(root.getOid(), 10000, 200);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
 
         then("run 3");
 
@@ -826,12 +826,12 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .activity("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
-                            .assertHasTaskRef()
+//                            .assertHasTaskRef()
                         .end()
                         .activity("composition:1")
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                            .assertHasTaskRef()
+//                            .assertHasTaskRef()
                         .end()
                     .end()
                 .end()
@@ -844,7 +844,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .rootActivity()
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
-                            .assertNoTaskRef()
+//                            .assertNoTaskRef()
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
                             .end()

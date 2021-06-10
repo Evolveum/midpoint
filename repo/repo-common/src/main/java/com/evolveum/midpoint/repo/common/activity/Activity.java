@@ -15,11 +15,12 @@ import java.util.stream.Collectors;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.execution.DelegatedActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
 
@@ -158,34 +159,50 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public AbstractActivityExecution<?, ?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
         stateCheck(execution == null, "Execution is already created in %s", this);
         ExecutionInstantiationContext<WD, AH> context = new ExecutionInstantiationContext<>(this, taskExecution);
-        if (definition.getDistributionDefinition().isSubtask() && !isInDelegatedExecution(taskExecution)) {
-            execution = createDelegatedExecution(context);
-        } else {
-            execution = createLocalExecution(context, result);
+        ExecutionType executionType = determineExecutionType(taskExecution);
+        switch (executionType) {
+            case LOCAL:
+                execution = getLocalExecutionSupplier()
+                        .createExecution(context, result);
+                break;
+            case DELEGATING:
+                execution = new DelegatingActivityExecution<>(context);
+                break;
+            case COORDINATING:
+                throw new UnsupportedOperationException();
+            default:
+                throw new AssertionError(executionType);
         }
         return execution;
     }
 
+    private @NotNull ExecutionType determineExecutionType(TaskExecution taskExecution) {
+        if (definition.getDistributionDefinition().isSubtask()) {
+            return isInDelegatedExecution(taskExecution) ? ExecutionType.LOCAL : ExecutionType.DELEGATING;
+        } else if (definition.getDistributionDefinition().hasWorkers()) {
+            return isRoleWorker(taskExecution) ? ExecutionType.LOCAL : ExecutionType.COORDINATING;
+        } else {
+            return ExecutionType.LOCAL;
+        }
+    }
+
     private Boolean isInDelegatedExecution(TaskExecution taskExecution) {
-        return isLocalRoot() && isDelegatedFlagTrue(taskExecution);
+        return isLocalRoot() && isRoleDelegate(taskExecution);
     }
 
-    private boolean isDelegatedFlagTrue(TaskExecution taskExecution) {
-        return Boolean.TRUE.equals(
-                taskExecution.getRunningTask()
-                        .getPropertyRealValue(
-                                ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_DELEGATED),
-                                Boolean.class));
+    private boolean isRoleDelegate(TaskExecution taskExecution) {
+        return getRole(taskExecution) == ActivityExecutionRoleType.DELEGATE;
     }
 
-    private AbstractActivityExecution<WD, AH, ?> createDelegatedExecution(ExecutionInstantiationContext<WD, AH> context) {
-        return new DelegatedActivityExecution<>(context);
+    private boolean isRoleWorker(TaskExecution taskExecution) {
+        return getRole(taskExecution) == ActivityExecutionRoleType.WORKER;
     }
 
-    private AbstractActivityExecution<WD, AH, ?> createLocalExecution(ExecutionInstantiationContext<WD, AH> context,
-            OperationResult result) {
-        return getLocalExecutionSupplier()
-                .createExecution(context, result);
+    private ActivityExecutionRoleType getRole(TaskExecution taskExecution) {
+        return taskExecution.getRunningTask()
+                .getPropertyRealValue(
+                        ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ROLE),
+                        ActivityExecutionRoleType.class);
     }
 
     @NotNull
@@ -323,5 +340,9 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
         // TODO implement inheritance of the error handling strategy among activities
         return definition.getControlFlowDefinition().getErrorHandlingStrategy();
+    }
+
+    private enum ExecutionType {
+        LOCAL, DELEGATING, COORDINATING
     }
 }

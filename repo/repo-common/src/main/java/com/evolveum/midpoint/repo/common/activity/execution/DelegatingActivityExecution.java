@@ -30,21 +30,26 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
-public class DelegatedActivityExecution<
+public class DelegatingActivityExecution<
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD, AH>,
-        BS extends AbstractActivityWorkStateType> extends AbstractActivityExecution<WD, AH, BS> {
+        AH extends ActivityHandler<WD, AH>> extends AbstractActivityExecution<WD, AH, DelegationWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DelegatedActivityExecution.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DelegatingActivityExecution.class);
 
-    public DelegatedActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
+    public DelegatingActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         super(context);
+    }
+
+    @Override
+    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context) {
+        return DelegationWorkStateType.COMPLEX_TYPE;
     }
 
     private DelegationState delegationState;
@@ -87,12 +92,15 @@ public class DelegatedActivityExecution<
 
     private @NotNull DelegationState determineDelegationStateFromChildTask(OperationResult result)
             throws ActivityExecutionException {
-        ObjectReferenceType childRef = activityState.getTaskRef();
+        ObjectReferenceType childRef = getTaskRef();
         String childOid = childRef != null ? childRef.getOid() : null;
         if (childOid == null) {
-            LOGGER.warn("Activity '{}' is marked as delegated but no child task OID is present. Will create one. In: {}",
-                    getActivityPath(), getRunningTask());
-            return DelegationState.NOT_DELEGATED_YET;
+            // We are so harsh here to debug any issues. Later on we can switch this to returning NOT_DELEGATED_YET
+            // (i.e. a kind of auto-healing).
+            throw new ActivityExecutionException(
+                    String.format("Activity '%s' is marked as delegated but no child task OID is present. Will create one. In: %s",
+                            getActivityPath(), getRunningTask()),
+                    FATAL_ERROR, PERMANENT_ERROR, null);
         }
 
         try {
@@ -120,11 +128,25 @@ public class DelegatedActivityExecution<
         }
     }
 
+    private ObjectReferenceType getTaskRef() {
+        return activityState.getWorkStateReferenceRealValue(DelegationWorkStateType.F_TASK_REF);
+    }
+
+    private void setTaskRef(ObjectReferenceType taskRef) {
+        try {
+            activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, taskRef);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
+        }
+    }
+
     private void delegate(OperationResult result) throws ActivityExecutionException {
         deleteSubtasksIfPossible(result);
 
         ObjectReferenceType childRef = createSuspendedChildTask(result);
         switchExecutionToChild(childRef, result);
+
+        setTaskRef(childRef);
         activityState.markInProgressDelegated(childRef, result);
     }
 
@@ -153,9 +175,7 @@ public class DelegatedActivityExecution<
     }
 
     private boolean isRelevantWorker(Task worker) {
-        TaskActivityStateType workState = worker.getWorkState();
-        return Boolean.TRUE.equals(workState.isDelegated()) &&
-                getActivityPath().equalsBean(workState.getLocalRoot());
+        return getActivityPath().equalsBean(worker.getWorkState().getLocalRoot());
     }
 
     private ObjectReferenceType createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
@@ -173,7 +193,7 @@ public class DelegatedActivityExecution<
             ActivityPath localRoot = getActivityPath();
             child.beginActivityState()
                     .localRoot(localRoot.toBean())
-                    .delegated(Boolean.TRUE);
+                    .role(ActivityExecutionRoleType.DELEGATE);
 
             LOGGER.info("Creating activity subtask {} with local root {}", child.getName(), localRoot);
             String childOid = getBeans().taskManager.addTask(child.asPrismObject(), result);

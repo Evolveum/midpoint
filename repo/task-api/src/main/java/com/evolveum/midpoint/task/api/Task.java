@@ -918,5 +918,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     //region TODO
     String getCurrentPartId();
 
+    default boolean isRoot() {
+        return getParent() == null;
+    }
+
     //endregion
 }

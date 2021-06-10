@@ -26,9 +26,4 @@ public abstract class AbstractMockActivityHandler<WD extends WorkDefinition, AH 
     public @NotNull QName getWorkStateTypeName() {
         return WORK_STATE_TYPE_NAME;
     }
-
-    @Override
-    public boolean shouldCreateWorkStateOnInitialization() {
-        return true;
-    }
 }

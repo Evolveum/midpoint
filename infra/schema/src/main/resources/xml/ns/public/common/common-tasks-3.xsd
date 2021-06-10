@@ -2457,10 +2457,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="delegated" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="role" type="tns:ActivityExecutionRoleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        True if the execution of the local root activity was delegated to this task.
+                        Role of the task in the local root activity execution.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2522,16 +2522,6 @@
                     <xsd:documentation>
                         Operation result status of this activity. TODO
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If the activity execution takes place in a separate task, the reference to it is stored here.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
@@ -2609,10 +2599,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task in which the activity execution takes place.
+                        The task(s) in which the activity execution takes place.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
@@ -2660,6 +2650,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="inProgressDistributed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity is in progress and it was distributed to worker subtasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS_DISTRIBUTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="complete">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2667,6 +2667,40 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityExecutionRoleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role of the task in the execution of the local root activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="delegate">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity execution was fully delegated to the current task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELEGATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="worker">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity execution was distributed to a set of workers, and this is one of them.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5753,6 +5787,64 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+
+    <xsd:complexType name="DelegationWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A reference to the delegate subtask.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="delegationWorkState" type="tns:DelegationWorkStateType" />
+
+    <xsd:complexType name="DistributionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                References to worker subtasks.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="distributionWorkState" type="tns:DistributionWorkStateType" />
 
     <xsd:complexType name="PropagationWorkStateType">
         <xsd:annotation>

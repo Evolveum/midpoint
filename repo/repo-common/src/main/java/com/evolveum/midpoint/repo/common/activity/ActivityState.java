@@ -28,14 +28,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.common.activity.ActivityState.Wrapper.w;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 public class ActivityState<WS extends AbstractActivityWorkStateType> implements DebugDumpable {
 
@@ -68,7 +70,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     public void initialize(OperationResult result) throws ActivityExecutionException {
         try {
             stateItemPath = findOrCreateActivityState(result);
-            if (getActivityHandler().shouldCreateWorkStateOnInitialization()) {
+            if (activityExecution.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
@@ -192,11 +194,11 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     }
 
     public void markInProgressLocal(OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_LOCAL), w(IN_PROGRESS), w(null), result);
+        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_LOCAL), w(IN_PROGRESS), result);
     }
 
     public void markInProgressDelegated(ObjectReferenceType taskRef, OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DELEGATED), w(IN_PROGRESS), w(taskRef), result);
+        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DELEGATED), w(IN_PROGRESS), result);
     }
 
     public boolean isComplete() {
@@ -204,7 +206,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     }
 
     public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.COMPLETE), w(resultStatus), null, result);
+        setCombined(w(ActivityRealizationStateType.COMPLETE), w(resultStatus), result);
     }
 
     private void setRealizationStateWithoutCommit(ActivityRealizationStateType value) throws SchemaException {
@@ -228,7 +230,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     public void setResultStatus(@NotNull OperationResultStatus status, OperationResult result)
             throws ActivityExecutionException {
-        setCombined(null, w(status), null, result);
+        setCombined(null, w(status), result);
     }
 
     private void setResultStateWithoutCommit(OperationResultStatus resultStatus) throws SchemaException {
@@ -244,24 +246,6 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     }
     //endregion
 
-    //region Task ref
-    public ObjectReferenceType getTaskRef() {
-        return getRunningTask().getReferenceRealValue(getTaskRefItemPath());
-    }
-
-    private void setTaskRefWithoutCommit(ObjectReferenceType taskRef) throws SchemaException {
-        ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
-                .item(getTaskRefItemPath()).replace(taskRef)
-                .asItemDelta();
-        getRunningTask().modify(itemDelta);
-        LOGGER.info("Setting taskRef to {} for {}", taskRef, activityExecution);
-    }
-
-    private @NotNull ItemPath getTaskRefItemPath() {
-        return stateItemPath.append(ActivityStateType.F_TASK_REF);
-    }
-    //endregion
-
     //region Work state
     public @NotNull ComplexTypeDefinition getWorkStateDefinition() {
         return workStateDefinition;
@@ -272,14 +256,23 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
                 .getPropertyRealValue(getWorkStateItemPath().append(path), expectedType);
     }
 
-    public void setWorkStatePropertyRealValue(ItemPath path, Object value) throws SchemaException {
+    public ObjectReferenceType getWorkStateReferenceRealValue(ItemPath path) {
+        return getRunningTask()
+                .getReferenceRealValue(getWorkStateItemPath().append(path));
+    }
+
+    public void setWorkStateItemRealValues(ItemPath path, Object... values) throws SchemaException {
+        setWorkStateItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values));
+    }
+
+    public void setWorkStateItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
         RunningTask task = getRunningTask();
-        LOGGER.trace("setWorkStatePropertyRealValue: path={}, value={} in {}", path, value, task);
+        LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
 
         task.modify(
                 getPrismContext().deltaFor(TaskType.class)
                         .item(getWorkStateItemPath().append(path), getWorkStateItemDefinition(path))
-                        .replace(value)
+                        .replaceRealValues(values)
                         .asItemDelta());
     }
 
@@ -297,16 +290,13 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     //region Combined operations
     private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
-            Wrapper<ObjectReferenceType> taskRef, OperationResult result) throws ActivityExecutionException {
+            OperationResult result) throws ActivityExecutionException {
         try {
             if (realizationState != null) {
                 setRealizationStateWithoutCommit(realizationState.value);
             }
             if (resultStatus != null) {
                 setResultStateWithoutCommit(resultStatus.value);
-            }
-            if (taskRef != null) {
-                setTaskRefWithoutCommit(taskRef.value);
             }
             flushPendingModifications(result);
         } catch (CommonException e) {
@@ -372,10 +362,6 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         DebugUtil.debugDumpLabelLn(sb, getEnhancedClassName(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Item path", String.valueOf(stateItemPath), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Realization state", String.valueOf(getRealizationState()), indent + 1);
-        ObjectReferenceType taskRef = getTaskRef();
-        if (taskRef != null) {
-            DebugUtil.debugDumpWithLabelLn(sb, "Task ref", String.valueOf(taskRef), indent + 1);
-        }
         DebugUtil.debugDumpWithLabel(sb, "Result status", String.valueOf(getResultStatusRaw()), indent + 1);
         // Consider adding work state here, maybe bucketing etc
         return sb.toString();

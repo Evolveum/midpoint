@@ -13,9 +13,10 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType;
 
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 public abstract class LocalActivityExecution<
         WD extends WorkDefinition,
@@ -45,4 +46,9 @@ public abstract class LocalActivityExecution<
 
     protected abstract @NotNull ActivityExecutionResult executeLocal(OperationResult result)
             throws ActivityExecutionException, CommonException;
+
+    @Override
+    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context) {
+        return context.getActivity().getHandler().getWorkStateTypeName();
+    }
 }

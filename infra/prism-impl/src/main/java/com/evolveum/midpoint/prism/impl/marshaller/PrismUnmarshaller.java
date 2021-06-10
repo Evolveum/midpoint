@@ -18,6 +18,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.*;
 import com.evolveum.midpoint.prism.xnode.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,12 +27,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
-import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
-import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
-import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.impl.xnode.IncompleteMarkerXNodeImpl;
@@ -296,12 +291,10 @@ public class PrismUnmarshaller {
         if (node instanceof MapXNodeImpl) {
             rv = parseContainerValueFromMap((MapXNodeImpl) node, containerDef, pc);
         } else if (node instanceof PrimitiveXNodeImpl) {
+            rv = createContainerValueWithDefinition(node, containerDef, pc).value;
             PrimitiveXNodeImpl<?> prim = (PrimitiveXNodeImpl<?>) node;
-            if (prim.isEmpty()) {
-                rv = containerDef.createValue();
-            } else {
+            if (!prim.isEmpty()) {
                 pc.warnOrThrow(LOGGER, "Cannot parse container value from (non-empty) " + node);
-                rv = containerDef.createValue();
             }
         } else {
             pc.warnOrThrow(LOGGER, "Cannot parse container value from " + node);
@@ -315,18 +308,34 @@ public class PrismUnmarshaller {
     private <C extends Containerable> PrismContainerValue<C> parseContainerValueFromMap(@NotNull MapXNodeImpl map,
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
 
-        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
+        ValueWithDefinition<C> vd = createContainerValueWithDefinition(map, containerDef, pc);
+        parseContainerChildren(vd.value, map, containerDef, vd.complexTypeDefinition, pc);
+        return vd.value;
+    }
 
+    private static class ValueWithDefinition<C extends Containerable> {
+        final PrismContainerValue<C> value;
+        final ComplexTypeDefinition complexTypeDefinition;
+
+        private ValueWithDefinition(PrismContainerValue<C> value, ComplexTypeDefinition complexTypeDefinition) {
+            this.value = value;
+            this.complexTypeDefinition = complexTypeDefinition;
+        }
+    }
+
+    private <C extends Containerable> ValueWithDefinition<C> createContainerValueWithDefinition(@NotNull XNodeImpl xnode,
+            @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
+        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
-            //noinspection unchecked
-            cval = ((PrismObjectDefinition) containerDef).createValue();
+            //noinspection unchecked,rawtypes
+            return new ValueWithDefinition<>(((PrismObjectDefinition) containerDef).createValue(), containerTypeDef);
         } else {
-            Long id = getContainerId(map, containerDef);
+            Long id = xnode instanceof MapXNodeImpl ? getContainerId(((MapXNodeImpl) xnode), containerDef) : null;
             // override container definition, if explicit type is specified
-            if (map.getTypeQName() != null) {
-                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
+            if (xnode.getTypeQName() != null) {
+                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(xnode.getTypeQName());
                 if (explicitTypeDef != null) {
                     if (containerTypeDef != null && explicitTypeDef.isAssignableFrom(containerTypeDef, schemaRegistry)) {
                         // Existing definition (CTD for PCD) is equal or more specific than the explicitly provided one.
@@ -340,13 +349,13 @@ public class PrismUnmarshaller {
                         containerTypeDef = explicitTypeDef;
                     }
                 } else {
-                    pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
+                    pc.warnOrThrow(LOGGER, "Unknown type " + xnode.getTypeQName() + " in " + xnode);
                 }
             }
-            cval = new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext);
+            return new ValueWithDefinition<>(
+                    new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext),
+                    containerTypeDef);
         }
-        parseContainerChildren(cval, map, containerDef, containerTypeDef, pc);
-        return cval;
     }
 
     private void parseContainerChildren(PrismContainerValue<?> cval, MapXNodeImpl map, PrismContainerDefinition<?> containerDef, ComplexTypeDefinition complexTypeDefinition, ParsingContext pc) throws SchemaException {

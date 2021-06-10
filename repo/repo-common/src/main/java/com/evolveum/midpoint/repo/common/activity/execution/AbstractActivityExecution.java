@@ -70,9 +70,12 @@ public abstract class AbstractActivityExecution<
     protected AbstractActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
-        this.workStateTypeName = context.getActivity().getHandler().getWorkStateTypeName();
+        this.workStateTypeName = getWorkStateTypeName(context);
         this.activityState = new ActivityState<>(this);
     }
+
+    @NotNull
+    protected abstract QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context);
 
     @NotNull
     @Override
@@ -151,19 +154,21 @@ public abstract class AbstractActivityExecution<
     }
 
     private void logStart() { // todo debug
-        LOGGER.info("Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
-                        + "prism item path: {}", activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
+        LOGGER.info("{}: Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
+                        + "prism item path: {}",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 activityState.getItemPath());
     }
 
     private void logEnd(ActivityExecutionResult executionResult) { // todo debug
-        LOGGER.info("Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
-                activity.getIdentifier(), activity.getPath(), activity.getLocalPath(), executionResult);
+        LOGGER.info("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
+                executionResult);
     }
 
     private void logComplete() { // todo debug
-        LOGGER.info("Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
-                activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
+        LOGGER.info("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
     /**
@@ -240,5 +245,9 @@ public abstract class AbstractActivityExecution<
 
     public boolean canRun() {
         return taskExecution.canRun();
+    }
+
+    public boolean shouldCreateWorkStateOnInitialization() {
+        return true;
     }
 }

@@ -36,7 +36,7 @@ public class CommonMockActivityHelper {
         ActivityState<?> activityState = activityExecution.getActivityState();
 
         int count = or0(activityState.getWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, Integer.class));
-        activityState.setWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, count + 1);
+        activityState.setWorkStateItemRealValues(EXECUTION_COUNT_PATH, count + 1);
         activityState.flushPendingModifications(result);
     }
 

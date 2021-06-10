@@ -45,16 +45,16 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public ActivityStateAsserter<RA> assertHasTaskRef() {
-        assertThat(activityState.getTaskRef()).as("taskRef").isNotNull();
-        assertThat(activityState.getTaskRef().getOid()).as("taskRef.oid").isNotNull();
-        return this;
-    }
+//    public ActivityStateAsserter<RA> assertHasTaskRef() {
+//        assertThat(activityState.getTaskRef()).as("taskRef").isNotNull();
+//        assertThat(activityState.getTaskRef().getOid()).as("taskRef.oid").isNotNull();
+//        return this;
+//    }
 
-    public ActivityStateAsserter<RA> assertNoTaskRef() {
-        assertThat(activityState.getTaskRef()).as("taskRef").isNull();
-        return this;
-    }
+//    public ActivityStateAsserter<RA> assertNoTaskRef() {
+//        assertThat(activityState.getTaskRef()).as("taskRef").isNull();
+//        return this;
+//    }
 
     public ExtensionAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> workStateExtension() {
         ExtensionAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> asserter =

@@ -15,6 +15,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.List;
+import java.util.function.Consumer;
+
+import static com.evolveum.midpoint.schema.util.OperationResultUtil.isError;
 
 /**
  * @author mederly
@@ -22,12 +25,19 @@ import java.util.List;
 public class TaskDebugUtil {
 
     public static String dumpTaskTree(Task rootTask, OperationResult result) throws SchemaException {
+        return dumpTaskTree(rootTask, null, result);
+    }
+
+    public static String dumpTaskTree(Task rootTask, Consumer<Task> consumer, OperationResult result) throws SchemaException {
         StringBuilder sb = new StringBuilder();
-        dumpTaskTree(sb, 0, rootTask, result);
+        dumpTaskTree(sb, 0, rootTask, consumer, result);
         return sb.toString();
     }
 
-    private static void dumpTaskTree(StringBuilder sb, int indent, Task task, OperationResult result) throws SchemaException {
+    private static void dumpTaskTree(StringBuilder sb, int indent, Task task, Consumer<Task> consumer, OperationResult result) throws SchemaException {
+        if (consumer != null) {
+            consumer.accept(task);
+        }
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(task)
                 .append(" [es:").append(task.getExecutionState())
@@ -37,7 +47,7 @@ public class TaskDebugUtil {
                 .append(", n:").append(task.getNode())
                 .append("]").append("\n");
         for (Task subtask : task.listSubtasks(result)) {
-            dumpTaskTree(sb, indent + 1, subtask, result);
+            dumpTaskTree(sb, indent + 1, subtask, consumer, result);
         }
     }
 
@@ -64,5 +74,13 @@ public class TaskDebugUtil {
                 throw new IllegalStateException("Subtask " + subRef + " in " + task + " is not resolved");
             }
         }
+    }
+
+    public static Consumer<Task> suspendedWithErrorCollector(List<Task> suspended) {
+        return task -> {
+            if (task.isSuspended() && isError(task.getResultStatus())) {
+                suspended.add(task);
+            }
+        };
     }
 }

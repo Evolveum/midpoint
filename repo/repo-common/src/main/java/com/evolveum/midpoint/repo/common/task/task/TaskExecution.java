@@ -53,4 +53,8 @@ public interface TaskExecution extends ShortDumpable {
     default boolean canRun() {
         return getRunningTask().canRun();
     }
+
+    default boolean isRootTask() {
+        return getRunningTask().isRoot();
+    }
 }

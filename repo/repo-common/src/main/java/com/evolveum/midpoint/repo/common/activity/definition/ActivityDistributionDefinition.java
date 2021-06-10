@@ -47,4 +47,8 @@ public class ActivityDistributionDefinition implements DebugDumpable {
     public boolean isSubtask() {
         return bean.getSubtask() != null;
     }
+
+    public boolean hasWorkers() {
+        return bean.getWorkers() != null;
+    }
 }

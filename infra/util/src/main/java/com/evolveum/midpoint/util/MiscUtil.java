@@ -980,6 +980,10 @@ public class MiscUtil {
         }
     }
 
+    public static boolean isSingleNull(Object[] values) {
+        return values.length == 1 && values[0] == null;
+    }
+
     @FunctionalInterface
     public interface ExceptionSupplier<E> {
         E get();
