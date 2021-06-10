@@ -10,8 +10,11 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.util.OperationResultUtil;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -112,7 +115,7 @@ public class ActivityExecutionResult implements ShortDumpable {
     }
 
     // TODO move to AbstractCompositeActivityExecution?
-    public void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult, boolean canRun) {
+    void updateRunResultStatus(@NotNull ActivityExecutionResult childExecutionResult, boolean canRun) {
         assert runResultStatus == null;
         if (childExecutionResult.isInterrupted() || !canRun) {
             runResultStatus = INTERRUPTED;
@@ -126,27 +129,20 @@ public class ActivityExecutionResult implements ShortDumpable {
     }
 
     // TODO move to AbstractCompositeActivityExecution?
-    public void updateOperationResultStatus(List<ActivityExecutionResult> childResults) {
+    void updateOperationResultStatus(List<ActivityExecutionResult> childResults) {
         if (isWaiting() || isInterrupted()) {
             operationResultStatus = IN_PROGRESS;
             return;
         }
 
-        if (has(childResults, FATAL_ERROR)) {
-            operationResultStatus = FATAL_ERROR;
-        } else if (has(childResults, PARTIAL_ERROR)) {
-            operationResultStatus = PARTIAL_ERROR;
-        } else if (has(childResults, WARNING)) {
-            operationResultStatus = WARNING;
-        } else {
-            // Note that we intentionally do not check for run result being error here.
-            // In all such cases, the corresponding operation result status should also be set.
-            operationResultStatus = SUCCESS;
-        }
-    }
+        Set<OperationResultStatus> statuses = childResults.stream()
+                .map(r -> r.operationResultStatus)
+                .collect(Collectors.toSet());
 
-    private boolean has(Collection<ActivityExecutionResult> childResults, OperationResultStatus status) {
-        return childResults.stream().anyMatch(r -> r.getOperationResultStatus() == status);
+        // Note that we intentionally do not check the _run_result_ being error here.
+        // We rely on the fact that in the case of temporary/permanent error the appropriate
+        // operation result status should be set as well.
+        operationResultStatus = OperationResultUtil.aggregateFinishedResults(statuses);
     }
 
     public boolean isError() {

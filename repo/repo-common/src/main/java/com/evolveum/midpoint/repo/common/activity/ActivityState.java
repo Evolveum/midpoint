@@ -197,8 +197,12 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         setCombined(w(ActivityRealizationStateType.IN_PROGRESS_LOCAL), w(IN_PROGRESS), result);
     }
 
-    public void markInProgressDelegated(ObjectReferenceType taskRef, OperationResult result) throws ActivityExecutionException {
+    public void markInProgressDelegated(OperationResult result) throws ActivityExecutionException {
         setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DELEGATED), w(IN_PROGRESS), result);
+    }
+
+    public void markInProgressDistributed(OperationResult result) throws ActivityExecutionException {
+        setCombined(w(ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED), w(IN_PROGRESS), result);
     }
 
     public boolean isComplete() {
@@ -246,19 +250,51 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     }
     //endregion
 
+    //region Generic access
+    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
+        return getRunningTask()
+                .getPropertyRealValue(stateItemPath.append(path), expectedType);
+    }
+
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+    public void setItemRealValues(ItemPath path, Object... values) throws SchemaException {
+        setItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values));
+    }
+
+    /**
+     * DO NOT use for setting work state items because of dynamic typing of the work state container value.
+     */
+    public void setItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+        RunningTask task = getRunningTask();
+        LOGGER.trace("setItemRealValues: path={}, values={} in {}", path, values, task);
+
+        task.modify(
+                getPrismContext().deltaFor(TaskType.class)
+                        .item(stateItemPath.append(path))
+                        .replaceRealValues(values)
+                        .asItemDelta());
+    }
+    //endregion
+
     //region Work state
     public @NotNull ComplexTypeDefinition getWorkStateDefinition() {
         return workStateDefinition;
     }
 
     public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
-        return getRunningTask()
-                .getPropertyRealValue(getWorkStateItemPath().append(path), expectedType);
+        return getPropertyRealValue(ActivityStateType.F_WORK_STATE.append(path), expectedType);
     }
 
     public ObjectReferenceType getWorkStateReferenceRealValue(ItemPath path) {
         return getRunningTask()
                 .getReferenceRealValue(getWorkStateItemPath().append(path));
+    }
+
+    public Collection<ObjectReferenceType> getWorkStateReferenceRealValues(ItemPath path) {
+        return getRunningTask()
+                .getReferenceRealValues(getWorkStateItemPath().append(path));
     }
 
     public void setWorkStateItemRealValues(ItemPath path, Object... values) throws SchemaException {

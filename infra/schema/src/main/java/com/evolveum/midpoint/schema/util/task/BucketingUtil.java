@@ -183,7 +183,8 @@ public class BucketingUtil {
     }
 
     public static BucketsProcessingRoleType getBucketsProcessingRole(TaskActivityStateType taskWorkState, ItemPath statePath) {
-        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityWorkStateRequired(taskWorkState, statePath).getBucketing();
+        ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityWorkStateRequired(taskWorkState, statePath)
+                .getBucketing();
         return bucketing != null ? bucketing.getBucketsProcessingRole() : null;
     }
 }

@@ -38,10 +38,12 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivityWorkStateRequired;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_WORK_COMPLETE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import static java.util.Collections.emptyList;
@@ -114,6 +116,7 @@ public class GetBucketOperation extends BucketOperation {
                 throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + workerTask);
             }
             statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
+            markWorkComplete(workerTask, workerStatePath, result);
             return null;
         } else {
             throw new AssertionError(response);
@@ -122,7 +125,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private void setOrUpdateEstimatedNumberOfBuckets(Task task, ItemPath statePath, BucketContentFactory contentFactory,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        @NotNull ActivityStateType workState = getTaskActivityWorkState(task);
+        @NotNull ActivityStateType workState = getActivityWorkStateRequired(task.getWorkState(), statePath);
 
         Integer number = contentFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(getNumberOfBuckets(workState))) {
@@ -156,7 +159,7 @@ public class GetBucketOperation extends BucketOperation {
             Holder<BucketAllocator.Response> lastAllocatorResponseHolder = new Holder<>();
             ModifyObjectResult<TaskType> modifyResult = repositoryService.modifyObjectDynamically(TaskType.class,
                     coordinatorTask.getOid(), null,
-                    task -> computeCoordinatorModifications(task, allocator, lastAllocatorResponseHolder),
+                    coordinatorTask -> computeCoordinatorModifications(coordinatorTask, allocator, lastAllocatorResponseHolder),
                     null, result);
 
             // We ignore conflicts encountered in previous iterations (scavenger hitting 'no more buckets' situation).
@@ -174,12 +177,12 @@ public class GetBucketOperation extends BucketOperation {
                     processNothingFoundForNonScavenger();
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
-                    processNothingFoundDefinite();
+                    processNothingFoundDefinite(result);
                     return null;
                 } else {
                     long toWait = getRemainingTimeToWait();
                     if (toWait <= 0) {
-                        processNothingFoundWithWaitTimeElapsed();
+                        processNothingFoundWithWaitTimeElapsed(result);
                         return null;
                     } else {
                         sleep(toWait, bucketingConfig);
@@ -256,7 +259,9 @@ public class GetBucketOperation extends BucketOperation {
         }
     }
 
-    private void processNothingFoundWithWaitTimeElapsed() {
+    private void processNothingFoundWithWaitTimeElapsed(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        markWorkComplete(coordinatorTask, coordinatorStatePath, result); // TODO also if response is not definite?
         CONTENTION_LOGGER.trace("'No bucket' found (wait time elapsed) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED);
@@ -267,7 +272,9 @@ public class GetBucketOperation extends BucketOperation {
         return waitDeadline - System.currentTimeMillis();
     }
 
-    private void processNothingFoundDefinite() {
+    private void processNothingFoundDefinite(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        markWorkComplete(coordinatorTask, coordinatorStatePath, result);
         CONTENTION_LOGGER.trace("'No bucket' found after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE);
@@ -305,12 +312,15 @@ public class GetBucketOperation extends BucketOperation {
      * Computes modifications to the current work state aimed to obtain new buckets, if possible.
      *
      * We assume that the updated coordinator task has the same part work state PCV ID as the original one.
+     *
+     * BEWARE!!! This is invoked from the dynamic modification code, so it must NOT access stored coordinator task.
+     * It may access coordinator state path, as it is assumed not to change.
      */
     private Collection<? extends ItemDelta<?, ?>> computeCoordinatorModifications(TaskType coordinatorTask,
             BucketAllocator allocator, Holder<BucketAllocator.Response> lastAllocatorResponseHolder)
             throws SchemaException {
 
-        ActivityStateType workState = getCoordinatorTaskPartWorkState();
+        ActivityStateType workState = getTaskActivityWorkState(coordinatorTask);
         BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
         lastAllocatorResponseHolder.setValue(response);
         LOGGER.trace("computeWorkBucketModifications: bucket allocator returned {} for worker task {}, coordinator {}",
@@ -418,6 +428,15 @@ public class GetBucketOperation extends BucketOperation {
                 return false;
             }
         }
+    }
+
+    private void markWorkComplete(Task task, ItemPath statePath, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
+                .item(statePath.append(F_BUCKETING, F_WORK_COMPLETE))
+                .replace(true)
+                .asItemDeltas();
+        repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
     }
 
     private void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {

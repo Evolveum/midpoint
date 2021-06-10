@@ -7,35 +7,30 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 public class DelegatingActivityExecution<
         WD extends WorkDefinition,
@@ -43,8 +38,11 @@ public class DelegatingActivityExecution<
 
     private static final Trace LOGGER = TraceManager.getTrace(DelegatingActivityExecution.class);
 
+    @NotNull private final SubtaskHelper helper;
+
     public DelegatingActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         super(context);
+        helper = new SubtaskHelper(this);
     }
 
     @Override
@@ -55,8 +53,8 @@ public class DelegatingActivityExecution<
     private DelegationState delegationState;
 
     /**
-     * Non-null for {@link DelegationState#DELEGATED_COMPLETE} and {@link DelegationState#DELEGATED_IN_PROGRESS}
-     * and when child task was created during delegation process.
+     * Child task: either discovered in {@link #determineDelegationState(OperationResult)}
+     * or created in {@link #delegate(OperationResult)}.
      */
     private TaskType childTask;
 
@@ -132,74 +130,37 @@ public class DelegatingActivityExecution<
         return activityState.getWorkStateReferenceRealValue(DelegationWorkStateType.F_TASK_REF);
     }
 
-    private void setTaskRef(ObjectReferenceType taskRef) {
-        try {
-            activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, taskRef);
-        } catch (SchemaException e) {
-            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
-        }
-    }
-
     private void delegate(OperationResult result) throws ActivityExecutionException {
-        deleteSubtasksIfPossible(result);
+        helper.deleteRelevantSubtasksIfPossible(result);
 
-        ObjectReferenceType childRef = createSuspendedChildTask(result);
-        switchExecutionToChild(childRef, result);
+        createSuspendedChildTask(result);
 
-        setTaskRef(childRef);
-        activityState.markInProgressDelegated(childRef, result);
+        helper.switchExecutionToChildren(List.of(childTask), result);
+
+        setTaskRef();
+        activityState.markInProgressDelegated(result);
     }
 
-    private void deleteSubtasksIfPossible(OperationResult result) throws ActivityExecutionException {
-        LOGGER.debug("Going to delete subtasks, if there are any, and if they are closed");
-        try {
-            List<? extends Task> relevantChildren = getRunningTask().listSubtasks(true, result).stream()
-                    .filter(this::isRelevantWorker)
-                    .collect(Collectors.toList());
-            LOGGER.debug("Found {} relevant workers: {}", relevantChildren.size(), relevantChildren);
-            List<? extends Task> notClosed = relevantChildren.stream()
-                    .filter(t -> !t.isClosed())
-                    .collect(Collectors.toList());
-            if (!notClosed.isEmpty()) {
-                // The error may be permanent or transient. But reporting it as permanent is more safe, as it causes
-                // the parent task to always suspend, catching the attention of the administrators.
-                throw new ActivityExecutionException("Couldn't (re)create activity subtask because there are existing one(s) "
-                        + "that are not closed: " + notClosed, FATAL_ERROR, PERMANENT_ERROR);
-            }
-            for (Task worker : relevantChildren) {
-                getBeans().taskManager.deleteTaskTree(worker.getOid(), result);
-            }
-        } catch (Exception e) {
-            throw new ActivityExecutionException("Couldn't delete activity subtask(s)", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-    }
-
-    private boolean isRelevantWorker(Task worker) {
-        return getActivityPath().equalsBean(worker.getWorkState().getLocalRoot());
-    }
-
-    private ObjectReferenceType createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
+    private void createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
         try {
             RunningTask parent = getRunningTask();
-            TaskType child = new TaskType(getPrismContext());
-            child.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
+            childTask = new TaskType(getPrismContext());
+            childTask.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
             // group?
-            child.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
-            child.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
-            child.setOwnerRef(CloneUtil.clone(parent.getOwnerRef()));
-            child.setRecurrence(TaskRecurrenceType.SINGLE);
-            child.setParent(parent.getTaskIdentifier());
-            child.setExecutionEnvironment(CloneUtil.clone(parent.getExecutionEnvironment()));
+            childTask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
+            childTask.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
+            childTask.setOwnerRef(CloneUtil.clone(parent.getOwnerRef()));
+            childTask.setRecurrence(TaskRecurrenceType.SINGLE);
+            childTask.setParent(parent.getTaskIdentifier());
+            childTask.setExecutionEnvironment(CloneUtil.clone(parent.getExecutionEnvironment()));
             ActivityPath localRoot = getActivityPath();
-            child.beginActivityState()
+            childTask.beginActivityState()
                     .localRoot(localRoot.toBean())
                     .role(ActivityExecutionRoleType.DELEGATE);
 
-            LOGGER.info("Creating activity subtask {} with local root {}", child.getName(), localRoot);
-            String childOid = getBeans().taskManager.addTask(child.asPrismObject(), result);
-            LOGGER.debug("Created activity subtask {}: {}", child.getName(), childOid);
-
-            return ObjectTypeUtil.createObjectRef(childOid, ObjectTypes.TASK);
+            LOGGER.info("Creating activity subtask {} with local root {}", childTask.getName(), localRoot);
+            String childOid = getBeans().taskManager.addTask(childTask.asPrismObject(), result);
+            LOGGER.debug("Created activity subtask {}: {}", childTask.getName(), childOid);
         } catch (Exception e) {
             throw new ActivityExecutionException("Couldn't create activity child task", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -213,27 +174,19 @@ public class DelegatingActivityExecution<
         }
     }
 
-    private PrismContext getPrismContext() {
-        return getBeans().prismContext;
-    }
-
-    private void switchExecutionToChild(ObjectReferenceType childRef, OperationResult result) throws ActivityExecutionException {
+    private void setTaskRef() {
         try {
-            RunningTask runningTask = getRunningTask();
-            runningTask.makeWaitingForOtherTasks(TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
-            runningTask.flushPendingModifications(result);
-            getBeans().taskManager.resumeTask(childRef.getOid(), result);
-            LOGGER.debug("Switched execution to child {}", childRef.getOid());
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-            throw new ActivityExecutionException("Couldn't switch execution to activity subtask",
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+            ObjectReferenceType taskRef = ObjectTypeUtil.createObjectRef(childTask, getPrismContext());
+            activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, taskRef);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
         }
     }
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "Delegation state", delegationState, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "Child task ref", childTask, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Child task", childTask, indent + 1);
     }
 
     private enum DelegationState {

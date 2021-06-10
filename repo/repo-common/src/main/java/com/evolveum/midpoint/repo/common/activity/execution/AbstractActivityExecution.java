@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
@@ -249,5 +250,9 @@ public abstract class AbstractActivityExecution<
 
     public boolean shouldCreateWorkStateOnInitialization() {
         return true;
+    }
+
+    public @NotNull PrismContext getPrismContext() {
+        return getBeans().prismContext;
     }
 }

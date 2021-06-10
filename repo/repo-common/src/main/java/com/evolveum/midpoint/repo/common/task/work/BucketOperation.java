@@ -167,18 +167,16 @@ class BucketOperation implements DebugDumpable {
     }
 
     @NotNull ActivityStateType getWorkerTaskActivityWorkState() {
-        return getTaskActivityWorkState(workerTask);
+        return getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath);
     }
 
     @NotNull ActivityStateType getCoordinatorTaskPartWorkState() {
-        return getTaskActivityWorkState(coordinatorTask);
+        return getActivityWorkStateRequired(coordinatorTask.getWorkState(), coordinatorStatePath);
     }
 
     @NotNull
-    ActivityStateType getTaskActivityWorkState(Task workerTask) {
-        return requireNonNull(ActivityStateUtil.getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath),
-                () -> "No current part work state in " + workerTask +
-                        " (activity path: " + activityPath + ", item path: " + workerStatePath);
+    ActivityStateType getTaskActivityWorkState(TaskType workerOrCoordinatorTask) {
+        return getActivityWorkStateRequired(workerOrCoordinatorTask.getActivityState(), activityPath);
     }
 
     Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(ItemPath statePath, List<WorkBucketType> buckets) throws SchemaException {

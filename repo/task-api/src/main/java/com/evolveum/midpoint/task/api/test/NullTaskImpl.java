@@ -434,6 +434,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path) {
+        return null;
+    }
+
+    @Override
     public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName containerName) {
         return null;
     }

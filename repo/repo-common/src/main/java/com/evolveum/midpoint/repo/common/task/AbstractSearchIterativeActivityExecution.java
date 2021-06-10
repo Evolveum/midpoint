@@ -199,6 +199,7 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         try {
             bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
                     activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution, result);
+            task.refresh(result); // We want to have the most current state of the running task.
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
             if (!task.canRun()) {
@@ -640,10 +641,6 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     protected ExpressionProfile getExpressionProfile() {
         // TODO Determine from task object archetype
         return MiscSchemaUtil.getExpressionProfile();
-    }
-
-    public PrismContext getPrismContext() {
-        return beans.prismContext;
     }
 
     public SchemaService getSchemaService() {

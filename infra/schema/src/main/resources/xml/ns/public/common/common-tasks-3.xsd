@@ -2866,6 +2866,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Role of this task in the processing of the buckets: standalone executor, coordinator, or worker.
+                        (This is somewhat duplicate to TaskActivityStateType.role but has slightly different meaning, so
+                        we keep it here.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2874,6 +2876,13 @@
                     <xsd:documentation>
                         Is this task a scavenger i.e. will it wait until the work is done, looking
                         for buckets that could be reclaimed? Applicable only to worker tasks.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="workComplete" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if all the work is complete: there are no more buckets to be processed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

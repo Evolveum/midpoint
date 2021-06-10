@@ -75,6 +75,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
     private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
     private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
+    private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
 
     //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
 //    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
@@ -980,6 +981,35 @@ public class TestActivities extends AbstractRepoCommonTest {
 //        expectedRecords.add("#3"); // success after 1 failure
 //        assertThat(recorder.getExecutions()).as("recorder after run 5")
 //                .containsExactlyElementsOf(expectedRecords);
+    }
+
+    @Test
+    public void test300WorkersSimple() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task task1 = taskAdd(TASK_300_WORKERS_SIMPLE, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then();
+
+        assertTaskTree(task1.getOid(), "after")
+                .display("root")
+                .assertSuccess()
+                .subtask(0)
+                    .display("child");
+
+        OperationStatsType stats = task1.getStoredOperationStatsOrClone();
+        displayValue("statistics", TaskOperationStatsUtil.format(stats));
+
+        displayDumpable("recorder", recorder);
     }
 
 

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketsManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersManagementType;
+
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityDistributionDefinition implements DebugDumpable {
@@ -50,5 +52,9 @@ public class ActivityDistributionDefinition implements DebugDumpable {
 
     public boolean hasWorkers() {
         return bean.getWorkers() != null;
+    }
+
+    public WorkersManagementType getWorkers() {
+        return bean.getWorkers();
     }
 }

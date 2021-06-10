@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="5cfa521a-a174-4254-a5cb-199189fe42d5"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-300</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <extension>
+                <ext:searchIterativeMock>
+                    <ext:objectSet>
+                        <objectType>RoleType</objectType>
+                        <objectQuery>
+                            <q:filter>
+                                <q:substring>
+                                    <q:path>name</q:path>
+                                    <q:value>r</q:value>
+                                    <q:anchorStart>true</q:anchorStart>
+                                </q:substring>
+                            </q:filter>
+                        </objectQuery>
+                    </ext:objectSet>
+                    <ext:message>Role: </ext:message>
+                </ext:searchIterativeMock>
+            </extension>
+        </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>name</discriminator>
+                    <boundary>
+                        <position>1</position>
+                        <characters>r</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>0-9</characters>
+                    </boundary>
+                </stringSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>4</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

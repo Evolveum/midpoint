@@ -1420,6 +1420,18 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path) {
+        synchronized (prismAccess) {
+            PrismReference reference = taskPrism.findReference(path);
+            if (reference != null) {
+                return ObjectTypeUtil.createObjectRefs(reference.getValues());
+            } else {
+                return List.of();
+            }
+        }
+    }
+
+    @Override
     public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName name) {
         synchronized (prismAccess) {
             Item<?, ?> item = getExtensionItemUnsynchronized(name);

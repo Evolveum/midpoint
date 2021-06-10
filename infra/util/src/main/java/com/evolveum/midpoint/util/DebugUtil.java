@@ -245,8 +245,12 @@ public class DebugUtil {
         sb.append("\n");
     }
 
-    public static void debugDumpWithLabelLn(StringBuilder sb, String label, Enum val, int indent) {
+    public static void debugDumpWithLabelLn(StringBuilder sb, String label, Enum<?> val, int indent) {
         debugDumpWithLabelLn(sb, label, String.valueOf(val), indent);
+    }
+
+    public static void debugDumpWithLabel(StringBuilder sb, String label, Enum<?> val, int indent) {
+        debugDumpWithLabel(sb, label, String.valueOf(val), indent);
     }
 
     public static void debugDumpWithLabel(StringBuilder sb, String label, QName val, int indent) {

@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -168,8 +169,9 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
             case DELEGATING:
                 execution = new DelegatingActivityExecution<>(context);
                 break;
-            case COORDINATING:
-                throw new UnsupportedOperationException();
+            case DISTRIBUTING:
+                execution = new DistributingActivityExecution<>(context);
+                break;
             default:
                 throw new AssertionError(executionType);
         }
@@ -180,18 +182,23 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         if (definition.getDistributionDefinition().isSubtask()) {
             return isInDelegatedExecution(taskExecution) ? ExecutionType.LOCAL : ExecutionType.DELEGATING;
         } else if (definition.getDistributionDefinition().hasWorkers()) {
-            return isRoleWorker(taskExecution) ? ExecutionType.LOCAL : ExecutionType.COORDINATING;
+            return isInDistributedExecution(taskExecution) ? ExecutionType.LOCAL : ExecutionType.DISTRIBUTING;
         } else {
             return ExecutionType.LOCAL;
         }
     }
 
-    private Boolean isInDelegatedExecution(TaskExecution taskExecution) {
+    private boolean isInDelegatedExecution(TaskExecution taskExecution) {
         return isLocalRoot() && isRoleDelegate(taskExecution);
     }
 
     private boolean isRoleDelegate(TaskExecution taskExecution) {
         return getRole(taskExecution) == ActivityExecutionRoleType.DELEGATE;
+    }
+
+    private boolean isInDistributedExecution(TaskExecution taskExecution) {
+        // Actually, the worker tasks cannot have a local child activity, so isLocalRoot should always be true.
+        return isLocalRoot() && isRoleWorker(taskExecution);
     }
 
     private boolean isRoleWorker(TaskExecution taskExecution) {
@@ -343,6 +350,6 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     private enum ExecutionType {
-        LOCAL, DELEGATING, COORDINATING
+        LOCAL, DELEGATING, DISTRIBUTING
     }
 }

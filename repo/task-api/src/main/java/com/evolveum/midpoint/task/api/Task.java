@@ -454,6 +454,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     ObjectReferenceType getReferenceRealValue(ItemPath path);
 
+    Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path);
+
     /**
      * Returns specified single-valued container real value from the extension
      * To ensure thread safety, in the case of running tasks the returned value is a clone of the live one.

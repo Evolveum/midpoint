@@ -8,8 +8,15 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 
 public class OperationResultUtil {
 
@@ -57,5 +64,24 @@ public class OperationResultUtil {
 
     public static boolean isError(OperationResultStatusType status) {
         return status == OperationResultStatusType.FATAL_ERROR || status == OperationResultStatusType.PARTIAL_ERROR;
+    }
+
+    /**
+     * Aggregates results, taking into accounts only "finished" ones, i.e. no "not available", "in progress", nor "unknown".
+     *
+     * TODO reconsider this
+     */
+    public static OperationResultStatus aggregateFinishedResults(@NotNull Collection<OperationResultStatus> statuses) {
+        if (statuses.contains(FATAL_ERROR)) {
+            return FATAL_ERROR;
+        } else if (statuses.contains(PARTIAL_ERROR)) {
+            return PARTIAL_ERROR;
+        } else if (statuses.contains(WARNING)) {
+            return WARNING;
+        } else if (statuses.contains(HANDLED_ERROR)) {
+            return HANDLED_ERROR;
+        } else {
+            return SUCCESS;
+        }
     }
 }

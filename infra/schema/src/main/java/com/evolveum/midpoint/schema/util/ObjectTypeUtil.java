@@ -982,6 +982,12 @@ public class ObjectTypeUtil {
         object.asObjectable().setFetchResult(resultBean);
     }
 
+    public static Collection<ObjectReferenceType> createObjectRefs(Collection<PrismReferenceValue> values) {
+        return values.stream()
+                .map(ObjectTypeUtil::createObjectRef)
+                .collect(Collectors.toList());
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension
