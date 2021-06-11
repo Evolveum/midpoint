@@ -57,34 +57,6 @@ public class TenantSearchItem extends SpecialSearchItem {
     @Override
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         throw new UnsupportedOperationException();
-//        AbstractRoleType object = getParentVariables(variables);
-//        if (object == null) {
-//            return null;
-//        }
-//        PrismContext prismContext = pageBase.getPrismContext();
-//        List relations = new ArrayList();
-//        if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
-//            relations.addAll(getSupportedRelations().getAvailableRelationList());
-//        } else {
-//            relations.add(getSupportedRelations().getDefaultRelationAllowAny());
-//        }
-//
-//        ObjectFilter filter;
-//        Class type = getSearch().getTypeClass();
-//        S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
-//                .block()
-//                .item(AssignmentType.F_TARGET_REF)
-//                .ref(MemberOperationsHelper.createReferenceValuesList(object, relations));
-//
-//        if (!getMemberPanelStorage().isTenantEmpty()) {
-//            q = q.and().item(AssignmentType.F_TENANT_REF).ref(getMemberPanelStorage().getTenant().getOid());
-//        }
-//
-//        if (!getMemberPanelStorage().isProjectEmpty()) {
-//            q = q.and().item(AssignmentType.F_ORG_REF).ref(getMemberPanelStorage().getProject().getOid());
-//        }
-//        filter = q.endBlock().buildFilter();
-//        return filter;
     }
 
     private UserInterfaceFeatureType getTenantConfig() {
@@ -115,7 +87,7 @@ public class TenantSearchItem extends SpecialSearchItem {
 
                     @Override
                     public Boolean isItemPanelEnabled() {
-                        return !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        return !getMemberPanelStorage().isIndirect();
                     }
 
                     @Override
@@ -144,20 +116,8 @@ public class TenantSearchItem extends SpecialSearchItem {
             }
         };
         panel.add(new VisibleBehaviour(() -> getMemberPanelStorage() == null
-                || !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect())));
+                || !getMemberPanelStorage().isIndirect()));
         return panel;
-    }
-
-    private <R extends AbstractRoleType> R getParentVariables(VariablesMap variables) {
-        if (variables == null) {
-            return null;
-        }
-        try {
-            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't load parent object.");
-        }
-        return null;
     }
 
     public MemberPanelStorage getMemberPanelStorage() {

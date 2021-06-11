@@ -42,8 +42,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
-        if (SearchBoxScopeType.ONE_LEVEL.equals(getMemberPanelStorage().getOrgSearchScope()) ||
-                (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
+                (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {

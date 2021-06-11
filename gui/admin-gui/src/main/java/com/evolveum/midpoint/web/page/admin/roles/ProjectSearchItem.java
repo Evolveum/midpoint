@@ -105,7 +105,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
 
                     @Override
                     public Boolean isItemPanelEnabled() {
-                        return !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        return !(getMemberPanelStorage().isIndirect());
                     }
 
                     @Override
@@ -134,7 +134,7 @@ public class ProjectSearchItem extends SpecialSearchItem {
             }
         };
         panel.add(new VisibleBehaviour(() -> getMemberPanelStorage() == null
-                || !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect())));
+                || !getMemberPanelStorage().isIndirect()));
         return panel;
     }
 

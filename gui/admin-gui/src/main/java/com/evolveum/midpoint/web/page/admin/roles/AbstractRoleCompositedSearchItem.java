@@ -85,7 +85,7 @@ public class AbstractRoleCompositedSearchItem extends SearchItem {
             protected boolean isPanelVisible() {
                 return getMemberPanelStorage() == null
                         || (memberPanelStorage.getSupportedRelations() != null
-                        && !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope()));
+                        && !getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE));
             }
         };
     }

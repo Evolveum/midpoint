@@ -261,11 +261,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
         storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
         storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
         storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
-
-        storage.setIndirect(searchBoxCofig.getDefaultIndirectConfiguration().isIndirect());
-        storage.setRelation(searchBoxCofig.getDefaultRelationConfiguration().getDefaultValue());
-        storage.setOrgSearchScope(searchBoxCofig.getDefaultSearchScopeConfiguration().getDefaultValue());
-        //TODO project? tenant?
+        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
+        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
 
         return storage;
     }

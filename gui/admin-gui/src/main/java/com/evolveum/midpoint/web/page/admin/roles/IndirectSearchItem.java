@@ -115,7 +115,7 @@ public class IndirectSearchItem extends SpecialSearchItem {
                         searchPerformedConsumer.accept(target);
                     }
                 });
-                inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> memberStorage != null && !SearchBoxScopeType.SUBTREE.equals(memberStorage.getOrgSearchScope())));
+                inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> memberStorage != null && !memberStorage.isSearchScope(SearchBoxScopeType.SUBTREE)));
                 inputPanel.setOutputMarkupId(true);
                 return inputPanel;
             }
