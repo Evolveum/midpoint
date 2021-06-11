@@ -67,7 +67,13 @@
             <!-- multi-value stored as JSON arrays -->
             <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded"/>
             <xsd:element name="poly-mv" type="t:PolyStringType" maxOccurs="unbounded"/>
-            <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded"/>
+            <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
             <!-- custom type, not recognized for indexing -->
             <xsd:element name="blob" type="xsd:base64Binary"/>

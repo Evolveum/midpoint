@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
 import javax.xml.namespace.QName;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -121,21 +124,39 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
 
         // other objects
-        user1Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-1")
-                        .metadata(new MetadataType()
-                                .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
-                                .createChannel("create-channel")
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
-                                .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
-                                .modifyChannel("modify-channel")
-                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
-                        .subtype("workerA")
-                        .subtype("workerC")
-                        .policySituation("situationA")
-                        .policySituation("situationC")
-                        .asPrismObject(),
-                null, result);
+        UserType user1 = new UserType(prismContext).name("user-1")
+                .metadata(new MetadataType()
+                        .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
+                        .createChannel("create-channel")
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                        .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
+                        .modifyChannel("modify-channel")
+                        .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
+                .subtype("workerA")
+                .subtype("workerC")
+                .policySituation("situationA")
+                .policySituation("situationC")
+                .extension(new ExtensionType(prismContext));
+        ExtensionType user1Extension = user1.getExtension();
+        addExtensionValue(user1Extension, "int", 1);
+        addExtensionValue(user1Extension, "long", 2L);
+        addExtensionValue(user1Extension, "decimal",
+                new BigDecimal("12345678901234567890.12345678901234567890"));
+        addExtensionValue(user1Extension, "double", Double.MAX_VALUE);
+        addExtensionValue(user1Extension, "float", Float.MAX_VALUE);
+        addExtensionValue(user1Extension, "boolean", true);
+        addExtensionValue(user1Extension, "enum", BeforeAfterType.AFTER);
+        Instant dateTime = Instant.ofEpochMilli(1633_000_000_000L); // 2021-09-30 before noon
+        addExtensionValue(user1Extension, "dateTime",
+                MiscUtil.asXMLGregorianCalendar(dateTime));
+        addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
+        addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
+        addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(user1Extension, "ref-mv",
+                ref(org1Oid, null, relation2), // type is nullable if provided in schema
+                ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
+        user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
+
         user2Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-2")
                         .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
@@ -169,9 +190,15 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .executionStatus(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
-        shadow1Oid = repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-1").asPrismObject(),
-                null, result);
+
+        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
+                .extension(new ExtensionType(prismContext));
+        addExtensionValue(shadow1.getExtension(), "string", "string-value");
+        new ShadowAttributesHelper(shadow1)
+                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                        "string-value1", "string-value2");
+        shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
+
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1")
                         // TODO integer attribute

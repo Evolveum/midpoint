@@ -807,7 +807,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String targetOid2 = UUID.randomUUID().toString();
         QName relation = QName.valueOf("{https://random.org/ns}random-rel-1");
         addExtensionValue(extensionContainer, "ref-mv",
-                ref(targetOid1, null, relation), // type is nullable
+                ref(targetOid1, null, relation), // type is nullable if provided in schema
                 ref(targetOid2, UserType.COMPLEX_TYPE));
 
         when("adding it to the repository");
@@ -829,6 +829,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", "poly-value3", "n", "polyvalue3")))
                 .containsEntry(extensionKey(extensionContainer, "ref-mv"), List.of(
                         Map.of("o", targetOid1,
+                                "t", cachedUriId(OrgType.COMPLEX_TYPE), // default from schema
                                 "r", cachedUriId(relation)),
                         Map.of("o", targetOid2,
                                 "t", cachedUriId(UserType.COMPLEX_TYPE),
