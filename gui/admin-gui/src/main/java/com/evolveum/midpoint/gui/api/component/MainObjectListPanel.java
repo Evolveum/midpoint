@@ -11,7 +11,6 @@ import java.util.*;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -146,7 +146,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                         getPageBase().hideMainPopup(target);
                         MainObjectListPanel.this.newObjectPerformed(target, relationSepc, collectionViews);
                     }

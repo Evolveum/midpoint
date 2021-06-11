@@ -9,13 +9,13 @@ package com.evolveum.midpoint.web.component;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -55,7 +55,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPath());
+                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPage());
                     }
                 };
                 item.add(additionalButton);
@@ -82,7 +82,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 //    protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
     }
 
     @Override

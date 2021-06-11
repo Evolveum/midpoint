@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -60,7 +60,7 @@ public abstract class MultifunctionalButton extends BasePanel<MultiFunctinalButt
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, ItemPath itemPath) {
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
                 MultifunctionalButton.this.buttonClickPerformed(target, relationSepc, collectionViews);
             }
 

@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import org.apache.wicket.markup.html.WebPage;
+
 import java.io.Serializable;
 
 public class CompositedIconButtonDto implements Serializable {
@@ -24,18 +26,10 @@ public class CompositedIconButtonDto implements Serializable {
     private AssignmentObjectRelation assignmentObjectRelation;
     private CompiledObjectCollectionView collectionView;
 
-    private ItemPath path;
+    private Class<? extends WebPage> page;
 
     public CompositedIconButtonDto() {
 
-    }
-
-    public ItemPath getPath() {
-        return path;
-    }
-
-    public void setPath(ItemPath path) {
-        this.path = path;
     }
 
     public DisplayType getAdditionalButtonDisplayType() {
@@ -82,5 +76,13 @@ public class CompositedIconButtonDto implements Serializable {
 
     public void setCollectionView(CompiledObjectCollectionView collectionView) {
         this.collectionView = collectionView;
+    }
+
+    public void setPage(Class<? extends WebPage> page) {
+        this.page = page;
+    }
+
+    public Class<? extends WebPage> getPage() {
+        return page;
     }
 }

@@ -45,6 +45,7 @@ public final class DescriptorLoader implements DebugDumpable {
             "com.evolveum.midpoint.web.page.admin.server",
             "com.evolveum.midpoint.web.page.admin.reports",
             "com.evolveum.midpoint.web.page.admin.configuration",
+            "com.evolveum.midpoint.web.page.admin.configuration.system",
             "com.evolveum.midpoint.web.page.admin.certification",
             "com.evolveum.midpoint.web.page.admin.valuePolicy",
             "com.evolveum.midpoint.web.page.admin.cases",
