@@ -9,6 +9,9 @@ package com.evolveum.midpoint.schema.util.task;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsProcessingRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 
 import java.io.Serializable;
@@ -41,6 +44,18 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         } else {
             return new BucketsProgressInformation(null, /*workState.getNumberOfBuckets(), */
                     BucketingUtil.getCompleteBucketsNumber(state));
+        }
+    }
+
+    static BucketsProgressInformation fromActivityState(ActivityStateType state) {
+        if (state == null || state.getBucketing() == null) {
+            return new BucketsProgressInformation(null, 0);
+        } else if (state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.WORKER) {
+            return null; // Workers do not have complete information
+        } else {
+            ActivityBucketingStateType bucketing = state.getBucketing();
+            return new BucketsProgressInformation(bucketing.getNumberOfBuckets(),
+                    BucketingUtil.getCompleteBucketsNumber(bucketing));
         }
     }
 

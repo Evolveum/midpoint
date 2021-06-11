@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -64,5 +65,13 @@ public class TaskActivityManager {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    public ActivityProgressInformation getProgressInformation(TaskType rootTask, OperationResult result) {
+        return ActivityProgressInformation.fromTask(rootTask, createTaskResolver(result));
+    }
+
+    private ActivityProgressInformation.TaskResolver createTaskResolver(OperationResult result) {
+        return oid -> plainRepositoryService.getObject(TaskType.class, oid, null, result).asObjectable();
     }
 }

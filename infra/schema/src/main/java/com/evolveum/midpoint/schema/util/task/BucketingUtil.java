@@ -71,6 +71,28 @@ public class BucketingUtil {
         }
     }
 
+    public static int getCompleteBucketsNumber(ActivityBucketingStateType bucketing) {
+        if (bucketing == null) {
+            return 0;
+        }
+        Integer max = null;
+        int notComplete = 0;
+        for (WorkBucketType bucket : bucketing.getBucket()) {
+            if (max == null || bucket.getSequentialNumber() > max) {
+                max = bucket.getSequentialNumber();
+            }
+            if (bucket.getState() != WorkBucketStateType.COMPLETE) {
+                notComplete++;
+            }
+        }
+        if (max == null) {
+            return 0;
+        } else {
+            // what is not listed is assumed to be complete
+            return max - notComplete;
+        }
+    }
+
     @Nullable
     public static Integer getExpectedBuckets(TaskType task) {
         return null; // TODO task.getWorkState() != null ? task.getWorkState().getNumberOfBuckets() : null;

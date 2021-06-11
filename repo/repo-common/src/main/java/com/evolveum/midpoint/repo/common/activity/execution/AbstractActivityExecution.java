@@ -93,9 +93,14 @@ public abstract class AbstractActivityExecution<
     }
 
     @Override
+    public void initializeState(OperationResult result) throws ActivityExecutionException {
+        activityState.initialize(result);
+    }
+
+    @Override
     public @NotNull ActivityExecutionResult execute(OperationResult result) throws ActivityExecutionException {
 
-        activityState.initialize(result);
+        initializeState(result);
 
         if (activityState.isComplete()) {
             logComplete();

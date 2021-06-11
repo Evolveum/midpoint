@@ -15,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.io.Serializable;
 
+@Deprecated
 public class TaskPartProgressInformation implements DebugDumpable, Serializable {
 
     /**

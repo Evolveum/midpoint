@@ -34,6 +34,7 @@ public class ActivityTreeStateOverview {
         this.beans = beans;
     }
 
+    // TODO fix for multi-task (worker) executions
     public void recordExecutionStart(@NotNull LocalActivityExecution<?, ?, ?> execution, @NotNull OperationResult result)
             throws ActivityExecutionException {
         try {
@@ -58,6 +59,7 @@ public class ActivityTreeStateOverview {
     /**
      * Note that execution result can be null only in the case of (very rare) uncaught exception.
      */
+    // TODO fix for multi-task (worker) executions
     public void recordExecutionFinish(@NotNull LocalActivityExecution<?, ?, ?> execution,
             @Nullable ActivityExecutionResult executionResult, @NotNull OperationResult result)
             throws ActivityExecutionException {

@@ -53,6 +53,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     /** Path to the work state container value related to this execution. */
     private ItemPath stateItemPath;
 
+    private boolean initialized;
+
     public ActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
         this.activityExecution = activityExecution;
         this.workStateDefinition = determineWorkStateDefinition(activityExecution);
@@ -68,11 +70,15 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     //region Initialization
     public void initialize(OperationResult result) throws ActivityExecutionException {
+        if (initialized) {
+            return;
+        }
         try {
             stateItemPath = findOrCreateActivityState(result);
             if (activityExecution.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
+            initialized = true;
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
             throw new ActivityExecutionException("Couldn't initialize activity state for " + getActivity() + ": " + e.getMessage(),

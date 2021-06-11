@@ -187,4 +187,7 @@ public class ActivityStateUtil {
         return workState.getLocalRoot() != null ? workState.getLocalRoot().getIdentifier() : List.of();
     }
 
+    public static boolean isComplete(@NotNull ActivityStateType state) {
+        return state.getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    }
 }

@@ -74,4 +74,17 @@ public class TaskTreeUtil {
         }
         return null;
     }
+
+    public static TaskType findChildIfResolved(TaskType parent, String childOid) {
+        if (allSubtasksAreResolved(parent)) {
+            return findChild(parent, childOid);
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean allSubtasksAreResolved(TaskType parent) {
+        return parent.getSubtaskRef().stream()
+                .noneMatch(childRef -> childRef.getOid() != null && childRef.getObject() == null);
+    }
 }

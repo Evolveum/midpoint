@@ -68,10 +68,16 @@ public abstract class AbstractCompositeActivityExecution<
 
         boolean allChildrenFinished = true;
 
+        // We create state before starting the execution in order to allow correct progress information reporting.
+        // (It needs to know the total number of activity executions at any open level.)
+        // An alternative would be to provide the count of executions explicitly.
         for (Activity<?, ?> child : activity.getChildrenMap().values()) {
-            ActivityExecutionResult childExecutionResult = child
-                    .createExecution(taskExecution, result)
-                    .execute(result);
+            child.createExecution(taskExecution, result)
+                    .initializeState(result);
+        }
+
+        for (Activity<?, ?> child : activity.getChildrenMap().values()) {
+            ActivityExecutionResult childExecutionResult = child.getExecution().execute(result);
             childResults.add(childExecutionResult);
             executionResult.updateRunResultStatus(childExecutionResult, canRun());
             if (!childExecutionResult.isFinished()) {

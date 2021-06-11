@@ -307,15 +307,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
-        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
-                .filter(t -> Integer.valueOf(number).equals(ActivityStateUtil.getPartitionSequentialNumber(t)))
-                .findAny().orElse(null);
-        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
-
-        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
-                number + " in " + getDetails());
-        copySetupTo(asserter);
-        return asserter;
+        throw new UnsupportedOperationException();
+//        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
+//                .filter(t -> Integer.valueOf(number).equals(ActivityStateUtil.getPartitionSequentialNumber(t)))
+//                .findAny().orElse(null);
+//        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
+//
+//        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
+//                number + " in " + getDetails());
+//        copySetupTo(asserter);
+//        return asserter;
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtaskForPath(ActivityPath activityPath) {

@@ -31,6 +31,11 @@ public interface ActivityExecution extends DebugDumpable {
     @NotNull ActivityExecutionResult execute(OperationResult result) throws ActivityExecutionException;
 
     /**
+     * Initializes activity state PCV in the running task.
+     */
+    void initializeState(OperationResult result) throws ActivityExecutionException;
+
+    /**
      * Returns task execution that contains this activity execution.
      */
     @NotNull TaskExecution getTaskExecution();

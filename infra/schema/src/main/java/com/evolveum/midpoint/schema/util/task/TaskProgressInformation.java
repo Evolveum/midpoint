@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+@Deprecated
 public class TaskProgressInformation implements DebugDumpable, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskProgressInformation.class);

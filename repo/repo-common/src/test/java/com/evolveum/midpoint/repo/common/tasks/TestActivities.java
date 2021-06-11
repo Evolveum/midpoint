@@ -16,14 +16,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,8 +33,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionUtil;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -94,7 +91,6 @@ public class TestActivities extends AbstractRepoCommonTest {
 //    private static final TestResource<TaskType> TASK_300_WORKER = new TestResource<>(TEST_DIR, "task-300-w.xml", "44444444-2222-2222-2222-300w00000000");
 //
     @Autowired private MockRecorder recorder;
-    @Autowired private TaskActivityManager activityManager;
 
     private static final int ROLES = 100;
     private static final String ROLE_NAME_PATTERN = "r%02d";
@@ -106,6 +102,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         createRoles(initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
     }
 
     private void createRoles(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
@@ -157,6 +154,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -182,6 +182,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -207,6 +210,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -232,6 +238,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -258,6 +267,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactly("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -290,6 +302,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactly("Item: 1", "Item: 2", "Item: 3", "Item: 4", "Item: 5");
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -325,6 +340,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .collect(Collectors.toSet());
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactlyInAnyOrderElementsOf(messages);
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -362,6 +380,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .containsExactlyInAnyOrderElementsOf(messages);
 
         // TODO assert the bucketing
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -412,6 +433,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayValue("task after (XML)", prismContext.xmlSerializer().serialize(task1.getRawTaskObjectClone()));
 
         // TODO assert the bucketing
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -433,6 +457,8 @@ public class TestActivities extends AbstractRepoCommonTest {
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 1");
+
+        task1.refresh(result);
 
         // @formatter:off
         assertTask(task1.getOid(), "after run 1")
@@ -457,6 +483,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 1")
                 .containsExactlyElementsOf(expectedRecords);
 
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
+
         // ------------------------------------------------------------------------------------ run 2
 
         when("run 2");
@@ -466,6 +495,8 @@ public class TestActivities extends AbstractRepoCommonTest {
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 2");
+
+        task1.refresh(result);
 
         // @formatter:off
         assertTask(task1.getOid(), "after run 2")
@@ -489,6 +520,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 2")
                 .containsExactlyElementsOf(expectedRecords);
 
+        ActivityProgressInformation info2 = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info2);
+
         // ------------------------------------------------------------------------------------ run 3
 
         when("run 3");
@@ -498,6 +532,8 @@ public class TestActivities extends AbstractRepoCommonTest {
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 3");
+
+        task1.refresh(result);
 
         // @formatter:off
         assertTask(task1.getOid(), "after run 3")
@@ -540,6 +576,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 3")
                 .containsExactlyElementsOf(expectedRecords);
 
+        ActivityProgressInformation info3 = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info3);
+
         // ------------------------------------------------------------------------------------ run 4
 
         when("run 4");
@@ -549,6 +588,8 @@ public class TestActivities extends AbstractRepoCommonTest {
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 4");
+
+        task1.refresh(result);
 
         // @formatter:off
         assertTask(task1.getOid(), "after run 4")
@@ -598,6 +639,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 4")
                 .containsExactlyElementsOf(expectedRecords);
 
+        ActivityProgressInformation info4 = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info4);
+
         // ------------------------------------------------------------------------------------ run 5
 
         when("run 5");
@@ -607,6 +651,8 @@ public class TestActivities extends AbstractRepoCommonTest {
         waitForTaskCloseOrSuspend(task1.getOid(), 10000, 200);
 
         then("run 5");
+
+        task1.refresh(result);
 
         // @formatter:off
         assertTask(task1.getOid(), "after run 4")
@@ -654,6 +700,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         expectedRecords.add("#3"); // success after 1 failure
         assertThat(recorder.getExecutions()).as("recorder after run 5")
                 .containsExactlyElementsOf(expectedRecords);
+
+        ActivityProgressInformation info5 = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info5);
     }
 
     @Test
@@ -673,17 +722,21 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then();
 
+        task1.refresh(result);
+
         assertTaskTree(task1.getOid(), "after")
                 .display("root")
                 .assertSuccess()
                 .subtask(0)
                     .display("child");
 
-
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
 
         displayDumpable("recorder", recorder);
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
+        displayDumpable("progress information", info);
     }
 
     @Test
@@ -749,6 +802,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 1")
                 .containsExactlyElementsOf(expectedRecords);
 
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(root), result);
+        displayDumpable("progress information", info);
+
         // ------------------------------------------------------------------------------------ run 2
 
         when("run 2");
@@ -799,6 +855,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         expectedRecords.add("#1"); // 2nd failed attempt
         assertThat(recorder.getExecutions()).as("recorder after run 2")
                 .containsExactlyElementsOf(expectedRecords);
+
+        ActivityProgressInformation info2 = activityManager.getProgressInformation(getObjectable(root), result);
+        displayDumpable("progress information", info2);
 
         // ------------------------------------------------------------------------------------ run 3
 
@@ -868,6 +927,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         expectedRecords.add("#2.2"); // 1st failure
         assertThat(recorder.getExecutions()).as("recorder after run 3")
                 .containsExactlyElementsOf(expectedRecords);
+
+        ActivityProgressInformation info3 = activityManager.getProgressInformation(getObjectable(root), result);
+        displayDumpable("progress information", info3);
 
         // ------------------------------------------------------------------------------------ run 4
 //
@@ -992,24 +1054,29 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_300_WORKERS_SIMPLE, result);
+        Task root = taskAdd(TASK_300_WORKERS_SIMPLE, result);
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000, 200);
 
         then();
 
-        assertTaskTree(task1.getOid(), "after")
+        root.refresh(result);
+
+        assertTaskTree(root.getOid(), "after")
                 .display("root")
                 .assertSuccess()
                 .subtask(0)
                     .display("child");
 
-        OperationStatsType stats = task1.getStoredOperationStatsOrClone();
+        OperationStatsType stats = root.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
 
         displayDumpable("recorder", recorder);
+
+        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(root), result);
+        displayDumpable("progress information", info);
     }
 
 
@@ -1338,4 +1405,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 //            suspendAndDeleteTasks(TASK_300_COORDINATOR.oid);
 //        }
 //    }
+
+    @NotNull
+    private TaskType getObjectable(Task task1) {
+        return task1.getUpdatedTaskObject().asObjectable();
+    }
 }
