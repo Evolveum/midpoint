@@ -140,7 +140,7 @@
         <!-- Build system options -->
         <!-- Encoding for both sources and resources -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.source.version>16</project.source.version>
+        <project.source.version>11</project.source.version>
         <project.build.locale>en_US</project.build.locale>
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
@@ -385,7 +385,7 @@
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <!-- Version compatible with JDK 11. Transitive dependency from hibernate. Hibernate has older version. -->
-                <version>3.25.0-GA</version>
+                <version>3.28.0-GA</version>
             </dependency>
             <dependency>
                 <groupId>com.zaxxer</groupId>
