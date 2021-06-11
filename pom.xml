@@ -1299,7 +1299,7 @@
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-archiver</artifactId>
-                <version>4.1.0</version>
+                <version>4.2.5</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId> <!-- We do not want multiple SLF4J implementations -->
@@ -1311,12 +1311,12 @@
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
-                <version>3.1.0</version>
+                <version>3.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-io</artifactId>
-                <version>3.1.1</version>
+                <version>3.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
