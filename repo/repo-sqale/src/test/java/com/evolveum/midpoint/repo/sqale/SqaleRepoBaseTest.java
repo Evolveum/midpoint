@@ -42,6 +42,8 @@ import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -272,7 +274,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     // region extension support
-    protected <V> void addExtensionValue(
+    @SafeVarargs
+    protected final <V> void addExtensionValue(
             Containerable extContainer, String itemName, V... values) throws SchemaException {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> itemDefinition =
@@ -297,17 +300,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected String extensionKey(Containerable extContainer, String itemName) {
-        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
-        ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
-        return extKey(def, MExtItemHolderType.EXTENSION);
+        return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
     }
 
-    protected String shadowAttributeKey(ItemDefinition<?> def) {
-        return extKey(def, MExtItemHolderType.ATTRIBUTES);
+    protected String shadowAttributeKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
     }
 
     @NotNull
-    private String extKey(ItemDefinition<?> def, MExtItemHolderType holder) {
+    private String extKey(Containerable extContainer, String itemName, MExtItemHolderType holder) {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             QExtItem ei = QExtItem.DEFAULT;
@@ -320,6 +323,67 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     .select(ei.id)
                     .fetchFirst()
                     .toString();
+        }
+    }
+
+    /**
+     * Helper to make setting shadow attributes easier.
+     *
+     * * Creates mutable container definition for shadow attributes.
+     * * Initializes PC+PCV for shadow attributes in the provided shadow object.
+     * * Using {@link #set(QName, QName, int, int, Object...)} one can "define" new attribute
+     * and set it in the same step.
+     *
+     * This is not a builder, just a stateless wrapper around the shadow object and each set
+     * has immediate effect.
+     */
+    public class ShadowAttributesHelper {
+
+        private final ShadowAttributesType attributesContainer;
+        private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
+
+        public ShadowAttributesHelper(ShadowType object) throws SchemaException {
+            attributesContainer = new ShadowAttributesType(prismContext);
+            // let's create the container+PCV inside the shadow object
+            object.attributes(attributesContainer);
+
+            MutableComplexTypeDefinition ctd = prismContext.definitionFactory()
+                    .createComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            //noinspection unchecked
+            attrsDefinition = (MutablePrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .createContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+            object.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES)
+                    .applyDefinition(attrsDefinition, true);
+        }
+
+        /** Creates definition for attribute (first parameters) and sets the value(s) (vararg). */
+        @SafeVarargs
+        public final <V> ShadowAttributesHelper set(
+                QName attributeName, QName type, int minOccurrence, int maxOccurrence,
+                V... values) throws SchemaException {
+            attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
+            return this;
+        }
+
+        /**
+         * Simplified version of {@link #set(QName, QName, int, int, Object...)} method.
+         * Uses 0 for minOccurrence and maxOccurrence is 1 if one or no value is provided,
+         * otherwise it's set to -1.
+         */
+        @SafeVarargs
+        public final <V> ShadowAttributesHelper set(
+                QName attributeName, QName type, V... values) throws SchemaException {
+            attrsDefinition.createPropertyDefinition(attributeName, type, 0,
+                    values.length <= 1 ? 1 : -1);
+            addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
+            return this;
+        }
+
+        /** Returns shadow attributes container likely needed later in the assert section. */
+        public ShadowAttributesType attributesContainer() {
+            return attributesContainer;
         }
     }
     // endregion

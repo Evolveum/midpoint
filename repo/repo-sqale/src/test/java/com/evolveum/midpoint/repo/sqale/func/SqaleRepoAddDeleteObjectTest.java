@@ -25,9 +25,7 @@ import javax.xml.namespace.QName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -885,24 +883,15 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String objectName = "shadow" + getTestNumber();
         ShadowType object = new ShadowType(prismContext)
                 .name(objectName)
-                .extension(new ExtensionType(prismContext))
-                .attributes(new ShadowAttributesType(prismContext));
+                .extension(new ExtensionType(prismContext));
 
         ExtensionType extensionContainer = object.getExtension();
         addExtensionValue(extensionContainer, "string", "string-value");
 
-        // attributes are complicated, the definition is dynamic so we have to fake it
-        QName attrName = new QName("http://example.com/p", "string-mv");
-        MutablePrismPropertyDefinition<String> attrStringDef = prismContext.definitionFactory()
-                .createPropertyDefinition(attrName, DOMUtil.XSD_STRING);
-        attrStringDef.setMaxOccurs(-1);
-        attrStringDef.setDynamic(true);
-        PrismProperty<String> attrStr = prismContext.itemFactory().createProperty(attrName);
-        attrStr.setDefinition(attrStringDef);
-        attrStr.setRealValues("string-value1", "string-value2");
-        ShadowAttributesType attributesContainer = object.getAttributes();
-        //noinspection unchecked
-        attributesContainer.asPrismContainerValue().add(attrStr);
+        ShadowAttributesType attributesContainer = new ShadowAttributesHelper(object)
+                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                        "string-value1", "string-value2")
+                .attributesContainer();
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
@@ -920,7 +909,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.attributes).isNotNull();
         Map<String, Object> attrMap = Jsonb.toMap(row.attributes);
         assertThat(attrMap)
-                .containsEntry(shadowAttributeKey(attrStringDef),
+                .containsEntry(shadowAttributeKey(attributesContainer, "string-mv"),
                         List.of("string-value1", "string-value2"));
     }
     // endregion
