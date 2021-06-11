@@ -17,7 +17,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
-import org.graalvm.polyglot.Context;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -29,42 +30,25 @@ import org.graalvm.polyglot.Context;
  */
 public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine, CompiledScript> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
+
     private final ScriptEngine scriptEngine;
 
     public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext,
             Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
 
-        System.setProperty("polyglot.js.nashorn-compat", "true");
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
         if (scriptEngine == null) {
-            throw new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
+            SystemException e = new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
     @Override
     protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext) throws Exception {
-        return new CompiledScript() {
-            @Override
-            public Object eval(ScriptContext Scriptcontext) throws ScriptException {
-                Context context = Context.newBuilder()
-                        .allowExperimentalOptions(true)
-                        .option("js.nashorn-compat", "true")
-                        .allowAllAccess(true)
-                        .build();
-                Bindings bindings = Scriptcontext.getBindings(ScriptContext.ENGINE_SCOPE);
-                bindings.entrySet().forEach(entry -> {
-                    context.getBindings("js").putMember(entry.getKey(), entry.getValue());
-                });
-                return context.eval("js", codeString).as(Object.class);
-            }
-
-            @Override
-            public ScriptEngine getEngine() {
-                return scriptEngine;
-            }
-        };
+        return ((Compilable) scriptEngine).compile(codeString);
     }
 
     @Override
@@ -85,7 +69,10 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
      */
     @Override
     public String getLanguageName() {
-        return scriptEngine.getFactory().getLanguageName();
+        if (scriptEngine != null) {
+            return scriptEngine.getFactory().getLanguageName();
+        }
+        return null;
     }
 
     /* (non-Javadoc)
