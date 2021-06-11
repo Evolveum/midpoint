@@ -128,7 +128,7 @@
         </dependency>
         <dependency>
             <groupId>org.python</groupId>
-            <artifactId>jython</artifactId>
+            <artifactId>jython-standalone</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

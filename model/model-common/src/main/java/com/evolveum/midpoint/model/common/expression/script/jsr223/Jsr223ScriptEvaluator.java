@@ -33,11 +33,13 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
 
     private final ScriptEngine scriptEngine;
+    private final String engineName;
 
     public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext,
             Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
 
+        this.engineName = engineName;
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
         if (scriptEngine == null) {
@@ -72,7 +74,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         if (scriptEngine != null) {
             return scriptEngine.getFactory().getLanguageName();
         }
-        return null;
+        return engineName;
     }
 
     /* (non-Javadoc)
