@@ -12,7 +12,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -121,6 +123,9 @@ public class PageCreateFromTemplate extends PageAdmin {
                     CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
                     DisplayType defaultButtonDisplayType = new DisplayType();
                     defaultButtonDisplayType.setLabel(new PolyStringType("bla"));
+                    IconType icon = new IconType();
+                    icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED);
+                    defaultButtonDisplayType.setIcon(icon);
                     defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
 
                     CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
