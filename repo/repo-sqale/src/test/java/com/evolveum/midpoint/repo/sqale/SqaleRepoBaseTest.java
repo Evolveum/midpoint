@@ -297,16 +297,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected String extensionKey(Containerable extContainer, String itemName) {
-        return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
-    }
-
-    protected String shadowAttributeKey(Containerable extContainer, String itemName) {
-        return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
-    }
-
-    private String extKey(Containerable extContainer, String itemName, MExtItemHolderType holder) {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        return extKey(def, MExtItemHolderType.EXTENSION);
+    }
+
+    protected String shadowAttributeKey(ItemDefinition<?> def) {
+        return extKey(def, MExtItemHolderType.ATTRIBUTES);
+    }
+
+    @NotNull
+    private String extKey(ItemDefinition<?> def, MExtItemHolderType holder) {
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
             QExtItem ei = QExtItem.DEFAULT;

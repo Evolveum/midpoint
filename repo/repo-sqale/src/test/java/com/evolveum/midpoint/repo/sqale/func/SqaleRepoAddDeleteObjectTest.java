@@ -25,7 +25,9 @@ import javax.xml.namespace.QName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -70,6 +72,7 @@ import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -871,6 +874,54 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", targetOid,
                                 "t", cachedUriId(UserType.COMPLEX_TYPE),
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT)));
+    }
+
+    @Test
+    public void test320AddShadowWithAttributes()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("shadow with both extensions and custom attributes");
+        String objectName = "shadow" + getTestNumber();
+        ShadowType object = new ShadowType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext))
+                .attributes(new ShadowAttributesType(prismContext));
+
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "string", "string-value");
+
+        // attributes are complicated, the definition is dynamic so we have to fake it
+        QName attrName = new QName("http://example.com/p", "string-mv");
+        MutablePrismPropertyDefinition<String> attrStringDef = prismContext.definitionFactory()
+                .createPropertyDefinition(attrName, DOMUtil.XSD_STRING);
+        attrStringDef.setMaxOccurs(-1);
+        attrStringDef.setDynamic(true);
+        PrismProperty<String> attrStr = prismContext.itemFactory().createProperty(attrName);
+        attrStr.setDefinition(attrStringDef);
+        attrStr.setRealValues("string-value1", "string-value2");
+        ShadowAttributesType attributesContainer = object.getAttributes();
+        //noinspection unchecked
+        attributesContainer.asPrismContainerValue().add(attrStr);
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and both ext and attributes column store the values");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MShadow row = selectObjectByOid(QShadow.class, returnedOid);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value");
+
+        assertThat(row.attributes).isNotNull();
+        Map<String, Object> attrMap = Jsonb.toMap(row.attributes);
+        assertThat(attrMap)
+                .containsEntry(shadowAttributeKey(attrStringDef),
+                        List.of("string-value1", "string-value2"));
     }
     // endregion
 

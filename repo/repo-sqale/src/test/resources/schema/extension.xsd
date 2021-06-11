@@ -112,7 +112,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="stringType" type="xsd:string"/>
+            <xsd:element name="string" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>
