@@ -43,8 +43,8 @@ public class REmbeddedReference implements ObjectReference {
     public String getRelation() {
         return relation;
     }
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
+    @ManyToOne//(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false,
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @NotFound(action = NotFoundAction.IGNORE)
