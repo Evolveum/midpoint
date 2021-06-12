@@ -123,7 +123,7 @@
         <system>Atlassian JIRA</system>
         <url>https://jira.evolveum.com/browse/MID</url>
     </issueManagement>
-    <!--
+
     <distributionManagement>
         <repository>
             <id>evolveum-nexus</id>
@@ -136,7 +136,7 @@
             <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
-  -->
+
     <properties>
         <!-- Build system options -->
         <!-- Encoding for both sources and resources -->
@@ -1616,6 +1616,11 @@
         </repository>
     </repositories>
     <pluginRepositories>
+        <pluginRepository>
+          <id>evolveum-nexus</id>
+          <name>Plugin Snapshots</name>
+          <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </pluginRepository>
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>
