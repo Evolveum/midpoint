@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

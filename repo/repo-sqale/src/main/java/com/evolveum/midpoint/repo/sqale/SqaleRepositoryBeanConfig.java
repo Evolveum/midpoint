@@ -8,9 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaignMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -22,10 +19,11 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplateMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaignMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinitionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;

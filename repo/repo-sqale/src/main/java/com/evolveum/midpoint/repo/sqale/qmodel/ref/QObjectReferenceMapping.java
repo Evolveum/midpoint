@@ -13,10 +13,10 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

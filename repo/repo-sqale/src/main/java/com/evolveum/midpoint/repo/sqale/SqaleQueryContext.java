@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
