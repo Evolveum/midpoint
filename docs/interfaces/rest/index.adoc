@@ -12,9 +12,9 @@
 
 *Version:* 4.3 +
 *Status:* Public +
-*Stability:*[.green]#STABLE#, only backward-compatible changes expected +
+*Stability:* [.green]#STABLE#, only backward-compatible changes expected +
 *Platform:* RESTful interface +
-*Dependencies:*wiki:Data+Model[Data Model], Common schema, Query schema +
+*Dependencies:* link:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
 *Responsible person:* Katarina Bolemant
 
 == Description
