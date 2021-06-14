@@ -10,8 +10,8 @@
 
 [TIP]
 ====
-Starting with 4.2 the REST API uses wiki:Flexible+Authentication[Flexible Authentication] with only Basic Authentication + Impersonation on by default.
-SecQ must be added via wiki:Security+Policy+Configuration[Security Policy Configuration].
+Starting with 4.2 the REST API uses xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication] with only Basic Authentication + Impersonation on by default.
+SecQ must be added via xref:/midpoint/reference/security/security-policy/[Security Policy Configuration].
 ====
 
 == Basic Authentication
@@ -156,4 +156,4 @@ This allows to delegate authentication to another component, e.g. HTTP server re
 
 == See Also
 
-* wiki:REST+API[REST API]
+* link:..[REST API]
