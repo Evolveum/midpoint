@@ -1,1 +1,0 @@
-Bad char here: and some broken EOL here:

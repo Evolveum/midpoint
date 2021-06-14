@@ -123,6 +123,7 @@
         <system>Atlassian JIRA</system>
         <url>https://jira.evolveum.com/browse/MID</url>
     </issueManagement>
+
     <distributionManagement>
         <repository>
             <id>evolveum-nexus</id>
@@ -1565,7 +1566,7 @@
                 <version>${testng.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.evolveum.midpoint.tools</groupId>
+                <groupId>com.evolveum.commons</groupId>
                 <artifactId>test-ng</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1590,11 +1591,13 @@
             <name>Evolveum Public Releases</name>
             <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
         </repository>
+      <!-- FIXME -->
         <repository>
             <id>evolveum-snapshots</id>
             <name>Evolveum Snapshots</name>
             <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </repository>
+      <!-- -->
         <repository>
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
@@ -1613,6 +1616,11 @@
         </repository>
     </repositories>
     <pluginRepositories>
+        <pluginRepository>
+          <id>evolveum-nexus</id>
+          <name>Plugin Snapshots</name>
+          <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </pluginRepository>
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>

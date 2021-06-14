@@ -33,7 +33,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
