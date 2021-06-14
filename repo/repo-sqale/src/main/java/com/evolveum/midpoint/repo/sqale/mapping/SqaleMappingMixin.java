@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sqale.qmodel;
+package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -13,9 +13,6 @@ import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
-import com.evolveum.midpoint.repo.sqale.mapping.NestedMappingResolver;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;

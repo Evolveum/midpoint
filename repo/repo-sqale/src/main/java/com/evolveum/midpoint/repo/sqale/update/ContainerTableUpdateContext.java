@@ -10,7 +10,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;

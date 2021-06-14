@@ -8,17 +8,16 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.NestedContainerUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that maps the nested items (next component of the path) to the same query type columns.
+ * Resolver that maps the nested items (next component of the path) to the same table (query type).
  *
  * @param <S> schema type for the nested container
- * @param <Q> query type of entity where the mapping nested and declared
+ * @param <Q> query type of entity where the mapping is nested and declared
  * @param <R> row type of {@link Q}
  */
 public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>

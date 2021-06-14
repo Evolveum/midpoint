@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
