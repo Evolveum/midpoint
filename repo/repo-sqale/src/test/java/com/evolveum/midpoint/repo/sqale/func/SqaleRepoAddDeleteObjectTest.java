@@ -1674,18 +1674,19 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UUID ownerRefOid = UUID.randomUUID();
         QName ownerRefRelationUri = QName.valueOf("{https://some.uri}owner-relation");
 
-        Instant lastCampaignStarted = Instant.ofEpochMilli(1); // 0 means null in MiscUtil
-        Instant lastCampaignClosed = Instant.ofEpochMilli(System.currentTimeMillis());
-
+        Instant startTimestamp = Instant.ofEpochMilli(1234); // 0 means null in MiscUtil
+        Instant endTimestamp = Instant.ofEpochMilli(System.currentTimeMillis());
 
         var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
                 .name(objectName)
                 .definitionRef(definitionRefOid.toString(), UserType.COMPLEX_TYPE, definitionRefRelationUri)
-                
+                .endTimestamp(MiscUtil.asXMLGregorianCalendar(endTimestamp))
                 .handlerUri("c-handler-uri")
-                .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
-                .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
-                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri);
+                .iteration(3)
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri)
+                .stageNumber(2)
+                .startTimestamp(MiscUtil.asXMLGregorianCalendar(startTimestamp))
+                .state(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
@@ -1695,12 +1696,18 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MAccessCertificationCampaign row = selectObjectByOid(
                 QAccessCertificationCampaign.class, accessCertificationCampaign.getOid());
+        assertThat(row.definitionRefTargetOid).isEqualTo(definitionRefOid);
+        assertThat(row.definitionRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.definitionRefRelationId, definitionRefRelationUri);
+        assertThat(row.endTimestamp).isEqualTo(endTimestamp);
         assertCachedUri(row.handlerUriId, "c-handler-uri");
-        assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
-        assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
+        assertThat(row.iteration).isEqualTo(3);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, ownerRefRelationUri);
+        assertThat(row.stageNumber).isEqualTo(2);
+        assertThat(row.startTimestamp).isEqualTo(startTimestamp);
+        assertThat(row.state).isEqualTo(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
     }
 
     @Test

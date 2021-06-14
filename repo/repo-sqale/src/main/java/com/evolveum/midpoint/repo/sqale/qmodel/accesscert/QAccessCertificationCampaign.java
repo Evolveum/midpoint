@@ -76,7 +76,7 @@ public class QAccessCertificationCampaign extends QAssignmentHolder<MAccessCerti
     public final DateTimePath<Instant> startTimestamp =
             createInstant("startTimestamp", START_TIMESTAMP);
     public final EnumPath<AccessCertificationCampaignStateType> state =
-            createEnum("state", AccessCertificationCampaignStateType.class, ITERATION);
+            createEnum("state", AccessCertificationCampaignStateType.class, STATE);
 
     public QAccessCertificationCampaign(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
