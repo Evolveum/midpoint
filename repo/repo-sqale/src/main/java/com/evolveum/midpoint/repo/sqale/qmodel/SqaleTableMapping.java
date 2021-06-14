@@ -393,6 +393,17 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     // region extension processing
+
+    /** Contains ext item from catalog and additional info needed for processing. */
+    private static class ExtItemInfo {
+        public MExtItem item;
+        public QName defaultRefTargetType;
+
+        public String getId() {
+            return item.id.toString();
+        }
+    }
+
     protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
         if (extContainer == null) {
             return null;
@@ -402,12 +413,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
         for (Item<?, ?> item : prismContainerValue.getItems()) {
             try {
-                // TODO indexed check: RAnyConverter.isIndexed + getValueType
-                MExtItem extItem = findExtensionItem(item, holderType);
-                if (extItem == null) {
+                ExtItemInfo extItemInfo = findExtensionItem(item, holderType);
+                if (extItemInfo == null) {
                     continue; // not-indexed, skipping this item
                 }
-                extMap.put(extItem.id.toString(), extItemValue(item, extItem));
+                extMap.put(extItemInfo.getId(), extItemValue(item, extItemInfo));
             } catch (RuntimeException e) {
                 // If anything happens (like NPE in Map.of) we want to capture the "bad" item.
                 throw new SystemException(
@@ -437,12 +447,15 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             PolyStringType.COMPLEX_TYPE);
 
     /** Returns ext item definition or null if the item is not indexed and should be skipped. */
-    private MExtItem findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
+    private ExtItemInfo findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
         Objects.requireNonNull(item, "Object for converting must not be null.");
 
         ItemDefinition<?> definition = item.getDefinition();
         Objects.requireNonNull(definition,
                 "Item '" + item.getElementName() + "' without definition can't be saved.");
+
+        // TODO review any need for shadow attributes, now they are stored fine, but the code here
+        //  is way too simple compared to the old repo.
 
         if (definition instanceof PrismPropertyDefinition) {
             Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
@@ -462,22 +475,30 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                     + definition + "', can't say if '" + item + "' is indexed or not.");
         } // else it's reference which is indexed implicitly
 
-        return repositoryContext().resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+        ExtItemInfo info = new ExtItemInfo();
+        info.item = repositoryContext()
+                .resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+        if (definition instanceof PrismReferenceDefinition) {
+            info.defaultRefTargetType = ((PrismReferenceDefinition) definition).getTargetTypeName();
+        }
+
+        return info;
     }
 
-    private Object extItemValue(Item<?, ?> item, MExtItem extItem) {
+    private Object extItemValue(Item<?, ?> item, ExtItemInfo extItemInfo) {
+        MExtItem extItem = extItemInfo.item;
         if (extItem.cardinality == MExtItemCardinality.ARRAY) {
             List<Object> vals = new ArrayList<>();
             for (Object realValue : item.getRealValues()) {
-                vals.add(convertExtItemValue(realValue));
+                vals.add(convertExtItemValue(realValue, extItemInfo));
             }
             return vals;
         } else {
-            return convertExtItemValue(item.getRealValue());
+            return convertExtItemValue(item.getRealValue(), extItemInfo);
         }
     }
 
-    private Object convertExtItemValue(Object realValue) {
+    private Object convertExtItemValue(Object realValue, ExtItemInfo extItemInfo) {
         if (realValue instanceof String
                 || realValue instanceof Number
                 || realValue instanceof Boolean) {
@@ -492,14 +513,18 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         if (realValue instanceof Referencable) {
             Referencable ref = (Referencable) realValue;
-            if (ref.getType() != null) {
-                return Map.of("o", ref.getOid(),
-                        "t", processCacheableUri(ref.getType()),
-                        "r", processCacheableRelation(ref.getRelation()));
-            } else {
-                return Map.of("o", ref.getOid(),
-                        "r", processCacheableRelation(ref.getRelation()));
+            // we always want to store the type for consistent search results
+            QName targetType = ref.getType();
+            if (targetType == null) {
+                targetType = extItemInfo.defaultRefTargetType;
             }
+            if (targetType == null) {
+                throw new IllegalArgumentException(
+                        "Reference without target type can't be stored: " + ref);
+            }
+            return Map.of("o", ref.getOid(),
+                    "t", processCacheableUri(targetType),
+                    "r", processCacheableRelation(ref.getRelation()));
         }
 
         if (realValue instanceof Enum) {

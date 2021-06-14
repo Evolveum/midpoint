@@ -1,0 +1,93 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
+
+/**
+ * Mapping between {@link QAccessCertificationCampaign}
+ * and {@link AccessCertificationCampaignType}.
+ */
+public class QAccessCertificationCampaignMapping
+        extends QAssignmentHolderMapping<AccessCertificationCampaignType,
+        QAccessCertificationCampaign, MAccessCertificationCampaign> {
+
+    public static final String DEFAULT_ALIAS_NAME = "acc";
+
+    public static QAccessCertificationCampaignMapping init(
+            @NotNull SqaleRepoContext repositoryContext) {
+        return new QAccessCertificationCampaignMapping(repositoryContext);
+    }
+
+    private QAccessCertificationCampaignMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QAccessCertificationCampaign.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                AccessCertificationCampaignType.class, QAccessCertificationCampaign.class,
+                repositoryContext);
+
+        addItemMapping(F_DEFINITION_REF, refMapper(
+                q -> q.definitionRefTargetOid,
+                q -> q.definitionRefTargetType,
+                q -> q.definitionRefRelationId));
+        addItemMapping(F_END_TIMESTAMP,
+                timestampMapper(q -> q.endTimestamp));
+        addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
+        addItemMapping(F_ITERATION, integerMapper(q -> q.iteration));
+        addItemMapping(F_OWNER_REF, refMapper(
+                q -> q.ownerRefTargetOid,
+                q -> q.ownerRefTargetType,
+                q -> q.ownerRefRelationId));
+        addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
+        addItemMapping(F_START_TIMESTAMP,
+                timestampMapper(q -> q.startTimestamp));
+        addItemMapping(F_STATE, enumMapper(q -> q.state));
+    }
+
+    @Override
+    protected QAccessCertificationCampaign newAliasInstance(String alias) {
+        return new QAccessCertificationCampaign(alias);
+    }
+
+    @Override
+    public MAccessCertificationCampaign newRowObject() {
+        return new MAccessCertificationCampaign();
+    }
+
+    @Override
+    public @NotNull MAccessCertificationCampaign toRowObjectWithoutFullObject(
+            AccessCertificationCampaignType schemaObject, JdbcSession jdbcSession) {
+        MAccessCertificationCampaign row =
+                super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
+
+        setReference(schemaObject.getDefinitionRef(),
+                o -> row.definitionRefTargetOid = o,
+                t -> row.definitionRefTargetType = t,
+                r -> row.definitionRefRelationId = r);
+        row.endTimestamp =
+                MiscUtil.asInstant(schemaObject.getEndTimestamp());
+        row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
+        row.iteration = schemaObject.getIteration();
+        setReference(schemaObject.getOwnerRef(),
+                o -> row.ownerRefTargetOid = o,
+                t -> row.ownerRefTargetType = t,
+                r -> row.ownerRefRelationId = r);
+        row.stageNumber = schemaObject.getStageNumber();
+        row.startTimestamp =
+                MiscUtil.asInstant(schemaObject.getStartTimestamp());
+        row.state = schemaObject.getState();
+
+        return row;
+    }
+}

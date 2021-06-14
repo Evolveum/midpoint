@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationCampaign;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
@@ -70,6 +74,7 @@ import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -637,7 +642,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNull();
 
         and("stored object contains the extension item");
@@ -670,7 +674,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNull();
 
         and("stored object contains the extension item");
@@ -717,7 +720,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -778,7 +780,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -810,18 +811,17 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String targetOid2 = UUID.randomUUID().toString();
         QName relation = QName.valueOf("{https://random.org/ns}random-rel-1");
         addExtensionValue(extensionContainer, "ref-mv",
-                ref(targetOid1, null, relation), // type is nullable
+                ref(targetOid1, null, relation), // type is nullable if provided in schema
                 ref(targetOid2, UserType.COMPLEX_TYPE));
 
         when("adding it to the repository");
         String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
 
-        then("operation is successful and ext column stores the values as nested objects");
+        then("operation is successful and ext column stores the values as JSON arrays");
         assertThatOperationResult(result).isSuccess();
         assertThat(returnedOid).isEqualTo(object.getOid());
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
-        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
         assertThat(extMap)
@@ -833,10 +833,89 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", "poly-value3", "n", "polyvalue3")))
                 .containsEntry(extensionKey(extensionContainer, "ref-mv"), List.of(
                         Map.of("o", targetOid1,
+                                "t", cachedUriId(OrgType.COMPLEX_TYPE), // default from schema
                                 "r", cachedUriId(relation)),
                         Map.of("o", targetOid2,
                                 "t", cachedUriId(UserType.COMPLEX_TYPE),
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT))));
+    }
+
+    @Test
+    public void test310AddObjectWithAssignmentExtensions()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("object with extension items in assignment");
+        String objectName = "user" + getTestNumber();
+        AssignmentType assignment = new AssignmentType(prismContext)
+                .extension(new ExtensionType(prismContext));
+        UserType object = new UserType(prismContext)
+                .name(objectName)
+                .assignment(assignment);
+        ExtensionType extensionContainer = assignment.getExtension();
+        addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(extensionContainer, "integer", 1);
+        String targetOid = UUID.randomUUID().toString();
+        addExtensionValue(extensionContainer, "ref", ref(targetOid, UserType.COMPLEX_TYPE));
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and assignment's ext column stores the values");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        QAssignment<MUser> a = QAssignmentMapping.<MUser>getAssignment().defaultAlias();
+        MAssignment row = selectOne(a, a.ownerOid.eq(UUID.fromString(returnedOid)));
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string-mv"),
+                        List.of("string-value1", "string-value2"))
+                .containsEntry(extensionKey(extensionContainer, "integer"), 1)
+                .containsEntry(extensionKey(extensionContainer, "ref"),
+                        Map.of("o", targetOid,
+                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "r", cachedUriId(SchemaConstants.ORG_DEFAULT)));
+    }
+
+    @Test
+    public void test320AddShadowWithAttributes()
+            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+        OperationResult result = createOperationResult();
+
+        given("shadow with both extensions and custom attributes");
+        String objectName = "shadow" + getTestNumber();
+        ShadowType object = new ShadowType(prismContext)
+                .name(objectName)
+                .extension(new ExtensionType(prismContext));
+
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "string", "string-value");
+
+        ShadowAttributesType attributesContainer = new ShadowAttributesHelper(object)
+                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                        "string-value1", "string-value2")
+                .attributesContainer();
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and both ext and attributes column store the values");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MShadow row = selectObjectByOid(QShadow.class, returnedOid);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value");
+
+        assertThat(row.attributes).isNotNull();
+        Map<String, Object> attrMap = Jsonb.toMap(row.attributes);
+        assertThat(attrMap)
+                .containsEntry(shadowAttributeKey(attributesContainer, "string-mv"),
+                        List.of("string-value1", "string-value2"));
     }
     // endregion
 
@@ -1559,7 +1638,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName relationUri = QName.valueOf("{https://some.uri}specialRelation");
         var accessCertificationDefinition = new AccessCertificationDefinitionType(prismContext)
                 .name(objectName)
-                .handlerUri("handler-uri")
+                .handlerUri("d-handler-uri")
                 .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
                 .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
                 .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri);
@@ -1572,12 +1651,60 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MAccessCertificationDefinition row = selectObjectByOid(
                 QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());
-        assertCachedUri(row.handlerUriId, "handler-uri");
+        assertCachedUri(row.handlerUriId, "d-handler-uri");
         assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
         assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
+    }
+
+    @Test
+    public void test842AccessCertificationCampaign() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("access certification campaign");
+        String objectName = "acc" + getTestNumber();
+
+        UUID definitionRefOid = UUID.randomUUID();
+        QName definitionRefRelationUri = QName.valueOf("{https://some.uri}definition-relation");
+        UUID ownerRefOid = UUID.randomUUID();
+        QName ownerRefRelationUri = QName.valueOf("{https://some.uri}owner-relation");
+
+        Instant startTimestamp = Instant.ofEpochMilli(1234); // 0 means null in MiscUtil
+        Instant endTimestamp = Instant.ofEpochMilli(System.currentTimeMillis());
+
+        var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
+                .name(objectName)
+                .definitionRef(definitionRefOid.toString(), UserType.COMPLEX_TYPE, definitionRefRelationUri)
+                .endTimestamp(MiscUtil.asXMLGregorianCalendar(endTimestamp))
+                .handlerUri("c-handler-uri")
+                .iteration(3)
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri)
+                .stageNumber(2)
+                .startTimestamp(MiscUtil.asXMLGregorianCalendar(startTimestamp))
+                .state(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
+
+        when("adding it to the repository");
+        repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MAccessCertificationCampaign row = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign.getOid());
+        assertThat(row.definitionRefTargetOid).isEqualTo(definitionRefOid);
+        assertThat(row.definitionRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.definitionRefRelationId, definitionRefRelationUri);
+        assertThat(row.endTimestamp).isEqualTo(endTimestamp);
+        assertCachedUri(row.handlerUriId, "c-handler-uri");
+        assertThat(row.iteration).isEqualTo(3);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, ownerRefRelationUri);
+        assertThat(row.stageNumber).isEqualTo(2);
+        assertThat(row.startTimestamp).isEqualTo(startTimestamp);
+        assertThat(row.state).isEqualTo(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
     }
 
     @Test

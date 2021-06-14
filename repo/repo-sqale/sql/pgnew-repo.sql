@@ -96,6 +96,8 @@ CREATE TYPE ExtItemCardinality AS ENUM (
     'ARRAY');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM ('CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
@@ -1277,7 +1279,7 @@ CREATE TABLE m_access_cert_campaign (
     ownerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
     startTimestamp TIMESTAMPTZ,
-    state INTEGER
+    state AccessCertificationCampaignStateType
 )
     INHERITS (m_assignment_holder);
 
