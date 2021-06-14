@@ -8,7 +8,6 @@
 :page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
 :page-toc: top
 
-
 [TIP]
 ====
 Starting with 4.2 the REST API uses wiki:Flexible+Authentication[Flexible Authentication] with only Basic Authentication + Impersonation on by default.
@@ -20,7 +19,6 @@ SecQ must be added via wiki:Security+Policy+Configuration[Security Policy Config
 MidPoint REST interface support standard HTTP basic authentication (RFC2617).
 Digest authentication is not supported.
 
-
 == Proxy (Impersonation)
 
 There are use cases when the authenticated user is not the user which is supposed to execute the operations in midPoint.
@@ -30,7 +28,7 @@ This approach is neither practical nor secure.
 Therefore this use case is supported by other methods.
 The recommended approach is to use a single sign-on (SSO) or similar system to pass end-user identity to midPoint.
 OAuth2 is a recommended approach in the case of midPoint REST interface (see below).
-However there are cases when OAuth cannot be used.
+However, there are cases when OAuth cannot be used.
 The proxy (impersonation) functionality is designed to handle those cases.
 
 The _proxy_ or _impersonation_ is an ability for one user to switch his identity to different user.
@@ -51,8 +49,6 @@ The token will represent the application user (`selfserviceapp`).
 This header refers to the identity of the end user (`jack`).
 
 .. The URL and payload will be set up according to the REST operation.
-
-
 
 . MidPoint will authenticate the application user (`selfserviceapp`).
 
@@ -95,16 +91,14 @@ Example proxy authorization (which is assigned to the application user such as s
 
 The authorization above allows the user to switch identity to any other user who has the `employeeType` attribute set to value `enduser`.
 
-
 == Security Questions
 
 Security question authentication is used when "Authorization" header is filled with the value SecQ.
 It is expected that the client send all required information for the authentication such as username and list of question identifier and question answer couples.
 
-Prerequisities:
+Prerequisites:
 
 * midPoint is configured to support security question.
-
 
 * User credentials contains security questions and answers on them.
 
@@ -125,10 +119,9 @@ Expecting (JSON) format of data sent for SecQ authentication
 }
 ----
 
- +
 Example above is the format which is expected for the security question authentication.
 Attribute user has to contain username of the user to authenticate.
-List of answers has to contain question identifier (qid attribute) and question answers (qans attribute) couples.
+List of answers has to contain question identifier (`qid` attribute) and question answers (`qans` attribute) couples.
 It is sent in the Authorization header encoded in base64 format to the server.
 
 Example curl call:
@@ -138,10 +131,7 @@ Example curl call:
 curl -X GET -H "Authorization: SecQ ew0KInVzZXIiIDogImFkbWluaXN0cmF0b3IiLA0KImFuc3dlciIgOiBbDQogew0KICAgInFpZCIgOiAiaHR0cDovL21pZHBvaW50LmV2b2x2ZXVtLmNvbS94bWwvbnMvcHVibGljL3NlY3VyaXR5L3F1ZXN0aW9uLTIjcTAwMSIsDQogICAicWFucyIgOiAiSSBkb24ndCBrbm93ISINCiB9DQpdDQp9" -H "Content-Type: application/xml" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
 ----
 
-
 === challengeResponseSecQ Challenge - Response implementation
-
-
 
 The whole sequence with link:https://httpie.org/[HTTPie] and link:https://linux.die.net/man/1/base64[base64] encoding using command substitution in bash may look like this:
 
@@ -158,11 +148,7 @@ $ http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"
 http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"user":"administrator","answer":[{"qid":"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001", "qans":"much"}]}')"
 ----
 
-
-== OAuth
-
-Support for OAuth2 is planned in midPoint 3.7.
-
+// TODO OAuth support?
 
 == See Also
 

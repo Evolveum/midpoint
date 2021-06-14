@@ -17,7 +17,7 @@ See wiki:Asynchronous+(Messaging)+Outbound+Resources[Asynchronous (Messaging) Ou
 The following text will be a combination of a documentation with a simple tutorial on how to configure an asynchronous resource.
 
 
-== Prerequisities
+== Prerequisites
 
 Before configuring asynchronous resource, we need to have a target where it will send messages to.
 The target can be a messaging queue or topic, REST endpoint, or something like that.
