@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
 import com.evolveum.midpoint.task.quartzimpl.execution.*;
 
@@ -25,6 +26,9 @@ import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
 import com.evolveum.midpoint.task.quartzimpl.tasks.*;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.zaxxer.hikari.HikariConfigMXBean;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,6 +140,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
+    @Autowired private DataSourceFactory dataSourceFactory;
 
     @Autowired
     @Qualifier("securityContextManager")
@@ -1204,6 +1209,26 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         } else {
             return Collections.unmodifiableCollection(localNode.getArchetypeRef());
         }
+    }
+
+    @Override
+    public Number[] getDBPoolStats() {
+
+        if (dataSourceFactory != null && dataSourceFactory.getDataSource() instanceof HikariDataSource) {
+            HikariDataSource dataSource = (HikariDataSource) dataSourceFactory.getDataSource();
+
+            if (dataSource == null)
+                return null;
+
+            HikariPoolMXBean pool = dataSource.getHikariPoolMXBean();
+            HikariConfigMXBean config = dataSource.getHikariConfigMXBean();
+
+            if (pool == null || config == null)
+                return null;
+
+            return new Number[]{pool.getActiveConnections(), pool.getIdleConnections(), pool.getThreadsAwaitingConnection(), pool.getTotalConnections(), config.getMaximumPoolSize()};
+        }
+        return null;
     }
 
     public TaskBeans getBeans() {
