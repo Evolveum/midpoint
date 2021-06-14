@@ -148,7 +148,11 @@ $ http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"
 http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"user":"administrator","answer":[{"qid":"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001", "qans":"much"}]}')"
 ----
 
-// TODO OAuth support?
+== Other authentication options
+
+Please, consult xref:/midpoint/reference/security/authentication/flexible-authentication/configuration.adoc[Flexible authentication configuration]
+for further options, e.g. `httpHeader` for pre-authenticated users.
+This allows to delegate authentication to another component, e.g. HTTP server reverse proxy, and implement other types of authentication like OAuth2, SAML, etc.
 
 == See Also
 
