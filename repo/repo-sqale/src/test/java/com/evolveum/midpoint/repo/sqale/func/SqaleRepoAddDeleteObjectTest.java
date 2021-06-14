@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationCampaign;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
@@ -1513,7 +1517,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName relationUri = QName.valueOf("{https://some.uri}specialRelation");
         var accessCertificationDefinition = new AccessCertificationDefinitionType(prismContext)
                 .name(objectName)
-                .handlerUri("handler-uri")
+                .handlerUri("d-handler-uri")
                 .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
                 .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
                 .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, relationUri);
@@ -1526,12 +1530,53 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MAccessCertificationDefinition row = selectObjectByOid(
                 QAccessCertificationDefinition.class, accessCertificationDefinition.getOid());
-        assertCachedUri(row.handlerUriId, "handler-uri");
+        assertCachedUri(row.handlerUriId, "d-handler-uri");
         assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
         assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, relationUri);
+    }
+
+    @Test
+    public void test842AccessCertificationCampaign() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("access certification campaign");
+        String objectName = "acc" + getTestNumber();
+
+        UUID definitionRefOid = UUID.randomUUID();
+        QName definitionRefRelationUri = QName.valueOf("{https://some.uri}definition-relation");
+        UUID ownerRefOid = UUID.randomUUID();
+        QName ownerRefRelationUri = QName.valueOf("{https://some.uri}owner-relation");
+
+        Instant lastCampaignStarted = Instant.ofEpochMilli(1); // 0 means null in MiscUtil
+        Instant lastCampaignClosed = Instant.ofEpochMilli(System.currentTimeMillis());
+
+
+        var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
+                .name(objectName)
+                .definitionRef(definitionRefOid.toString(), UserType.COMPLEX_TYPE, definitionRefRelationUri)
+                
+                .handlerUri("c-handler-uri")
+                .lastCampaignStartedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignStarted))
+                .lastCampaignClosedTimestamp(MiscUtil.asXMLGregorianCalendar(lastCampaignClosed))
+                .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri);
+
+        when("adding it to the repository");
+        repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MAccessCertificationCampaign row = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign.getOid());
+        assertCachedUri(row.handlerUriId, "c-handler-uri");
+        assertThat(row.lastCampaignStartedTimestamp).isEqualTo(lastCampaignStarted);
+        assertThat(row.lastCampaignClosedTimestamp).isEqualTo(lastCampaignClosed);
+        assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
+        assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(row.ownerRefRelationId, ownerRefRelationUri);
     }
 
     @Test
