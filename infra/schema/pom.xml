@@ -89,10 +89,6 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>
@@ -106,10 +102,6 @@
                     <artifactId>javax.annotation-api</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -243,36 +235,6 @@
                             <wsdlOptions>
                                 <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/webservice/modelService.wsdl</wsdl>
-                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>
-                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
-                                        </extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <!-- Besides generating stub for report web service, this WSDL includes all the other XSD files
-                                         we need to compile. This is the only way we found to generate equals and hashCode methods with CXF.
-                                         If you find anything better please correct it.
-
-                                         It would be nice if these two web services could be in one WSDL file. Unfortunately it's not possible,
-                                         as they are in different target namespaces. -->
-                                    <wsdl>src/main/resources/xml/ns/private/webservice/reportService.wsdl</wsdl>
                                     <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -53,7 +55,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 
-@PageDescriptor(url = "/admin/certification/definition",
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/certification/definition", matchUrlForSecurity = "/admin/certification/definition")
+        },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,

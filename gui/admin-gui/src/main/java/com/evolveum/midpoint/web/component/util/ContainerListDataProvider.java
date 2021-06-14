@@ -68,10 +68,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
-        OperationResult result = new OperationResult(OPERATION_SEARCH_CONTAINERS);
+        Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_CONTAINERS);
+        OperationResult result = task.getResult();
         try {
             ObjectPaging paging = createPaging(first, count);
-            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_CONTAINERS);
 
             ObjectQuery query = getQuery();
             if (query == null){

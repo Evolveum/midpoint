@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;

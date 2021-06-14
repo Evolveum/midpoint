@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that knows how to add {@code JOIN} for the specified target query type.
+ * Resolver that knows how to join to the specified target query type (can be JOIN or EXISTS).
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}, this is the owner of the target table

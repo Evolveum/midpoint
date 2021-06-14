@@ -19,13 +19,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PageDescriptor {
 
-    /**
-     * Please use {@link PageDescriptor#urls()}
-     * @return
-     */
-    @Deprecated
-    String[] url() default {};
-
     Url[] urls() default {};
 
     Class<? extends IPageParametersEncoder> encoder() default PageParametersEncoder.class;

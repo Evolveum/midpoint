@@ -9,6 +9,13 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,12 +40,10 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -48,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceTasksPanel extends Panel implements Popupable {
+public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -61,8 +66,6 @@ public class ResourceTasksPanel extends Panel implements Popupable {
     private static final String ID_RESUME = "resume";
     private static final String ID_SUSPEND = "suspend";
 
-    private final PageBase pageBase;
-
     private IModel<PrismObject<ResourceType>> resourceModel;
     String[] resourceTaskArchetypeOids = new String[] { SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
             SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
@@ -70,32 +73,31 @@ public class ResourceTasksPanel extends Panel implements Popupable {
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
 
-    public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+    public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel) {
         super(id);
-        this.pageBase = pageBase;
         this.resourceModel = resourceModel;
 
-        ListModel<TaskType> model = createTaskModel();
-        initLayout(model);
+//        ListModel<TaskType> model = createTaskModel();
+        initLayout();
     }
 
-    private ListModel<TaskType> createTaskModel() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
-        List<PrismObject<TaskType>> tasks = WebModelServiceUtils
-                .searchObjects(TaskType.class,
-                        pageBase.getPrismContext().queryFor(TaskType.class)
-                                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
-                                .build(),
-                        result, pageBase);
-        List<TaskType> tasksType = new ArrayList<>();
-        for (PrismObject<TaskType> task : tasks) {
-            tasksType.add(task.asObjectable());
-        }
-        return new ListModel<>(tasksType);
+//    private ListModel<TaskType> createTaskModel() {
+//        OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
+//        List<PrismObject<TaskType>> tasks = WebModelServiceUtils
+//                .searchObjects(TaskType.class,
+//                        getPageBase().getPrismContext().queryFor(TaskType.class)
+//                                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
+//                                .build(),
+//                        result, getPageBase());
+//        List<TaskType> tasksType = new ArrayList<>();
+//        for (PrismObject<TaskType> task : tasks) {
+//            tasksType.add(task.asObjectable());
+//        }
+//        return new ListModel<>(tasksType);
+//
+//    }
 
-    }
-
-    private void initLayout(final ListModel<TaskType> tasks) {
+    private void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<>(ID_TASKS_TABLE, TaskType.class, null) {
                     private static final long serialVersionUID = 1L;
@@ -105,10 +107,21 @@ public class ResourceTasksPanel extends Panel implements Popupable {
                         return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
                     }
 
+//                    @Override
+//                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+//                        return new SelectableListDataProvider<>(pageBase, tasks);
+//                    }
+
                     @Override
                     protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
-                        return new SelectableListDataProvider<>(pageBase, tasks);
+                        return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
+
+//                    @Override
+//                    protected ObjectQuery getCustomizeContentQuery() {
+//                        return
+//
+//                    }
 
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {
@@ -128,9 +141,9 @@ public class ResourceTasksPanel extends Panel implements Popupable {
                             collectionView = getObjectCollectionView();
                         }
 
-                        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+                        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
                         try {
-                            PrismContext prismContext = pageBase.getPrismContext();
+                            PrismContext prismContext = getPrismContext();
                             PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);
                             PrismObject<TaskType> obj = def.instantiate();
                             TaskType newTask = obj.asObjectable();
@@ -170,56 +183,62 @@ public class ResourceTasksPanel extends Panel implements Popupable {
         tasksPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES);
         add(tasksPanel);
 
-        AjaxButton runNow = new AjaxButton(ID_RUN_NOW, pageBase.createStringResource("pageTaskEdit.button.runNow")) {
+        AjaxButton runNow = new AjaxButton(ID_RUN_NOW, getPageBase().createStringResource("pageTaskEdit.button.runNow")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<String> oids = createOidList(getTaskListPanel().getSelectedRealObjects());
                 if (!oids.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.runNowPerformed(oids, pageBase);
-                    pageBase.showResult(result);
+                    OperationResult result = TaskOperationUtils.runNowPerformed(oids, getPageBase());
+                    getPageBase().showResult(result);
                 } else {
                     noTasksSelected();
                 }
-                target.add(pageBase.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         add(runNow);
 
-        AjaxButton resume = new AjaxButton(ID_RESUME, pageBase.createStringResource("pageTaskEdit.button.resume")) {
+        AjaxButton resume = new AjaxButton(ID_RESUME, getPageBase().createStringResource("pageTaskEdit.button.resume")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<TaskType> tasks = getTaskListPanel().getSelectedRealObjects();
                 if (!tasks.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.resumeTasks(tasks, pageBase);
-                    pageBase.showResult(result);
+                    OperationResult result = TaskOperationUtils.resumeTasks(tasks, getPageBase());
+                    getPageBase().showResult(result);
                 } else {
                     noTasksSelected();
                 }
-                target.add(pageBase.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         add(resume);
 
-        AjaxButton suspend = new AjaxButton(ID_SUSPEND, pageBase.createStringResource("pageTaskEdit.button.suspend")) {
+        AjaxButton suspend = new AjaxButton(ID_SUSPEND, getPageBase().createStringResource("pageTaskEdit.button.suspend")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<TaskType> tasks = getTaskListPanel().getSelectedRealObjects();
                 if (!tasks.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.suspendTasks(tasks, pageBase);
-                    pageBase.showResult(result);
+                    OperationResult result = TaskOperationUtils.suspendTasks(tasks, getPageBase());
+                    getPageBase().showResult(result);
                 } else {
                     noTasksSelected();
                 }
-                target.add(pageBase.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         add(suspend);
+    }
+
+    private ObjectQuery createResourceTasksQuery() {
+        return getPageBase().getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
+                .build();
     }
 
     private void noTasksSelected() {
@@ -261,7 +280,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
     @Override
     public StringResourceModel getTitle() {
-        return pageBase.createStringResource("ResourceTasksPanel.definedTasks");
+        return getPageBase().createStringResource("ResourceTasksPanel.definedTasks");
     }
 
     @Override

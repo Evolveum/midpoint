@@ -82,6 +82,14 @@ public class PrismPropertyWrapperFactoryImpl<T>
         if (valueEnumerationRef == null) {
             return null;
         }
+
+        String lookupTableOid = valueEnumerationRef.getOid();
+        LookupTableType lookupTableType = wrapperContext.getLookuptableFromCache(lookupTableOid);
+        if (lookupTableType != null) {
+            LOGGER.trace("Loading lookuptable from cache");
+            return lookupTableType;
+        }
+
         //TODO: task and result from context
         Task task = wrapperContext.getTask();
         OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
@@ -89,9 +97,11 @@ public class PrismPropertyWrapperFactoryImpl<T>
                 .createLookupTableRetrieveOptions(schemaService);
 
         try {
-            PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+            PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, lookupTableOid, options, task, result);
             result.computeStatusIfUnknown();
-            return lookupTable.asObjectable();
+            lookupTableType = lookupTable.asObjectable();
+            wrapperContext.rememberLookuptable(lookupTableType);
+            return lookupTableType;
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
                 | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Cannot load lookup table for {} ", item);
@@ -100,7 +110,6 @@ public class PrismPropertyWrapperFactoryImpl<T>
         }
 
         return null;
-
     }
 
     @Override

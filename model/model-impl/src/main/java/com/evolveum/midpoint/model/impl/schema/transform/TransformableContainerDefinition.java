@@ -73,13 +73,13 @@ public class TransformableContainerDefinition<C extends Containerable>
 
     @Override
     public @NotNull QName getTypeName() {
-        return complexTypeDefinition.getTypeName();
+        return delegate().getTypeName();
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Class getTypeClass() {
-        return complexTypeDefinition.getTypeClass();
+        return delegate().getTypeClass();
     }
 
     @SuppressWarnings("unchecked")

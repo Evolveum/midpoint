@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.update;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 

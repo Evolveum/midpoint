@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto;
 
@@ -33,7 +34,11 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-@PageDescriptor(url = "/admin/config/internals", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/internals", matchUrlForSecurity = "/admin/config/internals")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_INTERNALS_URL,

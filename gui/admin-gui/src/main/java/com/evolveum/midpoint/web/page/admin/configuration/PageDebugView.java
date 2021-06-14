@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -49,7 +51,11 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-@PageDescriptor(url = "/admin/config/debug", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/debug", matchUrlForSecurity = "/admin/config/debug")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,

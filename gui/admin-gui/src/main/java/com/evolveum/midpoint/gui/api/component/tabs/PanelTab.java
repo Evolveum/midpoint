@@ -58,4 +58,8 @@ public abstract class PanelTab extends AbstractTab {
 
         return visible.isVisible();
     }
+
+    public void resetPanel(){
+        panel = null;
+    }
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -29,7 +30,10 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
-        url = "/admin/archetypes", action = {
+        urls = {
+                @Url(mountUrl = "/admin/archetypes", matchUrlForSecurity = "/admin/archetypes")
+        },
+        action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                         label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                         description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),

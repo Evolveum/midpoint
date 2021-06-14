@@ -10,8 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 /**

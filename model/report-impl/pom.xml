@@ -115,29 +115,14 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
-        </dependency>
-
-        <!-- Jasper reports -->
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
         </dependency>
 
         <dependency>
             <groupId>commons-javaflow</groupId>
             <artifactId>commons-javaflow</artifactId>
             <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-core</artifactId>
         </dependency>
 
         <dependency>

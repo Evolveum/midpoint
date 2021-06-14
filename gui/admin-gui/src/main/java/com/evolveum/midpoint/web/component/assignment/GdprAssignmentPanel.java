@@ -42,7 +42,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
 
-        columns.add(new CheckBoxColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
+        columns.add(new CheckBoxColumn<>(createStringResource("AssignmentType.accepted")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -53,7 +53,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
             @Override
             protected IModel<Boolean> getCheckBoxValueModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                return new IModel<Boolean>() {
+                return new IModel<>() {
 
                     private static final long serialVersionUID = 1L;
 

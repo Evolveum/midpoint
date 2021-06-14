@@ -71,16 +71,10 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         add(subtasksLabel);
 
         TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, createOperationOptions()) {
+
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                String parent = getParentIdentifier();
-                if (parent == null) {
-                    return null;
-                }
-                return getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                        .eq(parent)
-                        .build();
+            protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(() -> createSubtasksQuery(), null);
             }
 
             @Override
@@ -125,6 +119,17 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
         };
         add(workerThreadsTable);
+    }
+
+    private ObjectQuery createSubtasksQuery() {
+        String parent = getParentIdentifier();
+        if (parent == null) {
+            return null;
+        }
+        return getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_PARENT)
+                .eq(parent)
+                .build();
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {

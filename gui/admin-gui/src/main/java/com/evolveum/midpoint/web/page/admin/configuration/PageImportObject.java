@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +59,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsT
  * @author lazyman
  * @author mserbak
  */
-@PageDescriptor(url = "/admin/config/import", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/import", matchUrlForSecurity = "/admin/config/import")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL, label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL, label = "PageImportObject.auth.configImport.label", description = "PageImportObject.auth.configImport.description") })
 public class PageImportObject extends PageAdminConfiguration {

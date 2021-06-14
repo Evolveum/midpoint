@@ -10,11 +10,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -346,7 +357,7 @@ public class PageResource extends PageAdmin {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ResourceTasksPanel(panelId, resourceModel, PageResource.this);
+                return new ResourceTasksPanel(panelId, resourceModel);
             }
         });
 
@@ -395,6 +406,28 @@ public class PageResource extends PageAdmin {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new ResourceConnectorPanel(panelId, null, resourceModel, PageResource.this);
+            }
+        });
+
+        tabs.add(new PanelTab(createStringResource("PageResource.tab.schemaHandling")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                PrismObjectWrapperFactory<ResourceType> resourceFactory = PageResource.this.findObjectWrapperFactory(resourceModel.getObject().getDefinition());
+                Task task = createSimpleTask("Create resource wrapper");
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                PrismObjectWrapper<ResourceType> resourceWrapper;
+                try {
+                    resourceWrapper = resourceFactory.createObjectWrapper(resourceModel.getObject(), ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    resourceWrapper = null;
+                }
+                if (resourceWrapper == null) {
+                    return new WebMarkupContainer(panelId);
+                }
+                return new ResourceSchemaHandlingPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(Model.of(resourceWrapper), ResourceType.F_SCHEMA_HANDLING));
             }
         });
 

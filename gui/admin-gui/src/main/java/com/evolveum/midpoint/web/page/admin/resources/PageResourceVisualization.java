@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -42,7 +43,11 @@ import java.io.IOException;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/resources/visualization", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/resources/visualization")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 label = "PageAdminResources.auth.resourcesAll.label",
                 description = "PageAdminResources.auth.resourcesAll.description"),

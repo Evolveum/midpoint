@@ -84,7 +84,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     }
 
     @Override
-    protected void removeValue(CVW valueToRemove, AjaxRequestTarget target) {
+    protected void remove(CVW valueToRemove, AjaxRequestTarget target) {
 
     }
 

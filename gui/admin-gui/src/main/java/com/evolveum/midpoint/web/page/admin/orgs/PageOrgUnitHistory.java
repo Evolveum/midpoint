@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -23,7 +25,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/admin/orgUnitHistory", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/orgUnitHistory", matchUrlForSecurity = "/admin/orgUnitHistory")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
                 label = "PageAdminUsers.auth.orgAll.label",
                 description = "PageAdminUsers.auth.orgAll.description"),

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +37,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getItemName());
+        return wrapper instanceof PrismPropertyWrapper && ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getItemName());
     }
 
     @Override

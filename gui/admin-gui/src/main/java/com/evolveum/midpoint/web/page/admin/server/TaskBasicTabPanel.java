@@ -79,17 +79,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                 }
 
                 if (!WebComponentUtil.hasAnyArchetypeAssignment(getTask())) {
-                    try {
-                        PrismContainerWrapper<AssignmentType> archetypeAssignment = TaskBasicTabPanel.this.getModelObject().findContainer(TaskType.F_ASSIGNMENT);
-                        PrismContainerValue<AssignmentType> archetypeAssignmentValue = archetypeAssignment.getItem().createNewValue();
-                        AssignmentType newArchetypeAssignment = archetypeAssignmentValue.asContainerable();
-                        newArchetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(taskHandler.getArchetypeOid(), ObjectTypes.ARCHETYPE));
-                        WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, getPageBase(), target);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
-                        getSession().error("Cannot set selected handler: " + e.getMessage());
-                        return;
-                    }
+                    WebComponentUtil.addNewArchetype(TaskBasicTabPanel.this.getModelObject(), taskHandler.getArchetypeOid(), target, getPageBase());
                 }
 
                 PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());

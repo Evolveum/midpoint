@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;

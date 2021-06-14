@@ -40,17 +40,17 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
     private PageBase pageBase;
 
-    private final AvailableRelationDto supportedRelationList;
+    private final RelationSearchItemConfigurationType relationConfig;
     private final List<ObjectReferenceType> archetypeReferenceList;
 
-    public MemberPopupTabPanel(String id, AvailableRelationDto supportedRelationList) {
+    public MemberPopupTabPanel(String id, RelationSearchItemConfigurationType supportedRelationList) {
         this(id, supportedRelationList, new ArrayList<>());
     }
 
-    public MemberPopupTabPanel(String id, AvailableRelationDto supportedRelationList,
+    public MemberPopupTabPanel(String id, RelationSearchItemConfigurationType relationConfig,
             List<ObjectReferenceType> archetypeReferenceList) {
         super(id);
-        this.supportedRelationList = supportedRelationList;
+        this.relationConfig = relationConfig;
         this.archetypeReferenceList = archetypeReferenceList;
     }
 
@@ -69,18 +69,18 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
             @Override
             public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(supportedRelationList.getAvailableRelationList());
+                return CollectionUtils.isNotEmpty(relationConfig.getSupportedRelations());
             }
 
             @Override
             public boolean isEnabled() {
-                return CollectionUtils.isNotEmpty(supportedRelationList.getAvailableRelationList())
-                        && supportedRelationList.getAvailableRelationList().size() > 1;
+                return CollectionUtils.isNotEmpty(relationConfig.getSupportedRelations())
+                        && relationConfig.getSupportedRelations().size() > 1;
             }
         });
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, supportedRelationList.getDefaultRelation(), supportedRelationList.getAvailableRelationList(), false));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, relationConfig.getDefaultValue(), relationConfig.getSupportedRelations(), false));
     }
 
     protected ObjectDelta prepareDelta() {

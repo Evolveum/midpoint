@@ -9,7 +9,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:child />
+    <div wicket:id="tableContainer">
+        <div class="box col-md-12" style="margin-top: 15px;" wicket:id="tableBox">
+            <div class="box-header with-border">
+                <h3 class="box-title">
+                    <wicket:message key="PageReport.reportPreview"/>
+                </h3>
+            </div>
+            <div wicket:id="reportTable"/>
+        </div>
+    </div>
 </wicket:extend>
 </body>
 </html>

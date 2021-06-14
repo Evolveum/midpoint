@@ -11,12 +11,11 @@ import org.apache.wicket.model.StringResourceModel;
 
 public interface Popupable {
 
-    public int getWidth();
-    public int getHeight();
-    public String getWidthUnit();
-    public String getHeightUnit();
-    public StringResourceModel getTitle();
-    public Component getComponent();
-
+    int getWidth();
+    int getHeight();
+    String getWidthUnit();
+    String getHeightUnit();
+    StringResourceModel getTitle();
+    Component getComponent();
 
 }

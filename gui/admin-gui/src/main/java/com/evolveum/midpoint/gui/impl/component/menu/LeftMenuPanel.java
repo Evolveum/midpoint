@@ -32,7 +32,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -51,7 +50,9 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
-import com.evolveum.midpoint.web.page.admin.reports.*;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -59,7 +60,6 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -381,36 +381,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createReportsItems() {
-        MainMenuItem reportsMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.list", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class));
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_REPORTS_VIEW_URL)) {
-
-            addCollectionsMenuItems(reportsMenu, ReportType.COMPLEX_TYPE, PageReports.class);
-        }
-
-        if (classMatches(PageReport.class)) {
-            MenuItem edit = new MenuItem("PageAdmin.menu.top.reports.edit",
-                    PageReport.class);
-            reportsMenu.addMenuItem(edit);
-        }
-
-        if (classMatches(PageJasperReport.class)) {
-            MenuItem configure = new MenuItem("PageAdmin.menu.top.reports.configure",
-                    PageJasperReport.class);
-            reportsMenu.addMenuItem(configure);
-        }
-
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
-        reportsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.new", PageNewReport.class));
-
-
-//        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
-            reportsMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
-//        }
-
-        return reportsMenu;
+        MainMenuItem reportMenu = createMainMenuItem("PageAdmin.menu.top.reports", GuiStyleConstants.CLASS_REPORT_ICON);
+        createBasicAssignmentHolderMenuItems(reportMenu, PageTypes.REPORT);
+        reportMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
+        reportMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
+        return reportMenu;
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
@@ -629,6 +604,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationTabMebu(MainMenuItem systemConfigMenu) {
+            MenuItem menu = new MenuItem("System NEW", PageSystemConfigurationNew.class);
+        systemConfigMenu.addMenuItem(menu);
+
         addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
         addSystemMenuItem(systemConfigMenu, "PageAdmin.menu.top.configuration.objectPolicy",

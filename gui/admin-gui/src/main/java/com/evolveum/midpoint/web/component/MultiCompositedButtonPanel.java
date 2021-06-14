@@ -8,38 +8,34 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
-public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFunctinalButtonDto>> {
+import org.apache.wicket.model.StringResourceModel;
+
+public abstract class MultiCompositedButtonPanel extends BasePanel<List<CompositedIconButtonDto>> implements Popupable {
 
     private static final String ID_BUTTON_PANEL = "additionalButton";
-
+    private static final String ID_BUTTON_DESCRIPTION = "buttonDescription";
     private static final String ID_COMPOSITED_BUTTON = "compositedButton";
-    private static final String ID_DEFAULT_BUTTON = "defaultButton";
 
-    private static final String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
-
-    public MultiCompositedButtonPanel(String id, IModel<List<MultiFunctinalButtonDto>> model) {
+    public MultiCompositedButtonPanel(String id, IModel<List<CompositedIconButtonDto>> model) {
         super(id, model);
     }
 
@@ -50,102 +46,72 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
     }
 
     private void initLayout() {
-        ListView<MultiFunctinalButtonDto> buttonsPanel = new ListView<MultiFunctinalButtonDto>(ID_BUTTON_PANEL, getModel()) {
+        ListView<CompositedIconButtonDto> buttonsPanel = new ListView<>(ID_BUTTON_PANEL, getModel()) {
 
             @Override
-            protected void populateItem(ListItem<MultiFunctinalButtonDto> item) {
-                MultiFunctinalButtonDto additionalButtonObject = item.getModelObject();
-                DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
-                additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+            protected void populateItem(ListItem<CompositedIconButtonDto> item) {
 
-                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, getCompositedIcon(additionalButtonObject),
-                        Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
-
-                    private static final long serialVersionUID = 1L;
+                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, item.getModel()) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        buttonClickPerformed(target, additionalButtonObject.getAssignmentObjectRelation(), additionalButtonObject.getCollectionView());
+                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPage());
                     }
                 };
-                additionalButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
                 item.add(additionalButton);
+
+                item.add(new Label(ID_BUTTON_DESCRIPTION, getButtonDescription(item.getModelObject())));
             }
         };
         buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(buttonsPanel);
 
-        DisplayType defaultObjectButtonDisplayType = fixDisplayTypeIfNeeded(getDefaultObjectButtonDisplayType());
-        DisplayType mainButtonDisplayType = fixDisplayTypeIfNeeded(getMainButtonDisplayType());
-
-        //we set main button icon class if no other is defined
-        if (StringUtils.isEmpty(defaultObjectButtonDisplayType.getIcon().getCssClass())) {
-            defaultObjectButtonDisplayType.getIcon().setCssClass(mainButtonDisplayType.getIcon().getCssClass());
-        }
-
-        AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(ID_DEFAULT_BUTTON,
-                getAdditionalIconBuilder(defaultObjectButtonDisplayType).build(),
-                Model.of(WebComponentUtil.getDisplayTypeTitle(defaultObjectButtonDisplayType))) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                buttonClickPerformed(target, null, null);
-            }
-        };
-        defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
-        defaultButton.add(new VisibleBehaviour(this::isDefaultButtonVisible));
-        add(defaultButton);
-
     }
 
-    private CompositedIcon getCompositedIcon(MultiFunctinalButtonDto additionalButtonObject) {
-        CompositedIcon icon = additionalButtonObject.getCompositedIcon();
-        if (icon != null) {
-            return icon;
+    private String getButtonDescription(CompositedIconButtonDto button) {
+        DisplayType displayType = button.getAdditionalButtonDisplayType();
+        if (displayType.getSingularLabel() != null) {
+            return WebComponentUtil.getTranslatedPolyString(displayType.getSingularLabel());
         }
-
-        return getAdditionalIconBuilder(additionalButtonObject.getAdditionalButtonDisplayType()).build();
+        return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
     }
-
-    protected abstract DisplayType getMainButtonDisplayType();
-
     /**
      * this method should return the display properties for the last button on the dropdown  panel with additional buttons.
      * The last button is supposed to produce a default action (an action with no additional objects to process)
      */
-    protected abstract DisplayType getDefaultObjectButtonDisplayType();
+//    protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
-    protected CompositedIconBuilder getAdditionalIconBuilder(DisplayType additionalButtonDisplayType) {
-        CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
-        return builder;
+
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
     }
 
-    private DisplayType fixDisplayTypeIfNeeded(DisplayType displayType) {
-        if (displayType == null) {
-            displayType = new DisplayType();
-        }
-        if (displayType.getIcon() == null) {
-            displayType.setIcon(new IconType());
-        }
-        if (displayType.getIcon().getCssClass() == null) {
-            displayType.getIcon().setCssClass("");
-        }
-
-        return displayType;
+    @Override
+    public int getWidth() {
+        return 90;
     }
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
+    @Override
+    public int getHeight() {
+        return 60;
     }
 
-//    protected boolean additionalButtonsExist() {
-//        return CollectionUtils.isNotEmpty(buttonDtos);
-//    }
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
 
-    protected boolean isDefaultButtonVisible() {
-        return true;
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("Create from template");
+    }
+
+    @Override
+    public Component getComponent() {
+        return MultiCompositedButtonPanel.this;
     }
 }

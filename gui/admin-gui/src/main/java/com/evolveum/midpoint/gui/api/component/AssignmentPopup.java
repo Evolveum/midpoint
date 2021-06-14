@@ -12,24 +12,41 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -40,19 +57,105 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-public class AssignmentPopup extends BasePanel implements Popupable {
+public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Popupable {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentPopup.class);
 
     private static final String ID_TABS_PANEL = "tabsPanel";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private static final String ID_ASSIGN_BUTTON = "assignButton";
+    private static final String ID_BACK_BUTTON = "backButton";
+    private static final String ID_COMPOSITED_BUTTONS = "compositedButtons";
     private static final String ID_FORM = "form";
 
     private final List<OrgType> selectedOrgsList = new ArrayList<>();
 
-    public AssignmentPopup(String id) {
-        super(id);
+    private static final String DOT_CLASS = AssignmentPopup.class.getName() + ".";
+    protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
+
+    public AssignmentPopup(String id, IModel<AssignmentPopupDto> model) {
+        super(id, model);
+    }
+
+    private IModel<List<CompositedIconButtonDto>> createNewButtonDescriptionModel() {
+        return new LoadableModel<>(false) {
+            @Override
+            protected List<CompositedIconButtonDto> load() {
+                return newButtonDescription();
+            }
+        };
+    }
+
+    private List<CompositedIconButtonDto> newButtonDescription() {
+        List<AssignmentObjectRelation> relations = getModelObject().getAssignmentObjectRelation();
+        if (relations == null) {
+            return null;
+        }
+
+        List<CompositedIconButtonDto> buttonDtoList = new ArrayList<>();
+        relations.forEach(relation -> buttonDtoList.add(createCompositedButtonForAssignmentRelation(relation)));
+
+        if (isGenericNewObjectButtonVisible()) {
+            DisplayType defaultButtonDisplayType = WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
+//                    AssignmentPanel.this.createStringResource(isInducement() ?
+//                            "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
+            CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
+            CompositedIconBuilder builder = new CompositedIconBuilder();
+            builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType))
+                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+
+            defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
+            defaultButton.setCompositedIcon(builder.build());
+            buttonDtoList.add(defaultButton);
+        }
+
+//        multiFunctinalButtonDto.setAdditionalButtons(buttonDtoList);
+
+        return buttonDtoList;
+    }
+
+    private boolean isGenericNewObjectButtonVisible() {
+        AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
+        return spec == null || spec.isSupportGenericAssignment();
+    }
+
+    private AssignmentCandidatesSpecification loadAssignmentHolderSpecification() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION);
+        PrismObject obj = getFocusObject();
+        AssignmentCandidatesSpecification spec = null;
+        try {
+            spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentHolderSpecification(obj, result);
+        } catch (SchemaException | ConfigurationException ex) {
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load assignment holder specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return spec;
+    }
+
+    protected <F extends AssignmentHolderType> PrismObject<F> getFocusObject() {
+        return null;
+    }
+
+    private CompositedIconButtonDto createCompositedButtonForAssignmentRelation(AssignmentObjectRelation relation) {
+        CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
+        buttonDto.setAssignmentObjectRelation(relation);
+
+        DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
+//                isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
+        buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+
+        CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
+                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+        CompositedIcon icon = null;
+        if (builder != null) {
+            icon = builder.build();
+        }
+        buttonDto.setCompositedIcon(icon);
+        return buttonDto;
     }
 
     @Override
@@ -63,17 +166,43 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         form.setOutputMarkupId(true);
         add(form);
 
-        List<ITab> tabs = createAssignmentTabs();
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
-        tabPanel.setOutputMarkupId(true);
-        tabPanel.setOutputMarkupPlaceholderTag(true);
-        form.add(tabPanel);
+        MultiCompositedButtonPanel newObjectIcon =
+                new MultiCompositedButtonPanel(ID_COMPOSITED_BUTTONS, createNewButtonDescriptionModel()) {
+
+                    @Override
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                        Form form = (Form) AssignmentPopup.this.get(ID_FORM);
+                        AssignmentPopup.this.getModelObject().setSelectionVisible(false);
+                        addOrReplaceTabPanels(form, relationSepc);
+                        target.add(form);
+                    }
+                };
+        form.add(newObjectIcon);
+        newObjectIcon.add(new VisibleBehaviour(() -> getModelObject().isSelectionVisible()));
+
+        addOrReplaceTabPanels(form, null);
 
         MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
         warningMessage.setOutputMarkupId(true);
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
         add(warningMessage);
 
+        form.add(createCancelButton());
+        form.add(createAddButton());
+        form.add(createBackButton());
+
+    }
+
+    private void addOrReplaceTabPanels(Form form, AssignmentObjectRelation relationSpec) {
+        List<ITab> tabs = createAssignmentTabs(relationSpec);
+        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
+        tabPanel.setOutputMarkupId(true);
+        tabPanel.setOutputMarkupPlaceholderTag(true);
+        tabPanel.add(new VisibleBehaviour(() -> !getModelObject().isSelectionVisible()));
+        form.addOrReplace(tabPanel);
+    }
+
+    private AjaxButton createCancelButton() {
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
@@ -85,8 +214,10 @@ public class AssignmentPopup extends BasePanel implements Popupable {
             }
         };
         cancelButton.setOutputMarkupId(true);
-        form.add(cancelButton);
+        return cancelButton;
+    }
 
+    private AjaxButton createAddButton() {
         AjaxButton addButton = new AjaxButton(ID_ASSIGN_BUTTON,
                 createStringResource("userBrowserDialog.button.addButton")) {
 
@@ -96,7 +227,9 @@ public class AssignmentPopup extends BasePanel implements Popupable {
             public void onClick(AjaxRequestTarget target) {
                 Map<String, AssignmentType> selectedAssignmentsMap = new HashMap<>();
 
-                tabs.forEach(panelTab -> {
+                TabbedPanel<ITab> panel = (TabbedPanel) AssignmentPopup.this.get(createComponentPath(ID_FORM, ID_TABS_PANEL));
+
+                panel.getTabs().getObject().forEach(panelTab -> {
                     WebMarkupContainer assignmentPanel = ((PanelTab) panelTab).getPanel();
                     if (assignmentPanel == null) {
                         return;
@@ -114,21 +247,38 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
         addButton.add(new EnableBehaviour(this::isAssignButtonEnabled));
         addButton.setOutputMarkupId(true);
-        form.add(addButton);
+        return addButton;
     }
 
-    protected List<ITab> createAssignmentTabs() {
+    private AjaxButton createBackButton() {
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON,
+                createStringResource("userBrowserDialog.button.backButton")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssignmentPopup.this.getModelObject().setSelectionVisible(true);
+                target.add(AssignmentPopup.this.get(ID_FORM));
+            }
+        };
+        backButton.setOutputMarkupId(true);
+        backButton.add(new VisibleBehaviour(() -> !getModelObject().isSelectionVisible() && getModelObject().hasSelectionEnabled()));
+        return backButton;
+    }
+
+    protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
         List<ITab> tabs = new ArrayList<>();
 
-        if (isTabVisible(ObjectTypes.ROLE)) {
+        if (isTabVisible(ObjectTypes.ROLE, relationSpec)) {
             tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
-                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ROLE))) {
+                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ROLE, relationSpec))) {
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new FocusTypeAssignmentPopupTabPanel<RoleType>(panelId, ObjectTypes.ROLE) {
+                    return new FocusTypeAssignmentPopupTabPanel<RoleType>(panelId, ObjectTypes.ROLE, relationSpec) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -137,23 +287,8 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                         }
 
                         @Override
-                        protected ObjectTypes getObjectType() {
-                            return ObjectTypes.ROLE;
-                        }
-
-                        @Override
                         protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                             return AssignmentPopup.this.getAssignmentWrapperModel();
-                        }
-
-                        @Override
-                        protected QName getPredefinedRelation() {
-                            return AssignmentPopup.this.getPredefinedRelation();
-                        }
-
-                        @Override
-                        protected List<ObjectReferenceType> getArchetypeRefList() {
-                            return AssignmentPopup.this.getArchetypeRefList();
                         }
                     };
                 }
@@ -165,27 +300,22 @@ public class AssignmentPopup extends BasePanel implements Popupable {
             });
         }
 
-        if (isTabVisible(ObjectTypes.ORG)) {
+        if (isTabVisible(ObjectTypes.ORG, relationSpec)) {
             tabs.add(
                     new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
-                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG, relationSpec))) {
 
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
-                            return new FocusTypeAssignmentPopupTabPanel<OrgType>(panelId, ObjectTypes.ORG) {
+                            return new FocusTypeAssignmentPopupTabPanel<OrgType>(panelId, ObjectTypes.ORG, relationSpec) {
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
                                 protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
                                     selectedOrgsListUpdate(rowModel);
                                     tabLabelPanelUpdate(target);
-                                }
-
-                                @Override
-                                protected ObjectTypes getObjectType() {
-                                    return ObjectTypes.ORG;
                                 }
 
                                 @Override
@@ -196,16 +326,6 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                                 @Override
                                 protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                     return AssignmentPopup.this.getAssignmentWrapperModel();
-                                }
-
-                                @Override
-                                protected QName getPredefinedRelation() {
-                                    return AssignmentPopup.this.getPredefinedRelation();
-                                }
-
-                                @Override
-                                protected List<ObjectReferenceType> getArchetypeRefList() {
-                                    return AssignmentPopup.this.getArchetypeRefList();
                                 }
 
                                 @Override
@@ -222,15 +342,15 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                     });
         }
 
-        if (isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible()) {
+        if (isTabVisible(ObjectTypes.ORG, relationSpec) && isOrgTreeTabVisible(relationSpec)) {
             tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible())) {
+                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG, relationSpec) && isOrgTreeTabVisible(relationSpec))) {
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new OrgTreeAssignmentPopupTabPanel(panelId) {
+                    return new OrgTreeAssignmentPopupTabPanel(panelId, relationSpec) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -250,16 +370,6 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                         }
 
                         @Override
-                        protected QName getPredefinedRelation() {
-                            return AssignmentPopup.this.getPredefinedRelation();
-                        }
-
-                        @Override
-                        protected List<ObjectReferenceType> getArchetypeRefList() {
-                            return AssignmentPopup.this.getArchetypeRefList();
-                        }
-
-                        @Override
                         protected ObjectFilter getSubtypeFilter() {
                             return AssignmentPopup.this.getSubtypeFilter();
                         }
@@ -273,22 +383,17 @@ public class AssignmentPopup extends BasePanel implements Popupable {
             });
         }
 
-        if (isTabVisible(ObjectTypes.SERVICE)) {
+        if (isTabVisible(ObjectTypes.SERVICE, relationSpec)) {
             tabs.add(
                     new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
-                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.SERVICE))) {
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.SERVICE, relationSpec))) {
 
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
-                            return new FocusTypeAssignmentPopupTabPanel<ServiceType>(panelId, ObjectTypes.SERVICE) {
+                            return new FocusTypeAssignmentPopupTabPanel<ServiceType>(panelId, ObjectTypes.SERVICE, relationSpec) {
                                 private static final long serialVersionUID = 1L;
-
-                                @Override
-                                protected ObjectTypes getObjectType() {
-                                    return ObjectTypes.SERVICE;
-                                }
 
                                 @Override
                                 protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel) {
@@ -300,15 +405,6 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                                     return AssignmentPopup.this.getAssignmentWrapperModel();
                                 }
 
-                                @Override
-                                protected QName getPredefinedRelation() {
-                                    return AssignmentPopup.this.getPredefinedRelation();
-                                }
-
-                                @Override
-                                protected List<ObjectReferenceType> getArchetypeRefList() {
-                                    return AssignmentPopup.this.getArchetypeRefList();
-                                }
                             };
                         }
 
@@ -319,16 +415,16 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                     });
         }
 
-        if (isTabVisible(ObjectTypes.RESOURCE)) {
+        if (isTabVisible(ObjectTypes.RESOURCE, relationSpec)) {
             tabs.add(
                     new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"),
-                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.RESOURCE))) {
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.RESOURCE, relationSpec))) {
 
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
-                            return new ResourceTypeAssignmentPopupTabPanel(panelId) {
+                            return new ResourceTypeAssignmentPopupTabPanel(panelId, relationSpec) {
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
@@ -340,11 +436,6 @@ public class AssignmentPopup extends BasePanel implements Popupable {
                                 @Override
                                 protected boolean isEntitlementAssignment() {
                                     return AssignmentPopup.this.isEntitlementAssignment();
-                                }
-
-                                @Override
-                                protected List<ObjectReferenceType> getArchetypeRefList() {
-                                    return AssignmentPopup.this.getArchetypeRefList();
                                 }
                             };
                         }
@@ -363,29 +454,49 @@ public class AssignmentPopup extends BasePanel implements Popupable {
         return null;
     }
 
-    protected List<ObjectReferenceType> getArchetypeRefList() {
-        return null;
-    }
-
     protected ObjectFilter getSubtypeFilter() {
         return null;
     }
 
-    private boolean isTabVisible(ObjectTypes objectType) {
-        List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList();
+    private boolean isTabVisible(ObjectTypes objectType, AssignmentObjectRelation relationSpec) {
+        List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList(relationSpec);
         return availableObjectTypesList == null || availableObjectTypesList.size() == 0 || availableObjectTypesList.contains(objectType);
     }
 
-    protected boolean isOrgTreeTabVisible() {
-        return true;
+    protected boolean isOrgTreeTabVisible(AssignmentObjectRelation relationSpec) {
+        return relationSpec == null;
     }
 
-    protected List<ObjectTypes> getAvailableObjectTypesList() {
+    private List<ObjectTypes> getAvailableObjectTypesList(AssignmentObjectRelation relationSpec) {
+        if (relationSpec == null || CollectionUtils.isEmpty(relationSpec.getObjectTypes())) {
+            return getObjectTypesList();
+        } else {
+            return mergeNewAssignmentTargetTypeLists(relationSpec.getObjectTypes(), getObjectTypesList());
+        }
+    }
+
+    private List<ObjectTypes> mergeNewAssignmentTargetTypeLists(List<QName> allowedByAssignmentTargetSpecification, List<ObjectTypes> availableTypesList) {
+        if (CollectionUtils.isEmpty(allowedByAssignmentTargetSpecification)) {
+            return availableTypesList;
+        }
+        if (CollectionUtils.isEmpty(availableTypesList)) {
+            return availableTypesList;
+        }
+        List<ObjectTypes> mergedList = new ArrayList<>();
+        allowedByAssignmentTargetSpecification.forEach(qnameValue -> {
+            ObjectTypes objectTypes = ObjectTypes.getObjectTypeFromTypeQName(qnameValue);
+            for (ObjectTypes availableObjectTypes : availableTypesList) {
+                if (availableObjectTypes.getClassDefinition().equals(objectTypes.getClassDefinition())) {
+                    mergedList.add(objectTypes);
+                    break;
+                }
+            }
+        });
+        return mergedList;
+    }
+
+    protected List<ObjectTypes> getObjectTypesList() {
         return WebComponentUtil.createAssignableTypesList();
-    }
-
-    protected QName getPredefinedRelation() {
-        return null;
     }
 
     protected boolean isEntitlementAssignment() {
@@ -423,7 +534,7 @@ public class AssignmentPopup extends BasePanel implements Popupable {
     }
 
     private IModel<String> getAddButtonTitleModel() {
-        return new LoadableModel<String>(true) {
+        return new LoadableModel<>(true) {
             @Override
             protected String load() {
                 return !isAssignButtonEnabled() ? createStringResource("AssignmentPopup.addButtonTitle").getString() : "";
@@ -455,7 +566,7 @@ public class AssignmentPopup extends BasePanel implements Popupable {
     }
 
     public int getHeight() {
-        return 80;
+        return 60;
     }
 
     @Override

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -74,7 +75,11 @@ import java.util.stream.Collectors;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/certification/campaigns", matchUrlForSecurity = "/admin/certification/campaigns")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS, label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
 

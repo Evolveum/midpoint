@@ -49,6 +49,10 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 
     @Override
     public ObjectQuery getQuery() {
+        return search.getObject() == null ? null : search.getObject().createObjectQuery(getVariables(), getPageBase(), getCustomizeContentQuery());
+    }
+
+    protected VariablesMap getVariables() {
         VariablesMap expVariables = new VariablesMap();
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
             if (entry.getValue() == null) {
@@ -57,7 +61,7 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
                 expVariables.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
             }
         }
-        return search.getObject() == null ? null : search.getObject().createObjectQuery(expVariables.isEmpty() ? null : expVariables, getPageBase(), getCustomizeContentQuery());
+        return expVariables.isEmpty() ? null : expVariables;
     }
 
     protected ObjectQuery getCustomizeContentQuery() {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -31,7 +32,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@PageDescriptor(url = {"/self/credentials"}, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/credentials")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

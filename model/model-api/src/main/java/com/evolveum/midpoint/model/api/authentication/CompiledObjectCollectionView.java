@@ -13,9 +13,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +57,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Integer refreshInterval;
     private Collection<SelectorOptions<GetOperationOptions>> options;
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
+    private PagingType paging;
 
     private String objectCollectionDescription;
 
@@ -76,11 +82,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.containerType = containerType;
     }
 
-    public <O extends ObjectType> Class<O> getTargetClass() {
+    public <C extends Containerable> Class<C> getTargetClass(PrismContext prismContext) {
         if (containerType == null) {
             return null;
         }
-        return ObjectTypes.getObjectTypeClass(containerType);
+        return prismContext.getSchemaRegistry().determineClassForType(containerType);
     }
 
     public String getViewIdentifier() {
@@ -240,10 +246,18 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.objectCollectionDescription = objectCollectionDescription;
     }
 
+    public void setPaging(PagingType paging) {
+        this.paging = paging;
+    }
+
+    public PagingType getPaging() {
+        return paging;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectType", containerType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "containerType", containerType, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
@@ -258,6 +272,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "refreshInterval", refreshInterval, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "objectCollectionDescription", objectCollectionDescription, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "paging", paging, indent + 1);
         return sb.toString();
     }
 
@@ -279,6 +294,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setSearchBoxConfiguration(getSearchBoxConfiguration());
         viewType.setDisplayOrder(getDisplayOrder());
         viewType.setRefreshInterval(getRefreshInterval());
+        viewType.setPaging(getPaging());
         return viewType;
     }
 

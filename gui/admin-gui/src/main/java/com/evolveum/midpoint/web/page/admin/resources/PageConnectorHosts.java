@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -54,7 +55,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/connectorHosts", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/connectorHosts")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_HOSTS_ALL_URL, label = "PageAdminResources.auth.connectorHostsAll.label", description = "PageAdminResources.auth.connectorHostsAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_HOSTS_ALL_URL, label = "PageResources.auth.connectorHosts.label", description = "PageResources.auth.connectorHosts.description") })
 public class PageConnectorHosts extends PageAdmin {

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -63,7 +65,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  */
 //TODO unify with PageAdminObjectDetails!
-@PageDescriptor(url = "/admin/resources/account", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/resources/account")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 label = "PageAdminResources.auth.resourcesAll.label",
                 description = "PageAdminResources.auth.resourcesAll.description"),

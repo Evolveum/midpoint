@@ -10569,6 +10569,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies if the mapping is enabled and is being evaluated. Default
+                            value is true. It means, that each defined mapping is by default enabled.
+                            To skip mapping evaluation, it has to be set to false.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MappingType.enabled</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -10981,6 +10995,9 @@
                     <xsd:documentation>
                         Name of the parameter
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ParameterType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
@@ -10988,6 +11005,9 @@
                     <xsd:documentation>
                         Parameter type
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ParameterType.type</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -11012,6 +11032,9 @@
                             <xsd:documentation>
                                 Expression that determines parameter value.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ExpressionParameterType.expression</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -12948,6 +12971,9 @@
                                 It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
                                 property.
                             </xsd:documentation>
+                             <xsd:appinfo>
+                                 <a:displayName>ShadowType.synchronizationTimestamp</a:displayName>
+                             </xsd:appinfo>
                         </xsd:annotation>
                      </xsd:element>
                      <xsd:element name="fullSynchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -25769,6 +25795,57 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="parameter" type="c:SearchFilterParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameter used in filter expression.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.parameter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subreport" type="c:SubreportParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Subreport with expression.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.subreport</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SubreportParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Subreport with expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ExpressionParameterType">
+                <xsd:sequence>
+                    <xsd:element name="order" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Order in which this entry is to be evaluated. (Related to other entries.) Smaller numbers
+                                go first. Entries with no order go last.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SubreportParameterType.order</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -26575,6 +26652,18 @@
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>
+                       <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
+                           <xsd:annotation>
+                               <xsd:documentation>
+                                   Paging for query.
+                               </xsd:documentation>
+                               <xsd:appinfo>
+                                   <a:experimental>true</a:experimental>
+                                   <a:since>4.4</a:since>
+                                   <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
+                               </xsd:appinfo>
+                           </xsd:annotation>
+                       </xsd:element>
                        <!-- TODO: number of results per page (MID-1931) -->
                        <!-- TODO: later: export settings (GuiExportSettingsType) -->
                    </xsd:sequence>
@@ -27094,7 +27183,8 @@
                         User friendly display name of the search item (property)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SearchItemType.display</a:displayName>
+                        <a:displayName>SearchItemType.displayName</a:displayName>
+                        <a:deprecated>true</a:deprecated>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -27159,6 +27249,30 @@
                                 <a:since>4.3</a:since>
                                 <a:experimental>true</a:experimental>
                                 <a:displayName>SearchFilterParameterType.allowedValuesExpression</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define targetType when used type is ObjectReferenceType.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>SearchFilterParameterType.targetType</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Display properties of the parameter.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>SearchFilterParameterType.display</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

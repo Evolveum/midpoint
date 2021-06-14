@@ -1355,10 +1355,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         given("report");
         String objectName = "report" + getTestNumber();
         ReportType report = new ReportType(prismContext)
-                .name(objectName)
-                .jasper(new JasperReportEngineConfigurationType()
-                        .orientation(OrientationType.LANDSCAPE)
-                        .parent(true));
+                .name(objectName);
 
         when("adding it to the repository");
         repositoryService.addObject(report.asPrismObject(), null, result);

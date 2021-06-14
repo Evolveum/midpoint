@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.query.PagingConvertor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -690,6 +693,10 @@ public class ObjectQueryUtil {
                 }
             }
         }
+    }
+
+    public static ObjectPaging convertToObjectPaging(PagingType pagingType, PrismContext prismContext) {
+        return PagingConvertor.createObjectPaging(pagingType, prismContext);
     }
 
     /**

@@ -232,14 +232,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
         tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.cases"),
-                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, parentPage)) {
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, false, parentPage)) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(),
-                                countFocusObjectTasks(parentPage) > 0);
+                        return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel());
                     }
 
                     @Override
@@ -270,7 +269,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     private int countFocusObjectTasks(PageBase parentPage) {
         String oid;
         if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
-            oid = "non-existent";
+           return 0;
         } else {
             oid = getObjectWrapper().getOid();
         }

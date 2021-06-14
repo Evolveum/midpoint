@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 
 import org.apache.wicket.model.IModel;
@@ -19,7 +20,11 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 
-@PageDescriptor(url = {"/self/profile/org/unit"}, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/profile/org/unit")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

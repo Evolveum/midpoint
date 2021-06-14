@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -32,7 +31,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
     public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
-        super(id, model, parentPage);
+        super(id, model);
         setOutputMarkupId(true);
     }
 
@@ -43,14 +42,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
-        if (SearchBoxScopeType.ONE_LEVEL.equals(getMemberPanelStorage().getOrgSearchScope()) ||
-                (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+        if (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.ONE_LEVEL) ||
+                (getMemberPanelStorage().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSupportedRelations().getDefaultRelation());
+            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getMemberPanelStorage().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
@@ -75,9 +74,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
+    protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
             List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes, archetypeRefList);
+        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
     }
 
     @Override
@@ -99,17 +98,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected <O extends ObjectType> Class<O> getDefaultObjectType() {
-        return (Class<O>) UserType.class;
+    protected Class<? extends ObjectType> getDefaultObjectType() {
+        return UserType.class;
     }
 
     @Override
-    protected AvailableRelationDto getSupportedRelations() {
-        AvailableRelationDto availableRelationDto =
-                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()),
-                        getDefaultRelationConfiguration());
-        availableRelationDto.setDefaultRelation(PrismConstants.Q_ANY);
-        return availableRelationDto;
+    protected List<QName> getSupportedRelations() {
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
     }
 
     private Class<? extends AssignmentHolderType> getSearchTypeClass() {
@@ -123,7 +118,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected List<QName> getRelationsForRecomputeTask() {
-        if (getDefaultRelationConfiguration() == null || CollectionUtils.isEmpty(getDefaultRelationConfiguration().getSupportedRelations())) {
+        if (CollectionUtils.isEmpty(getMemberPanelStorage().getSupportedRelations())) {
             return Collections.singletonList(PrismConstants.Q_ANY);
         }
         return super.getRelationsForRecomputeTask();

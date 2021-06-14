@@ -8,11 +8,16 @@
 package com.evolveum.midpoint.web.page.error;
 
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/error/410", permitAll = true)
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/error/410")
+        },
+        permitAll = true)
 public class PageError410 extends PageError {
 
     public PageError410() {

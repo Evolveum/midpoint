@@ -17,8 +17,8 @@ public class SystemConfigurationSummaryPanel extends ObjectSummaryPanel<SystemCo
 
     private static final long serialVersionUID = 1L;
 
-    public SystemConfigurationSummaryPanel(String id, Class type, IModel<SystemConfigurationType> model, ModelServiceLocator serviceLocator) {
-        super(id, type, model, serviceLocator);
+    public SystemConfigurationSummaryPanel(String id, IModel<SystemConfigurationType> model, ModelServiceLocator serviceLocator) {
+        super(id, SystemConfigurationType.class, model, serviceLocator);
     }
 
     @Override
