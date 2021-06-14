@@ -105,7 +105,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 
     @Override
     @NotNull
-    public <T extendsDefinition> List<T> getDefinitions(@NotNull Class<T> type) {
+    public <T extends Definition> List<T> getDefinitions(@NotNull Class<T> type) {
         return refinedResourceSchema.getDefinitions(type);
     }
 

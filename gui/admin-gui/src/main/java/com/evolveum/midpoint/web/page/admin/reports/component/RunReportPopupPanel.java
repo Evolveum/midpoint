@@ -211,7 +211,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                     List values = WebComponentUtil.getAllowedValues(parameter, getPageBase());
                     if (CollectionUtils.isNotEmpty(values)) {
                         def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type, values, null);
+                                new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type, values, null).toMutable();
                     } else {
                         def = getPrismContext().definitionFactory().createPropertyDefinition(
                                 new QName(ReportConstants.NS_EXTENSION, parameter.getName()), type);
