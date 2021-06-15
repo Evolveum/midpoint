@@ -140,7 +140,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
-    @Autowired private DataSourceFactory dataSourceFactory;
+    @Autowired(required = false) private DataSourceFactory dataSourceFactory;
 
     @Autowired
     @Qualifier("securityContextManager")
