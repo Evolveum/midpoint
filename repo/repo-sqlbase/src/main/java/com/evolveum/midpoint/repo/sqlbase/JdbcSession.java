@@ -18,6 +18,7 @@ import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +62,7 @@ public class JdbcSession implements AutoCloseable {
     private final Connection connection;
     private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     private final SqlRepoContext sqlRepoContext;
+    private final String sessionId;
 
     private boolean rollbackForReadOnly;
 
@@ -71,11 +73,14 @@ public class JdbcSession implements AutoCloseable {
         this.connection = Objects.requireNonNull(connection);
         this.jdbcRepositoryConfiguration = jdbcRepositoryConfiguration;
         this.sqlRepoContext = sqlRepoContext;
+        this.sessionId = RandomStringUtils.randomAlphanumeric(6);
+
+        LOGGER.debug("New JDBC session created (session {}, connection {})", sessionId, connection);
 
         try {
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
             if (jdbcRepositoryConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
-                LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
+                LOGGER.trace("Setting transaction isolation level SNAPSHOT (session {})", sessionId);
                 // bit rough from a constructor, but it's safe, connection field is already set
                 executeStatement("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
             }
@@ -115,7 +120,7 @@ public class JdbcSession implements AutoCloseable {
     }
 
     private JdbcSession startTransaction(boolean readonly) {
-        LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
+        LOGGER.trace("Starting {}transaction (session {})", readonly ? "readonly " : "", sessionId);
 
         try {
             connection.setAutoCommit(false);
@@ -142,12 +147,13 @@ public class JdbcSession implements AutoCloseable {
     public void commit() {
         try {
             if (rollbackForReadOnly) {
-                LOGGER.debug("Commit - rolling back read-only transaction without direct DB support");
+                LOGGER.debug("Commit - rolling back read-only transaction without direct DB support"
+                        + " (session {})", sessionId);
                 connection.rollback();
                 return;
             }
 
-            LOGGER.debug("Committing transaction");
+            LOGGER.debug("Committing transaction (session {})", sessionId);
             connection.commit();
         } catch (SQLException e) {
             throw new SystemException("Couldn't commit transaction", e);
@@ -161,7 +167,7 @@ public class JdbcSession implements AutoCloseable {
      */
     public void rollback() {
         try {
-            LOGGER.debug("Rolling back transaction");
+            LOGGER.debug("Rolling back transaction (session {})", sessionId);
             connection.rollback();
         } catch (SQLException e) {
             throw new SystemException("Couldn't rollback transaction", e);
@@ -174,7 +180,7 @@ public class JdbcSession implements AutoCloseable {
      */
     public void executeStatement(String sql) throws SystemException {
         try {
-            LOGGER.debug("Executing technical statement: " + sql);
+            LOGGER.debug("Executing technical statement (session {}): {}", sessionId, sql);
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute(sql);
             }
@@ -187,7 +193,8 @@ public class JdbcSession implements AutoCloseable {
      * Alters table adding another column - intended for custom/extension columns.
      */
     public void addColumn(String tableName, ColumnMetadata column) {
-        LOGGER.info("Altering table {}, adding column {}.", tableName, column.getName());
+        LOGGER.info("Altering table {}, adding column {} (session {})",
+                tableName, column.getName(), sessionId);
         StringBuilder type = new StringBuilder(getNativeTypeName(column.getJdbcType()));
         if (column.hasSize()) {
             type.append('(').append(column.getSize());
@@ -254,6 +261,7 @@ public class JdbcSession implements AutoCloseable {
     @Override
     public void close() {
         try {
+            LOGGER.debug("Closing connection (session {})", sessionId);
             connection.close();
         } catch (SQLException e) {
             throw new SystemException(e);
@@ -292,7 +300,7 @@ public class JdbcSession implements AutoCloseable {
     public void handleGeneralRuntimeException(
             @NotNull RuntimeException ex,
             @Nullable OperationResult result) {
-        LOGGER.debug("General runtime exception occurred.", ex);
+        LOGGER.debug("General runtime exception occurred (session {})", sessionId, ex);
 
         if (jdbcRepositoryConfiguration.isFatalException(ex)) {
             rollbackTransaction(ex, result, true);
@@ -317,7 +325,7 @@ public class JdbcSession implements AutoCloseable {
     public void handleGeneralCheckedException(
             @NotNull Throwable ex,
             @Nullable OperationResult result) {
-        LOGGER.error("General checked exception occurred.", ex);
+        LOGGER.error("General checked exception occurred (session {})", sessionId, ex);
 
         rollbackTransaction(ex, result, jdbcRepositoryConfiguration.isFatalException(ex));
         throw new SystemException(ex.getMessage(), ex);

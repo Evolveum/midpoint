@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -52,18 +53,18 @@ public class DetailTableItemFilterProcessor
      * @param nestedItemMapper {@link ItemSqlMapper} for the column on the detail table
      * that actually represents the target of the whole composition of mappers for the item path
      */
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R, DQ extends FlexibleRelationalPathBase<DR>, DR>
-    ItemSqlMapper<S, Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R, DQ extends FlexibleRelationalPathBase<DR>, DR>
+    ItemSqlMapper<Q, R> mapper(
             @NotNull Class<DQ> detailQueryType,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate,
-            @NotNull ItemSqlMapper<?, DQ, DR> nestedItemMapper) {
+            @NotNull ItemSqlMapper<DQ, DR> nestedItemMapper) {
         /*
          * Ctx here is the original context that leads to this mapping, not the inner context
          * describing the target detail table (which doesn't even have to have defined mapping).
          * We don't resolve any arguments in the lambda here because we need to throw checked
          * QueryException, so everything is done in process(filter).
          */
-        return new ItemSqlMapper<>(ctx ->
+        return new DefaultItemSqlMapper<>(ctx ->
                 new DetailTableItemFilterProcessor<>(
                         ctx, detailQueryType, joinOnPredicate, nestedItemMapper));
     }
@@ -71,13 +72,13 @@ public class DetailTableItemFilterProcessor
     private final SqlQueryContext<S, Q, ?> context;
     private final Class<DQ> detailQueryType;
     private final BiFunction<Q, DQ, Predicate> joinOnPredicate;
-    private final ItemSqlMapper<?, DQ, DR> nestedItemMapper;
+    private final ItemSqlMapper<DQ, DR> nestedItemMapper;
 
     public DetailTableItemFilterProcessor(
             SqlQueryContext<S, Q, ?> context,
             Class<DQ> detailQueryType,
             BiFunction<Q, DQ, Predicate> joinOnPredicate,
-            ItemSqlMapper<?, DQ, DR> nestedItemMapper) {
+            ItemSqlMapper<DQ, DR> nestedItemMapper) {
         super(context);
         this.context = context;
         this.detailQueryType = detailQueryType;

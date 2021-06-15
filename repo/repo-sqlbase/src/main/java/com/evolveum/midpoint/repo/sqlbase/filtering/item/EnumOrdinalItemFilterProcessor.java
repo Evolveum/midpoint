@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -38,12 +39,11 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * With no value conversion function the filter value must contain enum whose ordinal
      * numbers are used in the repository.
      *
-     * @param <S> schema type of the mapping owner
      * @param <Q> entity query type of the mapping
      * @param <R> row type related to the {@link Q}
      */
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
-    ItemSqlMapper<S, Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R>
+    ItemSqlMapper<Q, R> mapper(
             @NotNull Function<Q, Path<Integer>> rootToQueryItem) {
         return mapper(rootToQueryItem, null);
     }
@@ -52,16 +52,15 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * Returns the mapper creating the enum filter processor from context
      * with enum value conversion function.
      *
-     * @param <S> schema type of the mapping owner
      * @param <Q> entity query type of the mapping
      * @param <R> row type related to the {@link Q}
      * @param <E> see class javadoc
      */
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R, E extends Enum<E>>
-    ItemSqlMapper<S, Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R, E extends Enum<E>>
+    ItemSqlMapper<Q, R> mapper(
             @NotNull Function<Q, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
-        return new ItemSqlMapper<>(
+        return new DefaultItemSqlMapper<>(
                 ctx -> new EnumOrdinalItemFilterProcessor<>(
                         ctx, rootToQueryItem, conversionFunction),
                 rootToQueryItem);

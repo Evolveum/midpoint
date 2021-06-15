@@ -18,20 +18,23 @@ import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Declarative information how an item (from schema/prism world) is to be processed
  * when interpreting query or applying delta (delta application is addition to sqlbase superclass).
+ * Being extension of {@link DefaultItemSqlMapper} this uses processor factory functions
+ * (typically provided as lambdas), no logic is here, everything is delegated to the processors
+ * returned by these processor functions.
  *
- * @param <S> schema type owning the mapped item (not the target type)
- * @param <Q> entity path owning the mapped item (not the target type)
- * @param <R> row type with the mapped item (not the target type)
+ * @param <S> schema type owning the mapped item
+ * @param <Q> entity path owning the mapped item
+ * @param <R> row type with the mapped item
  */
 public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
-        extends ItemSqlMapper<S, Q, R> {
+        extends DefaultItemSqlMapper<S, Q, R> implements UpdatableItemSqlMapper<Q, R> {
 
     @NotNull private final
     Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
@@ -72,6 +75,7 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
      * The type of the returned processor is adapted to the client code needs for convenience.
      * Also the type of the provided context is flexible, but with proper mapping it's all safe.
      */
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> ItemDeltaValueProcessor<T> createItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {

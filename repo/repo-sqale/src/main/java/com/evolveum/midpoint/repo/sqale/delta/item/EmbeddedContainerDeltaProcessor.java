@@ -53,9 +53,9 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
             return;
         }
 
-        Map<QName, ItemSqlMapper<T, OQ, OR>> mappers = mapping.getItemMappings();
+        Map<QName, ItemSqlMapper<OQ, OR>> mappers = mapping.getItemMappings();
         for (Item<?, ?> item : pcv.getItems()) {
-            ItemSqlMapper<T, OQ, OR> mapper = mappers.remove(item.getElementName());
+            ItemSqlMapper<OQ, OR> mapper = mappers.remove(item.getElementName());
             if (mapper == null) {
                 continue; // ok, not mapped to database
             }
@@ -71,17 +71,17 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
 
     @Override
     public void delete() {
-        for (ItemSqlMapper<T, OQ, OR> mapper : mapping.getItemMappings().values()) {
+        for (ItemSqlMapper<OQ, OR> mapper : mapping.getItemMappings().values()) {
             deleteUsing(mapper);
         }
     }
 
-    private void deleteUsing(ItemSqlMapper<T, OQ, OR> mapper) {
+    private void deleteUsing(ItemSqlMapper<OQ, OR> mapper) {
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
         processor.delete();
     }
 
-    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper<?, ?, ?> mapper) {
+    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper<?, ?> mapper) {
         if (!(mapper instanceof SqaleItemSqlMapper)) {
             throw new IllegalArgumentException("No delta processor available for " + mapper
                     + " in mapping " + mapping + "! (Only query mapping is available.)");

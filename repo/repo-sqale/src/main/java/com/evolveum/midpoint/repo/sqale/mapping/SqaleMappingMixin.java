@@ -42,7 +42,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull ItemRelationResolver<Q, R> itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
-            @NotNull QName itemName, @NotNull ItemSqlMapper<S, Q, R> itemMapper);
+            @NotNull QName itemName, @NotNull ItemSqlMapper<Q, R> itemMapper);
 
     /**
      * Defines nested mapping for container embedded in the same table.

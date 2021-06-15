@@ -955,7 +955,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
                         System.currentTimeMillis() - batchStart, totalCount);
 
-                jdbcSession.commit();
                 return count;
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",

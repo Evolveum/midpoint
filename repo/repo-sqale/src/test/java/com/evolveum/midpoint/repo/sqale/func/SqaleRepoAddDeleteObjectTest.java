@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationCampaign;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
@@ -35,7 +31,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
