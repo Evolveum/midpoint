@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -39,15 +40,15 @@ public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
     /**
      * One mapper is enough as it is stateless and everything happens in {@link #process}.
      */
-    private static final ItemSqlMapper<?, ?, ?> MAPPER =
-            new ItemSqlMapper<>(ctx -> new AuditCustomColumnItemFilterProcessor(ctx));
+    private static final ItemSqlMapper<?, ?> MAPPER =
+            new DefaultItemSqlMapper<>(ctx -> new AuditCustomColumnItemFilterProcessor(ctx));
 
     /**
      * Returns the mapper creating the string filter processor from context.
      */
     @SuppressWarnings("unchecked")
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<S, Q, R> mapper() {
-        return (ItemSqlMapper<S, Q, R>) MAPPER;
+    public static <Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<Q, R> mapper() {
+        return (ItemSqlMapper<Q, R>) MAPPER;
     }
 
     private AuditCustomColumnItemFilterProcessor(SqlQueryContext<?, ?, ?> context) {

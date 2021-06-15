@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -35,10 +36,10 @@ public class CanonicalItemPathItemFilterProcessor
      * @param <Q> entity query type of the mapping
      * @param <R> row type related to the {@link Q}
      */
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
-    ItemSqlMapper<S, Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R>
+    ItemSqlMapper<Q, R> mapper(
             Function<Q, StringPath> rootToQueryItem) {
-        return new ItemSqlMapper<>(
+        return new DefaultItemSqlMapper<>(
                 ctx -> new CanonicalItemPathItemFilterProcessor(ctx, rootToQueryItem),
                 rootToQueryItem);
     }

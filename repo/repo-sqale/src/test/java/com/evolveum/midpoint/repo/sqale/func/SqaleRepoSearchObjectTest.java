@@ -138,6 +138,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .policySituation("situationC")
                 .extension(new ExtensionType(prismContext));
         ExtensionType user1Extension = user1.getExtension();
+        addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
         addExtensionValue(user1Extension, "long", 2L);
         addExtensionValue(user1Extension, "decimal",
@@ -759,8 +760,6 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(org21Oid, user3Oid);
     }
-
-    // TODO child/parent tests
     // endregion
 
     // region other filters: inOid, type, any
@@ -892,6 +891,7 @@ AND(
 */
     // endregion
 
+    // region refs and dereferencing
     @Test
     public void test400SearchObjectHavingSpecifiedRef() throws SchemaException {
         when("searching users by parent org ref (one of multi-value)");
