@@ -83,7 +83,7 @@ set PR_LOGPREFIX=%SERVICE_NAME%
 set PR_LOGPATH=%MIDPOINT_HOME%\log
 set PR_STDOUTPUT=auto
 set PR_STDERROR=auto
-set PR_LOGLEVEL=Debug
+set PR_LOGLEVEL=Error
 
 REM Path to java installation
 REM Try to use the server jvm
