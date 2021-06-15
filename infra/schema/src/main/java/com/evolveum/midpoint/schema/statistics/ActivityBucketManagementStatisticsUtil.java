@@ -15,22 +15,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementOperationPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
 
-public class TaskWorkBucketManagementPerformanceInformationUtil {
+public class ActivityBucketManagementStatisticsUtil {
 
-    public static String format(WorkBucketManagementPerformanceInformationType i) {
+    public static String format(ActivityBucketManagementStatisticsType i) {
         return format(i, null, null, null);
     }
 
-    public static String format(WorkBucketManagementPerformanceInformationType i, AbstractStatisticsPrinter.Options options,
-            Integer iterations, Integer seconds) {
+    public static String format(ActivityBucketManagementStatisticsType i, AbstractStatisticsPrinter.Options options,
+                                Integer iterations, Integer seconds) {
         return new TaskWorkBucketManagementPerformanceInformationPrinter(i, options, iterations, seconds)
                 .print();
     }
 
-    public static void addTo(@NotNull WorkBucketManagementPerformanceInformationType aggregate,
-            @Nullable WorkBucketManagementPerformanceInformationType part) {
+    public static void addTo(@NotNull ActivityBucketManagementStatisticsType aggregate,
+            @Nullable ActivityBucketManagementStatisticsType part) {
         if (part == null) {
             return;
         }
@@ -48,7 +48,7 @@ public class TaskWorkBucketManagementPerformanceInformationUtil {
 
     @Nullable
     private static WorkBucketManagementOperationPerformanceInformationType findMatchingOperation(
-            @NotNull WorkBucketManagementPerformanceInformationType info,
+            @NotNull ActivityBucketManagementStatisticsType info,
             @NotNull WorkBucketManagementOperationPerformanceInformationType operation) {
         for (WorkBucketManagementOperationPerformanceInformationType existingOperation : info.getOperation()) {
             if (Objects.equals(existingOperation.getName(), operation.getName())) {

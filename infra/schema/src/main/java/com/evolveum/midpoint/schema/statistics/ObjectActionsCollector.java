@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.namespace.QName;
@@ -29,5 +29,5 @@ public interface ObjectActionsCollector {
 
     void markObjectActionExecutedBoundary();
 
-    void resetActionsExecutedInformation(ActionsExecutedInformationType value);
+    void resetActionsExecutedInformation(ActivityActionsExecutedType value);
 }

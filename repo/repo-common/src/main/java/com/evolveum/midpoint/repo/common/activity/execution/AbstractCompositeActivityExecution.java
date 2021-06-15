@@ -113,4 +113,9 @@ public abstract class AbstractCompositeActivityExecution<
     public void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "result", String.valueOf(executionResult), indent+1);
     }
+
+    @Override
+    public boolean supportsStatistics() {
+        return false;
+    }
 }

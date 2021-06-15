@@ -12,7 +12,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecuti
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeStateOverviewUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,8 +40,8 @@ public class ActivityTreeStateOverview {
         try {
             beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, rootTask.getOid(), null,
                     taskBean -> {
-                        ActivityStateOverviewType overview = ActivityStateOverviewUtil.getOrCreateTreeOverview(taskBean);
-                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityStateOverviewType overview = ActivityTreeStateOverviewUtil.getOrCreateTreeOverview(taskBean);
+                        ActivityTreeStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                                 .executionState(ActivityExecutionStateType.EXECUTING)
                                 .resultStatus(OperationResultStatusType.IN_PROGRESS)
@@ -66,7 +66,7 @@ public class ActivityTreeStateOverview {
         try {
             beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, rootTask.getOid(), null,
                     taskBean -> {
-                        ActivityStateOverviewType overview = ActivityStateOverviewUtil.getOrCreateTreeOverview(taskBean);
+                        ActivityStateOverviewType overview = ActivityTreeStateOverviewUtil.getOrCreateTreeOverview(taskBean);
                         ActivitySimplifiedRealizationStateType realizationState;
                         ActivityExecutionStateType executionState;
                         OperationResultStatusType resultStatus;
@@ -79,7 +79,7 @@ public class ActivityTreeStateOverview {
                             executionState = ActivityExecutionStateType.NOT_EXECUTING;
                             resultStatus = OperationResultStatusType.FATAL_ERROR;
                         }
-                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityTreeStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(realizationState)
                                 .executionState(executionState)
                                 .resultStatus(resultStatus)

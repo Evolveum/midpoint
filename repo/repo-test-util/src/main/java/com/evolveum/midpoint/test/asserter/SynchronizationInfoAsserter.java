@@ -14,8 +14,8 @@ import static com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUti
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.SyncSituationUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -24,9 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
  */
 public class SynchronizationInfoAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final SynchronizationInformationType information;
+    private final ActivitySynchronizationStatisticsType information;
 
-    SynchronizationInfoAsserter(SynchronizationInformationType information, RA returnAsserter, String details) {
+    SynchronizationInfoAsserter(ActivitySynchronizationStatisticsType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }

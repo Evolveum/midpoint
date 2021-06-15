@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -328,10 +327,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         return statistics;
     }
 
-    @Override
-    public WorkBucketStatisticsCollector getWorkBucketStatisticsCollector() {
-        return statistics;
-    }
     //endregion
 
     //region Tracing and profiling

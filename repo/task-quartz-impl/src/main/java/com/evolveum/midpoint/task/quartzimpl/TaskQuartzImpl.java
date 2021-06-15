@@ -523,7 +523,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public ActivityStateType getActivityStateOrClone(ItemPath path) {
         synchronized (prismAccess) {
-            return cloneIfRunning(ActivityStateUtil.getActivityWorkState(taskPrism.asObjectable(), path));
+            return cloneIfRunning(ActivityStateUtil.getActivityState(taskPrism.asObjectable(), path));
         }
     }
 
@@ -1412,6 +1412,14 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            Item<?, ?> item = taskPrism.findItem(path);
+            return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
     public ObjectReferenceType getReferenceRealValue(ItemPath path) {
         synchronized (prismAccess) {
             PrismReference reference = taskPrism.findReference(path);
@@ -2209,17 +2217,17 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    public void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value) {
         statistics.resetSynchronizationInformation(value);
     }
 
     @Override
-    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
 
     @Override
-    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
         statistics.resetActionsExecutedInformation(value);
     }
 

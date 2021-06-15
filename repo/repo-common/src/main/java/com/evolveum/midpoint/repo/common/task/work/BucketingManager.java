@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,9 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 /**
  * Responsible for managing task work state:
  *
- * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, ActivityPath, ActivityDistributionDefinition, long, Supplier, boolean, WorkBucketStatisticsCollector, OperationResult)}.
- * 2. Marks buckets as complete: {@link #completeWorkBucket(String, ActivityPath, int, WorkBucketStatisticsCollector, OperationResult)}.
- * 3. Releases work buckets in case they are not going to be processed: {@link #releaseWorkBucket(String, ActivityPath, int, WorkBucketStatisticsCollector, OperationResult)}.
+ * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, ActivityPath, ActivityDistributionDefinition, long, Supplier, boolean, ActivityBucketManagementStatistics, OperationResult)}.
+ * 2. Marks buckets as complete: {@link #completeWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
+ * 3. Releases work buckets in case they are not going to be processed: {@link #releaseWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
  * 4. Computes query narrowing for given work bucket: {@link #narrowQueryForWorkBucket(Class, ObjectQuery, ActivityDistributionDefinition, Function, WorkBucketType)}.
  *
  * (The last method should be probably moved to a separate class.)
@@ -73,10 +73,10 @@ public class BucketingManager {
     private WorkBucketType getWorkBucket(@NotNull String workerTaskOid,
             @NotNull ActivityPath activityPath, @NotNull ActivityDistributionDefinition distributionDefinition,
             long freeBucketWaitTime, Supplier<Boolean> canRun, boolean executeInitialWait,
-            @Nullable WorkBucketStatisticsCollector collector, @NotNull OperationResult result)
+            ActivityBucketManagementStatistics statistics, @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
         GetBucketOperation.Options options = new GetBucketOperation.Options(freeBucketWaitTime, executeInitialWait);
-        return new GetBucketOperation(workerTaskOid, activityPath, distributionDefinition, collector, this, canRun, options)
+        return new GetBucketOperation(workerTaskOid, activityPath, distributionDefinition, statistics, this, canRun, options)
                 .execute(result);
     }
 
@@ -93,8 +93,8 @@ public class BucketingManager {
      * Marks a work bucket as complete. Should be called from the worker task.
      */
     public void completeWorkBucket(String workerTaskOid, ActivityPath activityPath, int sequentialNumber,
-            WorkBucketStatisticsCollector statisticsCollector, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        new CompleteBucketOperation(this, workerTaskOid, activityPath, statisticsCollector, sequentialNumber)
+            ActivityBucketManagementStatistics statistics, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        new CompleteBucketOperation(this, workerTaskOid, activityPath, statistics, sequentialNumber)
                 .execute(result);
     }
 
@@ -102,9 +102,9 @@ public class BucketingManager {
      * Releases work bucket. Should be called from the worker task.
      */
     public void releaseWorkBucket(String workerTaskOid, ActivityPath activityPath, int sequentialNumber,
-            WorkBucketStatisticsCollector statisticsCollector, OperationResult result)
+            ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        new ReleaseBucketOperation(this, workerTaskOid, activityPath, statisticsCollector, sequentialNumber)
+        new ReleaseBucketOperation(this, workerTaskOid, activityPath, statistics, sequentialNumber)
                 .execute(result);
     }
 
@@ -156,17 +156,19 @@ public class BucketingManager {
 
     public WorkBucketType getWorkBucket(@NotNull RunningTask task,
             @NotNull ActivityPath activityPath, @NotNull ActivityDistributionDefinition distributionDefinition,
-            long freeBucketWaitTime, boolean executeInitialWait, @NotNull OperationResult result)
+            long freeBucketWaitTime, boolean executeInitialWait, @Nullable ActivityBucketManagementStatistics statistics,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
         return getWorkBucket(task.getOid(), activityPath, distributionDefinition, freeBucketWaitTime, task::canRun,
-                executeInitialWait, task.getWorkBucketStatisticsCollector(), result);
+                executeInitialWait, statistics, result);
     }
 
     public void completeWorkBucket(@NotNull RunningTask task, @NotNull ActivityPath activityPath,
-            @NotNull WorkBucketType bucket, @NotNull OperationResult result)
+            @NotNull WorkBucketType bucket, @Nullable ActivityBucketManagementStatistics statistics,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         completeWorkBucket(task.getOid(), activityPath, bucket.getSequentialNumber(),
-                task.getWorkBucketStatisticsCollector(), result);
+                statistics, result);
     }
 
     // + narrowQueryForWorkBucket

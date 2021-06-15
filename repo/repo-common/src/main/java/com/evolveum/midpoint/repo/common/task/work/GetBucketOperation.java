@@ -13,14 +13,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -38,7 +38,7 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivityWorkStateRequired;
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivityStateRequired;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
@@ -64,7 +64,7 @@ public class GetBucketOperation extends BucketOperation {
 
     GetBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
             @NotNull ActivityDistributionDefinition distributionDefinition,
-            WorkBucketStatisticsCollector statisticsCollector, BucketingManager bucketingManager,
+            ActivityBucketManagementStatistics statisticsCollector, BucketingManager bucketingManager,
             Supplier<Boolean> canRunSupplier, Options options) {
         super(workerTaskOid, activityPath, statisticsCollector, bucketingManager);
         this.distributionDefinition = distributionDefinition;
@@ -125,7 +125,7 @@ public class GetBucketOperation extends BucketOperation {
 
     private void setOrUpdateEstimatedNumberOfBuckets(Task task, ItemPath statePath, BucketContentFactory contentFactory,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        @NotNull ActivityStateType workState = getActivityWorkStateRequired(task.getWorkState(), statePath);
+        @NotNull ActivityStateType workState = getActivityStateRequired(task.getWorkState(), statePath);
 
         Integer number = contentFactory.estimateNumberOfBuckets();
         if (number != null && !number.equals(getNumberOfBuckets(workState))) {
@@ -149,7 +149,7 @@ public class GetBucketOperation extends BucketOperation {
 
         executeInitialDelayForMultiNode();
 
-        WorkBucketsManagementType bucketingConfig = getCoordinatorBucketingConfig();
+        WorkBucketsManagementType bucketingConfig = distributionDefinition.getBuckets();
         BucketAllocator allocator = BucketAllocator.create(bucketingConfig, bucketingManager.getStrategyFactory());
 
         setOrUpdateEstimatedNumberOfBuckets(coordinatorTask, coordinatorStatePath, allocator.getContentFactory(), result);
@@ -173,7 +173,7 @@ public class GetBucketOperation extends BucketOperation {
             } if (response instanceof BucketAllocator.Response.FoundExisting) {
                 return recordExistingBucketInWorkerTask((BucketAllocator.Response.FoundExisting) response, result);
             } else if (response instanceof BucketAllocator.Response.NothingFound) {
-                if (!ActivityStateUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
+                if (!BucketingUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
                     processNothingFoundForNonScavenger();
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
@@ -219,8 +219,7 @@ public class GetBucketOperation extends BucketOperation {
     }
 
     private long getInitialDelay() {
-        WorkBucketsManagementType bucketingConfig = getCoordinatorBucketingConfig();
-        WorkAllocationConfigurationType ac = bucketingConfig.getAllocation();
+        WorkAllocationConfigurationType ac = distributionDefinition.getBuckets().getAllocation();
         return ac != null && ac.getWorkAllocationInitialDelay() != null ?
                 ac.getWorkAllocationInitialDelay() : 0; // TODO workStateManager.getConfiguration().getWorkAllocationInitialDelay();
     }

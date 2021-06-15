@@ -25,7 +25,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 public class OutcomeKeyedCounterTypeUtil {
 
     /** Adds two lists of counters: finds matching pairs and adds them. */
-    static void addCounters(List<OutcomeKeyedCounterType> sumCounters, List<OutcomeKeyedCounterType> deltaCounters) {
+    public static void addCounters(List<OutcomeKeyedCounterType> sumCounters, List<OutcomeKeyedCounterType> deltaCounters) {
         for (OutcomeKeyedCounterType deltaCounter : deltaCounters) {
             OutcomeKeyedCounterType matchingCounter =
                     findOrCreateCounter(sumCounters, deltaCounter.getOutcome(), null);
@@ -55,7 +55,7 @@ public class OutcomeKeyedCounterTypeUtil {
     }
 
     /** Increments counter corresponding to given outcome. */
-    static int incrementCounter(List<OutcomeKeyedCounterType> counters, QualifiedItemProcessingOutcomeType outcome,
+    public static int incrementCounter(List<OutcomeKeyedCounterType> counters, QualifiedItemProcessingOutcomeType outcome,
             PrismContext prismContext) {
         OutcomeKeyedCounterType counter = findOrCreateCounter(counters, outcome, prismContext);
         counter.setCount(or0(counter.getCount()) + 1);
@@ -115,5 +115,18 @@ public class OutcomeKeyedCounterTypeUtil {
                         .compare(getOutcome(o1), getOutcome(o2), Ordering.natural().nullsLast())
                         .compare(getOutcomeQualifierUri(o1), getOutcomeQualifierUri(o2), Ordering.natural().nullsLast())
                         .result();
+    }
+
+    public static Predicate<OutcomeKeyedCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
+        switch (outcome) {
+            case SUCCESS:
+                return OutcomeKeyedCounterTypeUtil::isSuccess;
+            case FAILURE:
+                return OutcomeKeyedCounterTypeUtil::isFailure;
+            case SKIP:
+                return OutcomeKeyedCounterTypeUtil::isSkip;
+            default:
+                throw new AssertionError(outcome);
+        }
     }
 }

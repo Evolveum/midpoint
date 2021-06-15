@@ -10,13 +10,14 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityIterationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+// TODO consider renaming?
 public interface IterativeOperationCollector {
 
     /**
@@ -50,7 +51,7 @@ public interface IterativeOperationCollector {
     /**
      * Resets iterative task information collection, starting from a given value.
      */
-    void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions);
+    void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions);
 
     /**
      * Returns last N failures. Deprecated.

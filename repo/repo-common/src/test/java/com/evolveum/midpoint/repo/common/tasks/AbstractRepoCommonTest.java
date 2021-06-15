@@ -13,6 +13,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.asserter.ActivityPerformanceInformationAsserter;
+import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,4 +35,17 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
         repoAdd(USER_ADMINISTRATOR, initResult);
     }
 
+    protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
+            throws SchemaException, ObjectNotFoundException {
+        return assertProgress(
+                activityManager.getProgressInformation(rootOid, getTestOperationResult()),
+                message);
+    }
+
+    protected ActivityPerformanceInformationAsserter<Void> assertPerformance(String rootOid, String message)
+            throws SchemaException, ObjectNotFoundException {
+        return assertPerformance(
+                activityManager.getPerformanceInformation(rootOid, getTestOperationResult()),
+                message);
+    }
 }

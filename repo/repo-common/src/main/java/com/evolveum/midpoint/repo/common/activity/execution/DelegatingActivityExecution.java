@@ -189,6 +189,11 @@ public class DelegatingActivityExecution<
         DebugUtil.debugDumpWithLabel(sb, "Child task", childTask, indent + 1);
     }
 
+    @Override
+    public boolean supportsStatistics() {
+        return false;
+    }
+
     private enum DelegationState {
         NOT_DELEGATED_YET,
         DELEGATED_IN_PROGRESS,

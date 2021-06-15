@@ -13,9 +13,8 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,9 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Prints iterative task performance information.
  */
-public class IterationInformationPrinter extends AbstractStatisticsPrinter<ActivityIterationInformationType> {
+public class IterationInformationPrinter extends AbstractStatisticsPrinter<ActivityItemProcessingStatisticsType> {
 
-    public IterationInformationPrinter(@NotNull ActivityIterationInformationType information, Options options) {
+    public IterationInformationPrinter(@NotNull ActivityItemProcessingStatisticsType information, Options options) {
         super(information, options, null, null);
     }
 
@@ -40,10 +39,10 @@ public class IterationInformationPrinter extends AbstractStatisticsPrinter<Activ
 
     private void createData() {
         initData();
-        TaskOperationStatsUtil.traverseIterationInformation(information, this::createData);
+        ActivityItemProcessingStatisticsUtil.traverseIterationInformation(information, this::createData);
     }
 
-    private void createData(ActivityPath activityPath, ActivityIterationInformationType component) {
+    private void createData(ActivityPath activityPath, ActivityItemProcessingStatisticsType component) {
         List<ProcessedItemSetType> processed = new ArrayList<>(component.getProcessed());
         processed.sort(OutcomeKeyedCounterTypeUtil.createOutcomeKeyedCounterComparator());
 

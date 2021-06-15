@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
-import com.evolveum.midpoint.schema.util.task.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionUtil;
+import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;

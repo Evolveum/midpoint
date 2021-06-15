@@ -7,71 +7,82 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.IterationInformation;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityIterationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 
 /**
  *  Asserter that checks iterative task information.
  */
 @SuppressWarnings("WeakerAccess")
-public class IterationInformationAsserter<RA> extends AbstractAsserter<RA> {
+public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final ActivityIterationInformationType information;
+    private final ActivityItemProcessingStatisticsType information;
 
-    IterationInformationAsserter(ActivityIterationInformationType information, RA returnAsserter, String details) {
+    ActivityItemProcessingStatisticsAsserter(ActivityItemProcessingStatisticsType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }
 
-    public IterationInformationAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertExecutions(int expected) {
+        assertThat(information.getExecution().size()).as("# of executions").isEqualTo(expected);
+        return this;
+    }
+
+    public ActivityItemProcessingStatisticsAsserter<RA> assertTotalCounts(int nonFailure, int failure) {
         assertNonFailureCount(nonFailure);
         assertFailureCount(failure);
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertTotalCounts(int success, int failure, int skip) {
         assertSuccessCount(success);
         assertFailureCount(failure);
         assertSkipCount(skip);
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertNonFailureCount(int success) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertNonFailureCount(int success) {
         assertEquals("Wrong value of total 'non-failure' counter", success, getNonFailureCount());
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertSuccessCount(int success) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertSuccessCount(int success) {
         assertEquals("Wrong value of total success counter", success, getSuccessCount());
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertSkipCount(int skip) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertSkipCount(int skip) {
         assertEquals("Wrong value of total skip counter", skip, getSkipCount());
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertSuccessCount(int min, int max) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertSuccessCount(int min, int max) {
         assertBetween(getSuccessCount(), min, max, "Total success counter");
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertFailureCount(int failure) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertFailureCount(int failure) {
         assertEquals("Wrong value of total failure counter", failure, getFailureCount());
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertFailureCount(int min, int max) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertFailureCount(int min, int max) {
         assertBetween(getFailureCount(), min, max, "Total failure counter");
         return this;
     }
 
-    public IterationInformationAsserter<RA> assertLastFailureObjectName(String expected) {
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastSuccessObjectName(String expected) {
+        assertEquals("Wrong 'last success' object name", expected, getLastSuccessObjectName());
+        return this;
+    }
+
+    public ActivityItemProcessingStatisticsAsserter<RA> assertLastFailureObjectName(String expected) {
         assertEquals("Wrong 'last failure' object name", expected, getLastFailedObjectName());
         return this;
     }
@@ -89,32 +100,32 @@ public class IterationInformationAsserter<RA> extends AbstractAsserter<RA> {
         return getDetails();
     }
 
-    public IterationInformationAsserter<RA> display() {
+    public ActivityItemProcessingStatisticsAsserter<RA> display() {
         IntegrationTestTools.display(desc(), IterationInformation.format(information));
         return this;
     }
 
-    // TODO deep or shallow?
     private int getSuccessCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithSuccessShallow(information);
+        return ActivityItemProcessingStatisticsUtil.getItemsProcessedWithSuccessShallow(information);
     }
 
-    // TODO deep or shallow?
     private int getFailureCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithFailureShallow(information);
+        return ActivityItemProcessingStatisticsUtil.getItemsProcessedWithFailureShallow(information);
     }
 
-    // TODO deep or shallow?
     private int getSkipCount() {
-        return TaskOperationStatsUtil.getItemsProcessedWithSkipShallow(information);
+        return ActivityItemProcessingStatisticsUtil.getItemsProcessedWithSkipShallow(information);
     }
 
     private int getNonFailureCount() {
         return getSuccessCount() + getSkipCount();
     }
 
-    // TODO deep or shallow?
+    private String getLastSuccessObjectName() {
+        return ActivityItemProcessingStatisticsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isSuccess);
+    }
+
     private String getLastFailedObjectName() {
-        return TaskOperationStatsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
+        return ActivityItemProcessingStatisticsUtil.getLastProcessedObjectName(information, OutcomeKeyedCounterTypeUtil::isFailure);
     }
 }

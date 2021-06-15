@@ -28,7 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
+import static com.evolveum.midpoint.schema.util.task.ActivityTreeStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
 
 /**
  * Task instance - a logical unit of work.
@@ -451,6 +451,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType);
 
     <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType);
+
+    <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType);
 
     ObjectReferenceType getReferenceRealValue(ItemPath path);
 

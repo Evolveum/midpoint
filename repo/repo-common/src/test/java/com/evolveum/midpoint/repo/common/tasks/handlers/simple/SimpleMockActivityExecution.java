@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
+import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
@@ -40,12 +47,32 @@ class SimpleMockActivityExecution
     protected @NotNull ActivityExecutionResult executeLocal(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         String message = activity.getWorkDefinition().getMessage();
+
+        ActivityItemProcessingStatistics.Operation operation = activityState.getLiveItemProcessingStatistics()
+                .recordOperationStart(new IterativeOperationStartInfo(
+                        new IterationItemInformation(message, null, null, null)));
+
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);
 
         CommonMockActivityHelper helper = getActivityHandler().getMockHelper();
         helper.increaseExecutionCount(this, result);
-        helper.failIfNeeded(this, activity.getWorkDefinition().getInitialFailures());
+
+        try {
+            helper.failIfNeeded(this, activity.getWorkDefinition().getInitialFailures());
+            QualifiedItemProcessingOutcomeType qualifiedOutcome =
+                    new QualifiedItemProcessingOutcomeType(getPrismContext())
+                            .outcome(ItemProcessingOutcomeType.SUCCESS);
+            operation.done(qualifiedOutcome, null);
+            incrementProgress(qualifiedOutcome);
+        } catch (Exception e) {
+            QualifiedItemProcessingOutcomeType qualifiedOutcome =
+                    new QualifiedItemProcessingOutcomeType(getPrismContext())
+                            .outcome(ItemProcessingOutcomeType.FAILURE);
+            operation.done(qualifiedOutcome, e);
+            incrementProgress(qualifiedOutcome);
+            throw e;
+        }
 
         return standardExitResult();
     }
@@ -58,5 +85,10 @@ class SimpleMockActivityExecution
     @Override
     public void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "current recorder state", getRecorder(), indent+1);
+    }
+
+    @Override
+    public boolean supportsStatistics() {
+        return true;
     }
 }

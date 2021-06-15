@@ -52,7 +52,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.test.asserter.*;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -123,9 +123,6 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ResourceAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -3068,7 +3065,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws CommonException {
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for it to close", task);
+            if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
         }, timeoutInterval, sleepInterval);
     }
@@ -3077,7 +3074,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws CommonException {
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for it to close", task);
+            if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
         }, timeoutInterval, sleepInterval);
     }
@@ -3088,7 +3085,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitFor("Waiting for task to close", () -> {
             try {
                 Task task = taskManager.getTaskWithResult(taskOid, result);
-                IntegrationTestTools.display("Task while waiting for it to close", task);
+                if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
                 return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
             } catch (ObjectNotFoundException e) {
                 return true;
@@ -3101,7 +3098,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             CommonException {
         waitFor("Waiting for task to become ready", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for it to become ready", task);
+            if (verbose) IntegrationTestTools.display("Task while waiting for it to become ready", task);
             return task.isReady();
         }, timeoutInterval, sleepInterval);
     }
@@ -3263,7 +3260,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
-        ActivityStateType workState = ActivityStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
         long completed = getBuckets(workState).stream()
                 .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
                 .count();
@@ -3304,7 +3301,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
-        ActivityStateType workState = ActivityStateUtil.getActivityWorkStateRequired(task.getWorkState(), activityPath);
+        ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
         assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));
     }
 
@@ -3737,5 +3734,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return "null";
         }
         return longTime.toString();
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(ActivityProgressInformation info, String message) {
+        ActivityProgressInformationAsserter<Void> asserter = new ActivityProgressInformationAsserter<>(info, null, message);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
+    protected ActivityPerformanceInformationAsserter<Void> assertPerformance(TreeNode<ActivityPerformanceInformation> node, String message) {
+        ActivityPerformanceInformationAsserter<Void> asserter = new ActivityPerformanceInformationAsserter<>(node, null, message);
+        initializeAsserter(asserter);
+        return asserter;
     }
 }

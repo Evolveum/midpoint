@@ -780,10 +780,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskPartProgressType">
+    <xsd:complexType name="ActivityProgressType">
         <xsd:annotation>
             <xsd:documentation>
-                Progress of a given task part.
+                Progress of an activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -792,28 +792,27 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="closed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="committed" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Counters representing items that were processed and are stored in closed buckets.
-                        These items will not be re-processed if the task would start over.
-                        TODO better name
+                        Counters representing items that were processed and will not be processed again even if the activity
+                        is re-run, e.g. because they are stored in completed buckets. (Or because the live sync token was
+                        updated.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="open" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="uncommitted" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Counters representing items that were processed but their bucket is not closed yet.
-                        In the case of task restart, these will be re-processed.
-                        TODO better name
+                        Counters representing items that were processed but they may be processed again if the activity is
+                        re-run, e.g. their bucket is not completed yet. (Or because the live sync token was not yet updated.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="taskPartProgress" type="tns:TaskPartProgressType" />
+    <xsd:element name="activityProgress" type="tns:ActivityProgressType" />
 
     <!-- If needed, please create subtypes of this for particular uses. -->
     <xsd:complexType name="OutcomeKeyedCounterType">
@@ -863,10 +862,10 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
-            <xsd:element name="iterationInformation" type="tns:ActivityIterationInformationType" minOccurs="0"/>
-            <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/>
-            <xsd:element name="synchronizationInformation" type="tns:SynchronizationInformationType" minOccurs="0"/>
-            <xsd:element name="actionsExecutedInformation" type="tns:ActionsExecutedInformationType" minOccurs="0"/>
+            <xsd:element name="iterationInformation" type="tns:ActivityItemProcessingStatisticsType" minOccurs="0"/> <!-- TODO remove -->
+            <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/> <!-- TODO remove -->
+            <xsd:element name="synchronizationInformation" type="tns:ActivitySynchronizationStatisticsType" minOccurs="0"/> <!-- TODO remove -->
+            <xsd:element name="actionsExecutedInformation" type="tns:ActivityActionsExecutedType" minOccurs="0"/> <!-- TODO remove -->
             <xsd:element name="repositoryPerformanceInformation" type="tns:RepositoryPerformanceInformationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -891,7 +890,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="workBucketManagementPerformanceInformation" type="tns:WorkBucketManagementPerformanceInformationType" minOccurs="0">
+            <xsd:element name="workBucketManagementPerformanceInformation" type="tns:ActivityBucketManagementStatisticsType" minOccurs="0"> <!-- TODO remove -->
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
@@ -926,6 +925,40 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="operationStats" type="tns:OperationStatsType" />
+
+    <xsd:complexType name="ActivityStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical information for individual activities.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the activity to which this information is related.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemProcessing" type="tns:ActivityItemProcessingStatisticsType" minOccurs="0"/>
+            <xsd:element name="synchronization" type="tns:ActivitySynchronizationStatisticsType" minOccurs="0"/>
+            <xsd:element name="actionsExecuted" type="tns:ActivityActionsExecutedType" minOccurs="0"/>
+            <xsd:element name="bucketManagement" type="tns:ActivityBucketManagementStatisticsType" minOccurs="0"/>
+            <xsd:element name="activity" type="tns:ActivityStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistics for child activities.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="activityStatistics" type="tns:ActivityStatisticsType" />
 
     <xsd:complexType name="RepositoryPerformanceInformationType">
         <xsd:annotation>
@@ -1008,7 +1041,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="WorkBucketManagementPerformanceInformationType">
+    <xsd:complexType name="ActivityBucketManagementStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about work bucket management operations performance.
@@ -2524,11 +2557,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="progress" type="tns:TaskPartProgressType" minOccurs="0">
+            <xsd:element name="progress" type="tns:ActivityProgressType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Progress of this activity. Relevant for worker and standalone tasks.
                         (Can be copied to coordinator e.g. if workers are deleted.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="statistics" type="tns:ActivityStatisticsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical information related to activity execution.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4483,7 +4523,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="execution" type="tns:ActivityExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Information about individual task part executions. Needed e.g. to compute real throughput.
@@ -4501,7 +4541,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityIterationInformationType">
+    <xsd:complexType name="ActivityItemProcessingStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about iteration process in given activity.
@@ -4513,13 +4553,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Activity identifier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="processed" type="tns:ProcessedItemSetType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4534,17 +4567,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="execution" type="tns:TaskPartExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="execution" type="tns:ActivityExecutionRecordType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Information about individual activity executions. Needed e.g. to compute real throughput.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="activity" type="tns:ActivityIterationInformationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Iteration information for sub-activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4552,10 +4578,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskPartExecutionRecordType">
+    <xsd:complexType name="ActivityExecutionRecordType">
         <xsd:annotation>
             <xsd:documentation>
-                Information about individual task part execution. Needed e.g. to compute real throughput.
+                Information about individual activity execution. Needed e.g. to compute real throughput.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -4689,7 +4715,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="SynchronizationInformationType">
+    <xsd:complexType name="ActivitySynchronizationStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about synchronization situations of objects processed by synchronization-related tasks:
@@ -4747,7 +4773,7 @@
     </xsd:complexType>
     <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>
 
-    <xsd:complexType name="ActionsExecutedInformationType">
+    <xsd:complexType name="ActivityActionsExecutedType">
         <xsd:annotation>
             <xsd:documentation>
                 Shows what actions were executed. Currently there are only basic actions (ADD, MODIFY, DELETE) carried out on

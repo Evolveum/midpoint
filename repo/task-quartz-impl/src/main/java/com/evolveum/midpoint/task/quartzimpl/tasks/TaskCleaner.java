@@ -84,8 +84,7 @@ public class TaskCleaner {
             }
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
-                    new IterationItemInformation(rootTaskPrism),
-                    ActivityPath.fromId(SchemaConstants.ID_CLOSED_TASKS_CLEANUP));
+                    new IterationItemInformation(rootTaskPrism));
             iterativeOperationStartInfo.setStructuredProgressCollector(executionTask);
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {

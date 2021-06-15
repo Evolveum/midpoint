@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -18,7 +19,6 @@ import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -258,11 +258,11 @@ class ItemProcessingGatekeeper<I> {
 
         long now = operation.getEndTimeMillis();
 
-        OperationStatsType operationStats = coordinatorTask.getStoredOperationStatsOrClone();
-        StructuredTaskProgressType structuredProgress = coordinatorTask.getStructuredProgressOrClone();
         ActivityPerformanceInformation activityStatistics =
-                ActivityPerformanceInformation.forGivenActivity(
-                        activityExecution.getActivityPath(), operationStats, structuredProgress);
+                ActivityPerformanceInformation.forRegularActivity(
+                        activityExecution.getActivityPath(),
+                        activityExecution.getActivityState().getLiveItemProcessingStatistics().getValueCopy(),
+                        activityExecution.getActivityState().getLiveProgress().getValueCopy());
 
         String mainMessage = String.format(Locale.US, "%s of %s %s done with status %s.",
                 getActivityShortNameCapitalized(), iterationItemInformation, getContextDesc(), result.getStatus());
@@ -335,9 +335,8 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private Operation recordIterativeOperationStart() {
-        return workerTask.recordIterativeOperationStart(
-                new IterativeOperationStartInfo(
-                        iterationItemInformation, activityExecution.getActivityPath(), activityExecution.getPartStartTimestamp()));
+        return activityExecution.getActivityState().getLiveItemProcessingStatistics()
+                .recordOperationStart(new IterativeOperationStartInfo(iterationItemInformation));
     }
 
     private void recordIterativeOperationEnd(Operation operation) {
@@ -462,7 +461,8 @@ class ItemProcessingGatekeeper<I> {
      */
     private void updateStatisticsInTasks(OperationResult result) {
         // The structured progress is maintained only in the coordinator task
-        coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
+        activityExecution.incrementProgress(processingResult.outcome);
+        //coordinatorTask.incrementStructuredProgress(activityExecution.activityIdentifier, processingResult.outcome);
 
         if (activityExecution.isMultithreaded()) {
             assert workerTask.isTransient();

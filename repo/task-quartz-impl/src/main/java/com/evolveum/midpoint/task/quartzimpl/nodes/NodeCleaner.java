@@ -60,8 +60,7 @@ public class NodeCleaner {
                     XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
                 // This includes last check in time == null
                 LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
-                IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
-                        new IterationItemInformation(node), ActivityPath.fromId(SchemaConstants.ID_DEAD_NODES_CLEANUP));
+                IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(new IterationItemInformation(node));
                 iterativeOperationStartInfo.setStructuredProgressCollector(task);
                 Operation op = task.recordIterativeOperationStart(iterativeOperationStartInfo);
                 try {

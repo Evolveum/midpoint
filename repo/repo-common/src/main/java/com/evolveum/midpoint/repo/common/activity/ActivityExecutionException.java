@@ -28,14 +28,14 @@ public class ActivityExecutionException extends Exception {
     @NotNull private final TaskRunResult.TaskRunResultStatus runResultStatus;
 
     public ActivityExecutionException(String message, @NotNull OperationResultStatus opResultStatus,
-                                      @NotNull TaskRunResult.TaskRunResultStatus runResultStatus, Throwable cause) {
+            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus, Throwable cause) {
         super(message, cause);
         this.opResultStatus = opResultStatus;
         this.runResultStatus = runResultStatus;
     }
 
     public ActivityExecutionException(String message, @NotNull OperationResultStatus opResultStatus,
-                                      @NotNull TaskRunResult.TaskRunResultStatus runResultStatus) {
+            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus) {
         this(message, opResultStatus, runResultStatus, null);
     }
 

@@ -11,11 +11,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -38,7 +38,7 @@ public class CompleteBucketOperation extends BucketOperation {
     private final int sequentialNumber;
 
     CompleteBucketOperation(BucketingManager bucketingManager, @NotNull String workerTaskOid,
-            @NotNull ActivityPath activityPath, WorkBucketStatisticsCollector collector, int sequentialNumber) {
+            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, int sequentialNumber) {
         super(workerTaskOid, activityPath, collector, bucketingManager);
         this.sequentialNumber = sequentialNumber;
     }

@@ -12,6 +12,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -31,6 +33,14 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return assertRealizationState(ActivityRealizationStateType.COMPLETE);
     }
 
+    public ActivityStateAsserter<RA> assertNotStarted() {
+        return assertRealizationState(null);
+    }
+
+    public ActivityStateAsserter<RA> assertInProgressLocal() {
+        return assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL);
+    }
+
     public ActivityStateAsserter<RA> assertRealizationState(ActivityRealizationStateType expected) {
         assertThat(activityState.getRealizationState()).as("realization state").isEqualTo(expected);
         return this;
@@ -40,16 +50,26 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return assertResultStatus(OperationResultStatusType.SUCCESS);
     }
 
+    public ActivityStateAsserter<RA> assertFatalError() {
+        return assertResultStatus(OperationResultStatusType.FATAL_ERROR);
+    }
+
+    public ActivityStateAsserter<RA> assertStatusInProgress() {
+        return assertResultStatus(OperationResultStatusType.IN_PROGRESS);
+    }
+
     public ActivityStateAsserter<RA> assertResultStatus(OperationResultStatusType expected) {
         assertThat(activityState.getResultStatus()).as("result status").isEqualTo(expected);
         return this;
     }
 
-//    public ActivityStateAsserter<RA> assertHasTaskRef() {
-//        assertThat(activityState.getTaskRef()).as("taskRef").isNotNull();
-//        assertThat(activityState.getTaskRef().getOid()).as("taskRef.oid").isNotNull();
-//        return this;
-//    }
+    public ActivityStateAsserter<RA> assertDelegationWorkStateWithTaskRef() {
+        AbstractActivityWorkStateType workState = activityState.getWorkState();
+        assertThat(workState).as("work state").isInstanceOf(DelegationWorkStateType.class);
+        DelegationWorkStateType delegation = (DelegationWorkStateType) workState;
+        assertThat(delegation.getTaskRef()).as("taskRef").isNotNull();
+        return this;
+    }
 
 //    public ActivityStateAsserter<RA> assertNoTaskRef() {
 //        assertThat(activityState.getTaskRef()).as("taskRef").isNull();
@@ -63,12 +83,66 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
-    public ActivityStateAsserter<ActivityStateAsserter<RA>> activity(String identifier) {
-        ActivityStateType childState = ActivityStateUtil.findActivityStateRequired(activityState, identifier);
+    public ActivityProgressAsserter<ActivityStateAsserter<RA>> progress() {
+        ActivityProgressAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActivityProgressAsserter<>(activityState.getProgress(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ActivityStateAsserter<RA> assertNoProgress() {
+        assertThat(activityState.getProgress()).as("progress").isNull();
+        return this;
+    }
+
+    public ActivityItemProcessingStatisticsAsserter<ActivityStateAsserter<RA>> itemProcessingStatistics() {
+        ActivityItemProcessingStatisticsAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActivityItemProcessingStatisticsAsserter<>(
+                        getItemProcessingStatistics(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private @NotNull ActivityItemProcessingStatisticsType getItemProcessingStatistics() {
+        if (activityState.getStatistics() == null || activityState.getStatistics().getItemProcessing() == null) {
+            throw new AssertionError("No item processing statistics");
+        } else {
+            return activityState.getStatistics().getItemProcessing();
+        }
+    }
+
+    public ActivityStateAsserter<RA> assertBucketManagementStatisticsOperations(int expected) {
+        assertThat(getBucketManagementStatistics().getOperation().size())
+                .as("bucket mgmt operations #")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    private ActivityBucketManagementStatisticsType getBucketManagementStatistics() {
+        if (activityState.getStatistics() == null || activityState.getStatistics().getBucketManagement() == null) {
+            throw new AssertionError("No bucket management statistics");
+        } else {
+            return activityState.getStatistics().getBucketManagement();
+        }
+    }
+
+    public ActivityStateAsserter<ActivityStateAsserter<RA>> child(String identifier) {
+        ActivityStateType childState = ActivityStateUtil.findChildActivityStateRequired(activityState, identifier);
         ActivityStateAsserter<ActivityStateAsserter<RA>> asserter =
                 new ActivityStateAsserter<>(childState, this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ActivityStateAsserter<RA> assertChildren(int expected) {
+        assertThat(activityState.getActivity().size())
+                .as("children #")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public ActivityStateAsserter<RA> assertNoChildren() {
+        return assertChildren(0);
     }
 
     @Override

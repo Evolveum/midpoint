@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.LegacyWorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefinitionType;

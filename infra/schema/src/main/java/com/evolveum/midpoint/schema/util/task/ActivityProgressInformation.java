@@ -43,6 +43,9 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
      */
     private final String activityIdentifier;
 
+    /** Activity path. */
+    @NotNull private final ActivityPath activityPath;
+
     /**
      * Is this activity complete?
      */
@@ -65,33 +68,40 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
 
     @NotNull private final List<ActivityProgressInformation> children = new ArrayList<>();
 
-    private ActivityProgressInformation(String activityIdentifier, RealizationState realizationState,
-            BucketsProgressInformation bucketsProgress, ItemsProgressInformation itemsProgress) {
+    private ActivityProgressInformation(String activityIdentifier, @NotNull ActivityPath activityPath,
+            RealizationState realizationState, BucketsProgressInformation bucketsProgress,
+            ItemsProgressInformation itemsProgress) {
         this.activityIdentifier = activityIdentifier;
+        this.activityPath = activityPath;
         this.realizationState = realizationState;
         this.bucketsProgress = bucketsProgress;
         this.itemsProgress = itemsProgress;
     }
 
-    private static @NotNull ActivityProgressInformation unknown(String activityIdentifier) {
-        return new ActivityProgressInformation(activityIdentifier, RealizationState.UNKNOWN, null, null);
+    private static @NotNull ActivityProgressInformation unknown(String activityIdentifier, ActivityPath activityPath) {
+        return new ActivityProgressInformation(activityIdentifier, activityPath, RealizationState.UNKNOWN, null, null);
     }
 
     /**
      * Prepares the information from a root task. The task may or may not have its children resolved.
      */
-    public static ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull TaskResolver resolver) {
+    public static ActivityProgressInformation fromRootTask(@NotNull TaskType task, @NotNull TaskResolver resolver) {
+        return fromTask(task, ActivityPath.empty(), resolver);
+    }
+
+    public static ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull ActivityPath activityPath,
+            @NotNull TaskResolver resolver) {
         TaskActivityStateType globalState = task.getActivityState();
         ActivityStateType rootActivityState = globalState.getActivity();
-        return fromDelegatableActivityState(rootActivityState, task, resolver);
+        return fromDelegatableActivityState(rootActivityState, activityPath, task, resolver);
     }
 
     private static ActivityProgressInformation fromDelegatableActivityState(@NotNull ActivityStateType state,
-            @NotNull TaskType task, @NotNull TaskResolver resolver) {
-        if (state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DELEGATED) {
-            return fromDelegatedActivityState(state.getIdentifier(), getDelegatedTaskRef(state), task, resolver);
+            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
+        if (ActivityStateUtil.isDelegated(state)) {
+            return fromDelegatedActivityState(state.getIdentifier(), activityPath, getDelegatedTaskRef(state), task, resolver);
         } else {
-            return fromNotDelegatedActivityState(state, task, resolver);
+            return fromNotDelegatedActivityState(state, activityPath, task, resolver);
         }
     }
 
@@ -101,12 +111,13 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     }
 
     private static ActivityProgressInformation fromDelegatedActivityState(String activityIdentifier,
-            ObjectReferenceType delegateTaskRef, @NotNull TaskType task, @NotNull TaskResolver resolver) {
+            @NotNull ActivityPath activityPath, ObjectReferenceType delegateTaskRef,
+            @NotNull TaskType task, @NotNull TaskResolver resolver) {
         TaskType delegateTask = getSubtask(delegateTaskRef, task, resolver);
         if (delegateTask != null) {
-            return fromTask(delegateTask, resolver);
+            return fromTask(delegateTask, activityPath, resolver);
         } else {
-            return unknown(activityIdentifier);
+            return unknown(activityIdentifier, activityPath);
         }
     }
 
@@ -128,18 +139,28 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     }
 
     private static ActivityProgressInformation fromNotDelegatedActivityState(@NotNull ActivityStateType state,
-            @NotNull TaskType task, @NotNull TaskResolver resolver) {
+            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
         String identifier = state.getIdentifier();
         RealizationState realizationState = getRealizationState(state);
         BucketsProgressInformation bucketsProgress = BucketsProgressInformation.fromActivityState(state);
-        ItemsProgressInformation itemsProgress = null; // TODO
+        ItemsProgressInformation itemsProgress = getItemsProgress(state, activityPath, task, resolver);
 
         ActivityProgressInformation info
-                = new ActivityProgressInformation(identifier, realizationState, bucketsProgress, itemsProgress);
+                = new ActivityProgressInformation(identifier, activityPath, realizationState, bucketsProgress, itemsProgress);
         for (ActivityStateType childState : state.getActivity()) {
-            info.children.add(fromDelegatableActivityState(childState, task, resolver));
+            info.children.add(
+                    fromDelegatableActivityState(childState, activityPath.append(childState.getIdentifier()), task, resolver));
         }
         return info;
+    }
+
+    private static ItemsProgressInformation getItemsProgress(@NotNull ActivityStateType state,
+            @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
+        if (BucketingUtil.isCoordinator(state)) {
+            return ItemsProgressInformation.fromBucketingCoordinator(state, activityPath, task, resolver);
+        } else {
+            return ItemsProgressInformation.fromActivityState(state);
+        }
     }
 
     private static RealizationState getRealizationState(ActivityStateType state) {
@@ -155,6 +176,10 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
 
     public String getActivityIdentifier() {
         return activityIdentifier;
+    }
+
+    public @NotNull ActivityPath getActivityPath() {
+        return activityPath;
     }
 
     public RealizationState getRealizationState() {
@@ -177,6 +202,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "identifier=" + activityIdentifier +
+                ", path=" + activityPath +
                 ", state=" + realizationState +
                 ", bucketsProgress=" + bucketsProgress +
                 ", totalItemsProgress=" + itemsProgress +
@@ -186,11 +212,11 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
 
     @Override
     public String debugDump(int indent) {
-        String title = getClass().getSimpleName() + ": " + toHumanReadableString(false);
+        String title = String.format("%s for %s (identifier %s): %s", getClass().getSimpleName(), activityPath.toDebugName(),
+                activityIdentifier, toHumanReadableString(false));
         StringBuilder sb = DebugUtil.createTitleStringBuilder(title, indent);
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "Human readable string (long)", toHumanReadableString(true), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Identifier", activityIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Realization state", realizationState, indent + 1);
         if (bucketsProgress != null) {
             sb.append("\n");
@@ -227,13 +253,6 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         }
     }
 
-    /**
-     * Related to {@link BucketingUtil#hasBuckets(TaskType)}. But unfortunately we do not have the full information
-     * here, in particular we don't see the actual buckets. This should be probably fixed in the pre-processing phase
-     * i.e. when {@link ActivityProgressInformation} is created.
-     *
-     * TODO ???
-     */
     private boolean shouldUseBucketForProgressReporting() {
         if (bucketsProgress == null) {
             return false;
@@ -336,8 +355,10 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         }
     }
 
-    public interface TaskResolver {
-        TaskType resolve(String oid) throws SchemaException, ObjectNotFoundException;
+    public ActivityProgressInformation getChild(String identifier) {
+        return children.stream()
+                .filter(c -> java.util.Objects.equals(c.getActivityIdentifier(), identifier))
+                .findFirst().orElse(null);
     }
 
     public enum RealizationState {

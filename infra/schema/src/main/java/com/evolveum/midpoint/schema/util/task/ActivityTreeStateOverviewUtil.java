@@ -18,22 +18,28 @@ import org.jetbrains.annotations.NotNull;
 
 import org.jetbrains.annotations.Nullable;
 
-public class ActivityStateOverviewUtil {
+/**
+ * Utilities related to the helper activity tree state overview structure (maintained in the root task).
+ */
+public class ActivityTreeStateOverviewUtil {
 
     public static final ItemPath ACTIVITY_TREE_STATE_OVERVIEW_PATH =
             ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE_OVERVIEW);
 
+    /**
+     * Finds or creates a state overview entry for given activity path.
+     */
     public static @NotNull ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
             @NotNull ActivityPath path) {
         if (path.isEmpty()) {
             return current;
         }
         return findOrCreateEntry(
-                findOrCreateEntry(current, path.first()),
+                findOrCreateChildEntry(current, path.first()),
                 path.rest());
     }
 
-    public static @NotNull ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
+    private static @NotNull ActivityStateOverviewType findOrCreateChildEntry(@NotNull ActivityStateOverviewType current,
             String identifier) {
         List<ActivityStateOverviewType> matching = current.getActivity().stream()
                 .filter(a -> Objects.equals(a.getIdentifier(), identifier))
@@ -51,15 +57,16 @@ public class ActivityStateOverviewUtil {
         }
     }
 
+    @SuppressWarnings("unused") // Maybe will be used later
     public static boolean containsFailedExecution(@NotNull TaskType task) {
         return task.getActivityState() != null &&
                 containsFailedExecution(task.getActivityState().getTreeOverview());
     }
 
-    public static boolean containsFailedExecution(@Nullable ActivityStateOverviewType stateOverview) {
+    private static boolean containsFailedExecution(@Nullable ActivityStateOverviewType stateOverview) {
         return stateOverview != null &&
                 (isExecutionFailed(stateOverview) ||
-                        stateOverview.getActivity().stream().anyMatch(ActivityStateOverviewUtil::containsFailedExecution));
+                        stateOverview.getActivity().stream().anyMatch(ActivityTreeStateOverviewUtil::containsFailedExecution));
     }
 
     private static boolean isExecutionFailed(@NotNull ActivityStateOverviewType stateOverview) {
@@ -78,9 +85,14 @@ public class ActivityStateOverviewUtil {
         return taskBean.getActivityState() != null ? taskBean.getActivityState().getTreeOverview() : null;
     }
 
+    /**
+     * Removes execution state and result for all finished & failed activities in the tree state overview.
+     *
+     * TODO determine the fate of this method
+     */
     public static void clearFailedState(@NotNull ActivityStateOverviewType state) {
         doClearFailedState(state);
-        state.getActivity().forEach(ActivityStateOverviewUtil::clearFailedState);
+        state.getActivity().forEach(ActivityTreeStateOverviewUtil::clearFailedState);
     }
 
     private static void doClearFailedState(@NotNull ActivityStateOverviewType state) {

@@ -176,7 +176,7 @@ public class DebugUtil {
     public static String debugDump(Object object, int indent) {
         if (object == null) {
             StringBuilder sb = new StringBuilder();
-            indentDebugDump(sb, indent + 1);
+            indentDebugDump(sb, indent);
             sb.append("null");
             return sb.toString();
         }
@@ -188,7 +188,7 @@ public class DebugUtil {
             return debugDump((Collection<?>)object, indent);
         } else {
             StringBuilder sb = new StringBuilder();
-            indentDebugDump(sb, indent + 1);
+            indentDebugDump(sb, indent);
             sb.append(PrettyPrinter.prettyPrint(object));
             return sb.toString();
         }

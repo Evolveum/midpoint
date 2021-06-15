@@ -150,7 +150,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
 
 //        assertEquals((int) syncInfo.getCountUnmatched(), 5);
 //        assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -172,7 +172,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
 
 //        assertEquals((int) syncInfo.getCountUnmatched(), 5);
 //        assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -188,7 +188,7 @@ public class TestThresholdsReconFull extends TestThresholds {
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType synchronizationInformation = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType synchronizationInformation = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(synchronizationInformation);
 
 //        assertEquals((int) synchronizationInformation.getCountUnmatched(), 0);

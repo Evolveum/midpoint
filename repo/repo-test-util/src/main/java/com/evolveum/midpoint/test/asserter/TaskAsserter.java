@@ -14,17 +14,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
 
+import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -172,18 +172,19 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation() {
         OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        SynchronizationInformationType information = operationStats != null ?
-                operationStats.getSynchronizationInformation() : new SynchronizationInformationType();
+        ActivitySynchronizationStatisticsType information = operationStats != null ?
+                operationStats.getSynchronizationInformation() : new ActivitySynchronizationStatisticsType();
         SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(information, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public IterationInformationAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
+    @Deprecated
+    public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
         OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActivityIterationInformationType information = operationStats != null ?
-                operationStats.getIterationInformation() : new ActivityIterationInformationType();
-        IterationInformationAsserter<TaskAsserter<RA>> asserter = new IterationInformationAsserter<>(information, this, getDetails());
+        ActivityItemProcessingStatisticsType information = operationStats != null ? // does not work anymore
+                operationStats.getIterationInformation() : new ActivityItemProcessingStatisticsType();
+        ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter = new ActivityItemProcessingStatisticsAsserter<>(information, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -208,15 +209,23 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     public ActionsExecutedInfoAsserter<TaskAsserter<RA>> actionsExecutedInformation() {
         OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActionsExecutedInformationType information = operationStats != null ?
-                operationStats.getActionsExecutedInformation() : new ActionsExecutedInformationType();
+        ActivityActionsExecutedType information = operationStats != null ?
+                operationStats.getActionsExecutedInformation() : new ActivityActionsExecutedType();
         ActionsExecutedInfoAsserter<TaskAsserter<RA>> asserter = new ActionsExecutedInfoAsserter<>(information, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
     public TaskAsserter<RA> assertClosed() {
-        return assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        assertSchedulingState(TaskSchedulingStateType.CLOSED);
+        return this;
+    }
+
+    public TaskAsserter<RA> assertSuspended() {
+        assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+        assertSchedulingState(TaskSchedulingStateType.SUSPENDED);
+        return this;
     }
 
     public TaskAsserter<RA> assertExecutionStatus(TaskExecutionStateType status) {
@@ -320,10 +329,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtaskForPath(ActivityPath activityPath) {
-        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
-                .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
-                .findAny().orElse(null);
-        assertThat(subtask).withFailMessage(() -> "No subtask for activity path '" + activityPath + "' found").isNotNull();
+        TaskType subtask =
+                MiscUtil.extractSingletonRequired(
+                        ActivityTreeUtil.getSubtasksForPath(getObjectable(), activityPath, empty()),
+                        () -> new AssertionError("More than one subtask for activity path '" + activityPath + "'"),
+                        () -> new AssertionError("No subtask for activity path '" + activityPath + "' found"));
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for path '" +
                 activityPath + "' in " + getDetails());

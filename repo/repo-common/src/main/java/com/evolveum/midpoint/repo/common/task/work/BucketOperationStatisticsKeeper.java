@@ -8,12 +8,12 @@
 package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class BucketOperationStatisticsKeeper {
 
-    private final WorkBucketStatisticsCollector collector;
+    private final ActivityBucketManagementStatistics statistics;
 
     final long start = System.currentTimeMillis();
 
@@ -23,13 +23,13 @@ public class BucketOperationStatisticsKeeper {
     private long bucketWaitTime = 0;
     private int bucketsReclaimed = 0;
 
-    BucketOperationStatisticsKeeper(WorkBucketStatisticsCollector collector) {
-        this.collector = collector;
+    BucketOperationStatisticsKeeper(ActivityBucketManagementStatistics statistics) {
+        this.statistics = statistics;
     }
 
     public void register(String situation) {
-        if (collector != null) {
-            collector.register(situation, System.currentTimeMillis() - start,
+        if (statistics != null) {
+            statistics.register(situation, System.currentTimeMillis() - start,
                     conflictCount, conflictWastedTime, bucketWaitCount, bucketWaitTime, bucketsReclaimed);
         }
     }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -363,12 +363,11 @@ public abstract class AbstractIterativeActivityExecution<
         long endTime = Objects.requireNonNull(executionStatistics.endTimeMillis, "No end timestamp?");
         // Note: part statistics should be consistent with this end time.
 
-        OperationStatsType operationStats = task.getStoredOperationStatsOrClone();
-        StructuredTaskProgressType structuredProgress = task.getStructuredProgressOrClone();
-        ActivityPerformanceInformation partStatistics =
-                ActivityPerformanceInformation.forGivenActivity(getActivityPath(), operationStats, structuredProgress);
-
-        String currentPartUri = TaskProgressUtil.getCurrentPartUri(structuredProgress);
+        ActivityPerformanceInformation perfInfo =
+                ActivityPerformanceInformation.forRegularActivity(
+                        getActivityPath(),
+                        getActivityState().getLiveItemProcessingStatistics().getValueCopy(),
+                        getActivityState().getLiveProgress().getValueCopy());
 
         String shortMessage =
                 String.format("Finished bucket for %s (%s). Resulting status: %s.%s",
@@ -386,17 +385,17 @@ public abstract class AbstractIterativeActivityExecution<
         }
 
         String partStatMsg = String.format(Locale.US, "The whole part: processed %,d objects in %.1f seconds, got %,d errors. Real progress: %,d.",
-                partStatistics.getItemsProcessed(), TaskOperationStatsUtil.toSeconds(partStatistics.getWallClockTime()),
-                partStatistics.getErrors(), partStatistics.getProgress());
-        if (partStatistics.getItemsProcessed() > 0) {
+                perfInfo.getItemsProcessed(), ActivityItemProcessingStatisticsUtil.toSeconds(perfInfo.getWallClockTime()),
+                perfInfo.getErrors(), perfInfo.getProgress());
+        if (perfInfo.getItemsProcessed() > 0) {
             partStatMsg += String.format(Locale.US, " Average processing time for one object: %,.1f milliseconds. "
                             + "Wall clock average: %,.1f milliseconds, throughput: %,.1f items per minute.",
-                    partStatistics.getAverageTime(), partStatistics.getAverageWallClockTime(),
-                    partStatistics.getThroughput());
+                    perfInfo.getAverageTime(), perfInfo.getAverageWallClockTime(),
+                    perfInfo.getThroughput());
         }
 
         String fullStatMessage = String.format(Locale.US,
-                "%s of a bucket done. Current part URI: %s\n\n"
+                "%s of a bucket done. Current activity: '%s'\n\n"
                         + "Items processed: %,d in current bucket and %,d in current part.\n"
                         + "Errors: %,d in current bucket and %,d in current part.\n"
                         + "Real progress is %,d.\n\n"
@@ -408,17 +407,17 @@ public abstract class AbstractIterativeActivityExecution<
                         + "Start time was:\n"
                         + " - for current bucket: %s\n"
                         + " - for current part:   %s\n",
-                getActivityShortNameCapitalized(), currentPartUri,
-                executionStatistics.getItemsProcessed(), partStatistics.getItemsProcessed(),
-                executionStatistics.getErrors(), partStatistics.getErrors(),
-                partStatistics.getProgress(),
-                executionStatistics.getAverageTime(), partStatistics.getAverageTime(),
-                executionStatistics.getAverageWallClockTime(endTime), partStatistics.getAverageWallClockTime(),
-                executionStatistics.getThroughput(endTime), partStatistics.getThroughput(),
-                executionStatistics.getProcessingTime(), partStatistics.getProcessingTime(),
-                executionStatistics.getWallClockTime(endTime), partStatistics.getWallClockTime(),
+                getActivityShortNameCapitalized(), getActivityPath(),
+                executionStatistics.getItemsProcessed(), perfInfo.getItemsProcessed(),
+                executionStatistics.getErrors(), perfInfo.getErrors(),
+                perfInfo.getProgress(),
+                executionStatistics.getAverageTime(), perfInfo.getAverageTime(),
+                executionStatistics.getAverageWallClockTime(endTime), perfInfo.getAverageWallClockTime(),
+                executionStatistics.getThroughput(endTime), perfInfo.getThroughput(),
+                executionStatistics.getProcessingTime(), perfInfo.getProcessingTime(),
+                executionStatistics.getWallClockTime(endTime), perfInfo.getWallClockTime(),
                 XmlTypeConverter.createXMLGregorianCalendar(executionStatistics.getStartTimeMillis()),
-                partStatistics.getEarliestStartTime());
+                perfInfo.getEarliestStartTime());
 
         result.createSubresult(OP_PREFIX + ".statistics")
                 .recordStatus(SUCCESS, bucketStatMsg);
@@ -562,5 +561,10 @@ public abstract class AbstractIterativeActivityExecution<
 //            return Objects.requireNonNull(localCoordinatorTask.getLastRunStartTimestamp(),
 //                    () -> "No last run start timestamp in " + localCoordinatorTask);
 //        }
+    }
+
+    @Override
+    public boolean supportsStatistics() {
+        return true;
     }
 }

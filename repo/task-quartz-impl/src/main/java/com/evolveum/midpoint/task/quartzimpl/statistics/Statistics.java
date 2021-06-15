@@ -16,11 +16,10 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,8 +34,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 
@@ -53,7 +50,7 @@ import static java.util.Collections.emptySet;
  *
  *  (The structured progress is used only for heavyweight running tasks.)
  */
-public class Statistics implements WorkBucketStatisticsCollector {
+public class Statistics {
 
     private static final Trace LOGGER = TraceManager.getTrace(Statistics.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -70,11 +67,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
     private volatile ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
 
     private volatile StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
-
-    /**
-     * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
-     */
-    private WorkBucketManagementPerformanceInformationType workBucketManagementPerformanceInformation;
 
     private static final Object BUCKET_INFORMATION_LOCK = new Object();
 
@@ -147,23 +139,23 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return rv;
     }
 
-    /** We assume that the children have compatible part numbers. */
-    private ActivityIterationInformationType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
-        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
-        for (Statistics child : children) {
-            IterationInformation info = child.getIterativeTaskInformation();
-            if (info != null) {
-                IterationInformation.addTo(sum, info.getValueCopy());
-            }
-        }
-        return sum;
+    private ActivityItemProcessingStatisticsType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
+        return new ActivityItemProcessingStatisticsType();
+//        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
+//        for (Statistics child : children) {
+//            IterationInformation info = child.getIterativeTaskInformation();
+//            if (info != null) {
+//                IterationInformation.addTo(sum, info.getValueCopy());
+//            }
+//        }
+//        return sum;
     }
 
-    private SynchronizationInformationType getAggregateSynchronizationInformation(Collection<Statistics> children) {
+    private ActivitySynchronizationStatisticsType getAggregateSynchronizationInformation(Collection<Statistics> children) {
         if (synchronizationInformation == null) {
             return null;
         }
-        SynchronizationInformationType rv = new SynchronizationInformationType();
+        ActivitySynchronizationStatisticsType rv = new ActivitySynchronizationStatisticsType();
         SynchronizationInformation.addTo(rv, synchronizationInformation.getValueCopy());
         for (Statistics child : children) {
             SynchronizationInformation info = child.getSynchronizationInformation();
@@ -174,11 +166,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return rv;
     }
 
-    private ActionsExecutedInformationType getAggregateActionsExecutedInformation(Collection<Statistics> children) {
+    private ActivityActionsExecutedType getAggregateActionsExecutedInformation(Collection<Statistics> children) {
         if (actionsExecutedInformation == null) {
             return null;
         }
-        ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
+        ActivityActionsExecutedType rv = new ActivityActionsExecutedType();
         ActionsExecutedInformation.addTo(rv, actionsExecutedInformation.getAggregatedValue());
         for (Statistics child : children) {
             ActionsExecutedInformation info = child.getActionsExecutedInformation();
@@ -225,12 +217,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         return rv;
     }
 
-    private WorkBucketManagementPerformanceInformationType getWorkBucketManagementPerformanceInformation() {
-        synchronized (BUCKET_INFORMATION_LOCK) {
-            return workBucketManagementPerformanceInformation != null ? workBucketManagementPerformanceInformation.clone() : null;
-        }
-    }
-
     /**
      * Gets aggregated operation statistics from this object and provided child objects.
      *
@@ -238,17 +224,16 @@ public class Statistics implements WorkBucketStatisticsCollector {
      */
     public OperationStatsType getAggregatedOperationStats(Collection<Statistics> children) {
         EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
-        ActivityIterationInformationType itit = getAggregateIterativeTaskInformation(children);
-        SynchronizationInformationType sit = getAggregateSynchronizationInformation(children);
-        ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation(children);
+        ActivityItemProcessingStatisticsType itit = getAggregateIterativeTaskInformation(children);
+        ActivitySynchronizationStatisticsType sit = getAggregateSynchronizationInformation(children);
+        ActivityActionsExecutedType aeit = getAggregateActionsExecutedInformation(children);
         RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
         CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
         OperationsPerformanceInformationType methods = getAggregateOperationsPerformanceInformation(children);
         // This is not fetched from children (present on coordinator task only).
         // It looks like that children are always LATs, and LATs do not have bucket management information.
-        WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();
         String cachingConfiguration = getAggregateCachingConfiguration(children);
-        if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && buckets == null && cachingConfiguration == null) {
+        if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && cachingConfiguration == null) {
             return null;
         }
         OperationStatsType rv = new OperationStatsType();
@@ -260,7 +245,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         rv.setCachesPerformanceInformation(caches);
         rv.setOperationsPerformanceInformation(methods);
         rv.setCachingConfiguration(cachingConfiguration);
-        rv.setWorkBucketManagementPerformanceInformation(buckets);
         rv.setTimestamp(createXMLGregorianCalendar(new Date()));
         return rv;
     }
@@ -339,11 +323,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
     @NotNull
     public IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-        return iterationInformation.recordOperationStart(operation);
+//        return iterationInformation.recordOperationStart(operation);
+        throw new UnsupportedOperationException();
     }
 
     public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
-        iterationInformation.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
+//        iterationInformation.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
 
     public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
@@ -397,7 +382,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
             Class<T> clazz;
             if (object != null) {
                 name = PolyString.getOrig(object.getName());
-                displayName = TaskOperationStatsUtil.getDisplayName(object);
+                displayName = ObjectTypeUtil.getDetailedDisplayName(object);
                 definition = object.getDefinition();
                 clazz = object.getCompileTimeClass();
                 oid = object.getOid();
@@ -435,22 +420,16 @@ public class Statistics implements WorkBucketStatisticsCollector {
         environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
     }
 
-    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    public void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value) {
         synchronizationInformation = new SynchronizationInformation(value, prismContext);
     }
 
-    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
         iterationInformation = new IterationInformation(value, collectExecutions, prismContext);
     }
 
-    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
         actionsExecutedInformation = new ActionsExecutedInformation(value);
-    }
-
-    private void resetWorkBucketManagementPerformanceInformation(WorkBucketManagementPerformanceInformationType value) {
-        synchronized (BUCKET_INFORMATION_LOCK) {
-            workBucketManagementPerformanceInformation = value != null ? value.clone() : new WorkBucketManagementPerformanceInformationType();
-        }
     }
 
     public void startCollectingStatistics(@NotNull RunningTask task,
@@ -492,7 +471,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         } else {
             actionsExecutedInformation = null;
         }
-        resetWorkBucketManagementPerformanceInformation(initialOperationStats.getWorkBucketManagementPerformanceInformation());
     }
 
     private void startOrRestartCollectingThreadLocalStatistics(OperationStatsType initialOperationStats,
@@ -571,69 +549,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
     }
 
-    @SuppressWarnings("Duplicates")
-    @Override
-    public void register(String situation, long totalTime, int conflictCount, long conflictWastedTime, int bucketWaitCount, long bucketWaitTime, int bucketsReclaimed) {
-        synchronized (BUCKET_INFORMATION_LOCK) {
-            WorkBucketManagementOperationPerformanceInformationType operation = null;
-            for (WorkBucketManagementOperationPerformanceInformationType op : workBucketManagementPerformanceInformation.getOperation()) {
-                if (op.getName().equals(situation)) {
-                    operation = op;
-                    break;
-                }
-            }
-            if (operation == null) {
-                operation = new WorkBucketManagementOperationPerformanceInformationType();
-                operation.setName(situation);
-                workBucketManagementPerformanceInformation.getOperation().add(operation);
-            }
-            operation.setCount(or0(operation.getCount()) + 1);
-            addTime(operation, totalTime, WorkBucketManagementOperationPerformanceInformationType::getTotalTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMinTime,
-                    WorkBucketManagementOperationPerformanceInformationType::getMaxTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setTotalTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMinTime,
-                    WorkBucketManagementOperationPerformanceInformationType::setMaxTime);
-            if (conflictCount > 0 || conflictWastedTime > 0) {
-                operation.setConflictCount(or0(operation.getConflictCount()) + conflictCount);
-                addTime(operation, conflictWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::getTotalWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::getMinWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::getMaxWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setTotalWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setMinWastedTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setMaxWastedTime);
-            }
-            if (bucketWaitCount > 0 || bucketsReclaimed > 0 || bucketWaitTime > 0) {
-                operation.setBucketWaitCount(or0(operation.getBucketWaitCount()) + bucketWaitCount);
-                operation.setBucketsReclaimed(or0(operation.getBucketsReclaimed()) + bucketsReclaimed);
-                addTime(operation, bucketWaitTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWaitTime,
-                        WorkBucketManagementOperationPerformanceInformationType::getMinWaitTime,
-                        WorkBucketManagementOperationPerformanceInformationType::getMaxWaitTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setTotalWaitTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setMinWaitTime,
-                        WorkBucketManagementOperationPerformanceInformationType::setMaxWaitTime);
-            }
-        }
-    }
-
-    private void addTime(WorkBucketManagementOperationPerformanceInformationType operation,
-            long time, Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterTotal,
-            Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMin,
-            Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMax,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterTotal,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterMin,
-            BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long>  setterMax) {
-        setterTotal.accept(operation, or0(getterTotal.apply(operation)) + time);
-        Long min = getterMin.apply(operation);
-        if (min == null || time < min) {
-            setterMin.accept(operation, time);
-        }
-        Long max = getterMax.apply(operation);
-        if (max == null || time > max) {
-            setterMax.accept(operation, time);
-        }
-    }
 
     private int or0(Integer n) {
         return n != null ? n : 0;

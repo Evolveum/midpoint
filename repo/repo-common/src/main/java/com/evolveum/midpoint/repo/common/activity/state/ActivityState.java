@@ -5,11 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity;
+package com.evolveum.midpoint.repo.common.activity.state;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
@@ -17,9 +19,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.repo.common.activity.ActivityState.Wrapper.w;
+import static com.evolveum.midpoint.repo.common.activity.state.ActivityState.Wrapper.w;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
@@ -43,12 +43,15 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
-    private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH =
-            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+    private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
 
     @NotNull private final AbstractActivityExecution<?, ?, WS> activityExecution;
 
     @NotNull private final ComplexTypeDefinition workStateDefinition;
+
+    @NotNull private final ActivityProgress progress;
+
+    @NotNull private final ActivityStatistics statistics;
 
     /** Path to the work state container value related to this execution. */
     private ItemPath stateItemPath;
@@ -58,6 +61,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     public ActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
         this.activityExecution = activityExecution;
         this.workStateDefinition = determineWorkStateDefinition(activityExecution);
+        this.progress = new ActivityProgress(this);
+        this.statistics = new ActivityStatistics(this);
     }
 
     @NotNull
@@ -69,6 +74,15 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     }
 
     //region Initialization
+    /**
+     * Puts the activity state into operation:
+     *
+     * 1. finds/creates activity and optionally also work state container values;
+     * 2. initializes live structures - currently that means progress and statistics objects.
+     *
+     * This method may or may not be called just before the real execution. For example, there can be a need to initialize
+     * the state of all child activities before starting their real execution.
+     */
     public void initialize(OperationResult result) throws ActivityExecutionException {
         if (initialized) {
             return;
@@ -78,6 +92,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
             if (activityExecution.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
+            progress.initialize(getStoredProgress());
+            statistics.initialize();
             initialized = true;
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
@@ -92,8 +108,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     @NotNull
     private ItemPath findOrCreateActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}", activityExecution.getActivityPath(),
-                getRunningTask());
+        LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}",
+                activityExecution.getActivityPath(), getRunningTask());
         AbstractActivityExecution<?, ?, ?> localParentExecution = activityExecution.getLocalParentExecution();
         if (localParentExecution == null) {
             LOGGER.trace("No local parent execution, checking or creating root work state");
@@ -215,8 +231,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    public void markComplete(OperationResultStatus resultStatus, OperationResult result) throws ActivityExecutionException {
-        setCombined(w(ActivityRealizationStateType.COMPLETE), w(resultStatus), result);
+    public void markCompleteNoCommit(OperationResultStatus resultStatus) throws ActivityExecutionException {
+        setCombinedNoCommit(w(ActivityRealizationStateType.COMPLETE), w(resultStatus));
     }
 
     private void setRealizationStateWithoutCommit(ActivityRealizationStateType value) throws SchemaException {
@@ -226,7 +242,6 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         getRunningTask().modify(itemDelta);
         LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
     }
-
     //endregion
 
     //region Result status
@@ -238,12 +253,12 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         return OperationResultStatus.parseStatusType(getResultStatusRaw());
     }
 
-    public void setResultStatus(@NotNull OperationResultStatus status, OperationResult result)
-            throws ActivityExecutionException {
-        setCombined(null, w(status), result);
+    public void setResultStatusNoCommit(@NotNull OperationResultStatus status) throws ActivityExecutionException {
+        convertException(
+                () -> setResultStateNoCommit(status));
     }
 
-    private void setResultStateWithoutCommit(OperationResultStatus resultStatus) throws SchemaException {
+    private void setResultStateNoCommit(OperationResultStatus resultStatus) throws SchemaException {
         ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
                 .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
                 .asItemDelta();
@@ -262,11 +277,17 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
     }
 
+    public <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
+        return getRunningTask()
+                .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
+    }
+
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-    public void setItemRealValues(ItemPath path, Object... values) throws SchemaException {
-        setItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values));
+    public void setItemRealValues(ItemPath path, Object... values) throws ActivityExecutionException {
+        convertException(
+                () -> setItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values)));
     }
 
     /**
@@ -291,6 +312,10 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
         return getPropertyRealValue(ActivityStateType.F_WORK_STATE.append(path), expectedType);
+    }
+
+    public <T> T getWorkStateItemRealValueClone(ItemPath path, Class<T> expectedType) {
+        return getItemRealValueClone(ActivityStateType.F_WORK_STATE.append(path), expectedType);
     }
 
     public ObjectReferenceType getWorkStateReferenceRealValue(ItemPath path) {
@@ -333,15 +358,20 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     //region Combined operations
     private void setCombined(Wrapper<ActivityRealizationStateType> realizationState, Wrapper<OperationResultStatus> resultStatus,
             OperationResult result) throws ActivityExecutionException {
+        setCombinedNoCommit(realizationState, resultStatus);
+        flushPendingModificationsChecked(result);
+    }
+
+    private void setCombinedNoCommit(Wrapper<ActivityRealizationStateType> realizationState,
+            Wrapper<OperationResultStatus> resultStatus) throws ActivityExecutionException {
         try {
             if (realizationState != null) {
                 setRealizationStateWithoutCommit(realizationState.value);
             }
             if (resultStatus != null) {
-                setResultStateWithoutCommit(resultStatus.value);
+                setResultStateNoCommit(resultStatus.value);
             }
-            flushPendingModifications(result);
-        } catch (CommonException e) {
+        } catch (SchemaException e) {
             throw new ActivityExecutionException("Couldn't update activity state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
@@ -364,7 +394,11 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         return activityExecution.getActivity();
     }
 
-    private CommonTaskBeans getBeans() {
+    public @NotNull AbstractActivityExecution<?, ?, WS> getActivityExecution() {
+        return activityExecution;
+    }
+
+    CommonTaskBeans getBeans() {
         return activityExecution.getBeans();
     }
 
@@ -385,8 +419,25 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         getRunningTask().flushPendingModifications(result);
     }
 
+    public void flushPendingModificationsChecked(OperationResult result) throws ActivityExecutionException {
+        convertException("Couldn't update the task",
+                () -> flushPendingModifications(result));
+    }
+
     @NotNull ActivityHandler<?, ?> getActivityHandler() {
         return activityExecution.getActivityHandler();
+    }
+
+    private void convertException(CheckedRunnable runnable) throws ActivityExecutionException {
+        convertException("Couldn't update activity state", runnable);
+    }
+
+    private void convertException(String message, CheckedRunnable runnable) throws ActivityExecutionException {
+        try {
+            runnable.run();
+        } catch (CommonException e) {
+            throw new ActivityExecutionException(message, FATAL_ERROR, PERMANENT_ERROR, e);
+        }
     }
     //endregion
 
@@ -412,6 +463,42 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     @NotNull
     private String getEnhancedClassName() {
         return getClass().getSimpleName() + "<" + workStateDefinition.getTypeName().getLocalPart() + ">";
+    }
+    //endregion
+
+    //region Progress & statistics
+
+    public @NotNull ActivityProgress getLiveProgress() {
+        return progress;
+    }
+
+    public ActivityProgressType getStoredProgress() {
+        return getItemRealValueClone(ActivityStateType.F_PROGRESS, ActivityProgressType.class);
+    }
+
+    public @NotNull ActivityStatistics getStatistics() {
+        return statistics;
+    }
+
+    public @NotNull ActivityItemProcessingStatistics getLiveItemProcessingStatistics() {
+        return statistics.getLiveItemProcessing();
+    }
+
+    public ActivityItemProcessingStatisticsType getStoredItemProcessingStatistics() {
+        return statistics.getStoredItemProcessing();
+    }
+
+    public ActivityBucketManagementStatisticsType getStoredBucketManagementStatistics() {
+        return statistics.getStoredBucketManagement();
+    }
+
+    public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
+        if (activityExecution.supportsProgress()) {
+            progress.writeToTaskAsPendingModification();
+        }
+        if (activityExecution.supportsStatistics()) {
+            statistics.writeToTaskAsPendingModifications();
+        }
     }
     //endregion
 }

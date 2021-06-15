@@ -278,6 +278,13 @@ public interface TaskManager {
     Task getTaskPlain(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
+     * TODO
+     */
+    @NotNull
+    Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
+
+    /**
      * Gets the task (as in getTaskPlain) but with its operation result.
      */
     @NotNull

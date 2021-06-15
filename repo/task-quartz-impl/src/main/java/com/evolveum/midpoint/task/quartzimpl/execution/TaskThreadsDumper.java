@@ -163,7 +163,7 @@ public class TaskThreadsDumper {
         }
         output.append("\n");
         OperationStatsType stats = localTask.getAggregatedLiveOperationStats();
-        ActivityIterationInformationType info = stats != null ? stats.getIterationInformation() : null;
+        ActivityItemProcessingStatisticsType info = stats != null ? stats.getIterationInformation() : null;
         if (info != null) {
             output.append(IterationInformation.format(info));
         }

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +56,6 @@ public interface SynchronizationInformationCollector {
      */
     void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome);
 
-    void resetSynchronizationInformation(SynchronizationInformationType value);
+    void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value);
 
 }

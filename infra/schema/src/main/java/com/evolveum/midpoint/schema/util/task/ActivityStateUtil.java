@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import static java.util.Collections.singleton;
-
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,131 +26,110 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Utility methods related to task work state and work state management.
+ * Utility methods related to activity state and activity work state.
+ *
+ * Does NOT deal with execution across task trees. See {@link ActivityTreeUtil} for that.
  */
 public class ActivityStateUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityStateUtil.class);
 
-    @Nullable
-    public static Integer getPartitionSequentialNumber(@NotNull TaskType taskType) {
-        return null;// TODO
-        //return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
-    }
-
     /**
      * @return True if the task is a partitioned master.
      */
+    @Deprecated
     public static boolean isPartitionedMaster(TaskType task) {
-        return BucketingUtil.getKind(task) == TaskKindType.PARTITIONED_MASTER;
+        return false; // TODO
     }
 
+    @Deprecated
     public static boolean isManageableTreeRoot(TaskType taskType) {
-        return BucketingUtil.isCoordinator(taskType) || isPartitionedMaster(taskType);
+        return false; // TODO
     }
 
+    @Deprecated
     public static boolean isWorkStateHolder(TaskType taskType) {
-        return (BucketingUtil.isCoordinator(taskType) || BucketingUtil.hasBuckets(taskType)) && !BucketingUtil.isCoordinatedWorker(taskType);
+        return false; // TODO
     }
 
-    public static boolean isAllWorkComplete(TaskType task) {
-        return task.getActivityState() != null && Boolean.TRUE.equals(task.getActivityState().isAllWorkComplete());
+    /**
+     * Finds a state of an activity, given the activity path. Assumes local execution.
+     */
+    public static ActivityStateType getActivityState(@Nullable TaskActivityStateType taskState,
+            @NotNull ActivityPath activityPath) {
+        if (taskState != null) {
+            return getActivityStateInternal(
+                    taskState,
+                    getStateItemPath(taskState, activityPath));
+        } else {
+            return null;
+        }
     }
 
-    public static ActivityStateType getActivityWorkState(@NotNull TaskType task, @NotNull ItemPath path) {
+    /**
+     * Finds a state of an activity, given the state item path. Assumes local execution.
+     */
+    public static ActivityStateType getActivityState(@NotNull TaskType task, @NotNull ItemPath stateItemPath) {
         TaskActivityStateType workState = task.getActivityState();
         if (workState != null) {
-            return getActivityWorkStateInternal(workState, path);
+            return getActivityStateInternal(workState, stateItemPath);
         } else {
             return null;
         }
     }
 
-    @NotNull
-    public static ActivityStateType getActivityWorkStateRequired(@NotNull TaskActivityStateType workState,
+    /**
+     * Finds a state of an activity, given the activity path. Assumes local execution.
+     * Fails if there is no state object.
+     */
+    public static @NotNull ActivityStateType getActivityStateRequired(@NotNull TaskActivityStateType taskState,
             @NotNull ActivityPath activityPath) {
-        return getActivityWorkStateRequired(
-                workState,
-                getWorkStatePath(workState, activityPath));
+        return getActivityStateRequired(
+                taskState,
+                getStateItemPath(taskState, activityPath));
     }
 
-    @NotNull
-    public static ActivityStateType getActivityWorkStateRequired(@NotNull TaskActivityStateType workState,
-            @NotNull ItemPath workStatePath) {
+    /**
+     * Finds a state of an activity, given the state item path. Assumes local execution.
+     * Fails if there is no state object.
+     */
+    public static @NotNull ActivityStateType getActivityStateRequired(@NotNull TaskActivityStateType taskState,
+            @NotNull ItemPath stateItemPath) {
         return MiscUtil.requireNonNull(
-                getActivityWorkStateInternal(workState, workStatePath),
-                () -> new IllegalArgumentException("No activity work state at prism item path '" + workStatePath + "'"));
+                getActivityStateInternal(taskState, stateItemPath),
+                () -> new IllegalArgumentException("No activity state at prism item path '" + stateItemPath + "'"));
     }
 
-    private static ActivityStateType getActivityWorkStateInternal(@NotNull TaskActivityStateType workState,
-            @NotNull ItemPath workStatePath) {
-        Object object = workState.asPrismContainerValue().find(workStatePath.rest());
-        if (object == null) {
+    private static ActivityStateType getActivityStateInternal(@NotNull TaskActivityStateType taskState,
+            @NotNull ItemPath stateItemPath) {
+        Object stateObject = taskState.asPrismContainerValue().find(stateItemPath.rest());
+        if (stateObject == null) {
             return null;
-        } else if (object instanceof PrismContainer<?>) {
-            return ((PrismContainer<?>) object).getRealValue(ActivityStateType.class);
-        } else if (object instanceof PrismContainerValue<?>) {
+        } else if (stateObject instanceof PrismContainer<?>) {
+            return ((PrismContainer<?>) stateObject).getRealValue(ActivityStateType.class);
+        } else if (stateObject instanceof PrismContainerValue<?>) {
             //noinspection unchecked
-            return ((PrismContainerValue<ActivityStateType>) object).asContainerable(ActivityStateType.class);
+            return ((PrismContainerValue<ActivityStateType>) stateObject).asContainerable(ActivityStateType.class);
         } else {
-            throw new IllegalArgumentException("Path '" + workStatePath + "' does not point to activity work state but instead"
-                    + " to an instance of " + object.getClass());
+            throw new IllegalArgumentException("Path '" + stateItemPath + "' does not point to activity state but instead"
+                    + " to an instance of " + stateObject.getClass());
         }
     }
 
-    public static ActivityDefinitionType getPartDefinition(ActivityDefinitionType part, String partId) {
-        if (part == null) {
-            return null;
-        } else {
-            return getPartDefinition(singleton(part), partId);
-        }
+    public static ActivityPathType getLocalRootPathBean(TaskActivityStateType taskState) {
+        return taskState != null ? taskState.getLocalRoot() : null;
     }
 
-    public static ActivityDefinitionType getPartDefinition(Collection<ActivityDefinitionType> parts, String partId) {
-        for (ActivityDefinitionType partDef : parts) {
-            if (java.util.Objects.equals(partDef.getIdentifier(), partId)) {
-                return partDef;
-            }
-            if (partDef.getComposition() != null) {
-                List<ActivityDefinitionType> children = partDef.getComposition().getActivity();
-                ActivityDefinitionType inChildren = getPartDefinition(children, partId);
-                if (inChildren != null) {
-                    return inChildren;
-                }
-            }
-        }
-        return null;
+    public static ActivityPath getLocalRootPath(TaskActivityStateType taskState) {
+        return ActivityPath.fromBean(getLocalRootPathBean(taskState));
     }
 
-    public static boolean isStandalone(TaskActivityStateType workState, ItemPath statePath) {
-        BucketsProcessingRoleType bucketsProcessingRole = BucketingUtil.getBucketsProcessingRole(workState, statePath);
-        return bucketsProcessingRole == null || bucketsProcessingRole == BucketsProcessingRoleType.STANDALONE;
-    }
-
-    public static WorkDistributionType getWorkDistribution(ActivityDefinitionType work, String partId) {
-        ActivityDefinitionType partDef = getPartDefinition(work, partId);
-        return partDef != null ? partDef.getDistribution() : null;
-    }
-
-    public static String getCurrentActivityId(TaskActivityStateType workState) {
-        return workState != null ? workState.getCurrentPartId() : null;
-    }
-
-    public static boolean isScavenger(TaskActivityStateType taskWorkState, ActivityPath activityPath) {
-        ActivityBucketingStateType bucketing = getActivityWorkStateRequired(taskWorkState, activityPath).getBucketing();
-        return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
-    }
-
-    public static ActivityPathType getLocalRootPathBean(TaskActivityStateType workState) {
-        return workState != null ? workState.getLocalRoot() : null;
-    }
-
-    public static ActivityPath getLocalRootPath(TaskActivityStateType workState) {
-        return ActivityPath.fromBean(getLocalRootPathBean(workState));
-    }
-
+    /**
+     * Determines state item path for a given activity path. Assumes local execution.
+     * Fails if the state is not there.
+     */
     @NotNull
-    public static ItemPath getWorkStatePath(@NotNull TaskActivityStateType workState, @NotNull ActivityPath activityPath) {
+    public static ItemPath getStateItemPath(@NotNull TaskActivityStateType workState, @NotNull ActivityPath activityPath) {
         ActivityPath localRootPath = getLocalRootPath(workState);
         LOGGER.trace("getWorkStatePath: activityPath = {}, localRootPath = {}", activityPath, localRootPath);
         stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
@@ -164,7 +140,7 @@ public class ActivityStateUtil {
         List<String> localIdentifiers = activityPath.getIdentifiers().subList(localRootPath.size(), activityPath.size());
         for (String identifier : localIdentifiers) {
             stateCheck(currentWorkState != null, "Current work state is not present; path = %s", currentWorkStatePath);
-            currentWorkState = findActivityStateRequired(currentWorkState, identifier);
+            currentWorkState = findChildActivityStateRequired(currentWorkState, identifier);
             stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
             currentWorkStatePath = currentWorkStatePath.append(ActivityStateType.F_ACTIVITY, currentWorkState.getId());
         }
@@ -172,8 +148,11 @@ public class ActivityStateUtil {
         return currentWorkStatePath;
     }
 
+    /**
+     * Returns child activity state - failing if not unique or not existing.
+     */
     @NotNull
-    public static ActivityStateType findActivityStateRequired(ActivityStateType state, String identifier) {
+    public static ActivityStateType findChildActivityStateRequired(ActivityStateType state, String identifier) {
         List<ActivityStateType> matching = state.getActivity().stream()
                 .filter(child -> Objects.equals(child.getIdentifier(), identifier))
                 .collect(Collectors.toList());
@@ -182,12 +161,16 @@ public class ActivityStateUtil {
                 () -> new IllegalStateException("No matching activity work state for " + identifier + " in " + state));
     }
 
-    @NotNull
-    private static List<String> getLocalRootSegments(@NotNull TaskActivityStateType workState) {
-        return workState.getLocalRoot() != null ? workState.getLocalRoot().getIdentifier() : List.of();
-    }
-
+    /**
+     * Returns true if the activity is complete.
+     */
     public static boolean isComplete(@NotNull ActivityStateType state) {
         return state.getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    }
+
+    public static boolean isDelegated(@NotNull ActivityStateType state) {
+        return state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DELEGATED ||
+                state.getWorkState() instanceof DelegationWorkStateType &&
+                ((DelegationWorkStateType) state.getWorkState()).getTaskRef() != null;
     }
 }

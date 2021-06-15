@@ -7,24 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.task.work;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivityStateRequired;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.util.task.BucketingUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,12 +26,15 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -103,18 +98,18 @@ class BucketOperation implements DebugDumpable {
     final PrismContext prismContext;
 
     BucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
-            WorkBucketStatisticsCollector collector, BucketingManager bucketingManager) {
+                    ActivityBucketManagementStatistics statistics, BucketingManager bucketingManager) {
         this.bucketingManager = bucketingManager;
         this.taskManager = bucketingManager.getTaskManager();
         this.repositoryService = bucketingManager.getRepositoryService();
         this.prismContext = bucketingManager.getPrismContext();
         this.workerTaskOid = workerTaskOid;
         this.activityPath = activityPath;
-        this.statisticsKeeper = new BucketOperationStatisticsKeeper(collector);
+        this.statisticsKeeper = new BucketOperationStatisticsKeeper(statistics);
     }
 
     public boolean isStandalone() {
-        return ActivityStateUtil.isStandalone(workerTask.getWorkState(), workerStatePath);
+        return BucketingUtil.isStandalone(workerTask.getWorkState(), workerStatePath);
     }
 
     private BucketsProcessingRoleType getWorkerTaskRole() {
@@ -127,7 +122,7 @@ class BucketOperation implements DebugDumpable {
 
     void loadTasks(OperationResult result) throws ObjectNotFoundException, SchemaException {
         workerTask = taskManager.getTaskPlain(workerTaskOid, result);
-        workerStatePath = ActivityStateUtil.getWorkStatePath(workerTask.getWorkState(), activityPath);
+        workerStatePath = ActivityStateUtil.getStateItemPath(workerTask.getWorkState(), activityPath);
 
         BucketsProcessingRoleType workerRole = getWorkerTaskRole();
         if (workerRole == BucketsProcessingRoleType.WORKER) {
@@ -141,7 +136,7 @@ class BucketOperation implements DebugDumpable {
 
     private void loadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
         coordinatorTask = workerTask.getParentTask(result);
-        coordinatorStatePath = ActivityStateUtil.getWorkStatePath(coordinatorTask.getWorkState(), activityPath);
+        coordinatorStatePath = ActivityStateUtil.getStateItemPath(coordinatorTask.getWorkState(), activityPath);
 
         stateCheck(coordinatorTask != null, "No coordinator task for worker task %s", workerTask);
         stateCheck(getCoordinatorTaskRole() == BucketsProcessingRoleType.COORDINATOR,
@@ -152,31 +147,17 @@ class BucketOperation implements DebugDumpable {
         return BucketingUtil.getBuckets(getWorkerTaskActivityWorkState());
     }
 
-    @NotNull
-    private WorkDistributionType getCoordinatorWorkManagement() {
-        return requireNonNull(
-                ActivityStateUtil.getWorkDistribution(coordinatorTask.getRootActivityDefinitionOrClone(),
-                        getCurrentActivityId(coordinatorTask.getWorkState())),
-                () -> "No work management for the current part in coordinator task " + coordinatorTask);
-    }
-
-    @NotNull WorkBucketsManagementType getCoordinatorBucketingConfig() {
-        return requireNonNull(
-                getCoordinatorWorkManagement().getBuckets(),
-                () -> "No bucketing configuration for the current part in coordinator task " + coordinatorTask);
-    }
-
     @NotNull ActivityStateType getWorkerTaskActivityWorkState() {
-        return getActivityWorkStateRequired(workerTask.getWorkState(), workerStatePath);
+        return getActivityStateRequired(workerTask.getWorkState(), workerStatePath);
     }
 
     @NotNull ActivityStateType getCoordinatorTaskPartWorkState() {
-        return getActivityWorkStateRequired(coordinatorTask.getWorkState(), coordinatorStatePath);
+        return getActivityStateRequired(coordinatorTask.getWorkState(), coordinatorStatePath);
     }
 
     @NotNull
     ActivityStateType getTaskActivityWorkState(TaskType workerOrCoordinatorTask) {
-        return getActivityWorkStateRequired(workerOrCoordinatorTask.getActivityState(), activityPath);
+        return getActivityStateRequired(workerOrCoordinatorTask.getActivityState(), activityPath);
     }
 
     Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(ItemPath statePath, List<WorkBucketType> buckets) throws SchemaException {

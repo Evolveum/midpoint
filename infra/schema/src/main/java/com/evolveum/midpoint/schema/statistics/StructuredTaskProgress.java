@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgre
  * 2. But queries are invoked either from this thread, or from some observer (task manager or GUI thread).
  *
  */
+@Deprecated
 public class StructuredTaskProgress {
 
     private static final Trace LOGGER = TraceManager.getTrace(StructuredTaskProgress.class);

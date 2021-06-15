@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificat
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -198,7 +198,8 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
         WorkBucketType bucket;
         try {
             bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
-                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution, result);
+                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution,
+                    getBucketManagementStatisticsCollector(), result);
             task.refresh(result); // We want to have the most current state of the running task.
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
@@ -218,7 +219,10 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
     private void completeWorkBucketAndUpdateStructuredProgress(OperationResult result) {
         RunningTask task = taskExecution.getRunningTask();
         try {
-            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket, result);
+            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket,
+                    getBucketManagementStatisticsCollector(), result);
+            activityState.getLiveProgress().onCommitPoint();
+            // TODO update in repository
 //            task.changeStructuredProgressOnWorkBucketCompletion();
 //            updateAndStoreStatisticsIntoRepository(task, result);
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
@@ -715,5 +719,14 @@ public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectT
                 return simpleItemProcessor.processObject(object, request, workerTask, result);
             }
         };
+    }
+
+    @Override
+    protected boolean hasProgressCommitPoints() {
+        return true;
+    }
+
+    private ActivityBucketManagementStatistics getBucketManagementStatisticsCollector() {
+        return activityState.getStatistics().getLiveBucketManagement();
     }
 }

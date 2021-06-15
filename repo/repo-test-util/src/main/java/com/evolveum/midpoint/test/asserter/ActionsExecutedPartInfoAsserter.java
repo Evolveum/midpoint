@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
@@ -30,10 +30,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  */
 public class ActionsExecutedPartInfoAsserter<RA> extends AbstractAsserter<RA> {
 
-    @NotNull private final ActionsExecutedInformationType information;
+    @NotNull private final ActivityActionsExecutedType information;
     @NotNull private final Part part;
 
-    ActionsExecutedPartInfoAsserter(@NotNull ActionsExecutedInformationType information, RA returnAsserter, @NotNull Part part,
+    ActionsExecutedPartInfoAsserter(@NotNull ActivityActionsExecutedType information, RA returnAsserter, @NotNull Part part,
             String details) {
         super(returnAsserter, details);
         this.information = information;

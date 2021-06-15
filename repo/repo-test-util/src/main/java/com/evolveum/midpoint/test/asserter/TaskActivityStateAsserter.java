@@ -9,8 +9,10 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 
 /**
@@ -33,6 +35,16 @@ public class TaskActivityStateAsserter<RA> extends AbstractAsserter<RA> {
 
     public TaskActivityStateAsserter<RA> assertNotAllWorkComplete() {
         assertThat(activityState.isAllWorkComplete()).as("allWorkComplete").isNotEqualTo(Boolean.TRUE);
+        return this;
+    }
+
+    public TaskActivityStateAsserter<RA> assertRole(ActivityExecutionRoleType expected) {
+        assertThat(activityState.getRole()).as("role").isEqualTo(expected);
+        return this;
+    }
+
+    public TaskActivityStateAsserter<RA> assertLocalRoot(ActivityPath expected) {
+        assertThat(activityState.getLocalRoot()).as("local root").isEqualTo(expected.toBean());
         return this;
     }
 

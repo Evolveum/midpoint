@@ -32,7 +32,7 @@ public class SynchronizationInformation {
     /**
      * Number of transitions between states. This is the new way of counting. Synchronized on this.
      */
-    @NotNull private final SynchronizationInformationType value;
+    @NotNull private final ActivitySynchronizationStatisticsType value;
 
     /**
      * Watches for (collects) computed synchronization situation for the shadow being processed.
@@ -41,8 +41,8 @@ public class SynchronizationInformation {
 
     @NotNull private final PrismContext prismContext;
 
-    public SynchronizationInformation(SynchronizationInformationType value, @NotNull PrismContext prismContext) {
-        this.value = new SynchronizationInformationType(prismContext);
+    public SynchronizationInformation(ActivitySynchronizationStatisticsType value, @NotNull PrismContext prismContext) {
+        this.value = new ActivitySynchronizationStatisticsType(prismContext);
         this.prismContext = prismContext;
         addTo(this.value, value);
     }
@@ -50,7 +50,7 @@ public class SynchronizationInformation {
     /**
      * @return Start value plus counters gathered during existence of this object (i.e. this task run).
      */
-    public synchronized SynchronizationInformationType getValueCopy() {
+    public synchronized ActivitySynchronizationStatisticsType getValueCopy() {
         return value.cloneWithoutId();
     }
 
@@ -90,7 +90,7 @@ public class SynchronizationInformation {
             @NotNull QualifiedItemProcessingOutcomeType outcome) {
 
         // Poor man's solution: We create artificial delta and reuse the summarization code.
-        SynchronizationInformationType delta = new SynchronizationInformationType(prismContext)
+        ActivitySynchronizationStatisticsType delta = new ActivitySynchronizationStatisticsType(prismContext)
                 .beginTransition()
                     .onProcessingStart(onProcessingStart)
                     .onSynchronizationStart(onSynchronizationStart)
@@ -105,13 +105,13 @@ public class SynchronizationInformation {
         addTo(this.value, delta);
     }
 
-    public static void addTo(SynchronizationInformationType sum, @Nullable SynchronizationInformationType delta) {
+    public static void addTo(ActivitySynchronizationStatisticsType sum, @Nullable ActivitySynchronizationStatisticsType delta) {
         if (delta != null) {
             addTransitions(sum, delta);
         }
     }
 
-    private static void addTransitions(SynchronizationInformationType sum, @NotNull SynchronizationInformationType delta) {
+    private static void addTransitions(ActivitySynchronizationStatisticsType sum, @NotNull ActivitySynchronizationStatisticsType delta) {
         for (SynchronizationSituationTransitionType deltaTransition : delta.getTransition()) {
             SynchronizationSituationTransitionType existingTransition = SyncSituationUtil.findMatchingTransition(sum,
                     deltaTransition.getOnProcessingStart(), deltaTransition.getOnSynchronizationStart(),
@@ -129,8 +129,8 @@ public class SynchronizationInformation {
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getCounter(), delta.getCounter());
     }
 
-    public static String format(@Nullable SynchronizationInformationType source) {
-        return new SynchronizationInformationPrinter(source != null ? source : new SynchronizationInformationType(), null)
+    public static String format(@Nullable ActivitySynchronizationStatisticsType source) {
+        return new SynchronizationInformationPrinter(source != null ? source : new ActivitySynchronizationStatisticsType(), null)
                 .print();
     }
 

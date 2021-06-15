@@ -17,8 +17,12 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -60,15 +64,15 @@ public class TestActivities extends AbstractRepoCommonTest {
 //
     private static final File TEST_DIR = new File("src/test/resources/tasks/activities");
 
-    private static final TestResource<TaskType> TASK_MOCK_SIMPLE_LEGACY = new TestResource<>(TEST_DIR, "task-mock-simple-legacy.xml", "7523433a-a537-4943-96e9-58b6c57566e8");
-    private static final TestResource<TaskType> TASK_MOCK_COMPOSITE_LEGACY = new TestResource<>(TEST_DIR, "task-mock-composite-legacy.xml", "b5fd4ecf-2163-4079-99ec-d56e8a96ca94");
-    private static final TestResource<TaskType> TASK_MOCK_SIMPLE = new TestResource<>(TEST_DIR, "task-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
-    private static final TestResource<TaskType> TASK_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
-    private static final TestResource<TaskType> TASK_PURE_COMPOSITE = new TestResource<>(TEST_DIR, "task-pure-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
-    private static final TestResource<TaskType> TASK_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
-    private static final TestResource<TaskType> TASK_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
-    private static final TestResource<TaskType> TASK_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
-    private static final TestResource<TaskType> TASK_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
+    private static final TestResource<TaskType> TASK_100_MOCK_SIMPLE_LEGACY = new TestResource<>(TEST_DIR, "task-100-mock-simple-legacy.xml", "7523433a-a537-4943-96e9-58b6c57566e8");
+    private static final TestResource<TaskType> TASK_110_MOCK_COMPOSITE_LEGACY = new TestResource<>(TEST_DIR, "task-110-mock-composite-legacy.xml", "b5fd4ecf-2163-4079-99ec-d56e8a96ca94");
+    private static final TestResource<TaskType> TASK_120_MOCK_SIMPLE = new TestResource<>(TEST_DIR, "task-120-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
+    private static final TestResource<TaskType> TASK_130_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
+    private static final TestResource<TaskType> TASK_140_PURE_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-pure-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
+    private static final TestResource<TaskType> TASK_150_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
+    private static final TestResource<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
+    private static final TestResource<TaskType> TASK_170_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
+    private static final TestResource<TaskType> TASK_180_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
     private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
     private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
     private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
@@ -117,7 +121,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     public void test000Sanity() throws Exception {
         when();
 
-        PrismObject<TaskType> task = prismContext.parserFor(TASK_MOCK_COMPOSITE.file).parse();
+        PrismObject<TaskType> task = prismContext.parserFor(TASK_130_MOCK_COMPOSITE.file).parse();
         ActivityDefinitionType activityDefinition = task.asObjectable().getActivity();
 
         then();
@@ -140,7 +144,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_SIMPLE_LEGACY, result);
+        Task task1 = taskAdd(TASK_100_MOCK_SIMPLE_LEGACY, result);
 
         when();
 
@@ -155,8 +159,19 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertRealizationState(ActivityProgressInformation.RealizationState.COMPLETE)
+                .assertNoBucketInformation()
+                .assertItems(1, null);
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(1)
+                .assertErrors(0)
+                .assertProgress(1)
+                .assertHasWallClockTime()
+                .assertHasThroughput();
     }
 
     @Test
@@ -168,7 +183,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_COMPOSITE_LEGACY, result);
+        Task task1 = taskAdd(TASK_110_MOCK_COMPOSITE_LEGACY, result);
 
         when();
 
@@ -183,12 +198,43 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(2)
+                .child("opening")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                .end()
+                .child("closing")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null);
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(2)
+                .child("opening")
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("closing")
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput();
     }
 
     @Test
-    public void test130RunSimpleTask() throws Exception {
+    public void test120RunSimpleTask() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -196,7 +242,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_SIMPLE, result);
+        Task task1 = taskAdd(TASK_120_MOCK_SIMPLE, result);
 
         when();
 
@@ -211,12 +257,11 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        dumpProgressAndPerformanceInfo(task1.getOid(), result);
     }
 
     @Test
-    public void test140RunCompositeTask() throws Exception {
+    public void test130RunCompositeTask() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -224,7 +269,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_COMPOSITE, result);
+        Task task1 = taskAdd(TASK_130_MOCK_COMPOSITE, result);
 
         when();
 
@@ -239,8 +284,6 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
     }
 
     @Test
@@ -252,7 +295,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_PURE_COMPOSITE, result);
+        Task task1 = taskAdd(TASK_140_PURE_COMPOSITE, result);
 
         when();
 
@@ -268,8 +311,121 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactly("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(4)
+                .child("mock-composite:1")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(2)
+                    .child("opening")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                    .child("closing")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                .end()
+                .child("mock-simple:1")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                .end()
+                .child("mock-composite:2")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(2)
+                    .child("opening")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                    .child("closing")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                .end()
+                .child("mock-composite:3")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(1)
+                    .child("closing")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                .end();
+
+        assertPerformance( task1.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(4)
+                .child("mock-composite:1")
+                    .assertNotApplicable()
+                    .assertChildren(2)
+                    .child("opening")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("closing")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end()
+                .child("mock-simple:1")
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("mock-composite:2")
+                    .assertNotApplicable()
+                    .assertChildren(2)
+                    .child("opening")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("closing")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end()
+                .child("mock-composite:3")
+                    .assertNotApplicable()
+                    .assertChildren(1)
+                    .child("closing")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end();
+        // @formatter:on
     }
 
     @Test
@@ -281,7 +437,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_ITERATIVE, result);
+        Task task1 = taskAdd(TASK_150_MOCK_ITERATIVE, result);
 
         when();
 
@@ -290,21 +446,40 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertUncommitted(5, 0, 0) // maybe in the future we may move these to committed on activity close
+                            .assertNoCommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(5, 0, 0)
+                            .assertLastSuccessObjectName("5")
+                            .assertExecutions(1);
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
-        displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
-                .as("count of processed items in first activity")
-                .isEqualTo(5);
+        displayValue("task statistics", TaskOperationStatsUtil.format(stats));
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactly("Item: 1", "Item: 2", "Item: 3", "Item: 4", "Item: 5");
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertItems(5, null);
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(5)
+                .assertErrors(0)
+                .assertProgress(5)
+                .assertHasWallClockTime();
     }
 
     @Test
@@ -316,7 +491,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_SEARCH_ITERATIVE, result);
+        Task task1 = taskAdd(TASK_160_MOCK_SEARCH_ITERATIVE, result);
 
         when();
 
@@ -325,14 +500,26 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertCommitted(100, 0, 0) // maybe in the future we may move these to committed on activity close
+                            .assertNoUncommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(100, 0, 0)
+                            .assertExecutions(1)
+                        .end()
+                        .assertBucketManagementStatisticsOperations(3);
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
-                .as("count of processed items in first activity")
-                .isEqualTo(100);
 
         displayDumpable("recorder", recorder);
         Set<String> messages = IntStream.range(0, 100)
@@ -341,8 +528,17 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactlyInAnyOrderElementsOf(messages);
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertBuckets(1, 1)
+                .assertItems(100, null); // TODO expected
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(100)
+                .assertErrors(0)
+                .assertProgress(100)
+                .assertHasWallClockTime();
     }
 
     @Test
@@ -354,7 +550,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_MOCK_BUCKETED, result);
+        Task task1 = taskAdd(TASK_170_MOCK_BUCKETED, result);
 
         when();
 
@@ -363,14 +559,26 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertCommitted(100, 0, 0) // maybe in the future we may move these to committed on activity close
+                            .assertNoUncommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(100, 0, 0)
+                            .assertExecutions(1)
+                        .end()
+                        .assertBucketManagementStatisticsOperations(3);
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-        assertThat(stats.getIterationInformation().getProcessed().get(0).getCount())
-                .as("count of processed items in first activity")
-                .isEqualTo(100);
 
         displayDumpable("recorder", recorder);
         Set<String> messages = IntStream.range(0, 100)
@@ -381,8 +589,17 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         // TODO assert the bucketing
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertBuckets(11, 11)
+                .assertItems(100, null); // TODO expected
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(100)
+                .assertErrors(0)
+                .assertProgress(100)
+                .assertHasWallClockTime();
     }
 
     @Test
@@ -394,23 +611,103 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         recorder.reset();
 
-        Task task1 = taskAdd(TASK_BUCKETED_TREE, result);
+        Task task1 = taskAdd(TASK_180_BUCKETED_TREE, result);
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 20000, 1000);
 
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertNoProgress()
+                        .assertChildren(4)
+                        .child("first")
+                            .assertComplete()
+                            .assertSuccess()
+                            .progress() // no objects here
+                                .assertNoCommitted()
+                                .assertNoUncommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(0, 0, 0)
+                                .assertExecutions(1)
+                            .end()
+                            .assertBucketManagementStatisticsOperations(3)
+                        .end()
+                        .child("second")
+                            .assertComplete()
+                            .assertSuccess()
+                            .progress() // 1 user here
+                                .assertCommitted(1, 0, 0)
+                                .assertNoUncommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(1, 0, 0)
+                                .assertLastSuccessObjectName("administrator")
+                                .assertExecutions(1)
+                            .end()
+                            .assertBucketManagementStatisticsOperations(3)
+                        .end()
+                        .child("composition:1")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertNoProgress()
+                            .assertChildren(2)
+                            .child("third-A")
+                                .assertComplete()
+                                .assertSuccess()
+                                .progress() // roles r1*
+                                    .assertCommitted(10, 0, 0)
+                                    .assertNoUncommitted()
+                                .end()
+                                .itemProcessingStatistics()
+                                    .assertTotalCounts(10, 0, 0)
+                                    .assertExecutions(1)
+                                .end()
+                                .assertBucketManagementStatisticsOperations(3)
+                            .end()
+                            .child("third-B")
+                                .assertComplete()
+                                .assertSuccess()
+                                .progress() // users
+                                    .assertCommitted(1, 0, 0)
+                                    .assertNoUncommitted()
+                                .end()
+                                .itemProcessingStatistics()
+                                    .assertTotalCounts(1, 0, 0)
+                                    .assertLastSuccessObjectName("administrator")
+                                    .assertExecutions(1)
+                                .end()
+                                .assertBucketManagementStatisticsOperations(3)
+                            .end()
+                        .end()
+                        .child("fourth")
+                            .assertComplete()
+                            .assertSuccess()
+                            .progress() // roles r* (100 buckets)
+                                .assertCommitted(100, 0, 0)
+                                .assertNoUncommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(100, 0, 0)
+                                .assertExecutions(1)
+                            .end()
+                            .assertBucketManagementStatisticsOperations(3)
+                        .end();
+
+        // TODO assert the bucketing
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
-//        assertThat(stats.getIterativeTaskInformation().getPart().get(0).getProcessed().get(0).getCount())
-//                .as("count of processed items in first activity")
-//                .isEqualTo(100);
 
         displayDumpable("recorder", recorder);
         Set<String> messages = new HashSet<>();
@@ -432,10 +729,91 @@ public class TestActivities extends AbstractRepoCommonTest {
         task1.setResult(null);
         displayValue("task after (XML)", prismContext.xmlSerializer().serialize(task1.getRawTaskObjectClone()));
 
-        // TODO assert the bucketing
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(4)
+                .child("first") // 0 configs
+                    .assertComplete()
+                    .assertBuckets(1, 1)
+                    .assertItems(0, null)
+                    .assertNoChildren()
+                .end()
+                .child("second") // 1 user
+                    .assertComplete()
+                    .assertBuckets(1, 1)
+                    .assertItems(1, null)
+                .end()
+                .child("composition:1")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(2)
+                    .child("third-A")
+                        .assertComplete()
+                        .assertBuckets(11, 11)
+                        .assertItems(10, null)
+                    .end()
+                    .child("third-B")
+                        .assertComplete()
+                        .assertBuckets(1, 1)
+                        .assertItems(1, null)
+                    .end()
+                .end()
+                .child("fourth")
+                    .assertComplete()
+                    .assertBuckets(101, 101)
+                    .assertItems(100, null)
+                    .assertNoChildren()
+                .end();
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertPerformance( task1.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(4)
+                .child("first") // 0 configs
+                    .assertItemsProcessed(0)
+                    .assertErrors(0)
+                    .assertProgress(0)
+                    .assertHasWallClockTime()
+                    .assertNoThroughput()
+                .end()
+                .child("second") // 1 user
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1")
+                    .assertNotApplicable()
+                    .assertChildren(2)
+                    .child("third-A")
+                        .assertItemsProcessed(10)
+                        .assertErrors(0)
+                        .assertProgress(10)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("third-B")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end()
+                .child("fourth")
+                    .assertItemsProcessed(100)
+                    .assertErrors(0)
+                    .assertProgress(100)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end();
+        // @formatter:on
     }
 
     @Test
@@ -468,13 +846,32 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertNotAllWorkComplete()
                     .rootActivity()
-                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                        .activity("mock-simple:1")
-                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertInProgressLocal()
+                        .assertFatalError()
+                        .assertChildren(3)
+                        .child("mock-simple:1")
+                            .assertInProgressLocal()
+                            .assertFatalError()
                             .workStateExtension()
-                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                            .end()
+                            .progress()
+                                .assertUncommitted(0, 1, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(0, 1, 0)
+                                .assertLastFailureObjectName("#1")
+                                .assertExecutions(1)
+                            .end()
+                        .end()
+                        .child("composition:1")
+                            .assertStatusInProgress() // TODO
+                            .assertChildren(0)
+                        .end()
+                        .child("mock-simple:2")
+                            .assertStatusInProgress() // TODO
+                        .end();
         // @formatter:on
 
         displayDumpable("recorder after run 1", recorder);
@@ -483,8 +880,50 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 1")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertInProgress()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertInProgress()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                .end();
+
+        assertPerformance( task1.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1") // 0 configs
+                    .assertItemsProcessed(1)
+                    .assertErrors(1)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotApplicable()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotApplicable()
+                .end();
+        // @formatter:on
 
         // ------------------------------------------------------------------------------------ run 2
 
@@ -506,13 +945,32 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertNotAllWorkComplete()
                     .rootActivity()
-                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                        .activity("mock-simple:1")
-                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                        .assertInProgressLocal()
+                        .assertFatalError()
+                        .assertChildren(3)
+                        .child("mock-simple:1")
+                            .assertInProgressLocal()
+                            .assertFatalError()
                             .workStateExtension()
-                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2);
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
+                            .end()
+                            .progress()
+                                .assertUncommitted(0, 1, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(0, 2, 0)
+                                .assertLastFailureObjectName("#1")
+                                .assertExecutions(2)
+                            .end()
+                        .end()
+                        .child("composition:1")
+                            .assertStatusInProgress() // TODO
+                            .assertChildren(0)
+                        .end()
+                        .child("mock-simple:2")
+                            .assertStatusInProgress() // TODO
+                        .end();
         // @formatter:on
 
         displayDumpable("recorder after run 2", recorder);
@@ -520,8 +978,50 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 2")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info2 = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info2);
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertInProgress()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertInProgress()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                .end();
+
+        assertPerformance( task1.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1") // 0 configs
+                    .assertItemsProcessed(2)
+                    .assertErrors(2)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotApplicable()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotApplicable()
+                .end();
+        // @formatter:on
 
         // ------------------------------------------------------------------------------------ run 3
 
@@ -543,30 +1043,56 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertNotAllWorkComplete()
                     .rootActivity()
-                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                        .activity("mock-simple:1")
-                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-                            .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .assertInProgressLocal()
+                        .assertFatalError()
+                        .child("mock-simple:1")
+                            .assertComplete()
+                            .assertSuccess()
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
                             .end()
+                            .progress()
+                                .assertUncommitted(1, 0, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(1, 2, 0)
+                                .assertLastSuccessObjectName("#1")
+                                .assertLastFailureObjectName("#1")
+                                .assertExecutions(3)
+                            .end()
                         .end()
-                        .activity("composition:1")
-                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                            .activity("mock-simple:1")
-                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-                                .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .child("composition:1")
+                            .assertInProgressLocal()
+                            .assertFatalError()
+                            .child("mock-simple:1")
+                                .assertComplete()
+                                .assertSuccess()
                                 .workStateExtension()
                                     .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
                                 .end()
                             .end()
-                            .activity("mock-simple:2")
-                                .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-                                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                            .child("mock-simple:2")
+                                .assertInProgressLocal()
+                                .assertFatalError()
                                 .workStateExtension()
-                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
+                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                                .end()
+                                .progress()
+                                    .assertUncommitted(0, 1, 0)
+                                    .assertNoCommitted()
+                                .end()
+                                .itemProcessingStatistics()
+                                    .assertTotalCounts(0, 1, 0)
+                                    .assertLastFailureObjectName("#2.2")
+                                    .assertExecutions(1)
+                                .end()
+                            .end()
+                        .end()
+                        .child("mock-simple:2")
+                            .assertNotStarted()
+                            .assertStatusInProgress() // TODO
+                        .end();
         // @formatter:on
 
         displayDumpable("recorder after run 3", recorder);
@@ -576,8 +1102,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 3")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info3 = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info3);
+        dumpProgressAndPerformanceInfo(task1.getOid(), result);
 
         // ------------------------------------------------------------------------------------ run 4
 
@@ -601,24 +1126,24 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-                        .activity("mock-simple:1")
+                        .child("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
                             .end()
                         .end()
-                        .activity("composition:1")
+                        .child("composition:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
-                            .activity("mock-simple:1")
+                            .child("mock-simple:1")
                                 .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                                 .workStateExtension()
                                     .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
                                 .end()
                             .end()
-                            .activity("mock-simple:2")
+                            .child("mock-simple:2")
                                 .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                                 .workStateExtension()
@@ -626,7 +1151,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .end()
                             .end()
                         .end()
-                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+                        .child("mock-simple:2") // this is not related to mock-simple:2 above!
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                             .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
                             .workStateExtension()
@@ -639,8 +1164,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 4")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info4 = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info4);
+        dumpProgressAndPerformanceInfo(task1.getOid(), result);
 
         // ------------------------------------------------------------------------------------ run 5
 
@@ -664,24 +1188,24 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                         .assertResultStatus(OperationResultStatusType.SUCCESS)
-                        .activity("mock-simple:1")
+                        .child("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
                             .end()
                         .end()
-                        .activity("composition:1")
+                        .child("composition:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
-                            .activity("mock-simple:1")
+                            .child("mock-simple:1")
                                 .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                                 .workStateExtension()
                                     .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
                                 .end()
                             .end()
-                            .activity("mock-simple:2")
+                            .child("mock-simple:2")
                                 .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                                 .assertResultStatus(OperationResultStatusType.SUCCESS)
                                 .workStateExtension()
@@ -689,7 +1213,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .end()
                             .end()
                         .end()
-                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
+                        .child("mock-simple:2") // this is not related to mock-simple:2 above!
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
                             .workStateExtension()
@@ -701,8 +1225,79 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 5")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info5 = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info5);
+        // @formatter:off
+        assertProgress( task1.getOid(),"after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(2)
+                    .child("mock-simple:1")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                    .child("mock-simple:2")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                .end()
+                .child("mock-simple:2")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end();
+
+        assertPerformance( task1.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertItemsProcessed(3)
+                    .assertErrors(2)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1")
+                    .assertNotApplicable()
+                    .assertChildren(2)
+                    .child("mock-simple:1")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("mock-simple:2")
+                        .assertItemsProcessed(2)
+                        .assertErrors(1)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end()
+                .child("mock-simple:2")
+                    .assertItemsProcessed(2)
+                    .assertErrors(1)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end();
+        // @formatter:on
     }
 
     @Test
@@ -727,16 +1322,53 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertTaskTree(task1.getOid(), "after")
                 .display("root")
                 .assertSuccess()
-                .subtask(0)
-                    .display("child");
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertDelegationWorkStateWithTaskRef()
+                        .assertNoChildren()
+                    .end()
+                .end()
+                .subtaskForPath(ActivityPath.empty())
+                    .display("child")
+                    .activityState()
+                        .assertRole(ActivityExecutionRoleType.DELEGATE)
+                        .assertLocalRoot(ActivityPath.empty())
+                        .rootActivity()
+                            .assertComplete()
+                            .assertSuccess()
+                            .progress()
+                                .assertUncommitted(1, 0, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(1, 0, 0)
+                                .assertExecutions(1)
+                            .end()
+                            .workStateExtension()
+                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
+                            .end();
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
 
         displayDumpable("recorder", recorder);
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(task1), result);
-        displayDumpable("progress information", info);
+        assertProgress(task1.getOid(), "after") // This is derived from the subtask
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertItems(1, null);
+
+        assertPerformance(task1.getOid(), "after") // This is derived from the subtask
+                .display()
+                .assertItemsProcessed(1)
+                .assertErrors(0)
+                .assertProgress(1)
+                .assertHasWallClockTime()
+                .assertHasThroughput();
     }
 
     @Test
@@ -773,7 +1405,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                        .activity("mock-simple:1")
+                        .child("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
                         .end()
@@ -802,8 +1434,50 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 1")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(root), result);
-        displayDumpable("progress information", info);
+        // @formatter:off
+        assertProgress( root.getOid(),"after")
+                .display()
+                .assertInProgress()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertInProgress()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                .end();
+
+        assertPerformance( root.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1") // 0 configs
+                    .assertItemsProcessed(1)
+                    .assertErrors(1)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotApplicable()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotApplicable()
+                .end();
+        // @formatter:on
 
         // ------------------------------------------------------------------------------------ run 2
 
@@ -829,7 +1503,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                        .activity("mock-simple:1")
+                        .child("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
                         .end()
@@ -856,8 +1530,50 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 2")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info2 = activityManager.getProgressInformation(getObjectable(root), result);
-        displayDumpable("progress information", info2);
+        // @formatter:off
+        assertProgress( root.getOid(),"after")
+                .display()
+                .assertInProgress()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertInProgress()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotStarted()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                .end();
+
+        assertPerformance( root.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1") // 0 configs
+                    .assertItemsProcessed(2)
+                    .assertErrors(2)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertNotApplicable()
+                    .assertNoChildren()
+                .end()
+                .child("mock-simple:2")
+                    .assertNotApplicable()
+                .end();
+        // @formatter:on
 
         // ------------------------------------------------------------------------------------ run 3
 
@@ -873,7 +1589,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
 
         // @formatter:off
-        assertTaskTree(root.getOid(), "after run 3")
+        String oidOfSubtask22 = assertTaskTree(root.getOid(), "after run 3")
                 .display()
                 // state?
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
@@ -883,12 +1599,12 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                        .activity("mock-simple:1")
+                        .child("mock-simple:1")
                             .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                             .assertResultStatus(OperationResultStatusType.SUCCESS)
 //                            .assertHasTaskRef()
                         .end()
-                        .activity("composition:1")
+                        .child("composition:1")
                             .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED)
                             .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
 //                            .assertHasTaskRef()
@@ -897,8 +1613,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .end()
                 .subtaskForPath(ActivityPath.fromId("mock-simple:1"))
                     .display()
-                    .assertExecutionStatus(TaskExecutionStateType.CLOSED)
-                    .assertSchedulingState(TaskSchedulingStateType.CLOSED)
+                    .assertClosed()
                     .assertSuccess()
                     .activityState()
                         .rootActivity()
@@ -915,10 +1630,13 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .display()
                     .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:1"))
                         .display()
+                        .assertClosed()
                     .end()
                     .subtaskForPath(ActivityPath.fromId("composition:1", "mock-simple:2"))
                         .display()
-                    .end();
+                        .assertSuspended()
+                        .getOid();
+
         // @formatter:on
 
         displayDumpable("recorder after run 3", recorder);
@@ -928,121 +1646,134 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertThat(recorder.getExecutions()).as("recorder after run 3")
                 .containsExactlyElementsOf(expectedRecords);
 
-        ActivityProgressInformation info3 = activityManager.getProgressInformation(getObjectable(root), result);
-        displayDumpable("progress information", info3);
+        dumpProgressAndPerformanceInfo(root.getOid(), result);
 
         // ------------------------------------------------------------------------------------ run 4
-//
-//        when("run 4");
-//
-//        restartTask(root.getOid(), result);
-//        waitForTaskCloseOrSuspend(root.getOid(), 10000, 200);
-//
-//        then("run 4");
-//
-//        // @formatter:off
-//        assertTask(root.getOid(), "after run 4")
-//                .display()
-//                .assertFatalError()
-//                .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
-//                .activityState()
-//                    .assertNotAllWorkComplete()
-//                    .rootActivity()
-//                        .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-//                        .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-//                        .activity("mock-simple:1")
-//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                            .workStateExtension()
-//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
-//                            .end()
-//                        .end()
-//                        .activity("composition:1")
-//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                            .activity("mock-simple:1")
-//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                                .workStateExtension()
-//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
-//                                .end()
-//                            .end()
-//                            .activity("mock-simple:2")
-//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                                .workStateExtension()
-//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
-//                                .end()
-//                            .end()
-//                        .end()
-//                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
-//                            .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
-//                            .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-//                            .workStateExtension()
-//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1);
-//        // @formatter:on
-//
-//        displayDumpable("recorder after run 4", recorder);
-//        expectedRecords.add("#2.2"); // success after 1 failure
-//        expectedRecords.add("#3"); // 1st failure
-//        assertThat(recorder.getExecutions()).as("recorder after run 4")
-//                .containsExactlyElementsOf(expectedRecords);
-//
-//        // ------------------------------------------------------------------------------------ run 5
-//
-//        when("run 5");
-//
-//        restartTask(root.getOid(), result);
-//        waitForTaskCloseOrSuspend(root.getOid(), 10000, 200);
-//
-//        then("run 5");
-//
-//        // @formatter:off
-//        assertTask(root.getOid(), "after run 4")
-//                .display()
-//                .assertSuccess()
-//                .assertExecutionStatus(TaskExecutionStateType.CLOSED)
-//                .activityState()
-//                    .assertNotAllWorkComplete()
-//                    .rootActivity()
-//                        .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                        .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                        .activity("mock-simple:1")
-//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                            .workStateExtension()
-//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 3)
-//                            .end()
-//                        .end()
-//                        .activity("composition:1")
-//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                            .activity("mock-simple:1")
-//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                                .workStateExtension()
-//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
-//                                .end()
-//                            .end()
-//                            .activity("mock-simple:2")
-//                                .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                                .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                                .workStateExtension()
-//                                    .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2)
-//                                .end()
-//                            .end()
-//                        .end()
-//                        .activity("mock-simple:2") // this is not related to mock-simple:2 above!
-//                            .assertRealizationState(ActivityRealizationStateType.COMPLETE)
-//                            .assertResultStatus(OperationResultStatusType.SUCCESS)
-//                            .workStateExtension()
-//                                .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 2);
-//        // @formatter:on
-//
-//        displayDumpable("recorder after run 5", recorder);
-//        expectedRecords.add("#3"); // success after 1 failure
-//        assertThat(recorder.getExecutions()).as("recorder after run 5")
-//                .containsExactlyElementsOf(expectedRecords);
+
+        when("run 4");
+
+        activityManager.clearFailedActivityState(root.getOid(), result);
+        taskManager.resumeTask(oidOfSubtask22, result);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+
+        then("run 4");
+
+        root.refresh(result);
+        displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
+
+        String oidOfSubtask3 = assertTaskTree(root.getOid(), "after run 4")
+                .display()
+                .assertExecutionStatus(TaskExecutionStateType.RUNNING)
+                .assertSchedulingState(TaskSchedulingStateType.WAITING)
+                .subtaskForPath(ActivityPath.fromId("mock-simple:2"))
+                    .display()
+                    .assertSuspended()
+                    .getOid();
+
+        displayDumpable("recorder after run 4", recorder);
+        expectedRecords.add("#2.2"); // success after 1 failure
+        expectedRecords.add("#3"); // 1st failure
+        assertThat(recorder.getExecutions()).as("recorder after run 4")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // ------------------------------------------------------------------------------------ run 5
+
+        when("run 5");
+
+        activityManager.clearFailedActivityState(root.getOid(), result);
+        taskManager.resumeTask(oidOfSubtask3, result);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+
+        then("run 5");
+
+        root.refresh(result);
+        displayValue("Task tree", TaskDebugUtil.dumpTaskTree(root, result));
+
+        // @formatter:off
+        assertTaskTree(root.getOid(), "after run 5")
+                .display()
+                .assertSuccess()
+                .assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        // @formatter:on
+
+        displayDumpable("recorder after run 5", recorder);
+        expectedRecords.add("#3"); // success after 1 failure
+        assertThat(recorder.getExecutions()).as("recorder after run 5")
+                .containsExactlyElementsOf(expectedRecords);
+
+        // @formatter:off
+        assertProgress( root.getOid(),"after")
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end()
+                .child("composition:1") // 1 user
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertNoItemsInformation()
+                    .assertChildren(2)
+                    .child("mock-simple:1")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                    .child("mock-simple:2")
+                        .assertComplete()
+                        .assertNoBucketInformation()
+                        .assertItems(1, null)
+                    .end()
+                .end()
+                .child("mock-simple:2")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                    .assertNoChildren()
+                .end();
+
+        assertPerformance( root.getOid(),"after")
+                .display()
+                .assertNotApplicable()
+                .assertChildren(3)
+                .child("mock-simple:1")
+                    .assertItemsProcessed(3)
+                    .assertErrors(2)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("composition:1")
+                    .assertNotApplicable()
+                    .assertChildren(2)
+                    .child("mock-simple:1")
+                        .assertItemsProcessed(1)
+                        .assertErrors(0)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                    .child("mock-simple:2")
+                        .assertItemsProcessed(2)
+                        .assertErrors(1)
+                        .assertProgress(1)
+                        .assertHasWallClockTime()
+                        .assertHasThroughput()
+                    .end()
+                .end()
+                .child("mock-simple:2")
+                    .assertItemsProcessed(2)
+                    .assertErrors(1)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end();
+        // @formatter:on
     }
 
     @Test
@@ -1075,8 +1806,17 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
 
-        ActivityProgressInformation info = activityManager.getProgressInformation(getObjectable(root), result);
-        displayDumpable("progress information", info);
+        assertProgress(root.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertBuckets(11, 11)
+                .assertItems(100, null);
+        assertPerformance(root.getOid(), "after")
+                .display()
+                .assertItemsProcessed(100)
+                .assertErrors(0)
+                .assertProgress(100)
+                .assertHasWallClockTime();
     }
 
 
@@ -1405,6 +2145,20 @@ public class TestActivities extends AbstractRepoCommonTest {
 //            suspendAndDeleteTasks(TASK_300_COORDINATOR.oid);
 //        }
 //    }
+
+    private void dumpProgressAndPerformanceInfo(String oid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        ActivityProgressInformation progressInfo = activityManager.getProgressInformation(oid, result);
+        displayDumpable("progress information", progressInfo);
+
+        dumpPerformanceInfo(oid, result);
+    }
+
+    private void dumpPerformanceInfo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        TreeNode<ActivityPerformanceInformation> performanceInfo =
+                activityManager.getPerformanceInformation(oid, result);
+        displayDumpable("performance information", performanceInfo);
+    }
 
     @NotNull
     private TaskType getObjectable(Task task1) {

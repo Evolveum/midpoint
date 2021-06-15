@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 /**
@@ -68,6 +69,9 @@ public abstract class AbstractActivityExecution<
 
     @NotNull private final QName workStateTypeName;
 
+    // Temporary
+    private long startTimestamp;
+
     protected AbstractActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
@@ -92,6 +96,9 @@ public abstract class AbstractActivityExecution<
         return taskExecution.getBeans();
     }
 
+    /**
+     * Puts the activity state into operation.
+     */
     @Override
     public void initializeState(OperationResult result) throws ActivityExecutionException {
         activityState.initialize(result);
@@ -107,6 +114,8 @@ public abstract class AbstractActivityExecution<
             return ActivityExecutionResult.finished(activityState.getResultStatus());
         }
 
+        startTimestamp = System.currentTimeMillis();
+
         logStart();
         ActivityExecutionResult executionResult = executeTreatingExceptions(result);
         logEnd(executionResult);
@@ -116,35 +125,54 @@ public abstract class AbstractActivityExecution<
         return executionResult;
     }
 
+    /**
+     * Executes the activity, converting any exceptions into appropriate {@link ActivityExecutionResult} instances.
+     */
     @NotNull
     private ActivityExecutionResult executeTreatingExceptions(OperationResult result) {
-        ActivityExecutionResult executionResult;
         try {
-            executionResult = executeInternal(result);
+            return executeInternal(result);
         } catch (ActivityExecutionException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, this);
-            executionResult = e.toActivityExecutionResult();
+            return e.toActivityExecutionResult();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, this);
-            executionResult = ActivityExecutionResult.exception(OperationResultStatus.FATAL_ERROR, PERMANENT_ERROR, e);
+            return ActivityExecutionResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
         }
-
-        return executionResult;
     }
 
+    /**
+     * Carries out the actual execution of this activity.
+     */
+    protected abstract @NotNull ActivityExecutionResult executeInternal(OperationResult result)
+            throws ActivityExecutionException, CommonException;
+
+    /**
+     * Updates the activity state with the result of the execution.
+     * Stores also the live values of progress/statistics into the current task.
+     */
     private void updateActivityState(ActivityExecutionResult executionResult, OperationResult result)
             throws ActivityExecutionException {
+
+        activityState.updateProgressAndStatisticsNoCommit();
 
         completeExecutionResult(executionResult);
 
         OperationResultStatus currentResultStatus = executionResult.getOperationResultStatus();
         if (executionResult.isFinished()) {
-            activityState.markComplete(currentResultStatus, result);
+            activityState.markCompleteNoCommit(currentResultStatus);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
-            activityState.setResultStatus(currentResultStatus, result);
+            activityState.setResultStatusNoCommit(currentResultStatus);
         }
+
+        activityState.flushPendingModificationsChecked(result); // if not flushed above
     }
 
+    /**
+     * Converts null or "in progress" values into finished/interrupted/success/default ones.
+     *
+     * TODO Or should we require the activity execution code to do this?
+     */
     private void completeExecutionResult(ActivityExecutionResult executionResult) {
         if (executionResult.getRunResultStatus() == null) {
             executionResult.setRunResultStatus(getTaskExecution().canRun() ?
@@ -176,12 +204,6 @@ public abstract class AbstractActivityExecution<
         LOGGER.info("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
-
-    /**
-     * Carries out the actual execution of this activity.
-     */
-    protected abstract @NotNull ActivityExecutionResult executeInternal(OperationResult result)
-            throws ActivityExecutionException, CommonException;
 
     @Override
     public String toString() {
@@ -259,5 +281,28 @@ public abstract class AbstractActivityExecution<
 
     public @NotNull PrismContext getPrismContext() {
         return getBeans().prismContext;
+    }
+
+    public abstract boolean supportsStatistics();
+
+    public boolean supportsProgress() {
+        return supportsStatistics(); // for now
+    }
+
+    public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
+        activityState.getLiveProgress().increment(outcome, hasProgressCommitPoints());
+    }
+
+    /**
+     * @return True if the activity is capable of distinguishing between uncommitted and committed progress items.
+     * A typical example of committing progress items is when a bucket is marked as complete: this ensures that items
+     * that were processed will not be reprocessed again.
+     */
+    protected boolean hasProgressCommitPoints() {
+        return false;
+    }
+
+    public long getStartTimestamp() {
+        return startTimestamp;
     }
 }

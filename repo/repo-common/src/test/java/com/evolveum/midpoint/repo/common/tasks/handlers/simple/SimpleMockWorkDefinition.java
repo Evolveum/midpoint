@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.simple;
 
 import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityExecution.NS_EXT;
-import static com.evolveum.midpoint.schema.util.task.WorkDefinitionWrapper.UntypedWorkDefinitionWrapper.getPcv;
+import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.UntypedWorkDefinitionWrapper.getPcv;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.namespace.QName;
@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.WorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class SimpleMockWorkDefinition extends AbstractWorkDefinition {

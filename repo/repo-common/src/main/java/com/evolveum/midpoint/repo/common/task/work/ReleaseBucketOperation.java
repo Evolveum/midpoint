@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -16,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,7 +32,7 @@ public class ReleaseBucketOperation extends BucketOperation {
     private final int sequentialNumber;
 
     ReleaseBucketOperation(BucketingManager bucketingManager, @NotNull String workerTaskOid,
-            @NotNull ActivityPath activityPath, WorkBucketStatisticsCollector collector, int sequentialNumber) {
+            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, int sequentialNumber) {
         super(workerTaskOid, activityPath, collector, bucketingManager);
         this.sequentialNumber = sequentialNumber;
     }

@@ -10,8 +10,9 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +39,7 @@ public class ActionsExecutedInformation {
     /**
      * Base to which the actual value is computed (actualValue = startValue + content in maps)
      */
-    private final ActionsExecutedInformationType startValue;
+    private final ActivityActionsExecutedType startValue;
 
     /**
      * All executed actions.
@@ -67,23 +68,23 @@ public class ActionsExecutedInformation {
 
     private CurrentScopeActions currentScopeActions = new CurrentScopeActions();
 
-    public ActionsExecutedInformation(ActionsExecutedInformationType value) {
+    public ActionsExecutedInformation(ActivityActionsExecutedType value) {
         startValue = value != null ? value.clone() : null;
     }
 
-    public synchronized ActionsExecutedInformationType getAggregatedValue() {
-        ActionsExecutedInformationType delta = toActionsExecutedInformationType();
+    public synchronized ActivityActionsExecutedType getAggregatedValue() {
+        ActivityActionsExecutedType delta = toActionsExecutedInformationType();
         if (startValue == null) {
             return delta;
         } else {
-            ActionsExecutedInformationType aggregated = new ActionsExecutedInformationType();
+            ActivityActionsExecutedType aggregated = new ActivityActionsExecutedType();
             addTo(aggregated, startValue);
             addTo(aggregated, delta);
             return aggregated;
         }
     }
 
-    public static void addTo(ActionsExecutedInformationType sum, @Nullable ActionsExecutedInformationType delta) {
+    public static void addTo(ActivityActionsExecutedType sum, @Nullable ActivityActionsExecutedType delta) {
         if (delta != null) {
             addTo(sum.getObjectActionsEntry(), delta.getObjectActionsEntry());
             addTo(sum.getResultingObjectActionsEntry(), delta.getResultingObjectActionsEntry());
@@ -133,13 +134,13 @@ public class ActionsExecutedInformation {
     }
 
     @NotNull
-    private ActionsExecutedInformationType toActionsExecutedInformationType() {
-        ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
+    private ActivityActionsExecutedType toActionsExecutedInformationType() {
+        ActivityActionsExecutedType rv = new ActivityActionsExecutedType();
         toJaxb(rv);
         return rv;
     }
 
-    private void toJaxb(ActionsExecutedInformationType rv) {
+    private void toJaxb(ActivityActionsExecutedType rv) {
         mapToJaxb(allObjectActions, rv.getObjectActionsEntry());
         mapToJaxb(resultingObjectActions, rv.getResultingObjectActionsEntry());
     }
@@ -241,12 +242,12 @@ public class ActionsExecutedInformation {
     }
 
     @NotNull
-    public static String format(@NotNull ActionsExecutedInformationType information) {
+    public static String format(@NotNull ActivityActionsExecutedType information) {
         return format(information, null);
     }
 
     @NotNull
-    public static String format(@NotNull ActionsExecutedInformationType information, Part part) {
+    public static String format(@NotNull ActivityActionsExecutedType information, Part part) {
         StringBuilder sb = new StringBuilder();
         if (part == null || part == Part.ALL) {
             formatActions(sb, information.getObjectActionsEntry(), "  All object actions:\n");

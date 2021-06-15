@@ -133,12 +133,8 @@ public class DistributingActivityExecution<
     }
 
     private void setProcessingRole(OperationResult result) throws ActivityExecutionException {
-        try {
-            activityState.setItemRealValues(BUCKETS_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.COORDINATOR);
-            activityState.flushPendingModifications(result);
-        } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't set bucket processing role", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
+        activityState.setItemRealValues(BUCKETS_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.COORDINATOR);
+        activityState.flushPendingModificationsChecked(result);
     }
 
     // TEMPORARY IMPLEMENTATION
@@ -207,6 +203,11 @@ public class DistributingActivityExecution<
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabel(sb, "Distribution state", distributionState, indent + 1);
+    }
+
+    @Override
+    public boolean supportsStatistics() {
+        return true;
     }
 
     private enum DistributionState {

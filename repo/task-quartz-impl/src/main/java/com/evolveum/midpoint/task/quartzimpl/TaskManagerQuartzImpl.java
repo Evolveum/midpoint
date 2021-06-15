@@ -547,6 +547,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         }
     }
 
+    @Override
     @NotNull
     public TaskQuartzImpl getTask(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {

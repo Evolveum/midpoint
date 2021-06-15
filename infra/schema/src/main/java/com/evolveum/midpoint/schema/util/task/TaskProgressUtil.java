@@ -31,7 +31,7 @@ public class TaskProgressUtil {
 
     public static int getProgressForOutcome(StructuredTaskProgressType info, ItemProcessingOutcomeType outcome, boolean open) {
         if (info != null) {
-            return getCounts(info.getPart(), getCounterFilter(outcome), open);
+            return getCounts(info.getPart(), OutcomeKeyedCounterTypeUtil.getCounterFilter(outcome), open);
         } else {
             return 0;
         }
@@ -39,7 +39,7 @@ public class TaskProgressUtil {
 
     public static int getProgressForOutcome(TaskPartProgressOldType part, ItemProcessingOutcomeType outcome, boolean open) {
         if (part != null) {
-            return getCounts(singleton(part), getCounterFilter(outcome), open);
+            return getCounts(singleton(part), OutcomeKeyedCounterTypeUtil.getCounterFilter(outcome), open);
         } else {
             return 0;
         }
@@ -55,6 +55,7 @@ public class TaskProgressUtil {
                 .sum();
     }
 
+    @Deprecated // Use/adapt ActivityProgressInformation instead
     public static String getProgressDescription(TaskType task, List<Object> localizationObject) {
         Long stalledSince = task.getStalledSince() != null ? XmlTypeConverter.toMillis(task.getStalledSince()) : null;
         if (stalledSince != null) {
@@ -66,6 +67,7 @@ public class TaskProgressUtil {
         }
     }
 
+    @Deprecated
     private static String getRealProgressDescription(TaskType task) {
         if (ActivityStateUtil.isWorkStateHolder(task)) {
             return getBucketedTaskProgressDescription(task);
@@ -74,6 +76,7 @@ public class TaskProgressUtil {
         }
     }
 
+    @Deprecated
     private static String getBucketedTaskProgressDescription(TaskType taskType) {
         int completeBuckets = getCompleteBuckets(taskType);
         Integer expectedBuckets = getExpectedBuckets(taskType);
@@ -84,12 +87,14 @@ public class TaskProgressUtil {
         }
     }
 
+    @Deprecated
     private static Integer getExpectedBuckets(TaskType taskType) {
         return null;//taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
     }
 
+    @Deprecated
     private static Integer getCompleteBuckets(TaskType taskType) {
-        return BucketingUtil.getCompleteBucketsNumber(taskType);
+        return null; //BucketingUtil.getCompleteBucketsNumber(taskType);
     }
 
     public static String getPlainTaskProgressDescription(TaskType taskType) {
@@ -107,19 +112,6 @@ public class TaskProgressUtil {
                 sb.append("/").append(taskType.getExpectedTotal());
             }
             return sb.toString();
-        }
-    }
-
-    private static Predicate<OutcomeKeyedCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
-        switch (outcome) {
-            case SUCCESS:
-                return OutcomeKeyedCounterTypeUtil::isSuccess;
-            case FAILURE:
-                return OutcomeKeyedCounterTypeUtil::isFailure;
-            case SKIP:
-                return OutcomeKeyedCounterTypeUtil::isSkip;
-            default:
-                throw new AssertionError(outcome);
         }
     }
 

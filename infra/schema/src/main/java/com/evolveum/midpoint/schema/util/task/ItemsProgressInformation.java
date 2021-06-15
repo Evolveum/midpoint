@@ -7,17 +7,14 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.task.BucketingUtil.hasBuckets;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Task progress counted in items.
@@ -43,23 +40,46 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
         return new ItemsProgressInformation(totalProgress, expectedTotal);
     }
 
-    public static ItemsProgressInformation fromTask(TaskType task) {
-        List<TaskType> allTasks = TaskTreeUtil.getAllTasksStream(task)
-                .filter(t -> t.getOid() != null)
-                .collect(Collectors.toList());
-        Integer expectedTotal;
-        if (task.getExpectedTotal() != null && !hasBuckets(task) && allTasks.size() <= 1) {
-            expectedTotal = task.getExpectedTotal().intValue();
-        } else {
-            expectedTotal = null;
-        }
+//    public static ItemsProgressInformation fromTask(TaskType task) {
+//        List<TaskType> allTasks = TaskTreeUtil.getAllTasksStream(task)
+//                .filter(t -> t.getOid() != null)
+//                .collect(Collectors.toList());
+//        Integer expectedTotal;
+//        if (task.getExpectedTotal() != null && !hasBuckets(task) && allTasks.size() <= 1) {
+//            expectedTotal = task.getExpectedTotal().intValue();
+//        } else {
+//            expectedTotal = null;
+//        }
+//
+//        int totalProgress = (int) allTasks.stream()
+//                .map(TaskType::getProgress)
+//                .filter(Objects::nonNull)
+//                .mapToLong(value -> value)
+//                .sum();
+//        return new ItemsProgressInformation(totalProgress, expectedTotal);
+//    }
 
-        int totalProgress = (int) allTasks.stream()
-                .map(TaskType::getProgress)
-                .filter(Objects::nonNull)
-                .mapToLong(value -> value)
-                .sum();
-        return new ItemsProgressInformation(totalProgress, expectedTotal);
+    public static ItemsProgressInformation fromActivityState(ActivityStateType state) {
+        if (state == null || state.getProgress() == null) {
+            return null; // TODO ok?
+        } else {
+            // TODO expected total
+            return new ItemsProgressInformation(
+                    ActivityProgressUtil.getCurrentProgress(state.getProgress()), null);
+        }
+    }
+
+    /**
+     * We can obtain items processed from bucketing coordinator by summarizing the progress from its children.
+     * (Related to given activity!)
+     */
+    static ItemsProgressInformation fromBucketingCoordinator(ActivityStateType state, ActivityPath activityPath,
+            TaskType task, TaskResolver resolver) {
+        return new ItemsProgressInformation(
+                ActivityTreeUtil.getSubtasksForPath(task, activityPath, resolver).stream()
+                        .mapToInt(subtask -> ActivityProgressUtil.getCurrentProgress(subtask, activityPath))
+                        .sum(),
+                null);
     }
 
     public int getProgress() {

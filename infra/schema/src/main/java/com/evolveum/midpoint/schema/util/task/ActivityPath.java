@@ -18,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPathType;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 public class ActivityPath {
@@ -33,7 +35,7 @@ public class ActivityPath {
         this.identifiers = List.copyOf(identifiers);
     }
 
-    public static ActivityPath fromBean(ActivityPathType bean) {
+    public static @NotNull ActivityPath fromBean(@Nullable ActivityPathType bean) {
         if (bean != null) {
             return new ActivityPath(bean.getIdentifier());
         } else {
@@ -86,6 +88,11 @@ public class ActivityPath {
         return ActivityPath.fromList(identifiers.subList(1, identifiers.size()));
     }
 
+    public String last() {
+        stateCheck(!isEmpty(), "Path is empty");
+        return identifiers.get(identifiers.size() - 1);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -117,5 +124,9 @@ public class ActivityPath {
 
     public boolean equalsBean(ActivityPathType bean) {
         return bean != null && identifiers.equals(bean.getIdentifier());
+    }
+
+    public String toDebugName() {
+        return isEmpty() ? "root" : "'" + this + "'";
     }
 }

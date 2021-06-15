@@ -429,6 +429,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        return null;
+    }
+
+    @Override
     public ObjectReferenceType getReferenceRealValue(ItemPath path) {
         return null;
     }
@@ -598,11 +603,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    public void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value) {
     }
 
     @Override
-    public void resetIterativeTaskInformation(ActivityIterationInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
     }
 
     @Override
@@ -619,7 +624,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
     }
 
     @Override

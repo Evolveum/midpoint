@@ -173,8 +173,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                 }
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
-                        new IterationItemInformation(parentCasePrism),
-                        ActivityPath.fromId(SchemaConstants.ID_CLOSED_CASES_CLEANUP));
+                        new IterationItemInformation(parentCasePrism));
                 startInfo.setStructuredProgressCollector(executionTask);
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {

@@ -33,15 +33,27 @@ public abstract class LocalActivityExecution<
 
         activityState.markInProgressLocal(result); // The realization state might be "in progress" already.
 
-        getTreeStateOverview().recordExecutionStart(this, result);
+        updateStateInformationOnExecutionStart(result);
         ActivityExecutionResult executionResult = null;
         try {
             executionResult = executeLocal(result);
         } finally {
-            getTreeStateOverview().recordExecutionFinish(this, executionResult, result);
+            updateStateInformationOnExecutionFinish(result, executionResult);
         }
 
         return executionResult;
+    }
+
+    private void updateStateInformationOnExecutionStart(OperationResult result) throws ActivityExecutionException {
+        getTreeStateOverview().recordExecutionStart(this, result);
+        activityState.getStatistics().getLiveItemProcessing().recordExecutionStart(getStartTimestamp());
+        activityState.getLiveProgress().clearUncommitted();
+    }
+
+    private void updateStateInformationOnExecutionFinish(OperationResult result, ActivityExecutionResult executionResult)
+            throws ActivityExecutionException {
+        getTreeStateOverview().recordExecutionFinish(this, executionResult, result);
+        activityState.getStatistics().getLiveItemProcessing().recordExecutionEnd(getStartTimestamp(), System.currentTimeMillis());
     }
 
     protected abstract @NotNull ActivityExecutionResult executeLocal(OperationResult result)

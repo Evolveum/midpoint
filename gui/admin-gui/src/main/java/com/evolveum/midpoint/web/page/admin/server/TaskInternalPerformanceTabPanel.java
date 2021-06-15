@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
 
 import org.apache.wicket.model.Model;
 
@@ -138,10 +137,10 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
                             options, iterations, seconds))
                     .append("\n");
         }
-        WorkBucketManagementPerformanceInformationType buckets = statistics.getWorkBucketManagementPerformanceInformation();
+        BucketManagementStatisticsType buckets = statistics.getWorkBucketManagementPerformanceInformation();
         if (buckets != null && !buckets.getOperation().isEmpty()) {
             sb.append("Work buckets management performance information\n\n")
-                    .append(TaskWorkBucketManagementPerformanceInformationUtil.format(buckets, options, iterations, seconds))
+                    .append(ActivityBucketManagementStatisticsUtil.format(buckets, options, iterations, seconds))
                     .append("\n");
         }
         if (statistics.getCachesPerformanceInformation() != null) {

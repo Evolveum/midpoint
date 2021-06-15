@@ -122,7 +122,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         assertNotNull(stats, "No statistics in task");
 
-        SynchronizationInformationType syncInfo = stats.getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = stats.getSynchronizationInformation();
         assertNotNull(syncInfo, "No sync info in task");
 
 //        assertEquals((Object) syncInfo.getCountUnmatched(), getDefaultUsers());
@@ -264,7 +264,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertSynchronizationStatisticsActivation(taskAfter);
     }
 
-    void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
+    void dumpSynchronizationInformation(ActivitySynchronizationStatisticsType synchronizationInformation) {
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
     }
 
