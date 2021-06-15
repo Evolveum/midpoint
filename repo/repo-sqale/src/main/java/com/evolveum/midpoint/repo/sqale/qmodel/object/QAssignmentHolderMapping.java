@@ -62,15 +62,6 @@ public class QAssignmentHolderMapping<
         return (Q) new QAssignmentHolder<>(MObject.class, alias);
     }
 
-    @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
-    @Override
-    public @NotNull R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
-        R row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-
-        // TODO
-        return row;
-    }
-
     @Override
     public void storeRelatedEntities(
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
