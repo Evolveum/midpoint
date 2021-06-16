@@ -240,7 +240,6 @@ public class JdbcSession implements AutoCloseable {
     @Override
     public void close() {
         try {
-            commit();
             connection.close();
         } catch (SQLException e) {
             throw new SystemException(e);

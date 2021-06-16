@@ -156,6 +156,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 insertProperties(jdbcSession, recordId, record.getProperties());
                 insertReferences(jdbcSession, recordId, record.getReferences());
                 insertResourceOids(jdbcSession, recordId, record.getResourceOids());
+                jdbcSession.commit();
             } catch (RuntimeException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }

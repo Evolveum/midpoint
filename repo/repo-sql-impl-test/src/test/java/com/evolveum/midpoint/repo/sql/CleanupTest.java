@@ -80,6 +80,7 @@ public class CleanupTest extends BaseSQLRepoTest {
             jdbcSession.delete(QAuditResourceMapping.INSTANCE.defaultAlias()).execute();
             jdbcSession.delete(QAuditRefValueMapping.INSTANCE.defaultAlias()).execute();
             jdbcSession.delete(QAuditEventRecordMapping.INSTANCE.defaultAlias()).execute();
+            jdbcSession.commit();
         }
     }
 
