@@ -45,11 +45,10 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -411,52 +410,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    // supported types for extension properties, references ignore this
-    public static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
-            DOMUtil.XSD_BOOLEAN,
-            DOMUtil.XSD_INT,
-            DOMUtil.XSD_LONG,
-            DOMUtil.XSD_SHORT,
-            DOMUtil.XSD_INTEGER,
-            DOMUtil.XSD_DECIMAL,
-            DOMUtil.XSD_STRING,
-            DOMUtil.XSD_DOUBLE,
-            DOMUtil.XSD_FLOAT,
-            DOMUtil.XSD_DATETIME,
-            PolyStringType.COMPLEX_TYPE);
-
     /** Returns ext item definition or null if the item is not indexed and should be skipped. */
     private ExtItemInfo findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
         Objects.requireNonNull(item, "Object for converting must not be null.");
 
         ItemDefinition<?> definition = item.getDefinition();
-        Objects.requireNonNull(definition,
-                "Item '" + item.getElementName() + "' without definition can't be saved.");
+        MExtItem extItem = repositoryContext().resolveExtensionItem(definition, holderType);
+        if (extItem == null) {
+            return null;
+        }
 
         // TODO review any need for shadow attributes, now they are stored fine, but the code here
         //  is way too simple compared to the old repo.
 
-        if (definition instanceof PrismPropertyDefinition) {
-            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
-            // null is default which is "indexed"
-            if (indexed != null && !indexed) {
-                return null;
-            }
-            // enum is recognized by having allowed values
-            Collection<? extends DisplayableValue<?>> allowedValues =
-                    ((PrismPropertyDefinition<?>) definition).getAllowedValues();
-            if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
-                    && (allowedValues == null || allowedValues.isEmpty())) {
-                return null;
-            }
-        } else if (!(definition instanceof PrismReferenceDefinition)) {
-            throw new UnsupportedOperationException("Unknown definition type '"
-                    + definition + "', can't say if '" + item + "' is indexed or not.");
-        } // else it's reference which is indexed implicitly
-
         ExtItemInfo info = new ExtItemInfo();
-        info.item = repositoryContext()
-                .resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+        info.item = extItem;
         if (definition instanceof PrismReferenceDefinition) {
             info.defaultRefTargetType = ((PrismReferenceDefinition) definition).getTargetTypeName();
         }
@@ -517,6 +485,20 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         throw new IllegalArgumentException(
                 "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
+    }
+
+    /**
+     * Adds extension container mapping, mainly the resolver for the extension container path.
+     *
+     * @param <C> schema type of the extension container
+     */
+    public <C extends Containerable> void addExtensionMapping(
+            @NotNull ItemName itemName,
+            @NotNull Class<C> nestedSchemaType,
+            @NotNull Function<Q, JsonbPath> rootToPath) {
+        ExtensionMapping<C, Q, R> mapping =
+                new ExtensionMapping<>(nestedSchemaType, queryType(), rootToPath);
+        addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, itemName));
     }
     // endregion
 }

@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
@@ -13,6 +16,9 @@ import javax.xml.namespace.QName;
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
@@ -25,8 +31,11 @@ import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -109,7 +118,43 @@ public class SqaleRepoContext extends SqlRepoContext {
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
-    public MExtItem resolveExtensionItem(MExtItem.Key extItemKey) {
-        return extItemCache.resolveExtensionItem(extItemKey);
+    // supported types for extension properties, references ignore this
+    private static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
+            DOMUtil.XSD_BOOLEAN,
+            DOMUtil.XSD_INT,
+            DOMUtil.XSD_LONG,
+            DOMUtil.XSD_SHORT,
+            DOMUtil.XSD_INTEGER,
+            DOMUtil.XSD_DECIMAL,
+            DOMUtil.XSD_STRING,
+            DOMUtil.XSD_DOUBLE,
+            DOMUtil.XSD_FLOAT,
+            DOMUtil.XSD_DATETIME,
+            PolyStringType.COMPLEX_TYPE);
+
+    public MExtItem resolveExtensionItem(
+            ItemDefinition<?> definition, MExtItemHolderType holderType) {
+        Objects.requireNonNull(definition,
+                "Item '" + definition.getItemName() + "' without definition can't be saved.");
+
+        if (definition instanceof PrismPropertyDefinition) {
+            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
+            // null is default which is "indexed"
+            if (indexed != null && !indexed) {
+                return null;
+            }
+            // enum is recognized by having allowed values
+            Collection<? extends DisplayableValue<?>> allowedValues =
+                    ((PrismPropertyDefinition<?>) definition).getAllowedValues();
+            if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+                    && (allowedValues == null || allowedValues.isEmpty())) {
+                return null;
+            }
+        } else if (!(definition instanceof PrismReferenceDefinition)) {
+            throw new UnsupportedOperationException("Unknown definition type '" + definition
+                    + "', can't say if '" + definition.getItemName() + "' is indexed or not.");
+        } // else it's reference which is indexed implicitly
+
+        return extItemCache.resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
     }
 }

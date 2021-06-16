@@ -35,10 +35,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -80,7 +77,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
         // full-text is not item mapping, but filter on the whole object
-        // TODO ext mapping can't be done statically
+        addExtensionMapping(F_EXTENSION, ExtensionType.class, q -> q.ext);
 
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(

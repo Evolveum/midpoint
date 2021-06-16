@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -51,7 +52,7 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
-        // TODO attributes JSONB
+        addExtensionMapping(F_ATTRIBUTES, ShadowAttributesType.class, q -> q.attributes);
     }
 
     @Override

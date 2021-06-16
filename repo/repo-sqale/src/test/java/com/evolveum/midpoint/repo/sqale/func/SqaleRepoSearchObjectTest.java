@@ -926,6 +926,26 @@ AND(
                 .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
     }
 
+    // TODO tests with ref/@/...
+    // endregion
+
+    // region extension queries
+    @Test
+    public void test400SearchObjectHavingSpecifiedStringExtension() throws SchemaException {
+        when("searching users by extension string item");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_EXTENSION, new QName("string")).eq("string-value")
+                        .build(),
+                operationResult);
+
+        then("users having specified extension value are returned");
+        assertThat(result).hasSize(1)
+                .anyMatch(o -> o.getOid().equals(user1Oid));
+    }
+    // endregion
+
     // region special cases
     @Test
     public void test900SearchByWholeContainerIsNotPossible() {
