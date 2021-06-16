@@ -71,7 +71,8 @@ import static java.util.Objects.requireNonNull;
  *
  * *TODO finish cleanup*
  */
-public abstract class AbstractSearchIterativeActivityExecution<O extends ObjectType,
+public abstract class AbstractSearchIterativeActivityExecution<
+        O extends ObjectType,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE, BS>,

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ public class PropagationActivityExecution
 
     private static final String SHORT_NAME = "Propagation";
 
+    /** Fetched resource object. */
     private PrismObject<ResourceType> resource;
 
     PropagationActivityExecution(
@@ -86,5 +88,10 @@ public class PropagationActivityExecution
                     }
                 }
         );
+    }
+
+    @Override
+    protected void debugDumpExtra(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabel(sb, "resource", resource, indent + 1);
     }
 }

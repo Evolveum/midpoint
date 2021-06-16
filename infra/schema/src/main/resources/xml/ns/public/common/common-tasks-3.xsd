@@ -5469,47 +5469,43 @@
                 <a:since>4.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectQuery" type="q:QueryType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="useRepositoryDirectly" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Whether to use repository directly when searching for objects.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iterationMethod" type="c:IterationMethodType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                How to iterate through objects. Should be used only when really needed.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectQuery" type="q:QueryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useRepositoryDirectly" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to use repository directly when searching for objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iterationMethod" type="c:IterationMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to iterate through objects. Should be used only when really needed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="objectSet" type="tns:ObjectSetType"/>
 
@@ -5527,7 +5523,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="objectSet" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5696,7 +5692,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractWorKDefinition" type="tns:AbstractWorkDefinitionType" />
+    <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
 
     <xsd:complexType name="ResourceBasedWorkDefinitionType">
         <xsd:annotation>
@@ -5741,10 +5737,34 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceBasedWorkDefinitionType">
+                <!--<xsd:sequence>-->
+                <!--    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0"/>-->
+                <!--</xsd:sequence>-->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="propagationWorkDefinition" type="tns:PropagationWorkDefinitionType"/>
+
+    <xsd:complexType name="MultiPropagationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resources" type="tns:ObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="multiPropagationWorkDefinition" type="tns:MultiPropagationWorkDefinitionType"/>
 
     <xsd:complexType name="ActivityPathType">
         <xsd:annotation>
