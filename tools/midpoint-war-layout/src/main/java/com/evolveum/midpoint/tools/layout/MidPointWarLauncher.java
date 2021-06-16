@@ -63,16 +63,7 @@ public class MidPointWarLauncher extends WarLauncher {
     }
 
     public static synchronized void stop(String[] args) throws Exception {
-        try {
-            if (warLauncher != null) {
-                warLauncher.launch(args, warLauncher.getMainClass(), classLoader, true);
-                warLauncher = null;
-                classLoader = null;
-            }
-        } catch (Exception ex) {
-            throw new Exception(
-                    "Could not stop MidPoint application" + ";" + ex.getLocalizedMessage(), ex);
-        }
+        System.exit(0);
     }
 
     @SuppressWarnings("SameParameterValue")

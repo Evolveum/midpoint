@@ -73,7 +73,10 @@ REM ----- Execute The Requested Command ---------------------------------------
 
 set EXECUTABLE=%BIN_DIR%\midpoint.exe
 set PR_INSTALL=%EXECUTABLE%
-set MIDPOINT_START_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
+
+REM use spring-boot through the PropertiesLauncher to start and the legacy WarLauncer to stop the application
+set MIDPOINT_START_CLASS=org.springframework.boot.loader.PropertiesLauncher
+set MIDPOINT_STOP_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
 
 REM Service log configuration
 set PR_LOGPREFIX=%SERVICE_NAME%
@@ -104,9 +107,9 @@ set PR_STARTCLASS=%MIDPOINT_START_CLASS%
 
 REM Shutdown configuration
 set PR_STOPMODE=jvm
-set PR_STOPMETHOD=%PR_STARTMETHOD%
+set PR_STOPMETHOD=main
 set PR_STOPPARAMS=stop
-set PR_STOPCLASS=%MIDPOINT_START_CLASS%
+set PR_STOPCLASS=%MIDPOINT_STOP_CLASS%
 
 REM JVM configuration
 set PR_JVMMS=1024
@@ -132,6 +135,7 @@ echo Using JRE_HOME:         "%JRE_HOME%"
 
 REM Install service
 "%PR_INSTALL%" //IS//%SERVICE_NAME% ^
+--Description="Identity Governance and Administration Application" ^
 --StartMode="%PR_STARTMODE%" ^
 --StartClass="%PR_STARTCLASS%" ^
 --StartMethod="%PR_STARTMETHOD%" ^
@@ -149,7 +153,7 @@ REM Install service
 --LogLevel="%PR_LOGLEVEL%" ^
 --StdOutput="%PR_STDOUTPUT%" ^
 --StdError="%PR_STDERROR%" ^
---JvmOptions -Dmidpoint.home="%MIDPOINT_HOME%";-Dpython.cachedir="%MIDPOINT_HOME%\tmp";-Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks";-Djavax.net.ssl.trustStoreType=jceks ^
+--JvmOptions -Dmidpoint.home="%MIDPOINT_HOME%";-Dpython.cachedir="%MIDPOINT_HOME%\tmp";-Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks";-Djavax.net.ssl.trustStoreType=jceks;-Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,"%MIDPOINT_HOME%\lib" ^
 --Classpath="%PR_CLASSPATH%"
 
 if not errorlevel 1 goto installed
