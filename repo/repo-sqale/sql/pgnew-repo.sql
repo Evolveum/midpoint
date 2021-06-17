@@ -962,9 +962,7 @@ CREATE INDEX m_value_policy_policySituation_idx
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
-        CHECK (objectType = 'REPORT'),
-    orientation OrientationType,
-    parent BOOLEAN
+        CHECK (objectType = 'REPORT')
 )
     INHERITS (m_assignment_holder);
 
@@ -979,7 +977,6 @@ CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
--- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (

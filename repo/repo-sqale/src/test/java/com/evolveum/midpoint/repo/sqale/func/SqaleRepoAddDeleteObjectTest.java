@@ -54,7 +54,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.*;
-import com.evolveum.midpoint.repo.sqale.qmodel.report.MReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.MReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
@@ -1358,12 +1357,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         when("adding it to the repository");
         repositoryService.addObject(report.asPrismObject(), null, result);
 
-        then("it is stored and relevant attributes are in columns");
+        then("report is stored");
         assertThatOperationResult(result).isSuccess();
 
-        MReport row = selectObjectByOid(QReport.class, report.getOid());
-        assertThat(row.orientation).isEqualTo(OrientationType.LANDSCAPE);
-        assertThat(row.parent).isTrue();
+        selectObjectByOid(QReport.class, report.getOid());
     }
 
     @Test
