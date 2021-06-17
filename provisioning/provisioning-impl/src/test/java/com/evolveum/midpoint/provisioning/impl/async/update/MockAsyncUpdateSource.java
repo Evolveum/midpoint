@@ -11,7 +11,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListen
 import com.evolveum.midpoint.provisioning.ucf.api.async.PassiveAsyncUpdateSource;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyDataAsyncUpdateMessageType;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * See also MockAsyncUpdateSource in model-intest.
@@ -32,6 +32,8 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
 
     private final Queue<AsyncUpdateMessageType> messages = new LinkedList<>();
 
+    private final AtomicInteger unacknowledgedMessagesCounter = new AtomicInteger(0);
+
     static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
 
     public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {
@@ -40,11 +42,11 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
     }
 
     @Override
-    public boolean getNextUpdate(AsyncUpdateMessageListener listener) throws SchemaException {
+    public boolean getNextUpdate(AsyncUpdateMessageListener listener) {
         AsyncUpdateMessageType message = messages.poll();
         if (message != null) {
             listener.onMessage(message, (processed, result) -> {
-                // nothing to do, the message is already gone
+                unacknowledgedMessagesCounter.decrementAndGet();
             });
             return true;
         } else {
@@ -66,10 +68,16 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
         AnyDataAsyncUpdateMessageType message = new AnyDataAsyncUpdateMessageType();
         message.setData(changeDescription);
         messages.offer(message);
+        unacknowledgedMessagesCounter.incrementAndGet();
     }
 
     public void reset() {
         messages.clear();
+        unacknowledgedMessagesCounter.set(0);
+    }
+
+    public int getUnacknowledgedMessagesCount() {
+        return unacknowledgedMessagesCounter.get();
     }
 
     @Override
@@ -80,6 +88,7 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
     public String toString() {
         return "MockAsyncUpdateSource{" +
                 "messages:" + messages.size() +
+                ", unacknowledged:" + unacknowledgedMessagesCounter.get() +
                 '}';
     }
 }
