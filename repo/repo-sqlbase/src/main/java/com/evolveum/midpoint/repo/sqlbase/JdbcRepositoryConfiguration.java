@@ -45,7 +45,22 @@ public interface JdbcRepositoryConfiguration {
     String getJdbcPassword();
 
     TransactionIsolation getTransactionIsolation();
-    String getReadOnlyTransactionStatement();
+
+    /**
+     * If true, then {@link java.sql.Connection#setReadOnly(boolean)} is used for read only
+     * transactions and {@link #getReadOnlyTransactionStatement()} is ignored.
+     */
+    default boolean useSetReadOnlyOnConnection() {
+        return false;
+    }
+
+    /**
+     * Statement to start or set read only transaction, null if not supported.
+     */
+    default String getReadOnlyTransactionStatement() {
+        return null;
+    }
+
     long getInitializationFailTimeout();
 
     int getMinPoolSize();

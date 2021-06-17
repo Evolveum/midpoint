@@ -130,10 +130,16 @@ public class JdbcSession implements AutoCloseable {
 
         rollbackForReadOnly = false;
         if (readonly) {
-            // If null, DB does not support read-only transactions.
-            if (jdbcRepositoryConfiguration.getReadOnlyTransactionStatement() != null) {
+            if (jdbcRepositoryConfiguration.useSetReadOnlyOnConnection()) {
+                try {
+                    connection.setReadOnly(true);
+                } catch (SQLException e) {
+                    throw new SystemException("Setting read only for transaction failed", e);
+                }
+            } else if (jdbcRepositoryConfiguration.getReadOnlyTransactionStatement() != null) {
                 executeStatement(jdbcRepositoryConfiguration.getReadOnlyTransactionStatement());
             } else {
+                // DB does not support read-only transactions, any commit will result in rollback.
                 rollbackForReadOnly = true;
             }
         }
