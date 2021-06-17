@@ -149,6 +149,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
                         .startTransaction(Connection.TRANSACTION_READ_COMMITTED)) {
                     jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
                             ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
+                    jdbcSession.commit();
                 }
             }
         }
