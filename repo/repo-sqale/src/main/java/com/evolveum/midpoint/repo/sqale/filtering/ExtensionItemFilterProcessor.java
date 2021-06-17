@@ -6,17 +6,24 @@
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
+import static com.querydsl.core.types.dsl.Expressions.booleanTemplate;
+import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
+
+import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
+import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
+
 import java.util.function.Function;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.Expressions;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
@@ -54,16 +61,33 @@ public class ExtensionItemFilterProcessor
                 .resolveExtensionItem(definition, holderType);
 
         ValueFilterValues<?, ?> values = ValueFilterValues.from(filter);
-        Ops operation = operation(filter);
+        Ops operator = operation(filter);
+
+        if (values.isEmpty()) {
+            if (operator == Ops.EQ || operator == Ops.EQ_IGNORE_CASE) {
+                // ?? is "escaped" ? operator, PG JDBC driver understands it. Alternative is to use
+                // function jsonb_exists but that does NOT use GIN index, only operators do!
+                // We have to use parenthesis with AND shovelled into the template like this.
+                return booleanTemplate("({0} ?? {1} AND {0} is not null)",
+                        path, extItem.id.toString()).not();
+            } else {
+                throw new QueryException("Null value for other than EQUAL filter: " + filter);
+            }
+        }
 
         // If long but monotonous, it can be one method, otherwise throws must be moved inside extracted methods too.
-        if (extItem.valueType.equals(STRING_TYPE)) {
-            if (operation == Ops.EQ) {
-                // TODO ARRAY, should be easy, just adding [ ] around second "%s"2
-                return Expressions.booleanTemplate("{0} @> {1}::jsonb", path,
-                        String.format("{\"%d\":\"%s\"}", extItem.id, values.singleValue()));
+        if (extItem.valueType.equals(STRING_TYPE) && extItem.cardinality == SCALAR) {
+            if (operator == Ops.EQ) {
+                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
+                        String.format("{\"%d\":\"%s\"}", extItem.id, values.singleValue())));
+            } else {
+                // {1s} means "as string", this is replaced before JDBC driver, just as path is,
+                // but for path types it's automagic, integer would turn to param and ?.
+                return singleValuePredicate(stringTemplate("{0}->>'{1s}'", path, extItem.id),
+                        operator, values.singleValue());
             }
-            // TODO other ops
+        } else if (extItem.valueType.equals(STRING_TYPE) && extItem.cardinality == ARRAY) {
+            // TODO only EQ: contains/not contains
         }
 
         // TODO other types

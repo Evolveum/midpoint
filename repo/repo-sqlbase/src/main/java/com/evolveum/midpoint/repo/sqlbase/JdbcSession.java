@@ -92,6 +92,9 @@ public class JdbcSession implements AutoCloseable {
 
     /**
      * Starts transaction and returns {@code this}.
+     * *Do not forget to explicitly commit the transaction* calling {@link #commit()} at the end
+     * of positive flow block, otherwise the transaction will be terminated by the connection pool
+     * automatically - which is likely a rollback.
      */
     public JdbcSession startTransaction() {
         return startTransaction(false);
@@ -114,6 +117,10 @@ public class JdbcSession implements AutoCloseable {
 
     /**
      * Starts read-only transaction and returns {@code this}.
+     * If read-only transaction is truly supported commit, rollback or nothing can be used.
+     * Using neither commit nor rollback is perfectly OK, rollback will be likely used by
+     * the connection pool after reclaiming the connection.
+     * There should be no performance difference between commit and rollback.
      */
     public JdbcSession startReadOnlyTransaction() {
         return startTransaction(true);

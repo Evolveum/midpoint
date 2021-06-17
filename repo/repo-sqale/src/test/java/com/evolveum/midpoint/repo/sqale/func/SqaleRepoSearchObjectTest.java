@@ -137,6 +137,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .policySituation("situationA")
                 .policySituation("situationC")
                 .extension(new ExtensionType(prismContext));
+
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
@@ -158,13 +159,15 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
-        user2Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-2")
-                        .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
-                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
-                        .subtype("workerA")
-                        .asPrismObject(),
-                null, result);
+        UserType user2 = new UserType(prismContext).name("user-2")
+                .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                .subtype("workerA")
+                .extension(new ExtensionType(prismContext));
+        ExtensionType user2Extension = user2.getExtension();
+        addExtensionValue(user2Extension, "string", "other-value");
+        user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
+
         user3Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-3")
                         .costCenter("50")
@@ -931,7 +934,7 @@ AND(
 
     // region extension queries
     @Test
-    public void test400SearchObjectHavingSpecifiedStringExtension() throws SchemaException {
+    public void test500SearchObjectHavingSpecifiedStringExtension() throws SchemaException {
         when("searching users by extension string item");
         OperationResult operationResult = createOperationResult();
         SearchResultList<UserType> result = searchObjects(UserType.class,
@@ -943,6 +946,55 @@ AND(
         then("users having specified extension value are returned");
         assertThat(result).hasSize(1)
                 .anyMatch(o -> o.getOid().equals(user1Oid));
+    }
+
+    @Test
+    public void test501SearchObjectNotHavingSpecifiedStringExtension() throws SchemaException {
+        when("searching users not having extension string item");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .not()
+                        .item(UserType.F_EXTENSION, new QName("string")).eq("string-value")
+                        .build(),
+                operationResult);
+
+        then("users not having specified extension value are returned");
+        assertThat(result).hasSize(3)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test502SearchObjectUsingExtensionStringComparison() throws SchemaException {
+        when("searching users having extension string greater than specified value");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_EXTENSION, new QName("string")).gt("a")
+                        .build(),
+                operationResult);
+
+        then("users with extension string greater than specified value are returned");
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test503SearchObjectWithoutExtensionItem() throws SchemaException {
+        when("searching users not having extension item (is null)");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(UserType.F_EXTENSION, new QName("string")).isNull()
+                        .build(),
+                operationResult);
+
+        then("users without string extension item are returned");
+        assertThat(result).hasSize(2)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user3Oid, user4Oid);
     }
     // endregion
 
