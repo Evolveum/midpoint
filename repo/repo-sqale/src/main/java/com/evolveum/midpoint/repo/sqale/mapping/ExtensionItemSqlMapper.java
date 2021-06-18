@@ -47,6 +47,10 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
 
     @Override
     public @Nullable Path<?> itemPrimaryPath(Q entityPath) {
+        // TODO this currently does NOT work because:
+        //  - sorting by ext does not make sense, we want to sort by ext->something (or ->>)
+        //  - that also means that we don't want to return Path but Expression instead
+        //  - but sorting by ext/something is not yet supported in SqlQueryContext.processOrdering
         return rootToExtensionPath.apply(entityPath);
     }
 

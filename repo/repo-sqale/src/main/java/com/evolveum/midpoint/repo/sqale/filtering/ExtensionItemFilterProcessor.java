@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SC
 
 import java.util.function.Function;
 
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 
