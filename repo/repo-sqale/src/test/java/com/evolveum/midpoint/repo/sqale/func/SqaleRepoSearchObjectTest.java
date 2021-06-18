@@ -157,6 +157,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
         addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
         addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(user1Extension, "int-mv", 47, 31);
         addExtensionValue(user1Extension, "ref-mv",
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
@@ -169,6 +170,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .extension(new ExtensionType(prismContext));
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
+        addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
+        addExtensionValue(user2Extension, "int", 2);
         user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
 
         user3Oid = repositoryService.addObject(
@@ -945,13 +948,13 @@ AND(
 
     @Test
     public void test501SearchObjectNotHavingSpecifiedStringExtension() throws SchemaException {
-        searchUsersTest("not having extension string item",
+        searchUsersTest("not having extension string item equal to value (can be null)",
                 f -> f.not().item(UserType.F_EXTENSION, new QName("string")).eq("string-value"),
                 user2Oid, user3Oid, user4Oid);
     }
 
     @Test
-    public void test502SearchObjectWithoutExtensionItem() throws SchemaException {
+    public void test502SearchObjectWithoutExtensionStringItem() throws SchemaException {
         searchUsersTest("not having extension item (is null)",
                 f -> f.item(UserType.F_EXTENSION, new QName("string")).isNull(),
                 user3Oid, user4Oid);
@@ -1012,6 +1015,95 @@ AND(
                         .startsWith("OTHER").matchingCaseIgnore(),
                 user2Oid);
     }
+
+    @Test
+    public void test510SearchObjectHavingSpecifiedMultivalueStringExtension() throws SchemaException {
+        searchUsersTest("having extension multi-string item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).eq("string-value2"),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test511SearchObjectNotHavingSpecifiedMultivalueStringExtension() throws SchemaException {
+        searchUsersTest("not having extension multi-string item equal to value",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).eq("string-value1"),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test512SearchObjectWithoutExtensionMultivalueStringItem() throws SchemaException {
+        searchUsersTest("not having extension multi-string item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).isNull(),
+                user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test515SearchObjectHavingSpecifiedMultivalueStringExtension() {
+        given("query for multi-value extension string item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2")
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    @Test
+    public void test520SearchObjectHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension integer item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).eq(1),
+                user1Oid);
+    }
+
+    @Test
+    public void test521SearchObjectNotHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("not having extension int item equal to value",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("int")).eq("1"),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test522SearchObjectWithoutExtensionIntegerItem() throws SchemaException {
+        searchUsersTest("not having extension item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).isNull(),
+                user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test523SearchObjectHavingSpecifiedIntegerExtensionItemGreaterThanValue() throws SchemaException {
+        searchUsersTest("not having extension int item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(1),
+                user2Oid);
+    }
+
+    @Test
+    public void test528SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(47),
+                user1Oid);
+    }
+
+    @Test
+    public void test529SearchObjectHavingSpecifiedMultivalueIntegerExtension() {
+        given("query for multi-value extension integer item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("int-mv")).gt(40)
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    // TODO double and BigDecimal tests
+    // TODO boolean extension query
+    // TODO poly extension query
+    // TODO ref extension query
     // endregion
 
     // region special cases

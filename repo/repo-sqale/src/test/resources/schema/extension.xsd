@@ -66,6 +66,7 @@
 
             <!-- multi-value stored as JSON arrays -->
             <xsd:element name="string-mv" type="xsd:string" maxOccurs="unbounded"/>
+            <xsd:element name="int-mv" type="xsd:int" maxOccurs="unbounded"/>
             <xsd:element name="poly-mv" type="t:PolyStringType" maxOccurs="unbounded"/>
             <xsd:element name="ref-mv" type="c:ObjectReferenceType" maxOccurs="unbounded">
                 <xsd:annotation>
