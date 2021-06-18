@@ -31,7 +31,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
     private TaskLoggingOptionType defaultBucketCompletionLogging = TaskLoggingOptionType.BRIEF;
     private TaskLoggingOptionType defaultItemCompletionLogging = TaskLoggingOptionType.NONE;
 
-    private boolean preserveStatistics = true;
+    private boolean preserveStatistics = false;
     private boolean enableSynchronizationStatistics = false;
     private boolean enableActionsExecutedStatistics = true;
     private boolean logErrors = true;
@@ -134,6 +134,11 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
 
     public void setSkipWritingOperationExecutionRecords(boolean skipWritingOperationExecutionRecords) {
         this.skipWritingOperationExecutionRecords = skipWritingOperationExecutionRecords;
+    }
+
+    public ActivityReportingOptions skipWritingOperationExecutionRecords(boolean value) {
+        setSkipWritingOperationExecutionRecords(value);
+        return this;
     }
 
     StatisticsCollectionStrategy getStatisticsCollectionStrategy() {

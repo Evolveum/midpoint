@@ -20,6 +20,12 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
 
     @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
 
+    /**
+     * TODO decide if the tailoring should be here or in {@link ActivityDefinition}.
+     *  The argument for being here is that it can add new sub-activities. The argument
+     *  for being there is that it modifies non-functional aspects of existing activities,
+     *  just like distribution, flow control, etc does.
+     */
     @NotNull private final ActivityTailoring activityTailoring = new ActivityTailoring();
 
     @Override
@@ -41,11 +47,12 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         this.executionMode = MoreObjects.firstNonNull(executionMode, ExecutionModeType.EXECUTE);
     }
 
+    @Override
     public @NotNull ActivityTailoring getActivityTailoring() {
         return activityTailoring;
     }
 
-    public void addTailoring(ActivitiesTailoringType tailoring) {
+    void addTailoring(ActivitiesTailoringType tailoring) {
         activityTailoring.add(tailoring);
     }
 

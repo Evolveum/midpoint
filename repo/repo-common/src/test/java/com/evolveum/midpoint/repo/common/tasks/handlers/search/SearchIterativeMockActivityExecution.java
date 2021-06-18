@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * TODO
  */
-@DefaultHandledObjectType(ObjectType.class)
 class SearchIterativeMockActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ObjectType,

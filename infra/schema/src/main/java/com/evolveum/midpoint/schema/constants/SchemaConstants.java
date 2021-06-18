@@ -28,8 +28,6 @@ public abstract class SchemaConstants {
     public static final String NS_MIDPOINT_PUBLIC_COMMON = NS_MIDPOINT_PUBLIC + "/common";
     public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-    public static final Map<String, String> PREFIX_NS_MAP = new HashMap<>();
-
     // NAMESPACES
 
     public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
@@ -323,6 +321,9 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
     public static final ItemName MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION = new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
     public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+
+    public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
+            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =

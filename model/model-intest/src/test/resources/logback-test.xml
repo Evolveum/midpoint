@@ -26,7 +26,7 @@
     <logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.intest" level="TRACE" />
     <logger name="com.evolveum.midpoint.model" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.tasks.LiveSyncTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.tasks.sync.LiveSyncActivityExecution" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.tasks.recon" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.EventDispatcherImpl" level="DEBUG" />
@@ -113,8 +113,8 @@
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <!-- TODO set DEBUG for specific sync task handlers -->
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScannerTaskHandler" level="DEBUG" />
+    <!--<logger name="com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler" level="DEBUG" />--><!-- FIXME -->
+    <logger name="com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanActivityHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />
@@ -122,7 +122,7 @@
     <logger name="com.evolveum.midpoint.common.validator" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy" level="INFO" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.tasks.DeleteTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.tasks.old.DeleteTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo" level="INFO" />
     <logger name="com.evolveum.midpoint.repo.operation" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO" />

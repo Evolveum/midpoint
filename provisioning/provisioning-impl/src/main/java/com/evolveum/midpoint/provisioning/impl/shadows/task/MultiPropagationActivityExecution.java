@@ -32,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution of a propagation task. It has always a single part, so the resource can be stored here.
  */
-@HandledObjectType(ResourceType.class)
 public class MultiPropagationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ResourceType,

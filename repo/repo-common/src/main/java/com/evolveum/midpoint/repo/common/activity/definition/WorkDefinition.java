@@ -24,4 +24,7 @@ public interface WorkDefinition extends DebugDumpable {
     ActivityDefinition<?> getOwningActivityDefinition();
 
     void setOwningActivityDefinition(ActivityDefinition<?> activityDefinition);
+
+    // TODO decide on this
+    @NotNull ActivityTailoring getActivityTailoring();
 }

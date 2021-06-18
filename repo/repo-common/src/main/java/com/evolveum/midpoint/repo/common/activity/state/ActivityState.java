@@ -44,6 +44,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
     private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+    private static final @NotNull ItemPath BUCKETING_ROLE_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
+    private static final @NotNull ItemPath SCAVENGER_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
     @NotNull private final AbstractActivityExecution<?, ?, WS> activityExecution;
 
@@ -302,6 +304,20 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
                         .item(stateItemPath.append(path))
                         .replaceRealValues(values)
                         .asItemDelta());
+    }
+    //endregion
+
+    //region Bucketing
+    public BucketsProcessingRoleType getBucketingRole() {
+        return getPropertyRealValue(BUCKETING_ROLE_PATH, BucketsProcessingRoleType.class);
+    }
+
+    public boolean isWorker() {
+        return getBucketingRole() == BucketsProcessingRoleType.WORKER;
+    }
+
+    public boolean isScavenger() {
+        return Boolean.TRUE.equals(getPropertyRealValue(SCAVENGER_PATH, Boolean.class));
     }
     //endregion
 

@@ -12,8 +12,10 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,20 +31,11 @@ import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCre
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -85,7 +78,8 @@ public class Projector {
     public <F extends ObjectType> void project(LensContext<F> context, String activityDescription, Task task,
             OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ConflictDetectedException {
         context.normalize();
         context.resetProjectionWave();
         projectInternal(context, activityDescription, true, task, parentResult);
@@ -97,7 +91,8 @@ public class Projector {
     public <F extends ObjectType> void resume(LensContext<F> context, String activityDescription, Task task,
             OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ConflictDetectedException {
         assert context.getProjectionWave() == context.getExecutionWave();
         assert context.isFresh();
         projectInternal(context, activityDescription, false, task, parentResult);
@@ -110,7 +105,8 @@ public class Projector {
     public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
             Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ConflictDetectedException {
         assert context.getProjectionWave() == 0;
         assert context.getExecutionWave() == 0;
         context.normalize();
@@ -123,7 +119,8 @@ public class Projector {
     private <F extends ObjectType> void projectInternal(LensContext<F> context, String activityDescription,
             boolean fromStart, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ConflictDetectedException {
 
         context.checkAbortRequested();
 
@@ -226,7 +223,8 @@ public class Projector {
             computeResultStatus(now, result);
 
         } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-                ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | PreconditionViolationException e) {
+                ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
+                ConflictDetectedException e) {
             recordFatalError(e, now, result);
             throw e;
         } catch (RuntimeException e) {
@@ -252,7 +250,7 @@ public class Projector {
             PartialProcessingOptionsType partialProcessingOptions,
             XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult)
                     throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-                    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+                    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         String projectionDesc = projectionContext.getDescription();
         parentResult.addParam(OperationResult.PARAM_PROJECTION, projectionDesc); // a bit of hack -> to have projection info also on the root "component" operation result
@@ -285,7 +283,7 @@ public class Projector {
 
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
                     projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is "+projectionContext.getSynchronizationPolicyDecision());
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is " + projectionContext.getSynchronizationPolicyDecision());
                 return;
             }
 
@@ -340,6 +338,10 @@ public class Projector {
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
             result.recordSuccess();
+        } catch (ConflictDetectedException e) {
+
+            // This should not occur when projecting a projection! (The exception is related to modification of a focal object.)
+            throw new SystemException("Unexpected conflict detected exception: " + e.getMessage(), e);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
                 | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {

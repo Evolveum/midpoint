@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,7 +54,7 @@ public abstract class AbstractSearchIterativeItemProcessor<
 
     @Override
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult result) throws CommonException, PreconditionViolationException {
+            OperationResult result) throws CommonException, ActivityExecutionException {
 
         PrismObject<O> object = request.getItem();
         String oid = object.getOid();
@@ -93,7 +93,7 @@ public abstract class AbstractSearchIterativeItemProcessor<
     }
 
     private boolean processWithPreprocessing(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult result) throws CommonException, PreconditionViolationException {
+            OperationResult result) throws CommonException, ActivityExecutionException {
         PrismObject<O> objectToProcess = preprocessObject(request, workerTask, result);
         return processObject(objectToProcess, request, workerTask, result);
     }
@@ -121,12 +121,12 @@ public abstract class AbstractSearchIterativeItemProcessor<
      */
     protected abstract boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
             RunningTask workerTask, OperationResult result)
-            throws CommonException, PreconditionViolationException;
+            throws CommonException, ActivityExecutionException;
 
     @SuppressWarnings({ "WeakerAccess", "unused" })
     protected boolean processError(PrismObject<O> object, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
             OperationResult result)
-            throws CommonException, PreconditionViolationException {
+            throws CommonException, ActivityExecutionException {
         result.recordFatalError("Error in preprocessing: " + errorFetchResult.getMessage());
         return true; // "Can continue" flag is updated by item processing gatekeeper (unfortunately, the exception is lost)
     }

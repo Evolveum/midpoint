@@ -22,13 +22,14 @@ public class MultiPropagationWorkDefinition extends AbstractWorkDefinition imple
 
     MultiPropagationWorkDefinition(WorkDefinitionSource source) {
         if (source instanceof LegacyWorkDefinitionSource) {
-            this.resources = ObjectSetUtil.setFromRef(
+            resources = ObjectSetUtil.fromRef(
                     ((LegacyWorkDefinitionSource) source).getObjectRef(), ResourceType.COMPLEX_TYPE);
         } else {
-            this.resources =
+            resources =
                     ((MultiPropagationWorkDefinitionType)
                             ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition()).getResources();
         }
+        ObjectSetUtil.assumeObjectType(resources, ResourceType.COMPLEX_TYPE);
     }
 
     public ObjectSetType getResources() {

@@ -11,10 +11,9 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 /**
- * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, Task, ActivityDefinitionType, LiveSyncEventHandler, OperationResult)} method.
+ * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, Task, boolean, LiveSyncEventHandler, OperationResult)} method.
  */
 @Experimental
 public interface LiveSyncEventHandler extends SynchronizationEventHandler<LiveSyncEvent> {

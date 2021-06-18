@@ -12,13 +12,14 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityControlFlowDefinition implements DebugDumpable {
 
-    @NotNull private final ActivityControlFlowSpecificationType bean;
+    @NotNull private ActivityControlFlowSpecificationType bean;
 
     private ActivityControlFlowDefinition(ActivityDefinitionType activityDefinitionBean) {
         this.bean = activityDefinitionBean != null && activityDefinitionBean.getControlFlow() != null ?
@@ -42,5 +43,13 @@ public class ActivityControlFlowDefinition implements DebugDumpable {
 
     public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
         return bean.getErrorHandling();
+    }
+
+    void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
+        if (tailoring.getControlFlow() != null) {
+            this.bean = tailoring.getControlFlow();
+        } else {
+            // null means we do not want it to change.
+        }
     }
 }

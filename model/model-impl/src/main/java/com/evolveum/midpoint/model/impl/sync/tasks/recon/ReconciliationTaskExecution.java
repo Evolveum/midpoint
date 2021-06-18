@@ -49,227 +49,140 @@ import java.util.List;
  *
  * Responsible for creation of task parts, as given by the context: all three of them, or only a specified one.
  */
-public class ReconciliationTaskExecution
-        extends AbstractTaskExecutionOld<ReconciliationTaskHandler, ReconciliationTaskExecution> {
+@Deprecated
+public class ReconciliationTaskExecution {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskExecution.class);
-
-    enum Stage {
-        FIRST, SECOND, THIRD, ALL
-    }
-
-    /**
-     * Which stage(s) should we execute.
-     */
-    @NotNull private final Stage stage;
-
-    /**
-     * Specification of resource, object class, and similar things needed for the synchronization.
-     */
-    private SyncTaskHelper.TargetInfo targetInfo;
-
-    /**
-     * Objects to synchronize.
-     */
-    SynchronizationObjectsFilterImpl objectsFilter;
-
-    protected final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar();
-
-    final ReconciliationTaskResult reconResult;
+//    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskExecution.class);
+//
+//    enum Stage {
+//        FIRST, SECOND, THIRD, ALL
+//    }
+//
+//    /**
+//     * Which stage(s) should we execute.
+//     */
+//    @NotNull private final Stage stage;
+//
+//    /**
+//     * Specification of resource, object class, and similar things needed for the synchronization.
+//     */
+//    private SyncTaskHelper.TargetInfo targetInfo;
+//
+//    /**
+//     * Objects to synchronize.
+//     */
+//    SynchronizationObjectsFilterImpl objectsFilter;
+//
+//    protected final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar();
+//
+//    final ReconciliationTaskResult reconResult;
 
     public ReconciliationTaskExecution(ReconciliationTaskHandler taskHandler, RunningTask localCoordinatorTask) {
-        super(taskHandler, localCoordinatorTask);
-        this.stage = determineStage();
-        this.reconResult = new ReconciliationTaskResult();
+//        this.stage = determineStage();
+//        this.reconResult = new ReconciliationTaskResult();
     }
 
-    @Override
-    public List<AbstractSearchIterativeActivityExecutionOld<?, ?, ?, ?, ?>> createPartExecutions() {
-        List<AbstractSearchIterativeActivityExecutionOld<?, ?, ?, ?, ?>> partExecutions = new ArrayList<>();
-        if (stage == Stage.FIRST || stage == Stage.ALL) {
-            partExecutions.add(new OperationCompletionActivityExecution(this));
-        }
-        if (stage == Stage.SECOND || stage == Stage.ALL) {
-            partExecutions.add(new OperationCompletionActivityExecution(this));
-        }
-        if (stage == Stage.THIRD || stage == Stage.ALL) {
-            partExecutions.add(new RemainingShadowsActivityExecution(this));
-        }
-        return partExecutions;
-    }
-
-    @Override
-    protected void initialize(OperationResult opResult) throws TaskException, CommunicationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        super.initialize(opResult);
-
-        // TODO Consider adding objectFilter to targetInfo
-        targetInfo = taskHandler.syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask, opResult, taskHandler.getTaskTypeName());
-        objectsFilter = ModelImplUtils.determineSynchronizationObjectsFilter(targetInfo.getObjectClassDefinition(),
-                localCoordinatorTask);
-
-        auditStart(opResult);
-
-        reconResult.setResource(targetInfo.getResource().asPrismObject());
-        reconResult.setObjectclassDefinition(targetInfo.getObjectClassDefinition());
-    }
-
-    @Override
-    protected void finish(OperationResult opResult, Throwable t) throws TaskException, SchemaException {
-        super.finish(opResult, t);
-        auditEnd(opResult, t);
-
-        reconResult.setRunResult(getCurrentRunResult());
-        if (taskHandler.getReconciliationTaskResultListener() != null) {
-            taskHandler.getReconciliationTaskResultListener().process(reconResult);
-        }
-    }
-
-    private @NotNull Stage determineStage() {
-        Stage stageFromHandler = getStageFromTaskHandlerUri();
-        LOGGER.trace("Stage determined from task handler URI: {}", stageFromHandler);
-
-        if (BooleanUtils.isTrue(getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
-            if (stageFromHandler == Stage.ALL) {
-                LOGGER.trace("'Finish operations only' mode selected, changing stage to {}", Stage.FIRST);
-                return Stage.FIRST;
-            } else {
-                throw new IllegalStateException("Finish operations only selected for wrong stage: " + stageFromHandler);
-            }
-        } else {
-            return stageFromHandler;
-        }
-    }
-
-    private @NotNull Stage getStageFromTaskHandlerUri() {
-        return getStage(getHandlerUri());
-    }
-
-    private String getHandlerUri() {
-        return localCoordinatorTask.getHandlerUri();
-    }
-
-    private @NotNull Stage getStage(String handlerUri) {
-        if (ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI.equals(handlerUri)) {
-            return Stage.ALL;
-        } else if (ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_1.equals(handlerUri)) {
-            return Stage.FIRST;
-        } else if (ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2.equals(handlerUri)) {
-            return Stage.SECOND;
-        } else if (ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3.equals(handlerUri)) {
-            return Stage.THIRD;
-        } else {
-            throw new IllegalStateException("Unknown handler URI " + handlerUri);
-        }
-    }
-
-    private void auditStart(OperationResult opResult) {
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
-        record.setTarget(getResourceObject(), getPrismContext());
-        record.setMessage("Stage: " + stage);
-        taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
-    }
-
-    private void auditEnd(OperationResult opResult, Throwable t) {
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-        record.setTarget(getResourceObject(), getPrismContext());
-        if (t != null) {
-            // TODO This is rather simplistic view, as there might be errors during processing.
-            record.setOutcome(OperationResultStatus.FATAL_ERROR);
-            record.setMessage(t.getMessage());
-        } else {
-            record.setOutcome(OperationResultStatus.SUCCESS);
-        }
-        taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
-    }
-
-    /**
-     * Can return null in case of exception, i.e. when targetInfo is not set.
-     */
-    @Nullable private PrismObject<ResourceType> getResourceObject() {
-        if (targetInfo != null) {
-            return targetInfo.resource.asPrismObject();
-        } else {
-            return null;
-        }
-    }
-
-    public @NotNull Stage getStage() {
-        return stage;
-    }
-
-    public String getResourceOid() {
-        return targetInfo.getResource().getOid();
-    }
-
-    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return targetInfo.getObjectClassDefinition();
-    }
-
-    /**
-     * Creates shadow query by AND-ing:
-     * - universal resource/objectclass/kind/intent filter from the task
-     * - explicit object query from the task (with filters resolved)
-     */
-    public ObjectQuery createShadowQuery(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery shadowSearchQuery = targetInfo.getObjectClassDefinition().createShadowSearchQuery(getResourceOid());
-        return createShadowQuery(shadowSearchQuery, opResult);
-    }
-
-    /**
-     * Creates shadow query by AND-ing:
-     * - specified initial query
-     * - explicit object query from the task (with filters resolved)
-     *
-     * TODO consider factoring out
-     */
-    public ObjectQuery createShadowQuery(ObjectQuery initialQuery, OperationResult opResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        return addQueryFromTaskIfExists(initialQuery, opResult);
-    }
-
-    private ObjectQuery addQueryFromTaskIfExists(ObjectQuery query, OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
-
-        QueryType queryBean = getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-
-        if (queryBean == null || queryBean.getFilter() == null) {
-            return query;
-        }
-
-        ObjectFilter taskFilter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, queryBean.getFilter());
-        if (taskFilter == null) {
-            return query;
-        }
-
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new VariablesMap(),
-                MiscSchemaUtil.getExpressionProfile(), taskHandler.expressionFactory, getPrismContext(),
-                "collection filter", localCoordinatorTask, opResult);
-
-        if (query == null || query.getFilter() == null) {
-            ObjectQuery taskQuery = getPrismContext().queryFactory().createQuery();
-            taskQuery.setFilter(evaluatedFilter);
-            return taskQuery;
-        } else {
-            AndFilter andFilter = getPrismContext().queryFactory().createAnd(query.getFilter(), evaluatedFilter);
-            ObjectQuery combinedQuery = getPrismContext().queryFactory().createQuery(andFilter);
-            taskHandler.getProvisioningService().applyDefinition(ShadowType.class, combinedQuery,
-                    localCoordinatorTask, localCoordinatorTask.getResult());
-            return combinedQuery;
-        }
-    }
-
-    public PrismObject<ResourceType> getResource() {
-        return targetInfo.getResource().asPrismObject();
-    }
-
-    public SyncTaskHelper.TargetInfo getTargetInfo() {
-        return targetInfo;
-    }
-
-    public SynchronizationObjectsFilterImpl getObjectsFilter() {
-        return objectsFilter;
-    }
+//    protected void initialize(OperationResult opResult) throws TaskException, CommunicationException, SchemaException,
+//            ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+//
+//        auditStart(opResult);
+//
+//        reconResult.setResource(targetInfo.getResource().asPrismObject());
+//        reconResult.setObjectclassDefinition(targetInfo.getObjectClassDefinition());
+//    }
+//
+//    protected void finish(OperationResult opResult, Throwable t) throws TaskException, SchemaException {
+//        auditEnd(opResult, t);
+//
+//        reconResult.setRunResult(getCurrentRunResult());
+//        if (taskHandler.getReconciliationTaskResultListener() != null) {
+//            taskHandler.getReconciliationTaskResultListener().process(reconResult);
+//        }
+//    }
+//
+//    private void auditStart(OperationResult opResult) {
+//        AuditEventRecord record = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
+//        record.setTarget(getResourceObject(), getPrismContext());
+//        record.setMessage("Stage: " + stage);
+//        taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
+//    }
+//
+//    private void auditEnd(OperationResult opResult, Throwable t) {
+//        AuditEventRecord record = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
+//        record.setTarget(getResourceObject(), getPrismContext());
+//        if (t != null) {
+//            // TODO This is rather simplistic view, as there might be errors during processing.
+//            record.setOutcome(OperationResultStatus.FATAL_ERROR);
+//            record.setMessage(t.getMessage());
+//        } else {
+//            record.setOutcome(OperationResultStatus.SUCCESS);
+//        }
+//        taskHandler.auditHelper.audit(record, null, localCoordinatorTask, opResult);
+//    }
+//
+//    /**
+//     * Can return null in case of exception, i.e. when targetInfo is not set.
+//     */
+//    @Nullable private PrismObject<ResourceType> getResourceObject() {
+//        if (targetInfo != null) {
+//            return targetInfo.resource.asPrismObject();
+//        } else {
+//            return null;
+//        }
+//    }
+//
+//    /**
+//     * Creates shadow query by AND-ing:
+//     * - universal resource/objectclass/kind/intent filter from the task
+//     * - explicit object query from the task (with filters resolved)
+//     */
+//    public ObjectQuery createShadowQuery(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+//            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+//        ObjectQuery shadowSearchQuery = targetInfo.getObjectClassDefinition().createShadowSearchQuery(getResourceOid());
+//        return createShadowQuery(shadowSearchQuery, opResult);
+//    }
+//
+//    /**
+//     * Creates shadow query by AND-ing:
+//     * - specified initial query
+//     * - explicit object query from the task (with filters resolved)
+//     *
+//     * TODO consider factoring out
+//     */
+//    public ObjectQuery createShadowQuery(ObjectQuery initialQuery, OperationResult opResult) throws SchemaException,
+//            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+//            ExpressionEvaluationException {
+//        return addQueryFromTaskIfExists(initialQuery, opResult);
+//    }
+//
+//    private ObjectQuery addQueryFromTaskIfExists(ObjectQuery query, OperationResult opResult) throws SchemaException, ObjectNotFoundException,
+//            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
+//
+//        QueryType queryBean = getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+//
+//        if (queryBean == null || queryBean.getFilter() == null) {
+//            return query;
+//        }
+//
+//        ObjectFilter taskFilter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, queryBean.getFilter());
+//        if (taskFilter == null) {
+//            return query;
+//        }
+//
+//        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new VariablesMap(),
+//                MiscSchemaUtil.getExpressionProfile(), taskHandler.expressionFactory, getPrismContext(),
+//                "collection filter", localCoordinatorTask, opResult);
+//
+//        if (query == null || query.getFilter() == null) {
+//            ObjectQuery taskQuery = getPrismContext().queryFactory().createQuery();
+//            taskQuery.setFilter(evaluatedFilter);
+//            return taskQuery;
+//        } else {
+//            AndFilter andFilter = getPrismContext().queryFactory().createAnd(query.getFilter(), evaluatedFilter);
+//            ObjectQuery combinedQuery = getPrismContext().queryFactory().createQuery(andFilter);
+//            taskHandler.getProvisioningService().applyDefinition(ShadowType.class, combinedQuery,
+//                    localCoordinatorTask, localCoordinatorTask.getResult());
+//            return combinedQuery;
+//        }
+//    }
 }

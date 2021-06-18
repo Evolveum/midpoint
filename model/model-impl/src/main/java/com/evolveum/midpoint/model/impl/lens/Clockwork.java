@@ -14,12 +14,12 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceO
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Components;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
-import com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,6 @@ import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -59,7 +58,6 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -118,7 +116,7 @@ public class Clockwork {
 
     public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResultBuilder builder = parentResult.subresult(OP_RUN);
         boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
@@ -134,26 +132,54 @@ public class Clockwork {
         try {
             trace = recordTraceAtStart(context, result);
 
-            contextLoader.updateSystemConfigurationInContext(context, result);
-
-            LOGGER.trace("Running clockwork for context {}", context);
-            context.checkConsistenceIfNeeded();
-
-            int clicked = 0;
             ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
-            HookOperationMode finalMode;
+
+            HookOperationMode mode = runWithConflictDetection(context, conflictResolutionContext, task, result);
+
+            return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
+
+        } catch (CommonException t) {
+            result.recordFatalError(t.getMessage(), t);
+            throw t;
+        } finally {
+            task.setChannel(originalTaskChannel);
+            result.computeStatusIfUnknown();
+
+            recordTraceAtEnd(context, trace, result);
+            if (tracingRequested) {
+                tracer.storeTrace(task, result, parentResult);
+            }
+        }
+    }
+
+    /**
+     * Runs the clockwork with the aim of detecting modify-modify conflicts on the focus object.
+     * It reports such states via the conflictResolutionContext parameter.
+     */
+    <F extends ObjectType> HookOperationMode runWithConflictDetection(LensContext<F> context,
+            ClockworkConflictResolver.Context conflictResolutionContext, Task task, OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        contextLoader.updateSystemConfigurationInContext(context, result);
+
+        LOGGER.trace("Running clockwork for context {}", context);
+        context.checkConsistenceIfNeeded();
+
+        int clicked = 0;
+
+        try {
+            context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
+            clockworkConflictResolver.createConflictWatcherOnStart(context);
+            FocusConstraintsChecker
+                    .enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
+            enterAssociationSearchExpressionEvaluatorCache();
+            //enterDefaultSearchExpressionEvaluatorCache();
+            provisioningService.enterConstraintsCheckerCache();
+
+            executeInitialChecks(context);
 
             try {
-                context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
-                clockworkConflictResolver.createConflictWatcherOnStart(context);
-                FocusConstraintsChecker
-                        .enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
-                enterAssociationSearchExpressionEvaluatorCache();
-                //enterDefaultSearchExpressionEvaluatorCache();
-                provisioningService.enterConstraintsCheckerCache();
-
-                executeInitialChecks(context);
-
                 while (context.getState() != ModelState.FINAL) {
 
                     int maxClicks = getMaxClicks(result);
@@ -173,35 +199,25 @@ public class Clockwork {
                     }
                 }
                 // One last click in FINAL state
-                finalMode = click(context, task, result);
-                if (finalMode == HookOperationMode.FOREGROUND) {
-                    clockworkConflictResolver.checkFocusConflicts(context, conflictResolutionContext, result);
+                HookOperationMode mode = click(context, task, result);
+                if (mode == HookOperationMode.FOREGROUND) {
+                    // We must check inside here - before watchers are unregistered
+                    clockworkConflictResolver.detectFocusConflicts(context, conflictResolutionContext, result);
                 }
-            } finally {
-                operationExecutionRecorder.recordOperationExecutions(context, task, result);
-                clockworkConflictResolver.unregisterConflictWatcher(context);
-                FocusConstraintsChecker.exitCache();
-                //exitDefaultSearchExpressionEvaluatorCache();
-                exitAssociationSearchExpressionEvaluatorCache();
-                provisioningService.exitConstraintsCheckerCache();
-                context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
+                return mode;
+            } catch (ConflictDetectedException e) {
+                LOGGER.debug("Clockwork conflict detected", e);
+                conflictResolutionContext.recordConflictException();
+                return HookOperationMode.FOREGROUND;
             }
-
-            // intentionally outside the "try-finally" block to start with clean caches
-            finalMode = clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, finalMode, task, result);
-            result.computeStatusIfUnknown();
-            return finalMode;
-        } catch (Throwable t) {
-            result.recordFatalError(t.getMessage(), t);
-            throw t;
         } finally {
-            task.setChannel(originalTaskChannel);
-
-            recordTraceAtEnd(context, trace, result);
-            if (tracingRequested) {
-                tracer.storeTrace(task, result, parentResult);
-            }
-            result.computeStatusIfUnknown();
+            operationExecutionRecorder.recordOperationExecutions(context, task, result);
+            clockworkConflictResolver.unregisterConflictWatcher(context);
+            FocusConstraintsChecker.exitCache();
+            //exitDefaultSearchExpressionEvaluatorCache();
+            exitAssociationSearchExpressionEvaluatorCache();
+            provisioningService.exitConstraintsCheckerCache();
+            context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
         }
     }
 
@@ -294,15 +310,22 @@ public class Clockwork {
         }
     }
 
-    public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners,
+            Task task, OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             context.setPreview(true);
 
             LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
             context.setProgressListeners(listeners);
 
-            projector.projectAllWaves(context, "preview", task, result);
+            try {
+                projector.projectAllWaves(context, "preview", task, result);
+            } catch (ConflictDetectedException e) {
+                // Should not occur on preview changes!
+                throw new SystemException("Unexpected execution conflict detected: " + e.getMessage(), e);
+            }
             clockworkHookHelper.invokePreview(context, task, result);
             policyRuleEnforcer.execute(context, result);
             policyRuleSuspendTaskExecutor.execute(context, task, result);
@@ -312,14 +335,6 @@ public class Clockwork {
                 ExpressionEvaluationException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-
-        } catch (PreconditionViolationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            // TODO: Temporary fix for 3.6.1
-            // We do not want to propagate PreconditionViolationException to model API as that might break compatibility
-            // ... and we do not really need that in 3.6.1
-            // TODO: expose PreconditionViolationException in 3.7
-            throw new SystemException(e);
         }
 
         LOGGER.debug("Preview changes output:\n{}", context.debugDumpLazily());
@@ -372,16 +387,13 @@ public class Clockwork {
     private int getMaxClicks(OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(systemConfiguration);
-        if (maxClicks == null) {
-            return DEFAULT_MAX_CLICKS;
-        } else {
-            return maxClicks;
-        }
+        return Objects.requireNonNullElse(maxClicks, DEFAULT_MAX_CLICKS);
     }
 
     public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ConflictDetectedException {
 
         // DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
         // that. Check consistency afterwards (and it is also checked inside projector several times).
@@ -444,7 +456,7 @@ public class Clockwork {
 
         } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
                 PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
-                ObjectAlreadyExistsException | PreconditionViolationException e) {
+                ObjectAlreadyExistsException | ConflictDetectedException e) {
             processClockworkException(context, e, task, result, parentResult);
             throw e;
         } finally {
@@ -462,7 +474,7 @@ public class Clockwork {
     private <F extends ObjectType> void projectIfNeeded(LensContext<F> context, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException,
-            PreconditionViolationException {
+            ConflictDetectedException {
         boolean recompute = false;
         if (!context.isFresh()) {
             LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
@@ -490,7 +502,7 @@ public class Clockwork {
     private <F extends ObjectType> HookOperationMode moveStateForward(LensContext<F> context, Task task, OperationResult parentResult,
             OperationResult result, ModelState state) throws PolicyViolationException, ObjectNotFoundException, SchemaException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, PreconditionViolationException {
+            ExpressionEvaluationException, ConflictDetectedException {
         switch (state) {
             case INITIAL:
                 processInitialToPrimary(context, result);
@@ -533,7 +545,7 @@ public class Clockwork {
 
     private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
         Holder<Boolean> restartRequestedHolder = new Holder<>(false);
 
@@ -569,7 +581,7 @@ public class Clockwork {
 
     private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
         clockworkAuditHelper.auditFinalExecution(context, task, result, overallResult);
         logFinalReadable(context);
         migrator.executeAfterOperationMigration(context, result);
@@ -621,16 +633,17 @@ public class Clockwork {
         property.setRealValue(queryType);
         reconTask.addExtensionProperty(property);
 
-        // other parameters
-        reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
-        reconTask.setInitiallyRunnable();
-        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI); // FIXME
-        reconTask.setCategory(TaskCategory.RECOMPUTATION);
-        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
-        taskManager.switchToBackground(reconTask, result);
-        result.setBackgroundTaskOid(reconTask.getOid());
-        result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
-        return HookOperationMode.BACKGROUND;
+        throw new UnsupportedOperationException(); // FIXME
+//        // other parameters
+//        reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
+//        reconTask.setInitiallyRunnable();
+//        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI); // FIXME
+//        reconTask.setCategory(TaskCategory.RECOMPUTATION);
+//        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
+//        taskManager.switchToBackground(reconTask, result);
+//        result.setBackgroundTaskOid(reconTask.getOid());
+//        result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
+//        return HookOperationMode.BACKGROUND;
     }
 
 

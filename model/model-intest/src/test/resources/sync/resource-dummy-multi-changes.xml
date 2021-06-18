@@ -61,7 +61,7 @@
                     <expression>
                         <script>
                             <relativityMode>absolute</relativityMode>
-                            <code>import com.evolveum.midpoint.model.impl.sync.tasks.LiveSyncTaskHandler
+                            <code>import com.evolveum.midpoint.model.impl.sync.tasks.ls.LiveSyncTaskHandler
                             import com.evolveum.midpoint.model.intest.sync.SequenceChecker
 
                             // This has currently not a great value, because in live sync

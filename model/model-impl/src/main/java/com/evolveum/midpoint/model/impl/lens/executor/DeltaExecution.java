@@ -130,8 +130,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     //region Main
     public void execute(OperationResult parentResult) throws SchemaException, CommunicationException,
-            PreconditionViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException {
 
         if (delta.getOid() == null) {
             delta.setOid(elementContext.getOid());
@@ -415,8 +415,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Addition
     private void executeAddition(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            PreconditionViolationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         PrismObject<E> objectToAdd = delta.getObjectToAdd();
 
@@ -510,7 +509,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void executeModification(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            PreconditionViolationException {
+            ConflictDetectedException {
 
         Class<E> objectClass = delta.getObjectTypeClass();
 
@@ -548,8 +547,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             } else {
                 FocusConstraintsChecker.clearCacheForDelta(delta.getModifications());
                 ModificationPrecondition<E> precondition = createRepoModificationPrecondition();
-                b.cacheRepositoryService.modifyObject(objectClass, delta.getOid(),
-                        delta.getModifications(), precondition, null, result);
+                try {
+                    b.cacheRepositoryService.modifyObject(objectClass, delta.getOid(),
+                            delta.getModifications(), precondition, null, result);
+                } catch (PreconditionViolationException e) {
+                    throw new ConflictDetectedException(e);
+                }
             }
             task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
                     context.getChannel(), null);
@@ -620,7 +623,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     @Nullable
     private ModificationPrecondition<E> createRepoModificationPrecondition() {
-        if (conflictResolution == null) {
+        if (!b.clockworkConflictResolver.shouldCreatePrecondition(context, conflictResolution)) {
             return null;
         }
         String readVersion = elementContext.getObjectReadVersion();
@@ -647,8 +650,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Deletion
     private void executeDeletion(OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            PreconditionViolationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         String oid = delta.getOid();
         Class<E> objectTypeClass = delta.getObjectTypeClass();
@@ -892,7 +894,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private void handleProvisioningError(ResourceType resource, Throwable t, Task task, OperationResult result)
             throws ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException, CommunicationException,
+            ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
         ErrorSelectorType errorSelectorType = ResourceTypeUtil.getConnectorErrorCriticality(resource);
         CriticalityType criticality = ExceptionUtil.getCriticality(errorSelectorType, t, CriticalityType.FATAL);

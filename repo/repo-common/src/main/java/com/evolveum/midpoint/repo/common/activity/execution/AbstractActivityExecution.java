@@ -224,7 +224,8 @@ public abstract class AbstractActivityExecution<
         return sb.toString();
     }
 
-    protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+    protected void debugDumpExtra(StringBuilder sb, int indent) {
+    }
 
     public @Nullable ActivityPath getActivityLocalPath() {
         return activity.getLocalPath();

@@ -7,6 +7,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -22,10 +24,12 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  */
 public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType> {
 
-    private final AbstractIterativeModelActivityExecution<?, ?, ?, ?, ?> partExecution;
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowFetchingPreprocessor.class);
 
-    public ShadowFetchingPreprocessor(AbstractIterativeModelActivityExecution<?, ?, ?, ?, ?> partExecution) {
-        this.partExecution = partExecution;
+    private final AbstractModelSearchActivityExecution<?, ?, ?, ?, ?> activityExecution;
+
+    ShadowFetchingPreprocessor(AbstractModelSearchActivityExecution<?, ?, ?, ?, ?> activityExecution) {
+        this.activityExecution = activityExecution;
     }
 
     @Override
@@ -34,10 +38,10 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
         String oid = originalObject.getOid();
         stateCheck(oid != null, "Original object has no OID");
 
-        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(partExecution.getSearchOptions());
+        Collection<SelectorOptions<GetOperationOptions>> options = adaptSearchOptions(activityExecution.getSearchOptions());
 
-        partExecution.getLogger().trace("Fetching {} with options: {}", originalObject, options);
-        return partExecution.getTaskHandler().modelObjectResolver
+        LOGGER.trace("Fetching {} with options: {}", originalObject, options);
+        return activityExecution.getModelBeans().modelObjectResolver
                 .getObject(ShadowType.class, oid, options, task, result)
                 .asPrismObject();
     }
@@ -46,10 +50,10 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
 
         Collection<SelectorOptions<GetOperationOptions>> optionsToSet =
-                partExecution.getSchemaService().getOperationOptionsBuilder()
+                activityExecution.getSchemaService().getOperationOptionsBuilder()
                         .noFetch(false)
                         .errorReportingMethod(FetchErrorReportingMethodType.EXCEPTION) // we need exceptions!
                         .build();
-        return GetOperationOptions.merge(partExecution.getPrismContext(), originalOptions, optionsToSet);
+        return GetOperationOptions.merge(activityExecution.getPrismContext(), originalOptions, optionsToSet);
     }
 }

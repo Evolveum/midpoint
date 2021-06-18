@@ -61,8 +61,8 @@ public abstract class AbstractIterativeActivityExecution<
         I,
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        BS extends AbstractActivityWorkStateType>
-        extends LocalActivityExecution<WD, AH, BS> {
+        WS extends AbstractActivityWorkStateType>
+        extends LocalActivityExecution<WD, AH, WS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 
@@ -146,7 +146,9 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     @NotNull
-    public abstract ActivityReportingOptions getDefaultReportingOptions();
+    public ActivityReportingOptions getDefaultReportingOptions() {
+        return new ActivityReportingOptions();
+    }
 
     protected @NotNull ActivityExecutionResult executeLocal(OperationResult opResult)
             throws ActivityExecutionException, CommonException {
@@ -201,6 +203,8 @@ public abstract class AbstractIterativeActivityExecution<
      */
     protected void executeSingleBucket(OperationResult opResult) throws ActivityExecutionException, CommonException {
         prepareItemSource(opResult);
+        onPreparedItemSource(opResult);
+
         setExpectedTotal(opResult);
 
         itemProcessor = setupItemProcessor(opResult);
@@ -236,15 +240,21 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     /**
-     * Initializes task part execution.
+     * Initializes iterative execution.
+     *
+     * TODO better name to distinguish from abstract activity execution initialization.
      */
-    protected void initializeExecution(OperationResult opResult) throws CommonException {
+    protected void initializeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
     }
 
     /**
      * Prepares the item source. E.g. for search-iterative tasks we prepare object type, query, and options here.
      */
     protected void prepareItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
+    }
+
+    /** TODO */
+    protected void onPreparedItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
     }
 
     /**
@@ -296,9 +306,9 @@ public abstract class AbstractIterativeActivityExecution<
     protected abstract void processItems(OperationResult opResult) throws CommonException;
 
     /**
-     * Ends the processing.
+     * Ends the processing. TODO better name
      */
-    protected void finishExecution(OperationResult opResult) throws SchemaException {
+    protected void finishExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
     }
 
     private void checkTaskPersistence() {
@@ -440,7 +450,7 @@ public abstract class AbstractIterativeActivityExecution<
         return getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
     }
 
-    protected void ensureNoWorkerThreads() {
+    public void ensureNoWorkerThreads() {
         Integer tasks = getWorkerThreadsCount();
         if (tasks != null && tasks != 0) {
             throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks +

@@ -62,10 +62,10 @@ public class CompositeMockActivityHandler
     }
 
     @Override
-    public List<Activity<?, ?>> createChildActivities(
+    public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<CompositeMockWorkDefinition, CompositeMockActivityHandler> parentActivity) {
         CompositeMockWorkDefinition workDefinition = parentActivity.getWorkDefinition();
-        List<Activity<?, ?>> children = new ArrayList<>();
+        ArrayList<Activity<?, ?>> children = new ArrayList<>();
         if (workDefinition.isOpeningEnabled()) {
             children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
                     (context, result) -> new MockOpeningActivityExecution(context),

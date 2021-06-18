@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.repo.common.task.SearchSpecification;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
@@ -14,11 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.HandledObjectType;
 import com.evolveum.midpoint.repo.common.task.ItemProcessor;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,10 +26,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import java.util.List;
+
 /**
- * Execution of a propagation task. It has always a single part, so the resource can be stored here.
+ * Execution of a propagation activity.
  */
-@HandledObjectType(ShadowType.class)
 public class PropagationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ShadowType,
@@ -68,12 +68,16 @@ public class PropagationActivityExecution
     }
 
     @Override
-    protected ObjectQuery createQuery(OperationResult opResult) {
-        return getPrismContext().queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .and()
-                .exists(ShadowType.F_PENDING_OPERATION)
-                .build();
+    protected @NotNull SearchSpecification<ShadowType> createSearchSpecification(OperationResult opResult) {
+        return new SearchSpecification<>(
+                ShadowType.class,
+                getPrismContext().queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+                        .and()
+                        .exists(ShadowType.F_PENDING_OPERATION)
+                        .build(),
+                List.of(),
+                true);
     }
 
     @Override

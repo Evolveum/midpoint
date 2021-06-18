@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -59,11 +59,11 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     }
 
     @Override
-    public List<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent) throws SchemaException {
+    public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent) throws SchemaException {
         CompositeWorkDefinition workDefinition = parent.getWorkDefinition();
         return workDefinition.createChildDefinitions().stream()
                 .map(definition -> createChildActivity(definition, parent))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> Activity<?, ?> createChildActivity(

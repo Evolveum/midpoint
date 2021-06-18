@@ -1,0 +1,47 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.repo.common.task;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecification {
+
+    private final ObjectSetType objectSetBean;
+
+    public RepositoryObjectSetSpecificationImpl(ObjectSetType objectSetBean) {
+        this.objectSetBean = objectSetBean;
+    }
+
+    public QName getObjectType() {
+        return objectSetBean.getObjectType();
+    }
+
+    public QueryType getQueryBean() {
+        return objectSetBean.getObjectQuery();
+    }
+
+    @Override
+    public SelectorQualifiedGetOptionsType getSearchOptionsBean() {
+        return objectSetBean.getSearchOptions();
+    }
+
+    public Boolean isUseRepositoryDirectly() {
+        return objectSetBean.isUseRepositoryDirectly();
+    }
+
+    @Override
+    public String toString() {
+        return "RepositoryObjectSetSpecificationImpl{" +
+                "objectSetBean=" + objectSetBean +
+                '}';
+    }
+}

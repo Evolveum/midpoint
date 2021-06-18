@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.axiom.concepts.Lazy;
@@ -21,11 +18,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -233,9 +226,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     private void createChildren() throws SchemaException {
-        List<Activity<?, ?>> childrenList = getHandler().createChildActivities(this);
+        ArrayList<Activity<?, ?>> childrenList = getHandler().createChildActivities(this);
         setupIdentifiers(childrenList);
-        tailorChildren();
+        tailorChildren(childrenList);
+        setupIdentifiers(childrenList);
         childrenList.forEach(child -> childrenMap.put(child.getIdentifier(), child));
     }
 
@@ -247,7 +241,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     private void setupIdentifier(List<Activity<?, ?>> siblingsList) {
         if (identifier != null) {
-            return; // shouldn't occur
+            return; // can occur on repeated executions
         }
 
         String defined = definition.getIdentifier();
@@ -286,8 +280,9 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
      * Executes tailoring instructions, i.e. inserts new activities before/after specified ones,
      * or changes the configuration of specified activities.
      */
-    private void tailorChildren() {
-        // TODO
+    private void tailorChildren(ArrayList<Activity<?, ?>> childrenList) throws SchemaException {
+        new ActivityTailor(this, childrenList)
+                .execute();
     }
 
     public boolean isRoot() {
@@ -347,6 +342,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
         // TODO implement inheritance of the error handling strategy among activities
         return definition.getControlFlowDefinition().getErrorHandlingStrategy();
+    }
+
+    void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
+        definition.applyChangeTailoring(tailoring);
     }
 
     private enum ExecutionType {

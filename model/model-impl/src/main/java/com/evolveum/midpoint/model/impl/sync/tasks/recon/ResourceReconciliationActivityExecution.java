@@ -10,103 +10,89 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelActivityExecution;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
-import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
+import com.evolveum.midpoint.repo.common.task.ItemProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Execution of resource objects reconciliation (the main part of reconciliation).
  */
-@ItemProcessorClass(ResourceReconciliationActivityExecution.ItemProcessor.class)
-@HandledObjectType(ShadowType.class)
-class ResourceReconciliationActivityExecution
-        extends AbstractIterativeModelActivityExecution
-        <ShadowType,
-                ReconciliationTaskHandler,
-                ReconciliationTaskExecution,
-                ResourceReconciliationActivityExecution,
-                ResourceReconciliationActivityExecution.ItemProcessor> {
+public class ResourceReconciliationActivityExecution
+        extends PartialReconciliationActivityExecution<ResourceReconciliationActivityExecution> {
 
-    private final Synchronizer synchronizer;
+    private Synchronizer synchronizer;
 
-    ResourceReconciliationActivityExecution(ReconciliationTaskExecution taskExecution) {
-        super(taskExecution);
-        setActivityIdentifier(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PART_URI);
-        setProcessShortNameCapitalized("Reconciliation (on resource)");
-        setContextDescription("on " + taskExecution.getTargetInfo().getContextDescription());
-        this.synchronizer = createSynchronizer();
+    ResourceReconciliationActivityExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
+        super(context, "Reconciliation (on resource)");
+    }
+
+    @Override
+    protected void initializeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
+        super.initializeExecution(opResult);
+        synchronizer = createSynchronizer();
+    }
+
+    @Override
+    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+        return new ActivityReportingOptions()
+                .enableSynchronizationStatistics(true);
     }
 
     private Synchronizer createSynchronizer() {
-        SyncTaskHelper.TargetInfo targetInfo = taskExecution.getTargetInfo();
         return new Synchronizer(
                 targetInfo.getResource(),
-                targetInfo.getObjectClassDefinition(),
-                taskExecution.getObjectsFilter(),
-                taskHandler.getObjectChangeListener(),
+                targetInfo.getObjectClassDefinitionRequired(),
+                objectsFilter,
+                getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
-                activityDefinition,
+                isSimulate(),
                 false);
     }
 
+    // Ignoring configured search options. TODO ok?
     @Override
-    protected ObjectQuery createQuery(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
-        return taskExecution.createShadowQuery(opResult);
-    }
-
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(OperationResult opResult) {
+    protected Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult opResult) {
         // This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
         // At the same time, it ensures that an exception in preprocessing does not kill the whole searchObjectsIterative call.
-        // TODO generalize
-        return taskHandler.schemaService.getOperationOptionsBuilder()
+        return beans.schemaService.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
     }
 
     @Override
     protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
-        return createItemDefinitionProviderForAttributes(taskExecution.getTargetInfo().getObjectClassDefinition());
+        return createItemDefinitionProviderForAttributes(targetInfo.getObjectClassDefinition());
     }
 
     @Override
-    protected void finish(OperationResult opResult) throws SchemaException {
-        super.finish(opResult);
-        taskExecution.reconResult.setResourceReconCount(bucketStatistics.getItemsProcessed());
-        taskExecution.reconResult.setResourceReconErrors(bucketStatistics.getErrors());
+    protected void finishExecution(OperationResult opResult) throws SchemaException {
+//        taskExecution.reconResult.setResourceReconCount(bucketStatistics.getItemsProcessed());
+//        taskExecution.reconResult.setResourceReconErrors(bucketStatistics.getErrors());
     }
 
-    protected class ItemProcessor
-            extends AbstractSearchIterativeItemProcessorOld
-            <ShadowType, ReconciliationTaskHandler, ReconciliationTaskExecution, ResourceReconciliationActivityExecution, ItemProcessor> {
-
-        public ItemProcessor(ResourceReconciliationActivityExecution partExecution) {
-            super(partExecution);
-        }
-
-        @Override
-        protected boolean processObject(PrismObject<ShadowType> object, ItemProcessingRequest<PrismObject<ShadowType>> request,
-                RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
-            synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
-            return true;
-        }
+    @Override
+    protected @NotNull ItemProcessor<PrismObject<ShadowType>> createItemProcessor(OperationResult opResult) {
+        return createDefaultItemProcessor(
+                (object, request, workerTask, result) -> {
+                    synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
+                    return true;
+                }
+        );
     }
 }

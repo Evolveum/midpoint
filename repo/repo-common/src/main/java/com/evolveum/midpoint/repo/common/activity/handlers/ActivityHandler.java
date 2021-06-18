@@ -16,13 +16,15 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import javax.xml.namespace.QName;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Spring component that ensures handling activity invocations.
@@ -36,8 +38,8 @@ import java.util.List;
 public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends ExecutionSupplier<WD, AH>, CandidateIdentifierFormatter {
 
-    default List<Activity<?,?>> createChildActivities(Activity<WD, AH> activity) throws SchemaException {
-        return List.of();
+    default ArrayList<Activity<?,?>> createChildActivities(Activity<WD, AH> activity) throws SchemaException {
+        return new ArrayList<>();
     }
 
     @Override
@@ -50,7 +52,9 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
         return getClass().getSimpleName(); // should be overridden as this does not look nice
     }
 
-    @NotNull QName getWorkStateTypeName();
+    default @NotNull QName getWorkStateTypeName() {
+        return AbstractActivityWorkStateType.COMPLEX_TYPE;
+    }
 
     default boolean shouldCreateWorkStateOnInitialization() {
         return false;

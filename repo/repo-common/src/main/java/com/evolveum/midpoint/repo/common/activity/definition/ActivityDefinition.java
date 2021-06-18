@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
@@ -17,10 +19,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
  * Definition of an activity. It is analogous to ActivityDefinitionType, but contains the complete information
@@ -199,6 +197,18 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             return definitionBean.getIdentifier();
         } else {
             return null;
+        }
+    }
+
+    public void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
+        controlFlowDefinition.applyChangeTailoring(tailoring);
+        distributionDefinition.applyChangeTailoring(tailoring);
+        applyExecutionModeTailoring(tailoring);
+    }
+
+    private void applyExecutionModeTailoring(@NotNull ActivityTailoringType tailoring) {
+        if (tailoring.getExecutionMode() != null) {
+            ((AbstractWorkDefinition) workDefinition).setExecutionMode(tailoring.getExecutionMode());
         }
     }
 }

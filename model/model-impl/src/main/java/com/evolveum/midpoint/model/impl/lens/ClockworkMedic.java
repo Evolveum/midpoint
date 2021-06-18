@@ -159,7 +159,7 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
         if (shouldExecute(componentName, processor, context, projectionContext)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -177,7 +177,7 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -195,7 +195,7 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -284,7 +284,7 @@ public class ClockworkMedic {
             Supplier<PartialProcessingTypeType> optionSupplier,
             Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
 
         context.checkAbortRequested();
 
@@ -342,8 +342,9 @@ public class ClockworkMedic {
                 }
                 runnable.run(result);
                 LOGGER.trace("Projector component finished: {}", componentName);
-            } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-                    | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
+            } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
+                    SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
+                    ObjectAlreadyExistsException | ConflictDetectedException | RuntimeException | Error e) {
                 LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
                 result.recordFatalError(e);
                 throw e;

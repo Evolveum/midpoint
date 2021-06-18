@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -59,7 +61,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
 
-        ExecuteScriptType executeScriptRequest = IterativeScriptExecutionTaskHandler.getExecuteScriptRequest(task);
+        ExecuteScriptType executeScriptRequest = getExecuteScriptRequest(task);
         try {
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest,
                     VariablesMap.emptyMap(), true, task, result);
@@ -77,6 +79,16 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         task.getResult().computeStatus();
         runResult.setOperationResult(task.getResult());
         return runResult;
+    }
+
+    private static ExecuteScriptType getExecuteScriptRequest(RunningTask coordinatorTask) {
+        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
+        if (executeScriptProperty != null && executeScriptProperty.getValue().getValue() != null &&
+                executeScriptProperty.getValue().getValue().getScriptingExpression() != null) {
+            return executeScriptProperty.getValue().getValue();
+        } else {
+            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
+        }
     }
 
     @Override

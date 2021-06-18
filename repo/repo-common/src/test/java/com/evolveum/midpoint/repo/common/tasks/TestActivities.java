@@ -76,6 +76,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_190_SUSPENDING_COMPOSITE = new TestResource<>(TEST_DIR, "task-190-suspending-composite.xml", "1e7cf975-7253-4991-a707-661d3c52f203");
     private static final TestResource<TaskType> TASK_200_SUBTASK = new TestResource<>(TEST_DIR, "task-200-subtask.xml", "ee60863e-ff77-4edc-9e4e-2e1ea7853478");
     private static final TestResource<TaskType> TASK_210_SUSPENDING_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-210-suspending-composite-with-subtasks.xml", "cd36ca66-cd49-44cf-9eb2-36928acbe1fd");
+    private static final TestResource<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
 
     //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
@@ -1774,6 +1775,124 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertHasThroughput()
                 .end();
         // @formatter:on
+    }
+
+    @Test
+    public void test220MockCompositeWithSubtasks() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task root = taskAdd(TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS, result);
+
+        when();
+
+        waitForTaskClose(root.getOid(), result, 10000, 200);
+
+        then();
+
+        displayDumpable("recorder", recorder);
+
+        root.refresh(result);
+
+        assertTaskTree(root.getOid(), "after")
+                .display("root")
+                .assertSuccess()
+                .assertClosed()
+                .activityState()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertChildren(2)
+                        .child("opening")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertDelegationWorkStateWithTaskRef()
+                        .end()
+                        .child("closing")
+                            .assertComplete()
+                            .assertSuccess()
+                            .assertDelegationWorkStateWithTaskRef()
+                        .end()
+                    .end()
+                .end()
+                .subtaskForPath(ActivityPath.fromId("opening"))
+                    .display()
+                    .assertClosed()
+                    .assertSuccess()
+                    .activityState()
+                        .rootActivity()
+                            .progress()
+                                .assertUncommitted(1, 0, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(1, 0, 0)
+                                .assertLastSuccessObjectName("id1:opening")
+                                .assertExecutions(1)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .subtaskForPath(ActivityPath.fromId("closing"))
+                    .display()
+                    .assertClosed()
+                    .assertSuccess()
+                    .activityState()
+                        .rootActivity()
+                            .progress()
+                                .assertUncommitted(1, 0, 0)
+                                .assertNoCommitted()
+                            .end()
+                            .itemProcessingStatistics()
+                                .assertTotalCounts(1, 0, 0)
+                                .assertLastSuccessObjectName("id1:closing")
+                                .assertExecutions(1)
+                            .end()
+                        .end()
+                    .end()
+                .end();
+
+        OperationStatsType stats = root.getStoredOperationStatsOrClone();
+        displayValue("statistics", TaskOperationStatsUtil.format(stats));
+
+        assertProgress(root.getOid(), "after") // This is derived from the subtask
+                .display()
+                .assertComplete()
+                .assertNoBucketInformation()
+                .assertNoItemsInformation()
+                .child("opening")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                .end()
+                .child("closing")
+                    .assertComplete()
+                    .assertNoBucketInformation()
+                    .assertItems(1, null)
+                .end();
+
+        assertPerformance(root.getOid(), "after") // This is derived from the subtask
+                .display()
+                .assertNotApplicable()
+                .assertChildren(2)
+                .child("opening")
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end()
+                .child("closing")
+                    .assertItemsProcessed(1)
+                    .assertErrors(0)
+                    .assertProgress(1)
+                    .assertHasWallClockTime()
+                    .assertHasThroughput()
+                .end();
     }
 
     @Test

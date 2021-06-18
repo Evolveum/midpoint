@@ -1748,6 +1748,7 @@
                 <a:since>4.4</a:since>
                 <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1831,28 +1832,35 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="recomputation" type="tns:RecomputationDefinitionType" minOccurs="0">
+                <xsd:element name="recomputation" type="tns:RecomputationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="reconciliation" type="tns:ReconciliationDefinitionType" minOccurs="0">
+                <xsd:element name="import" type="tns:ImportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="importFromResource" type="tns:ImportFromResourceDefinitionType" minOccurs="0">
+                <xsd:element name="reconciliation" type="tns:ReconciliationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="liveSynchronization" type="tns:LiveSynchronizationDefinitionType" minOccurs="0">
+                <xsd:element name="asynchronousUpdate" type="tns:AsyncUpdateWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="liveSynchronization" type="tns:LiveSyncWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -1873,7 +1881,63 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="scripting" type="tns:ScriptingDefinitionType" minOccurs="0">
+                <xsd:element name="iterativeScripting" type="tns:IterativeScriptingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="focusValidityScan" type="tns:FocusValidityScanWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="triggerScan" type="tns:TriggerScanWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="shadowRefresh" type="tns:ShadowRefreshWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="changeExecution" type="tns:ChangeExecutionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="reindexing" type="tns:ReindexingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="shadowCleanup" type="tns:ShadowCleanupWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="objectIntegrityCheck" type="tns:ObjectIntegrityCheckWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="shadowIntegrityCheck" type="tns:ShadowIntegrityCheckWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -1902,6 +1966,7 @@
                 <a:since>4.4</a:since>
                 <a:container>true</a:container>
                 <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate> <!-- maybe -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2533,6 +2598,7 @@
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
                 <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2608,6 +2674,7 @@
             <xsd:appinfo>
                 <a:since>4.4</a:since>
                 <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4530,13 +4597,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="part" type="tns:IterativeTaskPartItemsProcessingInformationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Iterative task information for individual task parts.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -5509,7 +5569,265 @@
     </xsd:complexType>
     <xsd:element name="objectSet" type="tns:ObjectSetType"/>
 
-    <xsd:complexType name="RecomputationDefinitionType">
+    <xsd:complexType name="ResourceObjectSetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource against which we want to execute the synchronization.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationParametersType.resourceRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectQuery" type="q:QueryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="resourceObjectSet" type="tns:ResourceObjectSetType"/>
+
+    <xsd:complexType name="RecomputationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="recomputationDefinition" type="tns:RecomputationWorkDefinitionType"/>
+
+    <xsd:complexType name="IterativeScriptingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="scriptExecutionRequest" type="s:ExecuteScriptType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="iterativeScriptingWorkDefinition" type="tns:IterativeScriptingWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusValidityScanWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="queryStyle" type="tns:ValidityScanQueryStyleType" minOccurs="0" >
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How to execute validation scan queries.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="validityConstraint" type="tns:TimeValidityPolicyConstraintType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusValidityScanWorkDefinition" type="tns:FocusValidityScanWorkDefinitionType"/>
+
+    <xsd:simpleType name="ValidityScanQueryStyleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to execute validation scan queries.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="singleQuery">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single query is issued. This encompasses both objects and assignments.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_QUERY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="separateObjectAndAssignmentQueries">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Separate queries for objects and assignments are issued.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TriggerScanWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+                <xsd:sequence>
+                    <!-- ? -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="triggerScanWorkDefinition" type="tns:FocusValidityScanWorkDefinitionType"/>
+
+    <xsd:complexType name="ShadowRefreshWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This is intentionally not a resource object set type, because the filtering behavior is different
+                                from the usual tasks: the "has pending operations" filter is used ONLY if there is no custom
+                                filter present in the work definition.
+
+                                This is the behavior up to 4.4. It may or may not be correct. So it may change in the future.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="shadowRefreshWorkDefinition" type="tns:ShadowRefreshWorkDefinitionType"/>
+
+    <xsd:complexType name="ChangeExecutionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0"/>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="changeExecutionWorkDefinition" type="tns:ChangeExecutionWorkDefinitionType"/>
+
+    <xsd:complexType name="ReindexingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reindexingWorkDefinition" type="tns:ReindexingWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectSetBasedWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -5528,9 +5846,9 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="recomputationDefinition" type="tns:RecomputationDefinitionType"/>
+    <xsd:element name="objectSetBasedWorkDefinition" type="tns:ObjectSetBasedWorkDefinitionType"/>
 
-    <xsd:complexType name="ScriptingDefinitionType">
+    <xsd:complexType name="ShadowCleanupWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -5542,16 +5860,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:SearchBasedPartParametersType">
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0"/>
+                    <xsd:element name="shadows" type="tns:ResourceObjectSetType" minOccurs="0"/>
+                    <xsd:element name="interval" type="xsd:duration" minOccurs="0"/> <!-- TODO -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="scriptingDefinition" type="tns:ScriptingDefinitionType"/>
+    <xsd:element name="shadowCleanupWorkDefinition" type="tns:ShadowCleanupWorkDefinitionType"/>
 
-    <xsd:complexType name="ReconciliationDefinitionType">
+    <xsd:complexType name="ReconciliationWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -5563,44 +5882,78 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:SynchronizationDefinitionType">
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="reconciliationDefinition" type="tns:ReconciliationDefinitionType"/>
-
-    <xsd:complexType name="ImportFromResourceDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-                <a:since>4.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:SynchronizationDefinitionType">
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="importFromResourceDefinition" type="tns:ImportFromResourceDefinitionType"/>
-
-    <xsd:complexType name="LiveSynchronizationDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-                <a:since>4.4</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:SynchronizationDefinitionType">
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reconciliationDefinition" type="tns:ReconciliationWorkDefinitionType"/>
+
+    <xsd:complexType name="AsyncUpdateWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="updatedResourceObjects" type="tns:ResourceObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO - EXPERIMENTAL!!!
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="asynchronousUpdateWorkDefinition" type="tns:AsyncUpdateWorkDefinitionType"/>
+
+    <xsd:complexType name="ImportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="importWorkDefinition" type="tns:ImportWorkDefinitionType"/>
+
+    <xsd:complexType name="LiveSyncWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
                     <xsd:element name="batchSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5612,7 +5965,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="liveSynchronization" type="tns:LiveSynchronizationDefinitionType"/>
+    <xsd:element name="liveSynchronization" type="tns:LiveSyncWorkDefinitionType"/>
 
     <xsd:complexType name="CleanupDefinitionType">
         <xsd:annotation>
@@ -5842,6 +6195,152 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+
+    <xsd:complexType name="ScanWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="lastScanTimestamp" type="xsd:dateTime" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="scanWorkState" type="tns:ScanWorkStateType" />
+
+    <xsd:complexType name="ObjectIntegrityCheckWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="histogramColumns" type="xsd:int" minOccurs="0" default="80"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectIntegrityCheckWorkDefinition" type="tns:ObjectIntegrityCheckWorkDefinitionType"/>
+
+    <xsd:complexType name="ShadowIntegrityCheckWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="diagnose" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="fix" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" minOccurs="0" default="false"/>
+                    <xsd:element name="duplicateShadowsResolver" type="xsd:string" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="shadowIntegrityCheckWorkDefinition" type="tns:ShadowIntegrityCheckWorkDefinitionType"/>
+
+    <xsd:simpleType name="ShadowIntegrityAspectType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An aspect of shadow integrity to be diagnosed and/or fixed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="intents">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INTENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="uniqueness">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNIQUENESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="normalization">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMALIZATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="owners">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWNERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="existenceOnResource">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXISTENCE_ON_RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="extraData">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXTRA_DATA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="resourceRef">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE_REF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="DelegationWorkStateType">
         <xsd:annotation>

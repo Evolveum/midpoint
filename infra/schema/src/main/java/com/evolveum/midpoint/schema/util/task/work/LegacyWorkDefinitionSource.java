@@ -7,56 +7,74 @@
 
 package com.evolveum.midpoint.schema.util.task.work;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class LegacyWorkDefinitionSource implements WorkDefinitionSource {
 
-    @NotNull private final String taskHandlerUri;
-    private final PrismContainerValue<?> taskExtension;
-    private final ObjectReferenceType objectRef;
+    @NotNull private final TaskType taskBean;
 
-    private LegacyWorkDefinitionSource(@NotNull String taskHandlerUri, PrismContainerValue<?> taskExtension,
-            ObjectReferenceType objectRef) {
-        this.taskHandlerUri = taskHandlerUri;
-        this.taskExtension = taskExtension;
-        this.objectRef = objectRef;
+    private LegacyWorkDefinitionSource(@NotNull TaskType taskBean) {
+        this.taskBean = taskBean;
     }
 
     @NotNull
-    public static WorkDefinitionSource create(@NotNull String handlerUri,
-            PrismContainer<? extends ExtensionType> extensionContainer, ObjectReferenceType objectRef) {
-        PrismContainerValue<?> pcv = extensionContainer != null ? extensionContainer.getValue() : null;
-        return new LegacyWorkDefinitionSource(handlerUri, pcv, objectRef);
+    public static WorkDefinitionSource create(@NotNull TaskType taskBean) {
+        return new LegacyWorkDefinitionSource(taskBean);
+    }
+
+    public @NotNull TaskType getTaskBean() {
+        return taskBean;
     }
 
     public @NotNull String getTaskHandlerUri() {
-        return taskHandlerUri;
+        return taskBean.getHandlerUri();
     }
 
-    public PrismContainerValue<?> getTaskExtension() {
-        return taskExtension;
+    public @Nullable PrismContainerValue<?> getTaskExtension() {
+        return taskBean.asPrismObject().getExtensionContainerValue();
     }
 
     public ObjectReferenceType getObjectRef() {
-        return objectRef;
+        return taskBean.getObjectRef();
     }
 
     @Override
     public String toString() {
         return "LegacyWorkDefinitionSource{" +
-                "taskHandlerUri='" + taskHandlerUri + '\'' +
+                "taskHandlerUri='" + getTaskHandlerUri() + '\'' +
                 ", taskExtension size=" + getExtensionSize() +
-                ", objectRef=" + objectRef +
+                ", objectRef=" + getObjectRef() +
                 '}';
     }
 
     private int getExtensionSize() {
+        PrismContainerValue<?> taskExtension = getTaskExtension();
         return taskExtension != null ? taskExtension.size() : 0;
+    }
+
+    public <T> T getExtensionItemRealValue(ItemName name, Class<T> expectedClass) {
+        PrismContainerValue<?> taskExtension = getTaskExtension();
+        return taskExtension != null ? taskExtension.getItemRealValue(name, expectedClass) : null;
+    }
+
+    // TODO move to prism-api
+    public <T> Collection<T> getExtensionItemRealValues(ItemName name, Class<T> expectedClass) {
+        PrismContainerValue<?> taskExtension = getTaskExtension();
+        return taskExtension != null ?
+                taskExtension.getAllValues(name).stream()
+                        .filter(Objects::nonNull)
+                        .map(val -> (T) val.getRealValue())
+                        .collect(Collectors.toList()) :
+                null;
     }
 }

@@ -9,18 +9,13 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketsManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDistributionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityDistributionDefinition implements DebugDumpable {
 
-    @NotNull private final WorkDistributionType bean;
+    @NotNull private WorkDistributionType bean;
 
     private ActivityDistributionDefinition(ActivityDefinitionType activityDefinitionBean) {
         this.bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
@@ -56,5 +51,13 @@ public class ActivityDistributionDefinition implements DebugDumpable {
 
     public WorkersManagementType getWorkers() {
         return bean.getWorkers();
+    }
+
+    void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
+        if (tailoring.getDistribution() != null) {
+            this.bean = tailoring.getDistribution();
+        } else {
+            // null means we do not want it to change.
+        }
     }
 }

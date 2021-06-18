@@ -451,15 +451,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 | PolicyViolationException | SecurityViolationException | RuntimeException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-
-        } catch (PreconditionViolationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            // TODO: Temporary fix for 3.6.1
-            // We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-            // ... and we do not really need that in 3.6.1
-            // TODO: expose PreconditionViolationException in 3.7
-            throw new SystemException(e);
-
         } finally {
             task.markObjectActionExecutedBoundary();
         }
@@ -765,15 +756,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-
-        } catch (PreconditionViolationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            // TODO: Temporary fix for 3.6.1
-            // We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-            // ... and we do not really need that in 3.6.1
-            // TODO: expose PreconditionViolationException in 3.7
-            throw new SystemException(e);
-
         } finally {
             exitModelMethod();
         }
@@ -1969,7 +1951,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
-        taskManager.reconcileWorkers(oid, null, result);
+//        taskManager.reconcileWorkers(oid, null, result);
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -1978,7 +1961,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-        taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
+//        taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
+        throw new UnsupportedOperationException();
     }
 
     @Deprecated // Remove in 4.2

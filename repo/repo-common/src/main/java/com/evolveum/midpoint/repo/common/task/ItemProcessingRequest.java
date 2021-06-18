@@ -108,4 +108,8 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     public @NotNull String getIdentifier() {
         return identifier;
     }
+
+    public @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> getActivityExecution() {
+        return activityExecution;
+    }
 }

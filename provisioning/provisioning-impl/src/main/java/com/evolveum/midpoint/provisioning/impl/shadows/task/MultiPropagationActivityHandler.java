@@ -62,9 +62,4 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     public String getIdentifierPrefix() {
         return "multi-propagation";
     }
-
-    @Override
-    public @NotNull QName getWorkStateTypeName() {
-        return AbstractActivityWorkStateType.COMPLEX_TYPE;
-    }
 }

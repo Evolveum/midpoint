@@ -51,7 +51,7 @@ public class ChangeExecutor {
     public <O extends ObjectType> boolean executeChanges(LensContext<O> context, Task task,
             OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
 
@@ -71,8 +71,8 @@ public class ChangeExecutor {
 
     private <O extends ObjectType> void executeFocusChanges(LensContext<O> context, Task task, OperationResult result)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException,
-            ObjectAlreadyExistsException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+            ObjectAlreadyExistsException, ConflictDetectedException {
         context.checkAbortRequested();
 
         LensFocusContext<O> focusContext = context.getFocusContext();
@@ -86,8 +86,7 @@ public class ChangeExecutor {
 
     private <O extends ObjectType> boolean executeProjectionsChanges(LensContext<O> context, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            PreconditionViolationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         boolean restartRequested = false;
 

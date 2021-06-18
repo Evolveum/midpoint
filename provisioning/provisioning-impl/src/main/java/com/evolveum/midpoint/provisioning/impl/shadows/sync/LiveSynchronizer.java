@@ -65,11 +65,11 @@ public class LiveSynchronizer {
 
     @NotNull
     public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, ActivityDefinitionType partition, LiveSyncEventHandler handler, OperationResult gResult)
+            Task task, boolean simulate, LiveSyncEventHandler handler, OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, partition, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, simulate, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -230,12 +230,12 @@ public class LiveSynchronizer {
         private final OldestTokenWatcher oldestTokenWatcher;
         private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, ActivityDefinitionType partition, OperationResult result)
+        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, boolean simulate, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.create(shadowCoordinates, task, result);
             this.task = task;
-            this.simulate = partition != null && partition.getExecutionMode() == ExecutionModeType.SIMULATE;
+            this.simulate = simulate;
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 

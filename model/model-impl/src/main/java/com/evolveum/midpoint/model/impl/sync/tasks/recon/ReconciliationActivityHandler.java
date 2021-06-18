@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.model.impl.sync.tasks.recon;
+
+import java.util.ArrayList;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
+@Component
+public class ReconciliationActivityHandler
+        extends ModelActivityHandler<ReconciliationWorkDefinition, ReconciliationActivityHandler> {
+
+    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(); // TODO
+
+    @PostConstruct
+    public void register() {
+        handlerRegistry.register(ReconciliationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                ReconciliationWorkDefinition.class, ReconciliationWorkDefinition::new, this);
+    }
+
+    @PreDestroy
+    public void unregister() {
+        handlerRegistry.unregister(ReconciliationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
+                ReconciliationWorkDefinition.class);
+    }
+
+    @Override
+    public @NotNull ReconciliationActivityExecution createExecution(
+            @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
+            @NotNull OperationResult result) {
+        return new ReconciliationActivityExecution(context);
+    }
+
+    @Override
+    public ArrayList<Activity<?, ?>> createChildActivities(
+            Activity<ReconciliationWorkDefinition, ReconciliationActivityHandler> parentActivity) {
+        ArrayList<Activity<?, ?>> children = new ArrayList<>();
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                (context, result) -> new OperationCompletionActivityExecution(context),
+                (i) -> ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID,
+                parentActivity));
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                (context, result) -> new ResourceReconciliationActivityExecution(context),
+                (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
+                parentActivity));
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                (context, result) -> new RemainingShadowsActivityExecution(context),
+                (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID,
+                parentActivity));
+        return children;
+    }
+
+    @Override
+    public String getIdentifierPrefix() {
+        return "reconciliation";
+    }
+}

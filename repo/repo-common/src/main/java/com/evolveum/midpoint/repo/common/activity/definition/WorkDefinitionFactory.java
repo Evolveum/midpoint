@@ -83,8 +83,9 @@ public class WorkDefinitionFactory {
             return null;
         }
 
-        return supplier.provide(LegacyWorkDefinitionSource.create(handlerUri, task.getExtensionOrClone(),
-                task.getObjectRefOrClone()));
+        return supplier.provide(
+                LegacyWorkDefinitionSource.create(
+                        task.getRawTaskObjectClonedIfNecessary().asObjectable()));
     }
 
     @FunctionalInterface

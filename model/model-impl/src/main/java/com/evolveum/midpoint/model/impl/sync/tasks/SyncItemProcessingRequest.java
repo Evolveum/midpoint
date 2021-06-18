@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.task.AbstractIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +31,11 @@ import org.jetbrains.annotations.Nullable;
  * It is comparable on the sequence number.
  */
 public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
-        extends ItemProcessingRequestOld<SE>
+        extends ItemProcessingRequest<SE>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
-    SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessorOld<SE, ?, ?, ?, ?> itemProcessor) {
-        super(item, itemProcessor);
+    public SyncItemProcessingRequest(SE item, AbstractIterativeActivityExecution<SE, ?, ?, ?> activityExecution) {
+        super(item, activityExecution);
     }
 
     @Override
