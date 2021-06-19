@@ -32,6 +32,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType.F_TREE;
+
 @Experimental
 @Component
 public class TaskActivityManager {
@@ -54,13 +56,13 @@ public class TaskActivityManager {
         try {
             plainRepositoryService.modifyObjectDynamically(TaskType.class, taskOid, null,
                     taskBean -> {
-                        ActivityStateOverviewType treeOverview = ActivityTreeStateOverviewUtil.getTreeOverview(taskBean);
-                        if (treeOverview != null) {
-                            ActivityStateOverviewType updatedTreeOverview = treeOverview.clone();
-                            ActivityTreeStateOverviewUtil.clearFailedState(updatedTreeOverview);
+                        ActivityStateOverviewType stateOverview = ActivityStateOverviewUtil.getStateOverview(taskBean);
+                        if (stateOverview != null) {
+                            ActivityStateOverviewType updatedStateOverview = stateOverview.clone();
+                            ActivityStateOverviewUtil.clearFailedState(updatedStateOverview);
                             return prismContext.deltaFor(TaskType.class)
-                                    .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE_OVERVIEW)
-                                    .replace(updatedTreeOverview)
+                                    .item(TaskType.F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY)
+                                    .replace(updatedStateOverview)
                                     .asItemDeltas();
                         } else {
                             return List.of();

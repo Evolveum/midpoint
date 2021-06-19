@@ -156,7 +156,7 @@ public class DelegatingActivityExecution<
             ActivityPath localRoot = getActivityPath();
             childTask.beginActivityState()
                     .localRoot(localRoot.toBean())
-                    .role(ActivityExecutionRoleType.DELEGATE);
+                    .localRootActivityExecutionRole(ActivityExecutionRoleType.DELEGATE);
 
             LOGGER.info("Creating activity subtask {} with local root {}", childTask.getName(), localRoot);
             String childOid = getBeans().taskManager.addTask(childTask.asPrismObject(), result);

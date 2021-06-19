@@ -1803,7 +1803,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public TaskActivityStateType getWorkStateOrClone() {
+    public TaskActivityStateType getActivitiesStateOrClone() {
         return getContainerableOrClone(TaskType.F_ACTIVITY_STATE);
     }
 
@@ -2240,11 +2240,6 @@ public class TaskQuartzImpl implements Task {
     //endregion
 
     //region TODO
-
-    @Override
-    public String getCurrentPartId() {
-        return getProperty(ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_CURRENT_PART_ID));
-    }
 
     //endregion
 }

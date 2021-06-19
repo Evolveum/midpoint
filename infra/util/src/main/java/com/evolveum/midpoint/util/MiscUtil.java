@@ -984,6 +984,15 @@ public class MiscUtil {
         return values.length == 1 && values[0] == null;
     }
 
+    // To be used in contexts where we can safely ignore the interruption, e.g. in tests.
+    public static void sleepIgnoringInterruptedException(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     @FunctionalInterface
     public interface ExceptionSupplier<E> {
         E get();

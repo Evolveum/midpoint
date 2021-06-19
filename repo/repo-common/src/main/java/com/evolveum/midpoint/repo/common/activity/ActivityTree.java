@@ -10,12 +10,17 @@ package com.evolveum.midpoint.repo.common.activity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.state.TreeStatePurger;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +43,7 @@ public class ActivityTree implements DebugDumpable {
             @NotNull Task rootTask,
             @NotNull CommonTaskBeans beans) {
         AH handler = beans.activityHandlerRegistry.getHandler(rootDefinition);
-        this.rootActivity = StandaloneActivity.createRoot(rootDefinition, handler,  this);
+        this.rootActivity = StandaloneActivity.createRoot(rootDefinition, handler, this);
         this.beans = beans;
         this.treeStateOverview = new ActivityTreeStateOverview(rootTask, beans);
     }
@@ -81,5 +86,29 @@ public class ActivityTree implements DebugDumpable {
 
     public @NotNull ActivityTreeStateOverview getTreeStateOverview() {
         return treeStateOverview;
+    }
+
+    public ActivityTreeRealizationStateType getRealizationState() {
+        return treeStateOverview.getRealizationState();
+    }
+
+    public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
+            throws ActivityExecutionException {
+        treeStateOverview.updateRealizationState(value, result);
+    }
+
+    public void purgeState(GenericTaskExecution taskExecution, OperationResult result) throws ActivityExecutionException {
+        purgeStateOverview(result);
+        purgeDetailedState(taskExecution, result);
+    }
+
+    private void purgeStateOverview(OperationResult result) throws ActivityExecutionException {
+        treeStateOverview.purge(result);
+    }
+
+    private void purgeDetailedState(GenericTaskExecution taskExecution, OperationResult result)
+            throws ActivityExecutionException {
+        new TreeStatePurger(this, taskExecution, beans)
+                .purge(result);
     }
 }

@@ -198,10 +198,14 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return getRole(taskExecution) == ActivityExecutionRoleType.WORKER;
     }
 
+    public boolean isExecutionTheTreeRootOne(TaskExecution taskExecution) {
+        return isRoot() && getRole(taskExecution) == null;
+    }
+
     private ActivityExecutionRoleType getRole(TaskExecution taskExecution) {
         return taskExecution.getRunningTask()
                 .getPropertyRealValue(
-                        ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ROLE),
+                        ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE),
                         ActivityExecutionRoleType.class);
     }
 

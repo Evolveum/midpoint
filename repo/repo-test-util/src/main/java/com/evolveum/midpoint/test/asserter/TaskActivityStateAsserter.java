@@ -13,7 +13,10 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
@@ -28,18 +31,23 @@ public class TaskActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         this.activityState = information;
     }
 
-    public TaskActivityStateAsserter<RA> assertAllWorkComplete() {
-        assertThat(activityState.isAllWorkComplete()).as("allWorkComplete").isTrue();
-        return this;
+    public TaskActivityStateAsserter<RA> assertTreeRealizationComplete() {
+        return assertTreeRealizationState(ActivityTreeRealizationStateType.COMPLETE);
     }
 
-    public TaskActivityStateAsserter<RA> assertNotAllWorkComplete() {
-        assertThat(activityState.isAllWorkComplete()).as("allWorkComplete").isNotEqualTo(Boolean.TRUE);
+    public TaskActivityStateAsserter<RA> assertTreeRealizationInProgress() {
+        return assertTreeRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS);
+    }
+
+    private @NotNull TaskActivityStateAsserter<RA> assertTreeRealizationState(ActivityTreeRealizationStateType expected) {
+        assertThat(activityState.getTree().getRealizationState())
+                .as("tree realization state")
+                .isEqualTo(expected);
         return this;
     }
 
     public TaskActivityStateAsserter<RA> assertRole(ActivityExecutionRoleType expected) {
-        assertThat(activityState.getRole()).as("role").isEqualTo(expected);
+        assertThat(activityState.getLocalRootActivityExecutionRole()).as("role").isEqualTo(expected);
         return this;
     }
 

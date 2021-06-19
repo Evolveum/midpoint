@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -28,7 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityTreeStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
+import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
 
 /**
  * Task instance - a logical unit of work.
@@ -502,6 +503,18 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException;
 
+    default void setItemRealValues(ItemPath path, Object... value) throws SchemaException {
+        setItemRealValuesCollection(path, MiscUtil.asListTreatingNull(value));
+    }
+
+    default void setItemRealValuesCollection(ItemPath path, Collection<?> values) throws SchemaException {
+        modify(
+                PrismContext.get().deltaFor(TaskType.class)
+                        .item(path)
+                        .replaceRealValues(values)
+                        .asItemDelta());
+    }
+
     /**
      * Sets a reference in the extension - replaces existing value(s), if any, by the one(s) provided.
      */
@@ -833,9 +846,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskActivityStateType getWorkState();
 
     /**
-     * Gets task work state or its clone (for running tasks).
+     * Gets task work state or its clone (for running tasks). TODO better name
      */
-    TaskActivityStateType getWorkStateOrClone();
+    TaskActivityStateType getActivitiesStateOrClone();
 
     default ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
         return getPropertyRealValueOrClone(ACTIVITY_TREE_STATE_OVERVIEW_PATH, ActivityStateOverviewType.class);
@@ -918,9 +931,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
     //endregion
-
-    //region TODO
-    String getCurrentPartId();
 
     default boolean isRoot() {
         return getParent() == null;

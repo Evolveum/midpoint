@@ -11,6 +11,7 @@ import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingSt
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
@@ -51,6 +52,8 @@ class SimpleMockActivityExecution
         ActivityItemProcessingStatistics.Operation operation = activityState.getLiveItemProcessingStatistics()
                 .recordOperationStart(new IterativeOperationStartInfo(
                         new IterationItemInformation(message, null, null, null)));
+
+        MiscUtil.sleepIgnoringInterruptedException(10); // to avoid wall clock time of 0 (failing throughput-assuming tests)
 
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);

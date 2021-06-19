@@ -7,29 +7,44 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
-import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType.F_TREE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_ACTIVITY_STATE;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeStateOverviewUtil;
-import com.evolveum.midpoint.task.api.Task;
+import java.util.Objects;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
+import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ActivityTreeStateOverview {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityTreeStateOverview.class);
 
     @NotNull private final Task rootTask;
     @NotNull private final CommonTaskBeans beans;
 
-    public ActivityTreeStateOverview(@NotNull Task rootTask, @NotNull CommonTaskBeans beans) {
+    @NotNull private static final ItemPath PATH_REALIZATION_STATE
+            = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_REALIZATION_STATE);
+    @NotNull private static final ItemPath PATH_ACTIVITY_STATE_TREE
+            = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY);
+
+    ActivityTreeStateOverview(@NotNull Task rootTask, @NotNull CommonTaskBeans beans) {
         this.rootTask = rootTask;
         this.beans = beans;
     }
@@ -40,14 +55,14 @@ public class ActivityTreeStateOverview {
         try {
             beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, rootTask.getOid(), null,
                     taskBean -> {
-                        ActivityStateOverviewType overview = ActivityTreeStateOverviewUtil.getOrCreateTreeOverview(taskBean);
-                        ActivityTreeStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityStateOverviewType overview = ActivityStateOverviewUtil.getOrCreateStateOverview(taskBean);
+                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                                 .executionState(ActivityExecutionStateType.EXECUTING)
                                 .resultStatus(OperationResultStatusType.IN_PROGRESS)
                                 .taskRef(execution.getRunningTask().getSelfReference());
                         return beans.prismContext.deltaFor(TaskType.class)
-                                .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE_OVERVIEW).replace(overview)
+                                .item(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY).replace(overview)
                                 .asItemDeltas();
                     }, null, result);
         } catch (Exception e) {
@@ -66,7 +81,7 @@ public class ActivityTreeStateOverview {
         try {
             beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, rootTask.getOid(), null,
                     taskBean -> {
-                        ActivityStateOverviewType overview = ActivityTreeStateOverviewUtil.getOrCreateTreeOverview(taskBean);
+                        ActivityStateOverviewType overview = ActivityStateOverviewUtil.getOrCreateStateOverview(taskBean);
                         ActivitySimplifiedRealizationStateType realizationState;
                         ActivityExecutionStateType executionState;
                         OperationResultStatusType resultStatus;
@@ -79,18 +94,82 @@ public class ActivityTreeStateOverview {
                             executionState = ActivityExecutionStateType.NOT_EXECUTING;
                             resultStatus = OperationResultStatusType.FATAL_ERROR;
                         }
-                        ActivityTreeStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(realizationState)
                                 .executionState(executionState)
                                 .resultStatus(resultStatus)
                                 .taskRef(execution.getRunningTask().getSelfReference());
                         return beans.prismContext.deltaFor(TaskType.class)
-                                .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE_OVERVIEW).replace(overview)
+                                .item(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY).replace(overview)
                                 .asItemDeltas();
                     }, null, result);
         } catch (Exception e) {
             throw new ActivityExecutionException("Couldn't record execution start in the activity tree",
                     FATAL_ERROR, PERMANENT_ERROR, e);
         }
+    }
+
+    public ActivityTreeRealizationStateType getRealizationState() {
+        return rootTask.getPropertyRealValue(PATH_REALIZATION_STATE, ActivityTreeRealizationStateType.class);
+    }
+
+    /**
+     * Updates the realization state (including writing to the repository).
+     */
+    public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
+            throws ActivityExecutionException {
+        try {
+            rootTask.setItemRealValues(PATH_REALIZATION_STATE, value);
+            rootTask.flushPendingModifications(result);
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't update tree realization state", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+    }
+
+    public ActivityStateOverviewType getActivityStateTree() {
+        return rootTask.getPropertyRealValue(PATH_ACTIVITY_STATE_TREE, ActivityStateOverviewType.class);
+    }
+
+    /**
+     * Updates the activity state tree (including writing to the repository).
+     */
+    private void updateActivityStateTree(ActivityStateOverviewType value, OperationResult result)
+            throws ActivityExecutionException {
+        try {
+            rootTask.setItemRealValues(PATH_ACTIVITY_STATE_TREE, value);
+            rootTask.flushPendingModifications(result);
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't update activity state tree", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+    }
+
+    public void purge(OperationResult result) throws ActivityExecutionException {
+        updateActivityStateTree(
+                purgeStateRecursively(
+                        getActivityStateTree()
+                ),
+                result);
+
+        LOGGER.info("State tree after purging: {}", lazy(this::getActivityStateTree)); // TODO trace
+    }
+
+    private ActivityStateOverviewType purgeStateRecursively(ActivityStateOverviewType state) {
+        if (state == null || isTransient(state)) {
+            return null;
+        }
+
+        state.setRealizationState(null);
+        state.setExecutionState(null);
+        state.setResultStatus(null);
+        // TODO taskref?
+
+        state.getActivity().replaceAll(this::purgeStateRecursively);
+        state.getActivity().removeIf(Objects::isNull);
+        return state;
+    }
+
+    private boolean isTransient(@NotNull ActivityStateOverviewType state) {
+        return state.getPersistence() == null ||
+                state.getPersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
     }
 }

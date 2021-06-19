@@ -21,11 +21,13 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -154,8 +156,14 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
@@ -193,8 +201,14 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
@@ -234,6 +248,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertHasThroughput();
     }
 
+    /**
+     * Runs the task twice to check the purger.
+     */
     @Test
     public void test120RunSimpleTask() throws Exception {
         given();
@@ -245,20 +262,49 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         Task task1 = taskAdd(TASK_120_MOCK_SIMPLE, result);
 
-        when();
+        when("run 1");
 
         waitForTaskClose(task1.getOid(), result, 10000, 200);
 
-        then();
+        then("run 1");
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after run 1")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
 
         dumpProgressAndPerformanceInfo(task1.getOid(), result);
+
+        when("run 2");
+
+        restartTask(task1.getOid(), result);
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then("run 2");
+
+        task1.refresh(result);
+        assertTask(task1, "after run 2")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
+
+        displayDumpable("recorder", recorder);
+        assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1", "msg1");
+
+        dumpProgressAndPerformanceInfo(task1.getOid(), result);
+
     }
 
     @Test
@@ -279,41 +325,68 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        assertTask(task1, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
 
     }
 
+    /**
+     * Run twice to check state purge.
+     */
     @Test
     public void test140RunPureCompositeTask() throws Exception {
+
         given();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         recorder.reset();
+        Task root = taskAdd(TASK_140_PURE_COMPOSITE, result);
+        List<String> expectedExecutions1 = List.of("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
+        List<String> expectedExecutions2 = ListUtils.union(expectedExecutions1, expectedExecutions1);
 
-        Task task1 = taskAdd(TASK_140_PURE_COMPOSITE, result);
+        execute140RunPureCompositeTaskOnce(root, "run 1", expectedExecutions1);
+        execute140RunPureCompositeTaskOnce(root, "run 2", expectedExecutions2);
+    }
 
-        when();
+    private void execute140RunPureCompositeTaskOnce(Task root, String label, List<String> expectedExecutions)
+            throws CommonException {
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-        then();
+        when(label);
 
-        task1.refresh(result);
-        display("task after", task1);
-        assertSuccess(task1.getResult());
+        waitForTaskClose(root.getOid(), result, 10000, 200);
+
+        then(label);
+
+        root.refresh(result);
+        assertTask(root, label)
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
-                .containsExactly("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
+                .containsExactlyElementsOf(expectedExecutions);
 
         // @formatter:off
-        assertProgress( task1.getOid(),"after")
+        assertProgress( root.getOid(),label)
                 .display()
                 .assertComplete()
                 .assertNoBucketInformation()
@@ -368,7 +441,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .end()
                 .end();
 
-        assertPerformance( task1.getOid(),"after")
+        assertPerformance( root.getOid(),label)
                 .display()
                 .assertNotApplicable()
                 .assertChildren(4)
@@ -452,6 +525,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertSuccess()
                 .assertClosed()
                 .activityState()
+                    .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
                         .assertSuccess()
@@ -506,6 +580,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertSuccess()
                 .assertClosed()
                 .activityState()
+                    .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
                         .assertSuccess()
@@ -565,6 +640,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertSuccess()
                 .assertClosed()
                 .activityState()
+                    .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
                         .assertSuccess()
@@ -626,6 +702,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertSuccess()
                 .assertClosed()
                 .activityState()
+                    .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
                         .assertSuccess()
@@ -845,7 +922,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertFatalError()
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertInProgressLocal()
                         .assertFatalError()
@@ -944,7 +1021,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 //.assertFatalError() // TODO
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertInProgressLocal()
                         .assertFatalError()
@@ -1042,7 +1119,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertFatalError()
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertInProgressLocal()
                         .assertFatalError()
@@ -1123,7 +1200,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertFatalError()
                 .assertExecutionStatus(TaskExecutionStateType.SUSPENDED)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
@@ -1180,12 +1257,12 @@ public class TestActivities extends AbstractRepoCommonTest {
         task1.refresh(result);
 
         // @formatter:off
-        assertTask(task1.getOid(), "after run 4")
+        assertTask(task1.getOid(), "after run 5")
                 .display()
                 .assertSuccess()
                 .assertExecutionStatus(TaskExecutionStateType.CLOSED)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.COMPLETE)
                         .assertResultStatus(OperationResultStatusType.SUCCESS)
@@ -1402,7 +1479,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
                 .assertSchedulingState(TaskSchedulingStateType.WAITING)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
@@ -1500,7 +1577,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
                 .assertSchedulingState(TaskSchedulingStateType.WAITING)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
@@ -1596,7 +1673,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertExecutionStatus(TaskExecutionStateType.RUNNING)
                 .assertSchedulingState(TaskSchedulingStateType.WAITING)
                 .activityState()
-                    .assertNotAllWorkComplete()
+                    .assertTreeRealizationInProgress()
                     .rootActivity()
                         .assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
@@ -1694,7 +1771,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         assertTaskTree(root.getOid(), "after run 5")
                 .display()
                 .assertSuccess()
-                .assertExecutionStatus(TaskExecutionStateType.CLOSED);
+                .assertExecutionStatus(TaskExecutionStateType.CLOSED)
+                .activityState()
+                    .assertTreeRealizationComplete();
         // @formatter:on
 
         displayDumpable("recorder after run 5", recorder);

@@ -21,10 +21,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utilities related to the helper activity tree state overview structure (maintained in the root task).
  */
-public class ActivityTreeStateOverviewUtil {
+public class ActivityStateOverviewUtil {
 
     public static final ItemPath ACTIVITY_TREE_STATE_OVERVIEW_PATH =
-            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE_OVERVIEW);
+            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TREE, ActivityTreeStateType.F_ACTIVITY);
 
     /**
      * Finds or creates a state overview entry for given activity path.
@@ -60,13 +60,14 @@ public class ActivityTreeStateOverviewUtil {
     @SuppressWarnings("unused") // Maybe will be used later
     public static boolean containsFailedExecution(@NotNull TaskType task) {
         return task.getActivityState() != null &&
-                containsFailedExecution(task.getActivityState().getTreeOverview());
+                task.getActivityState().getTree() != null &&
+                containsFailedExecution(task.getActivityState().getTree().getActivity());
     }
 
     private static boolean containsFailedExecution(@Nullable ActivityStateOverviewType stateOverview) {
         return stateOverview != null &&
                 (isExecutionFailed(stateOverview) ||
-                        stateOverview.getActivity().stream().anyMatch(ActivityTreeStateOverviewUtil::containsFailedExecution));
+                        stateOverview.getActivity().stream().anyMatch(ActivityStateOverviewUtil::containsFailedExecution));
     }
 
     private static boolean isExecutionFailed(@NotNull ActivityStateOverviewType stateOverview) {
@@ -76,13 +77,17 @@ public class ActivityTreeStateOverviewUtil {
     }
 
     @NotNull
-    public static ActivityStateOverviewType getOrCreateTreeOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null && taskBean.getActivityState().getTreeOverview() != null ?
-                taskBean.getActivityState().getTreeOverview() : new ActivityStateOverviewType();
+    public static ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType taskBean) {
+        return taskBean.getActivityState() != null &&
+                taskBean.getActivityState().getTree() != null &&
+                taskBean.getActivityState().getTree().getActivity() != null ?
+                taskBean.getActivityState().getTree().getActivity() : new ActivityStateOverviewType();
     }
 
-    public static ActivityStateOverviewType getTreeOverview(@NotNull TaskType taskBean) {
-        return taskBean.getActivityState() != null ? taskBean.getActivityState().getTreeOverview() : null;
+    public static ActivityStateOverviewType getStateOverview(@NotNull TaskType taskBean) {
+        return taskBean.getActivityState() != null &&
+                taskBean.getActivityState().getTree() != null ?
+                taskBean.getActivityState().getTree().getActivity() : null;
     }
 
     /**
@@ -92,7 +97,7 @@ public class ActivityTreeStateOverviewUtil {
      */
     public static void clearFailedState(@NotNull ActivityStateOverviewType state) {
         doClearFailedState(state);
-        state.getActivity().forEach(ActivityTreeStateOverviewUtil::clearFailedState);
+        state.getActivity().forEach(ActivityStateOverviewUtil::clearFailedState);
     }
 
     private static void doClearFailedState(@NotNull ActivityStateOverviewType state) {

@@ -2538,16 +2538,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="currentPartId" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Current part identifier. REMOVE!!
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.4</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="localRoot" type="tns:ActivityPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2555,7 +2545,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="role" type="tns:ActivityExecutionRoleType" minOccurs="0">
+            <xsd:element name="localRootActivityExecutionRole" type="tns:ActivityExecutionRoleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Role of the task in the local root activity execution.
@@ -2569,19 +2559,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="allWorkComplete" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="tree" type="tns:ActivityTreeStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        True if all the work is complete. This means that on next run the task should start from
-                        the beginning. (We do not simply erase the whole state e.g. because of progress reporting needs.)
-                        Present only on the root task.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="treeOverview" type="tns:ActivityStateOverviewType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Overview of the state of the whole activity tree.
+                        Describes the state of an activity tree. Present only on the root task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2638,13 +2619,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="workState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Work (business) state of the activity.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="bucketing" type="tns:ActivityBucketingStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2652,10 +2626,56 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="workState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work (business) state of the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="persistence" type="tns:ActivityStatePersistenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How much is this state information persistent?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="activity" type="tns:ActivityStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Work state of child activities.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityTreeStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes the state of an activity tree.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+                <a:elaborate>true</a:elaborate>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="realizationState" type="tns:ActivityTreeRealizationStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Realization state of the activity tree.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activity" type="tns:ActivityStateOverviewType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Overview of the root activity state (and other activities as well, recursively).
+                        The whole tree is present here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2716,6 +2736,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="persistence" type="tns:ActivityStatePersistenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How much is this state information persistent?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="activity" type="tns:ActivityStateOverviewType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2771,6 +2798,96 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Activity is complete.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityStatePersistenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How much is the activity state (full / overview) persistent?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="perpetual">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The state should be preserved across activity realizations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERPETUAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="perpetualExceptStatistics">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The state should be preserved across activity realizations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERPETUAL_EXCEPT_STATISTICS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRealization">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The state should be preserved for single activity realizations.
+                        This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_REALIZATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActivityTreeRealizationStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Realization state of an activity tree.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inPreparation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Realization of activity tree is being prepared. For example, state stored during
+                        the previous realization is being deleted.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_PREPARATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inProgress">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity tree realization is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_PROGRESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity tree realization is complete.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COMPLETE"/>

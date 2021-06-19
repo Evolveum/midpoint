@@ -193,7 +193,6 @@
             <workerRef oid="667b2757-5068-4969-bcd3-ae6e950d4bbf" relation="org:default" type="c:TaskType"/>
         </bucket>
         <numberOfBuckets>3</numberOfBuckets>
-        <allWorkComplete>true</allWorkComplete>
     </activityState>
     <workManagement>
         <taskKind>coordinator</taskKind>

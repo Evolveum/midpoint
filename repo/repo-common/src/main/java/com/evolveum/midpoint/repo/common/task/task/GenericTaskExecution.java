@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.common.task.task;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
@@ -31,6 +33,8 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 /**
  * Execution of a generic task, i.e. task that is driven by definition of its activities.
+ *
+ * TODO Consider renaming to `ActivityTaskExecution`
  */
 public class GenericTaskExecution implements TaskExecution {
 
@@ -41,7 +45,7 @@ public class GenericTaskExecution implements TaskExecution {
 
     private ActivityTree activityTree;
     private ActivityPath localRootPath;
-    private Activity<?, ?> localRoot;
+    private Activity<?, ?> localRootActivity;
 
     GenericTaskExecution(@NotNull RunningTask runningTask, @NotNull GenericTaskHandler genericTaskHandler) {
         this.runningTask = runningTask;
@@ -56,8 +60,8 @@ public class GenericTaskExecution implements TaskExecution {
             activityTree = ActivityTree.create(getRootTask(), getBeans());
             localRootPath = ActivityStateUtil.getLocalRootPath(runningTask.getWorkState());
 
-            localRoot = activityTree.getActivity(localRootPath);
-            localRoot.setLocalRoot(true);
+            localRootActivity = activityTree.getActivity(localRootPath);
+            localRootActivity.setLocalRoot(true);
         } catch (CommonException e) {
             throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -65,12 +69,21 @@ public class GenericTaskExecution implements TaskExecution {
         logStart();
 
         try {
-            AbstractActivityExecution<?, ?, ?> localRootExecution = localRoot.createExecution(this, result);
+            if (isRootExecution()) {
+                updateStateOnRootExecutionStart(result);
+            }
+
+            AbstractActivityExecution<?, ?, ?> localRootExecution = localRootActivity.createExecution(this, result);
             ActivityExecutionResult executionResult = localRootExecution.execute(result);
+
+            if (isRootExecution()) {
+                updateStateOnRootExecutionEnd(executionResult, result);
+            }
 
             logEnd(localRootExecution, executionResult);
             return executionResult.createTaskRunResult();
         } catch (ActivityExecutionException e) {
+            // These should be only really unexpected ones. So we won't bother with e.g. updating the tree state.
             logException(e);
             throw e.toTaskException();
         } catch (Throwable t) {
@@ -79,9 +92,50 @@ public class GenericTaskExecution implements TaskExecution {
         }
     }
 
+    /**
+     * On root execution start we have to cleanup
+     */
+    private void updateStateOnRootExecutionStart(OperationResult result) throws ActivityExecutionException {
+        if ((isRealizationComplete() || isRealizationInPreparation())) {
+            prepareNewRealization(result);
+        }
+        activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);
+    }
+
+    private void prepareNewRealization(OperationResult result) throws ActivityExecutionException {
+        activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PREPARATION, result);
+        activityTree.purgeState(this, result);
+    }
+
+    private void updateStateOnRootExecutionEnd(ActivityExecutionResult executionResult, OperationResult result) throws ActivityExecutionException {
+        // TODO clean up things related to !canRun & finished
+        if (getRunningTask().canRun() && executionResult.isFinished()) {
+            activityTree.updateRealizationState(ActivityTreeRealizationStateType.COMPLETE, result);
+        }
+    }
+
+    private boolean isRealizationComplete() {
+        return activityTree.getRealizationState() == ActivityTreeRealizationStateType.COMPLETE;
+    }
+
+    private boolean isRealizationInPreparation() {
+        return activityTree.getRealizationState() == ActivityTreeRealizationStateType.IN_PREPARATION;
+    }
+
+    private boolean isRootExecution() {
+        return localRootActivity.isExecutionTheTreeRootOne(this);
+    }
+
     private void logStart() {
-        LOGGER.trace("Activity tree before execution (local root = '{}'):\n{}",
-                localRootPath, activityTree.debugDumpLazily());
+        LOGGER.trace("Starting generic task execution (is root execution = {}):\n"
+                + " - local root path: '{}'\n"
+                + " - local root activity: {}\n"
+                + " - activity tree:\n{}",
+                isRootExecution(), localRootPath, localRootActivity,
+                activityTree.debugDumpLazily(2));
+        if (isRootExecution()) {
+            LOGGER.trace("Tree realization state: {}", activityTree.getRealizationState());
+        }
     }
 
     private void logEnd(AbstractActivityExecution<?, ?, ?> localRootExecution, ActivityExecutionResult executionResult) {
@@ -109,7 +163,7 @@ public class GenericTaskExecution implements TaskExecution {
         return activityTree;
     }
 
-    public Activity<?, ?> getLocalRoot() {
-        return localRoot;
+    public Activity<?, ?> getLocalRootActivity() {
+        return localRootActivity;
     }
 }

@@ -689,7 +689,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskActivityStateType getWorkStateOrClone() {
+    public TaskActivityStateType getActivitiesStateOrClone() {
         return null;
     }
 
@@ -784,11 +784,6 @@ public class NullTaskImpl implements Task {
     @Override
     public boolean hasAssignments() {
         return false;
-    }
-
-    @Override
-    public String getCurrentPartId() {
-        return null;
     }
 
     @Override

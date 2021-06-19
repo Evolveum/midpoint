@@ -166,7 +166,7 @@ public class DistributingActivityExecution<
         ActivityPath localRoot = getActivityPath();
         child.beginActivityState()
                 .localRoot(localRoot.toBean())
-                .role(ActivityExecutionRoleType.WORKER)
+                .localRootActivityExecutionRole(ActivityExecutionRoleType.WORKER)
                 .beginActivity()
                     .beginBucketing()
                         .bucketsProcessingRole(BucketsProcessingRoleType.WORKER)

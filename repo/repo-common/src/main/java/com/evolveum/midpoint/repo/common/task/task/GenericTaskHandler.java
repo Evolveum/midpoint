@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 
 /**
  * Handler for generic tasks, i.e. tasks that are driven by definition of their activities.
+ *
+ * TODO Consider renaming to `ActivityTaskHandler`
  */
 @Component
 public class GenericTaskHandler implements TaskHandler {
