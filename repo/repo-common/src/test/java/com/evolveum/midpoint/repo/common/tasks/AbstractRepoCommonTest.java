@@ -35,6 +35,7 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
         repoAdd(USER_ADMINISTRATOR, initResult);
     }
 
+    // TODO deduplicate with model integration test
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
         return assertProgress(
@@ -42,6 +43,7 @@ public class AbstractRepoCommonTest extends AbstractIntegrationTest {
                 message);
     }
 
+    // TODO deduplicate with model integration test
     protected ActivityPerformanceInformationAsserter<Void> assertPerformance(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
         return assertPerformance(

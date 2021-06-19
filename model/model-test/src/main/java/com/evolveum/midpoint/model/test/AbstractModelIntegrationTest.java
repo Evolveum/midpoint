@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
@@ -163,6 +164,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final String LOG_PREFIX_DENY = "SSSSS=- ";
     protected static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
 
+    @Autowired protected TaskActivityManager activityManager;
     @Autowired protected ModelService modelService;
     @Autowired protected ModelInteractionService modelInteractionService;
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
@@ -6458,5 +6460,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(),
                 objectDelta.getModifications(), null, null, task, result);
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
+            throws SchemaException, ObjectNotFoundException {
+        return assertProgress(
+                activityManager.getProgressInformation(rootOid, getTestOperationResult()),
+                message);
+    }
+
+    protected ActivityPerformanceInformationAsserter<Void> assertPerformance(String rootOid, String message)
+            throws SchemaException, ObjectNotFoundException {
+        return assertPerformance(
+                activityManager.getPerformanceInformation(rootOid, getTestOperationResult()),
+                message);
     }
 }

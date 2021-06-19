@@ -266,7 +266,7 @@ public class ProcessingCoordinator<I> {
         }
     }
 
-    private int getWorkerThreadsCount() {
+    private int getWorkerThreadsCount() { // TODO use distribution definition!
         PrismProperty<Integer> workerThreadsPrismProperty = coordinatorTask
                 .getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
         if (workerThreadsPrismProperty != null && workerThreadsPrismProperty.getRealValue() != null) {
