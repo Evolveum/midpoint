@@ -157,6 +157,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
         addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
         addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(user1Extension, "enum-mv", // nonsense semantics, sorry about it
+                OperationResultStatusType.WARNING, OperationResultStatusType.SUCCESS);
         addExtensionValue(user1Extension, "int-mv", 47, 31);
         addExtensionValue(user1Extension, "ref-mv",
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
@@ -171,6 +173,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
         addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
+        addExtensionValue(user2Extension, "enum-mv",
+                OperationResultStatusType.UNKNOWN, OperationResultStatusType.SUCCESS);
         addExtensionValue(user2Extension, "int", 2);
         user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
 
@@ -1098,6 +1102,58 @@ AND(
         assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
                 .isInstanceOf(SystemException.class)
                 .hasMessageContaining("supported");
+    }
+
+    @Test
+    public void test530SearchObjectHavingSpecifiedEnumExtension() throws SchemaException {
+        searchUsersTest("having extension enum item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum")).eq(BeforeAfterType.AFTER),
+                user1Oid);
+    }
+
+    @Test
+    public void test531SearchObjectNotHavingSpecifiedEnumExtension() throws SchemaException {
+        searchUsersTest("not having extension enum item equal to value (can be null)",
+                f -> f.not()
+                        .item(UserType.F_EXTENSION, new QName("enum")).eq(BeforeAfterType.BEFORE),
+                user1Oid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test532SearchObjectWithoutExtensionEnumItem() throws SchemaException {
+        searchUsersTest("not having extension item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum")).isNull(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test533SearchObjectByEnumExtensionWithNonEqOperationFails() {
+        given("query for multi-value extension enum item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("enum")).gt(OperationResultStatusType.SUCCESS)
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    @Test
+    public void test535SearchObjectHavingSpecifiedMultiValueEnumExtension() throws SchemaException {
+        searchUsersTest("having extension multi-value enum item with specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum-mv"))
+                        .eq(OperationResultStatusType.SUCCESS),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test540SearchObjectByBooleanExtension() throws SchemaException {
+        searchUsersTest("having extension boolean item with specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("boolean"))
+                        .eq(true),
+                user1Oid);
     }
 
     // TODO double and BigDecimal tests
