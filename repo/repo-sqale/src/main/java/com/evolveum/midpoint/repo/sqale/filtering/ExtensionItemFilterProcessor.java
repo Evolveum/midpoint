@@ -12,6 +12,7 @@ import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 
 import java.util.function.Function;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
@@ -101,6 +102,13 @@ public class ExtensionItemFilterProcessor
             return processNumeric(extItem, values, operator, filter);
         } else if (extItem.valueType.equals(BOOLEAN_TYPE)) {
             return processBoolean(extItem, values, operator, filter);
+        } else if (extItem.valueType.equals(DATETIME_TYPE)) {
+            //noinspection unchecked
+            PropertyValueFilter<XMLGregorianCalendar> dateTimeFilter =
+                    (PropertyValueFilter<XMLGregorianCalendar>) ((PropertyValueFilter<?>) filter);
+            return processString(extItem,
+                    ValueFilterValues.from(dateTimeFilter, SqaleUtils::extensionDateTime),
+                    operator, filter);
         }
 
         // TODO other types
@@ -130,8 +138,8 @@ public class ExtensionItemFilterProcessor
                 return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
                         String.format("{\"%d\":[\"%s\"]}", extItem.id, values.singleValue())));
             } else {
-                throw new QueryException("Only equals without matching rules is supported for"
-                        + " multi-value string extensions; used filter: " + filter);
+                throw new QueryException("Only equals is supported for"
+                        + " multi-value extensions; used filter: " + filter);
             }
         }
     }

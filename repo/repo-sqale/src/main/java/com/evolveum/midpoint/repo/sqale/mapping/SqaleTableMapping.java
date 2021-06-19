@@ -480,8 +480,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
 
         if (realValue instanceof XMLGregorianCalendar) {
-            //noinspection ConstantConditions
-            return MiscUtil.asInstant((XMLGregorianCalendar) realValue).toString();
+            // XMLGregorianCalendar stores only millis, but we cut it to 3 fraction digits
+            // to make the behavior explicit and consistent.
+            return SqaleUtils.extensionDateTime((XMLGregorianCalendar) realValue);
         }
 
         throw new IllegalArgumentException(
