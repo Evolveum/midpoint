@@ -10,6 +10,10 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +39,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
 
 /**
  * Executes specified deltas on specified set of objects.
@@ -49,6 +49,9 @@ public class RecomputationActivityHandler
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECOMPUTE_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(RecomputationActivityHandler.class);
+
+    private static final QName DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC = UserType.COMPLEX_TYPE;  // This is pre-4.4 behavior
+    private static final QName DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC = AssignmentHolderType.COMPLEX_TYPE; // This is more reasonable
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
@@ -109,13 +112,16 @@ public class RecomputationActivityHandler
 
         MyWorkDefinition(WorkDefinitionSource source) {
             if (source instanceof LegacyWorkDefinitionSource) {
-                objects = null; // Treated by the search-iterative handler; TODO why not here?
-                executionOptions = ModelImplUtils.getModelExecuteOptions(((LegacyWorkDefinitionSource) source).getTaskExtension());
+                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
+                objects = ObjectSetUtil.fromLegacySource(legacy);
+                executionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
+                ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_LEGACY_SPEC);
             } else {
                 RecomputationWorkDefinitionType typedDefinition = (RecomputationWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
                 objects = typedDefinition.getObjects();
                 executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
+                ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             }
         }
 

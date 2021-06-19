@@ -124,4 +124,10 @@ public class ObjectSetUtil {
                 "Activity requires object type of %s, but %s was provided in the work definition",
                 superType, set.getObjectType());
     }
+
+    public static void applyDefaultObjectType(@NotNull ObjectSetType set, @NotNull QName type) {
+        if (set.getObjectType() == null) {
+            set.setObjectType(type);
+        }
+    }
 }

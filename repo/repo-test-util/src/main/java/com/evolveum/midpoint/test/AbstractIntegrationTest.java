@@ -3197,22 +3197,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void assertTotalSuccessCountInIterativeInfo(int expectedCount, Collection<? extends Task> workers) {
-        int successCount = workers.stream()
-                .mapToInt(w -> TaskOperationStatsUtil.getItemsProcessedWithSuccess(w.getStoredOperationStatsOrClone()))
-                .sum();
-        assertThat(successCount).isEqualTo(expectedCount);
-    }
-
-    protected void assertTotalSuccessCountInProgress(int expectedClosed, int expectedOpen, Collection<? extends Task> workers) {
-        int successClosed = getSuccessClosed(workers);
-        assertThat(successClosed).isEqualTo(expectedClosed);
-        int successOpen = workers.stream()
-                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, true))
-                .sum();
-        assertThat(successOpen).isEqualTo(expectedOpen);
-    }
-
     private int getSuccessClosed(Collection<? extends Task> workers) {
         return workers.stream()
                 .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
@@ -3267,36 +3251,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
             displayDumpable("Task with more than one completed bucket", task);
             fail("More than one completed bucket found in task: " + completed + " in " + task);
-        }
-    }
-
-    protected int getTotalItemsProcessed(String coordinatorTaskOid) {
-        OperationResult result = new OperationResult("getTotalItemsProcessed");
-        try {
-            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
-            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
-            int total = 0;
-            for (Task task : tasks) {
-                int count = or0(TaskOperationStatsUtil.getItemsProcessed(task.getStoredOperationStatsOrClone()));
-                display("Task " + task + ": " + count + " items processed");
-                total += count;
-            }
-            return total;
-        } catch (Throwable t) {
-            throw new AssertionError("Unexpected exception", t);
-        }
-    }
-
-    protected int getTotalSuccessClosed(String coordinatorTaskOid) {
-        OperationResult result = new OperationResult("getTotalSuccessClosed");
-        try {
-            Task coordinatorTask = taskManager.getTaskPlain(coordinatorTaskOid, result);
-            List<? extends Task> tasks = coordinatorTask.listSubtasks(result);
-            int totalSuccessClosed = getSuccessClosed(tasks);
-            System.out.println("Total success closed: " + totalSuccessClosed);
-            return totalSuccessClosed;
-        } catch (Throwable t) {
-            throw new AssertionError("Unexpected exception", t);
         }
     }
 

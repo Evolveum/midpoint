@@ -16,6 +16,8 @@ import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
 
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -118,7 +120,7 @@ public class ChangeExecutionActivityHandler
         ChangeExecutionWorkDefinition(WorkDefinitionSource source) {
             if (source instanceof LegacyWorkDefinitionSource) {
                 LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                objects = null; // Treated by the search-iterative handler; TODO why not here?
+                objects = ObjectSetUtil.fromLegacySource(legacy);
                 delta = legacy.getExtensionItemRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
                 executionOptions = ModelImplUtils.getModelExecuteOptions(legacy.getTaskExtension());
             } else {

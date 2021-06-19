@@ -59,11 +59,6 @@ public class TaskOperationStatsUtil {
     }
 
     @Deprecated
-    public static int getItemsProcessedWithSuccess(TaskType task) {
-        return 0;
-    }
-
-    @Deprecated
     public static int getItemsProcessedWithSuccess(OperationStatsType stats) {
         return 0;
     }
@@ -114,15 +109,6 @@ public class TaskOperationStatsUtil {
      */
     @Deprecated
     public static String getLastSuccessObjectName(TaskType task) {
-        return "N/A";
-    }
-
-    /**
-     * Returns object that was last processed by given task in item set defined by the filter.
-     */
-    @Deprecated
-    public static String getLastProcessedObjectName(IterativeTaskInformationType info,
-            Predicate<ProcessedItemSetType> itemSetFilter) {
         return "N/A";
     }
 

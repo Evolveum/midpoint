@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
 
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -108,7 +110,7 @@ public class ReindexActivityHandler
 
         MyWorkDefinition(WorkDefinitionSource source) {
             if (source instanceof LegacyWorkDefinitionSource) {
-                objects = null; // Treated by the search-iterative handler; TODO why not here?
+                objects = ObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
             } else {
                 ReindexingWorkDefinitionType typedDefinition = (ReindexingWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
