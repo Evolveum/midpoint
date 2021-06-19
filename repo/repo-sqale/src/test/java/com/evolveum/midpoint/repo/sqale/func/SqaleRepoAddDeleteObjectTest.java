@@ -784,7 +784,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", "poly-value", "n", "polyvalue"))
                 .containsEntry(extensionKey(extensionContainer, "ref"),
                         Map.of("o", targetOid,
-                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "t", MObjectType.USER.name(),
                                 "r", cachedUriId(relation)));
     }
 
@@ -830,10 +830,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         Map.of("o", "poly-value3", "n", "polyvalue3")))
                 .containsEntry(extensionKey(extensionContainer, "ref-mv"), List.of(
                         Map.of("o", targetOid1,
-                                "t", cachedUriId(OrgType.COMPLEX_TYPE), // default from schema
+                                "t", MObjectType.ORG.name(), // default from schema
                                 "r", cachedUriId(relation)),
                         Map.of("o", targetOid2,
-                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "t", MObjectType.USER.name(),
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT))));
     }
 
@@ -872,7 +872,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "integer"), 1)
                 .containsEntry(extensionKey(extensionContainer, "ref"),
                         Map.of("o", targetOid,
-                                "t", cachedUriId(UserType.COMPLEX_TYPE),
+                                "t", MObjectType.USER.name(),
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT)));
     }
 

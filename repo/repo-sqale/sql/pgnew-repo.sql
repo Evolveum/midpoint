@@ -96,7 +96,8 @@ CREATE TYPE ExtItemCardinality AS ENUM (
     'ARRAY');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
-CREATE TYPE AccessCertificationCampaignStateType AS ENUM ('CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
+    'CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
 
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
@@ -255,6 +256,17 @@ CREATE TABLE m_object (
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
     textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    /*
+    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+    and values are stored as follows (this is internal and has no effect on how query is written):
+    - string and boolean are stored as-is
+    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+    - enum as toString() or name() of the Java enum instance
+    - date-time as Instant.toString() ISO-8601 long date-time + Z timezone, cut to 3 fraction digits
+    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+    */
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,

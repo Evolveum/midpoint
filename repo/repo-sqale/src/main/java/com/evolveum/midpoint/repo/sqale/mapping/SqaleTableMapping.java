@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
@@ -470,7 +471,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         "Reference without target type can't be stored: " + ref);
             }
             return Map.of("o", ref.getOid(),
-                    "t", processCacheableUri(targetType),
+                    "t", schemaTypeToObjectType(targetType),
                     "r", processCacheableRelation(ref.getRelation()));
         }
 
