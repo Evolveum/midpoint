@@ -2449,17 +2449,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="down">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Node is down. Either it was turned off or it has not checked in for a longer time.
-                        There's no point in trying to contact it via REST or JMX.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DOWN"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="starting">
                 <xsd:annotation>
                     <xsd:documentation>
