@@ -553,7 +553,7 @@ public abstract class AbstractSearchIterativeActivityExecution<
     }
 
     private ActivityBucketManagementStatistics getLiveBucketManagementStatistics() {
-        return activityState.getStatistics().getLiveBucketManagement();
+        return activityState.getLiveStatistics().getLiveBucketManagement();
     }
 
     public @NotNull SearchSpecification<O> getSearchSpecificationRequired() {

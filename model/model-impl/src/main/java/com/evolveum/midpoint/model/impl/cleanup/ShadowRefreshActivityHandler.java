@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -30,9 +33,6 @@ import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowRefreshWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
@@ -69,6 +69,11 @@ public class ShadowRefreshActivityHandler
         return "import";
     }
 
+    @Override
+    public @NotNull QName getWorkStateTypeName() {
+        return ScanWorkStateType.COMPLEX_TYPE;
+    }
+
     public static class MyActivityExecution
             extends AbstractScanActivityExecution<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
 
@@ -79,10 +84,15 @@ public class ShadowRefreshActivityHandler
 
         @Override
         public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-            // A temporary solution for MID-6934.
+            // Non-persistent statistics is a temporary solution for MID-6934.
             // We should decide whether we want to have aggregate statistics for this kind of tasks.
             return super.getDefaultReportingOptions()
-                    .preserveStatistics(false);
+                    .persistentStatistics(false);
+        }
+
+        @Override
+        public @NotNull ActivityStatePersistenceType getPersistenceType() {
+            return ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS; // TODO deduplicate with persistenStatistics(false)
         }
 
         @Override

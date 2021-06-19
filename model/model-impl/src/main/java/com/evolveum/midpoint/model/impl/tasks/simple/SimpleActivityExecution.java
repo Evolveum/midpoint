@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Execution of a propagation task. It has always a single part, so the resource can be stored here.
  */
@@ -89,5 +91,10 @@ public class SimpleActivityExecution<O extends ObjectType, WD extends WorkDefini
 
     public EC getExecutionContext() {
         return executionContext;
+    }
+
+    @Override
+    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, SimpleActivityHandler<O, WD, EC>> context) {
+        return context.getActivity().getHandler().getWorkStateTypeName();
     }
 }

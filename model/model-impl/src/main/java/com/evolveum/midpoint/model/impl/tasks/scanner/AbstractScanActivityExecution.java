@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
@@ -48,9 +49,14 @@ public class AbstractScanActivityExecution<
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
-                .preserveStatistics(true)
+                .persistentStatistics(true)
                 .defaultDetermineExpectedTotal(false) // To avoid problems like in MID-6934.
                 .defaultBucketCompletionLogging(TaskLoggingOptionType.NONE); // To avoid log noise.
+    }
+
+    @Override
+    public @NotNull ActivityStatePersistenceType getPersistenceType() {
+        return ActivityStatePersistenceType.PERPETUAL;
     }
 
     @Override

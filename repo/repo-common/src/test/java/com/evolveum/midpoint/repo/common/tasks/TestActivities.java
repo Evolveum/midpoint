@@ -355,12 +355,14 @@ public class TestActivities extends AbstractRepoCommonTest {
         List<String> expectedExecutions1 = List.of("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
         List<String> expectedExecutions2 = ListUtils.union(expectedExecutions1, expectedExecutions1);
 
-        execute140RunPureCompositeTaskOnce(root, "run 1", expectedExecutions1);
-        execute140RunPureCompositeTaskOnce(root, "run 2", expectedExecutions2);
+        execute140RunPureCompositeTaskOnce(root, "run 1", 1, expectedExecutions1);
+        restartTask(root.getOid(), result);
+
+        execute140RunPureCompositeTaskOnce(root, "run 2", 2, expectedExecutions2);
     }
 
-    private void execute140RunPureCompositeTaskOnce(Task root, String label, List<String> expectedExecutions)
-            throws CommonException {
+    private void execute140RunPureCompositeTaskOnce(Task root, String label, int runNumber,
+            List<String> expectedExecutions) throws CommonException {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -456,9 +458,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertHasThroughput()
                     .end()
                     .child("closing")
-                        .assertItemsProcessed(1)
+                        .assertItemsProcessed(runNumber) // state (incl. statistics) is kept
                         .assertErrors(0)
-                        .assertProgress(1)
+                        .assertProgress(1) // TODO not sure about this
                         .assertHasWallClockTime()
                         .assertHasThroughput()
                     .end()
@@ -481,9 +483,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertHasThroughput()
                     .end()
                     .child("closing")
-                        .assertItemsProcessed(1)
+                        .assertItemsProcessed(runNumber) // state (incl. statistics) is kept
                         .assertErrors(0)
-                        .assertProgress(1)
+                        .assertProgress(1) // TODO not sure
                         .assertHasWallClockTime()
                         .assertHasThroughput()
                     .end()
@@ -492,9 +494,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertNotApplicable()
                     .assertChildren(1)
                     .child("closing")
-                        .assertItemsProcessed(1)
+                        .assertItemsProcessed(runNumber) // state (incl. statistics) is kept
                         .assertErrors(0)
-                        .assertProgress(1)
+                        .assertProgress(1) // TODO not sure
                         .assertHasWallClockTime()
                         .assertHasThroughput()
                     .end()
@@ -944,11 +946,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                         .end()
                         .child("composition:1")
-                            .assertStatusInProgress() // TODO
+                            .assertResultStatus(null)
                             .assertChildren(0)
                         .end()
                         .child("mock-simple:2")
-                            .assertStatusInProgress() // TODO
+                            .assertResultStatus(null)
                         .end();
         // @formatter:on
 
@@ -1043,11 +1045,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                         .end()
                         .child("composition:1")
-                            .assertStatusInProgress() // TODO
+                            .assertResultStatus(null) // TODO
                             .assertChildren(0)
                         .end()
                         .child("mock-simple:2")
-                            .assertStatusInProgress() // TODO
+                            .assertResultStatus(null) // TODO
                         .end();
         // @formatter:on
 
@@ -1169,7 +1171,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .end()
                         .child("mock-simple:2")
                             .assertNotStarted()
-                            .assertStatusInProgress() // TODO
+                            .assertResultStatus(null) // TODO
                         .end();
         // @formatter:on
 

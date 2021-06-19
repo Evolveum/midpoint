@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPa
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -83,4 +86,8 @@ public class FocusValidityScanActivityHandler
         return "focus-validity-scan";
     }
 
+    @Override
+    public @NotNull QName getWorkStateTypeName() {
+        return ScanWorkStateType.COMPLEX_TYPE;
+    }
 }

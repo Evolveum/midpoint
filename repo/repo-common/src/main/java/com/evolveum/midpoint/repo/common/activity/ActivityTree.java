@@ -108,7 +108,7 @@ public class ActivityTree implements DebugDumpable {
 
     private void purgeDetailedState(GenericTaskExecution taskExecution, OperationResult result)
             throws ActivityExecutionException {
-        new TreeStatePurger(this, taskExecution, beans)
+        new TreeStatePurger(taskExecution, beans)
                 .purge(result);
     }
 }

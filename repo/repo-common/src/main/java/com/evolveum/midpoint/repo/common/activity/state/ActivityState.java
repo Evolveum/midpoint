@@ -51,9 +51,9 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     @NotNull private final ComplexTypeDefinition workStateDefinition;
 
-    @NotNull private final ActivityProgress progress;
+    @NotNull private final ActivityProgress liveProgress;
 
-    @NotNull private final ActivityStatistics statistics;
+    @NotNull private final ActivityStatistics liveStatistics;
 
     /** Path to the work state container value related to this execution. */
     private ItemPath stateItemPath;
@@ -63,8 +63,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     public ActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
         this.activityExecution = activityExecution;
         this.workStateDefinition = determineWorkStateDefinition(activityExecution);
-        this.progress = new ActivityProgress(this);
-        this.statistics = new ActivityStatistics(this);
+        this.liveProgress = new ActivityProgress(this);
+        this.liveStatistics = new ActivityStatistics(this);
     }
 
     @NotNull
@@ -91,11 +91,12 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
+            updatePersistenceType(result);
             if (activityExecution.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
-            progress.initialize(getStoredProgress());
-            statistics.initialize();
+            liveProgress.initialize(getStoredProgress());
+            liveStatistics.initialize();
             initialized = true;
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
@@ -174,7 +175,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType(getPrismContext())
                         .identifier(identifier)
-                        .resultStatus(OperationResultStatusType.IN_PROGRESS))
+                        .persistence(activityExecution.getPersistenceType()))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);
@@ -205,6 +206,16 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         task.flushPendingModifications(result);
         task.refresh(result);
         LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
+    }
+
+    private void updatePersistenceType(OperationResult result) throws ActivityExecutionException {
+        ActivityStatePersistenceType storedValue =
+                getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
+        ActivityStatePersistenceType requiredValue = activityExecution.getPersistenceType();
+        if (requiredValue != storedValue) {
+            setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
+            flushPendingModificationsChecked(result);
+        }
     }
     //endregion
 
@@ -283,6 +294,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
         return getRunningTask()
                 .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
     }
+
+    // FIXME exception handling
 
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
@@ -485,35 +498,35 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     //region Progress & statistics
 
     public @NotNull ActivityProgress getLiveProgress() {
-        return progress;
+        return liveProgress;
     }
 
     public ActivityProgressType getStoredProgress() {
         return getItemRealValueClone(ActivityStateType.F_PROGRESS, ActivityProgressType.class);
     }
 
-    public @NotNull ActivityStatistics getStatistics() {
-        return statistics;
+    public @NotNull ActivityStatistics getLiveStatistics() {
+        return liveStatistics;
     }
 
     public @NotNull ActivityItemProcessingStatistics getLiveItemProcessingStatistics() {
-        return statistics.getLiveItemProcessing();
+        return liveStatistics.getLiveItemProcessing();
     }
 
     public ActivityItemProcessingStatisticsType getStoredItemProcessingStatistics() {
-        return statistics.getStoredItemProcessing();
+        return liveStatistics.getStoredItemProcessing();
     }
 
     public ActivityBucketManagementStatisticsType getStoredBucketManagementStatistics() {
-        return statistics.getStoredBucketManagement();
+        return liveStatistics.getStoredBucketManagement();
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
         if (activityExecution.supportsProgress()) {
-            progress.writeToTaskAsPendingModification();
+            liveProgress.writeToTaskAsPendingModification();
         }
         if (activityExecution.supportsStatistics()) {
-            statistics.writeToTaskAsPendingModifications();
+            liveStatistics.writeToTaskAsPendingModifications();
         }
     }
     //endregion

@@ -34,7 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
@@ -45,13 +47,16 @@ public class TreeStatePurger {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeStatePurger.class);
 
-    @NotNull private final ActivityTree activityTree; // TODO reconsider this
     @NotNull private final GenericTaskExecution taskExecution;
     @NotNull private final CommonTaskBeans beans;
 
-    public TreeStatePurger(@NotNull ActivityTree activityTree, @NotNull GenericTaskExecution taskExecution,
+    /**
+     * These paths contain something of interest. So states on the path to them should not be removed.
+     */
+    @NotNull private final Set<ActivityPath> pathsToKeep = new HashSet<>();
+
+    public TreeStatePurger(@NotNull GenericTaskExecution taskExecution,
             @NotNull CommonTaskBeans beans) {
-        this.activityTree = activityTree;
         this.taskExecution = taskExecution;
         this.beans = beans;
     }
@@ -64,8 +69,8 @@ public class TreeStatePurger {
      */
     public void purge(OperationResult result) throws ActivityExecutionException {
         try {
-            purgeTask(ActivityPath.empty(), taskExecution.getRunningTask(), result);
             purgeSubtasks(taskExecution.getRunningTask(), result);
+            purgeTask(ActivityPath.empty(), taskExecution.getRunningTask(), result);
         } catch (CommonException e) {
             throw new ActivityExecutionException("Couldn't purge activity tree state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
@@ -96,24 +101,25 @@ public class TreeStatePurger {
      */
     private class TaskStatePurger {
 
-        @NotNull private final ActivityPath activityPath;
+        @NotNull private final ActivityPath localRootPath;
         @NotNull private final Task task;
         final TaskActivityStateType taskActivityState;
         @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 
-        private TaskStatePurger(@NotNull ActivityPath activityPath,
-                @NotNull Task task) {
-
-            this.activityPath = activityPath;
+        private TaskStatePurger(@NotNull ActivityPath activityPath, @NotNull Task task) {
+            this.localRootPath = activityPath;
             this.task = task;
             this.taskActivityState = task.getActivitiesStateOrClone();
         }
 
+        /**
+         * Assuming that task's children already have been processed.
+         */
         private void doPurge(OperationResult result) throws CommonException {
             if (taskActivityState == null || taskActivityState.getActivity() == null) {
                 return;
             }
-            doPurge(Context.root(activityPath, taskActivityState));
+            doPurge(Context.root(localRootPath, taskActivityState));
             if (!deltas.isEmpty()) {
                 beans.repositoryService.modifyObject(TaskType.class, task.getOid(), deltas, result);
                 if (task instanceof RunningTask) {
@@ -123,16 +129,22 @@ public class TreeStatePurger {
         }
 
         private void doPurge(Context ctx) throws CommonException {
-            LOGGER.info("doPurge called for {}", ctx);
-            if (isTransient(ctx.currentState)) {
+            LOGGER.info("doPurge called for {}, processing children", ctx);
+            for (ActivityStateType child : ctx.currentState.getActivity()) {
+                doPurge(
+                        ctx.forChild(child));
+            }
+            LOGGER.info("doPurge continuing with {}, paths to keep: {}", ctx.currentActivityPath, pathsToKeep);
+            if (isTransient(ctx.currentState) && hasNoPersistentChild(ctx.currentActivityPath)) {
                 removeCurrentState(ctx);
             } else {
                 purgeCurrentState(ctx);
-                for (ActivityStateType child : ctx.currentState.getActivity()) {
-                    doPurge(
-                            ctx.forChild(child));
-                }
             }
+        }
+
+        private boolean hasNoPersistentChild(ActivityPath activityPath) {
+            return pathsToKeep.stream().noneMatch(
+                    pathToKeep -> pathToKeep.startsWith(activityPath));
         }
 
         private void removeCurrentState(Context ctx) throws CommonException {
@@ -155,17 +167,21 @@ public class TreeStatePurger {
 
         private void deleteFromMulti(Context ctx, Long id) throws SchemaException {
             LOGGER.info("Deleting from multi: task = {}, activity path = '{}', item path = '{}' with id = {}",
-                    task, ctx.currentActivityPath, ctx.currentHolderItemPath, id); // TODO trace
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath, id); // TODO trace
 
             argCheck(id != null, "Null activity state PCV id in task %s activity path '%s' item path '%s'",
-                    task, ctx.currentActivityPath, ctx.currentHolderItemPath);
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath);
             deltas.addAll(
                     beans.prismContext.deltaFor(TaskType.class)
-                            .item(ctx.currentHolderItemPath).delete(new ActivityStateType().id(id))
+                            .item(ctx.currentStateItemPath.allExceptLast()).delete(new ActivityStateType().id(id))
                             .asItemDeltas());
         }
 
         private void purgeCurrentState(Context ctx) throws SchemaException {
+            if (!isTransient(ctx.currentState)) {
+                pathsToKeep.add(ctx.currentActivityPath);
+            }
+
             LOGGER.info("Purging from multi: task = {}, activity path = '{}', item path = '{}'",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath); // TODO trace
 
@@ -173,17 +189,18 @@ public class TreeStatePurger {
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
-                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
                             .asItemDeltas());
 
-            if (ctx.currentState.getPersistence() == ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS) {
+            if (ctx.currentState.getPersistence() != ActivityStatePersistenceType.PERPETUAL) {
                 deltas.addAll(
                         beans.prismContext.deltaFor(TaskType.class)
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
                                 .asItemDeltas());
             }
+
+            // keeping: workState + activity
         }
     }
 
@@ -193,16 +210,19 @@ public class TreeStatePurger {
 
     private static class Context {
         @NotNull private final ActivityPath currentActivityPath;
-        @NotNull private final ItemPath currentHolderItemPath;
+
+        /**
+         * Path pointing to the current activity state. It cannot be used for direct deletion.
+         * But it can be used for modification of state components.
+         */
         @NotNull private final ItemPath currentStateItemPath;
+
         @NotNull private final Object currentStateHolder;
         @NotNull private final ActivityStateType currentState;
 
-        private Context(@NotNull ActivityPath currentActivityPath, @NotNull ItemPath currentHolderItemPath,
-                @NotNull ItemPath currentStateItemPath, @NotNull Object currentStateHolder,
-                @NotNull ActivityStateType currentState) {
+        private Context(@NotNull ActivityPath currentActivityPath, @NotNull ItemPath currentStateItemPath,
+                @NotNull Object currentStateHolder, @NotNull ActivityStateType currentState) {
             this.currentActivityPath = currentActivityPath;
-            this.currentHolderItemPath = currentHolderItemPath;
             this.currentStateItemPath = currentStateItemPath;
             this.currentStateHolder = currentStateHolder;
             this.currentState = currentState;
@@ -211,7 +231,6 @@ public class TreeStatePurger {
         public static @NotNull Context root(ActivityPath path, @NotNull TaskActivityStateType taskActivityState) {
             return new Context(
                     path,
-                    TaskType.F_ACTIVITY_STATE,
                     ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY),
                     taskActivityState,
                     taskActivityState.getActivity());
@@ -220,8 +239,7 @@ public class TreeStatePurger {
         public @NotNull Context forChild(ActivityStateType child) {
             return new Context(
                     currentActivityPath.append(child.getIdentifier()),
-                    currentStateItemPath,
-                    currentStateItemPath.append(currentState.getId(), ActivityStateType.F_ACTIVITY),
+                    currentStateItemPath.append(TaskActivityStateType.F_ACTIVITY, child.getId()),
                     currentState,
                     child);
         }
@@ -234,7 +252,6 @@ public class TreeStatePurger {
         public String toString() {
             return "Context{" +
                     "currentActivityPath=" + currentActivityPath +
-                    ", currentHolderItemPath=" + currentHolderItemPath +
                     ", currentStateItemPath=" + currentStateItemPath +
                     ", currentStateHolder:" + currentStateHolder.getClass().getSimpleName() +
                     ", currentState=" + currentState +

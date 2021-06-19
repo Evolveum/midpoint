@@ -95,7 +95,6 @@ public class ObjectIntegrityCheckActivityHandler
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
-                .preserveStatistics(false)
                 .logErrors(false) // we do log errors ourselves
                 .skipWritingOperationExecutionRecords(true); // because of performance
     }

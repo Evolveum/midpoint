@@ -31,8 +31,8 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
     private TaskLoggingOptionType defaultBucketCompletionLogging = TaskLoggingOptionType.BRIEF;
     private TaskLoggingOptionType defaultItemCompletionLogging = TaskLoggingOptionType.NONE;
 
-    private boolean preserveStatistics = false;
-    private boolean enableSynchronizationStatistics = false;
+    private boolean persistentStatistics;
+    private boolean enableSynchronizationStatistics;
     private boolean enableActionsExecutedStatistics = true;
     private boolean logErrors = true;
 
@@ -76,16 +76,16 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
         this.defaultItemCompletionLogging = value;
     }
 
-    public boolean isPreserveStatistics() {
-        return preserveStatistics;
+    public boolean isPersistentStatistics() {
+        return persistentStatistics;
     }
 
-    public void setPreserveStatistics(boolean preserveStatistics) {
-        this.preserveStatistics = preserveStatistics;
+    public void setPersistentStatistics(boolean persistentStatistics) {
+        this.persistentStatistics = persistentStatistics;
     }
 
-    public ActivityReportingOptions preserveStatistics(boolean value) {
-        setPreserveStatistics(value);
+    public ActivityReportingOptions persistentStatistics(boolean value) {
+        setPersistentStatistics(value);
         return this;
     }
 
@@ -143,7 +143,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
 
     StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         // Note: All of these "new" tasks use structured progress.
-        return new StatisticsCollectionStrategy(!isPreserveStatistics(),
+        return new StatisticsCollectionStrategy(!isPersistentStatistics(),
                 isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics(), true);
     }
 
@@ -176,7 +176,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
      * See also {@link StatisticsCollectionStrategy#isCollectExecutions()}.
      */
     public boolean isCollectExecutions() {
-        return !preserveStatistics;
+        return !persistentStatistics;
     }
 
     @NotNull

@@ -280,6 +280,10 @@ public abstract class AbstractActivityExecution<
         return true;
     }
 
+    public @NotNull ActivityStatePersistenceType getPersistenceType() {
+        return ActivityStatePersistenceType.SINGLE_REALIZATION;
+    }
+
     public @NotNull PrismContext getPrismContext() {
         return getBeans().prismContext;
     }

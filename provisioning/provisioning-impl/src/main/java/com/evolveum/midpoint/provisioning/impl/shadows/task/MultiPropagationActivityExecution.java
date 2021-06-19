@@ -51,11 +51,9 @@ public class MultiPropagationActivityExecution
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        ActivityReportingOptions options = new ActivityReportingOptions();
-        options.setPreserveStatistics(false);
-        options.setEnableSynchronizationStatistics(false);
-        options.setSkipWritingOperationExecutionRecords(true); // to avoid resource change (invalidates the caches)
-        return options;
+        return super.getDefaultReportingOptions()
+                .enableSynchronizationStatistics(false)
+                .skipWritingOperationExecutionRecords(true); // to avoid resource change (invalidates the caches)
     }
 
     @Override

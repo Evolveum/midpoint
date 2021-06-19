@@ -52,7 +52,6 @@ public class PropagationActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         ActivityReportingOptions options = new ActivityReportingOptions();
-        options.setPreserveStatistics(false);
         options.setEnableSynchronizationStatistics(false);
         return options;
     }

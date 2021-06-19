@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.trigger;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.task.ItemProcessor;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScanActivityExecution;
@@ -45,5 +49,13 @@ class TriggerScanActivityExecution
         return getPrismContext().queryFor(ObjectType.class)
                 .item(F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
                 .buildFilter();
+    }
+
+    @Override
+    protected @NotNull ItemProcessor<PrismObject<ObjectType>> createItemProcessor(OperationResult opResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        return createDefaultItemProcessor(
+                new TriggerScanItemProcessor(this));
     }
 }

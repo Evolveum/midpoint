@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,5 +64,10 @@ public class TriggerScanActivityHandler
 
     TriggerHandler getTriggerHandler(String handlerUri) {
         return triggerHandlerRegistry.getHandler(handlerUri);
+    }
+
+    @Override
+    public @NotNull QName getWorkStateTypeName() {
+        return ScanWorkStateType.COMPLEX_TYPE;
     }
 }
