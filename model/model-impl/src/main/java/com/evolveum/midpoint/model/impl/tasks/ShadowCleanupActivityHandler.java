@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -180,7 +182,7 @@ public class ShadowCleanupActivityHandler
         MyWorkDefinition(WorkDefinitionSource source) {
             if (source instanceof LegacyWorkDefinitionSource) {
                 LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
-                shadows = null; // Treated by the search-iterative handler; TODO why not here?
+                shadows = ResourceObjectSetUtil.fromLegacySource(legacy);
                 interval = legacy.getExtensionItemRealValue(SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME, Duration.class);
             } else {
                 ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)

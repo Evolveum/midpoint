@@ -454,7 +454,8 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
                 "Do not ask for shadow change description on uninitialized change! %s", this);
 
         if (shadowedObject == null) {
-            stateCheck(initializationState.isError(), "Non-error change without shadowed object? %s", this);
+            stateCheck(initializationState.isError() || initializationState.isNotApplicable(),
+                    "Non-error & applicable change without shadowed object? %s", this);
             return null; // This is because in the description the shadowed object must be present. TODO reconsider this.
         }
         try {
