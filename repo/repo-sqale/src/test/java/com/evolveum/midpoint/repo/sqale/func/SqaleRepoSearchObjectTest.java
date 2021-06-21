@@ -1104,14 +1104,14 @@ AND(
 
     @Test
     public void test533SearchObjectHavingSpecifiedDoubleExtension() throws SchemaException {
-        searchUsersTest("\"having extension double item equal to big decimal value\"",
+        searchUsersTest("having extension double item equal to big decimal value",
                 f -> f.item(UserType.F_EXTENSION, new QName("double")).eq(Double.MAX_VALUE),
                 user1Oid);
     }
 
     @Test
     public void test534SearchObjectHavingNumericExtItemBetweenTwoValues() throws SchemaException {
-        searchUsersTest("\"having extension numeric item between two value\"",
+        searchUsersTest("having extension numeric item between two value",
                 f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(0)
                         .and().item(UserType.F_EXTENSION, new QName("int")).lt(3),
                 user1Oid, user2Oid);
@@ -1119,7 +1119,7 @@ AND(
 
     @Test
     public void test535SearchObjectHavingNumericExtItemUsingGoeAndBigInteger() throws SchemaException {
-        searchUsersTest("\"having extension double item equal to big decimal value\"",
+        searchUsersTest("having extension double item equal to big decimal value",
                 f -> f.item(UserType.F_EXTENSION, new QName("double")).ge(
                         new BigInteger("17976931348623157000000000000000000000000000000000000000000"
                                 + "0000000000000000000000000000000000000000000000000000000000000000"
@@ -1131,7 +1131,7 @@ AND(
 
     @Test
     public void test536SearchObjectHavingDoubleExtItemBetweenTwoValues() throws SchemaException {
-        searchUsersTest("\"having extension double item equal to big decimal value\"",
+        searchUsersTest("having extension double item between two values",
                 f -> f.item(UserType.F_EXTENSION, new QName("double")).gt(0)
                         .and().item(UserType.F_EXTENSION, new QName("double")).lt(3d),
                 user2Oid);
@@ -1139,10 +1139,33 @@ AND(
 
     @Test
     public void test537SearchObjectHavingFloatOrShortExtItem() throws SchemaException {
-        searchUsersTest("\"having extension double item equal to big decimal value\"",
+        searchUsersTest("having either float or short extension with specified conditions",
                 f -> f.item(UserType.F_EXTENSION, new QName("float")).gt(-1f)
                         .or().item(UserType.F_EXTENSION, new QName("short")).lt((short) 4),
                 user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test538SearchObjectHavingShortGoe() throws SchemaException {
+        searchUsersTest("having extension short item greater than or equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("short")).ge((short) 3),
+                user1Oid);
+    }
+
+    @Test
+    public void test539SearchObjectHavingShortGoe() throws SchemaException {
+        /*
+        This test assures that users with non-null ext column without any "short" item are found
+        too, even for operations not using containment operators (@> or ?).
+        If the condition inside the NOT is "(u.ext->'3')::numeric >= $1" than there are two ways
+        how to inverse the NOT properly:
+        - default, but naive approach: not ((u.ext->'3')::numeric >= $1 and (u.ext->'3')::numeric is not null)
+        - better, requiring a fix: not ((u.ext->'3')::numeric >= $1 and ext ? '3' and ext is not null)
+        Good thing is that by default it works using the first approach, although not ideal.
+        */
+        searchUsersTest("having extension short item greater than or equal to value",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("short")).ge((short) 3),
+                user2Oid, user3Oid, user4Oid);
     }
 
     // enum tests
@@ -1350,8 +1373,39 @@ AND(
                 .hasMessageContaining("supported");
     }
 
-    // TODO ref extension query
+    @Test
+    public void test580SearchObjectWithExtensionRef() throws SchemaException {
+        searchUsersTest("extension ref item matching",
+                f -> f.item(UserType.F_EXTENSION, new QName("ref"))
+                        .ref(ref(org21Oid, OrgType.COMPLEX_TYPE, relation1)),
+                user1Oid);
+    }
+
+    @Test
+    public void test581SearchObjectWithExtensionRefByOidOnly() throws SchemaException {
+        searchUsersTest("extension ref item matching by OID only (implies default relation)",
+                f -> f.item(UserType.F_EXTENSION, new QName("ref"))
+                        .ref(org21Oid));
+        // used ref has non-default relation, so, correctly, it is not found
+    }
+
+    @Test
+    public void test582SearchObjectWithExtensionRefByOidOnly() throws SchemaException {
+        searchUsersTest("extension ref item matching by OID only",
+                f -> f.item(UserType.F_EXTENSION, new QName("ref"))
+                        .ref(ref(org21Oid, null, PrismConstants.Q_ANY)),
+                user1Oid);
+    }
+
+    @Test
+    public void test583SearchObjectWithExtensionRefByUnusedOid() throws SchemaException {
+        searchUsersTest("extension ref item matching by unused OID",
+                f -> f.item(UserType.F_EXTENSION, new QName("ref"))
+                        .ref(org12Oid));
+    }
+
     // TODO multi-value EQ filter (IN semantics) is not supported YET
+    // TODO shadow attribute test, just few, otherwise it's like extension
     // endregion
 
     // region special cases

@@ -15,43 +15,45 @@ import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.AR
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
+import java.util.List;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Filter processor for extension items stored in JSONB.
  * This takes care of any supported type, scalar or array, and handles any operation.
  */
-public class ExtensionItemFilterProcessor
-        extends SinglePathItemFilterProcessor<Object, JsonbPath> {
+public class ExtensionItemFilterProcessor<T extends PrismValue>
+        extends ItemFilterProcessor<ValueFilter<T, ?>> {
 
     // QName.toString produces different results, QNameUtil must be used here:
     public static final String STRING_TYPE = QNameUtil.qNameToUri(DOMUtil.XSD_STRING);
@@ -65,37 +67,41 @@ public class ExtensionItemFilterProcessor
     public static final String BOOLEAN_TYPE = QNameUtil.qNameToUri(DOMUtil.XSD_BOOLEAN);
     public static final String DATETIME_TYPE = QNameUtil.qNameToUri(DOMUtil.XSD_DATETIME);
     public static final String POLY_STRING_TYPE = QNameUtil.qNameToUri(PolyStringType.COMPLEX_TYPE);
-    public static final String REF_TYPE = QNameUtil.qNameToUri(ObjectReferenceType.COMPLEX_TYPE);
 
     private final MExtItemHolderType holderType;
+    protected final JsonbPath path;
 
     public <Q extends FlexibleRelationalPathBase<R>, R> ExtensionItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,
             Function<Q, JsonbPath> rootToExtensionPath,
             MExtItemHolderType holderType) {
-        super(context, rootToExtensionPath);
+        super(context);
 
+        this.path = rootToExtensionPath.apply(context.path());
         this.holderType = holderType;
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<Object> filter) throws RepositoryException {
-        PrismPropertyDefinition<?> definition = filter.getDefinition();
+    public Predicate process(ValueFilter<T, ?> filter) throws RepositoryException {
+        ItemDefinition<?> definition = filter.getDefinition();
         MExtItem extItem = ((SqaleQueryContext<?, ?, ?>) context).repositoryContext()
                 .resolveExtensionItem(definition, holderType);
         assert definition != null;
 
-        ValueFilterValues<?, ?> values = ValueFilterValues.from(filter);
+        if (definition instanceof PrismReferenceDefinition) {
+            return processReference(extItem, (RefFilter) filter);
+        }
+
+        //noinspection unchecked
+        PropertyValueFilter<T> propertyValueFilter = (PropertyValueFilter<T>) filter;
+        ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
         // TODO where do we want tu support eq with multiple values?
         FilterOperation operation = operation(filter);
 
-        if (values.isEmpty()) {
+        List<T> filterValues = filter.getValues();
+        if (filterValues == null || filterValues.isEmpty()) {
             if (operation.isAnyEqualOperation()) {
-                // ?? is "escaped" ? operator, PG JDBC driver understands it. Alternative is to use
-                // function jsonb_exists but that does NOT use GIN index, only operators do!
-                // We have to use parenthesis with AND shovelled into the template like this.
-                return booleanTemplate("({0} ?? {1} AND {0} is not null)",
-                        path, extItem.id.toString()).not();
+                return extItemIsNull(extItem);
             } else {
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
@@ -103,7 +109,7 @@ public class ExtensionItemFilterProcessor
 
         if (extItem.valueType.equals(STRING_TYPE)) {
             return processString(extItem, values, operation, filter);
-        } else if (ExtUtils.isEnumDefinition(definition)) {
+        } else if (ExtUtils.isEnumDefinition((PrismPropertyDefinition<?>) definition)) {
             return processEnum(extItem, values, operation, filter);
         } else if (extItem.valueType.equals(INT_TYPE) || extItem.valueType.equals(INTEGER_TYPE)
                 || extItem.valueType.equals(LONG_TYPE) || extItem.valueType.equals(SHORT_TYPE)
@@ -115,17 +121,74 @@ public class ExtensionItemFilterProcessor
         } else if (extItem.valueType.equals(DATETIME_TYPE)) {
             //noinspection unchecked
             PropertyValueFilter<XMLGregorianCalendar> dateTimeFilter =
-                    (PropertyValueFilter<XMLGregorianCalendar>) ((PropertyValueFilter<?>) filter);
+                    (PropertyValueFilter<XMLGregorianCalendar>) filter;
             return processString(extItem,
                     ValueFilterValues.from(dateTimeFilter, ExtUtils::extensionDateTime),
                     operation, filter);
         } else if (extItem.valueType.equals(POLY_STRING_TYPE)) {
-            return processPolyString(extItem, values, operation, filter);
-        } else if (extItem.valueType.equals(REF_TYPE)) {
-            // TODO
+            return processPolyString(extItem, values, operation, propertyValueFilter);
         }
 
         throw new QueryException("Unsupported filter for extension item: " + filter);
+    }
+
+    private Predicate processReference(MExtItem extItem, RefFilter filter) {
+        List<PrismReferenceValue> values = filter.getValues();
+        if (values == null || values.isEmpty()) {
+            return extItemIsNull(extItem);
+        }
+
+        if (values.size() == 1) {
+            return processSingleReferenceValue(extItem, filter, values.get(0));
+        }
+
+        Predicate predicate = null;
+        for (PrismReferenceValue ref : values) {
+            predicate = ExpressionUtils.or(predicate,
+                    processSingleReferenceValue(extItem, filter, ref));
+        }
+        return predicate;
+    }
+
+    private Predicate processSingleReferenceValue(MExtItem extItem, RefFilter filter, PrismReferenceValue ref) {
+        // We always store oid+type+relation, nothing is null or the whole item is null => missing.
+        // So if we ask for OID IS NULL or for target type IS NULL we actually ask "item IS NULL".
+        if (ref.getOid() == null && !filter.isOidNullAsAny()
+                || ref.getTargetType() == null && !filter.isTargetTypeNullAsAny()) {
+            return extItemIsNull(extItem);
+        }
+
+        StringBuilder json = new StringBuilder("{");
+        boolean commaNeeded = false;
+
+        if (ref.getOid() != null) {
+            json.append("\"o\":\"").append(ref.getOid()).append("\"");
+            commaNeeded = true;
+        }
+
+        if (ref.getTargetType() != null) {
+            MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
+            if (commaNeeded) {
+                json.append(',');
+            }
+            json.append("\"t\":\"").append(objectType).append("\"");
+            commaNeeded = true;
+        }
+
+        if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
+            Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
+                    .searchCachedRelationId(ref.getRelation());
+            if (commaNeeded) {
+                json.append(',');
+            }
+            json.append("\"r\":").append(relationId);
+        } else {
+            // relation == Q_ANY, no additional predicate needed
+        }
+
+        // closing } for inner object is in String.format
+        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
+                String.format("{\"%d\":%s}}", extItem.id, json)));
     }
 
     private Predicate processString(
@@ -212,6 +275,7 @@ public class ExtensionItemFilterProcessor
     }
 
     // filter should be PropertyValueFilter<PolyString>, but pure Strings are handled fine
+
     private Predicate processPolyString(MExtItem extItem, ValueFilterValues<?, ?> values,
             FilterOperation operation, PropertyValueFilter<?> filter)
             throws QueryException {
@@ -292,5 +356,13 @@ public class ExtensionItemFilterProcessor
                 || STRICT_IGNORE_CASE.equals(matchingRule)
                 || ORIG_IGNORE_CASE.equals(matchingRule)
                 || NORM_IGNORE_CASE.equals(matchingRule);
+    }
+
+    private BooleanExpression extItemIsNull(MExtItem extItem) {
+        // ?? is "escaped" ? operator, PG JDBC driver understands it. Alternative is to use
+        // function jsonb_exists but that does NOT use GIN index, only operators do!
+        // We have to use parenthesis with AND shovelled into the template like this.
+        return booleanTemplate("({0} ?? {1} AND {0} is not null)",
+                path, extItem.id.toString()).not();
     }
 }

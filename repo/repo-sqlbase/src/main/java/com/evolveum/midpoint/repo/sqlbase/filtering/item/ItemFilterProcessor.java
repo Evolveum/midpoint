@@ -110,12 +110,6 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
      * otherwise the expression is passed as-is.
      * Technically, any expression can be used on path side as well.
      */
-    protected Predicate singleValuePredicate(Expression<?> path, Ops operator, Object value) {
-        Predicate predicate = ExpressionUtils.predicate(operator, path,
-                value instanceof Expression ? (Expression<?>) value : ConstantImpl.create(value));
-        return predicateWithNotTreated(path, predicate);
-    }
-
     protected Predicate singleValuePredicate(
             Expression<?> path, FilterOperation operation, Object value) {
         path = operation.treatPath(path);
