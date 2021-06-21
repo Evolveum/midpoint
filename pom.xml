@@ -169,7 +169,7 @@
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.3.1</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
-        <wss4j.version>2.2.0</wss4j.version>
+        <wss4j.version>2.3.2</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e1</quartz.version>
         <selenium.version>3.141.59</selenium.version>
@@ -1016,6 +1016,26 @@
                         <groupId>com.google.code.findbugs</groupId>
                         <artifactId>jsr305</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>net.shibboleth.utilities</groupId>
+                        <artifactId>java-support</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-saml-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-soap-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-saml-impl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1421,7 +1441,7 @@
             <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-security-impl</artifactId>
-                <version>3.3.0</version>
+                <version>3.4.6</version><!-- same version as in wss4j -->
                 <exclusions>
                     <exclusion>
                         <groupId>org.bouncycastle</groupId>
@@ -1593,6 +1613,13 @@
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
                 <version>4.9.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>3.0.1</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
