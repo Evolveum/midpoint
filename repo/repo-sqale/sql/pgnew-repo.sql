@@ -1263,7 +1263,6 @@ CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
--- TODO not mapped yet
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED
@@ -1298,6 +1297,7 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
+-- TODO not mapped yet
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
@@ -1323,8 +1323,8 @@ CREATE TABLE m_access_cert_case (
     orgRefRelationId INTEGER REFERENCES m_uri(id),
     outcome TEXT,
     remediedTimestamp TIMESTAMPTZ,
-    reviewDeadline TIMESTAMPTZ,
-    reviewRequestedTimestamp TIMESTAMPTZ,
+    currentStageDeadline TIMESTAMPTZ,
+    currentStageCreateTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRefTargetOid UUID,
     targetRefTargetType ObjectType,
