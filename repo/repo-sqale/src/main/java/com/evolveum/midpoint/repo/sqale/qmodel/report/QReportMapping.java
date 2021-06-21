@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -16,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * Mapping between {@link QReport} and {@link ReportType}.
  */
 public class QReportMapping
-        extends QAssignmentHolderMapping<ReportType, QReport, MReport> {
+        extends QAssignmentHolderMapping<ReportType, QReport, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "rep";
 
@@ -32,10 +33,5 @@ public class QReportMapping
     @Override
     protected QReport newAliasInstance(String alias) {
         return new QReport(alias);
-    }
-
-    @Override
-    public MReport newRowObject() {
-        return new MReport();
     }
 }

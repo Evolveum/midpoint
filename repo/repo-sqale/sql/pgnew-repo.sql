@@ -96,7 +96,8 @@ CREATE TYPE ExtItemCardinality AS ENUM (
     'ARRAY');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
-CREATE TYPE AccessCertificationCampaignStateType AS ENUM ('CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
+    'CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
 
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
@@ -255,6 +256,17 @@ CREATE TABLE m_object (
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
     textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    /*
+    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+    and values are stored as follows (this is internal and has no effect on how query is written):
+    - string and boolean are stored as-is
+    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+    - enum as toString() or name() of the Java enum instance
+    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+    */
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -962,9 +974,7 @@ CREATE INDEX m_value_policy_policySituation_idx
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
-        CHECK (objectType = 'REPORT'),
-    orientation OrientationType,
-    parent BOOLEAN
+        CHECK (objectType = 'REPORT')
 )
     INHERITS (m_assignment_holder);
 
@@ -979,7 +989,6 @@ CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
--- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (

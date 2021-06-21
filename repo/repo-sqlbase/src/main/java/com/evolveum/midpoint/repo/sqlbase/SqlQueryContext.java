@@ -150,6 +150,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             throws RepositoryException {
         for (ObjectOrdering ordering : orderings) {
             ItemPath orderByItemPath = ordering.getOrderBy();
+            // TODO to support ordering by ext/something we need to implement this.
+            //  That may not even require cache for JOIN because it should be allowed only for
+            //  single-value containers embedded in the object.
             if (!(orderByItemPath.isSingleName())) {
                 throw new QueryException(
                         "ORDER BY is not possible for complex paths: " + orderByItemPath);

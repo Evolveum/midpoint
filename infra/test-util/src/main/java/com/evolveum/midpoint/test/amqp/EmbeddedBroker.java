@@ -61,6 +61,15 @@ public class EmbeddedBroker {
         }
     }
 
+    public long getMessagesCount(String queueName) throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        try (Connection connection = factory.newConnection();
+                Channel channel = connection.createChannel()) {
+            return channel.messageCount(queueName);
+        }
+    }
+
     @NotNull
     private AMQP.BasicProperties createProperties(Map<String, Object> headers) {
         return new AMQP.BasicProperties()

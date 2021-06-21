@@ -9,10 +9,14 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
+
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +27,8 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
@@ -38,7 +44,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -128,51 +133,71 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .metadata(new MetadataType()
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
-                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                        .createTimestamp(asXMLGregorianCalendar(1L))
                         .modifierRef(modifierOid, UserType.COMPLEX_TYPE, relation2)
                         .modifyChannel("modify-channel")
-                        .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)))
+                        .modifyTimestamp(asXMLGregorianCalendar(2L)))
                 .subtype("workerA")
                 .subtype("workerC")
                 .policySituation("situationA")
                 .policySituation("situationC")
                 .extension(new ExtensionType(prismContext));
+
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
         addExtensionValue(user1Extension, "long", 2L);
+        addExtensionValue(user1Extension, "short", 3);
         addExtensionValue(user1Extension, "decimal",
                 new BigDecimal("12345678901234567890.12345678901234567890"));
         addExtensionValue(user1Extension, "double", Double.MAX_VALUE);
         addExtensionValue(user1Extension, "float", Float.MAX_VALUE);
         addExtensionValue(user1Extension, "boolean", true);
         addExtensionValue(user1Extension, "enum", BeforeAfterType.AFTER);
-        Instant dateTime = Instant.ofEpochMilli(1633_000_000_000L); // 2021-09-30 before noon
-        addExtensionValue(user1Extension, "dateTime",
-                MiscUtil.asXMLGregorianCalendar(dateTime));
+        addExtensionValue(user1Extension, "dateTime", // 2021-09-30 before noon
+                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)));
         addExtensionValue(user1Extension, "poly", PolyString.fromOrig("poly-value"));
         addExtensionValue(user1Extension, "ref", ref(org21Oid, OrgType.COMPLEX_TYPE, relation1));
         addExtensionValue(user1Extension, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(user1Extension, "enum-mv", // nonsense semantics, sorry about it
+                OperationResultStatusType.WARNING, OperationResultStatusType.SUCCESS);
+        addExtensionValue(user1Extension, "int-mv", 47, 31);
         addExtensionValue(user1Extension, "ref-mv",
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
-        user2Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-2")
-                        .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
-                        .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
-                        .subtype("workerA")
-                        .asPrismObject(),
-                null, result);
-        user3Oid = repositoryService.addObject(
-                new UserType(prismContext).name("user-3")
-                        .costCenter("50")
-                        .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
-                        .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
-                        .policySituation("situationA")
-                        .asPrismObject(),
-                null, result);
+        UserType user2 = new UserType(prismContext).name("user-2")
+                .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
+                .subtype("workerA")
+                .extension(new ExtensionType(prismContext));
+        ExtensionType user2Extension = user2.getExtension();
+        addExtensionValue(user2Extension, "string", "other-value...");
+        addExtensionValue(user2Extension, "dateTime", // 2021-10-01 ~15PM
+                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L)));
+        addExtensionValue(user2Extension, "int", 2);
+        addExtensionValue(user2Extension, "double", Double.MIN_VALUE); // positive, close to zero
+        addExtensionValue(user2Extension, "float", 0);
+        addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
+        addExtensionValue(user2Extension, "enum-mv",
+                OperationResultStatusType.UNKNOWN, OperationResultStatusType.SUCCESS);
+        addExtensionValue(user2Extension, "poly-mv",
+                PolyString.fromOrig("poly-value1"), PolyString.fromOrig("poly-value2"));
+        user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
+
+        UserType user3 = new UserType(prismContext).name("user-3")
+                .costCenter("50")
+                .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
+                .policySituation("situationA")
+                .extension(new ExtensionType(prismContext));
+        ExtensionType user3Extension = user3.getExtension();
+        addExtensionValue(user3Extension, "int", 3);
+        addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
+                asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L)));
+        user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
+
         user4Oid = repositoryService.addObject(
                 new UserType(prismContext).name("user-4")
                         .costCenter("51")
@@ -208,12 +233,12 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
                         .state("closed")
-                        .closeTimestamp(MiscUtil.asXMLGregorianCalendar(321L))
+                        .closeTimestamp(asXMLGregorianCalendar(321L))
                         .workItem(new CaseWorkItemType(prismContext)
                                 .id(41L)
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(10000L))
-                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(10100L))
-                                .deadline(MiscUtil.asXMLGregorianCalendar(10200L))
+                                .createTimestamp(asXMLGregorianCalendar(10000L))
+                                .closeTimestamp(asXMLGregorianCalendar(10100L))
+                                .deadline(asXMLGregorianCalendar(10200L))
                                 .originalAssigneeRef(user3Oid, UserType.COMPLEX_TYPE)
                                 .performerRef(user3Oid, UserType.COMPLEX_TYPE)
                                 .stageNumber(1)
@@ -222,9 +247,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                                 .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
                         .workItem(new CaseWorkItemType(prismContext)
                                 .id(42L)
-                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(20000L))
-                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(20100L))
-                                .deadline(MiscUtil.asXMLGregorianCalendar(20200L))
+                                .createTimestamp(asXMLGregorianCalendar(20000L))
+                                .closeTimestamp(asXMLGregorianCalendar(20100L))
+                                .deadline(asXMLGregorianCalendar(20200L))
                                 .originalAssigneeRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .performerRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .stageNumber(2)
@@ -930,20 +955,324 @@ AND(
     // endregion
 
     // region extension queries
+    // basic string tests
     @Test
-    public void test400SearchObjectHavingSpecifiedStringExtension() throws SchemaException {
-        when("searching users by extension string item");
+    public void test500SearchObjectHavingSpecifiedStringExtension() throws SchemaException {
+        searchUsersTest("having extension string item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("string")).eq("string-value"),
+                user1Oid);
+    }
+
+    @Test
+    public void test501SearchObjectNotHavingSpecifiedStringExtension() throws SchemaException {
+        searchUsersTest("not having extension string item equal to value (can be null)",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string")).eq("string-value"),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test502SearchObjectWithoutExtensionStringItem() throws SchemaException {
+        searchUsersTest("not having extension item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("string")).isNull(),
+                user3Oid, user4Oid);
+    }
+
+    @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
+    public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
+        when("searching for users with extension string item with any value ordered by that item");
         OperationResult operationResult = createOperationResult();
         SearchResultList<UserType> result = searchObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
-                        .item(UserType.F_EXTENSION, new QName("string")).eq("string-value")
+                        .not()
+                        .item(UserType.F_EXTENSION, new QName("string")).isNull()
+                        .asc(UserType.F_EXTENSION, new QName("string"))
                         .build(),
                 operationResult);
 
-        then("users having specified extension value are returned");
-        assertThat(result).hasSize(1)
-                .anyMatch(o -> o.getOid().equals(user1Oid));
+        then("users with extension item are returned, ordered by the item");
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user2Oid, user1Oid);
     }
+
+    @Test
+    public void test505SearchObjectUsingExtensionStringComparison() throws SchemaException {
+        searchUsersTest("having extension string greater than specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("string")).gt("a"),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test506SearchObjectWithExtensionItemContainingString() throws SchemaException {
+        searchUsersTest("extension string item containing string",
+                f -> f.item(UserType.F_EXTENSION, new QName("string")).contains("val"),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test507SearchObjectWithExtensionItemContainingStringIgnoreCase() throws SchemaException {
+        searchUsersTest("extension string item containing string ignore-case",
+                f -> f.item(UserType.F_EXTENSION, new QName("string"))
+                        .contains("VAL").matchingCaseIgnore(),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test508SearchObjectWithExtensionStringEndsWithIgnoreCase() throws SchemaException {
+        searchUsersTest("extension string item ending with string ignore-case",
+                f -> f.item(UserType.F_EXTENSION, new QName("string"))
+                        .endsWith("VaLuE").matchingCaseIgnore(),
+                user1Oid);
+    }
+
+    @Test
+    public void test509SearchObjectWithExtensionStringStartsWithIgnoreCase() throws SchemaException {
+        searchUsersTest("extension string item starting with string ignore-case",
+                f -> f.item(UserType.F_EXTENSION, new QName("string"))
+                        .startsWith("OTHER").matchingCaseIgnore(),
+                user2Oid);
+    }
+
+    // multi-value string tests
+    @Test
+    public void test510SearchObjectHavingSpecifiedMultivalueStringExtension() throws SchemaException {
+        searchUsersTest("having extension multi-string item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).eq("string-value2"),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test511SearchObjectNotHavingSpecifiedMultivalueStringExtension() throws SchemaException {
+        searchUsersTest("not having extension multi-string item equal to value",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).eq("string-value1"),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test512SearchObjectWithoutExtensionMultivalueStringItem() throws SchemaException {
+        searchUsersTest("not having extension multi-string item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).isNull(),
+                user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test515SearchObjectHavingSpecifiedMultivalueStringExtension() {
+        given("query for multi-value extension string item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("string-mv")).gt("string-value2")
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    // integer tests
+    @Test
+    public void test520SearchObjectHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension integer item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).eq(1),
+                user1Oid);
+    }
+
+    @Test
+    public void test521SearchObjectNotHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("not having extension int item equal to value",
+                f -> f.not().item(UserType.F_EXTENSION, new QName("int")).eq("1"),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test522SearchObjectWithoutExtensionIntegerItem() throws SchemaException {
+        searchUsersTest("not having extension item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).isNull(),
+                user4Oid);
+    }
+
+    @Test
+    public void test523SearchObjectHavingSpecifiedIntegerExtensionItemGreaterThanValue() throws SchemaException {
+        searchUsersTest("not having extension int item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(1),
+                user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test528SearchObjectHavingSpecifiedMultivalueIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension multi-integer item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int-mv")).eq(47),
+                user1Oid);
+    }
+
+    @Test
+    public void test529SearchObjectHavingSpecifiedMultivalueIntegerExtension() {
+        given("query for multi-value extension integer item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("int-mv")).gt(40)
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    // other numeric types tests + wilder conditions
+    @Test
+    public void test530SearchObjectHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension integer item equal to big decimal value",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).eq(new BigDecimal(1)),
+                user1Oid);
+    }
+
+    @Test
+    public void test531SearchObjectHavingSpecifiedIntegerExtension() throws SchemaException {
+        searchUsersTest("having extension decimal item equal to big decimal value",
+                f -> f.item(UserType.F_EXTENSION, new QName("decimal"))
+                        .eq(new BigDecimal("12345678901234567890.12345678901234567890")),
+                user1Oid);
+    }
+
+    @Test
+    public void test532BigDecimalRepresentationDoesNotMatterToDbOnlyValue() throws SchemaException {
+        searchUsersTest("having extension decimal item equal to big decimal of different form",
+                f -> f.item(UserType.F_EXTENSION, new QName("decimal"))
+                        .eq(new BigDecimal("1234567890123456789012345678901234567890E-20")),
+                user1Oid);
+    }
+
+    @Test
+    public void test533SearchObjectHavingSpecifiedDoubleExtension() throws SchemaException {
+        searchUsersTest("\"having extension double item equal to big decimal value\"",
+                f -> f.item(UserType.F_EXTENSION, new QName("double")).eq(Double.MAX_VALUE),
+                user1Oid);
+    }
+
+    @Test
+    public void test534SearchObjectHavingNumericExtItemBetweenTwoValues() throws SchemaException {
+        searchUsersTest("\"having extension numeric item between two value\"",
+                f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(0)
+                        .and().item(UserType.F_EXTENSION, new QName("int")).lt(3),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test535SearchObjectHavingNumericExtItemUsingGoeAndBigInteger() throws SchemaException {
+        searchUsersTest("\"having extension double item equal to big decimal value\"",
+                f -> f.item(UserType.F_EXTENSION, new QName("double")).ge(
+                        new BigInteger("17976931348623157000000000000000000000000000000000000000000"
+                                + "0000000000000000000000000000000000000000000000000000000000000000"
+                                + "0000000000000000000000000000000000000000000000000000000000000000"
+                                + "0000000000000000000000000000000000000000000000000000000000000000"
+                                + "0000000000000000000000000000000000000000000000000000000000")),
+                user1Oid);
+    }
+
+    @Test
+    public void test536SearchObjectHavingDoubleExtItemBetweenTwoValues() throws SchemaException {
+        searchUsersTest("\"having extension double item equal to big decimal value\"",
+                f -> f.item(UserType.F_EXTENSION, new QName("double")).gt(0)
+                        .and().item(UserType.F_EXTENSION, new QName("double")).lt(3d),
+                user2Oid);
+    }
+
+    @Test
+    public void test537SearchObjectHavingFloatOrShortExtItem() throws SchemaException {
+        searchUsersTest("\"having extension double item equal to big decimal value\"",
+                f -> f.item(UserType.F_EXTENSION, new QName("float")).gt(-1f)
+                        .or().item(UserType.F_EXTENSION, new QName("short")).lt((short) 4),
+                user1Oid, user2Oid);
+    }
+
+    // enum tests
+    @Test
+    public void test540SearchObjectHavingSpecifiedEnumExtension() throws SchemaException {
+        searchUsersTest("having extension enum item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum")).eq(BeforeAfterType.AFTER),
+                user1Oid);
+    }
+
+    @Test
+    public void test541SearchObjectNotHavingSpecifiedEnumExtension() throws SchemaException {
+        searchUsersTest("not having extension enum item equal to value (can be null)",
+                f -> f.not()
+                        .item(UserType.F_EXTENSION, new QName("enum")).eq(BeforeAfterType.BEFORE),
+                user1Oid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test542SearchObjectWithoutExtensionEnumItem() throws SchemaException {
+        searchUsersTest("not having extension item (is null)",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum")).isNull(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test543SearchObjectByEnumExtensionWithNonEqOperationFails() {
+        given("query for multi-value extension enum item with non-equal operation");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("enum")).gt(OperationResultStatusType.SUCCESS)
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
+    @Test
+    public void test545SearchObjectHavingSpecifiedMultiValueEnumExtension() throws SchemaException {
+        searchUsersTest("having extension multi-value enum item with specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("enum-mv"))
+                        .eq(OperationResultStatusType.SUCCESS),
+                user1Oid, user2Oid);
+    }
+
+    // boolean tests
+    @Test
+    public void test548SearchObjectByBooleanExtension() throws SchemaException {
+        searchUsersTest("having extension boolean item with specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("boolean"))
+                        .eq(true),
+                user1Oid);
+    }
+
+    // date-time tests
+    @Test
+    public void test550SearchObjectByDateTimeExtension() throws SchemaException {
+        searchUsersTest("having extension date-time item with specified value",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
+                        .eq(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_100_000_000L))),
+                user2Oid);
+    }
+
+    @Test
+    public void test551SearchObjectByDateTimeExtensionBetween() throws SchemaException {
+        searchUsersTest("having extension date-time item between specified values",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
+                        .gt(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .and().item(UserType.F_EXTENSION, new QName("dateTime"))
+                        .lt(asXMLGregorianCalendar(Instant.ofEpochMilli(1634_000_000_000L))),
+                user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test552SearchObjectByDateTimeExtensionOrCondition() throws SchemaException {
+        searchUsersTest("having extension date-time item matching either condition (OR)",
+                f -> f.item(UserType.F_EXTENSION, new QName("dateTime"))
+                        .le(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_000_000_000L)))
+                        .or().item(UserType.F_EXTENSION, new QName("dateTime"))
+                        .ge(asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L))),
+                user1Oid, user3Oid);
+    }
+
+    // date-time uses the same code as string, no need for more tests, only EQ works for multi-value
+
+    // TODO poly extension query
+    // TODO ref extension query
     // endregion
 
     // region special cases
@@ -1039,7 +1368,6 @@ AND(
                 ". type UserType and employeeNumber startsWith \"5\"",
                 operationResult);
         System.out.println("focusTypes = " + focusTypes);
-        // even if query was possible this would fail in the actual repo search, which is expected
     }
     // endregion
 
@@ -1057,6 +1385,28 @@ AND(
         ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(type, query);
         ObjectQuery objectQuery = prismContext.queryFactory().createQuery(objectFilter);
         return searchObjects(type, objectQuery, operationResult, selectorOptions);
+    }
+
+    private void searchUsersTest(String description,
+            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            throws SchemaException {
+        searchObjectTest(description, UserType.class, filter, expectedOids);
+    }
+
+    private <T extends ObjectType> void searchObjectTest(String description, Class<T> type,
+            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            throws SchemaException {
+        String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
+        when("searching for " + typeName + "(s) " + description);
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<T> result = searchObjects(type,
+                filter.apply(prismContext.queryFor(UserType.class)).build(),
+                operationResult);
+
+        then(typeName + "(s) " + description + " are returned");
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedOids);
     }
 
     /** Search objects using {@link ObjectQuery}. */

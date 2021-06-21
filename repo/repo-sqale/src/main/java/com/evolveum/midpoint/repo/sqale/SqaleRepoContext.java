@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.PostConstruct;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -144,10 +142,8 @@ public class SqaleRepoContext extends SqlRepoContext {
                 return null;
             }
             // enum is recognized by having allowed values
-            Collection<? extends DisplayableValue<?>> allowedValues =
-                    ((PrismPropertyDefinition<?>) definition).getAllowedValues();
             if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
-                    && (allowedValues == null || allowedValues.isEmpty())) {
+                    && !SqaleUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
                 return null;
             }
         } else if (!(definition instanceof PrismReferenceDefinition)) {

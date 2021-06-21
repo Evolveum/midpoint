@@ -100,8 +100,15 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
         return singleValuePredicate(path, operator, values.singleValue());
     }
 
-    protected Predicate singleValuePredicate(Path<?> path, Ops operator, Object value) {
-        Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+    /**
+     * Creates predicate for specified path and value using the provided operator.
+     * If the value is not Querydsl {@link Expression} it is changed to constant expression,
+     * otherwise the expression is passed as-is.
+     * Technically, any expression can be used on path side as well.
+     */
+    protected Predicate singleValuePredicate(Expression<?> path, Ops operator, Object value) {
+        Predicate predicate = ExpressionUtils.predicate(operator, path,
+                value instanceof Expression ? (Expression<?>) value : ConstantImpl.create(value));
         return predicateWithNotTreated(path, predicate);
     }
 
@@ -109,7 +116,7 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
      * Returns the predicate or (predicate AND path IS NOT NULL) if NOT is used somewhere above.
      * This makes NOT truly complementary to non-NOT result.
      */
-    protected Predicate predicateWithNotTreated(Path<?> path, Predicate predicate) {
+    protected Predicate predicateWithNotTreated(Expression<?> path, Predicate predicate) {
         return context.isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;
