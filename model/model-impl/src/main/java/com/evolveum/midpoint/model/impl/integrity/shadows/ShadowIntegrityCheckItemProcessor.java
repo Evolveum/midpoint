@@ -89,8 +89,6 @@ public class ShadowIntegrityCheckItemProcessor
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking shadow {} integrity", e, ObjectTypeUtil.toShortString(shadow));
             result.recordPartialError("Unexpected error while checking shadow integrity", e);
             getStats().incrementShadowsWithErrors();
-        } finally {
-            workerTask.markObjectActionExecutedBoundary();
         }
 
         getStats().registerProblemCodeOccurrences(checkResult.getProblemCodes());

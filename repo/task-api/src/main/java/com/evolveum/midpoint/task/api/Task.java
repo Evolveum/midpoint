@@ -17,7 +17,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
+import com.evolveum.midpoint.schema.statistics.TaskActionsExecutedCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -932,9 +934,15 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     PolicyRuleType getPolicyRule();
     //endregion
 
+    //region Misc
+
     default boolean isRoot() {
         return getParent() == null;
     }
+
+    void startCollectingActionsExecuted(ActionsExecutedCollector collector);
+
+    void stopCollectingActionsExecuted();
 
     //endregion
 }

@@ -52,6 +52,7 @@ public class MultiPropagationActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(false)
                 .skipWritingOperationExecutionRecords(true); // to avoid resource change (invalidates the caches)
     }

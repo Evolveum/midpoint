@@ -111,6 +111,29 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         }
     }
 
+    public ActionsExecutedInfoAsserter<ActivityStateAsserter<RA>> actionsExecuted() {
+        ActionsExecutedInfoAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActionsExecutedInfoAsserter<>(
+                        getActionsExecuted(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private @NotNull ActivityActionsExecutedType getActionsExecuted() {
+        if (activityState.getStatistics() == null || activityState.getStatistics().getActionsExecuted() == null) {
+            throw new AssertionError("No actions executed information present");
+        } else {
+            return activityState.getStatistics().getActionsExecuted();
+        }
+    }
+
+    public ActivityStateAsserter<RA> assertNoActionsExecutedInformation() {
+        if (activityState.getStatistics() != null && activityState.getStatistics().getActionsExecuted() != null) {
+            fail("Actions executed information present even if it should not");
+        }
+        return this;
+    }
+
     public ActivityStateAsserter<RA> assertBucketManagementStatisticsOperations(int expected) {
         assertThat(getBucketManagementStatistics().getOperation().size())
                 .as("bucket mgmt operations #")

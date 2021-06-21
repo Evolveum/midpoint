@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
@@ -163,7 +166,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertTreeRealizationComplete()
                     .rootActivity()
-                        .assertComplete();
+                        .assertComplete()
+                        .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
@@ -208,7 +212,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertTreeRealizationComplete()
                     .rootActivity()
-                        .assertComplete();
+                        .assertComplete()
+                        .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
@@ -276,7 +281,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertTreeRealizationComplete()
                     .rootActivity()
-                        .assertComplete();
+                        .assertComplete()
+                        .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
@@ -332,7 +338,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertTreeRealizationComplete()
                     .rootActivity()
-                        .assertComplete();
+                        .assertComplete()
+                        .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
@@ -381,7 +388,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .activityState()
                     .assertTreeRealizationComplete()
                     .rootActivity()
-                        .assertComplete();
+                        .assertComplete()
+                        .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
@@ -538,7 +546,21 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .itemProcessingStatistics()
                             .assertTotalCounts(5, 0, 0)
                             .assertLastSuccessObjectName("5")
-                            .assertExecutions(1);
+                            .assertExecutions(1)
+                        .end()
+                        .actionsExecuted()
+                            .part(ActionsExecutedInformationUtil.Part.ALL)
+                                .display()
+                                .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, 5, 0)
+                                .assertCount(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, 5, 0)
+                                .assertLastSuccessName(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, "5")
+                                .assertLastSuccessName(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, "5")
+                            .end()
+                            .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                .display()
+                                .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, 5, 0)
+                                .assertLastSuccessName(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, "5")
+                            .end();
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("task statistics", TaskOperationStatsUtil.format(stats));
@@ -593,6 +615,16 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .itemProcessingStatistics()
                             .assertTotalCounts(100, 0, 0)
                             .assertExecutions(1)
+                        .end()
+                        .actionsExecuted()
+                            .part(ActionsExecutedInformationUtil.Part.ALL)
+                                .display()
+                                .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 200, 0)
+                            .end()
+                            .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                .display()
+                                .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 100, 0)
+                            .end()
                         .end()
                         .assertBucketManagementStatisticsOperations(3);
 
@@ -721,6 +753,16 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertTotalCounts(0, 0, 0)
                                 .assertExecutions(1)
                             .end()
+                            .actionsExecuted()
+                                .part(ActionsExecutedInformationUtil.Part.ALL)
+                                    .display()
+                                    .assertEmpty()
+                                .end()
+                                .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                    .display()
+                                    .assertEmpty()
+                                .end()
+                            .end()
                             .assertBucketManagementStatisticsOperations(3)
                         .end()
                         .child("second")
@@ -734,6 +776,18 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("administrator")
                                 .assertExecutions(1)
+                            .end()
+                            .actionsExecuted()
+                                .part(ActionsExecutedInformationUtil.Part.ALL)
+                                    .display()
+                                    .assertCount(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, 2, 0)
+                                    .assertLastSuccessName(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, "administrator")
+                                .end()
+                                .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                    .display()
+                                    .assertCount(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, 1, 0)
+                                    .assertLastSuccessName(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, "administrator")
+                                .end()
                             .end()
                             .assertBucketManagementStatisticsOperations(3)
                         .end()
@@ -752,6 +806,16 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .itemProcessingStatistics()
                                     .assertTotalCounts(10, 0, 0)
                                     .assertExecutions(1)
+                                .end()
+                                .actionsExecuted()
+                                    .part(ActionsExecutedInformationUtil.Part.ALL)
+                                        .display()
+                                        .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 20, 0)
+                                    .end()
+                                    .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                        .display()
+                                        .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 10, 0)
+                                    .end()
                                 .end()
                                 .assertBucketManagementStatisticsOperations(3)
                             .end()

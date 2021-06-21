@@ -77,7 +77,8 @@ public class IterativeScriptingActionHandler
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions();
+        return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true);
     }
 
     @Override

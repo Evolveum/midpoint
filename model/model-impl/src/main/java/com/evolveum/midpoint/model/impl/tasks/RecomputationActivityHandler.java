@@ -80,7 +80,8 @@ public class RecomputationActivityHandler
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions();
+        return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true);
     }
 
     @Override

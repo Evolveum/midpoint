@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,7 +43,8 @@ class SearchIterativeMockActivityExecution
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions();
+        return super.getDefaultReportingOptions()
+                .enableActionsExecutedStatistics(true);
     }
 
     @Override
@@ -51,8 +54,15 @@ class SearchIterativeMockActivityExecution
                     String message = activity.getWorkDefinition().getMessage() + object.getName().getOrig();
                     LOGGER.info("Message: {}", message);
                     getRecorder().recordExecution(message);
+
+                    provideSomeMockStatistics(object, workerTask);
                     return true;
                 });
+    }
+
+    private void provideSomeMockStatistics(PrismObject<ObjectType> object, RunningTask workerTask) {
+        workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
+        workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
     }
 
     @NotNull

@@ -162,9 +162,9 @@ public class ProcessingCoordinator<I> {
         if (reportingOptions.isEnableSynchronizationStatistics()) {
             subtask.resetSynchronizationInformation(null);
         }
-        if (reportingOptions.isEnableActionsExecutedStatistics()) {
-            subtask.resetActionsExecutedInformation(null);
-        }
+//        if (reportingOptions.isEnableActionsExecutedStatistics()) {
+//            subtask.resetActionsExecutedInformation(null);
+//        }
         // Note we never maintain structured progress for LATs.
     }
 

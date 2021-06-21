@@ -8,15 +8,10 @@
 package com.evolveum.midpoint.task.quartzimpl.statistics;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
@@ -63,12 +58,8 @@ public class Statistics {
 
     private volatile EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
     private volatile SynchronizationInformation synchronizationInformation; // has to be explicitly enabled (by setting non-null value)
-    private volatile IterationInformation iterationInformation = new IterationInformation(PrismContext.get()); // just to have any value
-    private volatile ActionsExecutedInformation actionsExecutedInformation; // has to be explicitly enabled (by setting non-null value)
 
     private volatile StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
-
-    private static final Object BUCKET_INFORMATION_LOCK = new Object();
 
     /**
      * Most current version of repository and audit performance information. Original (live) form of this information is accessible only
@@ -108,21 +99,7 @@ public class Statistics {
         return synchronizationInformation;
     }
 
-    private IterationInformation getIterativeTaskInformation() {
-        return iterationInformation;
-    }
-
-    private ActionsExecutedInformation getActionsExecutedInformation() {
-        return actionsExecutedInformation;
-    }
-
     private volatile String cachingConfigurationDump;
-
-    @NotNull
-    @Deprecated
-    public List<String> getLastFailures() {
-        return iterationInformation.getLastFailures();
-    }
 
     private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation(Collection<Statistics> children) {
         if (environmentalPerformanceInformation == null) {
@@ -139,17 +116,17 @@ public class Statistics {
         return rv;
     }
 
-    private ActivityItemProcessingStatisticsType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
-        return new ActivityItemProcessingStatisticsType();
-//        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
-//        for (Statistics child : children) {
-//            IterationInformation info = child.getIterativeTaskInformation();
-//            if (info != null) {
-//                IterationInformation.addTo(sum, info.getValueCopy());
-//            }
-//        }
-//        return sum;
-    }
+//    private ActivityItemProcessingStatisticsType getAggregateIterativeTaskInformation(Collection<Statistics> children) {
+//        return new ActivityItemProcessingStatisticsType();
+////        ActivityIterationInformationType sum = iterationInformation.getValueCopy();
+////        for (Statistics child : children) {
+////            IterationInformation info = child.getIterativeTaskInformation();
+////            if (info != null) {
+////                IterationInformation.addTo(sum, info.getValueCopy());
+////            }
+////        }
+////        return sum;
+//    }
 
     private ActivitySynchronizationStatisticsType getAggregateSynchronizationInformation(Collection<Statistics> children) {
         if (synchronizationInformation == null) {
@@ -161,21 +138,6 @@ public class Statistics {
             SynchronizationInformation info = child.getSynchronizationInformation();
             if (info != null) {
                 SynchronizationInformation.addTo(rv, info.getValueCopy());
-            }
-        }
-        return rv;
-    }
-
-    private ActivityActionsExecutedType getAggregateActionsExecutedInformation(Collection<Statistics> children) {
-        if (actionsExecutedInformation == null) {
-            return null;
-        }
-        ActivityActionsExecutedType rv = new ActivityActionsExecutedType();
-        ActionsExecutedInformation.addTo(rv, actionsExecutedInformation.getAggregatedValue());
-        for (Statistics child : children) {
-            ActionsExecutedInformation info = child.getActionsExecutedInformation();
-            if (info != null) {
-                ActionsExecutedInformation.addTo(rv, info.getAggregatedValue());
             }
         }
         return rv;
@@ -224,23 +186,19 @@ public class Statistics {
      */
     public OperationStatsType getAggregatedOperationStats(Collection<Statistics> children) {
         EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
-        ActivityItemProcessingStatisticsType itit = getAggregateIterativeTaskInformation(children);
         ActivitySynchronizationStatisticsType sit = getAggregateSynchronizationInformation(children);
-        ActivityActionsExecutedType aeit = getAggregateActionsExecutedInformation(children);
         RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
         CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
         OperationsPerformanceInformationType methods = getAggregateOperationsPerformanceInformation(children);
         // This is not fetched from children (present on coordinator task only).
         // It looks like that children are always LATs, and LATs do not have bucket management information.
         String cachingConfiguration = getAggregateCachingConfiguration(children);
-        if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && cachingConfiguration == null) {
+        if (env == null && sit == null && repo == null && caches == null && methods == null && cachingConfiguration == null) {
             return null;
         }
         OperationStatsType rv = new OperationStatsType();
         rv.setEnvironmentalPerformanceInformation(env);
-        rv.setIterationInformation(itit);
         rv.setSynchronizationInformation(sit);
-        rv.setActionsExecutedInformation(aeit);
         rv.setRepositoryPerformanceInformation(repo);
         rv.setCachesPerformanceInformation(caches);
         rv.setOperationsPerformanceInformation(methods);
@@ -327,6 +285,7 @@ public class Statistics {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
 //        iterationInformation.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
@@ -361,61 +320,6 @@ public class Statistics {
         }
     }
 
-    public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
-            ChangeType changeType, String channel, Throwable exception) {
-        if (actionsExecutedInformation != null) {
-            actionsExecutedInformation
-                    .recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel,
-                            exception);
-        }
-    }
-
-    public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, String channel, Throwable exception) {
-        recordObjectActionExecuted(object, null, null, changeType, channel, exception);
-    }
-
-    public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
-            String defaultOid, ChangeType changeType, String channel, Throwable exception) {
-        if (actionsExecutedInformation != null) {
-            String name, displayName, oid;
-            PrismObjectDefinition<?> definition;
-            Class<T> clazz;
-            if (object != null) {
-                name = PolyString.getOrig(object.getName());
-                displayName = ObjectTypeUtil.getDetailedDisplayName(object);
-                definition = object.getDefinition();
-                clazz = object.getCompileTimeClass();
-                oid = object.getOid();
-                if (oid == null) {        // in case of ADD operation
-                    oid = defaultOid;
-                }
-            } else {
-                name = null;
-                displayName = null;
-                definition = null;
-                clazz = objectTypeClass;
-                oid = defaultOid;
-            }
-            if (definition == null && clazz != null) {
-                definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-            }
-            QName typeQName;
-            if (definition != null) {
-                typeQName = definition.getTypeName();
-            } else {
-                typeQName = ObjectType.COMPLEX_TYPE;
-            }
-            actionsExecutedInformation
-                    .recordObjectActionExecuted(name, displayName, typeQName, oid, changeType, channel, exception);
-        }
-    }
-
-    public void markObjectActionExecutedBoundary() {
-        if (actionsExecutedInformation != null) {
-            actionsExecutedInformation.markObjectActionExecutedBoundary();
-        }
-    }
-
     private void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
         environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
     }
@@ -425,18 +329,13 @@ public class Statistics {
     }
 
     public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
-        iterationInformation = new IterationInformation(value, collectExecutions, prismContext);
-    }
-
-    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
-        actionsExecutedInformation = new ActionsExecutedInformation(value);
     }
 
     public void startCollectingStatistics(@NotNull RunningTask task,
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
         startOrRestartCollectingRegularOperationStats(initialOperationStats, strategy.isMaintainSynchronizationStatistics(),
-                strategy.isMaintainActionsExecutedStatistics(), strategy.isCollectExecutions());
+                strategy.isCollectExecutions());
         startOrRestartCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
         startCollectingStructuredProgress(task, strategy);
     }
@@ -445,8 +344,7 @@ public class Statistics {
         OperationStatsType newInitialValues = getOrCreateInitialOperationStats(task);
         startOrRestartCollectingRegularOperationStats(newInitialValues,
                 synchronizationInformation != null,
-                actionsExecutedInformation != null,
-                iterationInformation.isCollectExecutions());
+                false);
         startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
         // Structured progress restart is not needed, as it is not maintained in LATs.
     }
@@ -458,18 +356,13 @@ public class Statistics {
     }
 
     private void startOrRestartCollectingRegularOperationStats(OperationStatsType initialOperationStats,
-            boolean maintainSynchronizationStatistics, boolean maintainActionsExecutedStatistics, boolean collectExecutions) {
+            boolean maintainSynchronizationStatistics, boolean collectExecutions) {
         resetEnvironmentalPerformanceInformation(initialOperationStats.getEnvironmentalPerformanceInformation());
         resetIterativeTaskInformation(initialOperationStats.getIterationInformation(), collectExecutions);
         if (maintainSynchronizationStatistics) {
             resetSynchronizationInformation(initialOperationStats.getSynchronizationInformation());
         } else {
             synchronizationInformation = null;
-        }
-        if (maintainActionsExecutedStatistics) {
-            resetActionsExecutedInformation(initialOperationStats.getActionsExecutedInformation());
-        } else {
-            actionsExecutedInformation = null;
         }
     }
 
@@ -547,14 +440,5 @@ public class Statistics {
         } else {
             cachesPerformanceInformation = null;
         }
-    }
-
-
-    private int or0(Integer n) {
-        return n != null ? n : 0;
-    }
-
-    private long or0(Long n) {
-        return n != null ? n : 0;
     }
 }

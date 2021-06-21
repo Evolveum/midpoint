@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 // TODO consider renaming?
+@Deprecated
 public interface IterativeOperationCollector {
 
     /**

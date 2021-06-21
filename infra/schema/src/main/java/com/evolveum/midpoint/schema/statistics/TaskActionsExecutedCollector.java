@@ -7,27 +7,21 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import javax.xml.namespace.QName;
 
-/**
- * Records information about actions on repository objects.
- *
- * TODO better description
- */
-public interface ObjectActionsCollector {
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+public interface TaskActionsExecutedCollector {
 
     void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception);
 
-    void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception);
-
     <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass, String defaultOid, ChangeType changeType, String channel, Throwable exception);
 
-    void markObjectActionExecutedBoundary();
+    /**
+     * Logs under default channel known to the current task.
+     */
+    void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception);
 
-    void resetActionsExecutedInformation(ActivityActionsExecutedType value);
 }

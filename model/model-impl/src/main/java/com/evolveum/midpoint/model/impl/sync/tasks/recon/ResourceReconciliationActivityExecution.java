@@ -51,6 +51,7 @@ public class ResourceReconciliationActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true);
     }
 

@@ -162,7 +162,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     /**
-     * Fills-in resultException and processingStatus.
+     * Fills-in resultException and processingResult.
      */
     private OperationResult doProcessItem(OperationResult parentResult) {
 
@@ -344,18 +344,6 @@ class ItemProcessingGatekeeper<I> {
         operation.done(processingResult.outcome, processingResult.exception);
     }
 
-    private void onSyncItemProcessingStart() {
-        if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingStart(request.getIdentifier(), request.getSynchronizationSituationOnProcessingStart());
-        }
-    }
-
-    private void onSyncItemProcessingEnd() {
-        if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), processingResult.outcome);
-        }
-    }
-
     private void computeStatusIfNeeded(OperationResult result) {
         // We do not want to override the result set by handler. This is just a fallback case
         if (result.isUnknown() || result.isInProgress()) {
@@ -408,6 +396,11 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void writeOperationExecutionRecord(OperationResult result) {
+        if (processingResult.isSkip()) {
+            LOGGER.trace("Skipping writing operation execution record because the item was skipped: {}", processingResult);
+            return;
+        }
+
         if (getReportingOptions().isSkipWritingOperationExecutionRecords()) {
             LOGGER.trace("Skipping writing operation execution record because of the reporting options.");
             return;
@@ -435,13 +428,23 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private @NotNull Operation updateStatisticsOnStart() {
-        onSyncItemProcessingStart();
+        if (getReportingOptions().isEnableSynchronizationStatistics()) {
+            workerTask.onSyncItemProcessingStart(request.getIdentifier(), request.getSynchronizationSituationOnProcessingStart());
+        }
+        if (getReportingOptions().isEnableActionsExecutedStatistics()) {
+            activityExecution.getActivityState().getLiveStatistics().startCollectingActivityExecutions(workerTask);
+        }
         return recordIterativeOperationStart();
     }
 
     private void updateStatisticsOnEnd(OperationResult result) {
         recordIterativeOperationEnd(operation);
-        onSyncItemProcessingEnd();
+        if (getReportingOptions().isEnableSynchronizationStatistics()) {
+            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), processingResult.outcome);
+        }
+        if (getReportingOptions().isEnableActionsExecutedStatistics()) {
+            activityExecution.getActivityState().getLiveStatistics().stopCollectingActivityExecutions(workerTask);
+        }
 
         updateStatisticsInPartExecutionObject();
         updateStatisticsInTasks(result);
@@ -552,6 +555,14 @@ class ItemProcessingGatekeeper<I> {
 
         public Throwable getExceptionRequired() {
             return requireNonNull(exception, "Error without exception");
+        }
+
+        @Override
+        public String toString() {
+            return "ProcessingResult{" +
+                    "outcome=" + outcome +
+                    ", exception=" + exception +
+                    '}';
         }
     }
 }

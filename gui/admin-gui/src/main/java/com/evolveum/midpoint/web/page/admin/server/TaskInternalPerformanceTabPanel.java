@@ -163,7 +163,7 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
         }
         if (statistics.getActionsExecutedInformation() != null) {
             sb.append("Actions executed:\n")
-                    .append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
+                    .append(ActionsExecutedInformationUtil.format(statistics.getActionsExecutedInformation()))
                     .append("\n");
         }
         if (statistics.getEnvironmentalPerformanceInformation() != null) {

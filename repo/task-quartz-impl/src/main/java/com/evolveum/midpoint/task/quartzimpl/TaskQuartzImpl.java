@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -114,6 +115,11 @@ public class TaskQuartzImpl implements Task {
 
     /** Various statistics related to the task execution. Too dynamic and thread sensitive to be stored in taskPrism. */
     @NotNull protected final Statistics statistics;
+
+    /**
+     * An object in activity execution that should collect information about actions executed. (If we run in an activity.)
+     */
+    private ActionsExecutedCollector actionsExecutedCollector;
 
     /**
      * Task result is stored here as well as in task prism.
@@ -2194,26 +2200,28 @@ public class TaskQuartzImpl implements Task {
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, objectDisplayName, this);
-        statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(
+                    objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+        }
     }
 
     @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
-        statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(object, null, null, changeType, getChannel(), exception);
+        }
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
-        statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
-    }
-
-    @Override
-    public void markObjectActionExecutedBoundary() {
-        LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
-        statistics.markObjectActionExecutedBoundary();
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(object, objectTypeClass, defaultOid, changeType,
+                    channel, exception);
+        }
     }
 
     @Override
@@ -2226,20 +2234,27 @@ public class TaskQuartzImpl implements Task {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
 
-    @Override
-    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
-        statistics.resetActionsExecutedInformation(value);
-    }
-
     @NotNull
     @Override
     @Deprecated
     public List<String> getLastFailures() {
-        return statistics.getLastFailures();
+        return emptyList();
     }
     //endregion
 
-    //region TODO
+    //region Misc
 
+    @Override
+    public void startCollectingActionsExecuted(ActionsExecutedCollector collector) {
+        actionsExecutedCollector = collector;
+    }
+
+    @Override
+    public void stopCollectingActionsExecuted() {
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.stop();
+        }
+        actionsExecutedCollector = null;
+    }
     //endregion
 }

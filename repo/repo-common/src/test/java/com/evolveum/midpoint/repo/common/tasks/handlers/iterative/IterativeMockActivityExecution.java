@@ -7,16 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +39,8 @@ class IterativeMockActivityExecution
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions();
+        return super.getDefaultReportingOptions()
+                .enableActionsExecutedStatistics(true);
     }
 
     @Override
@@ -50,11 +55,23 @@ class IterativeMockActivityExecution
     @Override
     protected @NotNull ItemProcessor<Integer> createItemProcessor(OperationResult opResult) {
         return (request, workerTask, parentResult) -> {
-            String message = activity.getWorkDefinition().getMessage() + request.getItem();
+            Integer item = request.getItem();
+            String message = activity.getWorkDefinition().getMessage() + item;
             LOGGER.info("Message: {}", message);
             getRecorder().recordExecution(message);
+
+            provideSomeMockStatistics(item, workerTask);
             return true;
         };
+    }
+
+    private void provideSomeMockStatistics(Integer item, RunningTask workerTask) {
+        String objectName = String.valueOf(item);
+        String objectOid = "oid-" + item;
+        workerTask.recordObjectActionExecuted(objectName, null, UserType.COMPLEX_TYPE, objectOid,
+                ChangeType.ADD, null, null);
+        workerTask.recordObjectActionExecuted(objectName, null, UserType.COMPLEX_TYPE, objectOid,
+                ChangeType.MODIFY, null, null);
     }
 
     @Override

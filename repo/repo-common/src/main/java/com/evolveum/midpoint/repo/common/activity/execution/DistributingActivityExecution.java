@@ -210,6 +210,11 @@ public class DistributingActivityExecution<
         return true;
     }
 
+    @Override
+    public boolean supportsActionsExecuted() {
+        return false;
+    }
+
     private enum DistributionState {
         NOT_DISTRIBUTED_YET,
         DISTRIBUTED,

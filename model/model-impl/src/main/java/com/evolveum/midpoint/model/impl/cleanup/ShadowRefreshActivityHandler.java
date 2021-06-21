@@ -87,6 +87,7 @@ public class ShadowRefreshActivityHandler
             // Non-persistent statistics is a temporary solution for MID-6934.
             // We should decide whether we want to have aggregate statistics for this kind of tasks.
             return super.getDefaultReportingOptions()
+                    .enableActionsExecutedStatistics(true)
                     .persistentStatistics(false);
         }
 

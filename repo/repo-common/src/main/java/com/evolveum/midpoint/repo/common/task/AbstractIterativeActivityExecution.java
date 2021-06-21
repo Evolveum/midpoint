@@ -577,4 +577,9 @@ public abstract class AbstractIterativeActivityExecution<
     public boolean supportsStatistics() {
         return true;
     }
+
+    @Override
+    public boolean supportsActionsExecuted() {
+        return reportingOptions.isEnableActionsExecutedStatistics();
+    }
 }

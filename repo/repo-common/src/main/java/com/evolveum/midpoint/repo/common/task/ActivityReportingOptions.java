@@ -33,7 +33,7 @@ public class ActivityReportingOptions implements Cloneable, Serializable {
 
     private boolean persistentStatistics;
     private boolean enableSynchronizationStatistics;
-    private boolean enableActionsExecutedStatistics = true;
+    private boolean enableActionsExecutedStatistics;
     private boolean logErrors = true;
 
     /**

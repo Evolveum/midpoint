@@ -96,7 +96,8 @@ public class ShadowCleanupActivityHandler
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
-            .skipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
+                .enableActionsExecutedStatistics(true)
+                .skipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
     }
 
     @Override

@@ -7,33 +7,40 @@
 
 package com.evolveum.midpoint.repo.common.activity.state;
 
+import com.evolveum.midpoint.repo.common.activity.state.actions.ActionsExecutedCollectorImpl;
+import com.evolveum.midpoint.repo.common.activity.state.actions.ActivityActionsExecuted;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatisticsType;
 
 public class ActivityStatistics {
 
     @NotNull private static final ItemPath ITEM_PROCESSING_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ITEM_PROCESSING);
+    @NotNull private static final ItemPath SYNCHRONIZATION_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_SYNCHRONIZATION);
+    @NotNull private static final ItemPath ACTIONS_EXECUTED_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ACTIONS_EXECUTED);
     @NotNull private static final ItemPath BUCKET_MANAGEMENT_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_BUCKET_MANAGEMENT);
 
     @NotNull private final ActivityState<?> activityState;
 
     @NotNull private final ActivityItemProcessingStatistics itemProcessing;
+    @NotNull private final ActivityActionsExecuted actionsExecuted;
     @NotNull private final ActivityBucketManagementStatistics bucketManagement;
 
     ActivityStatistics(@NotNull ActivityState<?> activityState) {
         this.activityState = activityState;
         this.itemProcessing = new ActivityItemProcessingStatistics(activityState);
+        this.actionsExecuted = new ActivityActionsExecuted();
         this.bucketManagement = new ActivityBucketManagementStatistics(activityState);
     }
 
     public void initialize() {
         itemProcessing.initialize(getStoredItemProcessing());
+        actionsExecuted.initialize(getStoredActionsExecuted());
         bucketManagement.initialize(getStoredBucketManagement());
     }
 
@@ -50,6 +57,11 @@ public class ActivityStatistics {
                 ActivityItemProcessingStatisticsType.class);
     }
 
+    public ActivityActionsExecutedType getStoredActionsExecuted() {
+        return activityState.getItemRealValueClone(ACTIONS_EXECUTED_PATH,
+                ActivityActionsExecutedType.class);
+    }
+
     public ActivityBucketManagementStatisticsType getStoredBucketManagement() {
         return activityState.getItemRealValueClone(BUCKET_MANAGEMENT_STATISTICS_PATH,
                 ActivityBucketManagementStatisticsType.class);
@@ -63,11 +75,23 @@ public class ActivityStatistics {
         //  (in case of update conflicts). But let's wait for the new repo with this.
         if (activityState.getActivityExecution().supportsStatistics()) {
             activityState.setItemRealValues(ITEM_PROCESSING_STATISTICS_PATH, itemProcessing.getValueCopy());
+            if (activityState.getActivityExecution().supportsActionsExecuted()) {
+                activityState.setItemRealValues(ACTIONS_EXECUTED_PATH, actionsExecuted.getValueCopy());
+            }
             activityState.setItemRealValues(BUCKET_MANAGEMENT_STATISTICS_PATH, bucketManagement.getValueCopy());
         }
     }
 
     public @NotNull ActivityState<?> getActivityState() {
         return activityState;
+    }
+
+    public void startCollectingActivityExecutions(@NotNull Task task) {
+        task.startCollectingActionsExecuted(
+                new ActionsExecutedCollectorImpl(actionsExecuted));
+    }
+
+    public void stopCollectingActivityExecutions(@NotNull Task task) {
+        task.stopCollectingActionsExecuted();
     }
 }

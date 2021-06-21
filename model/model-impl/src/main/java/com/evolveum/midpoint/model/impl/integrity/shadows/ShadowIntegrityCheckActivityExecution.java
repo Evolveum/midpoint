@@ -60,6 +60,7 @@ public class ShadowIntegrityCheckActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .logErrors(false) // we do log errors ourselves
                 .skipWritingOperationExecutionRecords(true); // because of performance
     }
@@ -198,9 +199,9 @@ public class ShadowIntegrityCheckActivityExecution
             // TODO report the duplicates that remain
         }
 
-        result.summarize();         // there can be many 'search owner' subresults
+        result.summarize(); // there can be many 'search owner' subresults
 
-        return stat.toString() + "\n" + details.toString();
+        return stat + "\n" + details;
     }
 
     // shadowsToDelete do not contain 'already deleted shadows'

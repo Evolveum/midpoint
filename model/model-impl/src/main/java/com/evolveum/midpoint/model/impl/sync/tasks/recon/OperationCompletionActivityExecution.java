@@ -69,7 +69,6 @@ class OperationCompletionActivityExecution
             getModelBeans().provisioningService.refreshShadow(object, options, workerTask, result);
             return true;
         } finally {
-            workerTask.markObjectActionExecutedBoundary();
             RepositoryCache.exitLocalCaches();
         }
     }

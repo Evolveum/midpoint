@@ -48,6 +48,7 @@ public class AsyncUpdateActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true); // TODO ok?
     }
 

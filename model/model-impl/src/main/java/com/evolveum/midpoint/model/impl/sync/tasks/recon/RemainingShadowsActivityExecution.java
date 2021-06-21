@@ -63,6 +63,7 @@ class RemainingShadowsActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(false);
         // TODO We will eventually want to provide sync statistics even for this part, in order to see transitions
         //  to DELETED situation. Unfortunately, now it's not possible, because we limit sync stats to the directly

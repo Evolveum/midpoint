@@ -294,6 +294,10 @@ public abstract class AbstractActivityExecution<
         return supportsStatistics(); // for now
     }
 
+    public boolean supportsActionsExecuted() {
+        return supportsStatistics(); // Should be overridden in subclasses, if needed.
+    }
+
     public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
         activityState.getLiveProgress().increment(outcome, hasProgressCommitPoints());
     }

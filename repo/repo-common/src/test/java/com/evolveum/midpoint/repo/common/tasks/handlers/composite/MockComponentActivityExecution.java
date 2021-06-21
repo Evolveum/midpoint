@@ -112,4 +112,9 @@ public abstract class MockComponentActivityExecution
     public boolean supportsStatistics() {
         return true;
     }
+
+    @Override
+    public boolean supportsActionsExecuted() {
+        return false;
+    }
 }

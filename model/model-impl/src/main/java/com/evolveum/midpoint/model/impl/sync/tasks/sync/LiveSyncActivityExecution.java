@@ -65,6 +65,7 @@ public class LiveSyncActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true);
     }
 

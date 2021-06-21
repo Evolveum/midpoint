@@ -59,6 +59,7 @@ public class ImportActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true);
     }
 

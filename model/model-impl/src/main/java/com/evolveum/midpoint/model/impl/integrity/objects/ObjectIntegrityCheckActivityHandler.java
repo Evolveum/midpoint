@@ -112,8 +112,6 @@ public class ObjectIntegrityCheckActivityHandler
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking object {} integrity", e, ObjectTypeUtil.toShortString(object));
             result.recordPartialError("Unexpected error while checking object integrity", e);
             objectStatistics.incrementObjectsWithErrors();
-        } finally {
-            workerTask.markObjectActionExecutedBoundary();
         }
 
         result.computeStatusIfUnknown();

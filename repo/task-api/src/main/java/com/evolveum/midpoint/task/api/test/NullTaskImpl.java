@@ -624,19 +624,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetActionsExecutedInformation(ActivityActionsExecutedType value) {
-    }
-
-    @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> objectOld, Class<T> objectTypeClass, String oid, ChangeType delete, String channel, Throwable o) {
-    }
-
-    @Override
-    public void markObjectActionExecutedBoundary() {
     }
 
     @Override
@@ -792,5 +784,13 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
+    }
+
+    @Override
+    public void startCollectingActionsExecuted(ActionsExecutedCollector collector) {
+    }
+
+    @Override
+    public void stopCollectingActionsExecuted() {
     }
 }

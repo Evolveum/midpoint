@@ -94,4 +94,9 @@ class SimpleMockActivityExecution
     public boolean supportsStatistics() {
         return true;
     }
+
+    @Override
+    public boolean supportsActionsExecuted() {
+        return false;
+    }
 }

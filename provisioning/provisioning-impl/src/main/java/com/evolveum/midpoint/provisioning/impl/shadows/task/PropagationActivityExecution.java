@@ -51,9 +51,9 @@ public class PropagationActivityExecution
 
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        ActivityReportingOptions options = new ActivityReportingOptions();
-        options.setEnableSynchronizationStatistics(false);
-        return options;
+        return super.getDefaultReportingOptions()
+                .enableActionsExecutedStatistics(true)
+                .enableSynchronizationStatistics(false);
     }
 
     @Override

@@ -211,8 +211,6 @@ public class TriggerScanItemProcessor
         } catch (Throwable t) {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
             throw t;
-        } finally {
-            task.markObjectActionExecutedBoundary();        // maybe OK (absolute correctness is not quite important here)
         }
     }
 }

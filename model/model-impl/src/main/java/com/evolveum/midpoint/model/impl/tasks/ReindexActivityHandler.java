@@ -83,6 +83,7 @@ public class ReindexActivityHandler
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .enableActionsExecutedStatistics(true)
                 .skipWritingOperationExecutionRecords(false); // because of performance
     }
 

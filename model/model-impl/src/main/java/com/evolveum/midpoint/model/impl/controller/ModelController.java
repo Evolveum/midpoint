@@ -451,8 +451,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 | PolicyViolationException | SecurityViolationException | RuntimeException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-        } finally {
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -483,8 +481,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditRecordExecution.setTimestamp(System.currentTimeMillis());
             auditRecordExecution.setOutcome(result.getStatus());
             auditHelper.audit(auditRecordExecution, null, task, result);
-
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -704,9 +700,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             PrismObject<T> updatedObject = storedObject.clone();
             ModelImplUtils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
             ObjectDelta<T> delta = storedObject.diff(updatedObject);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
-            }
+            LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDumpLazily());
             if (!delta.isEmpty()) {
                 try {
                     cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
