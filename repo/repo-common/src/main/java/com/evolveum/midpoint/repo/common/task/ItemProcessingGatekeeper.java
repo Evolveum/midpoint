@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -428,22 +429,25 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private @NotNull Operation updateStatisticsOnStart() {
+        ActivityStatistics liveStats = activityExecution.getActivityState().getLiveStatistics();
         if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingStart(request.getIdentifier(), request.getSynchronizationSituationOnProcessingStart());
+            liveStats.startCollectingSynchronizationStatistics(workerTask,
+                    request.getIdentifier(), request.getSynchronizationSituationOnProcessingStart());
         }
         if (getReportingOptions().isEnableActionsExecutedStatistics()) {
-            activityExecution.getActivityState().getLiveStatistics().startCollectingActivityExecutions(workerTask);
+            liveStats.startCollectingActivityExecutions(workerTask);
         }
         return recordIterativeOperationStart();
     }
 
     private void updateStatisticsOnEnd(OperationResult result) {
         recordIterativeOperationEnd(operation);
+        ActivityStatistics liveStats = activityExecution.getActivityState().getLiveStatistics();
         if (getReportingOptions().isEnableSynchronizationStatistics()) {
-            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), processingResult.outcome);
+            liveStats.stopCollectingSynchronizationStatistics(workerTask, processingResult.outcome);
         }
         if (getReportingOptions().isEnableActionsExecutedStatistics()) {
-            activityExecution.getActivityState().getLiveStatistics().stopCollectingActivityExecutions(workerTask);
+            liveStats.stopCollectingActivityExecutions(workerTask);
         }
 
         updateStatisticsInPartExecutionObject();

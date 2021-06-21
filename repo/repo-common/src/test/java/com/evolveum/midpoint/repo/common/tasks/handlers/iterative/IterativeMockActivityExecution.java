@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ class IterativeMockActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
+                .enableSynchronizationStatistics(true)
                 .enableActionsExecutedStatistics(true);
     }
 
@@ -60,14 +62,17 @@ class IterativeMockActivityExecution
             LOGGER.info("Message: {}", message);
             getRecorder().recordExecution(message);
 
-            provideSomeMockStatistics(item, workerTask);
+            provideSomeMockStatistics(request, workerTask);
             return true;
         };
     }
 
-    private void provideSomeMockStatistics(Integer item, RunningTask workerTask) {
+    private void provideSomeMockStatistics(ItemProcessingRequest<Integer> request, RunningTask workerTask) {
+        Integer item = request.getItem();
         String objectName = String.valueOf(item);
         String objectOid = "oid-" + item;
+        workerTask.onSynchronizationStart(request.getIdentifier(), objectOid, SynchronizationSituationType.UNLINKED);
+        workerTask.onSynchronizationSituationChange(request.getIdentifier(), objectOid, SynchronizationSituationType.LINKED);
         workerTask.recordObjectActionExecuted(objectName, null, UserType.COMPLEX_TYPE, objectOid,
                 ChangeType.ADD, null, null);
         workerTask.recordObjectActionExecuted(objectName, null, UserType.COMPLEX_TYPE, objectOid,

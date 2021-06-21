@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.common.activity.state.actions;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedObjectsKey;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 

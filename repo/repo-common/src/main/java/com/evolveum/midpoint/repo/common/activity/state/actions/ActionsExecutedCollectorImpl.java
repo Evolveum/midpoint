@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Assumptions:
  *
  * 1. Exists during a single item processing only.
- * 2. Executed from a single thread only (the worker tasks).
+ * 2. Executed from a single thread only (the worker task).
  */
 public class ActionsExecutedCollectorImpl implements ActionsExecutedCollector {
 

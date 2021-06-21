@@ -111,6 +111,29 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         }
     }
 
+    public SynchronizationInfoAsserter<ActivityStateAsserter<RA>> synchronizationStatistics() {
+        SynchronizationInfoAsserter<ActivityStateAsserter<RA>> asserter =
+                new SynchronizationInfoAsserter<>(
+                        getSynchronizationStatistics(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private @NotNull ActivitySynchronizationStatisticsType getSynchronizationStatistics() {
+        if (activityState.getStatistics() == null || activityState.getStatistics().getSynchronization() == null) {
+            throw new AssertionError("No synchronization statistics present");
+        } else {
+            return activityState.getStatistics().getSynchronization();
+        }
+    }
+
+    public ActivityStateAsserter<RA> assertNoSynchronizationStatistics() {
+        if (activityState.getStatistics() != null && activityState.getStatistics().getSynchronization() != null) {
+            fail("Synchronization statistics present even if it should not");
+        }
+        return this;
+    }
+
     public ActionsExecutedInfoAsserter<ActivityStateAsserter<RA>> actionsExecuted() {
         ActionsExecutedInfoAsserter<ActivityStateAsserter<RA>> asserter =
                 new ActionsExecutedInfoAsserter<>(

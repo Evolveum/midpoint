@@ -583,10 +583,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
-    }
-
-    @Override
     public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
     }
 
@@ -599,11 +595,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome) {
+    public void startCollectingSynchronizationStatistics(SynchronizationStatisticsCollector collector) {
     }
 
     @Override
-    public void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value) {
+    public void stopCollectingSynchronizationStatistics(@NotNull QualifiedItemProcessingOutcomeType outcome) {
     }
 
     @Override

@@ -96,6 +96,11 @@ class SimpleMockActivityExecution
     }
 
     @Override
+    public boolean supportsSynchronizationStatistics() {
+        return false;
+    }
+
+    @Override
     public boolean supportsActionsExecuted() {
         return false;
     }

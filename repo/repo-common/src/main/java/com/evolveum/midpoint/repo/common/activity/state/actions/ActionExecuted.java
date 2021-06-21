@@ -34,4 +34,18 @@ class ActionExecuted {
         this.exception = exception;
         this.timestamp = timestamp;
     }
+
+    @Override
+    public String toString() {
+        return "ActionExecuted{" +
+                "objectName='" + objectName + '\'' +
+                ", objectDisplayName='" + objectDisplayName + '\'' +
+                ", objectType=" + objectType +
+                ", objectOid='" + objectOid + '\'' +
+                ", changeType=" + changeType +
+                ", channel='" + channel + '\'' +
+                ", exception=" + exception +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }

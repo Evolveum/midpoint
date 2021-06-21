@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,6 +46,7 @@ class SearchIterativeMockActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return super.getDefaultReportingOptions()
+                .enableSynchronizationStatistics(true)
                 .enableActionsExecutedStatistics(true);
     }
 
@@ -55,12 +58,15 @@ class SearchIterativeMockActivityExecution
                     LOGGER.info("Message: {}", message);
                     getRecorder().recordExecution(message);
 
-                    provideSomeMockStatistics(object, workerTask);
+                    provideSomeMockStatistics(request, workerTask);
                     return true;
                 });
     }
 
-    private void provideSomeMockStatistics(PrismObject<ObjectType> object, RunningTask workerTask) {
+    private void provideSomeMockStatistics(ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask) {
+        PrismObject<ObjectType> object = request.getItem();
+        workerTask.onSynchronizationStart(request.getIdentifier(), object.getOid(), SynchronizationSituationType.UNLINKED);
+        workerTask.onSynchronizationSituationChange(request.getIdentifier(), object.getOid(), SynchronizationSituationType.LINKED);
         workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
         workerTask.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
     }

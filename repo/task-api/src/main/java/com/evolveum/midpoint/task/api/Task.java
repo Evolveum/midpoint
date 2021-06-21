@@ -940,9 +940,5 @@ public interface Task extends DebugDumpable, StatisticsCollector {
         return getParent() == null;
     }
 
-    void startCollectingActionsExecuted(ActionsExecutedCollector collector);
-
-    void stopCollectingActionsExecuted();
-
     //endregion
 }

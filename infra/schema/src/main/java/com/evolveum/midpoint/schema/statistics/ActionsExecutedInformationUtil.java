@@ -44,10 +44,15 @@ public class ActionsExecutedInformationUtil {
         }
     }
 
+    /**
+     * Note that comparing dates using != LESSER instead of == GREATER ensures that the data from the delta
+     * (that can be assumed to be the more current e.g. in the case of updating aggregate values with item processing
+     * delta) will be used as the 'last' object.
+     */
     private static void addToEntry(ObjectActionsExecutedEntryType sum, ObjectActionsExecutedEntryType delta) {
         sum.setTotalSuccessCount(sum.getTotalSuccessCount() + delta.getTotalSuccessCount());
         if (delta.getLastSuccessTimestamp() != null &&
-                (sum.getLastSuccessTimestamp() == null || delta.getLastSuccessTimestamp().compare(sum.getLastSuccessTimestamp()) == DatatypeConstants.GREATER)) {
+                (sum.getLastSuccessTimestamp() == null || delta.getLastSuccessTimestamp().compare(sum.getLastSuccessTimestamp()) != DatatypeConstants.LESSER)) {
             sum.setLastSuccessObjectName(delta.getLastSuccessObjectName());
             sum.setLastSuccessObjectDisplayName(delta.getLastSuccessObjectDisplayName());
             sum.setLastSuccessObjectOid(delta.getLastSuccessObjectOid());
@@ -55,7 +60,7 @@ public class ActionsExecutedInformationUtil {
         }
         sum.setTotalFailureCount(sum.getTotalFailureCount() + delta.getTotalFailureCount());
         if (delta.getLastFailureTimestamp() != null &&
-                (sum.getLastFailureTimestamp() == null || delta.getLastFailureTimestamp().compare(sum.getLastFailureTimestamp()) == DatatypeConstants.GREATER)) {
+                (sum.getLastFailureTimestamp() == null || delta.getLastFailureTimestamp().compare(sum.getLastFailureTimestamp()) != DatatypeConstants.LESSER)) {
             sum.setLastFailureObjectName(delta.getLastFailureObjectName());
             sum.setLastFailureObjectDisplayName(delta.getLastFailureObjectDisplayName());
             sum.setLastFailureObjectOid(delta.getLastFailureObjectOid());

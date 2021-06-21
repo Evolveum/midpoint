@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.state;
 
 import com.evolveum.midpoint.repo.common.activity.state.actions.ActionsExecutedCollectorImpl;
 import com.evolveum.midpoint.repo.common.activity.state.actions.ActivityActionsExecuted;
+import com.evolveum.midpoint.repo.common.activity.state.sync.ActivitySynchronizationStatistics;
+import com.evolveum.midpoint.repo.common.activity.state.sync.SynchronizationStatisticsCollectorImpl;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -28,18 +30,21 @@ public class ActivityStatistics {
     @NotNull private final ActivityState<?> activityState;
 
     @NotNull private final ActivityItemProcessingStatistics itemProcessing;
+    @NotNull private final ActivitySynchronizationStatistics synchronizationStatistics;
     @NotNull private final ActivityActionsExecuted actionsExecuted;
     @NotNull private final ActivityBucketManagementStatistics bucketManagement;
 
     ActivityStatistics(@NotNull ActivityState<?> activityState) {
         this.activityState = activityState;
         this.itemProcessing = new ActivityItemProcessingStatistics(activityState);
+        this.synchronizationStatistics = new ActivitySynchronizationStatistics();
         this.actionsExecuted = new ActivityActionsExecuted();
         this.bucketManagement = new ActivityBucketManagementStatistics(activityState);
     }
 
     public void initialize() {
         itemProcessing.initialize(getStoredItemProcessing());
+        synchronizationStatistics.initialize(getStoredSynchronizationStatistics());
         actionsExecuted.initialize(getStoredActionsExecuted());
         bucketManagement.initialize(getStoredBucketManagement());
     }
@@ -55,6 +60,11 @@ public class ActivityStatistics {
     public ActivityItemProcessingStatisticsType getStoredItemProcessing() {
         return activityState.getItemRealValueClone(ITEM_PROCESSING_STATISTICS_PATH,
                 ActivityItemProcessingStatisticsType.class);
+    }
+
+    public ActivitySynchronizationStatisticsType getStoredSynchronizationStatistics() {
+        return activityState.getItemRealValueClone(SYNCHRONIZATION_STATISTICS_PATH,
+                ActivitySynchronizationStatisticsType.class);
     }
 
     public ActivityActionsExecutedType getStoredActionsExecuted() {
@@ -75,6 +85,9 @@ public class ActivityStatistics {
         //  (in case of update conflicts). But let's wait for the new repo with this.
         if (activityState.getActivityExecution().supportsStatistics()) {
             activityState.setItemRealValues(ITEM_PROCESSING_STATISTICS_PATH, itemProcessing.getValueCopy());
+            if (activityState.getActivityExecution().supportsSynchronizationStatistics()) {
+                activityState.setItemRealValues(SYNCHRONIZATION_STATISTICS_PATH, synchronizationStatistics.getValueCopy());
+            }
             if (activityState.getActivityExecution().supportsActionsExecuted()) {
                 activityState.setItemRealValues(ACTIONS_EXECUTED_PATH, actionsExecuted.getValueCopy());
             }
@@ -84,6 +97,17 @@ public class ActivityStatistics {
 
     public @NotNull ActivityState<?> getActivityState() {
         return activityState;
+    }
+
+    public void startCollectingSynchronizationStatistics(@NotNull Task task, @NotNull String processingIdentifier,
+            SynchronizationSituationType situationOnStart) {
+        task.startCollectingSynchronizationStatistics(
+                new SynchronizationStatisticsCollectorImpl(synchronizationStatistics, processingIdentifier, situationOnStart));
+    }
+
+    public void stopCollectingSynchronizationStatistics(@NotNull Task task,
+            @NotNull QualifiedItemProcessingOutcomeType outcome) {
+        task.stopCollectingSynchronizationStatistics(outcome);
     }
 
     public void startCollectingActivityExecutions(@NotNull Task task) {

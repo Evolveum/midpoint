@@ -24,4 +24,7 @@ public interface TaskActionsExecutedCollector {
      */
     void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception);
 
+    void startCollectingActionsExecuted(ActionsExecutedCollector collector);
+
+    void stopCollectingActionsExecuted();
 }

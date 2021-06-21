@@ -9,24 +9,15 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Collects synchronization statistics related e.g. to the processing within given task.
+ * TODO
  */
-public interface SynchronizationInformationCollector {
-
-    /**
-     * Support method for recording sync operation in the new way.
-     *
-     * 1. Informs the collector that synchronization-sensitive item is going to be processed.
-     * 2. Establishes a filter that rejects any events having processing identifier different from this one.
-     */
-    void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore);
+public interface SynchronizationStatisticsCollector {
 
     /**
      * Called when a situation was determined right before a synchronization takes place.
@@ -54,8 +45,6 @@ public interface SynchronizationInformationCollector {
     /**
      * Records the synchronization-related information into the statistics. Stops the watching.
      */
-    void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome);
-
-    void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value);
+    void stop(@NotNull QualifiedItemProcessingOutcomeType outcome);
 
 }

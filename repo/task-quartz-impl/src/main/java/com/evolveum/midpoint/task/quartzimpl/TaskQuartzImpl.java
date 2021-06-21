@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -115,6 +116,11 @@ public class TaskQuartzImpl implements Task {
 
     /** Various statistics related to the task execution. Too dynamic and thread sensitive to be stored in taskPrism. */
     @NotNull protected final Statistics statistics;
+
+    /**
+     * An object in activity execution that should collect statistics about synchronization. (If we run in an activity.)
+     */
+    private SynchronizationStatisticsCollector synchronizationStatisticsCollector;
 
     /**
      * An object in activity execution that should collect information about actions executed. (If we run in an activity.)
@@ -2168,32 +2174,27 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
-        statistics.onSyncItemProcessingStart(processingIdentifier, situationBefore);
-    }
-
-    @Override
     public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid,
             @Nullable SynchronizationSituationType situation) {
-        statistics.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+        }
     }
 
     @Override
     public void onSynchronizationExclusion(@Nullable String processingIdentifier,
             @NotNull SynchronizationExclusionReasonType exclusionReason) {
-        statistics.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+        }
     }
 
     @Override
     public void onSynchronizationSituationChange(@Nullable String processingIdentifier,
             @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
-        statistics.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
-    }
-
-    @Override
-    public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull QualifiedItemProcessingOutcomeType outcome) {
-        statistics.onSyncItemProcessingEnd(processingIdentifier, outcome);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
+        }
     }
 
     @Override
@@ -2225,11 +2226,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void resetSynchronizationInformation(ActivitySynchronizationStatisticsType value) {
-        statistics.resetSynchronizationInformation(value);
-    }
-
-    @Override
     public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
     }
@@ -2243,17 +2239,29 @@ public class TaskQuartzImpl implements Task {
     //endregion
 
     //region Misc
+    @Override
+    public void startCollectingSynchronizationStatistics(SynchronizationStatisticsCollector collector) {
+        stateCheck(synchronizationStatisticsCollector == null, "Sync statistics collector already set in %s", this);
+        synchronizationStatisticsCollector = collector;
+    }
+
+    @Override
+    public void stopCollectingSynchronizationStatistics(@NotNull QualifiedItemProcessingOutcomeType outcome) {
+        stateCheck(synchronizationStatisticsCollector != null, "Sync statistics collector not set in %s", this);
+        synchronizationStatisticsCollector.stop(outcome);
+        synchronizationStatisticsCollector = null;
+    }
 
     @Override
     public void startCollectingActionsExecuted(ActionsExecutedCollector collector) {
+        stateCheck(actionsExecutedCollector == null, "Actions executed collector already set in %s", this);
         actionsExecutedCollector = collector;
     }
 
     @Override
     public void stopCollectingActionsExecuted() {
-        if (actionsExecutedCollector != null) {
-            actionsExecutedCollector.stop();
-        }
+        stateCheck(actionsExecutedCollector != null, "Actions executed collector not set in %s", this);
+        actionsExecutedCollector.stop();
         actionsExecutedCollector = null;
     }
     //endregion

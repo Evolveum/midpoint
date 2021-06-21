@@ -50,6 +50,6 @@ class IterativeMockProcessingRequest extends ItemProcessingRequest<Integer> {
 
     @Override
     public @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart() {
-        return null;
+        return SynchronizationSituationType.UNMATCHED; // just to test the statistics
     }
 }

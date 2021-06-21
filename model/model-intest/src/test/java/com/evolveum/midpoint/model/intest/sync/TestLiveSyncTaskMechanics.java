@@ -23,7 +23,7 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.trigger.ShadowReconcileTriggerHandler;
 import com.evolveum.midpoint.model.intest.CommonTasks;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 
 import com.evolveum.midpoint.test.DummyTestResource;
 
@@ -705,7 +705,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         Task taskAfter = taskManager.getTaskWithResult(TASK_NO_POLICY.oid, result);
         display("Task after", taskAfter);
         ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        displayValue("Sync info", SynchronizationInformation.format(syncInfo));
+        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
 
@@ -992,7 +992,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         Task taskAfter = taskManager.getTaskWithResult(TASK_MULTI_CHANGES.oid, result);
         display("Task after", taskAfter);
         ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        displayValue("Sync info", SynchronizationInformation.format(syncInfo));
+        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
     }

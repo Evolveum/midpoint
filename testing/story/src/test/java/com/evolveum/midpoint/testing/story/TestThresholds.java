@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
@@ -265,7 +265,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     }
 
     void dumpSynchronizationInformation(ActivitySynchronizationStatisticsType synchronizationInformation) {
-        displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
+        displayValue("Synchronization information", ActivitySynchronizationStatisticsUtil.format(synchronizationInformation));
     }
 
     protected void adapTaskConfig(Task task, OperationResult result) throws Exception {

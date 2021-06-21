@@ -579,6 +579,11 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     @Override
+    public boolean supportsSynchronizationStatistics() {
+        return reportingOptions.isEnableSynchronizationStatistics();
+    }
+
+    @Override
     public boolean supportsActionsExecuted() {
         return reportingOptions.isEnableActionsExecutedStatistics();
     }

@@ -114,6 +114,11 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
+    public boolean supportsSynchronizationStatistics() {
+        return false;
+    }
+
+    @Override
     public boolean supportsActionsExecuted() {
         return false;
     }

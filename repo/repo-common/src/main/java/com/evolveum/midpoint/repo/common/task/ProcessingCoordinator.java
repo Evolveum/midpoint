@@ -159,9 +159,9 @@ public class ProcessingCoordinator<I> {
 
     private void initializeStatisticsCollection(RunningLightweightTask subtask, ActivityReportingOptions reportingOptions) {
         subtask.resetIterativeTaskInformation(null, reportingOptions.isCollectExecutions());
-        if (reportingOptions.isEnableSynchronizationStatistics()) {
-            subtask.resetSynchronizationInformation(null);
-        }
+//        if (reportingOptions.isEnableSynchronizationStatistics()) {
+//            subtask.resetSynchronizationInformation(null);
+//        }
 //        if (reportingOptions.isEnableActionsExecutedStatistics()) {
 //            subtask.resetActionsExecutedInformation(null);
 //        }

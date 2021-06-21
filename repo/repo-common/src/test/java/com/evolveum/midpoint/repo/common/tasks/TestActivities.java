@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -167,6 +169,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
+                        .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
@@ -213,6 +216,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
+                        .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
@@ -282,6 +286,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
+                        .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
@@ -339,6 +344,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
+                        .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
@@ -389,6 +395,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertTreeRealizationComplete()
                     .rootActivity()
                         .assertComplete()
+                        .assertNoSynchronizationStatistics()
                         .assertNoActionsExecutedInformation();
 
         displayDumpable("recorder", recorder);
@@ -529,6 +536,8 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         then();
 
+        displayDumpable("recorder", recorder);
+
         task1.refresh(result);
         assertTask(task1, "after")
                 .display()
@@ -548,6 +557,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .assertLastSuccessObjectName("5")
                             .assertExecutions(1)
                         .end()
+                        .synchronizationStatistics()
+                            .display()
+                            .assertTransitions(1)
+                            .assertTransition(UNMATCHED, UNLINKED, LINKED, null, 5, 0, 0)
+                        .end()
                         .actionsExecuted()
                             .part(ActionsExecutedInformationUtil.Part.ALL)
                                 .display()
@@ -565,7 +579,6 @@ public class TestActivities extends AbstractRepoCommonTest {
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("task statistics", TaskOperationStatsUtil.format(stats));
 
-        displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("recorder")
                 .containsExactly("Item: 1", "Item: 2", "Item: 3", "Item: 4", "Item: 5");
 
@@ -615,6 +628,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .itemProcessingStatistics()
                             .assertTotalCounts(100, 0, 0)
                             .assertExecutions(1)
+                        .end()
+                        .synchronizationStatistics()
+                            .display()
+                            .assertTransitions(1)
+                            .assertTransition(null, UNLINKED, LINKED, null, 100, 0, 0)
                         .end()
                         .actionsExecuted()
                             .part(ActionsExecutedInformationUtil.Part.ALL)
@@ -753,6 +771,10 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertTotalCounts(0, 0, 0)
                                 .assertExecutions(1)
                             .end()
+                            .synchronizationStatistics()
+                                .display()
+                                .assertTransitions(0)
+                            .end()
                             .actionsExecuted()
                                 .part(ActionsExecutedInformationUtil.Part.ALL)
                                     .display()
@@ -776,6 +798,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("administrator")
                                 .assertExecutions(1)
+                            .end()
+                            .synchronizationStatistics()
+                                .display()
                             .end()
                             .actionsExecuted()
                                 .part(ActionsExecutedInformationUtil.Part.ALL)
@@ -806,6 +831,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .itemProcessingStatistics()
                                     .assertTotalCounts(10, 0, 0)
                                     .assertExecutions(1)
+                                .end()
+                                .synchronizationStatistics()
+                                    .display()
+                                    .assertTransitions(1)
+                                    .assertTransition(null, UNLINKED, LINKED, null, 10, 0, 0)
                                 .end()
                                 .actionsExecuted()
                                     .part(ActionsExecutedInformationUtil.Part.ALL)
