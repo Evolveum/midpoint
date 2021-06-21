@@ -76,7 +76,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
     @Override
     protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
-        return ConflictResolutionActionType.NONE;       // too many conflicts in these scenarios
+        return ConflictResolutionActionType.NONE; // too many conflicts in these scenarios
     }
 
     protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;

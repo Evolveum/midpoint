@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -36,13 +37,15 @@ public class TestValidityRecomputeTaskPartitioned extends TestValidityRecomputeT
     }
 
     @Override
-    protected void assertLastScanTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = createOperationResult("assertLastScanTimestamp");
-        Task master = taskManager.getTaskPlain(taskOid, result);
+    protected void assertLastScanTimestamp(XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = getTestOperationResult();
+        Task master = taskManager.getTaskPlain(TASK_VALIDITY_SCANNER_OID, result);
         for (Task subtask : master.listSubtasks(result)) {
-            super.assertLastScanTimestamp(subtask.getOid(), startCal, endCal);
+            assertTask(subtask.getOid(), "")
+                    .assertLastScanTimestamp(
+                            ActivityStateUtil.getLocalRootPath(subtask.getActivitiesStateOrClone()),
+                            startCal, endCal);
         }
     }
 }

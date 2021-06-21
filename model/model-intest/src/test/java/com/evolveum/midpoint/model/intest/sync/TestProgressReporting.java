@@ -154,7 +154,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                         .assertSuccessCount(0, 1)
                         .end()
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end();
 
@@ -221,7 +221,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                 .structuredProgress()
                     .display()
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end();
 
@@ -268,7 +268,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                 .structuredProgress()
                     .display()
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end();
 
@@ -339,7 +339,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .structuredProgress()
                         .display()
                         .end()
-                    .iterativeTaskInformation()
+                    .rootItemProcessingInformation()
                         .display()
                         .end();
 
@@ -390,7 +390,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .structuredProgress()
                         .display()
                         .end()
-                    .iterativeTaskInformation()
+                    .rootItemProcessingInformation()
                         .display()
                         .end();
 

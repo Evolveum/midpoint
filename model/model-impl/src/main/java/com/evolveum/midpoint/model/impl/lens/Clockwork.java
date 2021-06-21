@@ -17,10 +17,13 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.lens.projector.Components;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,10 +31,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ProgressInformation;
-import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -633,19 +632,17 @@ public class Clockwork {
         property.setRealValue(queryType);
         reconTask.addExtensionProperty(property);
 
-        throw new UnsupportedOperationException(); // FIXME
-//        // other parameters
-//        reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
-//        reconTask.setInitiallyRunnable();
-//        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI); // FIXME
-//        reconTask.setCategory(TaskCategory.RECOMPUTATION);
-//        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
-//        taskManager.switchToBackground(reconTask, result);
-//        result.setBackgroundTaskOid(reconTask.getOid());
-//        result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
-//        return HookOperationMode.BACKGROUND;
+        // other parameters
+        reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
+        reconTask.setInitiallyRunnable();
+        reconTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI); // FIXME
+        reconTask.setCategory(TaskCategory.RECOMPUTATION);
+        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
+        taskManager.switchToBackground(reconTask, result);
+        result.setBackgroundTaskOid(reconTask.getOid());
+        result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
+        return HookOperationMode.BACKGROUND;
     }
-
 
     /**
      * Check for indestructibility.

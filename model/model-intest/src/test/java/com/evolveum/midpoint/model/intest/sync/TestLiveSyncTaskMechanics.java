@@ -754,7 +754,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .structuredProgress()
                     .display()
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation()
@@ -782,7 +782,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .structuredProgress()
                     .display()
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation()
@@ -819,7 +819,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     private void assertXfer1StateAfterRename(TaskAsserter<Void> asserter) {
         asserter
                 .assertSuccess()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation()
@@ -852,7 +852,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
         doXferRenameAndSync(TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE)
                 .assertPartialError()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation()
@@ -880,7 +880,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation().display().end()
@@ -923,7 +923,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         if (getWorkerThreads() > 0) {
             doXferLiveSync(TASK_XFER2)
                     .assertPartialError()
-                    .iterativeTaskInformation()
+                    .rootItemProcessingInformation()
                         .display()
                         .end()
                     .synchronizationInformation().display().end()
@@ -932,7 +932,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         } else {
             doXferLiveSync(TASK_XFER2)
                     .assertPartialError()
-                    .iterativeTaskInformation()
+                    .rootItemProcessingInformation()
                         .display()
                         .end()
                     .synchronizationInformation()
@@ -1001,7 +1001,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .end()
                 .synchronizationInformation().display().end()
@@ -1123,7 +1123,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(0)
                     .assertFailureCount(7)
@@ -1156,7 +1156,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .assertProgress(7+3) // 9, 18, 27
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .assertSuccessCount(0)
                     .assertFailureCount(10) // counters are not cleared between runs (for now)
                     .display();
@@ -1189,7 +1189,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
                 .assertProgress(7+3+10) // each 3rd
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .assertSuccessCount(10)
                     .assertFailureCount(10) // counters are not cleared between runs (for now)
                     .display();

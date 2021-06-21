@@ -33,8 +33,22 @@ public class WorkDefinitionUtil {
         if (definitions == null) {
             return values;
         }
+        addTypedParameters(values, definitions.getRecomputation());
+        addTypedParameters(values, definitions.getImport());
         addTypedParameters(values, definitions.getReconciliation());
         addTypedParameters(values, definitions.getLiveSynchronization());
+        addTypedParameters(values, definitions.getCleanup());
+        addTypedParameters(values, definitions.getReport());
+        addTypedParameters(values, definitions.getIterativeScripting());
+        addTypedParameters(values, definitions.getFocusValidityScan());
+        addTypedParameters(values, definitions.getTriggerScan());
+        addTypedParameters(values, definitions.getShadowRefresh());
+        addTypedParameters(values, definitions.getChangeExecution());
+        addTypedParameters(values, definitions.getReindexing());
+        addTypedParameters(values, definitions.getShadowCleanup());
+        addTypedParameters(values, definitions.getObjectIntegrityCheck());
+        addTypedParameters(values, definitions.getShadowIntegrityCheck());
+
         addUntypedParameters(values, definitions.getExtension());
         return values;
     }

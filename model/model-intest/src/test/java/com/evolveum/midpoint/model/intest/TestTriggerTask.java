@@ -17,6 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.intest.util.MockMultipleTriggersHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -100,8 +101,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(taskAfter, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(1);
     }
@@ -129,8 +130,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(1); // From previous test
     }
@@ -160,8 +161,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(2); // One from test100, one newly added.
     }
@@ -203,8 +204,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(3)
                     .assertSkipCount(1);
@@ -236,8 +237,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(4) // +1 real execution
                     .assertSkipCount(2); // +1 skipped occurrence
@@ -271,8 +272,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(5) // +1 real execution
                     .assertSkipCount(4); // +2 skipped occurrences
@@ -305,8 +306,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(6) // +1 real execution
                     .assertSkipCount(5); // +1 skipped occurrence
@@ -345,8 +346,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(7) // +1 real execution
                     .assertSkipCount(7); // +2 skipped occurrences
@@ -381,8 +382,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
             assertNoTrigger(UserType.class, USER_JACK_OID);
 
             assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                    .assertLastScanTimestamp(startCal, endCal)
-                    .iterativeTaskInformation()
+                    .assertLastTriggerScanTimestamp(startCal, endCal)
+                    .rootItemProcessingInformation()
                         .display()
                         .assertSuccessCount(8) // +1 real execution
                         .assertSkipCount(8); // +1 skipped occurrence
@@ -414,8 +415,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertSuccessCount(8) // no change
                     .assertSkipCount(8); // no change
@@ -460,8 +461,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertTrigger(userAfter, MockTriggerHandler.HANDLER_URI, startCal, 1);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after 1st run")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // +1 failed run (2 triggers: one success, one failure)
                     .assertSuccessCount(8) // no new successful runs
@@ -488,8 +489,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after 2nd run")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(9) // +1 success
@@ -523,8 +524,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertTrigger(getUser(USER_JACK_OID), MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .assertLastScanTimestamp(startCal, endCal)
-                .iterativeTaskInformation()
+                .assertLastTriggerScanTimestamp(startCal, endCal)
+                .rootItemProcessingInformation()
                     .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(10) // +1 success
@@ -556,7 +557,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         boolean suspended = taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 20000L, result);
         assertTrue("trigger scanner task was not suspended (before operation)", suspended);
 
-        XMLGregorianCalendar lastScanTimestampBefore = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID);
+        XMLGregorianCalendar lastScanTimestampBefore = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, ActivityPath.empty());
         assertNotNull(lastScanTimestampBefore);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -584,13 +585,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertTrigger(jackAfter, MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
         assertEquals("Wrong # of triggers on jack", 1, jackAfter.asObjectable().getTrigger().size());
 
-        XMLGregorianCalendar lastScanTimestampAfter = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID);
+        XMLGregorianCalendar lastScanTimestampAfter = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, ActivityPath.empty());
 
         // this assert may fail occasionally if the trigger scanner would start in between (we'll see how often)
         assertEquals("Last scan timestamp was changed", lastScanTimestampBefore, lastScanTimestampAfter);
 
         assertTask(TASK_TRIGGER_SCANNER_OID, "after")
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                 .display()
                     .assertFailureCount(1) // no new failures
                     .assertSuccessCount(11) // +1 success (see the note in method javadoc)

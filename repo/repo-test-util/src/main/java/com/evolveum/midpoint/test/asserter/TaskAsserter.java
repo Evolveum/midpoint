@@ -20,9 +20,9 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
@@ -179,12 +179,15 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    @Deprecated
-    public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActivityItemProcessingStatisticsType information = operationStats != null ? // does not work anymore
-                operationStats.getIterationInformation() : new ActivityItemProcessingStatisticsType();
-        ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter = new ActivityItemProcessingStatisticsAsserter<>(information, this, getDetails());
+    /** Assumes single primitive activity */
+    public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> rootItemProcessingInformation() {
+        ActivityStateType state = getActivityStateRequired(ActivityPath.empty());
+        ActivityItemProcessingStatisticsType itemProcessingStatistics =
+                state.getStatistics() != null ?
+                        state.getStatistics().getItemProcessing() : new ActivityItemProcessingStatisticsType();
+
+        ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter =
+                new ActivityItemProcessingStatisticsAsserter<>(itemProcessingStatistics, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -356,10 +359,34 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    public TaskAsserter<RA> assertLastScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        XMLGregorianCalendar lastScanTime =
-                getExtensionItemRealValue(getObject(), SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, lastScanTime);
+    public TaskAsserter<RA> assertLastTriggerScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        // Trigger Scan is running as a root activity.
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, getLastScanTimestamp(ActivityPath.empty()));
         return this;
+    }
+
+    public TaskAsserter<RA> assertLastScanTimestamp(ActivityPath activityPath, XMLGregorianCalendar start,
+            XMLGregorianCalendar end) {
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, getLastScanTimestamp(activityPath));
+        return this;
+    }
+
+    public XMLGregorianCalendar getLastScanTimestamp(ActivityPath activityPath) {
+        return getActivityWorkState(activityPath, ScanWorkStateType.class)
+                .getLastScanTimestamp();
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private <T extends AbstractActivityWorkStateType> T getActivityWorkState(ActivityPath activityPath, Class<T> expectedClass) {
+        AbstractActivityWorkStateType workState = getActivityStateRequired(activityPath).getWorkState();
+        assertThat(workState).as("work state").isInstanceOf(expectedClass);
+        //noinspection unchecked
+        return (T) workState;
+    }
+
+    private @NotNull ActivityStateType getActivityStateRequired(ActivityPath activityPath) {
+        ActivityStateType state = ActivityStateUtil.getActivityState(getTaskBean().getActivityState(), activityPath);
+        assertThat(state).withFailMessage("No task activity state").isNotNull();
+        return state;
     }
 }

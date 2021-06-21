@@ -402,7 +402,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(5)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
@@ -480,7 +480,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
@@ -567,7 +567,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, UNMATCHED, LINKED, null, 2, 0, 0) // rum, murray
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(3, 0)
                     .end()
@@ -635,7 +635,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(importTask);
         assertTask(importTask, "task after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(1, 0)
                     .end()
@@ -870,7 +870,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
                     .end()
@@ -1137,7 +1137,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(8, 1)
                     .end()
@@ -1322,7 +1322,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     // TODO implement 3rd part reporting and have: LINKED -> DELETED -> ? for ht (old name for htm)
                     .assertTransitions(3)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(10, 0)
                     .end()
