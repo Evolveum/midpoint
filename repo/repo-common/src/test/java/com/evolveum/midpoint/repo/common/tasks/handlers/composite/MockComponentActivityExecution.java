@@ -7,13 +7,14 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
-import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -97,7 +98,7 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    public @NotNull TaskExecution getTaskExecution() {
+    public @NotNull GenericTaskExecution getTaskExecution() {
         return taskExecution;
     }
 

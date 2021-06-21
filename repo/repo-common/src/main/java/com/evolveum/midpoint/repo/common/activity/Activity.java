@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.execution.DelegatingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -150,7 +151,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
                 (isLocalRoot() ? " (local root)" : "");
     }
 
-    public AbstractActivityExecution<?, ?, ?> createExecution(TaskExecution taskExecution, OperationResult result) {
+    public AbstractActivityExecution<?, ?, ?> createExecution(GenericTaskExecution taskExecution, OperationResult result) {
         stateCheck(execution == null, "Execution is already created in %s", this);
         ExecutionInstantiationContext<WD, AH> context = new ExecutionInstantiationContext<>(this, taskExecution);
         ExecutionType executionType = determineExecutionType(taskExecution);
@@ -350,6 +351,12 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         definition.applyChangeTailoring(tailoring);
+    }
+
+    public void accept(@NotNull ActivityVisitor visitor) {
+        visitor.visit(this);
+        childrenMap.values()
+                .forEach(child -> child.accept(visitor));
     }
 
     private enum ExecutionType {

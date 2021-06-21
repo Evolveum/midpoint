@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 
@@ -55,7 +56,7 @@ public abstract class AbstractActivityExecution<
     /**
      * The task execution in context of which this activity execution takes place.
      */
-    @NotNull protected final TaskExecution taskExecution;
+    @NotNull protected final GenericTaskExecution taskExecution;
 
     /**
      * Definition of the activity. Contains the definition of the work.
@@ -84,7 +85,7 @@ public abstract class AbstractActivityExecution<
 
     @NotNull
     @Override
-    public TaskExecution getTaskExecution() {
+    public GenericTaskExecution getTaskExecution() {
         return taskExecution;
     }
 

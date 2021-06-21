@@ -524,6 +524,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
         if (activityExecution.supportsProgress()) {
             liveProgress.writeToTaskAsPendingModification();
+            LegacyProgressUpdater.update(this);
         }
         if (activityExecution.supportsStatistics()) {
             liveStatistics.writeToTaskAsPendingModifications();

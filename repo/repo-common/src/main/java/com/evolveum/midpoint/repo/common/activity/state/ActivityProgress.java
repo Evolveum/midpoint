@@ -109,4 +109,8 @@ public class ActivityProgress extends Initializable {
     private @NotNull AbstractActivityExecution<?, ?, ?> getActivityExecution() {
         return activityState.getActivityExecution();
     }
+
+    public synchronized long getLegacyValue() {
+        return ActivityProgressUtil.getCurrentProgress(value);
+    }
 }

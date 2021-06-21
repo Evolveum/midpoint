@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 
 /**
  * Context for instantiating activity execution. It was originally provided as separate class because of the flexibility needed
@@ -25,9 +25,9 @@ public class ExecutionInstantiationContext<WD extends WorkDefinition, AH extends
     /** Definition of the activity. */
     @NotNull private final Activity<WD, AH> activity;
 
-    @NotNull private final TaskExecution taskExecution;
+    @NotNull private final GenericTaskExecution taskExecution;
 
-    public ExecutionInstantiationContext(@NotNull Activity<WD, AH> activity, @NotNull TaskExecution taskExecution) {
+    public ExecutionInstantiationContext(@NotNull Activity<WD, AH> activity, @NotNull GenericTaskExecution taskExecution) {
         this.activity = activity;
         this.taskExecution = taskExecution;
     }
@@ -38,7 +38,7 @@ public class ExecutionInstantiationContext<WD extends WorkDefinition, AH extends
     }
 
     @NotNull
-    public TaskExecution getTaskExecution() {
+    public GenericTaskExecution getTaskExecution() {
         return taskExecution;
     }
 }
