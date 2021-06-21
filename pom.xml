@@ -166,7 +166,7 @@
         <!-- Dependencies global versions -->
         <commons.io.version>2.9.0</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.cli>1.2</commons.cli>
+        <commons.cli>1.4</commons.cli>
         <cxf.version>3.3.1</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.3.2</wss4j.version>
