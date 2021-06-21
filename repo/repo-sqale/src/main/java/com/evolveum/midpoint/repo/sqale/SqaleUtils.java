@@ -7,18 +7,11 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleUtils {
@@ -59,18 +52,6 @@ public class SqaleUtils {
 
     public static String toString(Object object) {
         return new ToStringUtil(object).toString();
-    }
-
-    public static boolean isEnumDefinition(PrismPropertyDefinition<?> definition) {
-        Collection<? extends DisplayableValue<?>> allowedValues = definition.getAllowedValues();
-        return allowedValues != null && !allowedValues.isEmpty();
-    }
-
-    public static String extensionDateTime(@NotNull XMLGregorianCalendar dateTime) {
-        //noinspection ConstantConditions
-        return MiscUtil.asInstant(dateTime)
-                .truncatedTo(ChronoUnit.MILLIS)
-                .toString();
     }
 
     private static class ToStringUtil extends ReflectionToStringBuilder {

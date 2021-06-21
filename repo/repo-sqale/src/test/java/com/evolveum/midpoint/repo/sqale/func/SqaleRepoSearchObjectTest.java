@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -299,75 +300,33 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test120SearchObjectsBySubtype() throws Exception {
-        when("searching objects with subtype equal to value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .item(ObjectType.F_SUBTYPE).eq("workerA")
-                        .build(),
-                operationResult);
-
-        then("only objects having the specified subtype are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, user2Oid);
+        searchObjectTest("having subtype equal to value", ObjectType.class,
+                f -> f.item(ObjectType.F_SUBTYPE).eq("workerA"),
+                user1Oid, user2Oid);
     }
 
     @Test
     public void test121SearchObjectsBySubtypeWithMultipleValues() throws Exception {
-        when("searching objects with any subtype equal to any of the provided values");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .item(ObjectType.F_SUBTYPE).eq("workerA", "workerB")
-                        .build(),
-                operationResult);
-
-        then("objects with any of the subtypes are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, user2Oid, user4Oid);
+        searchObjectTest("having any subtype equal to any of the provided values", ObjectType.class,
+                f -> f.item(ObjectType.F_SUBTYPE).eq("workerA", "workerB"),
+                user1Oid, user2Oid, user4Oid);
     }
 
     @Test
     public void test122SearchObjectsHavingTwoSubtypeValuesUsingAnd() throws Exception {
-        when("searching objects with multiple subtype values equal to provided values");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .item(ObjectType.F_SUBTYPE).eq("workerA")
-                        .and()
-                        .item(ObjectType.F_SUBTYPE).eq("workerC")
-                        .build(),
-                operationResult);
-
-        then("only objects with all specified subtypes are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid);
+        searchObjectTest("having multiple subtype values equal to provided values",
+                ObjectType.class,
+                f -> f.item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .and().item(ObjectType.F_SUBTYPE).eq("workerC"),
+                user1Oid);
     }
 
     @Test
     public void test123SearchOrgsHavingTwoSubtypeValuesUsingAndButNoneMatches() throws Exception {
-        when("searching objects with multiple subtype values equal to provided values");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .item(ObjectType.F_SUBTYPE).eq("workerA")
-                        .and()
-                        .item(ObjectType.F_SUBTYPE).eq("workerB")
-                        .build(),
-                operationResult);
-
-        then("nothing is returned because no org matches the condition");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).isEmpty();
+        searchObjectTest("having multiple subtype values equal to provided values (none matches)",
+                ObjectType.class,
+                f -> f.item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .and().item(ObjectType.F_SUBTYPE).eq("workerB"));
     }
 
     @Test
@@ -1271,8 +1230,128 @@ AND(
 
     // date-time uses the same code as string, no need for more tests, only EQ works for multi-value
 
-    // TODO poly extension query
+    @Test
+    public void test560SearchObjectWithExtensionPolyStringByValue() throws SchemaException {
+        searchUsersTest("extension poly-string item equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .eq(new PolyString("poly-value")),
+                user1Oid);
+    }
+
+    @Test
+    public void test561SearchObjectWithExtensionPolyStringByOrigValue() throws SchemaException {
+        searchUsersTest("extension poly-string item orig equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .eq(new PolyString("poly-value")).matchingOrig(),
+                user1Oid);
+    }
+
+    @Test
+    public void test562SearchObjectWithExtensionPolyStringByOrigValueAsString()
+            throws SchemaException {
+        // Not sure how real is to use String parameter, but Prism doesn't fail and repo can handle it.
+        // This will surely not work properly for default matching where both norm and orig are compared.
+        searchUsersTest("extension poly-string item orig equal to String value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .eq("poly-value").matchingOrig(),
+                user1Oid);
+    }
+
+    @Test
+    public void test563SearchObjectWithExtensionPolyStringByNormValue() throws SchemaException {
+        searchUsersTest("extension poly-string item norm equal to value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .eq(new PolyString("poly-value")).matchingNorm(),
+                user1Oid);
+    }
+
+    @Test
+    public void test564SearchObjectWithExtensionPolyStringByNormValueAsString()
+            throws SchemaException {
+        searchUsersTest("extension poly-string item norm equal to String value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .eq("polyvalue").matchingNorm(),
+                user1Oid);
+    }
+
+    @Test
+    public void test565SearchObjectWithExtensionPolyStringGreaterThan()
+            throws SchemaException {
+        searchUsersTest("extension poly-string item greater than value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .gt(new PolyString("aa-aa")),
+                user1Oid);
+    }
+
+    @Test
+    public void test566SearchObjectWithExtensionPolyStringLowerThan()
+            throws SchemaException {
+        searchUsersTest("extension poly-string item greater than value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .lt(new PolyString("aa-aa")));
+        // nothing matches
+    }
+
+    @Test
+    public void test567SearchObjectWithExtensionPolyStringNormLoeThan()
+            throws SchemaException {
+        searchUsersTest("extension poly-string item greater than value",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly"))
+                        .le(new PolyString("poly-value")).matchingNorm(),
+                user1Oid);
+    }
+
+    @Test
+    public void test568SearchObjectWithExtensionPolyStringComplexIgnoreCaseComparison()
+            throws SchemaException {
+        searchUsersTest("extension poly-string item matching complex ignore-case comparison",
+                f -> f.not().block()
+                        // both AND parts must match user1, this ine is norm, so -- is ignored
+                        .item(UserType.F_EXTENSION, new QName("poly")).ge("pOlY--vAlUe")
+                        .matching(new QName(PolyStringItemFilterProcessor.NORM_IGNORE_CASE))
+                        .and()
+                        .item(UserType.F_EXTENSION, new QName("poly")).le("pOlY-vAlUe")
+                        .matching(new QName(PolyStringItemFilterProcessor.ORIG_IGNORE_CASE))
+                        .endBlock(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test569SearchObjectWithExtensionMultiValuePolyString()
+            throws SchemaException {
+        searchUsersTest("extension poly-string multi-value item",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        .eq(new PolyString("poly-value1")),
+                user2Oid);
+    }
+
+    @Test
+    public void test570SearchObjectWithExtensionMultiValuePolyStringNorm()
+            throws SchemaException {
+        searchUsersTest("extension poly-string multi-value item matching norm",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        // orig of provided value doesn't match, but norm should
+                        .eq(new PolyString("poly--value1")).matchingNorm(),
+                user2Oid);
+    }
+
+    @Test
+    public void test571SearchObjectWithExtensionMultiValuePolyStringCaseIgnoreFails() {
+        given("query for poly-string multi-value extension item matching ignore-case");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("poly-mv"))
+                .eq(new PolyString("poly-value1")).matchingCaseIgnore()
+                .build();
+
+        expect("searchObjects throws exception because of unsupported filter");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("supported");
+    }
+
     // TODO ref extension query
+    // TODO multi-value EQ filter (IN semantics) is not supported YET
     // endregion
 
     // region special cases
@@ -1404,6 +1483,7 @@ AND(
                 operationResult);
 
         then(typeName + "(s) " + description + " are returned");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(result)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(expectedOids);
