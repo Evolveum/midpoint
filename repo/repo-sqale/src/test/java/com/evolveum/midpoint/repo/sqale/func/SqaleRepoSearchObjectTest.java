@@ -23,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -81,6 +84,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private final String modifierOid = UUID.randomUUID().toString();
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
+
+    private ItemDefinition<?> shadowAttributeDefinition;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -143,7 +148,6 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .policySituation("situationA")
                 .policySituation("situationC")
                 .extension(new ExtensionType(prismContext));
-
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
         addExtensionValue(user1Extension, "int", 1);
@@ -166,6 +170,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "ref-mv",
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
+        ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
+        user1.assignment(new AssignmentType(prismContext)
+                .extension(user1AssignmentExtension));
+        addExtensionValue(user1AssignmentExtension, "integer", 47);
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
         UserType user2 = new UserType(prismContext).name("user-2")
@@ -180,6 +188,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(user2Extension, "int", 2);
         addExtensionValue(user2Extension, "double", Double.MIN_VALUE); // positive, close to zero
         addExtensionValue(user2Extension, "float", 0);
+        addExtensionValue(user2Extension, "ref", ref(orgXOid, OrgType.COMPLEX_TYPE));
         addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
         addExtensionValue(user2Extension, "enum-mv",
                 OperationResultStatusType.UNKNOWN, OperationResultStatusType.SUCCESS);
@@ -221,10 +230,14 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        new ShadowAttributesHelper(shadow1)
-                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
-                        "string-value1", "string-value2");
+        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
+                .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
+        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
+        // another shadow just to be check we don't select it accidentally
+        repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1")
@@ -1255,7 +1268,7 @@ AND(
 
     @Test
     public void test560SearchObjectWithExtensionPolyStringByValue() throws SchemaException {
-        searchUsersTest("extension poly-string item equal to value",
+        searchUsersTest("with extension poly-string item equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .eq(new PolyString("poly-value")),
                 user1Oid);
@@ -1263,7 +1276,7 @@ AND(
 
     @Test
     public void test561SearchObjectWithExtensionPolyStringByOrigValue() throws SchemaException {
-        searchUsersTest("extension poly-string item orig equal to value",
+        searchUsersTest("with extension poly-string item orig equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .eq(new PolyString("poly-value")).matchingOrig(),
                 user1Oid);
@@ -1274,7 +1287,7 @@ AND(
             throws SchemaException {
         // Not sure how real is to use String parameter, but Prism doesn't fail and repo can handle it.
         // This will surely not work properly for default matching where both norm and orig are compared.
-        searchUsersTest("extension poly-string item orig equal to String value",
+        searchUsersTest("with extension poly-string item orig equal to String value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .eq("poly-value").matchingOrig(),
                 user1Oid);
@@ -1282,7 +1295,7 @@ AND(
 
     @Test
     public void test563SearchObjectWithExtensionPolyStringByNormValue() throws SchemaException {
-        searchUsersTest("extension poly-string item norm equal to value",
+        searchUsersTest("with extension poly-string item norm equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .eq(new PolyString("poly-value")).matchingNorm(),
                 user1Oid);
@@ -1291,7 +1304,7 @@ AND(
     @Test
     public void test564SearchObjectWithExtensionPolyStringByNormValueAsString()
             throws SchemaException {
-        searchUsersTest("extension poly-string item norm equal to String value",
+        searchUsersTest("with extension poly-string item norm equal to String value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .eq("polyvalue").matchingNorm(),
                 user1Oid);
@@ -1300,7 +1313,7 @@ AND(
     @Test
     public void test565SearchObjectWithExtensionPolyStringGreaterThan()
             throws SchemaException {
-        searchUsersTest("extension poly-string item greater than value",
+        searchUsersTest("with extension poly-string item greater than value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .gt(new PolyString("aa-aa")),
                 user1Oid);
@@ -1309,7 +1322,7 @@ AND(
     @Test
     public void test566SearchObjectWithExtensionPolyStringLowerThan()
             throws SchemaException {
-        searchUsersTest("extension poly-string item greater than value",
+        searchUsersTest("with extension poly-string item greater than value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .lt(new PolyString("aa-aa")));
         // nothing matches
@@ -1318,7 +1331,7 @@ AND(
     @Test
     public void test567SearchObjectWithExtensionPolyStringNormLoeThan()
             throws SchemaException {
-        searchUsersTest("extension poly-string item greater than value",
+        searchUsersTest("with extension poly-string item greater than value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .le(new PolyString("poly-value")).matchingNorm(),
                 user1Oid);
@@ -1327,7 +1340,7 @@ AND(
     @Test
     public void test568SearchObjectWithExtensionPolyStringComplexIgnoreCaseComparison()
             throws SchemaException {
-        searchUsersTest("extension poly-string item matching complex ignore-case comparison",
+        searchUsersTest("with extension poly-string item matching complex ignore-case comparison",
                 f -> f.not().block()
                         // both AND parts must match user1, this ine is norm, so -- is ignored
                         .item(UserType.F_EXTENSION, new QName("poly")).ge("pOlY--vAlUe")
@@ -1342,7 +1355,7 @@ AND(
     @Test
     public void test569SearchObjectWithExtensionMultiValuePolyString()
             throws SchemaException {
-        searchUsersTest("extension poly-string multi-value item",
+        searchUsersTest("with extension poly-string multi-value item",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
                         .eq(new PolyString("poly-value1")),
                 user2Oid);
@@ -1351,7 +1364,7 @@ AND(
     @Test
     public void test570SearchObjectWithExtensionMultiValuePolyStringNorm()
             throws SchemaException {
-        searchUsersTest("extension poly-string multi-value item matching norm",
+        searchUsersTest("with extension poly-string multi-value item matching norm",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
                         // orig of provided value doesn't match, but norm should
                         .eq(new PolyString("poly--value1")).matchingNorm(),
@@ -1375,7 +1388,7 @@ AND(
 
     @Test
     public void test580SearchObjectWithExtensionRef() throws SchemaException {
-        searchUsersTest("extension ref item matching",
+        searchUsersTest("with extension ref item matching",
                 f -> f.item(UserType.F_EXTENSION, new QName("ref"))
                         .ref(ref(org21Oid, OrgType.COMPLEX_TYPE, relation1)),
                 user1Oid);
@@ -1383,7 +1396,7 @@ AND(
 
     @Test
     public void test581SearchObjectWithExtensionRefByOidOnly() throws SchemaException {
-        searchUsersTest("extension ref item matching by OID only (implies default relation)",
+        searchUsersTest("with extension ref item matching by OID only (implies default relation)",
                 f -> f.item(UserType.F_EXTENSION, new QName("ref"))
                         .ref(org21Oid));
         // used ref has non-default relation, so, correctly, it is not found
@@ -1391,7 +1404,7 @@ AND(
 
     @Test
     public void test582SearchObjectWithExtensionRefByOidOnly() throws SchemaException {
-        searchUsersTest("extension ref item matching by OID only",
+        searchUsersTest("with extension ref item matching by OID only",
                 f -> f.item(UserType.F_EXTENSION, new QName("ref"))
                         .ref(ref(org21Oid, null, PrismConstants.Q_ANY)),
                 user1Oid);
@@ -1399,13 +1412,39 @@ AND(
 
     @Test
     public void test583SearchObjectWithExtensionRefByUnusedOid() throws SchemaException {
-        searchUsersTest("extension ref item matching by unused OID",
+        searchUsersTest("with extension ref item matching by unused OID",
                 f -> f.item(UserType.F_EXTENSION, new QName("ref"))
                         .ref(org12Oid));
     }
 
-    // TODO multi-value EQ filter (IN semantics) is not supported YET
-    // TODO shadow attribute test, just few, otherwise it's like extension
+    @Test
+    public void test584SearchObjectWithExtensionRefMatchingAnyOfVals() throws SchemaException {
+        searchUsersTest("with extension ref item matching by unused OID",
+                f -> f.item(UserType.F_EXTENSION, new QName("ref")).ref(
+                        ref(org21Oid, null, PrismConstants.Q_ANY),
+                        ref(orgXOid, null, PrismConstants.Q_ANY)),
+                user1Oid, user2Oid);
+    }
+
+    @Test
+    public void test590SearchObjectWithAssignmentExtension() throws SchemaException {
+        searchUsersTest("with assignment extension item equal to value",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION,
+                        new QName("integer")).eq(47),
+                user1Oid);
+    }
+
+    @Test
+    public void test591SearchShadowWithAttribute() throws SchemaException {
+        searchObjectTest("with assignment extension item equal to value", ShadowType.class,
+                f -> f.item(ItemPath.create(
+                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv")),
+                        shadowAttributeDefinition)
+                        .eq("string-value2"),
+                shadow1Oid);
+    }
+
+    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
     // endregion
 
     // region special cases
