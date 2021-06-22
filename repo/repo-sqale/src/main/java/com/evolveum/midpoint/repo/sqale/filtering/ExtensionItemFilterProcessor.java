@@ -87,6 +87,10 @@ public class ExtensionItemFilterProcessor<T extends PrismValue>
         MExtItem extItem = ((SqaleQueryContext<?, ?, ?>) context).repositoryContext()
                 .resolveExtensionItem(definition, holderType);
         assert definition != null;
+        if (extItem == null) {
+            throw new QueryException("Extension item " + definition.getItemName()
+                    + " is not indexed, filter: " + filter);
+        }
 
         if (definition instanceof PrismReferenceDefinition) {
             return processReference(extItem, (RefFilter) filter);
