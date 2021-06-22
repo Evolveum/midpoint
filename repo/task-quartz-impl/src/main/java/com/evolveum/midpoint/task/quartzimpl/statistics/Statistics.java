@@ -238,8 +238,17 @@ public class Statistics {
 
     @NotNull
     public IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
-//        return iterationInformation.recordOperationStart(operation);
-        throw new UnsupportedOperationException();
+        return new IterationInformation.Operation() {
+            @Override
+            public double getDurationRounded() {
+                return 0;
+            }
+
+            @Override
+            public long getEndTimeMillis() {
+                return 0;
+            }
+        };
     }
 
     @Deprecated

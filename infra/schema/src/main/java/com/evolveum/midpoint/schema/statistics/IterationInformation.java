@@ -171,7 +171,7 @@ public class IterationInformation {
         }
 
         default void done(QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
-            throw new UnsupportedOperationException();
+            // no-op
         }
 
         double getDurationRounded();

@@ -225,6 +225,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
+
+        // This is generally useful in tests, to avoid long waiting for bucketed tasks.
+        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
     }
 
     @Override

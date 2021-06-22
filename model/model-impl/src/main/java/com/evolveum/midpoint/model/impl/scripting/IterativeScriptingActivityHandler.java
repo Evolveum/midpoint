@@ -39,20 +39,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeScriptingWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
 @Component
-public class IterativeScriptingActionHandler
-        extends SimpleActivityHandler<ObjectType, IterativeScriptingActionHandler.MyWorkDefinition, ExecutionContext> {
+public class IterativeScriptingActivityHandler
+        extends SimpleActivityHandler<ObjectType, IterativeScriptingActivityHandler.MyWorkDefinition, ExecutionContext> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI;
-    private static final Trace LOGGER = TraceManager.getTrace(IterativeScriptingActionHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IterativeScriptingActivityHandler.class);
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
-        return RecomputationWorkDefinitionType.COMPLEX_TYPE;
+        return IterativeScriptingWorkDefinitionType.COMPLEX_TYPE;
     }
 
     @Override
