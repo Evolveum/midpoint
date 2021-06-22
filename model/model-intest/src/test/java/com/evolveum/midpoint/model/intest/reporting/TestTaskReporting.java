@@ -167,7 +167,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             assertTask(importTask, "import task after")
                     .display()
                     .assertFatalError()
-                    .assertClosed()
+                    .assertSuspended()
                     .rootItemProcessingInformation()
                         .display()
                     .end()

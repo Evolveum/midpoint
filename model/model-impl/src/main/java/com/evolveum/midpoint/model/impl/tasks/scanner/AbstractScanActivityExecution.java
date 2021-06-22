@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
@@ -38,6 +40,8 @@ public class AbstractScanActivityExecution<
         MAH,
         AbstractScanActivityExecution<O, WD, MAH>,
         ScanWorkStateType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractScanActivityExecution.class);
 
     protected XMLGregorianCalendar lastScanTimestamp;
     protected XMLGregorianCalendar thisScanTimestamp;
@@ -61,8 +65,10 @@ public class AbstractScanActivityExecution<
 
     @Override
     protected void initializeExecution(OperationResult opResult) {
-        lastScanTimestamp = activityState.getPropertyRealValue(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP, XMLGregorianCalendar.class);
+        lastScanTimestamp = activityState.getWorkStatePropertyRealValue(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP,
+                XMLGregorianCalendar.class);
         thisScanTimestamp = getModelBeans().clock.currentTimeXMLGregorianCalendar();
+        LOGGER.debug("lastScanTimestamp = {}, thisScanTimestamp = {}", lastScanTimestamp, thisScanTimestamp);
     }
 
     @Override
