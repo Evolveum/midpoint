@@ -168,7 +168,7 @@
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.4</commons.cli>
         <cxf.version>3.4.4</cxf.version>
-        <cxf-xjc.version>3.3.0</cxf-xjc.version>
+        <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <wss4j.version>2.3.2</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e1</quartz.version>
