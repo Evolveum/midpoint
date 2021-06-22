@@ -167,7 +167,7 @@
         <commons.io.version>2.9.0</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.4</commons.cli>
-        <cxf.version>3.3.1</cxf.version>
+        <cxf.version>3.4.4</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.3.2</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
@@ -1619,6 +1619,12 @@
                 <groupId>jakarta.xml.ws</groupId>
                 <artifactId>jakarta.xml.ws-api</artifactId>
                 <version>3.0.1</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.jws</groupId>
+                <artifactId>jakarta.jws-api</artifactId>
+                <version>3.0.0</version>
                 <scope>runtime</scope>
             </dependency>
         </dependencies>
