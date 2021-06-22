@@ -375,15 +375,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         @SafeVarargs
         public final <V> ShadowAttributesHelper set(
                 QName attributeName, QName type, V... values) throws SchemaException {
-            attrsDefinition.createPropertyDefinition(attributeName, type, 0,
-                    values.length <= 1 ? 1 : -1);
-            addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
-            return this;
+            return set(attributeName, type, 0, values.length <= 1 ? 1 : -1, values);
         }
 
         /** Returns shadow attributes container likely needed later in the assert section. */
         public ShadowAttributesType attributesContainer() {
             return attributesContainer;
+        }
+
+        /** For tests searching by shadow attribute using {@code item(ItemPath, ItemDefinition}. */
+        public ItemDefinition<?> getDefinition(ItemName attributeName) {
+            return attrsDefinition.findItemDefinition(attributeName);
         }
     }
     // endregion
