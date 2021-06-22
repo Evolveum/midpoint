@@ -170,6 +170,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(user1Extension, "ref-mv",
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
+        addExtensionValue(user1Extension, "string-ni", "not-indexed-item");
         ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
         user1.assignment(new AssignmentType(prismContext)
                 .extension(user1AssignmentExtension));
@@ -1442,6 +1443,20 @@ AND(
                         shadowAttributeDefinition)
                         .eq("string-value2"),
                 shadow1Oid);
+    }
+
+    @Test
+    public void test595SearchObjectByNotIndexedExtensionFails() throws SchemaException {
+        given("query for not-indexed extension");
+        OperationResult operationResult = createOperationResult();
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, new QName("string-ni")).eq("whatever")
+                .build();
+
+        expect("searchObjects throws exception because of not-indexed item");
+        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
+                .isInstanceOf(SystemException.class)
+                .hasMessageContaining("not indexed");
     }
 
     // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
