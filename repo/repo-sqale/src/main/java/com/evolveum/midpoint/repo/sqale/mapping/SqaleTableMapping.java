@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
+import static com.evolveum.midpoint.repo.sqale.ExtUtils.*;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -22,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
@@ -455,8 +457,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         if (realValue instanceof PolyString) {
             PolyString poly = (PolyString) realValue;
-            return Map.of("o", poly.getOrig(),
-                    "n", poly.getNorm());
+            return Map.of(EXT_POLY_ORIG_KEY, poly.getOrig(),
+                    EXT_POLY_NORM_KEY, poly.getNorm());
         }
 
         if (realValue instanceof Referencable) {
@@ -470,9 +472,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 throw new IllegalArgumentException(
                         "Reference without target type can't be stored: " + ref);
             }
-            return Map.of("o", ref.getOid(),
-                    "t", schemaTypeToObjectType(targetType),
-                    "r", processCacheableRelation(ref.getRelation()));
+            return Map.of(EXT_REF_TARGET_OID_KEY, ref.getOid(),
+                    EXT_REF_TARGET_TYPE_KEY, schemaTypeToObjectType(targetType),
+                    EXT_REF_RELATION_KEY, processCacheableRelation(ref.getRelation()));
         }
 
         if (realValue instanceof Enum) {
@@ -482,7 +484,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         if (realValue instanceof XMLGregorianCalendar) {
             // XMLGregorianCalendar stores only millis, but we cut it to 3 fraction digits
             // to make the behavior explicit and consistent.
-            return SqaleUtils.extensionDateTime((XMLGregorianCalendar) realValue);
+            return ExtUtils.extensionDateTime((XMLGregorianCalendar) realValue);
         }
 
         throw new IllegalArgumentException(

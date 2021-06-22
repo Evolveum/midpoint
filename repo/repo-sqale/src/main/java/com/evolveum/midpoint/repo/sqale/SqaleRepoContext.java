@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.util.Objects;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
@@ -30,10 +29,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * SQL repository context adding support for QName cache.
@@ -116,20 +113,6 @@ public class SqaleRepoContext extends SqlRepoContext {
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
-    // supported types for extension properties, references ignore this
-    private static final Set<QName> SUPPORTED_INDEXED_EXTENSION_TYPES = Set.of(
-            DOMUtil.XSD_BOOLEAN,
-            DOMUtil.XSD_INT,
-            DOMUtil.XSD_LONG,
-            DOMUtil.XSD_SHORT,
-            DOMUtil.XSD_INTEGER,
-            DOMUtil.XSD_DECIMAL,
-            DOMUtil.XSD_STRING,
-            DOMUtil.XSD_DOUBLE,
-            DOMUtil.XSD_FLOAT,
-            DOMUtil.XSD_DATETIME,
-            PolyStringType.COMPLEX_TYPE);
-
     public MExtItem resolveExtensionItem(
             ItemDefinition<?> definition, MExtItemHolderType holderType) {
         Objects.requireNonNull(definition,
@@ -142,8 +125,8 @@ public class SqaleRepoContext extends SqlRepoContext {
                 return null;
             }
             // enum is recognized by having allowed values
-            if (!SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
-                    && !SqaleUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
+            if (!ExtUtils.SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+                    && !ExtUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
                 return null;
             }
         } else if (!(definition instanceof PrismReferenceDefinition)) {

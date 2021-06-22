@@ -48,23 +48,26 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
         return val != null ? val.getRealValue() : null;
     }
 
-    protected Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+    protected FilterOperation operation(ValueFilter<?, ?> filter) throws QueryException {
         if (filter instanceof EqualFilter) {
-            return isIgnoreCaseFilter(filter) ? Ops.EQ_IGNORE_CASE : Ops.EQ;
+            return FilterOperation.of(isIgnoreCaseFilter(filter) ? Ops.EQ_IGNORE_CASE : Ops.EQ);
         } else if (filter instanceof GreaterFilter) {
             GreaterFilter<?> gf = (GreaterFilter<?>) filter;
-            return gf.isEquals() ? Ops.GOE : Ops.GT;
+            return FilterOperation.of(gf.isEquals() ? Ops.GOE : Ops.GT, isIgnoreCaseFilter(filter));
         } else if (filter instanceof LessFilter) {
             LessFilter<?> lf = (LessFilter<?>) filter;
-            return lf.isEquals() ? Ops.LOE : Ops.LT;
+            return FilterOperation.of(lf.isEquals() ? Ops.LOE : Ops.LT, isIgnoreCaseFilter(filter));
         } else if (filter instanceof SubstringFilter) {
             SubstringFilter<?> substring = (SubstringFilter<?>) filter;
             if (substring.isAnchorEnd()) {
-                return isIgnoreCaseFilter(filter) ? Ops.ENDS_WITH_IC : Ops.ENDS_WITH;
+                return FilterOperation.of(
+                        isIgnoreCaseFilter(filter) ? Ops.ENDS_WITH_IC : Ops.ENDS_WITH);
             } else if (substring.isAnchorStart()) {
-                return isIgnoreCaseFilter(filter) ? Ops.STARTS_WITH_IC : Ops.STARTS_WITH;
+                return FilterOperation.of(
+                        isIgnoreCaseFilter(filter) ? Ops.STARTS_WITH_IC : Ops.STARTS_WITH);
             } else {
-                return isIgnoreCaseFilter(filter) ? Ops.STRING_CONTAINS_IC : Ops.STRING_CONTAINS;
+                return FilterOperation.of(
+                        isIgnoreCaseFilter(filter) ? Ops.STRING_CONTAINS_IC : Ops.STRING_CONTAINS);
             }
         }
 
@@ -80,24 +83,25 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
     protected <T> Predicate createBinaryCondition(
             ValueFilter<?, ?> filter, Path<T> path, ValueFilterValues<?, T> values)
             throws QueryException {
-        Ops operator = operation(filter);
+        FilterOperation operation = operation(filter);
         if (values.isEmpty()) {
-            if (operator == Ops.EQ || operator == Ops.EQ_IGNORE_CASE) {
+            if (operation.isAnyEqualOperation()) {
                 return ExpressionUtils.predicate(Ops.IS_NULL, path);
             } else {
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
         }
         if (values.isMultiValue()) {
-            if (operator == Ops.EQ) {
-                return ExpressionUtils.predicate(Ops.IN, path,
-                        ConstantImpl.create(values.allValues()));
+            if (operation.isAnyEqualOperation()) {
+                return ExpressionUtils.predicate(Ops.IN,
+                        operation.treatPathForIn(path),
+                        ConstantImpl.create(operation.treatValuesForIn(values)));
             } else {
                 throw new QueryException("Multi-value for other than EQUAL filter: " + filter);
             }
         }
 
-        return singleValuePredicate(path, operator, values.singleValue());
+        return singleValuePredicate(path, operation, values.singleValue());
     }
 
     /**
@@ -106,8 +110,11 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
      * otherwise the expression is passed as-is.
      * Technically, any expression can be used on path side as well.
      */
-    protected Predicate singleValuePredicate(Expression<?> path, Ops operator, Object value) {
-        Predicate predicate = ExpressionUtils.predicate(operator, path,
+    protected Predicate singleValuePredicate(
+            Expression<?> path, FilterOperation operation, Object value) {
+        path = operation.treatPath(path);
+        value = operation.treatValue(value);
+        Predicate predicate = ExpressionUtils.predicate(operation.operator, path,
                 value instanceof Expression ? (Expression<?>) value : ConstantImpl.create(value));
         return predicateWithNotTreated(path, predicate);
     }
