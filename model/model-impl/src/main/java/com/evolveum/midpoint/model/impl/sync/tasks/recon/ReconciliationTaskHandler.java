@@ -49,12 +49,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Deprecated
 public class ReconciliationTaskHandler {
 
-    /**
-     * Just for testability. Used in tests. Injected by explicit call to a
-     * setter.
-     */
-    private ReconciliationTaskResultListener reconciliationTaskResultListener;
-
     @Autowired PrismContext prismContext;
     @Autowired TaskManager taskManager;
     @Autowired EventDispatcher eventDispatcher;
@@ -66,14 +60,6 @@ public class ReconciliationTaskHandler {
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
-
-    public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
-        return reconciliationTaskResultListener;
-    }
-
-    public void setReconciliationTaskResultListener(ReconciliationTaskResultListener reconciliationTaskResultListener) {
-        this.reconciliationTaskResultListener = reconciliationTaskResultListener;
-    }
 
     @PostConstruct
     private void initialize() {

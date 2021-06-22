@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
@@ -57,8 +58,8 @@ public class ResourceReconciliationActivityExecution
 
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
-                targetInfo.getResource(),
-                targetInfo.getObjectClassDefinitionRequired(),
+                objectClassSpec.getResource(),
+                objectClassSpec.getObjectClassDefinitionRequired(),
                 objectsFilter,
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
@@ -78,7 +79,7 @@ public class ResourceReconciliationActivityExecution
 
     @Override
     protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
-        return createItemDefinitionProviderForAttributes(targetInfo.getObjectClassDefinition());
+        return createItemDefinitionProviderForAttributes(objectClassSpec.getObjectClassDefinition());
     }
 
     @Override
@@ -95,5 +96,15 @@ public class ResourceReconciliationActivityExecution
                     return true;
                 }
         );
+    }
+
+    @VisibleForTesting
+    public long getResourceReconCount() {
+        return executionStatistics.getItemsProcessed();
+    }
+
+    @VisibleForTesting
+    public long getResourceReconErrors() {
+        return executionStatistics.getErrors();
     }
 }

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
-import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelSearchActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -38,7 +38,7 @@ public class PartialReconciliationActivityExecution<AE extends PartialReconcilia
 
     private static final Trace LOGGER = TraceManager.getTrace(PartialReconciliationActivityExecution.class);
 
-    protected TargetInfo targetInfo;
+    protected ResourceObjectClassSpecification objectClassSpec;
     protected SynchronizationObjectsFilterImpl objectsFilter;
 
     public PartialReconciliationActivityExecution(
@@ -51,13 +51,14 @@ public class PartialReconciliationActivityExecution<AE extends PartialReconcilia
     protected void initializeExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        targetInfo = getModelBeans().syncTaskHelper
-                .createTargetInfo(resourceObjectSet, getRunningTask(), opResult);
-        objectsFilter = targetInfo.getObjectFilter(resourceObjectSet);
+        objectClassSpec = getModelBeans().syncTaskHelper
+                .createObjectClassSpec(resourceObjectSet, getRunningTask(), opResult);
+        objectsFilter = objectClassSpec.getObjectFilter(resourceObjectSet);
 
-        targetInfo.checkNotInMaintenance();
+        objectClassSpec.checkNotInMaintenance();
 
-        setContextDescription(getActivityShortNameCapitalized() + " on " + targetInfo.getContextDescription()); // TODO?
+        setContextDescription(getActivityShortNameCapitalized() + " on " +
+                objectClassSpec.getContextDescription()); // TODO?
     }
 
     protected @NotNull ResourceObjectSetType getResourceObjectSet() {

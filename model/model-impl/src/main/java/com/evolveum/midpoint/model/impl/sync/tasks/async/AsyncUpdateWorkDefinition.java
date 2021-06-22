@@ -33,6 +33,7 @@ public class AsyncUpdateWorkDefinition extends AbstractWorkDefinition implements
             resourceObjects = typedDefinition.getUpdatedResourceObjects() != null ?
                     typedDefinition.getUpdatedResourceObjects() : new ResourceObjectSetType(PrismContext.get());
         }
+        ResourceObjectSetUtil.removeQuery(resourceObjects);
     }
 
     @Override

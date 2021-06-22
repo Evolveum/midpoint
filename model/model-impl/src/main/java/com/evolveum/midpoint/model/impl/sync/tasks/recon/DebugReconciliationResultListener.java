@@ -23,13 +23,13 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class DebugReconciliationTaskResultListener implements
-        ReconciliationTaskResultListener, DebugDumpable {
+public class DebugReconciliationResultListener implements
+        ReconciliationResultListener, DebugDumpable {
 
-    private final List<ReconciliationTaskResult> results = Collections.synchronizedList(new ArrayList<>());
+    private final List<ReconciliationResult> results = Collections.synchronizedList(new ArrayList<>());
 
     @Override
-    public void process(ReconciliationTaskResult reconResult) {
+    public void process(ReconciliationResult reconResult) {
         results.add(reconResult);
     }
 
@@ -39,7 +39,7 @@ public class DebugReconciliationTaskResultListener implements
 
     public void assertResult(String resourceOid, long expectedUnOpsCount, long expectedResourceReconCount, long expectedResourceReconErrors,
             long expectedShadowReconCount) {
-        ReconciliationTaskResult result = findResult(resourceOid);
+        ReconciliationResult result = findResult(resourceOid);
         assert result != null : "No recon result for resource "+resourceOid;
         PrismAsserts.assertEquals("Wrong unOpsCount in recon result for resource "+resourceOid,
                 expectedUnOpsCount, result.getUnOpsCount());
@@ -51,9 +51,9 @@ public class DebugReconciliationTaskResultListener implements
                 expectedShadowReconCount, result.getShadowReconCount());
     }
 
-    private ReconciliationTaskResult findResult(String resourceOid) {
-        for (ReconciliationTaskResult result: results) {
-            if (resourceOid.equals(result.getResource().getOid())) {
+    private ReconciliationResult findResult(String resourceOid) {
+        for (ReconciliationResult result: results) {
+            if (resourceOid.equals(result.getResourceOid())) {
                 return result;
             }
         }
@@ -62,7 +62,7 @@ public class DebugReconciliationTaskResultListener implements
 
     @Override
     public String debugDump(int indent) {
-        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(DebugReconciliationTaskResultListener.class, indent);
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(DebugReconciliationResultListener.class, indent);
         DebugUtil.debugDumpWithLabel(sb, "results", results, indent + 1);
         return sb.toString();
     }

@@ -22,11 +22,11 @@ public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecificat
     }
 
     public QName getObjectType() {
-        return objectSetBean.getObjectType();
+        return objectSetBean.getType();
     }
 
     public QueryType getQueryBean() {
-        return objectSetBean.getObjectQuery();
+        return objectSetBean.getQuery();
     }
 
     @Override

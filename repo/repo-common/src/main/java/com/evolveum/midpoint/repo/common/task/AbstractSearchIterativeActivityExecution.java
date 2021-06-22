@@ -203,6 +203,8 @@ public abstract class AbstractSearchIterativeActivityExecution<
         searchSpecification.setQuery(
                 evaluateQueryExpressions(searchSpecification.getQuery(), opResult));
 
+        applyProvisioningDefinitionsToQuery(searchSpecification.getQuery(), opResult);
+
         LOGGER.trace("{}: will do the following search:\n{}",
                 activityShortNameCapitalized, DebugUtil.debugDumpLazily(searchSpecification));
     }
@@ -408,6 +410,12 @@ public abstract class AbstractSearchIterativeActivityExecution<
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return query;
+    }
+
+    /**
+     * Applies provisioning definitions to query. Not available in repo-common.
+     */
+    protected void applyProvisioningDefinitionsToQuery(ObjectQuery query, OperationResult opResult) throws CommonException {
     }
 
     /**

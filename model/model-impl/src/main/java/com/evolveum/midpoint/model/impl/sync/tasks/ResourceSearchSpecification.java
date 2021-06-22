@@ -19,15 +19,15 @@ import java.util.Collection;
 
 public class ResourceSearchSpecification extends SearchSpecification<ShadowType> {
 
-    @NotNull private final TargetInfo targetInfo;
+    @NotNull private final ResourceObjectClassSpecification resourceObjectClassSpecification;
 
-    ResourceSearchSpecification(@NotNull TargetInfo targetInfo, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
+    ResourceSearchSpecification(@NotNull ResourceObjectClassSpecification resourceObjectClassSpecification, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(ShadowType.class, query, options, null);
-        this.targetInfo = targetInfo;
+        this.resourceObjectClassSpecification = resourceObjectClassSpecification;
     }
 
     // FIXME problematic: usually we need TargetInfo in initializeExecution, i.e. before search specification is ready
-    public @NotNull TargetInfo getTargetInfo() {
-        return targetInfo;
+    public @NotNull ResourceObjectClassSpecification getTargetInfo() {
+        return resourceObjectClassSpecification;
     }
 }

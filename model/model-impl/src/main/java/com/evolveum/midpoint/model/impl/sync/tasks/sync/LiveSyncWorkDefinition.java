@@ -33,6 +33,7 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
             resourceObjects = typedDefinition.getResourceObjects() != null ?
                     typedDefinition.getResourceObjects() : new ResourceObjectSetType(PrismContext.get());
         }
+        ResourceObjectSetUtil.removeQuery(resourceObjects);
     }
 
     @Override

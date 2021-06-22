@@ -15,8 +15,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
  *
  */
 @FunctionalInterface
-public interface ReconciliationTaskResultListener {
+public interface ReconciliationResultListener {
 
-    void process(ReconciliationTaskResult reconResult);
+    void process(ReconciliationResult reconResult);
 
 }

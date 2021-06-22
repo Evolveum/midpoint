@@ -106,6 +106,12 @@ public abstract class AbstractModelSearchActivityExecution<O extends ObjectType,
     }
 
     @Override
+    protected void applyProvisioningDefinitionsToQuery(ObjectQuery query, OperationResult opResult) throws CommonException {
+        getModelBeans().provisioningService.applyDefinition(
+                getObjectType(), query, getRunningTask(), opResult);
+    }
+
+    @Override
     protected final Integer countObjects(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (isUseRepository()) {

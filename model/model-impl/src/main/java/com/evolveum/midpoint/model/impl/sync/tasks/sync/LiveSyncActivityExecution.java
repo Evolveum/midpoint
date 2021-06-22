@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -54,7 +54,7 @@ public class LiveSyncActivityExecution
     @VisibleForTesting
     public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 
-    private TargetInfo targetInfo;
+    private ResourceObjectClassSpecification objectClassSpecification;
     private SynchronizationResult syncResult;
 
     LiveSyncActivityExecution(
@@ -74,15 +74,16 @@ public class LiveSyncActivityExecution
         RunningTask runningTask = getTaskExecution().getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        targetInfo = getModelBeans().syncTaskHelper
-                .createTargetInfo(resourceObjectSet, runningTask, opResult);
+        objectClassSpecification = getModelBeans().syncTaskHelper
+                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
 
-        targetInfo.checkNotInMaintenance();
+        objectClassSpecification.checkNotInMaintenance();
     }
 
     @Override
     protected void finishExecution(OperationResult opResult) throws SchemaException {
-        LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}", targetInfo.resource, syncResult);
+        LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
+                objectClassSpecification.resource, syncResult);
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
                 .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + syncResult);
     }
@@ -108,7 +109,7 @@ public class LiveSyncActivityExecution
 
         ModelImplUtils.clearRequestee(getRunningTask());
         syncResult = getModelBeans().provisioningService
-                .synchronize(targetInfo.getCoords(), getRunningTask(), isSimulate(), handler, opResult);
+                .synchronize(objectClassSpecification.getCoords(), getRunningTask(), isSimulate(), handler, opResult);
     }
 
     @Override

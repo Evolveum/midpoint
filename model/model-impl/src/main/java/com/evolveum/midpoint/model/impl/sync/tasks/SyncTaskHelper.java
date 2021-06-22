@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
 
+import com.evolveum.midpoint.schema.util.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,10 +29,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,36 +47,51 @@ public class SyncTaskHelper {
     @Autowired private PrismContext prismContext;
 
     public <O extends ObjectType> ResourceSearchSpecification createSearchSpecification(
-            ResourceObjectSetType resourceObjectSetBean, Task task, OperationResult opResult)
-            throws ActivityExecutionException {
+            ResourceObjectSetType set, Task task, OperationResult opResult)
+            throws ActivityExecutionException, SchemaException {
 
-        TargetInfo targetInfo;
+        ResourceObjectClassSpecification resourceObjectClassSpecification;
         try {
-            targetInfo = createTargetInfoInternal(resourceObjectSetBean, false, task, opResult);
+            resourceObjectClassSpecification = createObjectClassSpecInternal(set, false, task, opResult);
         } catch (MaintenanceException e) {
             throw new AssertionError(e);
         }
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
-                targetInfo.getResourceOid(), targetInfo.getObjectClassName(), prismContext);
+        ObjectQuery basicQuery = resourceObjectClassSpecification.createBasicQuery();
+        ObjectQuery query;
+        if (set.getQuery() != null) {
+            ObjectQuery customQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, set.getQuery());
+            if (set.getQueryApplication() == ResourceObjectSetQueryApplicationModeType.REPLACE) {
+                query = customQuery;
+            } else if (set.getQueryApplication() == ResourceObjectSetQueryApplicationModeType.APPEND) {
+                query = ObjectQueryUtil.addConjunctions(customQuery, basicQuery.getFilter());
+            } else {
+                throw new ActivityExecutionException("Unsupported query application mode: " + set.getQueryApplication(),
+                        FATAL_ERROR, PERMANENT_ERROR);
+            }
+        } else {
+            query = basicQuery;
+        }
 
         return new ResourceSearchSpecification(
-                targetInfo,
+                resourceObjectClassSpecification,
                 query,
-                MiscSchemaUtil.optionsTypeToOptions(resourceObjectSetBean.getSearchOptions(), prismContext));
+                MiscSchemaUtil.optionsTypeToOptions(set.getSearchOptions(), prismContext));
     }
 
     @NotNull
-    public TargetInfo createTargetInfo(@NotNull ResourceObjectSetType resourceObjectSet, Task task, OperationResult opResult)
+    public ResourceObjectClassSpecification createObjectClassSpec(@NotNull ResourceObjectSetType resourceObjectSet,
+            Task task, OperationResult opResult)
             throws ActivityExecutionException, MaintenanceException {
-        TargetInfo targetInfo = createTargetInfoInternal(resourceObjectSet, true, task, opResult);
+        ResourceObjectClassSpecification objectClassSpec =
+                createObjectClassSpecInternal(resourceObjectSet, true, task, opResult);
 
-        LOGGER.trace("target info: {}", targetInfo);
-        return targetInfo;
+        LOGGER.debug("Object class specification:\n{}", objectClassSpec.debugDumpLazily());
+        return objectClassSpec;
     }
 
     @NotNull
-    private TargetInfo createTargetInfoInternal(@NotNull ResourceObjectSetType resourceObjectSet,
+    private ResourceObjectClassSpecification createObjectClassSpecInternal(@NotNull ResourceObjectSetType resourceObjectSet,
             boolean checkForMaintenance, Task task, OperationResult opResult)
             throws ActivityExecutionException, MaintenanceException {
 
@@ -100,13 +113,13 @@ public class SyncTaskHelper {
             LOGGER.debug("Processing all object classes");
         }
 
-        return new TargetInfo(
+        return new ResourceObjectClassSpecification(
                 new ResourceShadowDiscriminator(resourceOid, objectClass == null ? null : objectClass.getTypeName()),
                 resource, refinedSchema, objectClass);
     }
 
     @NotNull
-    public TargetInfo createTargetInfoForShadow(ShadowType shadow, Task task, OperationResult opResult)
+    public ResourceObjectClassSpecification createObjectClassSpecForShadow(ShadowType shadow, Task task, OperationResult opResult)
             throws ActivityExecutionException, MaintenanceException, SchemaException {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
@@ -118,7 +131,7 @@ public class SyncTaskHelper {
                 ModelImplUtils.determineObjectClass(refinedSchema, shadow.asPrismObject()),
                 "No object class found for the shadow");
 
-        return new TargetInfo(
+        return new ResourceObjectClassSpecification(
                 new ResourceShadowDiscriminator(resourceOid, objectClass.getTypeName()),
                 resource, refinedSchema, objectClass);
     }

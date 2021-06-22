@@ -7,23 +7,18 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
 import java.util.Collection;
 import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
-
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
@@ -38,10 +33,13 @@ import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSp
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -108,12 +106,12 @@ public class ShadowCleanupActivityHandler
         ResourceObjectSetType resourceObjectSet = execution.getWorkDefinition().getResourceObjectSetSpecification();
         RunningTask runningTask = execution.getRunningTask();
 
-        TargetInfo targetInfo = getModelBeans().syncTaskHelper
-                .createTargetInfo(resourceObjectSet, runningTask, opResult);
+        ResourceObjectClassSpecification objectClassSpec = getModelBeans().syncTaskHelper
+                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
 
-        targetInfo.checkNotInMaintenance();
-        targetInfo.checkResourceUp();
-        return new MyExecutionContext(targetInfo);
+        objectClassSpec.checkNotInMaintenance();
+        objectClassSpec.checkResourceUp();
+        return new MyExecutionContext(objectClassSpec);
     }
 
     @Override
@@ -156,7 +154,7 @@ public class ShadowCleanupActivityHandler
             Task workerTask, OperationResult result) {
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setObjectDelta(shadow.createDeleteDelta());
-        change.setResource(executionContext.getTargetInfo().getResource().asPrismObject());
+        change.setResource(executionContext.getObjectClassSpec().getResource().asPrismObject());
         change.setShadowedResourceObject(shadow);
         change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
         synchronizationService.notifyChange(change, workerTask, result);
@@ -164,14 +162,14 @@ public class ShadowCleanupActivityHandler
 
     public static class MyExecutionContext extends ExecutionContext {
 
-        @NotNull private final TargetInfo targetInfo;
+        @NotNull private final ResourceObjectClassSpecification resourceObjectClassSpecification;
 
-        MyExecutionContext(@NotNull TargetInfo targetInfo) {
-            this.targetInfo = targetInfo;
+        MyExecutionContext(@NotNull ResourceObjectClassSpecification resourceObjectClassSpecification) {
+            this.resourceObjectClassSpecification = resourceObjectClassSpecification;
         }
 
-        public @NotNull TargetInfo getTargetInfo() {
-            return targetInfo;
+        public @NotNull ResourceObjectClassSpecification getObjectClassSpec() {
+            return resourceObjectClassSpecification;
         }
     }
 
@@ -191,6 +189,7 @@ public class ShadowCleanupActivityHandler
                 shadows = typedDefinition.getShadows();
                 interval = typedDefinition.getInterval();
             }
+            ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous
 
             argCheck(interval != null, "No freshness interval specified");
             if (interval.getSign() == 1) {

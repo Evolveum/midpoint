@@ -33,8 +33,8 @@ public class ObjectSetUtil {
     public static @NotNull ObjectSetType fromLegacySource(@NotNull LegacyWorkDefinitionSource source) {
         @Nullable PrismContainerValue<?> extension = source.getTaskExtension();
         return new ObjectSetType(PrismContext.get())
-                .objectType(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class))
-                .objectQuery(getQueryLegacy(source))
+                .type(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class))
+                .query(getQueryLegacy(source))
                 .searchOptions(getSearchOptionsLegacy(extension))
                 .useRepositoryDirectly(getUseRepositoryDirectly(extension));
     }
@@ -81,15 +81,15 @@ public class ObjectSetUtil {
     public static ObjectSetType fromRef(ObjectReferenceType ref, QName defaultTypeName) {
         if (ref == null) {
             return new ObjectSetType(PrismContext.get())
-                    .objectType(defaultTypeName);
+                    .type(defaultTypeName);
         } else if (ref.getOid() != null) {
             return new ObjectSetType(PrismContext.get())
-                    .objectType(getTypeName(ref, defaultTypeName))
-                    .objectQuery(createOidQuery(ref.getOid()));
+                    .type(getTypeName(ref, defaultTypeName))
+                    .query(createOidQuery(ref.getOid()));
         } else {
             return new ObjectSetType(PrismContext.get())
-                    .objectType(getTypeName(ref, defaultTypeName))
-                    .objectQuery(new QueryType()
+                    .type(getTypeName(ref, defaultTypeName))
+                    .query(new QueryType()
                             .filter(ref.getFilter()));
         }
     }
@@ -113,21 +113,21 @@ public class ObjectSetUtil {
      * Fills-in the expected type or checks that provided one is not contradicting it.
      */
     public static void assumeObjectType(@NotNull ObjectSetType set, @NotNull QName superType) {
-        if (superType.equals(set.getObjectType())) {
+        if (superType.equals(set.getType())) {
             return;
         }
-        if (set.getObjectType() == null || QNameUtil.match(set.getObjectType(), superType)) {
-            set.setObjectType(superType);
+        if (set.getType() == null || QNameUtil.match(set.getType(), superType)) {
+            set.setType(superType);
             return;
         }
-        argCheck(PrismContext.get().getSchemaRegistry().isAssignableFrom(superType, set.getObjectType()),
+        argCheck(PrismContext.get().getSchemaRegistry().isAssignableFrom(superType, set.getType()),
                 "Activity requires object type of %s, but %s was provided in the work definition",
-                superType, set.getObjectType());
+                superType, set.getType());
     }
 
     public static void applyDefaultObjectType(@NotNull ObjectSetType set, @NotNull QName type) {
-        if (set.getObjectType() == null) {
-            set.setObjectType(type);
+        if (set.getType() == null) {
+            set.setType(type);
         }
     }
 }

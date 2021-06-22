@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,13 @@ public class ReconciliationActivityHandler
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(); // TODO
+
+    /**
+     * Just for testability. Used in tests. Injected by explicit call to a
+     * setter.
+     */
+    @VisibleForTesting
+    private ReconciliationResultListener reconciliationResultListener;
 
     @PostConstruct
     public void register() {
@@ -70,5 +78,15 @@ public class ReconciliationActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "reconciliation";
+    }
+
+    @VisibleForTesting
+    public ReconciliationResultListener getReconciliationResultListener() {
+        return reconciliationResultListener;
+    }
+
+    @VisibleForTesting
+    public void setReconciliationResultListener(ReconciliationResultListener reconciliationResultListener) {
+        this.reconciliationResultListener = reconciliationResultListener;
     }
 }

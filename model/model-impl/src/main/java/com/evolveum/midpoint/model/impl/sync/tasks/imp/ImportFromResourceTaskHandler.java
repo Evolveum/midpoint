@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -79,10 +79,10 @@ public class ImportFromResourceTaskHandler {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
             ShadowType shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result).asObjectable();
-            TargetInfo targetInfo = syncTaskHelper.createTargetInfoForShadow(shadow, task, result);
+            ResourceObjectClassSpecification spec = syncTaskHelper.createObjectClassSpecForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
-                    targetInfo.getResource(),
-                    targetInfo.getObjectClassDefinition(),
+                    spec.getResource(),
+                    spec.getObjectClassDefinition(),
                     new NullSynchronizationObjectFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,

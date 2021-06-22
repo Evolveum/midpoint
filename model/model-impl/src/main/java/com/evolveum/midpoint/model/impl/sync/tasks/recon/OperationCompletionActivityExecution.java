@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,7 +47,7 @@ class OperationCompletionActivityExecution
     @Override
     protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult) {
         return getPrismContext().queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(targetInfo.getResourceOid())
+                .item(ShadowType.F_RESOURCE_REF).ref(objectClassSpec.getResourceOid())
                 .and()
                 .exists(ShadowType.F_PENDING_OPERATION)
                 .build();
@@ -71,5 +72,10 @@ class OperationCompletionActivityExecution
         } finally {
             RepositoryCache.exitLocalCaches();
         }
+    }
+
+    @VisibleForTesting
+    long getUnOpsCount() {
+        return executionStatistics.getItemsProcessed();
     }
 }

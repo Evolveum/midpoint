@@ -23,7 +23,7 @@
                     <extension>
                         <ext:searchIterativeMock>
                             <ext:objectSet>
-                                <objectType>SystemConfigurationType</objectType>
+                                <type>SystemConfigurationType</type>
                             </ext:objectSet>
                             <ext:message>First (config): </ext:message>
                         </ext:searchIterativeMock>
@@ -37,7 +37,7 @@
                     <extension>
                         <ext:searchIterativeMock>
                             <ext:objectSet>
-                                <objectType>UserType</objectType>
+                                <type>UserType</type>
                             </ext:objectSet>
                             <ext:message>Second (user): </ext:message>
                         </ext:searchIterativeMock>
@@ -54,8 +54,8 @@
                             <extension>
                                 <ext:searchIterativeMock>
                                     <ext:objectSet>
-                                        <objectType>RoleType</objectType>
-                                        <objectQuery>
+                                        <type>RoleType</type>
+                                        <query>
                                             <q:filter>
                                                 <q:substring>
                                                     <q:path>name</q:path>
@@ -63,7 +63,7 @@
                                                     <q:anchorStart>true</q:anchorStart>
                                                 </q:substring>
                                             </q:filter>
-                                        </objectQuery>
+                                        </query>
                                     </ext:objectSet>
                                     <ext:message>Third-A (role): </ext:message>
                                 </ext:searchIterativeMock>
@@ -96,7 +96,7 @@
                             <extension>
                                 <ext:searchIterativeMock>
                                     <ext:objectSet>
-                                        <objectType>UserType</objectType>
+                                        <type>UserType</type>
                                     </ext:objectSet>
                                     <ext:message>Third-B (user): </ext:message>
                                 </ext:searchIterativeMock>
@@ -112,8 +112,8 @@
                     <extension>
                         <ext:searchIterativeMock>
                             <ext:objectSet>
-                                <objectType>RoleType</objectType>
-                                <objectQuery>
+                                <type>RoleType</type>
+                                <query>
                                     <q:filter>
                                         <q:substring>
                                             <q:path>name</q:path>
@@ -121,7 +121,7 @@
                                             <q:anchorStart>true</q:anchorStart>
                                         </q:substring>
                                     </q:filter>
-                                </objectQuery>
+                                </query>
                             </ext:objectSet>
                             <ext:message>Fourth (role): </ext:message>
                         </ext:searchIterativeMock>

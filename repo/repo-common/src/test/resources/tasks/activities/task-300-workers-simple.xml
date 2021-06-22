@@ -19,8 +19,8 @@
             <extension>
                 <ext:searchIterativeMock>
                     <ext:objectSet>
-                        <objectType>RoleType</objectType>
-                        <objectQuery>
+                        <type>RoleType</type>
+                        <query>
                             <q:filter>
                                 <q:substring>
                                     <q:path>name</q:path>
@@ -28,7 +28,7 @@
                                     <q:anchorStart>true</q:anchorStart>
                                 </q:substring>
                             </q:filter>
-                        </objectQuery>
+                        </query>
                     </ext:objectSet>
                     <ext:message>Role: </ext:message>
                 </ext:searchIterativeMock>

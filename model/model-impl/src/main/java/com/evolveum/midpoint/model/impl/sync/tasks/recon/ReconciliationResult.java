@@ -7,26 +7,64 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-public class ReconciliationTaskResult implements DebugDumpable {
+import org.jetbrains.annotations.NotNull;
+
+public class ReconciliationResult implements DebugDumpable {
 
     private TaskRunResult runResult;
     private PrismObject<ResourceType> resource;
     private ObjectClassComplexTypeDefinition objectclassDefinition;
-    private long etime;
-    private long unOpsTime;
-    private long resourceReconTime;
-    private long shadowReconTime;
+    private long etime; // seems unused
+    private long unOpsTime; // seems unused
+    private long resourceReconTime; // seems unused
+    private long shadowReconTime; // seems unused
     private long unOpsCount;
     private long resourceReconCount;
     private long resourceReconErrors;
     private long shadowReconCount;
+
+    static ReconciliationResult fromActivityExecution(@NotNull ReconciliationActivityExecution execution,
+            @NotNull ActivityExecutionResult executionResult) {
+        ReconciliationResult result = new ReconciliationResult();
+        result.runResult = executionResult.createTaskRunResult();
+        ResourceObjectClassSpecification resourceObjectClassSpecification = findTargetInfo(execution);
+        if (resourceObjectClassSpecification != null) {
+            result.resource = resourceObjectClassSpecification.resource.asPrismObject();
+            result.objectclassDefinition = resourceObjectClassSpecification.getObjectClassDefinition();
+        }
+        OperationCompletionActivityExecution operationCompletionExecution = execution.getOperationCompletionExecution();
+        if (operationCompletionExecution != null) {
+            result.unOpsCount = operationCompletionExecution.getUnOpsCount();
+        }
+        ResourceReconciliationActivityExecution resourceReconciliationExecution = execution.getResourceReconciliationExecution();
+        if (resourceReconciliationExecution != null) {
+            result.resourceReconCount = resourceReconciliationExecution.getResourceReconCount();
+            result.resourceReconErrors = resourceReconciliationExecution.getResourceReconErrors();
+        }
+        RemainingShadowsActivityExecution remainingShadowsExecution = execution.getRemainingShadowsExecution();
+        if (remainingShadowsExecution != null) {
+            result.shadowReconCount = remainingShadowsExecution.getShadowReconCount();
+        }
+        return result;
+    }
+
+    private static ResourceObjectClassSpecification findTargetInfo(ReconciliationActivityExecution execution) {
+        for (PartialReconciliationActivityExecution<?> partialActivityExecution : execution.getPartialActivityExecutions()) {
+            if (partialActivityExecution.objectClassSpec != null) {
+                return partialActivityExecution.objectClassSpec;
+            }
+        }
+        return null;
+    }
 
     public TaskRunResult getRunResult() {
         return runResult;
@@ -38,6 +76,10 @@ public class ReconciliationTaskResult implements DebugDumpable {
 
     public PrismObject<ResourceType> getResource() {
         return resource;
+    }
+
+    public String getResourceOid() {
+        return resource != null ? resource.getOid() : null;
     }
 
     public void setResource(PrismObject<ResourceType> resource) {
@@ -127,7 +169,7 @@ public class ReconciliationTaskResult implements DebugDumpable {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "resource", resource.toString(), indent);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "rOCD", objectclassDefinition.toString(), indent);
+        DebugUtil.debugDumpWithLabel(sb, "rOCD", String.valueOf(objectclassDefinition), indent);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "etime", etime, indent);
         sb.append("\n");

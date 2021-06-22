@@ -751,13 +751,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .end()
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     //.assertTotal(0, 0)
                     .end()
@@ -779,13 +779,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         stabilize();
         assertTask(xferTask.oid, "after")
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .end()
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
 //                    .assertTotal(XFER_ACCOUNTS, XFER_ACCOUNTS)
 //                    .assertUnmatched(XFER_ACCOUNTS, 0)
@@ -822,7 +822,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
 //                    .assertTotal(2*XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // each account was touched twice
 //                    .assertUnmatched(XFER_ACCOUNTS, 0) // this is information from the first run
@@ -855,7 +855,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
 //                    .assertTotal(XFER_ACCOUNTS+t, XFER_ACCOUNTS+t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately)
 //                    .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
@@ -883,7 +883,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation().display().end()
+                .rootSynchronizationInformation().display().end()
                 .actionsExecutedInformation().display().end();
 
         DummyResource resource = xferSource.controller.getDummyResource();
@@ -926,7 +926,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                     .rootItemProcessingInformation()
                         .display()
                         .end()
-                    .synchronizationInformation().display().end()
+                    .rootSynchronizationInformation().display().end()
                     .actionsExecutedInformation().display().end();
             // No special asserts here. The number of accounts being processed may depend on the timing.
         } else {
@@ -935,7 +935,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                     .rootItemProcessingInformation()
                         .display()
                         .end()
-                    .synchronizationInformation()
+                    .rootSynchronizationInformation()
                         .display()
 //                            .assertTotal(XFER_ACCOUNTS+3, XFER_ACCOUNTS+3) // XFER_ACCOUNTS from the first run, 1 from the second (failed immediately), 2 for the third (first ok, second fails)
 //                            .assertUnmatched(XFER_ACCOUNTS, 0) // from the first run
@@ -1004,7 +1004,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation().display().end()
+                .rootSynchronizationInformation().display().end()
                 .actionsExecutedInformation().display().end();
 
         when();

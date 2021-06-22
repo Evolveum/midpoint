@@ -7,35 +7,39 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.MaintenanceException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import static java.util.Objects.requireNonNull;
+
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-
-import static java.util.Objects.requireNonNull;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.MaintenanceException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * TODO better name
  */
 @SuppressWarnings("FieldCanBeLocal")
-public class TargetInfo {
-    @NotNull final ResourceShadowDiscriminator coords;
+public class ResourceObjectClassSpecification implements DebugDumpable {
+
+    @NotNull private final ResourceShadowDiscriminator coords;
     @NotNull public final ResourceType resource;
     @NotNull private final RefinedResourceSchema refinedResourceSchema;
-    @Nullable
-    private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    @Nullable private final ObjectClassComplexTypeDefinition objectClassDefinition;
 
-    TargetInfo(@NotNull ResourceShadowDiscriminator coords, @NotNull ResourceType resource,
+    ResourceObjectClassSpecification(@NotNull ResourceShadowDiscriminator coords, @NotNull ResourceType resource,
             @NotNull RefinedResourceSchema refinedResourceSchema,
             @Nullable ObjectClassComplexTypeDefinition objectClassDefinition) {
         this.coords = coords;
@@ -98,5 +102,20 @@ public class TargetInfo {
 
     public void checkNotInMaintenance() throws MaintenanceException {
         ResourceTypeUtil.checkNotInMaintenance(resource);
+    }
+
+    ObjectQuery createBasicQuery() throws SchemaException {
+        return getObjectClassDefinitionRequired()
+                .createShadowSearchQuery(getResourceOid());
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "coords", coords, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "refinedResourceSchema", String.valueOf(refinedResourceSchema), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", String.valueOf(objectClassDefinition), indent + 1);
+        return sb.toString();
     }
 }

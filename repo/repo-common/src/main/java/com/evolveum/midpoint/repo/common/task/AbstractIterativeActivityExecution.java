@@ -84,7 +84,7 @@ public abstract class AbstractIterativeActivityExecution<
     /**
      * Maintains selected statistical information related to processing items during this activity execution.
      */
-    @NotNull final ActivityExecutionStatistics executionStatistics;
+    @NotNull protected final ActivityExecutionStatistics executionStatistics;
 
     /**
      * Things like "Import", "Reconciliation (on resource)", and so on. Used e.g. in log messages like:

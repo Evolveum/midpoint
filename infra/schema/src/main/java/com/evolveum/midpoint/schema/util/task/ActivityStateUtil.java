@@ -13,16 +13,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -64,6 +63,13 @@ public class ActivityStateUtil {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Finds a state of an activity, given the activity path. Assumes local execution.
+     */
+    public static ActivityStateType getActivityState(@NotNull TaskType task, @NotNull ActivityPath activityPath) {
+        return getActivityState(task.getActivityState(), activityPath);
     }
 
     /**

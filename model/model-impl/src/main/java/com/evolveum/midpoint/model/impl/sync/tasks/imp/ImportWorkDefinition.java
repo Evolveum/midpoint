@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
+
 public class ImportWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
     @NotNull private final ResourceObjectSetType resourceObjects;
@@ -33,6 +35,7 @@ public class ImportWorkDefinition extends AbstractWorkDefinition implements Reso
             resourceObjects = typedDefinition.getResourceObjects() != null ?
                     typedDefinition.getResourceObjects() : new ResourceObjectSetType(PrismContext.get());
         }
+        ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, REPLACE);
     }
 
     @Override

@@ -5647,14 +5647,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectQuery" type="q:QueryType" minOccurs="0">
+            <xsd:element name="query" type="q:QueryType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -5672,13 +5672,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether to use repository directly when searching for objects.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="iterationMethod" type="c:IterationMethodType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to iterate through objects. Should be used only when really needed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5729,7 +5722,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectQuery" type="q:QueryType" minOccurs="0">
+            <xsd:element name="query" type="q:QueryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="queryApplication" type="tns:ResourceObjectSetQueryApplicationModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -5746,6 +5746,42 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="resourceObjectSet" type="tns:ResourceObjectSetType"/>
+
+    <xsd:simpleType name="ResourceObjectSetQueryApplicationModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should be resource object set query applied to the basic query stemming from
+                resourceRef / objectclass / kind / intent specification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="append">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specified query is "appended" to the default query that results from
+                        the resourceRef/kind/intent/objectclass tuple.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPEND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="replace">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specified query replaces the default query that results from
+                        the resourceRef/kind/intent/objectclass tuple.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPLACE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="RecomputationWorkDefinitionType">
         <xsd:annotation>

@@ -23,10 +23,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
+import static java.util.Objects.requireNonNullElseGet;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -170,21 +172,25 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return (TaskAsserter<RA>) super.assertPolyStringProperty(propName, expectedOrig);
     }
 
-    public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActivitySynchronizationStatisticsType information = operationStats != null ?
-                operationStats.getSynchronizationInformation() : new ActivitySynchronizationStatisticsType();
-        SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(information, this, getDetails());
+    public SynchronizationInfoAsserter<TaskAsserter<RA>> rootSynchronizationInformation() {
+        return synchronizationInformation(ActivityPath.empty());
+    }
+
+    public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation(ActivityPath activityPath) {
+        ActivityStatisticsType statistics = getStatisticsOrNew(activityPath);
+        ActivitySynchronizationStatisticsType syncStatistics = requireNonNullElseGet(
+                statistics.getSynchronization(), () -> new ActivitySynchronizationStatisticsType(getPrismContext()));
+
+        SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(syncStatistics, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
     /** Assumes single primitive activity */
     public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> rootItemProcessingInformation() {
-        ActivityStateType state = getActivityStateRequired(ActivityPath.empty());
-        ActivityItemProcessingStatisticsType itemProcessingStatistics =
-                state.getStatistics() != null ?
-                        state.getStatistics().getItemProcessing() : new ActivityItemProcessingStatisticsType();
+        ActivityStatisticsType statistics = getStatisticsOrNew(ActivityPath.empty());
+        ActivityItemProcessingStatisticsType itemProcessingStatistics = requireNonNullElseGet(
+                statistics.getItemProcessing(), () -> new ActivityItemProcessingStatisticsType(getPrismContext()));
 
         ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter =
                 new ActivityItemProcessingStatisticsAsserter<>(itemProcessingStatistics, this, getDetails());
@@ -193,23 +199,35 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskActivityStateAsserter<TaskAsserter<RA>> activityState() {
-        TaskActivityStateType activityState = getObject().asObjectable().getActivityState();
+        TaskActivityStateType activityState = Objects.requireNonNull(
+                getObject().asObjectable().getActivityState(), "no activity state");
         TaskActivityStateAsserter<TaskAsserter<RA>> asserter = new TaskActivityStateAsserter<>(activityState, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public StructuredTaskProgressAsserter<TaskAsserter<RA>> structuredProgress() {
-        throw new UnsupportedOperationException();
-//        StructuredTaskProgressType progress = getObject().asObjectable().getStructuredProgress();
-//        if (progress == null) {
-//            progress = new StructuredTaskProgressType(getPrismContext());
-//        }
-//        StructuredTaskProgressAsserter<TaskAsserter<RA>> asserter = new StructuredTaskProgressAsserter<>(progress, this, getDetails());
-//        copySetupTo(asserter);
-//        return asserter;
+    public ActivityStateAsserter<TaskAsserter<RA>> rootActivityState() {
+        return activityState(ActivityPath.empty());
     }
 
+    public ActivityStateAsserter<TaskAsserter<RA>> activityState(ActivityPath activityPath) {
+        ActivityStateType state = getActivityStateRequired(activityPath);
+        ActivityStateAsserter<TaskAsserter<RA>> asserter = new ActivityStateAsserter<>(state, this, "for " + activityPath.toDebugName() + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @Deprecated
+    public ActivityProgressAsserter<TaskAsserter<RA>> rootStructuredProgress() {
+        ActivityStateType state = getActivityStateRequired(ActivityPath.empty());
+        ActivityProgressType progress = Objects.requireNonNull(state.getProgress(), "no progress information");
+        ActivityProgressAsserter<TaskAsserter<RA>> asserter =
+                new ActivityProgressAsserter<>(progress, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @Deprecated
     public ActionsExecutedInfoAsserter<TaskAsserter<RA>> actionsExecutedInformation() {
         OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
         ActivityActionsExecutedType information = operationStats != null ?
@@ -385,8 +403,15 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     private @NotNull ActivityStateType getActivityStateRequired(ActivityPath activityPath) {
-        ActivityStateType state = ActivityStateUtil.getActivityState(getTaskBean().getActivityState(), activityPath);
+        ActivityStateType state = ActivityStateUtil.getActivityState(getTaskBean(), activityPath);
         assertThat(state).withFailMessage("No task activity state").isNotNull();
         return state;
+    }
+
+    private ActivityStatisticsType getStatisticsOrNew(ActivityPath activityPath) {
+        ActivityStateType state = getActivityStateRequired(activityPath);
+        return requireNonNullElseGet(
+                state.getStatistics(),
+                () -> new ActivityStatisticsType(getPrismContext()));
     }
 }

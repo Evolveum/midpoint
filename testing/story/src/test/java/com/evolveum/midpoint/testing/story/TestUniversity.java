@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +27,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -76,8 +77,7 @@ public class TestUniversity extends AbstractStoryTest {
     protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dummy-hr-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
 
-    @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
     protected static DummyResource dummyResourceHr;
     protected static DummyResourceContoller dummyResourceCtlHr;
@@ -106,8 +106,8 @@ public class TestUniversity extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        DebugReconciliationTaskResultListener reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
-        reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
+        DebugReconciliationResultListener reconciliationTaskResultListener = new DebugReconciliationResultListener();
+        reconciliationActivityHandler.setReconciliationResultListener(reconciliationTaskResultListener);
 
         // Resources
         dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_ID, resourceDummyHr);

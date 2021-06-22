@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
@@ -17,8 +21,6 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
@@ -33,6 +35,7 @@ public class ReconciliationWorkDefinition extends AbstractWorkDefinition impleme
             resourceObjects = typedDefinition.getResourceObjects() != null ?
                     typedDefinition.getResourceObjects() : new ResourceObjectSetType(PrismContext.get());
         }
+        ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);
     }
 
     @Override

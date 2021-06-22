@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 /**
  * Model constants referenced from the outside.
@@ -51,6 +52,9 @@ public class ModelPublicConstants {
     public static final String RECONCILIATION_OPERATION_COMPLETION_ID = "operationCompletion";
     public static final String RECONCILIATION_RESOURCE_OBJECTS_ID = "resourceObjects";
     public static final String RECONCILIATION_REMAINING_SHADOWS_ID = "remainingShadows";
+
+    public static final ActivityPath RECONCILIATION_RESOURCE_OBJECTS_PATH = ActivityPath.fromId(RECONCILIATION_RESOURCE_OBJECTS_ID);
+    public static final ActivityPath RECONCILIATION_REMAINING_SHADOWS_PATH = ActivityPath.fromId(RECONCILIATION_REMAINING_SHADOWS_ID);
 
     public static final String FOCUS_VALIDITY_SCAN_FULL_ID = "full";
     public static final String FOCUS_VALIDITY_SCAN_OBJECTS_ID = "objects";

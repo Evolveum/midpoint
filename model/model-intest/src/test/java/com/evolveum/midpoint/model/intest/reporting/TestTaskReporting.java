@@ -170,8 +170,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertClosed()
                     .rootItemProcessingInformation()
                         .display()
-                        .end()
-                    .synchronizationInformation()
+                    .end()
+                    .rootSynchronizationInformation()
                         .display();
 
         } finally {
@@ -197,7 +197,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .rootItemProcessingInformation()
                     .display()
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display();
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
@@ -232,7 +232,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertFailureCount(1)
                     .assertLastFailureObjectName("u-000001")
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 8, 0, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
@@ -268,7 +268,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertSuccessCount(7)
                     .assertFailureCount(3)
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
@@ -314,7 +314,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertSkipCount(8)
                     .assertFailureCount(2)
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 7) // Malformed account has a LINKED shadow
@@ -350,7 +350,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertSuccessCount(0)
                     .assertFailureCount(2)
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 0, 1, 0) // That record was already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
@@ -388,7 +388,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertFailureCount(4) // u-000001 failed once in 2nd part, and once in 3rd part
                     .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
                     .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
@@ -472,11 +472,11 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .assertSuccessCount(1)
                     .end()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .assertSuccessCount(1, false)
                     .end()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
                     .assertTransitions(1)

@@ -38,6 +38,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -142,21 +144,26 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(TASK_RECONCILE_DUMMY_0T_NB_NP.oid, "after")
                 .display()
                 .assertClosed()
-                .structuredProgress()
-                    .display()
-                    .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID)
-                        .assertSuccessCount(0, 1)
+                .rootActivityState()
+                    .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                        .progress()
+                            .assertSuccessCount(0, 1)
                         .end()
-                    .part(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
-                        .assertSuccessCount(0, 10)
-                        .end()
-                    .part(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
-                        .assertSuccessCount(0, 1)
-                        .end()
+                        .itemProcessingStatistics().display().end()
                     .end()
-                .rootItemProcessingInformation()
-                    .display()
-                    .end();
+                    .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .progress()
+                            .assertSuccessCount(0, 10)
+                        .end()
+                        .itemProcessingStatistics().display().end()
+                    .end()
+                    .child(RECONCILIATION_REMAINING_SHADOWS_ID)
+                        .progress()
+                            .assertSuccessCount(0, 1)
+                        .end()
+                        .itemProcessingStatistics().display().end()
+                    .end()
+                .end();
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_0T_NB_NP.oid);
     }
@@ -218,7 +225,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         assertTask(rootAfterSuspension1.asObjectable(), "1st")
                 .display()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .end()
                 .rootItemProcessingInformation()
@@ -231,7 +238,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                 .assertAllPartsCount(3)
                 .assertCurrentPartNumber(2)
                 .checkConsistence()
-                .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID)
+                .part(RECONCILIATION_OPERATION_COMPLETION_ID)
                     .assertNoBucketInformation()
                     .assertItems(1, null)
                     .assertComplete()
@@ -265,7 +272,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
                 .display()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .end()
                 .rootItemProcessingInformation()
@@ -326,17 +333,17 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(rootAfterSuspension1.asObjectable(), "after 1st run")
                 .subtaskForPart(1)
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                         .display()
                         .assertSuccessCount(1, false)
-                        .currentPart()
-                            .assertComplete()
-                            .end()
-                        .end()
+//                        .currentPart()
+//                            .assertComplete()
+//                            .end()
+//                        .end()
                     .end()
                 .subtaskForPart(2)
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                         .display()
                         .end()
                     .rootItemProcessingInformation()
@@ -377,17 +384,17 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(rootAfterSuspension2.asObjectable(), "after 2nd run")
                 .subtaskForPart(1)
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                         .display()
                         .assertSuccessCount(1, false)
-                        .currentPart()
-                            .assertComplete()
-                            .end()
-                        .end()
+//                        .currentPart()
+//                            .assertComplete()
+//                            .end()
+//                        .end()
                     .end()
                 .subtaskForPart(2)
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                         .display()
                         .end()
                     .rootItemProcessingInformation()
@@ -418,7 +425,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
             TaskType worker = children2.get(0);
             assertTask(worker, "worker")
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                     .display();
             TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(worker);
             assertTaskProgress(progressOfSubtask, "worker task progress")
@@ -515,7 +522,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
                 .display()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display();
 
         TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
@@ -538,7 +545,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
             TaskType subtask = subtasks.get(0);
             assertTask(subtask, "subtask")
                     .display()
-                    .structuredProgress()
+                    .rootStructuredProgress()
                         .display();
             TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(subtask);
             assertTaskProgress(progressOfSubtask, "subtask progress")

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncItemProcessingRequest;
-import com.evolveum.midpoint.model.impl.sync.tasks.TargetInfo;
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.provisioning.api.AsyncUpdateEvent;
 import com.evolveum.midpoint.provisioning.api.AsyncUpdateEventHandler;
@@ -38,7 +38,7 @@ public class AsyncUpdateActivityExecution
 
     private static final String SHORT_NAME = "AsyncUpdate";
 
-    private TargetInfo targetInfo;
+    private ResourceObjectClassSpecification objectClassSpecification;
 
     AsyncUpdateActivityExecution(
             @NotNull ExecutionInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context) {
@@ -57,10 +57,10 @@ public class AsyncUpdateActivityExecution
         RunningTask runningTask = getTaskExecution().getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        targetInfo = getModelBeans().syncTaskHelper
-                .createTargetInfo(resourceObjectSet, runningTask, opResult);
+        objectClassSpecification = getModelBeans().syncTaskHelper
+                .createObjectClassSpec(resourceObjectSet, runningTask, opResult);
 
-        targetInfo.checkNotInMaintenance();
+        objectClassSpecification.checkNotInMaintenance();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class AsyncUpdateActivityExecution
 
         ModelImplUtils.clearRequestee(getRunningTask());
         getModelBeans().provisioningService
-                .processAsynchronousUpdates(targetInfo.getCoords(), handler, getRunningTask(), opResult);
+                .processAsynchronousUpdates(objectClassSpecification.getCoords(), handler, getRunningTask(), opResult);
     }
 
     @Override

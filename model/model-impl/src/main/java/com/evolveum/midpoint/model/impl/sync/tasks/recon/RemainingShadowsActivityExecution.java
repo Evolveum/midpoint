@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -81,8 +82,8 @@ class RemainingShadowsActivityExecution
                     .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp(opResult))
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
                 .endBlock()
-                    .and().item(ShadowType.F_RESOURCE_REF).ref(targetInfo.getResourceOid())
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(targetInfo.getObjectClassDefinitionRequired().getTypeName())
+                    .and().item(ShadowType.F_RESOURCE_REF).ref(objectClassSpec.getResourceOid())
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassSpec.getObjectClassDefinitionRequired().getTypeName())
                 .build();
     }
 
@@ -100,7 +101,7 @@ class RemainingShadowsActivityExecution
 
     @Override
     protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
-        return createItemDefinitionProviderForAttributes(targetInfo.getObjectClassDefinitionRequired());
+        return createItemDefinitionProviderForAttributes(objectClassSpec.getObjectClassDefinitionRequired());
     }
 
     @Override
@@ -148,12 +149,17 @@ class RemainingShadowsActivityExecution
         getModelBeans().provisioningService.applyDefinition(shadow, task, result);
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
-        change.setResource(targetInfo.getResource().asPrismObject());
+        change.setResource(objectClassSpec.getResource().asPrismObject());
         ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
                 .createDeleteDelta(ShadowType.class, shadow.getOid());
         change.setObjectDelta(shadowDelta);
         change.setShadowedResourceObject(shadow);
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
+    }
+
+    @VisibleForTesting
+    public long getShadowReconCount() {
+        return executionStatistics.getItemsProcessed();
     }
 }
