@@ -33,7 +33,7 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
         implements UpdatableItemSqlMapper<Q, R> {
 
     private final Function<Q, JsonbPath> rootToExtensionPath;
-    private final QName itemName;
+    private final QName itemName; // TODO remove if not needed for deltas/modify
     private final MExtItemHolderType holderType;
 
     public ExtensionItemSqlMapper(
@@ -59,7 +59,9 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         //noinspection unchecked
         return (ItemFilterProcessor<T>) new ExtensionItemFilterProcessor(
-                (SqlQueryContext<?, Q, R>) sqlQueryContext, rootToExtensionPath, holderType);
+                sqlQueryContext,
+                (Function<FlexibleRelationalPathBase<?>, JsonbPath>) rootToExtensionPath,
+                holderType);
     }
 
     @Override
