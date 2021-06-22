@@ -201,7 +201,7 @@
         <connid.version>1.5.0.17</connid.version>
         <jasper.version>6.17.0</jasper.version>
         <derby.version>10.15.2.0</derby.version>
-        <wro4j.version>1.9.0</wro4j.version>
+        <wro4j.version>1.10.1</wro4j.version>
         <surefire.version>3.0.0-M5</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>30.1.1-jre</guava.version>
@@ -1485,11 +1485,6 @@
                 <groupId>org.webjars.npm</groupId>
                 <artifactId>ionicons</artifactId>
                 <version>5.5.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.webjars</groupId>
-                <artifactId>webjars-locator-core</artifactId>
-                <version>0.47</version>
             </dependency>
             <dependency>
                 <groupId>org.webjars</groupId>
