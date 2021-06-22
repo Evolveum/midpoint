@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -75,7 +77,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     }
 
     @Override
-    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) {
+    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         throw new UnsupportedOperationException("insert must be implemented in the subclass");
     }
 }

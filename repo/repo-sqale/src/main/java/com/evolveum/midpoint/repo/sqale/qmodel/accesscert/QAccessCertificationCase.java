@@ -129,8 +129,10 @@ public class QAccessCertificationCase extends QContainer<MAccessCertificationCas
     public final StringPath outcome = createString("outcome", OUTCOME);
     public final DateTimePath<Instant> remediedTimestamp =
             createInstant("remediedTimestamp", REMEDIED_TIMESTAMP);
+    public final DateTimePath<Instant> currentStageDeadline =
+            createInstant("currentStageDeadline", CURRENT_STAGE_DEADLINE);
     public final DateTimePath<Instant> currentStageCreateTimestamp =
-            createInstant("currentStageCreateTimestamp", CURRENT_STAGE_DEADLINE);
+            createInstant("currentStageCreateTimestamp", CURRENT_STAGE_CREATE_TIMESTAMP);
     public final DateTimePath<Instant> reviewRequestedTimestamp =
             createInstant("reviewRequestedTimestamp", CURRENT_STAGE_CREATE_TIMESTAMP);
     public final NumberPath<Integer> stageNumber =

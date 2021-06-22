@@ -119,7 +119,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     public abstract <P extends Path<T>, T> void set(P path, T value);
 
     @SuppressWarnings("UnusedReturnValue")
-    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
+    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) throws SchemaException {
         return mapping.insert(schemaObject, row, jdbcSession);
     }
 

@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
@@ -31,10 +35,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.MAccessCertificationDefinition;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
@@ -1664,10 +1664,32 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UUID definitionRefOid = UUID.randomUUID();
         QName definitionRefRelationUri = QName.valueOf("{https://some.uri}definition-relation");
         UUID ownerRefOid = UUID.randomUUID();
-        QName ownerRefRelationUri = QName.valueOf("{https://some.uri}owner-relation");
+        QName ownerRefRelationUri = QName.valueOf("{https://strange.uri}owner-relation");
 
-        Instant startTimestamp = Instant.ofEpochMilli(1234); // 0 means null in MiscUtil
+        Instant startTimestamp = Instant.ofEpochMilli(1234);
+        Instant validFrom = Instant.ofEpochMilli(444000);
+        Instant validityChangeTimestamp = Instant.ofEpochMilli(444001);
+        Instant currentStageCreateTimestamp = Instant.ofEpochMilli(444333);
+        Instant remediedTimestamp = Instant.ofEpochMilli(444555);
+        Instant currentStageDeadline = Instant.ofEpochMilli(444666);
+        Instant validTo = Instant.ofEpochMilli(999000);
+        Instant enableTimestamp = Instant.ofEpochMilli(555000);
+        Instant disableTimestamp = Instant.ofEpochMilli(555111);
+        Instant archiveTimestamp = Instant.ofEpochMilli(555123);
         Instant endTimestamp = Instant.ofEpochMilli(System.currentTimeMillis());
+        String disableReason = "Whatever!";
+        String currentStageOutcome = "Big bada BOOM";
+        Integer caseIteration = 5;
+        UUID caseObjectRefOid = UUID.randomUUID();
+        QName caseObjectRefRelationUri = QName.valueOf("{https://other.uri}case-object-ref-relation");
+        UUID caseOrgRefOid = UUID.randomUUID();
+        QName caseOrgRefRelationUri = QName.valueOf("{https://other.uri}case-org-ref-relation");
+        String caseOutcome = "... for ever and ever";
+        int caseStageNumber = 8;
+        UUID caseTargetRefOid = UUID.randomUUID();
+        QName caseTargetRefRelationUri = QName.valueOf("{https://some.uri}case-target-ref-relation");
+        UUID caseTenantRefOid = UUID.randomUUID();
+        QName caseTenantRefRelationUri = QName.valueOf("{https://some.uri}case-tenant-ref-relation");
 
         var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
                 .name(objectName)
@@ -1678,7 +1700,33 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri)
                 .stageNumber(2)
                 .startTimestamp(MiscUtil.asXMLGregorianCalendar(startTimestamp))
-                .state(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
+                .state(AccessCertificationCampaignStateType.IN_REVIEW_STAGE)
+                ._case(new AccessCertificationCaseType(prismContext)
+                        .id(48L)
+                        .activation(new ActivationType(prismContext)
+                                .administrativeStatus(ActivationStatusType.ARCHIVED)
+                                .archiveTimestamp(MiscUtil.asXMLGregorianCalendar(archiveTimestamp))
+                                .disableReason(disableReason)
+                                .disableTimestamp(MiscUtil.asXMLGregorianCalendar(disableTimestamp))
+                                .effectiveStatus(ActivationStatusType.DISABLED)
+                                .enableTimestamp(MiscUtil.asXMLGregorianCalendar(enableTimestamp))
+                                .validFrom(MiscUtil.asXMLGregorianCalendar(validFrom))
+                                .validTo(MiscUtil.asXMLGregorianCalendar(validTo))
+                                .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(validityChangeTimestamp))
+                                .validityStatus(TimeIntervalStatusType.IN)
+                        )
+                        .currentStageOutcome(currentStageOutcome)
+                        .iteration(caseIteration)
+                        .objectRef(caseObjectRefOid.toString(), ServiceType.COMPLEX_TYPE, caseObjectRefRelationUri)
+                        .orgRef(caseOrgRefOid.toString(), OrgType.COMPLEX_TYPE, caseOrgRefRelationUri)
+                        .outcome(caseOutcome)
+                        .remediedTimestamp(MiscUtil.asXMLGregorianCalendar(remediedTimestamp))
+                        .currentStageDeadline(MiscUtil.asXMLGregorianCalendar(currentStageDeadline))
+                        .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(currentStageCreateTimestamp))
+                        .stageNumber(caseStageNumber)
+                        .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
+                        .tenantRef(caseTenantRefOid.toString(), OrgType.COMPLEX_TYPE, caseTenantRefRelationUri)
+                );
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
@@ -1700,6 +1748,54 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.stageNumber).isEqualTo(2);
         assertThat(row.startTimestamp).isEqualTo(startTimestamp);
         assertThat(row.state).isEqualTo(AccessCertificationCampaignStateType.IN_REVIEW_STAGE);
+
+        QAccessCertificationCase caseAlias = aliasFor(QAccessCertificationCase.class);
+        List<MAccessCertificationCase> caseRows = select(caseAlias,
+                caseAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
+        assertThat(caseRows).hasSize(1);
+        caseRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationCase caseRow = caseRows.get(0);
+        assertThat(caseRow.cid).isEqualTo(48); // assigned in advance
+        assertThat(caseRow.administrativeStatus).isEqualTo(ActivationStatusType.ARCHIVED);
+        assertThat(caseRow.archiveTimestamp).isEqualTo(archiveTimestamp);
+        assertThat(caseRow.disableReason).isEqualTo(disableReason);
+        assertThat(caseRow.disableTimestamp).isEqualTo(disableTimestamp);
+        assertThat(caseRow.effectiveStatus).isEqualTo(ActivationStatusType.DISABLED);
+        assertThat(caseRow.enableTimestamp).isEqualTo(enableTimestamp);
+        assertThat(caseRow.validFrom).isEqualTo(validFrom);
+        assertThat(caseRow.validTo).isEqualTo(validTo);
+        assertThat(caseRow.validityChangeTimestamp).isEqualTo(validityChangeTimestamp);
+        assertThat(caseRow.validityStatus).isEqualTo(TimeIntervalStatusType.IN);
+        assertThat(caseRow.currentStageOutcome).isEqualTo(currentStageOutcome);
+        assertContainerFullObject(caseRow.fullObject, accessCertificationCampaign.getCase().get(0));
+        assertThat(caseRow.iteration).isEqualTo(caseIteration);
+        assertThat(caseRow.objectRefTargetOid).isEqualTo(caseObjectRefOid);
+        assertThat(caseRow.objectRefTargetType).isEqualTo(MObjectType.SERVICE);
+        assertCachedUri(caseRow.objectRefRelationId, caseObjectRefRelationUri);
+        assertThat(caseRow.orgRefTargetOid).isEqualTo(caseOrgRefOid);
+        assertThat(caseRow.orgRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(caseRow.orgRefRelationId, caseOrgRefRelationUri);
+        assertThat(caseRow.outcome).isEqualTo(caseOutcome);
+        assertThat(caseRow.remediedTimestamp).isEqualTo(remediedTimestamp);
+        assertThat(caseRow.currentStageDeadline).isEqualTo(currentStageDeadline);
+        assertThat(caseRow.currentStageCreateTimestamp).isEqualTo(currentStageCreateTimestamp);
+        assertThat(caseRow.stageNumber).isEqualTo(caseStageNumber);
+        assertThat(caseRow.targetRefTargetOid).isEqualTo(caseTargetRefOid);
+        assertThat(caseRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(caseRow.targetRefRelationId, caseTargetRefRelationUri);
+        assertThat(caseRow.tenantRefTargetOid).isEqualTo(caseTenantRefOid);
+        assertThat(caseRow.tenantRefTargetType).isEqualTo(MObjectType.ORG);
+        assertCachedUri(caseRow.tenantRefRelationId, caseTenantRefRelationUri);
+
+    }
+
+    private <C extends Containerable> void assertContainerFullObject(byte[] rowFullObject, C sObject) throws Exception {
+        byte[] serializedSObject = prismContext
+                .serializerFor(PrismContext.LANG_XML)
+                .serialize(sObject.asPrismContainerValue())
+                .getBytes(StandardCharsets.UTF_8);
+        assertThat(rowFullObject).isEqualTo(serializedSObject);
     }
 
     @Test

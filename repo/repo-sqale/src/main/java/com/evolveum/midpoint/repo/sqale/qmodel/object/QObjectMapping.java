@@ -229,7 +229,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
      * @param jdbcSession JDBC session used to insert related rows
      */
     public void storeRelatedEntities(
-            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         Objects.requireNonNull(row.oid);
 
         // We're after insert, we can set this for the needs of owned entities (assignments).

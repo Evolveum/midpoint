@@ -8,7 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +17,9 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
+import java.util.List;
 
 /**
  * Mapping between {@link QAccessCertificationCampaign}
@@ -53,6 +57,10 @@ public class QAccessCertificationCampaignMapping
         addItemMapping(F_START_TIMESTAMP,
                 timestampMapper(q -> q.startTimestamp));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
+
+        addContainerTableMapping(F_CASE,
+                QAccessCertificationCaseMapping.init(repositoryContext),
+                joinOn((o, acase) -> o.oid.eq(acase.ownerOid)));
     }
 
     @Override
@@ -89,5 +97,19 @@ public class QAccessCertificationCampaignMapping
         row.state = schemaObject.getState();
 
         return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull MAccessCertificationCampaign row, @NotNull AccessCertificationCampaignType schemaObject,
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        List<AccessCertificationCaseType> cases = schemaObject.getCase();
+        if (!cases.isEmpty()) {
+            for (AccessCertificationCaseType c : cases) {
+                QAccessCertificationCaseMapping.get().insert(c, row, jdbcSession);
+            }
+        }
     }
 }

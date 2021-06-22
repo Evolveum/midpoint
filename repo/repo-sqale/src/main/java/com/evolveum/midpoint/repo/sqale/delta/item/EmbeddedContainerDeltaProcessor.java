@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Delta processor for embedded single-value containers.
@@ -46,7 +47,7 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
     /**
      * Sets the values for items in the PCV that are mapped to database columns and nulls the rest.
      */
-    public void setValue(T value) {
+    public void setValue(T value) throws SchemaException {
         PrismContainerValue<T> pcv = Containerable.asPrismContainerValue(value);
         if (pcv == null) {
             delete(); // we need to clear existing values

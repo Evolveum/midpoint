@@ -6,16 +6,19 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
@@ -124,7 +127,7 @@ public class QAccessCertificationCaseMapping
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public MAccessCertificationCase insert(AccessCertificationCaseType acase, MAccessCertificationCampaign ownerRow, JdbcSession jdbcSession) {
+    public MAccessCertificationCase insert(AccessCertificationCaseType acase, MAccessCertificationCampaign ownerRow, JdbcSession jdbcSession) throws SchemaException {
         MAccessCertificationCase row = initRowObject(acase, ownerRow);
 
         // activation
@@ -143,9 +146,7 @@ public class QAccessCertificationCaseMapping
         }
 
         row.currentStageOutcome = acase.getCurrentStageOutcome();
-
-        // TODO: full object
-
+        row.fullObject = createFullObject(acase);
         row.iteration = acase.getIteration();
         setReference(acase.getObjectRef(),
                 o -> row.objectRefTargetOid = o,
@@ -177,5 +178,16 @@ public class QAccessCertificationCaseMapping
 //                QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
 
         return row;
+    }
+
+    private byte[] createFullObject(AccessCertificationCaseType schemaObject) throws SchemaException {
+
+        return repositoryContext().createStringSerializer()
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(schemaObject.asPrismContainerValue())
+                .getBytes(StandardCharsets.UTF_8);
     }
 }
