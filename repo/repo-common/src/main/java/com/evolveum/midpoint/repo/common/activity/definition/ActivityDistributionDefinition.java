@@ -9,11 +9,12 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ActivityDistributionDefinition implements DebugDumpable {
+public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
     @NotNull private WorkDistributionType bean;
 
@@ -58,6 +59,15 @@ public class ActivityDistributionDefinition implements DebugDumpable {
             this.bean = tailoring.getDistribution();
         } else {
             // null means we do not want it to change.
+        }
+    }
+
+    @Override
+    public ActivityDistributionDefinition clone() {
+        try {
+            return (ActivityDistributionDefinition) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new SystemException(e);
         }
     }
 }

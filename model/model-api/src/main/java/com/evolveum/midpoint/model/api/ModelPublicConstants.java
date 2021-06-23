@@ -53,6 +53,7 @@ public class ModelPublicConstants {
     public static final String RECONCILIATION_RESOURCE_OBJECTS_ID = "resourceObjects";
     public static final String RECONCILIATION_REMAINING_SHADOWS_ID = "remainingShadows";
 
+    public static final ActivityPath RECONCILIATION_OPERATION_COMPLETION_PATH = ActivityPath.fromId(RECONCILIATION_OPERATION_COMPLETION_ID);
     public static final ActivityPath RECONCILIATION_RESOURCE_OBJECTS_PATH = ActivityPath.fromId(RECONCILIATION_RESOURCE_OBJECTS_ID);
     public static final ActivityPath RECONCILIATION_REMAINING_SHADOWS_PATH = ActivityPath.fromId(RECONCILIATION_REMAINING_SHADOWS_ID);
 

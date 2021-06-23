@@ -5698,6 +5698,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SynchronizationParametersType.resourceRef</a:displayName>
+                        <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

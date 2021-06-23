@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStr
 
 import org.jetbrains.annotations.NotNull;
 
-public class ActivityControlFlowDefinition implements DebugDumpable {
+public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
     @NotNull private ActivityControlFlowSpecificationType bean;
 
@@ -50,6 +51,15 @@ public class ActivityControlFlowDefinition implements DebugDumpable {
             this.bean = tailoring.getControlFlow();
         } else {
             // null means we do not want it to change.
+        }
+    }
+
+    @Override
+    public ActivityControlFlowDefinition clone() {
+        try {
+            return (ActivityControlFlowDefinition) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new SystemException(e);
         }
     }
 }

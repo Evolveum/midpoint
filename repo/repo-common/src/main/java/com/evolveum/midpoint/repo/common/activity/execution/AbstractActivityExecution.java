@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -38,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
+import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
@@ -304,7 +306,8 @@ public abstract class AbstractActivityExecution<
     }
 
     public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
-        activityState.getLiveProgress().increment(outcome, hasProgressCommitPoints());
+        ActivityProgress.Counters counters = hasProgressCommitPoints() ? UNCOMMITTED : COMMITTED;
+        activityState.getLiveProgress().increment(outcome, counters);
     }
 
     /**

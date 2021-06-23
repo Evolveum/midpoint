@@ -60,15 +60,15 @@ public class ReconciliationActivityHandler
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<ReconciliationWorkDefinition, ReconciliationActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
                 (context, result) -> new OperationCompletionActivityExecution(context),
                 (i) -> ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID,
                 parentActivity));
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
                 (context, result) -> new ResourceReconciliationActivityExecution(context),
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
                 parentActivity));
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
                 (context, result) -> new RemainingShadowsActivityExecution(context),
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID,
                 parentActivity));

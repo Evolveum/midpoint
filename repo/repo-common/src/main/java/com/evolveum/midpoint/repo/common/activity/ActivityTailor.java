@@ -32,9 +32,9 @@ class ActivityTailor {
     }
 
     public void execute() throws SchemaException {
-        for (ActivityTailoringType activityTailoringType : tailoring.getChanges()) {
-            Activity<?, ?> child = findChild(activityTailoringType.getReference());
-            child.applyChangeTailoring(activityTailoringType);
+        for (ActivityTailoringType change : tailoring.getChanges()) {
+            Activity<?, ?> child = findChild(change.getReference());
+            child.applyChangeTailoring(change);
         }
     }
 

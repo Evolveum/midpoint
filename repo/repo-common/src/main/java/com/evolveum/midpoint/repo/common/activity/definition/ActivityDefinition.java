@@ -24,14 +24,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * Definition of an activity. It is analogous to ActivityDefinitionType, but contains the complete information
  * about particular activity in the context of given task.
  */
-public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpable {
+public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpable, Cloneable {
 
     private final ActivityDefinitionType definitionBean;
 
+    /** Should not be changed. */
     @NotNull private final WD workDefinition;
 
+    /** Tailorable. */
     @NotNull private final ActivityControlFlowDefinition controlFlowDefinition;
 
+    /** Tailorable. */
     @NotNull private final ActivityDistributionDefinition distributionDefinition;
 
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
@@ -210,5 +213,16 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         if (tailoring.getExecutionMode() != null) {
             ((AbstractWorkDefinition) workDefinition).setExecutionMode(tailoring.getExecutionMode());
         }
+    }
+
+    @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
+    @Override
+    public ActivityDefinition<WD> clone() {
+        return new ActivityDefinition<>(
+                definitionBean,
+                workDefinition,
+                controlFlowDefinition.clone(),
+                distributionDefinition.clone(),
+                workDefinitionFactory);
     }
 }

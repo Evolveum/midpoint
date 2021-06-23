@@ -61,12 +61,12 @@ public class ActivityProgress extends Initializable {
     /**
      * Increments the progress.
      */
-    public synchronized void increment(QualifiedItemProcessingOutcomeType outcome, boolean committed) {
+    public synchronized void increment(QualifiedItemProcessingOutcomeType outcome, @NotNull Counters counters) {
         assertInitialized();
-        List<OutcomeKeyedCounterType> counter = committed ? value.getCommitted() : value.getUncommitted();
+        List<OutcomeKeyedCounterType> counter = counters == Counters.COMMITTED ? value.getCommitted() : value.getUncommitted();
         int newCount = OutcomeKeyedCounterTypeUtil.incrementCounter(counter, outcome, getBeans().prismContext);
-        LOGGER.trace("Incremented progress (committed={}) to {} for {} in activity execution {}",
-                committed, newCount, outcome, getActivityExecution());
+        LOGGER.trace("Incremented progress (counters: {}) to {} for {} in activity execution {}",
+                counters, newCount, outcome, getActivityExecution());
     }
 
     /**
@@ -112,5 +112,9 @@ public class ActivityProgress extends Initializable {
 
     public synchronized long getLegacyValue() {
         return ActivityProgressUtil.getCurrentProgress(value);
+    }
+
+    public enum Counters {
+        COMMITTED, UNCOMMITTED
     }
 }
