@@ -56,11 +56,12 @@ public class ActivityTreeStateOverview {
             beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, rootTask.getOid(), null,
                     taskBean -> {
                         ActivityStateOverviewType overview = ActivityStateOverviewUtil.getOrCreateStateOverview(taskBean);
-                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityStateOverviewType entry = ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                                 .executionState(ActivityExecutionStateType.EXECUTING)
-                                .resultStatus(OperationResultStatusType.IN_PROGRESS)
-                                .taskRef(execution.getRunningTask().getSelfReference());
+                                .resultStatus(OperationResultStatusType.IN_PROGRESS);
+                        entry.getTaskRef().clear(); // temporary implementation
+                        entry.getTaskRef().add(execution.getRunningTask().getSelfReference());
                         return beans.prismContext.deltaFor(TaskType.class)
                                 .item(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY).replace(overview)
                                 .asItemDeltas();
@@ -94,11 +95,12 @@ public class ActivityTreeStateOverview {
                             executionState = ActivityExecutionStateType.NOT_EXECUTING;
                             resultStatus = OperationResultStatusType.FATAL_ERROR;
                         }
-                        ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
+                        ActivityStateOverviewType entry = ActivityStateOverviewUtil.findOrCreateEntry(overview, execution.getActivityPath())
                                 .realizationState(realizationState)
                                 .executionState(executionState)
-                                .resultStatus(resultStatus)
-                                .taskRef(execution.getRunningTask().getSelfReference());
+                                .resultStatus(resultStatus);
+                        entry.getTaskRef().clear();
+                        entry.getTaskRef().add(execution.getRunningTask().getSelfReference());
                         return beans.prismContext.deltaFor(TaskType.class)
                                 .item(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY).replace(overview)
                                 .asItemDeltas();

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * TODO
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({ "WeakerAccess", "UnusedReturnValue" })
 public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
 
     private final ActivityStateType activityState;
@@ -198,6 +198,23 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
 
     public ActivityStateAsserter<RA> display() {
         IntegrationTestTools.display(desc(), DebugUtil.debugDump(activityState));
+        return this;
+    }
+
+    public ActivityStateAsserter<RA> assertPersistenceSingleRealization() {
+        return assertPersistence(ActivityStatePersistenceType.SINGLE_REALIZATION);
+    }
+
+    public ActivityStateAsserter<RA> assertPersistencePerpetual() {
+        return assertPersistence(ActivityStatePersistenceType.PERPETUAL);
+    }
+
+    public ActivityStateAsserter<RA> assertPersistencePerpetualExceptStatistics() {
+        return assertPersistence(ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS);
+    }
+
+    public ActivityStateAsserter<RA> assertPersistence(ActivityStatePersistenceType expected) {
+        assertThat(activityState.getPersistence()).as("persistence").isEqualTo(expected);
         return this;
     }
 }

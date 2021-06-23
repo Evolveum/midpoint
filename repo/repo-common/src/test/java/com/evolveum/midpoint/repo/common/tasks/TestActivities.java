@@ -171,7 +171,8 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertComplete()
                         .assertNoSynchronizationStatistics()
-                        .assertNoActionsExecutedInformation();
+                        .assertNoActionsExecutedInformation()
+                        .assertPersistenceSingleRealization();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("msg1");
@@ -219,7 +220,16 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .rootActivity()
                         .assertComplete()
                         .assertNoSynchronizationStatistics()
-                        .assertNoActionsExecutedInformation();
+                        .assertNoActionsExecutedInformation()
+                        .assertPersistenceSingleRealization()
+                        .child("opening")
+                            .assertPersistenceSingleRealization()
+                        .end()
+                        .child("closing")
+                            .assertPersistencePerpetual()
+                        .end()
+                    .end()
+                .end();
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
@@ -256,7 +266,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertErrors(0)
                     .assertProgress(1)
                     .assertHasWallClockTime()
-                    .assertHasThroughput();
+                    .assertNoThroughput();
     }
 
     /**
@@ -483,7 +493,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertErrors(0)
                         .assertProgress(runNumber)
                         .assertHasWallClockTime()
-                        .assertHasThroughput()
+                        .assertNoThroughput()
                     .end()
                 .end()
                 .child("mock-simple:1")
@@ -508,7 +518,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertErrors(0)
                         .assertProgress(runNumber)
                         .assertHasWallClockTime()
-                        .assertHasThroughput()
+                        .assertNoThroughput()
                     .end()
                 .end()
                 .child("mock-composite:3")
@@ -519,7 +529,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .assertErrors(0)
                         .assertProgress(runNumber)
                         .assertHasWallClockTime()
-                        .assertHasThroughput()
+                        .assertNoThroughput()
                     .end()
                 .end();
         // @formatter:on
@@ -2025,6 +2035,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertSuccess()
                     .activityState()
                         .rootActivity()
+                            .assertPersistencePerpetual()
                             .progress()
                                 .assertCommitted(1, 0, 0)
                                 .assertNoUncommitted()
@@ -2032,7 +2043,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .itemProcessingStatistics()
                                 .assertTotalCounts(1, 0, 0)
                                 .assertLastSuccessObjectName("id1:closing")
-                                .assertExecutions(1)
+                                .assertExecutions(0) // because of perpetual persistence of state
                             .end()
                         .end()
                     .end()
@@ -2073,7 +2084,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertErrors(0)
                     .assertProgress(1)
                     .assertHasWallClockTime()
-                    .assertHasThroughput()
+                    .assertNoThroughput()
                 .end();
     }
 

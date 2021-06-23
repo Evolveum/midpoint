@@ -305,6 +305,10 @@ public abstract class AbstractActivityExecution<
         return supportsStatistics(); // Should be overridden in subclasses, if needed.
     }
 
+    public boolean supportsExecutionRecords() {
+        return supportsStatistics() && getPersistenceType() == ActivityStatePersistenceType.SINGLE_REALIZATION;
+    }
+
     public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
         ActivityProgress.Counters counters = hasProgressCommitPoints() ? UNCOMMITTED : COMMITTED;
         activityState.getLiveProgress().increment(outcome, counters);

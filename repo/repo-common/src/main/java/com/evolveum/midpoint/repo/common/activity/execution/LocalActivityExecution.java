@@ -46,14 +46,18 @@ public abstract class LocalActivityExecution<
 
     private void updateStateInformationOnExecutionStart(OperationResult result) throws ActivityExecutionException {
         getTreeStateOverview().recordExecutionStart(this, result);
-        activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionStart(getStartTimestamp());
+        if (supportsExecutionRecords()) {
+            activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionStart(getStartTimestamp());
+        }
         activityState.getLiveProgress().clearUncommitted();
     }
 
     private void updateStateInformationOnExecutionFinish(OperationResult result, ActivityExecutionResult executionResult)
             throws ActivityExecutionException {
         getTreeStateOverview().recordExecutionFinish(this, executionResult, result);
-        activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionEnd(getStartTimestamp(), System.currentTimeMillis());
+        if (supportsExecutionRecords()) {
+            activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionEnd(getStartTimestamp(), System.currentTimeMillis());
+        }
     }
 
     protected abstract @NotNull ActivityExecutionResult executeLocal(OperationResult result)
