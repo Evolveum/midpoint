@@ -20,8 +20,8 @@
         <work>
             <iterativeScripting>
                 <objects>
-                    <objectType>ShadowType</objectType>
-                    <objectQuery>
+                    <type>ShadowType</type>
+                    <query>
                         <q:filter>
                             <q:and>
                                 <q:ref>
@@ -36,7 +36,7 @@
                                 </q:equal>
                             </q:and>
                         </q:filter>
-                    </objectQuery>
+                    </query>
                     <searchOptions>
                         <option>
                             <options>
