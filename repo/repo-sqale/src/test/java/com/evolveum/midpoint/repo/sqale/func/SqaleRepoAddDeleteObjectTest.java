@@ -22,19 +22,19 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
@@ -68,7 +68,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;

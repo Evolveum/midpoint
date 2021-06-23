@@ -13,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
 /**
