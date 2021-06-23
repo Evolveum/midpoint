@@ -74,7 +74,7 @@ public abstract class AbstractSearchIterativeActivityExecution<
     /**
      * Specification of the search that is to be executed: object type, query, options, and "use repository" flag.
      */
-    private SearchSpecification<O> searchSpecification;
+    protected SearchSpecification<O> searchSpecification;
 
     /**
      * Additional filter to be applied to each object received (if not null).
@@ -203,7 +203,7 @@ public abstract class AbstractSearchIterativeActivityExecution<
         searchSpecification.setQuery(
                 evaluateQueryExpressions(searchSpecification.getQuery(), opResult));
 
-        applyProvisioningDefinitionsToQuery(searchSpecification.getQuery(), opResult);
+        applyDefinitionsToQuery(opResult);
 
         LOGGER.trace("{}: will do the following search:\n{}",
                 activityShortNameCapitalized, DebugUtil.debugDumpLazily(searchSpecification));
@@ -413,9 +413,10 @@ public abstract class AbstractSearchIterativeActivityExecution<
     }
 
     /**
-     * Applies provisioning definitions to query. Not available in repo-common.
+     * Applies definitions to query. Currently related only to provisioning-level definitions.
+     * Therefore not available in repo-common.
      */
-    protected void applyProvisioningDefinitionsToQuery(ObjectQuery query, OperationResult opResult) throws CommonException {
+    protected void applyDefinitionsToQuery(OperationResult opResult) throws CommonException {
     }
 
     /**

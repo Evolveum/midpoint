@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -106,9 +107,15 @@ public abstract class AbstractModelSearchActivityExecution<O extends ObjectType,
     }
 
     @Override
-    protected void applyProvisioningDefinitionsToQuery(ObjectQuery query, OperationResult opResult) throws CommonException {
-        getModelBeans().provisioningService.applyDefinition(
-                getObjectType(), query, getRunningTask(), opResult);
+    protected void applyDefinitionsToQuery(OperationResult opResult) throws CommonException {
+        if (Boolean.TRUE.equals(searchSpecification.getUseRepository())) {
+            return;
+        }
+        Class<O> objectType = searchSpecification.getObjectType();
+        if (ObjectTypes.isClassManagedByProvisioning(objectType)) {
+            getModelBeans().provisioningService
+                    .applyDefinition(objectType, searchSpecification.getQuery(), getRunningTask(), opResult);
+        }
     }
 
     @Override
