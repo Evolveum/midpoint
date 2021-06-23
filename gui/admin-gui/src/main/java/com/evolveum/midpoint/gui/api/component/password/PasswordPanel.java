@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.password;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,7 +28,6 @@ import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.util.time.Duration;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -214,7 +214,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
@@ -232,7 +232,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });
