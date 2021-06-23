@@ -670,10 +670,10 @@ public abstract class SchemaConstants {
 
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 
-    public static final String AUDIT_RECORDS_CLEANUP_TASK_PART_URI = "auditRecords";
+    public static final String ID_AUDIT_RECORDS_CLEANUP = "auditRecords";
     public static final String ID_CLOSED_TASKS_CLEANUP = "closedTasks";
     public static final String ID_CLOSED_CASES_CLEANUP = "closedCases";
     public static final String ID_DEAD_NODES_CLEANUP = "deadNodes";
-    public static final String OUTPUT_REPORTS_CLEANUP_TASK_PART_URI = "outputReports";
-    public static final String CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP_TASK_PART_URI = "closedCertificationCampaigns";
+    public static final String ID_OUTPUT_REPORTS_CLEANUP = "outputReports";
+    public static final String ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP = "closedCertificationCampaigns";
 }

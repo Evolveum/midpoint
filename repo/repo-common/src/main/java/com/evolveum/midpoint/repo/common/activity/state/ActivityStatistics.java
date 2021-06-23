@@ -91,7 +91,9 @@ public class ActivityStatistics {
             if (activityState.getActivityExecution().supportsActionsExecuted()) {
                 activityState.setItemRealValues(ACTIONS_EXECUTED_PATH, actionsExecuted.getValueCopy());
             }
-            activityState.setItemRealValues(BUCKET_MANAGEMENT_STATISTICS_PATH, bucketManagement.getValueCopy());
+            if (activityState.getActivity().getDistributionDefinition().hasBuckets()) {
+                activityState.setItemRealValues(BUCKET_MANAGEMENT_STATISTICS_PATH, bucketManagement.getValueCopy());
+            }
         }
     }
 

@@ -419,7 +419,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     //endregion
 
     //region Misc
-    private @NotNull Activity<?, ?> getActivity() {
+    @NotNull Activity<?, ?> getActivity() {
         return activityExecution.getActivity();
     }
 

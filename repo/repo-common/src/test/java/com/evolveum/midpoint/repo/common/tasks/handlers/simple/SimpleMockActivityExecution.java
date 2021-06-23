@@ -77,7 +77,7 @@ class SimpleMockActivityExecution
             throw e;
         }
 
-        return standardExitResult();
+        return standardExecutionResult();
     }
 
     @NotNull

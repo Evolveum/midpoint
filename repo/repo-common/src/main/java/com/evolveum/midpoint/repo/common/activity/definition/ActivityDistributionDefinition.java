@@ -42,6 +42,10 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.getBuckets();
     }
 
+    public boolean hasBuckets() {
+        return bean.getBuckets() != null;
+    }
+
     public boolean isSubtask() {
         return bean.getSubtask() != null;
     }

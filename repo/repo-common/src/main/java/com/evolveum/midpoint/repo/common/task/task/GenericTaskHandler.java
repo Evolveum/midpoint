@@ -42,17 +42,18 @@ public class GenericTaskHandler implements TaskHandler {
 
     /** Common beans */
     @Autowired private CommonTaskBeans beans;
+    @Autowired private TaskManager taskManager;
 
     @PostConstruct
     public void initialize() {
-        beans.taskManager.registerHandler(HANDLER_URI, this);
-        beans.taskManager.setDefaultHandlerUri(HANDLER_URI);
+        taskManager.registerHandler(HANDLER_URI, this);
+        taskManager.setDefaultHandlerUri(HANDLER_URI);
     }
 
     @PreDestroy
     public void destroy() {
-        beans.taskManager.unregisterHandler(HANDLER_URI);
-        beans.taskManager.setDefaultHandlerUri(null);
+        taskManager.unregisterHandler(HANDLER_URI);
+        taskManager.setDefaultHandlerUri(null);
     }
 
     public CommonTaskBeans getBeans() {

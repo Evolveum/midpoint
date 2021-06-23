@@ -1867,7 +1867,7 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="cleanup" type="tns:CleanupDefinitionType" minOccurs="0">
+                <xsd:element name="cleanup" type="tns:CleanupWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -6121,7 +6121,7 @@
     </xsd:complexType>
     <xsd:element name="liveSynchronization" type="tns:LiveSyncWorkDefinitionType"/>
 
-    <xsd:complexType name="CleanupDefinitionType">
+    <xsd:complexType name="CleanupWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -6146,7 +6146,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="cleanupDefinition" type="tns:CleanupDefinitionType"/>
+    <xsd:element name="cleanupDefinition" type="tns:CleanupWorkDefinitionType"/>
 
     <xsd:complexType name="ReportDefinitionType">
         <xsd:annotation>
