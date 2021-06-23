@@ -289,7 +289,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     int getFailureCount(Task taskAfter) {
         // TODO separate the statistics dump
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        displayValue("Iterative statistics", IterationInformation.format(stats.getIterativeTaskInformation()));
+//        displayValue("Iterative statistics", IterationInformation.format(stats.getIterativeTaskInformation()));
         return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
     }
 }

@@ -220,22 +220,23 @@ public class GuiDisplayNameUtil {
 
     //TODO improve
     public static String getDisplayName(ActivityDefinitionType partitionDefinition) {
-        Integer index = partitionDefinition.getIndex();
-        WorkDistributionType workManagementType = partitionDefinition.getWorkManagement();
-
-        String string = "";
-        if (index != null) {
-            string += "Partition " + index;
-        }
-
-        // FIXME
+//        Integer index = partitionDefinition.getIndex();
+//        WorkDistributionType workManagementType = partitionDefinition.getWorkManagement();
+//
+//        String string = "";
+//        if (index != null) {
+//            string += "Partition " + index;
+//        }
+//
+//        // FIXME
 //        if (workManagementType != null) {
 //            TaskKindType taskKindType = workManagementType.getTaskKind();
 //            if (taskKindType != null) {
 //                string = appendKind(string, taskKindType);
 //            }
 //        }
-        return string;
+//        return string;
+        return "";
     }
 
     private static String appendKind(String string, TaskKindType taskKindType) {

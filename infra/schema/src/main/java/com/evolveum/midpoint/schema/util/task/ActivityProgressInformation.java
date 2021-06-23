@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -19,8 +21,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Summarized representation of a progress of an activity and its sub-activities.
@@ -85,18 +85,24 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     /**
      * Prepares the information from a root task. The task may or may not have its children resolved.
      */
-    public static ActivityProgressInformation fromRootTask(@NotNull TaskType task, @NotNull TaskResolver resolver) {
+    public static @NotNull ActivityProgressInformation fromRootTask(@NotNull TaskType task, @NotNull TaskResolver resolver) {
         return fromTask(task, ActivityPath.empty(), resolver);
     }
 
-    public static ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull ActivityPath activityPath,
+    public static @NotNull ActivityProgressInformation fromTask(@NotNull TaskType task, @NotNull ActivityPath activityPath,
             @NotNull TaskResolver resolver) {
         TaskActivityStateType globalState = task.getActivityState();
+        if (globalState == null) {
+            return unknown(null, activityPath); // TODO or "no progress"?
+        }
         ActivityStateType rootActivityState = globalState.getActivity();
+        if (rootActivityState == null) {
+            return unknown(null, activityPath); // TODO or "no progress"?
+        }
         return fromDelegatableActivityState(rootActivityState, activityPath, task, resolver);
     }
 
-    private static ActivityProgressInformation fromDelegatableActivityState(@NotNull ActivityStateType state,
+    private static @NotNull ActivityProgressInformation fromDelegatableActivityState(@NotNull ActivityStateType state,
             @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
         if (ActivityStateUtil.isDelegated(state)) {
             return fromDelegatedActivityState(state.getIdentifier(), activityPath, getDelegatedTaskRef(state), task, resolver);
@@ -110,7 +116,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return workState instanceof DelegationWorkStateType ? ((DelegationWorkStateType) workState).getTaskRef() : null;
     }
 
-    private static ActivityProgressInformation fromDelegatedActivityState(String activityIdentifier,
+    private static @NotNull ActivityProgressInformation fromDelegatedActivityState(String activityIdentifier,
             @NotNull ActivityPath activityPath, ObjectReferenceType delegateTaskRef,
             @NotNull TaskType task, @NotNull TaskResolver resolver) {
         TaskType delegateTask = getSubtask(delegateTaskRef, task, resolver);
@@ -138,7 +144,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         }
     }
 
-    private static ActivityProgressInformation fromNotDelegatedActivityState(@NotNull ActivityStateType state,
+    private static @NotNull ActivityProgressInformation fromNotDelegatedActivityState(@NotNull ActivityStateType state,
             @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
         String identifier = state.getIdentifier();
         RealizationState realizationState = getRealizationState(state);

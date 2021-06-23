@@ -141,26 +141,27 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isWorkManagementVisible(getTask());
             }
         };
-        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                // TODO FIX THIS after task schema change
-                return new SingleContainerPanel<WorkDistributionType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), WorkDistributionType.COMPLEX_TYPE) {
-
-                    @Override
-                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                        return getWorkManagementVisibility(itemWrapper.getPath());
-                    }
-
-                    @Override
-                    protected ItemEditabilityHandler getEditabilityHandler() {
-                        return getTaskEditabilityHandler();
-                    }
-                };
-            }
-        });
+//        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public WebMarkupContainer createPanel(String panelId) {
+//                // TODO FIX THIS after task schema change
+//                return new SingleContainerPanel<WorkDistributionType>(panelId,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), WorkDistributionType.COMPLEX_TYPE) {
+//
+//                    @Override
+//                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+//                        return getWorkManagementVisibility(itemWrapper.getPath());
+//                    }
+//
+//                    @Override
+//                    protected ItemEditabilityHandler getEditabilityHandler() {
+//                        return getTaskEditabilityHandler();
+//                    }
+//                };
+//            }
+//        });
     }
 
     private void createExecutionConstraintsTab(List<ITab> tabs, PageTask parentPage) {
