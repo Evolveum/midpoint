@@ -10,10 +10,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.google.common.collect.Multimap;
 import org.reflections.Reflections;
+import org.reflections.Store;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+import org.reflections.util.Utils;
 
 import java.io.*;
 import java.net.URI;
@@ -57,12 +59,11 @@ public class ClassPathUtil {
         builder.setInputsFilter(new FilterBuilder().includePackage(packageName));
 
         Reflections reflections = new Reflections(builder);
-
-        Multimap<String, String> map = reflections.getStore().get(SubTypesScanner.class.getSimpleName());
+        Store store = reflections.getStore();
         Set<String> types = new HashSet<>();
 
-        for (String key : map.keySet()) {
-            Collection<String> col = map.get(key);
+        for (String key : store.keys(Utils.index(SubTypesScanner.class))) {
+            Collection<String> col = store.get(Utils.index(SubTypesScanner.class), key);
             if (col == null) {
                 continue;
             }
