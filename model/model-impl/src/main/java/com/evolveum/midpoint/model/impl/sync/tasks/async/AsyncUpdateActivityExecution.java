@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,14 @@ public class AsyncUpdateActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .persistentStatistics(true)
                 .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true); // TODO ok?
+    }
+
+    @Override
+    public @NotNull ActivityStatePersistenceType getPersistenceType() {
+        return ActivityStatePersistenceType.PERPETUAL;
     }
 
     @Override

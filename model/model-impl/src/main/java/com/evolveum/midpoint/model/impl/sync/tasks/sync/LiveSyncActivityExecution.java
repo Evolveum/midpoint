@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,8 +67,14 @@ public class LiveSyncActivityExecution
     @Override
     public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
         return new ActivityReportingOptions()
+                .persistentStatistics(true)
                 .enableActionsExecutedStatistics(true)
                 .enableSynchronizationStatistics(true);
+    }
+
+    @Override
+    public @NotNull ActivityStatePersistenceType getPersistenceType() {
+        return ActivityStatePersistenceType.PERPETUAL;
     }
 
     @Override

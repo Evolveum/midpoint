@@ -39,6 +39,10 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
         return item;
     }
 
+    public Object getRealValue() {
+        return item != null ? item.getRealValue() : null;
+    }
+
     public PrismItemAsserter<I,RA> assertSize(int expected) {
         assertEquals("Wrong number of values in "+desc(), expected, item != null ? item.size() : 0);
         return this;
