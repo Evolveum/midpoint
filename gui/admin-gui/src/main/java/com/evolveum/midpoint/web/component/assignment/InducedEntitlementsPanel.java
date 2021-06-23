@@ -160,7 +160,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
         columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("InducedEntitlements.value")) {
+        columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -173,7 +173,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                         InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
                         OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
 
-                MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
+                MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
                         Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
                     private static final long serialVersionUID = 1L;
 
@@ -224,10 +224,10 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                 .build();
     }
 
-    @Override
-    protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-        return getConstructionAssociationPanel(idPanel, model);
-    }
+//    @Override
+//    protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+//        return getConstructionAssociationPanel(idPanel, model);
+//    }
 
     private ConstructionAssociationPanel getConstructionAssociationPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);

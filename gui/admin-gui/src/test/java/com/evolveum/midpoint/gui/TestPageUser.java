@@ -150,16 +150,15 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test014renderPersonasTab() {
+    public void test013renderCasesTab() {
         renderPage();
 
-        clickOnTab(4);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
+        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:4:link";
+        tester.assertInvisible(tabPath);
     }
 
     @Test
-    public void test015renderDelegationsTab() {
+    public void test014renderPersonasTab() {
         renderPage();
 
         clickOnTab(5);
@@ -168,10 +167,19 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test016renderDelegatedToMeTab() {
+    public void test015renderDelegationsTab() {
         renderPage();
 
         clickOnTab(6);
+        String panel = "mainPanel:mainForm:tabPanel:panel";
+        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
+    }
+
+    @Test
+    public void test016renderDelegatedToMeTab() {
+        renderPage();
+
+        clickOnTab(7);
         String panel = "mainPanel:mainForm:tabPanel:panel";
         tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
     }

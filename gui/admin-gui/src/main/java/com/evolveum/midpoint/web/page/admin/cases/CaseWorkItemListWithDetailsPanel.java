@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -171,13 +172,13 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
                 };
             }
 
-            @Override
-            protected void addBasicContainerValuePanel(String idPanel) {
-                //todo fix  implement with WorkItemDetailsPanelFactory
-                workItemDetails = new WorkItemDetailsPanel(idPanel, Model.of(item.getModel().getObject().getRealValue()));
-                workItemDetails.setOutputMarkupId(true);
-                add(workItemDetails);
-            }
+//            @Override
+//            protected AbstractTab addBasicContainerValuePanel(String idPanel) {
+//                //todo fix  implement with WorkItemDetailsPanelFactory
+//                workItemDetails = new WorkItemDetailsPanel(idPanel, Model.of(item.getModel().getObject().getRealValue()));
+//                workItemDetails.setOutputMarkupId(true);
+//                add(workItemDetails);
+//            }
 
         };
     }

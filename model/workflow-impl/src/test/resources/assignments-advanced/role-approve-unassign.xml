@@ -1,0 +1,25 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="3746aa73-ae91-4326-8493-f5ac5b22f3b6">
+    <name>role-approve-unassign</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <condition>
+                        <script>
+                            <code>
+                                true
+                            </code>
+                        </script>
+                    </condition>
+                    <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

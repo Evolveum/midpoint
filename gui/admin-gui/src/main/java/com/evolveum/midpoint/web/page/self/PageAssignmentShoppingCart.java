@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,7 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = { "/self/assignmentShoppingCart" }, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/assignmentShoppingCart")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

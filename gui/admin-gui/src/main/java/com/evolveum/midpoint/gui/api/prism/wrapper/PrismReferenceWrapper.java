@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
 
 /**
  * @author katka

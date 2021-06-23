@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -140,17 +141,22 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                         ConfigurationException | ExpressionEvaluationException e) {
                     throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
                 }
-                AcknowledgementSink aggregatedAcknowledgementSink = createAggregatingAcknowledgeSink(acknowledgementSink, changeBeans.size());
-                for (UcfChangeType changeBean : changeBeans) {
-                    // For this to work reliably, we have to run in a single thread. But that's ok.
-                    // If we receive messages in multiple threads, there is no message ordering.
-                    int changeSequentialNumber = changesProduced.incrementAndGet();
-                    // intentionally in this order - to process changes even after failure
-                    // (if listener wants to fail fast, it can throw an exception)
-                    UcfAsyncUpdateChange change = createChange(changeBean, result, changeSequentialNumber, aggregatedAcknowledgementSink);
-                    changeListener.onChange(change, task, result);
+                if (changeBeans.isEmpty()) {
+                    acknowledgementSink.acknowledge(true, result);
+                } else {
+                    AcknowledgementSink aggregatedSink = createAggregatingAcknowledgeSink(acknowledgementSink, changeBeans.size());
+                    for (UcfChangeType changeBean : changeBeans) {
+                        // For this to work reliably, we have to run in a single thread. But that's ok.
+                        // If we receive messages in multiple threads, there is no message ordering.
+                        int changeSequentialNumber = changesProduced.incrementAndGet();
+                        // intentionally in this order - to process changes even after failure
+                        // (if listener wants to fail fast, it can throw an exception)
+                        UcfAsyncUpdateChange change = createChange(changeBean, result, changeSequentialNumber, aggregatedSink);
+                        changeListener.onChange(change, task, result);
+                    }
                 }
             } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing asynchronous message in {}", e, task);
                 result.recordFatalError(e.getMessage(), e);
 
                 int changeSequentialNumber = changesProduced.incrementAndGet();
@@ -188,13 +194,16 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             data = ((AnyDataAsyncUpdateMessageType) message).getData();
         } else if (message instanceof Amqp091MessageType) {
             String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
-            data = getPrismContext().parserFor(text).xml().parseRealValue();
+            data = text.isEmpty() ? null :
+                    getPrismContext().parserFor(text).xml().parseRealValue();
         } else {
             throw new SchemaException(
                     "Cannot apply trivial message transformation: message is not 'any data' nor AMQP one. Please "
                             + "specify transformExpression parameter");
         }
-        if (data instanceof UcfChangeType) {
+        if (data == null) {
+            return Collections.emptyList();
+        } else if (data instanceof UcfChangeType) {
             return Collections.singletonList((UcfChangeType) data);
         } else {
             throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
@@ -202,6 +211,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
+    @NotNull
     private UcfAsyncUpdateChange createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber,
             AcknowledgementSink acknowledgeSink) throws SchemaException {
         QName objectClassName = changeBean.getObjectClass();

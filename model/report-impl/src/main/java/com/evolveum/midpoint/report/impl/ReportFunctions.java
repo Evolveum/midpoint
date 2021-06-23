@@ -206,14 +206,14 @@ public class ReportFunctions {
         return resolvedAssignments;
     }
 
-    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> jasperParams) {
+    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> params) {
 
         if (StringUtils.isBlank(query)) {
             return new ArrayList<>();
         }
         OperationResult result = new OperationResult("searchAuditRecords");
 
-        List<AuditEventRecord> records = auditService.listRecords(query, ReportUtils.jasperParamsToAuditParams(jasperParams), result);
+        List<AuditEventRecord> records = auditService.listRecords(query, ReportUtils.paramsToAuditParams(params), result);
         result.computeStatus();
         return records;
     }

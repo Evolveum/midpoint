@@ -11,11 +11,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 
 /**
  * Page with no authorizations. It is used for testing: to make sure that nobody can access this page.
  */
-@PageDescriptor(url = "/noautz")
+@PageDescriptor(urls = {@Url (mountUrl = "/noautz", matchUrlForSecurity = "/noautz")})
 public class PageTestNoAuthorizations extends PageBase {
     private static final long serialVersionUID = 1L;
 

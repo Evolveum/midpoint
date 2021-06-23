@@ -46,7 +46,6 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReportNotifier.class);
 
     private static final String REPORT_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/handler-3";
-    private static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/jasper/create/handler-3";
 
     @Autowired private ModelService modelService;
 
@@ -75,7 +74,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
 
     @Override
     protected boolean quickCheckApplicability(TaskEvent event, SimpleReportNotifierType configuration, OperationResult result) {
-        if (!event.getTask().getHandlerUri().equals(REPORT_TASK_URI) && !event.getTask().getHandlerUri().equals(REPORT_CREATE_TASK_URI)) {
+        if (!event.getTask().getHandlerUri().equals(REPORT_TASK_URI)) {
             LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}",
                     getClass().getSimpleName(), event.getClass());
             return false;

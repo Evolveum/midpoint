@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 
 import java.util.Objects;
 
@@ -15,13 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
@@ -101,7 +100,7 @@ public class QAssignmentMapping<OR extends MObject>
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
 
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
-        // TODO ext mapping can't be done statically
+        addExtensionMapping(F_EXTENSION, ExtensionType.class, q -> q.ext);
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, refMapper(
                         q -> q.resourceRefTargetOid,
@@ -198,7 +197,7 @@ public class QAssignmentMapping<OR extends MObject>
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
         row.policySituations = processCacheableUris(assignment.getPolicySituation());
-        // TODO extensions stored inline (JSON)
+        row.ext = processExtensions(assignment.getExtension(), MExtItemHolderType.EXTENSION);
 
         ConstructionType construction = assignment.getConstruction();
         if (construction != null) {

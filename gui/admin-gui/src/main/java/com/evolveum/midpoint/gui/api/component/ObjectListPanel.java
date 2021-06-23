@@ -6,40 +6,37 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
+
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.web.component.search.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -89,12 +86,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return fixedSearchItems;
     }
 
-    @Override
-    protected LoadableModel<Search<O>> getSearchModel() {
-        return super.getSearchModel();
-    }
-
-    protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
+    protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
+            SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
                 getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
@@ -107,24 +100,24 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return ObjectListPanel.this.getCustomizeContentQuery();
+                if (querySuplier == null) {
+                    return null;
+                }
+                return querySuplier.get();
+            }
+
+            @Override
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                if (orderingSuplier == null) {
+                    return super.createObjectOrderings(sortParam);
+                }
+                return orderingSuplier.apply(sortParam);
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());
-        setDefaultSorting(provider);
-
         return provider;
     }
-
-    protected ObjectQuery getCustomizeContentQuery() {
-        return null;
-    }
-
-    protected void setDefaultSorting(ISelectableDataProvider<O, SelectableBean<O>> provider){
-        //should be overrided if needed
-    }
-
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
@@ -147,7 +140,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
             private static final long serialVersionUID = 1L;
@@ -170,13 +163,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
-
-    protected ContainerTypeSearchItem getTypeItem(Class<? extends O> type, List<DisplayableValue<Class<? extends O>>> allowedValues){
-        @NotNull ObjectTypes objectType = ObjectTypes.getObjectType(type);
-        return new ContainerTypeSearchItem<>(new SearchValue<>(objectType.getClassDefinition(),
-                "ObjectType." + objectType.getTypeQName().getLocalPart()),
-                allowedValues);
-    }
 
     @Override
     protected O getRowRealValue(SelectableBean<O> rowModelObject) {

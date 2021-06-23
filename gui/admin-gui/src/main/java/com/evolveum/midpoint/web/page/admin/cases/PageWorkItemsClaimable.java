@@ -19,6 +19,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -39,7 +40,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/claimableWorkItems", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/claimableWorkItems", matchUrlForSecurity = "/admin/claimableWorkItems")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),

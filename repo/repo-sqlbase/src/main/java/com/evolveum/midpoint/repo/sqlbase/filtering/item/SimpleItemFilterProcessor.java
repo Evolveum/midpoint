@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -42,9 +43,9 @@ public class SimpleItemFilterProcessor<T, P extends Path<T>>
      * Returns the mapper creating the string filter processor from context.
      * This is unbound version that will adapt to the types in the client code.
      */
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
-    ItemSqlMapper<S, Q, R> stringMapper(Function<Q, StringPath> rootToQueryItem) {
-        return new ItemSqlMapper<>(
+    public static <Q extends FlexibleRelationalPathBase<R>, R>
+    ItemSqlMapper<Q, R> stringMapper(Function<Q, StringPath> rootToQueryItem) {
+        return new DefaultItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.SchemaMigration;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
 
 public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends MutableItemDefinition<I> {
@@ -81,6 +82,12 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
 
     @Override
     default void addSchemaMigration(SchemaMigration schemaMigration) {
+        throw new IllegalStateException("Item Definition is not modifiable");
+
+    }
+
+    @Override
+    default void addDiagram(ItemDiagramSpecification diagram) {
         throw new IllegalStateException("Item Definition is not modifiable");
 
     }

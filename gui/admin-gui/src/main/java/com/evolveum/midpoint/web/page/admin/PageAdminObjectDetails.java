@@ -10,6 +10,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
+
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -22,9 +38,11 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -65,8 +83,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
@@ -107,6 +123,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_PROGRESS_PANEL = "progressPanel";
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_NAVIGATION = "detailsNavigation";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
@@ -128,6 +145,24 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     // TODO put this into correct place
     protected boolean previewRequested;
+
+    public PageAdminObjectDetails() {
+        ObjectTypes objectType = ObjectTypes.getObjectTypeIfKnown(getCompileTimeClass());
+        Collection<CompiledObjectCollectionView> applicableArchetypes = getCompiledGuiProfile().findAllApplicableArchetypeViews(objectType.getTypeQName());
+        if (!applicableArchetypes.isEmpty()) {
+            PageParameters params = new PageParameters();
+            params.add("type", objectType.getRestType());
+            throw new RestartResponseException(PageCreateFromTemplate.class, params);
+        }
+    }
+
+    public PageAdminObjectDetails(final PrismObject<O> unitToEdit, boolean isNewObject) {
+        //not much to do
+    }
+
+    public PageAdminObjectDetails(PageParameters pageParameters) {
+        super(pageParameters);
+    }
 
     public boolean isPreviewRequested() {
         return previewRequested;
@@ -163,21 +198,18 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return super.createPageTitleModel();
         }
 
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                String localizedSimpleName = getLocalizedObjectType();
-                if (isAdd()) {
-                    return createStringResource("PageAdminObjectDetails.title.new", localizedSimpleName).getString();
-                }
-
-                String name = null;
-                if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-                    name = WebComponentUtil.getName(getObjectWrapper().getObject());
-                }
-
-                return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), localizedSimpleName, name).getString();
+        return (IModel<String>) () -> {
+            String localizedSimpleName = getLocalizedObjectType();
+            if (isAdd()) {
+                return createStringResource("PageAdminObjectDetails.title.new", localizedSimpleName).getString();
             }
+
+            String name = null;
+            if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+                name = WebComponentUtil.getName(getObjectWrapper().getObject());
+            }
+
+            return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), localizedSimpleName, name).getString();
         };
 
     }
@@ -266,7 +298,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         editingFocus = !isNewObject;
 
-        objectModel = new LoadableModel<PrismObjectWrapper<O>>(false) {
+        objectModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -276,7 +308,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             }
         };
 
-        parentOrgModel = new LoadableModel<List<FocusSubwrapperDto<OrgType>>>(false) {
+        parentOrgModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -291,23 +323,28 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     private ObjectReferenceType getObjectArchetypeRef() {
-        ObjectReferenceType archetypeReference = null;
-        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
-                && getObjectWrapper().getObject().asObjectable() instanceof AssignmentHolderType) {
-            AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
-            if (assignmentHolderObj.getAssignment() != null) {
-                for (AssignmentType assignment : assignmentHolderObj.getAssignment()) {
-                    if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
-                            && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                        archetypeReference = assignment.getTargetRef();
-                        break;
-                    }
-                }
+        PrismObjectWrapper<O> objectWrapper = getObjectWrapper();
+        if (objectWrapper == null) {
+            return null;
+        }
+        PrismObject<O> prismObject = objectWrapper.getObject();
+        if (prismObject == null || !(prismObject instanceof AssignmentHolderType)) {
+            return null;
+        }
+
+        AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) prismObject.asObjectable();
+        for (AssignmentType assignment : assignmentHolderObj.getAssignment()) {
+            if (isArchetypeAssignment(assignment)) {
+                return assignment.getTargetRef();
             }
         }
-        return archetypeReference;
+        return null;
     }
 
+    private boolean isArchetypeAssignment(AssignmentType assignment) {
+        return assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
+                && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE);
+    }
     protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
         // WRONG!! TODO: fix
         return null;
@@ -329,8 +366,24 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         mainPanel.setOutputMarkupId(true);
         add(mainPanel);
 
+//        add(createDetailsNavigation());
+
         progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
         add(progressPanel);
+    }
+
+    protected Panel createDetailsNavigation() {
+        return new DetailsNavigationPanel(ID_NAVIGATION, createNavigationModel());
+    }
+
+    protected IModel<List<DetailsNavigationMainItem>> createNavigationModel() {
+        return new LoadableModel<List<DetailsNavigationMainItem>>(false) {
+
+            @Override
+            protected List<DetailsNavigationMainItem> load() {
+                return Arrays.asList(new DetailsNavigationMainItem("Assignments"), new DetailsNavigationMainItem("Projections"), new DetailsNavigationMainItem("Bla"));
+            }
+        };
     }
 
     protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);
@@ -388,7 +441,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         };
 
         opButtonPanel.setOutputMarkupId(true);
-        opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+        opButtonPanel.add(new VisibleBehaviour(() -> isOperationalButtonsVisible() && opButtonPanel.buttonsExist()));
 
         AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
             private static final long serialVersionUID = 1L;
@@ -407,6 +460,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         opButtonPanel.add(behavior);
 
         add(opButtonPanel);
+    }
+
+    protected Boolean isOperationalButtonsVisible() {
+        return isEditingFocus();
     }
 
     public boolean isRefreshEnabled() {
@@ -467,7 +524,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     private void changeArchetypeButtonClicked(AjaxRequestTarget target) {
 
-        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId()) {
+        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId(), null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -510,7 +567,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             }
 
             @Override
-            protected List<ITab> createAssignmentTabs() {
+            protected List<ITab> createAssignmentTabs(AssignmentObjectRelation assignmentObjectRelation) {
                 List<ITab> tabs = new ArrayList<>();
 
                 tabs.add(new PanelTab(getPageBase().createStringResource("ObjectTypes.ARCHETYPE"),
@@ -520,7 +577,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel<ArchetypeType>(panelId, ObjectTypes.ARCHETYPE) {
+                        return new FocusTypeAssignmentPopupTabPanel<ArchetypeType>(panelId, ObjectTypes.ARCHETYPE, null) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -757,7 +814,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         try {
-            return factory.createObjectWrapper(object, itemStatus, context);
+            PrismObjectWrapper<O> wrapper = factory.createObjectWrapper(object, itemStatus, context);
+            result.recordSuccess();
+            return wrapper;
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
@@ -990,13 +1049,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             default:
                 error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
         }
-
-//        result.recomputeStatus();
-//
-//        if (!result.isInProgress()) {
-//            LOGGER.trace("Result NOT in progress, calling finishProcessing");
-//            finishProcessing(target, result, false);
-//        }
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
     }

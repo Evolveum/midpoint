@@ -74,18 +74,18 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
      * This may involve setting the value of some columns or delete/insert of sub-entities.
      * This is a general case covering both multi-value and single-value items.
      */
-    public void setRealValues(Collection<?> values) {
+    public void setRealValues(Collection<?> values) throws SchemaException {
         // general scenario usable for multi-value cases
         delete();
         addRealValues(values);
     }
 
     /** Adds the provided real values to the database, implements ADD modification. */
-    public void addRealValues(Collection<?> values) {
+    public void addRealValues(Collection<?> values) throws SchemaException {
         addValues(values.stream().map(this::convertRealValue).collect(toList()));
     }
 
-    public void addValues(Collection<T> values) {
+    public void addValues(Collection<T> values) throws SchemaException {
         throw new UnsupportedOperationException("addValues not implemented");
     }
 

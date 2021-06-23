@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2020 Evolveum and contributors
+ * Copyright (C) 2014-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,12 +10,15 @@ import java.io.File;
 
 import com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.testng.annotations.Test;
 
 /**
  * @author semancik
@@ -140,6 +143,23 @@ public class TestOpenDj extends AbstractLdapConnTest {
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
         assertSyncToken(syncTaskOid, step + getInitialSyncToken());
+    }
+
+    /**
+     * Look insite OpenDJ logs to check for clues of undesirable behavior.
+     * MID-7091
+     */
+    @Test
+    public void test900OpenDjLogSanity() throws Exception {
+        MutableInt abandons = new MutableInt(0);
+        openDJController.scanAccessLog(line -> {
+            if (line.contains("ABANDON")) {
+                abandons.increment();
+            }
+        });
+        if (abandons.intValue() > 0) {
+            fail("Too many ABANDONs in OpenDJ access log ("+abandons.intValue()+")");
+        }
     }
 
 }

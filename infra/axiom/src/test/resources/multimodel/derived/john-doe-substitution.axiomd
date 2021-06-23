@@ -1,4 +1,0 @@
-person "John Doe" {
-    givenName "John";
-    familyName "Doe";
-}

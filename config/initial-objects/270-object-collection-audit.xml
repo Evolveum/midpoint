@@ -1,0 +1,68 @@
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0001-000000000284">
+    <name>All audit records</name>
+    <type>AuditEventRecordType</type>
+    <filter>
+        <q:all/>
+    </filter>
+    <defaultView>
+        <column>
+            <name>timestampColumn</name>
+            <path>timestamp</path>
+        </column>
+        <column>
+            <name>initiatorColumn</name>
+            <path>initiatorRef</path>
+            <previousColumn>timestampColumn</previousColumn>
+        </column>
+        <column>
+            <name>eventTypeColumn</name>
+            <path>eventType</path>
+            <previousColumn>initiatorColumn</previousColumn>
+        </column>
+        <column>
+            <name>eventStageColumn</name>
+            <path>eventStage</path>
+            <previousColumn>eventTypeColumn</previousColumn>
+        </column>
+        <column>
+            <name>targetColumn</name>
+            <path>targetRef</path>
+            <previousColumn>eventStageColumn</previousColumn>
+        </column>
+        <column>
+            <name>outcomeColumn</name>
+            <path>outcome</path>
+            <previousColumn>targetColumn</previousColumn>
+        </column>
+        <column>
+            <name>messageColumn</name>
+            <path>message</path>
+            <previousColumn>outcomeColumn</previousColumn>
+        </column>
+        <column>
+            <name>deltaColumn</name>
+            <path>delta</path>
+            <previousColumn>messageColumn</previousColumn>
+            <export>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.schema.DeltaConvertor;
+                            import com.evolveum.midpoint.report.impl.ReportUtils;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+
+                            ret = new ArrayList();
+                            for (ObjectDeltaOperationType deltaType : input) {
+                                delta = DeltaConvertor.createObjectDeltaOperation(deltaType, prismContext);
+                                ret.add(ReportUtils.printDelta(delta));
+                            }
+                            return ret
+                        </code>
+                    </script>
+                </expression>
+            </export>
+        </column>
+    </defaultView>
+</objectCollection>

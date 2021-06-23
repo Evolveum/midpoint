@@ -75,6 +75,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
 
     private static final TestResource ROLE_SKIPPED_FILE = new TestResource(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+    private static final TestResource<RoleType> ROLE_APPROVE_UNASSIGN = new TestResource<>(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
 
     private static final TestResource ROLE_IDEMPOTENT = new TestResource(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
     private static final TestResource ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
@@ -131,6 +132,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         repoAdd(ROLE_IDEMPOTENT, initResult);
         repoAdd(ROLE_WITH_IDEMPOTENT_METAROLE, initResult);
         repoAdd(ROLE_SKIPPED_FILE, initResult);
+        repoAdd(ROLE_APPROVE_UNASSIGN, initResult);
 
         orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
@@ -1091,6 +1093,37 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         then();
         String ref = result.findAsynchronousOperationReference();
         assertNull("Present async operation reference", ref);
+
+        assertUser(userJackOid, "after")
+                .assertAssignments(1);
+    }
+
+    @Test
+    public void test930UnassignRoleWithApproval() throws Exception {
+        given();
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        unassignAllRoles(userJackOid);
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType(prismContext).targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
+                        .<UserType>asObjectDeltaCast(userJackOid), null, task, result);
+        assertUser(userJackOid, "before")
+                .assertAssignments(1);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .delete(new AssignmentType(prismContext).targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
+                        .<UserType>asObjectDeltaCast(userJackOid), null, task, result);
+
+        then();
+        String ref = result.findAsynchronousOperationReference();
+        assertNotNull("No async operation reference", ref);
 
         assertUser(userJackOid, "after")
                 .assertAssignments(1);

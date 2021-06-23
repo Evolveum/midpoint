@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -517,6 +519,24 @@ public class MiscSchemaUtil {
             if (viewIcon.getColor() == null) {
                 viewIcon.setColor(archetypeIcon.getColor());
             }
+        }
+    }
+
+    public static void mergePaging(PagingType existPaging, PagingType newPaging) {
+        if (existPaging.getMaxSize() == null) {
+            existPaging.setMaxSize(newPaging.getMaxSize());
+        }
+        if (existPaging.getGroupBy() == null) {
+            existPaging.setGroupBy(newPaging.getGroupBy());
+        }
+        if (existPaging.getOffset() == null) {
+            existPaging.setOffset(newPaging.getOffset());
+        }
+        if (existPaging.getOrderBy() == null) {
+            existPaging.setOrderBy(newPaging.getOrderBy());
+        }
+        if (existPaging.getOrderDirection() == null) {
+            existPaging.setOrderDirection(newPaging.getOrderDirection());
         }
     }
 

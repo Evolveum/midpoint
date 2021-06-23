@@ -16,8 +16,17 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecution
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -152,6 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private AuditService auditService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -1939,4 +1949,156 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
     }
 
+    @Override
+    public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<? extends Containerable> type = null;
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
+
+        if (recordProgress) {
+            long count = countObjectsFromCollectionByType(type, query, options, task, result);
+            task.setExpectedTotal(count);
+        }
+        if (AuditEventRecordType.class.equals(type)) {
+            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            processContainerByHandler(auditRecords, handler);
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
+            checkOrdering(query, ObjectType.F_NAME);
+            modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
+        } else {
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            processContainerByHandler(containers, handler);
+        }
+    }
+
+    private void checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
+        if (query != null) {
+            if (query.getPaging() == null) {
+                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
+                paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
+                query.setPaging(paging);
+            } else if (query.getPaging().getOrderBy() == null){
+                query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
+            }
+        }
+    }
+
+    private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
+        for (Containerable container : containers){
+            PrismContainerValue prismValue = container.asPrismContainerValue();
+            prismValue.setPrismContext(prismContext);
+            PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());
+            if (!handler.test(prismContainer)) {
+                return;
+            }
+        }
+    }
+
+    @Override
+    public List<? extends Containerable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<? extends Containerable> type = null;
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, usedPaging, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
+
+        if (AuditEventRecordType.class.equals(type)) {
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            return auditRecords.getList();
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, task, result);
+            List list = new ArrayList<Containerable>();
+            results.forEach(object -> list.add(object.asObjectable()));
+            return list;
+        } else {
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, task, result);
+            return containers.getList();
+        }
+    }
+
+    @Override
+    public Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<? extends Containerable> type = null;
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
+        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+        type = determineTypeForSearch(compiledCollection, typeForFilter);
+        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
+        return countObjectsFromCollectionByType(type, query, options, task, result);
+    }
+
+    private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        if (AuditEventRecordType.class.equals(type)) {
+            return auditService.countObjects(query, options, result);
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            return modelService.countObjects((Class<ObjectType>) type, query, options, task, result);
+        }
+        return modelService.countContainers(type, query, options, task, result);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> determineOptionsForSearch(CompiledObjectCollectionView compiledCollection, Collection<SelectorOptions<GetOperationOptions>> defaultOptions) {
+        if (compiledCollection.getOptions() == null) {
+            return defaultOptions;
+        }
+        return compiledCollection.getOptions();
+    }
+
+    private Class<? extends Containerable> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+        if (compiledCollection.getTargetClass(prismContext) == null) {
+            if (typeForFilter == null) {
+                LOGGER.error("Type of objects is null");
+                throw new ConfigurationException("Type of objects is null");
+            }
+            return prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        return compiledCollection.getTargetClass(prismContext);
+
+    }
+
+    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables, ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+                expressionFactory, prismContext, "collection filter", task, result);
+        if (filter == null) {
+            LOGGER.warn("Couldn't find filter");
+        }
+
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
+        query.setFilter(filter);
+        return query;
+    }
 }

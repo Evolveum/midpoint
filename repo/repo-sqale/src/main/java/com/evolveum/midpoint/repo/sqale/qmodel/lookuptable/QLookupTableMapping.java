@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTy
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -53,7 +55,7 @@ public class QLookupTableMapping
     public void storeRelatedEntities(
             @NotNull MLookupTable lookupTable,
             @NotNull LookupTableType schemaObject,
-            @NotNull JdbcSession jdbcSession) {
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(lookupTable, schemaObject, jdbcSession);
 
         List<LookupTableRowType> rows = schemaObject.getRow();

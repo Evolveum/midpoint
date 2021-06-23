@@ -73,7 +73,7 @@ REM ----- Execute The Requested Command ---------------------------------------
 
 set EXECUTABLE=%BIN_DIR%\midpoint.exe
 set PR_INSTALL=%EXECUTABLE%
-set MIDPOINT_START_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
+set MIDPOINT_LAUNCHER_CLASS=com.evolveum.midpoint.tools.layout.MidPointWarLauncher
 
 REM Service log configuration
 set PR_LOGPREFIX=%SERVICE_NAME%
@@ -99,14 +99,12 @@ REM Statup configuration
 set PR_STARTUP=auto
 set PR_STARTMODE=jvm
 set PR_STARTMETHOD=main
-set PR_STARTPARAMS=start
-set PR_STARTCLASS=%MIDPOINT_START_CLASS%
+set PR_STARTCLASS=%MIDPOINT_LAUNCHER_CLASS%
 
 REM Shutdown configuration
 set PR_STOPMODE=jvm
-set PR_STOPMETHOD=%PR_STARTMETHOD%
-set PR_STOPPARAMS=stop
-set PR_STOPCLASS=%MIDPOINT_START_CLASS%
+set PR_STOPMETHOD=stop
+set PR_STOPCLASS=%MIDPOINT_LAUNCHER_CLASS%
 
 REM JVM configuration
 set PR_JVMMS=1024
@@ -132,14 +130,13 @@ echo Using JRE_HOME:         "%JRE_HOME%"
 
 REM Install service
 "%PR_INSTALL%" //IS//%SERVICE_NAME% ^
+--Description="Identity Governance and Administration Application" ^
 --StartMode="%PR_STARTMODE%" ^
 --StartClass="%PR_STARTCLASS%" ^
 --StartMethod="%PR_STARTMETHOD%" ^
 --StopMode="%PR_STOPMODE%" ^
 --StopClass="%PR_STOPCLASS%"  ^
 --StopMethod="%PR_STOPMETHOD%" ^
---StartParams="%PR_STARTPARAMS%" ^
---StopParams="%PR_STOPPARAMS%" ^
 --Jvm="%PR_JVM%" ^
 --JvmMs="%PR_JVMMS%" ^
 --JvmMx="%PR_JVMMX%" ^

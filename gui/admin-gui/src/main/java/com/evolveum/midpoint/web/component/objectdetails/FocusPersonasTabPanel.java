@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -111,14 +112,15 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                         return false;
                     }
 
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                List<String> personaOidsList = getPersonasOidsList();
-                ObjectQuery query = getPageBase().getPrismContext().queryFor(FocusType.class)
-                        .id(personaOidsList.toArray(new String[0]))
-                        .build();
-                return query;
-            }
+                    @Override
+                    protected ISelectableDataProvider<F, SelectableBean<F>> createProvider() {
+                        return createSelectableBeanObjectDataProvider(() -> getFocusPersonasQuery(), null);
+                    }
+
+//                    @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//
+//            }
 
             @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
@@ -137,6 +139,14 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
         };
         userListPanel.setOutputMarkupId(true);
         add(userListPanel);
+    }
+
+    private ObjectQuery getFocusPersonasQuery() {
+        List<String> personaOidsList = getPersonasOidsList();
+        ObjectQuery query = getPageBase().getPrismContext().queryFor(FocusType.class)
+                .id(personaOidsList.toArray(new String[0]))
+                .build();
+        return query;
     }
 
     private LoadableModel<List<PrismObject<FocusType>>> loadModel(){

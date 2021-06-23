@@ -261,17 +261,17 @@
 
         <!-- MIDPOINT -->
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
@@ -699,7 +699,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
@@ -761,29 +761,6 @@
 
         <!-- end connectors -->
 
-        <!-- Jasper reports -->
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
-            <exclusions> <!-- we dont want bouncy castle to include into midPoint -->
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bcmail-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bcprov-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bctsp-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- report dependency (needed for microsoft office formats) -->
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -924,9 +901,17 @@
                         <phase>package</phase>
                         <configuration>
                             <classifier>executable</classifier>
+                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>midpoint-boot-layout</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

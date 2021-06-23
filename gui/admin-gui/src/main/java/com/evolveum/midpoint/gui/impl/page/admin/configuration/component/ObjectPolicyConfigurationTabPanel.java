@@ -84,13 +84,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
         MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel
                 = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, ObjectPolicyConfigurationType.class) {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-                newObjectPolicyClickPerformed(target);
-            }
-
             @Override
             protected boolean isCreateNewObjectVisible() {
                 return true;

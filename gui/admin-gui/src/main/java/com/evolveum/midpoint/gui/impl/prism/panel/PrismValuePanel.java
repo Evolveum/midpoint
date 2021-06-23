@@ -87,7 +87,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             @Override
             public void onClick(AjaxRequestTarget target) {
                 try {
-                    removeValue(PrismValuePanel.this.getModelObject(), target);
+                    PrismValuePanel.this.remove(PrismValuePanel.this.getModelObject(), target);
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot remove value: {}", getModelObject());
                     getSession().error("Cannot remove value " + getModelObject());
@@ -272,7 +272,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
     //TODO move to the ItemPanel, exception handling
-    protected abstract void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException;
+    protected abstract void remove(VW valueToRemove, AjaxRequestTarget target) throws SchemaException;
 
     private void showMetadataPerformed(VW value, AjaxRequestTarget target) {
         boolean showMetadata = !value.isShowMetadata();

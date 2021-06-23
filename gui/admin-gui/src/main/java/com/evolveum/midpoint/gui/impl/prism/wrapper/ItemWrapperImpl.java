@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -627,6 +629,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public List<SchemaMigration> getSchemaMigrations() {
         return getItemDefinition().getSchemaMigrations();
+    }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() {
+        return getItemDefinition().getDiagrams();
     }
 
     @Override

@@ -174,7 +174,12 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 //        getSession().getSessionStorage().setActiveMenu(menu.getNameModel());
 //        getSession().getSessionStorage().setActiveMainMenu(getModelObject().getNameModel());
         IPageFactory pFactory = Session.get().getPageFactory();
-        WebPage page = pFactory.newPage(menu.getPageClass(), menu.getParams());
+        WebPage page;
+        if (menu.getParams() == null) {
+            page = pFactory.newPage(menu.getPageClass());
+        } else {
+            page = pFactory.newPage(menu.getPageClass(), menu.getParams());
+        }
         if (!(page instanceof PageBase)) {
             setResponsePage(page);
             return;

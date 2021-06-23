@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -24,7 +26,11 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 
-@PageDescriptor(url = {"/self/profile"}, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/profile")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

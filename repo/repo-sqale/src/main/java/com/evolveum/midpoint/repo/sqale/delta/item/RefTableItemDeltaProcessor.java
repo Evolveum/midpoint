@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Delta value processor for multi-value references stored in separate tables.
@@ -38,8 +39,10 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends 
     }
 
     @Override
-    public void addValues(Collection<Referencable> values) {
-        values.forEach(ref -> context.insertOwnedRow(refTableMapping, ref));
+    public void addValues(Collection<Referencable> values) throws SchemaException {
+        for (Referencable ref : values) {
+            context.insertOwnedRow(refTableMapping, ref);
+        }
     }
 
     @Override

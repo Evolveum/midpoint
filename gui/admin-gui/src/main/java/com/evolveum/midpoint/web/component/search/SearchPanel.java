@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -83,6 +84,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
     private static final String ID_SPECIAL_ITEMS = "specialItems";
+    private static final String ID_COMPOSITED_SPECIAL_ITEMS = "compositedSpecialItems";
     private static final String ID_SPECIAL_ITEM = "specialItem";
     private static final String ID_OID_ITEM = "oidItem";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
@@ -198,46 +200,11 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         typePanel.add(new VisibleBehaviour(() -> typeModel != null && typeModel.getObject() != null && typeModel.getObject().isVisible()
                 && !SearchBoxModeType.OID.equals(getModelObject().getSearchType())));
 
-        ListView<SearchItem> specialItems = new ListView<SearchItem>(ID_SPECIAL_ITEMS,
-                new PropertyModel<>(getModel(), Search.F_SPECIAL_ITEMS)) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<SearchItem> item) {
-                WebMarkupContainer searchItem;
-                if (item.getModelObject() instanceof SpecialSearchItem) {
-                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, (Consumer<AjaxRequestTarget> & Serializable) target -> searchPerformed(target));
-                } else {
-                    IModel itemModel = item.getModel();
-                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected boolean canRemoveSearchItem() {
-                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
-                        }
-
-                        @Override
-                        protected void searchPerformed(AjaxRequestTarget target) {
-                            SearchPanel.this.searchPerformed(target);
-                        }
-                    };
-                }
-                item.add(searchItem);
-            }
-        };
-        specialItems.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.OID.equals(getModelObject().getSearchType());
-            }
-        });
+        ListView<SearchItem> specialItems = createSpecialItemsPanel(ID_SPECIAL_ITEMS, new PropertyModel<>(getModel(), Search.F_SPECIAL_ITEMS));
         form.add(specialItems);
 
+        ListView<SearchItem> compositedItems = createSpecialItemsPanel(ID_COMPOSITED_SPECIAL_ITEMS, new PropertyModel(getModel(), Search.F_COMPOSITED_SPECIAL_ITEMS + "." + AbstractRoleCompositedSearchItem.F_SEARCH_ITEMS));
+        form.add(compositedItems);
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
                 new PropertyModel<>(getModel(), Search.F_ITEMS)) {
@@ -304,7 +271,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         form.add(oidItem);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isCanConfigure()));
+        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible()));
         form.add(moreGroup);
 
         AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
@@ -378,6 +345,16 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                     Search search = getModelObject();
                     PrismContext ctx = getPageBase().getPrismContext();
                     return search.isAdvancedQueryValid(ctx);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                if (search.getAllowedSearchType().size() == 1
+                        && SearchBoxModeType.BASIC.equals(search.getAllowedSearchType().get(0))) {
+                    return !search.getItems().isEmpty() || !search.getAvailableDefinitions().isEmpty();
                 }
                 return true;
             }
@@ -641,6 +618,47 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             }
         });
         advancedErrorGroup.add(advancedError);
+    }
+
+    private <T extends Serializable> ListView<SearchItem> createSpecialItemsPanel(String id, IModel model) {
+        ListView<SearchItem> specialItems = new ListView<SearchItem>(id, model) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<SearchItem> item) {
+                WebMarkupContainer searchItem;
+                if (item.getModelObject() instanceof SpecialSearchItem) {
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, (Consumer<AjaxRequestTarget> & Serializable) target -> searchPerformed(target));
+                } else {
+                    IModel itemModel = item.getModel();
+                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                }
+                item.add(searchItem);
+            }
+        };
+        specialItems.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !SearchBoxModeType.OID.equals(getModelObject().getSearchType());
+            }
+        });
+        return specialItems;
     }
 
     private IModel<String> getIconLabelByModeModel() {

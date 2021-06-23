@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -24,7 +25,11 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar
  */
-@PageDescriptor(url = "/admin/roleHistory", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/roleHistory")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL,
                 label = "PageAdminRoles.auth.roleAll.label",
                 description = "PageAdminRoles.auth.roleAll.description"),

@@ -78,7 +78,7 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), settings) {
 
             @Override
-            protected void removeValue(PrismContainerValueWrapper<C> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+            protected void remove(PrismContainerValueWrapper<C> valueToRemove, AjaxRequestTarget target) throws SchemaException {
                 PrismContainerPanel.this.removeValue(valueToRemove, target);
             }
         };

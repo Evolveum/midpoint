@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -87,7 +89,7 @@ public class QResourceMapping
 
     @Override
     public void storeRelatedEntities(@NotNull MResource row,
-            @NotNull ResourceType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull ResourceType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         ResourceBusinessConfigurationType business = schemaObject.getBusiness();

@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +49,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
     public static final String F_SPECIAL_ITEMS = "specialItems";
+    public static final String F_COMPOSITED_SPECIAL_ITEMS = "compositedSpecialItems";
     public static final String F_ADVANCED_QUERY = "advancedQuery";
     public static final String F_DSL_QUERY = "dslQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
@@ -80,6 +83,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
     private List<SearchItem> specialItems = new ArrayList<>();
+    private SearchItem compositedSpecialItems;
 
     private ObjectCollectionSearchItem objectCollectionSearchItem;
     private boolean isCollectionItemVisible = false;
@@ -141,6 +145,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public void addSpecialItem(SearchItem item) {
         specialItems.add(item);
+    }
+
+    public void addCompositedSpecialItem(SearchItem item) {
+        compositedSpecialItems = item;
     }
 
     public void setCollectionSearchItem(ObjectCollectionSearchItem objectCollectionSearchItem) {
@@ -258,6 +266,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         FilterSearchItem item = new FilterSearchItem(this, predefinedFilter);
         item.setDefinition(def);
 
+        if (predefinedFilter != null && predefinedFilter.getParameter() != null
+                && QNameUtil.match(predefinedFilter.getParameter().getType(), ObjectReferenceType.COMPLEX_TYPE)) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(predefinedFilter.getParameter().getTargetType());
+            if (supportedTargets.size() == 1) {
+                ref.setType(supportedTargets.iterator().next());
+            }
+            item.setInput(new SearchValue<>(ref));
+        }
+
         items.add(item);
         availableDefinitions.remove(def);
         return item;
@@ -335,12 +353,22 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, VariablesMap variables) {
         List<SearchItem> specialItems = getSpecialItems();
         if (specialItems.isEmpty()) {
-            return null;
+            if (compositedSpecialItems == null) {
+                return null;
+            }
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
+        if (compositedSpecialItems instanceof AbstractRoleCompositedSearchItem) {
+            ObjectFilter filter = ((AbstractRoleCompositedSearchItem) compositedSpecialItems).createFilter(pageBase, variables);
+            if (filter != null) {
+                conditions.add(filter);
+            }
+        }
+
         for (SearchItem item : specialItems) {
             if (item.isApplyFilter()) {
+
                 if (item instanceof SpecialSearchItem) {
                     ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
                     if (filter != null) {
@@ -420,15 +448,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
 
-        VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        for (FilterSearchItem item : getFilterItems()) {
-            SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
-            if (functionParameter != null && functionParameter.getType() != null) {
-                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
-                variables.put(functionParameter.getName(), value);
-            }
-        }
+        VariablesMap variables = getFilterVariables(defaultVariables, pageBase);
 
         for (FilterSearchItem item : getFilterItems()) {
             if (item.isEnabled() && item.isApplyFilter()) {
@@ -480,6 +500,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 }
         }
         return query;
+    }
+
+    public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
+        VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
+        for (FilterSearchItem item : getFilterItems()) {
+            SearchFilterParameterType functionParameter = item.getPredefinedFilter().getParameter();
+            if (functionParameter != null && functionParameter.getType() != null) {
+                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
+                TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
+                variables.put(functionParameter.getName(), value);
+            }
+        }
+        return variables;
     }
 
     private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {

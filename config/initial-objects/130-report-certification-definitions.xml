@@ -7,6 +7,7 @@
   -->
 
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="00000000-0000-0000-0000-000000000130">
     <name>Certification definitions report</name>
     <description>All certification definitions with basic information on related campaigns.</description>
@@ -15,15 +16,14 @@
     </assignment>
     <objectCollection>
         <collection>
-            <collectionRef oid="00000000-0000-0000-0001-000000000255" type="ObjectCollectionType"/>
+            <filter>
+                <q:all/>
+            </filter>
         </collection>
         <view>
             <column>
                 <name>nameColumn</name>
                 <path>name</path>
-                <display>
-                    <label>Name</label>
-                </display>
             </column>
             <column>
                 <name>ownerColumn</name>
@@ -43,21 +43,12 @@
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
-
-                                oid = object.getOid();
-                                numberOfCampaigns = 0;
-                                campaigns = midpoint.searchObjects(AccessCertificationCampaignType.class, prismContext.queryFor(AccessCertificationCampaignType.class).build(), null);
-                                for (AccessCertificationCampaignType campaign : campaigns) {
-                                    if (oid.equals(campaign.getDefinitionRef().getOid())) {
-                                        numberOfCampaigns++
-                                    }
-                                }
-                                return numberOfCampaigns;
+                                return campaigns;
                             </code>
                         </script>
                     </expression>
                 </export>
+                <displayValue>number</displayValue>
             </column>
             <column>
                 <name>openCampaignsColumn</name>
@@ -74,7 +65,6 @@
 
                                 oid = object.getOid();
                                 numberOfCampaigns = 0;
-                                campaigns = midpoint.searchObjects(AccessCertificationCampaignType.class, prismContext.queryFor(AccessCertificationCampaignType.class).build(), null);
                                 for (AccessCertificationCampaignType campaign : campaigns) {
                                     if (oid.equals(campaign.getDefinitionRef().getOid())) {
                                         AccessCertificationCampaignStateType state = campaign.getState();
@@ -89,6 +79,7 @@
                         </script>
                     </expression>
                 </export>
+                <displayValue>number</displayValue>
             </column>
             <column>
                 <name>lastStartedColumn</name>
@@ -124,8 +115,26 @@
                     </expression>
                 </export>
             </column>
+            <paging>
+                <orderDirection>ascending</orderDirection>
+                <orderBy>name</orderBy>
+            </paging>
             <type>AccessCertificationDefinitionType</type>
         </view>
+        <subreport>
+            <name>campaigns</name>
+            <type>AccessCertificationCampaignType</type>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
+
+                        query = prismContext.queryFor(AccessCertificationCampaignType.class).item(AccessCertificationCampaignType.F_DEFINITION_REF).ref(object.getOid()).build();
+                        return midpoint.searchObjects(AccessCertificationCampaignType.class, query, null);
+                    </code>
+                </script>
+            </expression>
+        </subreport>
         <useOnlyReportView>true</useOnlyReportView>
     </objectCollection>
 </report>

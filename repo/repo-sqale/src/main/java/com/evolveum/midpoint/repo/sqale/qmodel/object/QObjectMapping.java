@@ -24,8 +24,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
@@ -34,10 +35,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -79,7 +77,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
         // full-text is not item mapping, but filter on the whole object
-        // TODO ext mapping can't be done statically
+        addExtensionMapping(F_EXTENSION, ExtensionType.class, q -> q.ext);
 
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
@@ -196,7 +194,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         row.subtypes = listToArray(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
-        // TODO extensions stored inline (JSON) - that is ext column
+        row.ext = processExtensions(schemaObject.getExtension(), MExtItemHolderType.EXTENSION);
 
         // This is duplicate code with QAssignmentMapping.insert, but making interface
         // and needed setters (fields are not "interface-able") would create much more code.
@@ -231,7 +229,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
      * @param jdbcSession JDBC session used to insert related rows
      */
     public void storeRelatedEntities(
-            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         Objects.requireNonNull(row.oid);
 
         // We're after insert, we can set this for the needs of owned entities (assignments).

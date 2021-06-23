@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -24,7 +25,11 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/admin/userHistory", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/userHistory")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 label = "PageAdminUsers.auth.usersAll.label",
                 description = "PageAdminUsers.auth.usersAll.description"),

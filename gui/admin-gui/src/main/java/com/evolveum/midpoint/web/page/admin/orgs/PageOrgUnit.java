@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+
+import com.evolveum.midpoint.web.application.Url;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -28,7 +31,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -37,7 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/org/unit", matchUrlForSecurity = "/admin/org/unit")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
                 label = "PageAdminUsers.auth.orgAll.label",
                 description = "PageAdminUsers.auth.orgAll.description"),
@@ -56,16 +62,16 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
         super(parameters);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> role) {
-        super(role);
+    public PageOrgUnit(final PrismObject<OrgType> historyOrg) {
+        super(historyOrg, false);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
-        super(userToEdit, isNewObject);
+    public PageOrgUnit(final PrismObject<OrgType> orgToEdit, boolean isNewObject) {
+        super(orgToEdit, isNewObject);
     }
 
-    public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
-        super(abstractRole, isNewObject, isReadonly);
+    public PageOrgUnit(final PrismObject<OrgType> org, boolean isNewObject, boolean isReadonly) {
+        super(org, isNewObject, isReadonly);
     }
 
     @Override
@@ -113,8 +119,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
+                    protected List<QName> getSupportedRelations() {
+                        return getSupportedMembersTabRelations();
                     }
 
                     @Override
@@ -133,8 +139,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
+                    protected List<QName> getSupportedRelations() {
+                        return getSupportedGovernanceTabRelations();
                     }
 
                     @Override

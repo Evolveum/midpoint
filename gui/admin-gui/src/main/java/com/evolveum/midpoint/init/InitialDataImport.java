@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * Imports initial data objects as needed, ignoring already imported objects.
@@ -102,10 +100,6 @@ public class InitialDataImport extends DataImport {
             try (InputStream resourceInputStream = resource.getInputStream()) {
                 String objectText = IOUtils.toString(resourceInputStream, StandardCharsets.UTF_8);
                 object = prismContext.parseObject(objectText);
-            }
-            if (ReportType.class.equals(object.getCompileTimeClass())) {
-                //noinspection unchecked
-                ReportTypeUtil.applyDefinition((PrismObject<ReportType>) object, prismContext);
             }
 
             return importObject(object, resource.getFilename(), task, mainResult, overwrite);

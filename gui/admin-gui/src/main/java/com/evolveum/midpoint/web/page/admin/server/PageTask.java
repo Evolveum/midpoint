@@ -109,15 +109,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     public PageTask(PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);
+        super(parameters);
         initialize(null);
     }
 
-    public PageTask(final PrismObject<TaskType> taskToEdit) {
-        initialize(taskToEdit);
-    }
-
     public PageTask(final PrismObject<TaskType> taskToEdit, boolean isNewObject) {
+        super(taskToEdit, isNewObject);
         initialize(taskToEdit, isNewObject);
     }
 

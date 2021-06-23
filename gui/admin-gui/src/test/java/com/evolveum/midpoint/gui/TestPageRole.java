@@ -110,7 +110,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
         // WHEN
         // Choose P0001 in 'Org/Project' filter selection
-        String orgProjectItem = searchForm + ":specialItems:3:specialItem:searchItemContainer:searchItemField";
+        String orgProjectItem = searchForm + ":compositedSpecialItems:3:specialItem:searchItemContainer:searchItemField";
         tester.clickLink(orgProjectItem + ":editButton");
         ((TextField)tester.getComponentFromLastRenderedPage(orgProjectItem + ":popover:popoverPanel:popoverForm:oid")).getModel().setObject(ORG_SAVE_ELAINE_OID);
         tester.clickLink(orgProjectItem + ":popover:popoverPanel:popoverForm:confirmButton");

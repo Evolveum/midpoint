@@ -351,6 +351,18 @@ public enum ObjectTypes {
         return null;
     }
 
+    public static QName getTypeQNameFromRestType(String restType) {
+        Validate.notNull(restType, "Rest type must not be null.");
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getRestType().equals(restType)) {
+                return type.getTypeQName();
+            }
+        }
+
+        throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
+    }
+
     public static Class<? extends ObjectType> getClassFromRestType(String restType) {
         Validate.notNull(restType, "Rest type must not be null.");
 

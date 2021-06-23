@@ -12,6 +12,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,7 +69,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/self/requestAssignments", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/requestAssignments")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

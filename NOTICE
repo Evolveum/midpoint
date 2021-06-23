@@ -26,10 +26,25 @@ Bitstream Vera is a trademark of Bitstream, Inc.
 For details, see http://dejavu-fonts.org
 and http://dejavu-fonts.org/wiki/License
 
-This product includes JasperReports Library
-Copyright (c) 2001-2016 TIBCO Software Inc.
-JasperReports Library is distributed under the terms of
-GNU Lesser General Public Licenses (LGPL)
+This product includes Panzoom library,
+Copyright 2016-2019 Timmy Willison.
+Panzoom is distributed under the terms of MIT license.
+Please see https://github.com/timmywil/panzoom for details.
+
+This product includes Perfect Scrollbar library,
+Copyright (c) 2012-2019 Hyunje Jun, MDBootstrap.com and other contributors.
+Perfect Scrollbar is distributed under the terms of MIT license.
+Please see https://github.com/mdbootstrap/perfect-scrollbar for details.
+
+This product includes Raphaël library,
+Copyright © 2008-2012 Dmitry Baranovskiy, Copyright © 2008-2012 Sencha Labs.
+Raphaël is distributed under the terms of MIT license.
+Please see http://raphaeljs.com/ for details.
+
+This product includes Treant-js library,
+(c) 2013 Fran Peručić.
+Treant-js is distributed under the terms of MIT license.
+Please see http://fperucic.github.io/treant-js for details.
 
 This product includes AdminLTE template
 Copyright (c) 2014-2016 Abdullah Almsaeed

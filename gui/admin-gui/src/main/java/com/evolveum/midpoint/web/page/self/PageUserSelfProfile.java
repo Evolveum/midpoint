@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -24,7 +26,11 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@PageDescriptor(url = {"/self/profile/user"}, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/self/profile/user")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),

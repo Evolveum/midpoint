@@ -306,6 +306,56 @@ where
 order by oid
 ;
 
+-- more JSONB experiments with matching various types or nested structures (e.g. poly-strings)
+/*
+insert into m_user (nameorig, namenorm, ext)
+    values ('usera', 'usera', '{"polys":[{"o":"orig1", "n":"norm1"}, {"o":"orig2", "n":"norm2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userb', 'userb', '{"polys":[]}'); -- hypothetic, we will NOT save the key at all
+insert into m_user (nameorig, namenorm, ext)
+    values ('userc', 'userc', '{"polys":[{"o":"CORIG1", "n":"CNORM1"}, {"o":"CORIG2", "n":"CNORM2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userd', 'userd', '{"polys":[{"o":"dORIG1", "n":"dNORM1"}, {"o":"ORIG2", "n":"NORM2"}]}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('userx', 'userx', '{"number":123456789012345678901234567890, "float": 1234567890.1234567890}');
+insert into m_user (nameorig, namenorm, ext)
+    values ('usery', 'usery', '{"number":23456789012345678901234567890, "float": 234567890.1234567890}');
+*/
+
+select ext->'number' from m_object
+where (ext->'number')::numeric > 2345678901234567890
+order by ext->'number';
+
+select nameorig, ext from m_object
+--     where (ext->'number')::numeric > 2345678901234567890
+order by ext->'float';
+
+-- set enable_seqscan=false
+-- set enable_seqscan=true
+explain
+select oid, nameorig, ext
+from m_user
+-- where ext @> '{"float": 1234567890.1234567890}' -- can use index
+-- where ext @> '{"float": [1234567890.1234567890]}' -- does not match
+-- where (ext->'float')::numeric = 1234567890.1234567890 -- works, doesn't using GIN index
+-- where (ext->'float'->0)::numeric = 1234567890.1234567890 -- works for arrays too, doesn't using GIN index
+-- the last two can benefit from adding: and ext ? 'float' -- that actually utilizes the index
+;
+
+-- matching poly-strings
+explain
+-- select oid, nameorig, ext, jsonb_array_elements_text(ext->'polys')
+select oid, nameorig, ext
+from m_user
+-- where ext @> '{"polys": []}' -- this matches ANY polys, empty or not
+-- where ext @> '{"polys": [{"o":"orig1"}]}' -- exact match is easy
+-- where ext->'polys'->'n' is not null -- doesn't match anything, 'n' is nested in array
+-- where ext->'polys'->0->>'n' ilike 'NO%' -- works but only for first value, we want also "userd"
+-- ^^above the last ->> (double >) is critical, if -> ::text is used, it returns values with " around
+-- where ext->'polys'->0->'n'#>>'{}' ilike 'NO%' -- alternative with #>>'{}', see https://dba.stackexchange.com/a/234047/157622
+where exists (select 1 from jsonb_array_elements(ext->'polys') val WHERE val->>'n' ilike 'NO%')
+;
+
 -- MANAGEMENT queries
 
 -- See: https://wiki.postgresql.org/wiki/Disk_Usage

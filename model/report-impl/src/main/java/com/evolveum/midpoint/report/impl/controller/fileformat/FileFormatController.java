@@ -8,14 +8,21 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -56,6 +63,8 @@ public abstract class FileFormatController {
     private final ReportServiceImpl reportService;
     private final FileFormatConfigurationType fileFormatConfiguration;
     private final ReportType report;
+    private VariablesMap parameters;
+    private VariablesMap variables;
 
     public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
         this.fileFormatConfiguration = fileFormatConfiguration;
@@ -75,9 +84,9 @@ public abstract class FileFormatController {
         return HEADS_OF_WIDGET;
     }
 
-    public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception;
+    public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, RunningTask task, OperationResult result) throws Exception;
 
-    public abstract byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception;
+    public abstract byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, RunningTask task, OperationResult result) throws Exception;
 
     protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
         try {
@@ -92,10 +101,6 @@ public abstract class FileFormatController {
     public abstract String getTypeSuffix();
 
     public abstract String getType();
-
-//    protected String getMessage(Enum e) {
-//        return getMessage(e.getDeclaringClass().getSimpleName() + '.' + e.name());
-//    }
 
     protected String getMessage(String key) {
         return getMessage(key, null);
@@ -132,7 +137,7 @@ public abstract class FileFormatController {
                     if (valueObject.isSingleValue()) {
                         Referencable ref = ((PrismReference) valueObject).getRealValue();
                         if (iterator.hasNext()) {
-                            valueObject = getObjectFromReference(ref);
+                            valueObject = getReportService().getObjectFromReference(ref);
                         }
                     } else {
                         if (iterator.hasNext()) {
@@ -144,9 +149,21 @@ public abstract class FileFormatController {
             }
         }
         if (expression != null) {
-            Object value = evaluateExportExpression(expression, valueObject, task, result);
-            if (value instanceof List) {
-                return processListOfRealValues((List) value);
+            Object value = evaluateExportExpression(expression, object, valueObject, task, result);
+            if (value instanceof Collection) {
+                if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
+                    return String.valueOf(((Collection) value).size());
+                }
+                return processListOfRealValues((Collection) value);
+            }
+            if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
+                if (value == null) {
+                    return "0";
+                }
+                if (value instanceof PrismValue && ((PrismValue)value).getRealValue() instanceof Collection){
+                    return String.valueOf(((Collection<?>) ((PrismValue)value).getRealValue()).size());
+                }
+                return "1";
             }
             return processListOfRealValues(Collections.singletonList(value));
         }
@@ -175,7 +192,7 @@ public abstract class FileFormatController {
     private <O extends Object> String processListOfRealValues(Collection<?> values) {
         StringBuilder sb = new StringBuilder();
         values.forEach(value -> {
-            if (!sb.toString().isEmpty()) {
+            if (!sb.toString().isEmpty() && sb.lastIndexOf(getMultivalueDelimiter()) != (sb.length() - getMultivalueDelimiter().length())) {
                 appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
@@ -207,6 +224,10 @@ public abstract class FileFormatController {
                 sb.append(ReportUtils.prettyPrintForReport(value));
             }
         });
+        if (!sb.toString().isEmpty() && sb.lastIndexOf(getMultivalueDelimiter()) != -1
+                && sb.lastIndexOf(getMultivalueDelimiter()) == (sb.length() - getMultivalueDelimiter().length())) {
+            sb.replace(sb.lastIndexOf(getMultivalueDelimiter()), sb.length(), "");
+        }
         return sb.toString();
     }
 
@@ -217,7 +238,7 @@ public abstract class FileFormatController {
         if (ref.getTargetName() != null && ref.getTargetName().getOrig() != null) {
             return ref.getTargetName().getOrig();
         }
-        PrismObject object = getObjectFromReference(ref);
+        PrismObject object = getReportService().getObjectFromReference(ref);
 
         if (object == null) {
             return ref.getOid();
@@ -231,34 +252,46 @@ public abstract class FileFormatController {
 
     protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
-    private Object evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
-        Object object;
-        if (valueObject == null) {
-            object = null;
+    protected abstract String getMultivalueDelimiter();
+
+    private Object evaluateExportExpression(ExpressionType expression, Item object, Item valueItem, Task task, OperationResult result) {
+        Object valueObject;
+        if (valueItem == null) {
+            valueObject = null;
         } else {
-            object = valueObject.getRealValue();
+            if (valueItem.isSingleValue()) {
+                valueObject = valueItem.getRealValue();
+            } else {
+                valueObject = new ArrayList<>();
+                valueItem.getValues().forEach(value -> ((List)valueObject).add(((PrismValue)value).getRealValue()));
+            }
         }
-        return evaluateExportExpression(expression, object, task, result);
+        return evaluateExportExpression(expression, object, valueObject, task, result);
     }
 
-    private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
-
-        VariablesMap variables = new VariablesMap();
-        if (valueObject == null) {
-            variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
-        } else {
-            variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
+    private Object evaluateExportExpression(ExpressionType expression, Item object, Object input, Task task, OperationResult result) {
+        checkVariables(task);
+        if (variables.containsKey(ExpressionConstants.VAR_INPUT)) {
+            variables.remove(ExpressionConstants.VAR_INPUT);
+        }
+        if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+            variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+        }
+        if (!(input instanceof Containerable) || !object.getValue().equals(((Containerable) input).asPrismContainerValue())) {
+            if (input == null) {
+                variables.put(ExpressionConstants.VAR_INPUT, null, Object.class);
+            } else {
+                variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
+            }
         }
         Object values = null;
         try {
-            values = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
+            values = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (export)", task, result);
+        } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
         if (values == null || (values instanceof Collection && ((Collection) values).isEmpty())) {
-            return "";
+            values = "";
         }
         return values;
     }
@@ -278,10 +311,8 @@ public abstract class FileFormatController {
     private Object evaluateImportExpression(ExpressionType expression, VariablesMap variables, Task task, OperationResult result) {
         Object value = null;
         try {
-            value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
+            value = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (import)", task, task.getResult());
+        } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
         if (value instanceof PrismValue) {
@@ -304,67 +335,22 @@ public abstract class FileFormatController {
         } else {
 
             String name = column.getName();
+            String displayName = null;
             if (path != null) {
                 ItemDefinition def = objectDefinition.findItemDefinition(path);
                 if (def == null) {
                     throw new IllegalArgumentException("Could'n find item for path " + path);
                 }
-                String displayName = def.getDisplayName();
+                displayName = def.getDisplayName();
+
+            }
+            if (StringUtils.isNotEmpty(displayName)) {
                 label = getMessage(displayName);
             } else {
                 label = name;
             }
         }
         return label;
-    }
-
-    protected PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
-        Task task = getReportService().getTaskManager().createTaskInstance("Get object");
-        Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-
-        if (ref.asReferenceValue().getObject() != null) {
-            return ref.asReferenceValue().getObject();
-        }
-
-        PrismObject<ObjectType> object = null;
-        try {
-            object = getReportService().getModelService().getObject(type, ref.getOid(), null, task, task.getResult());
-        } catch (Exception e) {
-            LOGGER.error("Couldn't get object from objectRef " + ref, e);
-        }
-        return object;
-    }
-
-    protected QName resolveTypeQname(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
-        QName type;
-        if (collectionRef.getCollectionRef() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
-            if (collection.getAuditSearch() != null) {
-                type = AuditEventRecordType.COMPLEX_TYPE;
-            } else {
-                type = collection.getType();
-            }
-        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
-            type = collection.getType();
-        } else {
-            type = compiledCollection.getContainerType();
-        }
-        if (type == null) {
-            LOGGER.error("Couldn't define type for objects");
-            throw new IllegalArgumentException("Couldn't define type for objects");
-        }
-        return type;
-    }
-
-    protected Class<ObjectType> resolveType(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
-        QName type = resolveTypeQname(collectionRef, compiledCollection);
-        return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
-                .getCompileTimeClassForObjectType(type);
-    }
-
-    protected boolean isAuditCollection(CollectionRefSpecificationType collection, Task task, OperationResult result) {
-        return DashboardUtils.isAuditCollection(collection, getReportService().getModelService(), task, result);
     }
 
     protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {
@@ -377,15 +363,64 @@ public abstract class FileFormatController {
 
     public abstract List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException;
 
-    protected <T extends Object> boolean evaluateCondition(ExpressionType condition, T value, Task task, OperationResult result)
+    protected boolean evaluateCondition(ExpressionType condition, PrismContainer value, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        VariablesMap variables = new VariablesMap();
-        variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+        checkVariables(task);
+        if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+            variables.put(ExpressionConstants.VAR_OBJECT, value, value.getDefinition());
+        }
         PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, getReportService().getExpressionFactory(),
                 "Evaluate condition", task, result);
         if (conditionValue == null || Boolean.FALSE.equals(conditionValue.getRealValue())) {
             return false;
         }
         return true;
+    }
+
+    private void checkVariables(Task task) {
+        if (variables == null) {
+            if (parameters == null) {
+                parameters = getReportService().getParameters(task);
+            }
+            variables = new VariablesMap();
+            variables.putAll(parameters);
+        }
+    }
+
+    protected void evaluateSubreportParameters(List<SubreportParameterType> subreports, PrismContainer value, Task task) {
+        if (subreports != null && !subreports.isEmpty()){
+            cleanUpVariables();
+            checkVariables(task);
+            if (!variables.containsKey(ExpressionConstants.VAR_OBJECT)) {
+                variables.put(ExpressionConstants.VAR_OBJECT, value, value.getDefinition());
+            }
+            variables.putAll(getReportService().evaluateSubreportParameters(report.asPrismObject(), variables, task, task.getResult()));
+        }
+    }
+
+    protected void cleanUpVariables() {
+        if (variables != null) {
+            variables.clear();
+            variables = null;
+        }
+    }
+
+    protected void initializationParameters(List<SearchFilterParameterType> parametersType, Task task) {
+        VariablesMap variables = getReportService().getParameters(task);
+        for (SearchFilterParameterType parameter : parametersType) {
+            if (!variables.containsKey(parameter.getName())) {
+                Class<?> clazz = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(parameter.getType());
+                variables.put(parameter.getName(), null, clazz);
+            }
+        }
+        parameters = variables;
+    }
+
+    protected void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result, boolean recordProgress)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        checkVariables(task);
+        getReportService().getModelInteractionService().processObjectsFromCollection(
+                collectionConfig, typeForFilter, handler, defaultOptions, variables, task, result, recordProgress);
     }
 }

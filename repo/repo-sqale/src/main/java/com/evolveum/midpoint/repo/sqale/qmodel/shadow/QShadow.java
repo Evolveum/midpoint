@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
+import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+
 import java.sql.Types;
 import java.time.Instant;
 
@@ -14,6 +16,7 @@ import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -55,6 +58,8 @@ public class QShadow extends QObject<MShadow> {
             ColumnMetadata.named("synchronizationSituation").ofType(Types.OTHER);
     public static final ColumnMetadata SYNCHRONIZATION_TIMESTAMP =
             ColumnMetadata.named("synchronizationTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata ATTRIBUTES =
+            ColumnMetadata.named("attributes").ofType(JSONB_TYPE);
 
     // columns and relations
 
@@ -82,6 +87,7 @@ public class QShadow extends QObject<MShadow> {
                     SynchronizationSituationType.class, SYNCHRONIZATION_SITUATION);
     public final DateTimePath<Instant> synchronizationTimestamp =
             createInstant("synchronizationTimestamp", SYNCHRONIZATION_TIMESTAMP);
+    public final JsonbPath attributes = createJsonb("attributes", ATTRIBUTES);
 
     public QShadow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

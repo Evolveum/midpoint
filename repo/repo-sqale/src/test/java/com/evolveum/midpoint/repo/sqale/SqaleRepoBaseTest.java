@@ -23,11 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.QExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -39,6 +41,9 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class SqaleRepoBaseTest extends AbstractSpringTest
@@ -195,6 +200,15 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return selectOne(qUri, qUri.id.eq(uriId)).uri;
     }
 
+    protected Integer cachedUriId(QName qName) {
+        return cachedUriId(QNameUtil.qNameToUri(qName));
+    }
+
+    protected Integer cachedUriId(String uri) {
+        QUri qUri = QUri.DEFAULT;
+        return selectOne(qUri, qUri.uri.eq(uri)).id;
+    }
+
     protected void assertCachedUri(Integer uriId, QName qName) {
         assertCachedUri(uriId, QNameUtil.qNameToUri(qName));
     }
@@ -248,8 +262,131 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
     }
 
-    protected PrismReferenceValue ref(String targetOid, QName relation) {
-        return prismContext.itemFactory()
-                .createReferenceValue(targetOid).relation(relation);
+    /** Creates a reference with specified type and default relation. */
+    protected PrismReferenceValue ref(String targetOid, QName targetType) {
+        return ref(targetOid, targetType, null);
     }
+
+    /** Creates a reference with specified target type and relation. */
+    protected PrismReferenceValue ref(String targetOid, QName targetType, QName relation) {
+        return prismContext.itemFactory()
+                .createReferenceValue(targetOid, targetType).relation(relation);
+    }
+
+    // region extension support
+    @SafeVarargs
+    protected final <V> void addExtensionValue(
+            Containerable extContainer, String itemName, V... values) throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        assertThat(itemDefinition)
+                .withFailMessage("No definition found for item name '%s' in %s", itemName, pcv)
+                .isNotNull();
+        if (itemDefinition instanceof PrismReferenceDefinition) {
+            PrismReference ref = (PrismReference) itemDefinition.instantiate();
+            for (V value : values) {
+                ref.add(value instanceof PrismReferenceValue
+                        ? (PrismReferenceValue) value
+                        : ((Referencable) value).asReferenceValue());
+            }
+            pcv.add(ref);
+        } else {
+            //noinspection unchecked
+            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+            property.setRealValues(values);
+            pcv.add(property);
+        }
+    }
+
+    protected String extensionKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
+    }
+
+    protected String shadowAttributeKey(Containerable extContainer, String itemName) {
+        return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
+    }
+
+    @NotNull
+    private String extKey(Containerable extContainer, String itemName, MExtItemHolderType holder) {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        MExtItem.Key key = MExtItem.keyFrom(def, holder);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+            QExtItem ei = QExtItem.DEFAULT;
+            return jdbcSession.newQuery()
+                    .from(ei)
+                    .where(ei.itemName.eq(key.itemName)
+                            .and(ei.valueType.eq(key.valueType))
+                            .and(ei.holderType.eq(key.holderType))
+                            .and(ei.cardinality.eq(key.cardinality)))
+                    .select(ei.id)
+                    .fetchFirst()
+                    .toString();
+        }
+    }
+
+    /**
+     * Helper to make setting shadow attributes easier.
+     *
+     * * Creates mutable container definition for shadow attributes.
+     * * Initializes PC+PCV for shadow attributes in the provided shadow object.
+     * * Using {@link #set(QName, QName, int, int, Object...)} one can "define" new attribute
+     * and set it in the same step.
+     *
+     * This is not a builder, just a stateless wrapper around the shadow object and each set
+     * has immediate effect.
+     */
+    public class ShadowAttributesHelper {
+
+        private final ShadowAttributesType attributesContainer;
+        private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
+
+        public ShadowAttributesHelper(ShadowType object) throws SchemaException {
+            attributesContainer = new ShadowAttributesType(prismContext);
+            // let's create the container+PCV inside the shadow object
+            object.attributes(attributesContainer);
+
+            MutableComplexTypeDefinition ctd = prismContext.definitionFactory()
+                    .createComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            //noinspection unchecked
+            attrsDefinition = (MutablePrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .createContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+            object.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES)
+                    .applyDefinition(attrsDefinition, true);
+        }
+
+        /** Creates definition for attribute (first parameters) and sets the value(s) (vararg). */
+        @SafeVarargs
+        public final <V> ShadowAttributesHelper set(
+                QName attributeName, QName type, int minOccurrence, int maxOccurrence,
+                V... values) throws SchemaException {
+            attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
+            return this;
+        }
+
+        /**
+         * Simplified version of {@link #set(QName, QName, int, int, Object...)} method.
+         * Uses 0 for minOccurrence and maxOccurrence is 1 if one or no value is provided,
+         * otherwise it's set to -1.
+         */
+        @SafeVarargs
+        public final <V> ShadowAttributesHelper set(
+                QName attributeName, QName type, V... values) throws SchemaException {
+            return set(attributeName, type, 0, values.length <= 1 ? 1 : -1, values);
+        }
+
+        /** Returns shadow attributes container likely needed later in the assert section. */
+        public ShadowAttributesType attributesContainer() {
+            return attributesContainer;
+        }
+
+        /** For tests searching by shadow attribute using {@code item(ItemPath, ItemDefinition}. */
+        public ItemDefinition<?> getDefinition(ItemName attributeName) {
+            return attrsDefinition.findItemDefinition(attributeName);
+        }
+    }
+    // endregion
 }

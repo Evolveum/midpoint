@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.*;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,7 +55,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-@PageDescriptor(url = "/admin/auditLogDetails", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/auditLogDetails")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),

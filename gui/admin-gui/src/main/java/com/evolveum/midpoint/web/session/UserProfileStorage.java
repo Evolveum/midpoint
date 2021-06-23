@@ -118,6 +118,14 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         setPagingSize(key.name(), size);
     }
 
+    public boolean isExistPagingSize(TableId key) {
+        Validate.notNull(key, "TableId must not be null.");
+        Validate.notNull(key.name(), "TableId.name() must not be null.");
+
+        Integer size = tables.get(key.name());
+        return size != null;
+    }
+
     public void setPagingSize(String key, Integer size) {
         Validate.notNull(key, "Key must not be null.");
 

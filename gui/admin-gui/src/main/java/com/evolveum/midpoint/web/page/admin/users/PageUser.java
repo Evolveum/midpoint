@@ -16,14 +16,12 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -98,7 +96,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-        super(userToEdit);
+        this(userToEdit, false);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit, boolean isNewObject)  {
@@ -408,7 +406,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
         deltas.add(delta);
         PrismContainerDefinition<?> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-        handleAssignmentDeltas(delta, userAssignmentsDtos, def, true);
+        handleDelegationAssignmentDeltas(delta, userAssignmentsDtos, def);
         return deltas;
     }
 }

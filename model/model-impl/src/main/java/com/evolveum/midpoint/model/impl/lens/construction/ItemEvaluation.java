@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -14,7 +21,10 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -26,13 +36,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.JAXBElement;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Evaluation of an attribute or association.
@@ -152,7 +155,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     }
 
     public boolean hasEvaluatedMapping() {
-        return evaluatedMapping != null;
+        return evaluatedMapping != null && evaluatedMapping.isEnabled();
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)

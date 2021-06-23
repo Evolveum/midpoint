@@ -2197,7 +2197,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).containsPoly("a").matchingOrig()
                     .build();
             count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
-            assertEquals(23, count);
+            assertEquals(24, count);
 
         } finally {
             close(session);

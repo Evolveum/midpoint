@@ -17,6 +17,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,7 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationReq
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
-@PageDescriptor(url = "/admin/config/evaluateMapping",
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/evaluateMapping", matchUrlForSecurity = "/admin/config/evaluateMapping")
+        },
         action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),

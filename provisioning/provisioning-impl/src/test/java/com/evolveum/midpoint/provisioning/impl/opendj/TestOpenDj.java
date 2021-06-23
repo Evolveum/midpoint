@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,6 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -3408,6 +3409,22 @@ public class TestOpenDj extends AbstractOpenDjTest {
 //        assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
     }
 
+    /**
+     * Look insite OpenDJ logs to check for clues of undesirable behavior.
+     * MID-7091
+     */
+    @Test
+    public void test900OpenDjLogSanity() throws Exception {
+        MutableInt abandons = new MutableInt(0);
+        openDJController.scanAccessLog(line -> {
+            if (line.contains("ABANDON")) {
+                abandons.increment();
+            }
+        });
+        if (abandons.intValue() > 0) {
+            fail("Too many ABANDONs in OpenDJ access log ("+abandons.intValue()+")");
+        }
+    }
     protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
         ShadowAssociationType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
         PrismContainerValue identifiersCVal = associationType.getIdentifiers().asPrismContainerValue();

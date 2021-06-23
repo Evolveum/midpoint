@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -381,6 +382,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public List<SchemaMigration> getSchemaMigrations() {
         return metadataValueWrapper.getSchemaMigrations();
+    }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() {
+        return metadataValueWrapper.getDiagrams();
     }
 
     @Override

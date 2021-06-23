@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -115,12 +116,8 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                ObjectQuery queryFilter = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
-                        .item(CaseType.F_PARENT_REF)
-                        .ref(getObjectWrapper().getOid())
-                        .build();
-                return ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery(queryFilter.getFilter());
+            protected ISelectableDataProvider<CaseType, SelectableBean<CaseType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(() -> getChildCasesQuery(), null);
             }
 
             @Override
@@ -140,5 +137,13 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
         };
         table.setOutputMarkupId(true);
         add(table);
+    }
+
+    private ObjectQuery getChildCasesQuery() {
+        ObjectQuery queryFilter = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
+                .item(CaseType.F_PARENT_REF)
+                .ref(getObjectWrapper().getOid())
+                .build();
+        return ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery(queryFilter.getFilter());
     }
 }
