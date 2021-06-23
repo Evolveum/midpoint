@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
-import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 
 import java.sql.Types;
 import java.time.Instant;
@@ -14,9 +14,9 @@ import java.time.Instant;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -87,7 +87,8 @@ public class QShadow extends QObject<MShadow> {
                     SynchronizationSituationType.class, SYNCHRONIZATION_SITUATION);
     public final DateTimePath<Instant> synchronizationTimestamp =
             createInstant("synchronizationTimestamp", SYNCHRONIZATION_TIMESTAMP);
-    public final JsonbPath attributes = createJsonb("attributes", ATTRIBUTES);
+    public final JsonbPath attributes =
+            addMetadata(add(new JsonbPath(forProperty("attributes"))), ATTRIBUTES);
 
     public QShadow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

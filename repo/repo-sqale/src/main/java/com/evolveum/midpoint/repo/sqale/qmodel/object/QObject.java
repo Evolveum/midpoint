@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 
 import java.sql.Types;
 import java.time.Instant;
@@ -16,9 +16,9 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -106,7 +106,7 @@ public class QObject<R extends MObject> extends FlexibleRelationalPathBase<R> {
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
     public final ArrayPath<String[], String> subtypes =
             createArray("subtypes", String[].class, SUBTYPES);
-    public final JsonbPath ext = createJsonb("ext", EXT);
+    public final JsonbPath ext = addMetadata(add(new JsonbPath(forProperty("ext"))), EXT);
     // metadata attributes
     public final UuidPath creatorRefTargetOid =
             createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);

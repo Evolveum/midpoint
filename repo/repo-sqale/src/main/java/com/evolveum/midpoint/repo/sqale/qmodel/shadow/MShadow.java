@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 

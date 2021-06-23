@@ -16,12 +16,12 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ExtensionItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 
 /**
  * TODO: this much "lazier" than normal item mapper, we'll get to ext definitions only here, not sooner.
