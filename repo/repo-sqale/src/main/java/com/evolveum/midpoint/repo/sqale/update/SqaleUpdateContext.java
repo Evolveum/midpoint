@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -119,7 +119,7 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     public abstract <P extends Path<T>, T> void set(P path, T value);
 
     @SuppressWarnings("UnusedReturnValue")
-    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
+    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) throws SchemaException {
         return mapping.insert(schemaObject, row, jdbcSession);
     }
 
@@ -128,6 +128,9 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     }
 
     public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        if (subcontext == null) {
+            throw new IllegalArgumentException("Null update subcontext for item path: " + itemPath);
+        }
         if (subcontexts.containsKey(itemPath)) {
             // This should not happen if code above is written properly, but prevents losing
             // updates when multiple modifications use the same container path segment.

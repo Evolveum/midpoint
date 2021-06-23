@@ -11,6 +11,8 @@ import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources.
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.amqp.EmbeddedBroker;
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.io.IOUtils;
 import org.testng.annotations.AfterClass;
 
@@ -20,6 +22,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestAsyncUpdateCachingAmqp extends TestAsyncUpdateCaching {
 
@@ -48,9 +52,22 @@ public class TestAsyncUpdateCachingAmqp extends TestAsyncUpdateCaching {
 
     @Override
     void prepareMessage(File messageFile) throws IOException, TimeoutException {
-        String message = String.join("\n", IOUtils.readLines(new FileReader(messageFile)));
+        String message = messageFile != null ?
+                String.join("\n", IOUtils.readLines(new FileReader(messageFile)))
+                : "";
         Map<String, Object> headers = new HashMap<>();
         headers.put(Amqp091AsyncUpdateSource.HEADER_LAST_MESSAGE, true);
         embeddedBroker.send(QUEUE_NAME, message, headers);
+    }
+
+    @Override
+    void assertNoUnacknowledgedMessages() {
+        try {
+            assertThat(embeddedBroker.getMessagesCount(QUEUE_NAME))
+                    .as("unacknowledged message count")
+                    .isEqualTo(0);
+        } catch (IOException | TimeoutException e) {
+            throw new SystemException(e);
+        }
     }
 }

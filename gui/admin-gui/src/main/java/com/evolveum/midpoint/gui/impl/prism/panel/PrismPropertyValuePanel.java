@@ -51,7 +51,7 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
     }
 
     @Override
-    protected void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+    protected void remove(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
         throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
 }

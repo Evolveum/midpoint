@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -54,7 +55,11 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  * @author katkav
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/certification/definitions", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/certification/definitions", matchUrlForSecurity = "/admin/certification/definitions")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),

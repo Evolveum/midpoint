@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.HistoryPageTabVisibleBehavior;
@@ -85,10 +86,27 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
     }
 
     protected ObjectTabVisibleBehavior<AHT> getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
+        return getTabVisibility(authUrl, isVisibleOnHistoryPage, true, parentPage);
+    }
+
+    protected ObjectTabVisibleBehavior<AHT> getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, boolean visibleForAdd, PageAdminObjectDetails<AHT> parentPage){
         if (isFocusHistoryPage()){
             return new HistoryPageTabVisibleBehavior<>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
         } else {
-            return new ObjectTabVisibleBehavior<>(unwrapModel(), authUrl, parentPage);
+            return new ObjectTabVisibleBehavior<>(unwrapModel(), authUrl, parentPage) {
+
+                @Override
+                public boolean isVisible() {
+                    boolean parentVisible = super.isVisible();
+                    if (!parentVisible) {
+                        return false;
+                    }
+                    if (ItemStatus.ADDED == getObjectWrapper().getStatus() && !visibleForAdd) {
+                        return false;
+                    }
+                    return true;
+                }
+            };
         }
     }
 

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -149,8 +150,8 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
                 return new SingleContainerPanel<WorkDistributionType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), WorkDistributionType.COMPLEX_TYPE) {
 
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
-                        return getWorkManagementVisibility(itemPath);
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                        return getWorkManagementVisibility(itemWrapper.getPath());
                     }
 
                     @Override

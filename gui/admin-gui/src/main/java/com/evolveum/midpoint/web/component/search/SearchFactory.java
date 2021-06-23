@@ -238,7 +238,7 @@ public class SearchFactory {
                 panelType, false );
     }
 
-    public static <T extends ObjectType> Search createSearch(
+    private static <T extends ObjectType> Search createSearch(
             ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType,
             boolean isOidSearchEnabled) {
@@ -283,7 +283,38 @@ public class SearchFactory {
         return search;
     }
 
-    public static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
+    public static <C extends Containerable> Search createSearchForReport(Class<C> type, List<SearchFilterParameterType> parameters, ModelServiceLocator modelServiceLocator) {
+        ContainerTypeSearchItem<C> typeItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
+        Search search = new Search(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC), false);
+
+        SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
+        PrismContainerDefinition objDef = registry.findContainerDefinitionByCompileTimeClass(type);
+
+        final List<SearchItemDefinition> configuredSearchItemDefs = new ArrayList<>();
+        parameters.forEach(parameter -> {
+            SearchItemType searchItemType = new SearchItemType();
+            searchItemType.setParameter(parameter);
+            searchItemType.setVisibleByDefault(true);
+            if (parameter.getDisplay() != null) {
+                if (parameter.getDisplay().getLabel() != null) {
+                    searchItemType.setDisplayName(parameter.getDisplay().getLabel());
+                } else {
+                    searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
+                }
+                if (parameter.getDisplay().getHelp() != null) {
+                    searchItemType.setDescription(
+                            modelServiceLocator.getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
+                }
+            }
+            configuredSearchItemDefs.add(new SearchItemDefinition(searchItemType));
+            return;
+        });
+        processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
+        search.setCanConfigure(false);
+        return search;
+    }
+
+    private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
         configuredSearchItemDefs.forEach(searchItemDef -> {
             search.addItemToAllDefinitions(searchItemDef);
             if (searchItemDef.isVisibleByDefault()) {

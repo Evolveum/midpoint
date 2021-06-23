@@ -16,6 +16,8 @@ import javax.mail.internet.MimeMessage;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,7 +62,11 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(url = "/securityquestionsold", permitAll = true)
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/securityquestionsold")
+        },
+        permitAll = true)
 public class PageSecurityQuestions extends PageBase {
     private static final long serialVersionUID = 1L;
 

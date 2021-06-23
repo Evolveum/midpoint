@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
@@ -25,8 +26,8 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    public OrgTreeAssignmentPopupTabPanel(String id){
-        super(id, ObjectTypes.ORG);
+    public OrgTreeAssignmentPopupTabPanel(String id, AssignmentObjectRelation assignmentObjectRelation){
+        super(id, ObjectTypes.ORG, assignmentObjectRelation);
     }
 
     @Override

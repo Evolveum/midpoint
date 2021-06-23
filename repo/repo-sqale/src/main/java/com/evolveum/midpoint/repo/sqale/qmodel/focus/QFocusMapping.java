@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -162,7 +164,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     public void storeRelatedEntities(
-            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getLinkRef(),

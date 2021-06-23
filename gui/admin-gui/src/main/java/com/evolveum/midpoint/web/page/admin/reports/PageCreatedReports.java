@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
@@ -82,7 +83,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/reports/created", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/reports/created")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
@@ -167,31 +172,47 @@ public class PageCreatedReports extends PageAdmin {
 
             @Override
             protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
-                PageStorage storage = getObjectListPanel().getPageStorage();
-                SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
-                        getPageBase(), getSearchModel(), null) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected PageStorage getPageStorage() {
-                        return storage;
-                    }
-
-                    @NotNull
-                    @Override
-                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                        return PageCreatedReports.this.createCustomOrdering(sortParam);
-                    }
-
-                    @Override
-                    protected ObjectQuery getCustomizeContentQuery() {
-                        return appendTypeFilter();
-                    }
-                };
-                provider.setCompiledObjectCollectionView(getObjectCollectionView());
-                provider.setOptions(createOptions());
-                return provider;
+                return createSelectableBeanObjectDataProvider(() -> appendTypeFilter(),
+                        (sortParam) -> PageCreatedReports.this.createCustomOrdering(sortParam));
             }
+
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                return appendTypeFilter();
+//            }
+//
+//            @Override
+//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                return PageCreatedReports.this.createCustomOrdering(sortParam);
+//            }
+
+//            @Override
+//            protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
+//                PageStorage storage = getObjectListPanel().getPageStorage();
+//                SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
+//                        getPageBase(), getSearchModel(), null) {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    protected PageStorage getPageStorage() {
+//                        return storage;
+//                    }
+//
+//                    @NotNull
+//                    @Override
+//                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                        return PageCreatedReports.this.createCustomOrdering(sortParam);
+//                    }
+//
+//                    @Override
+//                    protected ObjectQuery getCustomizeContentQuery() {
+//                        return appendTypeFilter();
+//                    }
+//                };
+//                provider.setCompiledObjectCollectionView(getObjectCollectionView());
+//                provider.setOptions(createOptions());
+//                return provider;
+//            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {

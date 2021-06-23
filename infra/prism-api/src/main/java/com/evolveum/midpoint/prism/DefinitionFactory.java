@@ -28,5 +28,5 @@ public interface DefinitionFactory {
     @NotNull
     MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd);
 
-    <T> PrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue);
+    <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue);
 }

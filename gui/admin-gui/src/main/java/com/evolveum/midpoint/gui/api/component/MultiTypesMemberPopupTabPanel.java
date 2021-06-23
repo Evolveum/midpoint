@@ -14,19 +14,15 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,8 +38,8 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     private ObjectTypes defaultObjectType = ObjectTypes.OBJECT_COLLECTION;
 
-    public MultiTypesMemberPopupTabPanel(String id, AvailableRelationDto supportedRelationsList, List<ObjectReferenceType> archetypeReferenceList){
-        super(id, supportedRelationsList, archetypeReferenceList);
+    public MultiTypesMemberPopupTabPanel(String id, RelationSearchItemConfigurationType relationConfig, List<ObjectReferenceType> archetypeReferenceList){
+        super(id, relationConfig, archetypeReferenceList);
     }
 
     @Override

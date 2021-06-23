@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
@@ -15,19 +14,18 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -44,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 /**
  * @author skublik
@@ -58,7 +57,7 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception {
+    public byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, RunningTask task, OperationResult result) throws Exception {
         ObjectReferenceType ref = dashboardConfig.getDashboardRef();
         Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
         DashboardType dashboard = (DashboardType) getReportService().getModelService()
@@ -120,185 +119,26 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
-        ObjectCollectionType collection = null;
-        if (ref != null) {
-            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getReportService().getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, RunningTask task, OperationResult result) throws Exception {
+        initializationParameters(collectionConfig.getParameter(), task);
+        CompiledObjectCollectionView compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
 
-        CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
-
-        byte[] csvFile;
-        if (!isAuditCollection(collectionRefSpecification, task, result)) {
-            csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection,
-                    collectionConfig.getCondition(), task, result);
-        } else {
-            csvFile = createTableForAuditView(collectionRefSpecification, compiledCollection, collectionConfig.getCondition(), task, result);
-        }
-
-
-        return csvFile;
+        return createTableBox(collectionConfig.getCollection(), compiledCollection,
+                    collectionConfig.getCondition(), collectionConfig.getSubreport(), result, task);
     }
 
-    private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = null;
-        if (collectionRefSpecification != null) {
-            ref = collectionRefSpecification.getCollectionRef();
-        }
-        ObjectCollectionType collection = null;
-        if (ref != null) {
-            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getReportService().getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
-        CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
-        if (compiledCollection.getColumns().isEmpty()) {
-            if (useDefaultView) {
-                Class<ObjectType> type = resolveType(collectionRefSpecification, compiledCollection);
-                getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
-            } else {
-                return null;
-            }
-        }
-        return compiledCollection;
-    }
-
-    private CompiledObjectCollectionView createCompiledView (ObjectCollectionReportEngineConfigurationType collectionConfig, ObjectCollectionType collection){
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
-            if (collection != null) {
-                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
-            } else if (collectionRefSpecification != null && collectionRefSpecification.getBaseCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
-                ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-                getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
-            }
-        }
-
-        GuiObjectListViewType reportView = collectionConfig.getView();
-        if (reportView != null) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
-        }
-        return compiledCollection;
-    }
-
-    private byte[] createTableForAuditView(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection,
-            ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-
-        List<String> headers = new ArrayList<>();
-        List<List<String>> records = new ArrayList<>();
-
-        List<GuiObjectColumnType> columns;
-        if (compiledCollection.getColumns().isEmpty()) {
-            columns = MiscSchemaUtil.orderCustomColumns(DefaultColumnUtils.getDefaultAuditEventsView().getColumn());
-        } else {
-            columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-        }
-        PrismContainerDefinition<AuditEventRecordType> def = getReportService().getPrismContext().getSchemaRegistry()
-                .findItemDefinitionByCompileTimeClass(AuditEventRecordType.class, PrismContainerDefinition.class);
-        columns.forEach(column -> {
-            Validate.notNull(column.getName(), "Name of column is null");
-            String label = getColumnLabel(column, def);
-            headers.add(label);
-
-        });
-
-        AuditResultHandler handler = new AuditResultHandler() {
-
-            public int i = 1;
-
-            @Override
-            public boolean handle(AuditEventRecordType auditRecord) {
-                recordProgress(task, i, result, LOGGER);
-                i++;
-                boolean writeRecord = true;
-                if (condition != null) {
-                    try {
-                        writeRecord = evaluateCondition(condition, auditRecord, task, result);
-                    } catch (Exception e) {
-                        LOGGER.error("Couldn't evaluate condition for report record.");
-                        return false;
-                    }
-                }
-
-                if (writeRecord) {
-                    List<String> items = new ArrayList<>();
-                    columns.forEach(column -> {
-                        ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                        ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                        try {
-                            items.add(getRealValueAsString(column, getAuditRecordAsContainer(auditRecord), path, expression, task, result)
-                            );
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't create singleValueContainer for audit record " + auditRecord);
-                        }
-                    });
-                    records.add(items);
-                }
-                return true;
-            }
-
-            @Override
-            public int getProgress() {
-                return i;
-            }
-        };
-
-        getReportService().getDashboardService().searchObjectFromCollection(collectionRef, handler, null, task, result, true);
-
-        CSVFormat csvFormat = createCsvFormat();
-        if (Boolean.TRUE.equals(isHeader())) {
-            String[] arrayHeader = new String[headers.size()];
-            arrayHeader = headers.toArray(arrayHeader);
-            csvFormat = csvFormat.withHeader(arrayHeader)
-                    .withSkipHeaderRecord(false);
-        } else {
-            csvFormat = csvFormat.withSkipHeaderRecord(true);
-        }
-        try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, getEncoding()), csvFormat);
-            for (List<String> record : records) {
-                printer.printRecord(record.toArray());
-            }
-            printer.flush();
-
-            return output.toByteArray();
-        } catch (IOException e) {
-            LOGGER.error("Couldn't create CSVPrinter", e);
-        }
-        return null;
-    }
-
-    private byte[] createTableBoxForObjectView(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition, Task task, OperationResult result)
+    private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
+            List<SubreportParameterType> subreports, OperationResult result, RunningTask task)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        Class<ObjectType> type = resolveType(collection, compiledCollection);
+        Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
-        PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
-
-        CompiledObjectCollectionView columnsCompiledView;
+        PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
 
         List<String> headers = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
 
-        List<GuiObjectColumnType> columns;
-        if (compiledCollection.getColumns().isEmpty()) {
-            columns = MiscSchemaUtil.orderCustomColumns(DefaultColumnUtils.getDefaultView(type).getColumn());
-        } else {
-            columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-        }
-
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
             String label = getColumnLabel(column, def);
@@ -306,9 +146,11 @@ public class CsvController extends FileFormatController {
         });
 
         AtomicInteger index = new AtomicInteger(1);
-        ResultHandler<ObjectType> handler = (value, prentResult) -> {
-            recordProgress(task, index.get(), result, LOGGER);
-            index.getAndIncrement();
+        Predicate<PrismContainer> handler = (value) -> {
+            if (!task.canRun()) {
+                return false;
+            }
+            recordProgress(task, index.getAndIncrement(), result, LOGGER);
             boolean writeRecord = true;
             if (condition != null) {
                 try {
@@ -321,6 +163,7 @@ public class CsvController extends FileFormatController {
 
             if (writeRecord) {
                 List<String> items = new ArrayList<>();
+                evaluateSubreportParameters(subreports, value, task);
                 columns.forEach(column -> {
                     ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
                     ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
@@ -328,16 +171,18 @@ public class CsvController extends FileFormatController {
                 });
                 records.add(items);
             }
+            cleanUpVariables();
             return true;
         };
-        getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options, task, result, true);
+        searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
+                options, task, result, true);
 
         CSVFormat csvFormat = createCsvFormat();
         if (Boolean.TRUE.equals(isHeader())) {
             String[] arrayHeader = new String[headers.size()];
             arrayHeader = headers.toArray(arrayHeader);
             csvFormat = csvFormat.withHeader(arrayHeader)
-                            .withSkipHeaderRecord(false);
+                    .withSkipHeaderRecord(false);
         } else {
             csvFormat = csvFormat.withSkipHeaderRecord(true);
         }
@@ -361,6 +206,7 @@ public class CsvController extends FileFormatController {
     protected String getRealValueAsString(GuiObjectColumnType column, PrismContainer<? extends Containerable> object, ItemPath itemPath, ExpressionType expression, Task task, OperationResult result) {
         String value = super.getRealValueAsString(column, object, itemPath, expression, task, result);
         value = removeNewLine(value);
+
         return value;
     }
 
@@ -370,14 +216,14 @@ public class CsvController extends FileFormatController {
             ObjectCollectionReportEngineConfigurationType collectionConfig = report.getObjectCollection();
             CompiledObjectCollectionView compiledCollection;
             try {
-                compiledCollection = createCompiledView(collectionConfig, true, task, result);
+                compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
             } catch (Exception e) {
                 LOGGER.error("Couldn't define compiled collection for report", e);
                 return;
             }
 
             if (compiledCollection != null) {
-                Class<ObjectType> type = compiledCollection.getTargetClass();
+                Class<ObjectType> type = compiledCollection.getTargetClass(getReportService().getPrismContext());
                 if (type == null) {
                     String message = "Definition of type in view is null";
                     LOGGER.error(message);
@@ -393,7 +239,7 @@ public class CsvController extends FileFormatController {
                     for (String name : variables.keySet()) {
                         boolean isFound = false;
                         for (GuiObjectColumnType column : columns) {
-                            if (DisplayValueType.NUMBER.equals(column.getDisplayValue()) || isFound){
+                            if (DisplayValueType.NUMBER.equals(column.getDisplayValue()) || isFound) {
                                 continue;
                             }
                             String columnName = getColumnLabel(column, def);
@@ -630,7 +476,7 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = null;
         try {
             if (collectionEngineConf != null) {
-                compiledCollection = createCompiledView(collectionEngineConf, !useImportScript, task, result);
+                compiledCollection = getReportService().createCompiledView(collectionEngineConf, !useImportScript, task, result);
             }
         } catch (Exception e) {
             LOGGER.error("Couldn't define compiled collection for report", e);
@@ -641,7 +487,7 @@ public class CsvController extends FileFormatController {
         CSVFormat csvFormat = createCsvFormat();
         if (compiledCollection != null) {
             List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-            Class<ObjectType> type = compiledCollection.getTargetClass();
+            Class<ObjectType> type = compiledCollection.getTargetClass(getReportService().getPrismContext());
             if (type == null) {
                 throw new IllegalArgumentException("Couldn't define type of imported objects");
             }
@@ -779,7 +625,6 @@ public class CsvController extends FileFormatController {
         return value.charAt(0);
     }
 
-
     @Override
     public String getTypeSuffix() {
         return ".csv";
@@ -796,7 +641,7 @@ public class CsvController extends FileFormatController {
         sb.append(delimiter);
     }
 
-    private String getMultivalueDelimiter() {
+    protected String getMultivalueDelimiter() {
         return getCsvConfiguration().getMultivalueDelimiter() == null ? "," : getCsvConfiguration().getMultivalueDelimiter();
     }
 

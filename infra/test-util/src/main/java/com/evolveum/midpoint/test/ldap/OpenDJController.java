@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -62,6 +63,8 @@ public class OpenDJController extends AbstractResourceController {
     protected File serverRoot = new File(serverRootDirectoryName);
     protected File configFile = null;
     protected File templateRoot;
+    protected File logDirectory = new File(serverRoot, "logs");
+    protected File accessLogFile = new File(logDirectory, "access");
 
     private static final Trace LOGGER = TraceManager.getTrace(OpenDJController.class);
 
@@ -998,6 +1001,15 @@ public class OpenDJController extends AbstractResourceController {
         if (objectclasses.contains(expectedObjectclass)) {
             AssertJUnit.fail("Expected that entry " + entry.getDN() + " will NOT have object class '" + expectedObjectclass
                     + "'. But it was there: " + objectclasses);
+        }
+    }
+
+    public void scanAccessLog(Consumer<String> lineConsumer) throws FileNotFoundException {
+        try (Scanner scanner = new Scanner(accessLogFile)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                lineConsumer.accept(line);
+            }
         }
     }
 }

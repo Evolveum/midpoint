@@ -23,10 +23,6 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
         super(parameters);
     }
 
-    public PageAdminAbstractRole(final PrismObject<T> abstractRole) {
-        super(abstractRole);
-    }
-
     public PageAdminAbstractRole(final PrismObject<T> userToEdit, boolean isNewObject) {
         super(userToEdit, isNewObject);
     }

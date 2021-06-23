@@ -9,16 +9,15 @@ package com.evolveum.midpoint.repo.sqale.qmodel.report;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * Mapping between {@link QReport} and {@link ReportType}.
  */
 public class QReportMapping
-        extends QAssignmentHolderMapping<ReportType, QReport, MReport> {
+        extends QAssignmentHolderMapping<ReportType, QReport, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "rep";
 
@@ -29,35 +28,10 @@ public class QReportMapping
     private QReportMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QReport.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ReportType.class, QReport.class, repositoryContext);
-
-        addNestedMapping(ReportType.F_JASPER, JasperReportEngineConfigurationType.class)
-                .addItemMapping(JasperReportEngineConfigurationType.F_ORIENTATION,
-                        enumMapper(q -> q.orientation))
-                .addItemMapping(JasperReportEngineConfigurationType.F_PARENT,
-                        booleanMapper(q -> q.parent));
     }
 
     @Override
     protected QReport newAliasInstance(String alias) {
         return new QReport(alias);
-    }
-
-    @Override
-    public MReport newRowObject() {
-        return new MReport();
-    }
-
-    @Override
-    public @NotNull MReport toRowObjectWithoutFullObject(
-            ReportType schemaObject, JdbcSession jdbcSession) {
-        MReport row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-
-        JasperReportEngineConfigurationType jasper = schemaObject.getJasper();
-        if (jasper != null) {
-            row.orientation = jasper.getOrientation();
-            row.parent = jasper.isParent();
-        }
-
-        return row;
     }
 }

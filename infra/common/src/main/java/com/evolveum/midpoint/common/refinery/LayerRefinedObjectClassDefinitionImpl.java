@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -91,6 +92,9 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     public List<SchemaMigration> getSchemaMigrations() {
         return refinedObjectClassDefinition.getSchemaMigrations();
     }
+
+    @Override
+    public List<ItemDiagramSpecification> getDiagrams() { return refinedObjectClassDefinition.getDiagrams(); }
 
     @Override
     public boolean isEmphasized() {

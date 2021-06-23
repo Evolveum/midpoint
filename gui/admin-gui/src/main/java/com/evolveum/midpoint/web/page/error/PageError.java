@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.error;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,7 +37,11 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
  *
  * @author lazyman
  */
-@PageDescriptor(url = "/error", permitAll = true)
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/error")
+        },
+        permitAll = true)
 public class PageError extends PageBase {
 
     private static final String ID_CODE = "code";

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -24,7 +26,11 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
-@PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/service")
+        },
+        encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                 label = "PageAdminServices.auth.servicesAll.label",
                 description = "PageAdminServices.auth.servicesAll.description"),
@@ -43,16 +49,16 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
         super(parameters);
     }
 
-    public PageService(final PrismObject<ServiceType> role) {
-        super(role);
+    public PageService(final PrismObject<ServiceType> serviceHistory) {
+        super(serviceHistory, false);
     }
 
-    public PageService(final PrismObject<ServiceType> userToEdit, boolean isNewObject) {
-        super(userToEdit, isNewObject);
+    public PageService(final PrismObject<ServiceType> serviceToEdit, boolean isNewObject) {
+        super(serviceToEdit, isNewObject);
     }
 
-    public PageService(final PrismObject<ServiceType> abstractRole, boolean isNewObject, boolean isReadonly) {
-        super(abstractRole, isNewObject, isReadonly);
+    public PageService(final PrismObject<ServiceType> service, boolean isNewObject, boolean isReadonly) {
+        super(service, isNewObject, isReadonly);
     }
 
     @Override

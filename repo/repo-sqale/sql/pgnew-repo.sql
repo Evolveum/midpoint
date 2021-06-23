@@ -87,7 +87,18 @@ CREATE TYPE ReferenceType AS ENUM (
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
     'ROLE_MEMBERSHIP');
 
+CREATE TYPE ExtItemHolderType AS ENUM (
+    'EXTENSION',
+    'ATTRIBUTES');
+
+CREATE TYPE ExtItemCardinality AS ENUM (
+    'SCALAR',
+    'ARRAY');
+
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
+    'CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
@@ -245,6 +256,17 @@ CREATE TABLE m_object (
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
     textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    /*
+    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+    and values are stored as follows (this is internal and has no effect on how query is written):
+    - string and boolean are stored as-is
+    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+    - enum as toString() or name() of the Java enum instance
+    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+    */
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -790,7 +812,8 @@ CREATE TABLE m_shadow (
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
-    synchronizationTimestamp TIMESTAMPTZ
+    synchronizationTimestamp TIMESTAMPTZ,
+    attributes JSONB
 )
     INHERITS (m_object);
 
@@ -808,6 +831,7 @@ ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
+CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin (attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
  Also consider partitioning by some of the attributes (class/kind/intent?)
@@ -950,9 +974,7 @@ CREATE INDEX m_value_policy_policySituation_idx
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
-        CHECK (objectType = 'REPORT'),
-    orientation OrientationType,
-    parent BOOLEAN
+        CHECK (objectType = 'REPORT')
 )
     INHERITS (m_assignment_holder);
 
@@ -967,7 +989,6 @@ CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
--- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
@@ -1182,7 +1203,7 @@ CREATE TABLE m_case_wi (
     originalAssigneeRefTargetOid UUID,
     originalAssigneeRefTargetType ObjectType,
     originalAssigneeRefRelationId INTEGER REFERENCES m_uri(id),
-    outcome TEXT,
+    outcome TEXT, -- stores workitem/output/outcome
     performerRefTargetOid UUID,
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1193,6 +1214,32 @@ CREATE TABLE m_case_wi (
     INHERITS(m_container);
 
 -- TODO INDEXES, old repo had no indexes either
+
+-- stores workItem/assigneeRef
+CREATE TABLE m_case_wi_assignee (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    workItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('CASE_WI_ASSIGNEE') STORED,
+
+    PRIMARY KEY (ownerOid, workItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
+
+-- stores workItem/candidateRef
+CREATE TABLE m_case_wi_candidate (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    workItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('CASE_WI_CANDIDATE') STORED,
+
+    PRIMARY KEY (ownerOid, workItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
+    FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid);
 -- endregion
 
 -- region Access Certification object tables
@@ -1225,7 +1272,6 @@ CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
--- TODO not mapped yet
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED
@@ -1241,7 +1287,7 @@ CREATE TABLE m_access_cert_campaign (
     ownerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
     startTimestamp TIMESTAMPTZ,
-    state INTEGER
+    state AccessCertificationCampaignStateType
 )
     INHERITS (m_assignment_holder);
 
@@ -1260,20 +1306,21 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
+-- TODO not mapped yet
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_CASE'),
-    administrativeStatus INTEGER,
+    administrativeStatus ActivationStatusType,
     archiveTimestamp TIMESTAMPTZ,
     disableReason TEXT,
     disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
+    effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
+    validityStatus TimeIntervalStatusType,
     currentStageOutcome TEXT,
     fullObject BYTEA,
     iteration INTEGER NOT NULL,
@@ -1285,8 +1332,8 @@ CREATE TABLE m_access_cert_case (
     orgRefRelationId INTEGER REFERENCES m_uri(id),
     outcome TEXT,
     remediedTimestamp TIMESTAMPTZ,
-    reviewDeadline TIMESTAMPTZ,
-    reviewRequestedTimestamp TIMESTAMPTZ,
+    currentStageDeadline TIMESTAMPTZ,
+    currentStageCreateTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRefTargetOid UUID,
     targetRefTargetType ObjectType,
@@ -1594,126 +1641,28 @@ CREATE INDEX m_operation_execution_initiatorRefTargetOid_idx
 CREATE INDEX m_operation_execution_taskRefTargetOid_idx
     ON m_operation_execution (taskRefTargetOid);
 CREATE INDEX m_operation_execution_timestampValue_idx ON m_operation_execution (timestampValue);
--- TODO: index for ownerOid is part of PK
---  index for status is questionable, don't we want WHERE status = ... to another index instead?
+-- index for ownerOid is part of PK
+-- TODO: index for status is questionable, don't we want WHERE status = ... to another index instead?
 -- endregion
 
 -- region Extension support
--- TODO: catalog unused at the moment
+-- Catalog table of known indexed extension items.
+-- While itemName and valueType are both Q-names they are not cached via m_uri because this
+-- table is small, itemName does not repeat (valueType does) and readability is also better.
+-- This has similar function as m_uri - it translates something to IDs, no need to nest it.
 CREATE TABLE m_ext_item (
-    id SERIAL NOT NULL,
-    kind INTEGER, -- see RItemKind, is this necessary? does it contain cardinality?
-    name TEXT, -- no path for nested props needed?
-    type TEXT, -- data type TODO enum?
-    storageType TEXT NOT NULL default 'EXT_JSON', -- type of storage (JSON, column, table separate/common, etc.)
-    storageInfo TEXT, -- optional storage detail, name of column or table if necessary
-
-    PRIMARY KEY (id)
+    id SERIAL NOT NULL PRIMARY KEY,
+    itemName TEXT NOT NULL,
+    valueType TEXT NOT NULL,
+    holderType ExtItemHolderType NOT NULL,
+    cardinality ExtItemCardinality NOT NULL
+    -- information about storage mechanism (JSON common/separate, column, table separate/common, etc.)
+    -- storageType JSONB NOT NULL default '{"type": "EXT_JSON"}', -- currently only JSONB is used
 );
 -- endregion
 
 /*
--- EXPERIMENTAL EAV (first without catalog, so string keys are used)
-CREATE TABLE m_object_ext_boolean (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    value BOOLEAN NOT NULL,
-    PRIMARY KEY (ownerOid, ext_item_id, value)
-);
-CREATE TABLE m_object_ext_date (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    value TIMESTAMPTZ NOT NULL,
-    PRIMARY KEY (ownerOid, ext_item_id, value)
-);
-CREATE TABLE m_object_ext_long (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    value INTEGER NOT NULL,
-    PRIMARY KEY (ownerOid, ext_item_id, value)
-);
-CREATE TABLE m_object_ext_poly (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    orig TEXT NOT NULL,
-    norm TEXT,
-    PRIMARY KEY (ownerOid, ext_item_id, orig)
-);
-CREATE TABLE m_object_ext_reference (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    target_oid UUID NOT NULL,
-    relationId INTEGER,
-    targetType INTEGER,
-    PRIMARY KEY (ownerOid, ext_item_id, target_oid)
-);
-CREATE TABLE m_object_ext_string (
-    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
-    ext_item_id VARCHAR(32) NOT NULL,
-    value TEXT NOT NULL,
-    PRIMARY KEY (ownerOid, ext_item_id, value)
-);
-
-
--- TODO what of assignment extensions? Can they change for various types of assignments?
---  Then what? Inheritance is impractical, legacy extension tables are unwieldy.
-
--- TODO other indexes, only PKs/FKs are defined at the moment
-
--- TODO hopefully replaced by JSON ext column and not needed
-CREATE TABLE m_assignment_ext_boolean (
-  item_id                      INTEGER        NOT NULL,
-  anyContainer_owner_id        INTEGER        NOT NULL,
-  anyContainer_owner_ownerOid UUID NOT NULL,
-  booleanValue                 BOOLEAN     NOT NULL,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, booleanValue)
-);
-CREATE TABLE m_assignment_ext_date (
-  item_id                      INTEGER        NOT NULL,
-  anyContainer_owner_id        INTEGER        NOT NULL,
-  anyContainer_owner_ownerOid UUID NOT NULL,
-  dateValue                    TIMESTAMPTZ   NOT NULL,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, dateValue)
-);
-CREATE TABLE m_assignment_ext_long (
-  item_id                      INTEGER        NOT NULL,
-  anyContainer_owner_id        INTEGER        NOT NULL,
-  anyContainer_owner_ownerOid UUID NOT NULL,
-  longValue                    BIGINT        NOT NULL,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, longValue)
-);
-CREATE TABLE m_assignment_ext_poly (
-  item_id                      INTEGER         NOT NULL,
-  anyContainer_owner_id        INTEGER         NOT NULL,
-  anyContainer_owner_ownerOid UUID  NOT NULL,
-  orig                         TEXT NOT NULL,
-  norm                         TEXT,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, orig)
-);
-CREATE TABLE m_assignment_ext_reference (
-  item_id                      INTEGER        NOT NULL,
-  anyContainer_owner_id        INTEGER        NOT NULL,
-  anyContainer_owner_ownerOid UUID NOT NULL,
-  targetoid                    UUID NOT NULL,
-  relation                     VARCHAR(157),
-  targetType                   INTEGER,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, targetoid)
-);
-CREATE TABLE m_assignment_ext_string (
-  item_id                      INTEGER         NOT NULL,
-  anyContainer_owner_id        INTEGER         NOT NULL,
-  anyContainer_owner_ownerOid UUID  NOT NULL,
-  stringValue                  TEXT NOT NULL,
-  PRIMARY KEY (anyContainer_owner_ownerOid, anyContainer_owner_id, item_id, stringValue)
-);
-CREATE TABLE m_assignment_extension (
-  owner_id        INTEGER        NOT NULL,
-  owner_ownerOid UUID NOT NULL,
-  PRIMARY KEY (owner_ownerOid, owner_id)
-);
-
-
--- TODO HERE
+-- TODO audit
 CREATE TABLE m_audit_delta (
   checksum          VARCHAR(32) NOT NULL,
   record_id         BIGINT        NOT NULL,
@@ -1787,73 +1736,7 @@ CREATE TABLE m_audit_resource (
   record_id       BIGINT         NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 );
-CREATE TABLE m_ext_item (
-  id       SERIAL NOT NULL,
-  kind     INTEGER,
-  itemName VARCHAR(157),
-  itemType VARCHAR(157),
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_object_ext_boolean (
-  item_id      INTEGER        NOT NULL,
-  ownerOid    UUID NOT NULL,
-  ownerType    INTEGER        NOT NULL,
-  booleanValue BOOLEAN     NOT NULL,
-  PRIMARY KEY (ownerOid, ownerType, item_id, booleanValue)
-);
-CREATE TABLE m_object_ext_date (
-  item_id   INTEGER        NOT NULL,
-  ownerOid UUID NOT NULL,
-  ownerType INTEGER        NOT NULL,
-  dateValue TIMESTAMPTZ   NOT NULL,
-  PRIMARY KEY (ownerOid, ownerType, item_id, dateValue)
-);
-CREATE TABLE m_object_ext_long (
-  item_id   INTEGER        NOT NULL,
-  ownerOid UUID NOT NULL,
-  ownerType INTEGER        NOT NULL,
-  longValue BIGINT        NOT NULL,
-  PRIMARY KEY (ownerOid, ownerType, item_id, longValue)
-);
-CREATE TABLE m_object_ext_poly (
-  item_id   INTEGER         NOT NULL,
-  ownerOid UUID  NOT NULL,
-  ownerType INTEGER         NOT NULL,
-  orig      TEXT NOT NULL,
-  norm      TEXT,
-  PRIMARY KEY (ownerOid, ownerType, item_id, orig)
-);
-CREATE TABLE m_object_ext_reference (
-  item_id    INTEGER        NOT NULL,
-  ownerOid  UUID NOT NULL,
-  ownerType  INTEGER        NOT NULL,
-  targetoid  UUID NOT NULL,
-  relation   VARCHAR(157),
-  targetType INTEGER,
-  PRIMARY KEY (ownerOid, ownerType, item_id, targetoid)
-);
-CREATE TABLE m_object_ext_string (
-  item_id     INTEGER         NOT NULL,
-  ownerOid   UUID  NOT NULL,
-  ownerType   INTEGER         NOT NULL,
-  stringValue TEXT NOT NULL,
-  PRIMARY KEY (ownerOid, ownerType, item_id, stringValue)
-);
 
-CREATE INDEX iAExtensionBoolean
-  ON m_assignment_ext_boolean (booleanValue);
-CREATE INDEX iAExtensionDate
-  ON m_assignment_ext_date (dateValue);
-CREATE INDEX iAExtensionLong
-  ON m_assignment_ext_long (longValue);
-CREATE INDEX iAExtensionPolyString
-  ON m_assignment_ext_poly (orig);
-CREATE INDEX iAExtensionReference
-  ON m_assignment_ext_reference (targetoid);
-CREATE INDEX iAExtensionString
-  ON m_assignment_ext_string (stringValue);
-CREATE INDEX iAssignmentReferenceTargetOid
-  ON m_assignment_reference (targetOid);
 CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
 CREATE INDEX iTimestampValue
@@ -1873,8 +1756,6 @@ CREATE INDEX iAuditResourceOid
 CREATE INDEX iAuditResourceOidRecordId
   ON m_audit_resource (record_id);
 
-ALTER TABLE m_ext_item
-  ADD CONSTRAINT iExtItemDefinition UNIQUE (itemName, itemType, kind);
 CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
@@ -1901,32 +1782,6 @@ CREATE INDEX iFocusValidFrom
   ON m_focus (validFrom);
 CREATE INDEX iFocusValidTo
   ON m_focus (validTo);
-ALTER TABLE m_assignment_ext_boolean
-  ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_date
-  ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_long
-  ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_poly
-  ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_reference
-  ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_string
-  ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_ownerOid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-
--- These are created manually
-ALTER TABLE m_assignment_ext_boolean
-  ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_assignment_ext_date
-  ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_assignment_ext_long
-  ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_assignment_ext_poly
-  ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_assignment_ext_reference
-  ADD CONSTRAINT fk_a_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_assignment_ext_string
-  ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
 ALTER TABLE m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
@@ -1940,32 +1795,6 @@ ALTER TABLE m_audit_resource
   ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (ownerOid) REFERENCES m_focus;
-ALTER TABLE m_object_ext_boolean
-  ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_object_ext_date
-  ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_object_ext_long
-  ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_object_ext_poly
-  ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_object_ext_reference
-  ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
-ALTER TABLE m_object_ext_string
-  ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (ownerOid) REFERENCES m_object;
-
--- These are created manually
-ALTER TABLE m_object_ext_boolean
-  ADD CONSTRAINT fk_o_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_date
-  ADD CONSTRAINT fk_o_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_long
-  ADD CONSTRAINT fk_o_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_poly
-  ADD CONSTRAINT fk_o_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_reference
-  ADD CONSTRAINT fk_o_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_string
-  ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
@@ -1975,23 +1804,6 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
-
--- Indices for foreign keys; maintained manually
-CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);
-CREATE INDEX iUserOrganizationOid ON M_USER_ORGANIZATION(USER_OID);
-CREATE INDEX iUserOrganizationalUnitOid ON M_USER_ORGANIZATIONAL_UNIT(USER_OID);
-CREATE INDEX iAssignmentExtBooleanItemId ON M_ASSIGNMENT_EXT_BOOLEAN(ITEM_ID);
-CREATE INDEX iAssignmentExtDateItemId ON M_ASSIGNMENT_EXT_DATE(ITEM_ID);
-CREATE INDEX iAssignmentExtLongItemId ON M_ASSIGNMENT_EXT_LONG(ITEM_ID);
-CREATE INDEX iAssignmentExtPolyItemId ON M_ASSIGNMENT_EXT_POLY(ITEM_ID);
-CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID);
-CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID);
-CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID);
-CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID);
-CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID);
-CREATE INDEX iObjectExtPolyItemId ON M_OBJECT_EXT_POLY(ITEM_ID);
-CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID);
-CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID);
 
 -- Thanks to Patrick Lightbody for submitting this...
 --

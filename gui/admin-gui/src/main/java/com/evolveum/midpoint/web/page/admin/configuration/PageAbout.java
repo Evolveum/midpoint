@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.catalina.util.ServerInfo;
@@ -71,7 +72,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/config/about", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/config/about", matchUrlForSecurity = "/admin/config/about")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,

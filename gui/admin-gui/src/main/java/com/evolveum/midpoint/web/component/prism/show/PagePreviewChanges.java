@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -47,9 +48,14 @@ import java.util.Map;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL, label = "PageAdmin.auth.previewChanges.label", description = "PageAdmin.auth.previewChanges.description")
-})
+@PageDescriptor(
+        urls = {
+                @Url (mountUrl = "/admin/previewChanges", matchUrlForSecurity = "/admin/previewChanges"),
+        },
+        encoder = OnePageParameterEncoder.class,
+        action = {
+            @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL, label = "PageAdmin.auth.previewChanges.label", description = "PageAdmin.auth.previewChanges.description")
+        })
 public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
     private static final long serialVersionUID = 1L;
 

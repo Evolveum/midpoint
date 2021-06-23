@@ -278,7 +278,6 @@ public abstract class SchemaConstants {
     public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
-    public static final String NS_REPORT_WS = NS_REPORT + "/report-3";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
     public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
 

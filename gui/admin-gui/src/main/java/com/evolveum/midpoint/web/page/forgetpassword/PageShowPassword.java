@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 
-@PageDescriptor(url = "/resetpasswordsuccess", permitAll = true)
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/resetpasswordsuccess")
+        },
+        permitAll = true)
 public class PageShowPassword extends PageBase {
 
     public static final String URL = "/resetpasswordsuccess";

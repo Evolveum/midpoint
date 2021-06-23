@@ -211,8 +211,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     @Override
-    public String getReadOnlyTransactionStatement() {
-        return null;
+    public boolean useSetReadOnlyOnConnection() {
+        return true;
     }
 
     @Override

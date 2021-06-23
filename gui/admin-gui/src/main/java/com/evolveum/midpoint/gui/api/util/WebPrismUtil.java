@@ -63,7 +63,8 @@ public class WebPrismUtil {
     public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, PageBase pageBase, AjaxRequestTarget target) {
         LOGGER.debug("Adding value to {}", itemWrapper);
 
-        OperationResult result = new OperationResult(OPERATION_CREATE_NEW_VALUE);
+        Task task = pageBase.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
+        OperationResult result = task.getResult();
 
         VW newValueWrapper = null;
         try {
@@ -71,8 +72,6 @@ public class WebPrismUtil {
             if (!(itemWrapper instanceof PrismContainerWrapper)) {
                 itemWrapper.getItem().add(newValue);
             }
-
-            Task task = pageBase.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
 
             WrapperContext context = new WrapperContext(task, result);
             context.setObjectStatus(itemWrapper.findObjectStatus());
@@ -100,7 +99,7 @@ public class WebPrismUtil {
         LOGGER.debug("Adding value to {}", itemWrapper);
 
         Task task = modelServiceLocator.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
-        OperationResult result = new OperationResult(OPERATION_CREATE_NEW_VALUE);
+        OperationResult result = task.getResult();
 
         WrapperContext context = new WrapperContext(task, result);
         context.setObjectStatus(itemWrapper.findObjectStatus());

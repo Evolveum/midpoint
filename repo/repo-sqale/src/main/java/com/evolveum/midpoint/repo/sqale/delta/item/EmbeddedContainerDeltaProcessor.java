@@ -14,10 +14,11 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
-import com.evolveum.midpoint.repo.sqale.qmodel.SqaleNestedMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Delta processor for embedded single-value containers.
@@ -46,16 +47,16 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
     /**
      * Sets the values for items in the PCV that are mapped to database columns and nulls the rest.
      */
-    public void setValue(T value) {
+    public void setValue(T value) throws SchemaException {
         PrismContainerValue<T> pcv = Containerable.asPrismContainerValue(value);
         if (pcv == null) {
             delete(); // we need to clear existing values
             return;
         }
 
-        Map<QName, ItemSqlMapper<T, OQ, OR>> mappers = mapping.getItemMappings();
+        Map<QName, ItemSqlMapper<OQ, OR>> mappers = mapping.getItemMappings();
         for (Item<?, ?> item : pcv.getItems()) {
-            ItemSqlMapper<T, OQ, OR> mapper = mappers.remove(item.getElementName());
+            ItemSqlMapper<OQ, OR> mapper = mappers.remove(item.getElementName());
             if (mapper == null) {
                 continue; // ok, not mapped to database
             }
@@ -71,17 +72,17 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
 
     @Override
     public void delete() {
-        for (ItemSqlMapper<T, OQ, OR> mapper : mapping.getItemMappings().values()) {
+        for (ItemSqlMapper<OQ, OR> mapper : mapping.getItemMappings().values()) {
             deleteUsing(mapper);
         }
     }
 
-    private void deleteUsing(ItemSqlMapper<T, OQ, OR> mapper) {
+    private void deleteUsing(ItemSqlMapper<OQ, OR> mapper) {
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
         processor.delete();
     }
 
-    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper<?, ?, ?> mapper) {
+    private ItemDeltaValueProcessor<?> createItemDeltaProcessor(ItemSqlMapper<?, ?> mapper) {
         if (!(mapper instanceof SqaleItemSqlMapper)) {
             throw new IllegalArgumentException("No delta processor available for " + mapper
                     + " in mapping " + mapping + "! (Only query mapping is available.)");

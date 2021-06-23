@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
@@ -33,4 +34,5 @@ public class MShadow extends MObject {
     public String primaryIdentifierValue;
     public SynchronizationSituationType synchronizationSituation;
     public Instant synchronizationTimestamp;
+    public Jsonb attributes;
 }

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -22,7 +23,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
 /**
  * @author bpowers
  */
-@PageDescriptor(url = "/admin/myWorkItems", action = {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/myWorkItems", matchUrlForSecurity = "/admin/myWorkItems")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_LABEL,
                 description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_DESCRIPTION),

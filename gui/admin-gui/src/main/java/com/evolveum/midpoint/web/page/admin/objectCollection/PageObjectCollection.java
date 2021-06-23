@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectBasicPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
@@ -54,7 +55,9 @@ import java.util.concurrent.TimeUnit;
  * @author skublik
  */
 @PageDescriptor(
-        url  = "/admin/objectCollection",
+        urls = {
+                @Url(mountUrl = "/admin/objectCollection", matchUrlForSecurity = "/admin/objectCollection")
+        },
         encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -148,9 +151,9 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
                 return new SingleContainerPanel<CollectionRefSpecificationType>(panelId, createModel(getObjectModel(), ObjectCollectionType.F_BASE_COLLECTION),
                         CollectionRefSpecificationType.COMPLEX_TYPE) {
                     @Override
-                    protected ItemVisibility getVisibility(ItemPath itemPath) {
+                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
                         if (ItemPath.create(ObjectCollectionType.F_BASE_COLLECTION, CollectionRefSpecificationType.F_BASE_COLLECTION_REF)
-                                .isSuperPathOrEquivalent(itemPath)) {
+                                .isSuperPathOrEquivalent(itemWrapper.getPath())) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;

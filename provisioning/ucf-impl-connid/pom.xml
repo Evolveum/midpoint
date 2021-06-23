@@ -22,12 +22,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -105,7 +105,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -147,7 +147,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>

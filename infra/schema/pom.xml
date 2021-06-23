@@ -27,7 +27,7 @@
             <version>4.4-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
             <version>4.4-SNAPSHOT</version>
             <exclusions>
@@ -43,7 +43,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <version>4.4-SNAPSHOT</version>
             <exclusions>
@@ -54,7 +54,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
             <version>4.4-SNAPSHOT</version>
             <exclusions>
@@ -89,10 +89,6 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>
@@ -106,10 +102,6 @@
                     <artifactId>javax.annotation-api</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -178,7 +170,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
+            <groupId>com.evolveum.commons</groupId>
             <artifactId>test-ng</artifactId>
             <scope>test</scope>
         </dependency>
@@ -203,7 +195,7 @@
         <plugins>
             <plugin>
                 <!-- Used to pull XSD files from the JAR -->
-                <groupId>com.evolveum.midpoint.tools</groupId>
+                <groupId>com.evolveum.prism.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
@@ -216,7 +208,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <groupId>com.evolveum.prism</groupId>
                                     <artifactId>prism-impl</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
@@ -265,36 +257,6 @@
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
-                                <wsdlOption>
-                                    <!-- Besides generating stub for report web service, this WSDL includes all the other XSD files
-                                         we need to compile. This is the only way we found to generate equals and hashCode methods with CXF.
-                                         If you find anything better please correct it.
-
-                                         It would be nice if these two web services could be in one WSDL file. Unfortunately it's not possible,
-                                         as they are in different target namespaces. -->
-                                    <wsdl>src/main/resources/xml/ns/private/webservice/reportService.wsdl</wsdl>
-                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>
-                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
-                                        </extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
                             </wsdlOptions>
                             <!--
                             This avoids going online for schema checking which may slow down the build sometimes extremely,
@@ -319,14 +281,14 @@
                         <version>0.6.3</version>
                     </dependency>
                     <dependency>
-                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <groupId>com.evolveum.prism.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
                         <version>4.4-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>
             <plugin>
-                <groupId>com.evolveum.midpoint.infra</groupId>
+                <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
                 <version>4.4-SNAPSHOT</version>
                 <configuration>

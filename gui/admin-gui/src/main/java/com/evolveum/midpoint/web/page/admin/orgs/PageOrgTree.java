@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import com.evolveum.midpoint.web.application.Url;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
@@ -20,7 +22,10 @@ import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
  * @author lazyman
  */
 @PageDescriptor(
-        url = "/admin/org/tree", action = {
+        urls = {
+                @Url(mountUrl = "/admin/org/tree", matchUrlForSecurity = "/admin/org/tree")
+        },
+        action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
                 label = "PageAdminUsers.auth.orgAll.label",
                 description = "PageAdminUsers.auth.orgAll.description"),

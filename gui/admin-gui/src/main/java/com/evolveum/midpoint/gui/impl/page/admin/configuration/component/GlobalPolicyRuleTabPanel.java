@@ -79,61 +79,55 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
     protected void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-                newGlobalPolicuRuleClickPerformed(target);
-            }
-
-            @Override
-            protected boolean isCreateNewObjectVisible() {
-                return true;
-            }
-
-            @Override
-            protected IModel<PrismContainerWrapper<GlobalPolicyRuleType>> getContainerModel() {
-                return GlobalPolicyRuleTabPanel.this.getModel();
-            }
-
-            @Override
-            protected String getStorageKey() {
-                return SessionStorage.KEY_OBJECT_POLICIES_TAB;
-            }
-
-            @Override
-            protected TableId getTableId() {
-                return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;            }
-
-            @Override
-            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createDefaultColumns() {
-                return initBasicColumns();
-            }
+                new MultivalueContainerListPanelWithDetailsPanel<>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class) {
 
                     @Override
-            protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
-                    ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
-                return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
-            }
+                    protected boolean isCreateNewObjectVisible() {
+                        return true;
+                    }
 
-            @Override
-            protected List<SearchItemDefinition> initSearchableItems(
-                    PrismContainerDefinition<GlobalPolicyRuleType> containerDef) {
-                List<SearchItemDefinition> defs = new ArrayList<>();
+                    @Override
+                    protected IModel<PrismContainerWrapper<GlobalPolicyRuleType>> getContainerModel() {
+                        return GlobalPolicyRuleTabPanel.this.getModel();
+                    }
 
-                SearchFactory.addSearchPropertyDef(containerDef, ItemPath
-                        .create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);
-                SearchFactory.addSearchRefDef(containerDef,
-                        ItemPath.create(GlobalPolicyRuleType.F_POLICY_CONSTRAINTS,
-                                PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+                    @Override
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_OBJECT_POLICIES_TAB;
+                    }
 
-                defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+                    @Override
+                    protected TableId getTableId() {
+                        return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
+                    }
 
-                return defs;
-            }
-        };
+                    @Override
+                    protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createDefaultColumns() {
+                        return initBasicColumns();
+                    }
+
+                    @Override
+                    protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
+                            ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
+                        return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
+                    }
+
+                    @Override
+                    protected List<SearchItemDefinition> initSearchableItems(
+                            PrismContainerDefinition<GlobalPolicyRuleType> containerDef) {
+                        List<SearchItemDefinition> defs = new ArrayList<>();
+
+                        SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+                                .create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);
+                        SearchFactory.addSearchRefDef(containerDef,
+                                ItemPath.create(GlobalPolicyRuleType.F_POLICY_CONSTRAINTS,
+                                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+
+                        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+                        return defs;
+                    }
+                };
 
         add(multivalueContainerListPanel);
 

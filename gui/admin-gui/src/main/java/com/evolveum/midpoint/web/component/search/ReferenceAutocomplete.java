@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,14 +37,16 @@ import javax.xml.namespace.QName;
 /**
  * @author honchar
  */
-public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReferenceType> {
+public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReferenceType> {
     private static final long serialVersionUID = 1L;
 
     private final PageBase pageBase;
+    private final IModel<ObjectReferenceType> model;
 
     public ReferenceAutocomplete(String id, final IModel<ObjectReferenceType> model, IAutoCompleteRenderer<ObjectReferenceType> renderer, PageBase pageBase) {
         super(id, model, ObjectReferenceType.class, renderer);
         this.pageBase = pageBase;
+        this.model = model;
     }
 
     @Override
@@ -82,7 +85,10 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
     }
 
     protected <O extends ObjectType> Class<O> getReferenceTargetObjectType(){
-        return (Class<O>) AbstractRoleType.class;
+        if (model.getObject() == null || model.getObject().getType() == null) {
+            return (Class<O>) ObjectType.class;
+        }
+        return (Class<O>) WebComponentUtil.qnameToClass(pageBase.getPrismContext(), model.getObject().getType());
     }
 
     protected int getMaxRowsCount() {

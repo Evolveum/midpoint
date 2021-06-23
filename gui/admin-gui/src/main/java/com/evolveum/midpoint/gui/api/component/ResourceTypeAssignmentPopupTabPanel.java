@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -63,8 +65,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
 
-    public ResourceTypeAssignmentPopupTabPanel(String id) {
-        super(id, ObjectTypes.RESOURCE);
+    public ResourceTypeAssignmentPopupTabPanel(String id, AssignmentObjectRelation assignmentObjectRelation) {
+        super(id, ObjectTypes.RESOURCE, assignmentObjectRelation);
     }
 
     @Override

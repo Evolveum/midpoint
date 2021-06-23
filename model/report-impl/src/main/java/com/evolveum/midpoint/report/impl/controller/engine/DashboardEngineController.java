@@ -35,7 +35,7 @@ public class DashboardEngineController extends EngineController {
     }
 
     @Override
-    public String createReport(ReportType parentReport, FileFormatController fileFormatController, Task task, OperationResult result) throws Exception {
+    public String createReport(ReportType parentReport, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
         if (parentReport.getDashboard() != null && parentReport.getDashboard().getDashboardRef() != null) {
             DashboardReportEngineConfigurationType dashboardConfig = parentReport.getDashboard();
 

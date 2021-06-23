@@ -9,8 +9,6 @@
 <suite name="unit" parallel="false">
     <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-             <class name="com.evolveum.midpoint.report.TestReport"/>
-             <class name="com.evolveum.midpoint.report.TestReportSafe"/>
              <class name="com.evolveum.midpoint.report.TestHtmlReport"/>
              <class name="com.evolveum.midpoint.report.TestCsvReport"/>
              <class name="com.evolveum.midpoint.report.TestCsvReportSafe"/>

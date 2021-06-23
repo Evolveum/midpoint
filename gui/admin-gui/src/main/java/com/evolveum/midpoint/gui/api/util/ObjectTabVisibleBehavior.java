@@ -32,6 +32,7 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
     private final String uiAuthorizationUrl;
     private final PageBase pageBase;
 
+
     public ObjectTabVisibleBehavior(IModel<PrismObject<O>> objectModel, String uiAuthorizationUrl, PageBase pageBase) {
         this.objectModel = objectModel;
         this.uiAuthorizationUrl = uiAuthorizationUrl;

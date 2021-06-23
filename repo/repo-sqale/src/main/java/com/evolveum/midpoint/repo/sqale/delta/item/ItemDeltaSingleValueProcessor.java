@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Applies single item delta value to an item.
@@ -31,7 +32,7 @@ public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValuePro
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException {
+    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         T value = getAnyValue(modification);
 
         if (modification.isDelete() || value == null) {
@@ -56,10 +57,10 @@ public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValuePro
     }
 
     /** Sets the database columns to reflect the provided value (converted if necessary). */
-    public abstract void setValue(T value);
+    public abstract void setValue(T value) throws SchemaException;
 
     @Override
-    public void setRealValues(Collection<?> values) {
+    public void setRealValues(Collection<?> values) throws SchemaException {
         if (values.size() > 1) {
             throw new IllegalArgumentException(
                     "Multiple values when single value is expected: " + values);

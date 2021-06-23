@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
@@ -13,8 +14,14 @@ import javax.xml.namespace.QName;
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
@@ -31,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SqaleRepoContext extends SqlRepoContext {
 
     private final UriCache uriCache;
+    private final ExtItemCache extItemCache;
 
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
@@ -40,9 +48,12 @@ public class SqaleRepoContext extends SqlRepoContext {
         super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
+        querydslConfig.register(new EnumAsObjectType<>(AccessCertificationCampaignStateType.class));
         querydslConfig.register(new EnumAsObjectType<>(ActivationStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(MContainerType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MExtItemHolderType.class));
+        querydslConfig.register(new EnumAsObjectType<>(MExtItemCardinality.class));
         querydslConfig.register(new EnumAsObjectType<>(MObjectType.class));
         querydslConfig.register(new EnumAsObjectType<>(MReferenceType.class));
         querydslConfig.register(new EnumAsObjectType<>(LockoutStatusType.class));
@@ -63,12 +74,14 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new QuerydslJsonbType());
 
         uriCache = new UriCache();
+        extItemCache = new ExtItemCache();
     }
 
     // This has nothing to do with "repo cache" which is higher than this.
     @PostConstruct
     public void clearCaches() {
         uriCache.initialize(this::newJdbcSession);
+        extItemCache.initialize(this::newJdbcSession);
     }
 
     /** @see UriCache#searchId(String) */
@@ -98,5 +111,29 @@ public class SqaleRepoContext extends SqlRepoContext {
     public Integer processCacheableRelation(QName qName) {
         return processCacheableUri(
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
+    }
+
+    public MExtItem resolveExtensionItem(
+            ItemDefinition<?> definition, MExtItemHolderType holderType) {
+        Objects.requireNonNull(definition,
+                "Item '" + definition.getItemName() + "' without definition can't be saved.");
+
+        if (definition instanceof PrismPropertyDefinition) {
+            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
+            // null is default which is "indexed"
+            if (indexed != null && !indexed) {
+                return null;
+            }
+            // enum is recognized by having allowed values
+            if (!ExtUtils.SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
+                    && !ExtUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
+                return null;
+            }
+        } else if (!(definition instanceof PrismReferenceDefinition)) {
+            throw new UnsupportedOperationException("Unknown definition type '" + definition
+                    + "', can't say if '" + definition.getItemName() + "' is indexed or not.");
+        } // else it's reference which is indexed implicitly
+
+        return extItemCache.resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
     }
 }

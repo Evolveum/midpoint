@@ -21,15 +21,9 @@
     <name>midPoint Infrastructure</name>
 
     <modules>
-        <module>concepts</module>
-        <module>axiom</module>
-        <module>util</module>
         <module>schema</module>
         <module>schema-pure-jaxb</module>
         <module>common</module>
         <module>test-util</module>
-        <module>prism-maven-plugin</module>
-        <module>prism-api</module>
-        <module>prism-impl</module>
     </modules>
 </project>

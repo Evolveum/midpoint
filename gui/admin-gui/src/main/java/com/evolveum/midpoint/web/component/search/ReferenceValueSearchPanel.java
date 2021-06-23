@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -46,7 +49,10 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
                     @Override
                     protected List<QName> getSupportedTargetList() {
-                        return WebComponentUtil.createSupportedTargetTypeList((referenceDef).getTargetTypeName());
+                        if (referenceDef != null) {
+                            return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+                        }
+                        return Collections.singletonList(ObjectType.COMPLEX_TYPE);
                     }
 
                     @Override

@@ -52,11 +52,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    protected AvailableRelationDto availableRelationList;
+    protected RelationSearchItemConfigurationType relationsConfig;
 
-    public ChooseMemberPopup(String id, AvailableRelationDto availableRelationList){
+    public ChooseMemberPopup(String id, RelationSearchItemConfigurationType relationsConfig){
         super(id);
-        this.availableRelationList = availableRelationList;
+        this.relationsConfig = relationsConfig;
     }
 
     @Override
@@ -135,7 +135,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList, archetypeRefList){
+                return new MemberPopupTabPanel<UserType>(panelId, relationsConfig, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -168,7 +168,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList, archetypeRefList){
+                return new MemberPopupTabPanel<RoleType>(panelId, relationsConfig, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -202,7 +202,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList, archetypeRefList){
+                        return new MemberPopupTabPanel<OrgType>(panelId, relationsConfig, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -243,7 +243,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList, archetypeRefList) {
+                    return new OrgTreeMemberPopupTabPanel(panelId, relationsConfig, archetypeRefList) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -279,7 +279,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList, archetypeRefList){
+                        return new MemberPopupTabPanel<ServiceType>(panelId, relationsConfig, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override

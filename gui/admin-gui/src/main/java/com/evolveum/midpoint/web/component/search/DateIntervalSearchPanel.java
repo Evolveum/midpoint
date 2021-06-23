@@ -41,6 +41,11 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
                 target.add(DateIntervalSearchPanel.this);
                 searchPerformed(target);
             }
+
+            @Override
+            protected boolean isInterval() {
+                return DateIntervalSearchPanel.this.isInterval();
+            }
         };
     }
 
@@ -66,6 +71,10 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
                 return sb.toString();
             }
         };
+    }
+
+    protected boolean isInterval() {
+        return true;
     }
 
 }

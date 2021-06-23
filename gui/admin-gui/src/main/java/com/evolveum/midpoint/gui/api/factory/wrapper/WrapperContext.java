@@ -13,16 +13,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author katka
@@ -54,6 +54,11 @@ public class WrapperContext {
     private List<VirtualContainerItemSpecificationType>  virtualItemSpecification;
 
     private MetadataItemProcessingSpec metadataItemProcessingSpec;
+
+    //to avoid duplicate loading of the same lookuptable, maybe later we will need this
+    //for different types of objects
+     @Experimental
+    private Map<String, LookupTableType> lookupTableCache = new HashMap();
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -181,6 +186,14 @@ public class WrapperContext {
         return isMetadata;
     }
 
+    public void rememberLookuptable(LookupTableType lookupTableType) {
+        lookupTableCache.put(lookupTableType.getOid(), lookupTableType);
+    }
+
+    public LookupTableType getLookuptableFromCache(String oid) {
+        return lookupTableCache.get(oid);
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -196,6 +209,7 @@ public class WrapperContext {
         ctx.setObject(object);
         ctx.setMetadata(isMetadata);
         ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
+        ctx.lookupTableCache = lookupTableCache;
         return ctx;
     }
 }

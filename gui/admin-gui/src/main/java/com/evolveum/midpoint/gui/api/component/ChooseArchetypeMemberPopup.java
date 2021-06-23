@@ -12,8 +12,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,9 +23,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author honchar
@@ -34,8 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType> extends ChooseMemberPopup<O, ArchetypeType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseArchetypeMemberPopup(String id, AvailableRelationDto availableRelationList){
-        super(id, availableRelationList);
+    public ChooseArchetypeMemberPopup(String id, RelationSearchItemConfigurationType relationConfig){
+        super(id, relationConfig);
     }
 
     @Override
@@ -48,7 +44,7 @@ public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType>
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList, getArchetypeRefList()){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, relationsConfig, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override

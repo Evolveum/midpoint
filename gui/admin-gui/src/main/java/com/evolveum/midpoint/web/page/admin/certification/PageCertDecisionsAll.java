@@ -9,13 +9,17 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 
 /**
  * Displays all certification decisions.
  *
  * Note: The ultimate authorization check is done in certification-impl module.
  */
-@PageDescriptor(url = "/admin/certification/decisionsAll",
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/certification/decisionsAll", matchUrlForSecurity = "/admin/certification/decisionsAll")
+        },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,

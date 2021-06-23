@@ -50,7 +50,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
         }
 
         QueryModelMapping<?, ?, ?> mapping = context.mapping();
-        ItemSqlMapper<?, ?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
+        ItemSqlMapper<?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
         if (itemSqlMapper instanceof SqaleItemSqlMapper) {
             ((SqaleItemSqlMapper<?, ?, ?>) itemSqlMapper)
                     .createItemDeltaProcessor(context)

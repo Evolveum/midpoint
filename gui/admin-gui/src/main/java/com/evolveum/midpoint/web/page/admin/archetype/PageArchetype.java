@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
 import org.apache.wicket.Page;
@@ -37,7 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
-        url  = "/admin/archetype",
+        urls = {
+                @Url(mountUrl = "/admin/archetype", matchUrlForSecurity = "/admin/archetype")
+        },
         encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -63,7 +66,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
     }
 
     public PageArchetype(final PrismObject<ArchetypeType> role) {
-        super(role);
+        super(role, false);
     }
 
     public PageArchetype(final PrismObject<ArchetypeType> userToEdit, boolean isNewObject) {
@@ -93,7 +96,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
     @Override
     protected AbstractObjectMainPanel<ArchetypeType> createMainPanel(String id) {
-        return new AbstractRoleMainPanel<ArchetypeType>(id, getObjectModel(), getProjectionModel(), this) {
+        return new AbstractRoleMainPanel<>(id, getObjectModel(), getProjectionModel(), this) {
 
             private static final long serialVersionUID = 1L;
 
@@ -104,7 +107,7 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
             @Override
             protected List<ITab> createTabs(PageAdminObjectDetails<ArchetypeType> parentPage) {
-                List<ITab> tabs =  super.createTabs(parentPage);
+                List<ITab> tabs = super.createTabs(parentPage);
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("PageArchetype.archetypePolicy"),
                                 getTabVisibility(ComponentConstants.UI_ARCHTYPE_TAB_ARCHETYPE_POLICY_URL, false, parentPage)) {

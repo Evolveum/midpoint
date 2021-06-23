@@ -133,15 +133,13 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
             return list;
         }
 
-        List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
+        List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(valueWrapper -> {
             try {
-                return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPageBase().getMatchingRuleRegistry());
+                return ObjectQuery.match(valueWrapper.getRealValue(), getQuery().getFilter(), getPageBase().getMatchingRuleRegistry());
             } catch (SchemaException e) {
                 throw new TunnelException(e.getMessage());
             }
         }).collect(Collectors.toList());
         return filtered;
-
     }
-
 }

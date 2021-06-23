@@ -6,6 +6,23 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.AssignmentValueWrapper;
@@ -21,29 +38,7 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -58,11 +53,11 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel(IModel<List<PrismContainerValueWrapper<AssignmentType>>> originalLoadValuesModel) {
+    protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
         PageBase pageBase = getPageBase();
         if (pageBase instanceof PageAdminFocus) {
             if (allAssignmentModel == null) {
-                allAssignmentModel = new LoadableModel<List<PrismContainerValueWrapper<AssignmentType>>>() {
+                allAssignmentModel = new LoadableModel<>() {
 
                     @Override
                     protected List<PrismContainerValueWrapper<AssignmentType>> load() {
@@ -72,7 +67,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
             }
             return allAssignmentModel;
         } else {
-            return originalLoadValuesModel;
+            return super.loadValuesModel();
         }
     }
 
@@ -80,7 +75,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<PrismContainerValueWrapper<AssignmentType>>(Model.of("")) {
+        columns.add(new IconColumn<>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -122,20 +117,14 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
 
         });
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("DirectAndIndirectAssignmentPanel.column.type")) {
+        columns.add(new AbstractColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.type")) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> cellItem,
                     String componentId, final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 AssignmentValueWrapper object = (AssignmentValueWrapper) rowModel.getObject();
-                cellItem.add(new Label(componentId, new IModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        return object.isDirectAssignment() ?
-                                createStringResource("DirectAndIndirectAssignmentPanel.type.direct").getString() :
-                                createStringResource("DirectAndIndirectAssignmentPanel.type.indirect").getString();
-                    }
-                }));
+                cellItem.add(new Label(componentId, (IModel<String>) () -> object.isDirectAssignment() ?
+                        createStringResource("DirectAndIndirectAssignmentPanel.type.direct").getString() :
+                        createStringResource("DirectAndIndirectAssignmentPanel.type.indirect").getString()));
                 ObjectType assignmentParent = object.getAssignmentParent();
                 if (assignmentParent != null) {
                     cellItem.add(AttributeModifier.replace("title",
@@ -159,7 +148,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(
+        columns.add(new AbstractColumn<>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
@@ -172,21 +161,6 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
             }
         });
         return columns;
-    }
-
-    private void chooseOperationPerformed(String oid, Class clazz){
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-
-        PageBase page = getPageBase();
-
-        if(clazz.equals(RoleType.class)){
-            page.navigateToNext(PageRole.class, parameters);
-        } else if(clazz.equals(ResourceType.class)){
-            page.navigateToNext(PageResourceWizard.class, parameters);
-        } else if(clazz.equals(OrgType.class)){
-            page.navigateToNext(PageOrgUnit.class, parameters);
-        }
     }
 
     @Override
@@ -204,4 +178,5 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
         super.refreshTable(ajaxRequestTarget);
 
     }
+
 }

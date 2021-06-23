@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.schema.transform;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -198,6 +200,11 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
 
     @Override
     default void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
+        throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
+    }
+
+    @Override
+    default void addDiagram(ItemDiagramSpecification diagram) {
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 

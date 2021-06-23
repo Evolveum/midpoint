@@ -31,7 +31,8 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
     public enum ColumnType {
         LINK,
         STRING,
-        VALUE;
+        VALUE,
+        EXISTENCE_OF_VALUE;
     }
 
     private static final long serialVersionUID = 1L;
@@ -47,7 +48,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
     AbstractItemWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType) {
         super(null);
         Validate.notNull(mainModel, "no model");
-        Validate.notNull(mainModel.getObject(), "no ContainerWrappe from model");
+        Validate.notNull(mainModel.getObject(), "no ContainerWrapper from model");
         Validate.notNull(itemName, "no qName");
         this.mainModel = mainModel;
         this.itemName = itemName;

@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -72,6 +75,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         }
         return null;
     }
+
+    @Override
+    protected final ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
+        return createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(), null);
+    }
+
+    protected abstract ObjectQuery getCustomizeContentQuery();
 
     @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
