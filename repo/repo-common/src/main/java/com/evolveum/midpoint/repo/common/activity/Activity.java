@@ -173,10 +173,15 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     }
 
     private @NotNull ExecutionType determineExecutionType(TaskExecution taskExecution) {
-        if (definition.getDistributionDefinition().isSubtask()) {
-            return isInDelegatedExecution(taskExecution) ? ExecutionType.LOCAL : ExecutionType.DELEGATING;
+        if (isInDistributedExecution(taskExecution)) {
+            // This is a worker. It cannot be nothing but local execution.
+            return ExecutionType.LOCAL;
+        }
+
+        if (definition.getDistributionDefinition().isSubtask() && !isInDelegatedExecution(taskExecution)) {
+            return ExecutionType.DELEGATING;
         } else if (definition.getDistributionDefinition().hasWorkers()) {
-            return isInDistributedExecution(taskExecution) ? ExecutionType.LOCAL : ExecutionType.DISTRIBUTING;
+            return ExecutionType.DISTRIBUTING;
         } else {
             return ExecutionType.LOCAL;
         }

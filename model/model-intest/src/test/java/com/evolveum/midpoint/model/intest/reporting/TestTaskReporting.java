@@ -34,6 +34,7 @@ import java.net.ConnectException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
@@ -376,25 +377,36 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         then();
         stabilize();
+
+        // @formatter:off
         assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
                 .display()
                 .displayOperationResult()
                 .assertPartialError()
                 .assertClosed()
                 .assertProgress(11)
-                .rootItemProcessingInformation()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .display()
-                    .assertSuccessCount(7)
-                    .assertFailureCount(4) // u-000001 failed once in 2nd part, and once in 3rd part
-                    .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
+                    .itemProcessingStatistics()
+                        .assertSuccessCount(7)
+                        .assertFailureCount(3) // u-000001 failed once in 2nd part, and once in 3rd part
                     .end()
-                .rootSynchronizationInformation()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransitions(3)
+                        .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
+                        .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
+                        .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 7, 1, 0) // Those 9 records were already linked and remain so.
-                    .assertTransition(LINKED, null, null, null, 0, 1, 0) // Malformed account has a LINKED shadow
-                    .assertTransition(null, null, null, null, 0, 1, 0) // Long UID account
-                    ;
-        //.assertTransitions(2);
+                    .itemProcessingStatistics()
+                        .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                        .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
+                    .end()
+                .end();
+        // @formatter:on
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -419,10 +431,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         then();
         assertTaskTree(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, "reconciliation task after")
                 .display()
-                .subtaskForPart(1)
+                .subtaskForPath(RECONCILIATION_OPERATION_COMPLETION_PATH)
                     .display()
                     .end()
-                .subtaskForPart(2)
+                .subtaskForPath(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .display()
                     .subtask(0)
                         .display()
@@ -431,7 +443,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                         .display()
                         .end()
                     .end()
-                .subtaskForPart(3)
+                .subtaskForPath(RECONCILIATION_REMAINING_SHADOWS_PATH)
                     .display();
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
@@ -440,9 +452,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
-                .display()
-                .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
+        // MID-7113
+//        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+//                .display()
+//                .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
     }
 
     /**
@@ -468,19 +481,21 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         assertTask(TASK_RECONCILIATION_HACKED.oid, "after")
                 .display()
-                .rootItemProcessingInformation()
-                    .display()
-                    .assertSuccessCount(1)
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertSuccessCount(1)
                     .end()
-                .rootStructuredProgress()
-                    .display()
-                    .assertSuccessCount(1, false)
+                    .progress()
+                        .display()
+                        .assertSuccessCount(1, false)
                     .end()
-                .rootSynchronizationInformation()
-                    .display()
-                    .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
-                    .assertTransitions(1)
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                        .assertTransitions(1)
                     .end()
+                .end()
                 .assertClosed()
                 .assertSuccess();
     }
