@@ -151,8 +151,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @PostConstruct
     public void initialize() {
 
-        // OLD
-        // bundleURIs = listBundleJars();
+        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
+        localConnectorInfoManager = new CompositeConnectorInfoManager(connectorInfoManagerFactory);
+
         bundleURIs = new HashSet<>();
 
         Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
@@ -169,13 +170,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             bundleURIs.addAll(scanDirectory(dir.toString()));
         }
 
-        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-        localConnectorInfoManager = new CompositeConnectorInfoManager(connectorInfoManagerFactory);
 
         for (URI u : bundleURIs) {
             LOGGER.debug("ICF bundle URI : {}", u);
             localConnectorInfoManager.uriAdded(u);
         }
+        localConnectorInfoManager.start();
     }
 
     /**
@@ -275,7 +275,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                     connectorType = convertToConnectorType(connectorInfo, null);
                     localConnectorTypes.add(connectorType);
                 } catch (SchemaException e) {
-                    LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+                    LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
                 }
             }
         }
@@ -292,13 +292,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
                 connectorTypes.add(connectorType);
             } catch (SchemaException e) {
-                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return connectorTypes;
     }
 
-    private String getConnctorDesc(ConnectorInfo connectorInfo) {
+    private String getConnectorDesc(ConnectorInfo connectorInfo) {
         return connectorInfo.getConnectorKey().getConnectorName();
     }
 
@@ -593,19 +593,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
         }
 
-        // List directory items
-        File[] dirEntries = dir.listFiles();
-        if (null == dirEntries) {
-            LOGGER.warn("No bundles found in directory {}", dir.getAbsolutePath());
-            return bundle;
-        }
-
-        // test all entries for bundle
-        for (File dirEntry : dirEntries) {
-            if (isThisJarFileBundle(dirEntry)) {
-                addBundleIfEligible(bundle, dirEntry);
-            }
-        }
+        // It is directory, so lets watch it
+        localConnectorInfoManager.watchDirectory(dir);
         return bundle;
     }
 

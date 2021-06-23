@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
@@ -26,9 +31,19 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
 
     private final Map<URI, ConnectorInfoManager> uriToManager = new ConcurrentHashMap<>();
     private final List<ConnectorInfoManager> managers  = Lists.newCopyOnWriteArrayList();
+    private final FileAlterationMonitor monitor;
+    private final FileAlterationListener listener = new Listener();
+
+    private static long DEFAULT_POLL_INTERVAL = TimeUnit.SECONDS.toMillis(60);
+
+
+    public CompositeConnectorInfoManager(ConnectorInfoManagerFactory factory, long pollInterval) {
+        this.factory = factory;
+        this.monitor = new FileAlterationMonitor(pollInterval);
+    }
 
     public CompositeConnectorInfoManager(ConnectorInfoManagerFactory factory) {
-        this.factory = factory;
+        this(factory, DEFAULT_POLL_INTERVAL);
     }
 
     @Override
@@ -112,5 +127,43 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
 
     public void uriAdded(URI u) {
         registerConnector(u);
+    }
+
+    public void watchDirectory(File directory) {
+        FileAlterationObserver observer = new FileAlterationObserver(directory);
+        observer.addListener(listener);
+        monitor.addObserver(observer);
+    }
+
+    public void start() {
+        try {
+            monitor.start();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    class Listener extends FileAlterationListenerAdaptor {
+
+        @Override
+        public void onFileChange(File file) {
+            if (isLoaded(file.toURI())) {
+                LOGGER.warn("Loaded connector bundle {} was modified, System may become unstable.", file);
+            }
+            super.onFileChange(file);
+        }
+
+        @Override
+        public void onFileDelete(File file) {
+            if (isLoaded(file.toURI())) {
+                LOGGER.error("Deleted loaded connector: {}, System may become unstable.", file);
+            }
+        }
+
+        @Override
+        public void onFileCreate(File file) {
+            registerConnector(file);
+        }
+
     }
 }
