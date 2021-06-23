@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -133,7 +132,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     private ConnectorInfoManagerFactory connectorInfoManagerFactory;
-    private ConnectorInfoManager localConnectorInfoManager;
+    private CompositeConnectorInfoManager localConnectorInfoManager;
     private Set<URI> bundleURIs;
     private Set<ConnectorType> localConnectorTypes = null;
 
@@ -170,12 +169,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             bundleURIs.addAll(scanDirectory(dir.toString()));
         }
 
+        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
+        localConnectorInfoManager = new CompositeConnectorInfoManager(connectorInfoManagerFactory);
+
         for (URI u : bundleURIs) {
             LOGGER.debug("ICF bundle URI : {}", u);
+            localConnectorInfoManager.uriAdded(u);
         }
-
-        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-
     }
 
     /**
@@ -453,10 +453,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      */
 
     private ConnectorInfoManager getLocalConnectorInfoManager() {
-        if (null == localConnectorInfoManager) {
-            URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
-            localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
-        }
         return localConnectorInfoManager;
     }
 
@@ -633,7 +629,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @param bundleUrl tested bundle URL
      * @return true if OK
      */
-    private Boolean isThisBundleCompatible(URL bundleUrl) {
+    Boolean isThisBundleCompatible(URL bundleUrl) {
         if (null == bundleUrl) {
             return false;
         }
@@ -663,7 +659,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @param file tested file
      * @return boolean
      */
-    private Boolean isThisJarFileBundle(File file) {
+    static Boolean isThisJarFileBundle(File file) {
         // Startup tests
         if (null == file) {
             throw new IllegalArgumentException("No file is providied for bundle test.");
