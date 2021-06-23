@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task oid="08f630d0-0459-49c7-9c70-a813ba2e9da6"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Cleanup</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <activity>
+        <work>
+            <cleanup>
+                <policies>
+                    <auditRecords>
+                        <maxAge>PT10M</maxAge>
+                    </auditRecords>
+                    <closedTasks>
+                        <maxAge>PT10M</maxAge>
+                    </closedTasks>
+                    <deadNodes>
+                        <maxAge>PT10M</maxAge>
+                    </deadNodes>
+                </policies>
+            </cleanup>
+        </work>
+    </activity>
+</task>

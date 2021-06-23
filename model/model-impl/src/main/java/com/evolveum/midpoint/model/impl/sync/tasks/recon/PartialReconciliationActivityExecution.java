@@ -31,10 +31,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class PartialReconciliationActivityExecution<AE extends PartialReconciliationActivityExecution<AE>>
         extends AbstractModelSearchActivityExecution
         <ShadowType,
-                        ReconciliationWorkDefinition,
-                        ReconciliationActivityHandler,
-                        AE,
-                        AbstractActivityWorkStateType> {
+                ReconciliationWorkDefinition,
+                ReconciliationActivityHandler,
+                AE,
+                AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PartialReconciliationActivityExecution.class);
 

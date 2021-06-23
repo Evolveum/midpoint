@@ -212,7 +212,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     public ActivityStateAsserter<TaskAsserter<RA>> activityState(ActivityPath activityPath) {
         ActivityStateType state = getActivityStateRequired(activityPath);
-        ActivityStateAsserter<TaskAsserter<RA>> asserter = new ActivityStateAsserter<>(state, this, "for " + activityPath.toDebugName() + " in " + getDetails());
+        ActivityStateAsserter<TaskAsserter<RA>> asserter = new ActivityStateAsserter<>(state, this, "activity state for " + activityPath.toDebugName() + " in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

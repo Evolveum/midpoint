@@ -77,7 +77,7 @@ public abstract class MockComponentActivityExecution
         LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getMessage(), getSubActivity(),
                 debugDumpLazily());
 
-        return standardExitResult();
+        return standardExecutionResult();
     }
 
     @NotNull

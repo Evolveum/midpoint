@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 /**
@@ -136,7 +137,9 @@ public abstract class AbstractActivityExecution<
         try {
             return executeInternal(result);
         } catch (ActivityExecutionException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, this);
+            if (e.getOpResultStatus() != SUCCESS) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Exception in {}", e, this);
+            }
             return e.toActivityExecutionResult();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, this);
@@ -271,8 +274,8 @@ public abstract class AbstractActivityExecution<
         return activity.getTree().getTreeStateOverview();
     }
 
-    protected ActivityExecutionResult standardExitResult() {
-        return ActivityExecutionResult.standardExitResult(canRun());
+    protected ActivityExecutionResult standardExecutionResult() {
+        return ActivityExecutionResult.standardResult(canRun());
     }
 
     public boolean canRun() {

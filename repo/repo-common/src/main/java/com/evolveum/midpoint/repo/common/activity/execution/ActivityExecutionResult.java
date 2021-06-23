@@ -71,7 +71,7 @@ public class ActivityExecutionResult implements ShortDumpable {
         this.operationResultStatus = operationResultStatus;
     }
 
-    public static ActivityExecutionResult standardExitResult(boolean canRun) {
+    public static ActivityExecutionResult standardResult(boolean canRun) {
         return canRun ? finished(SUCCESS) : interrupted();
     }
 
