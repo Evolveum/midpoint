@@ -660,8 +660,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .display()
                                 .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 100, 0)
                             .end()
-                        .end()
-                        .assertBucketManagementStatisticsOperations(3);
+                        .end();
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
@@ -802,7 +801,6 @@ public class TestActivities extends AbstractRepoCommonTest {
                                     .assertEmpty()
                                 .end()
                             .end()
-                            .assertBucketManagementStatisticsOperations(3)
                         .end()
                         .child("second")
                             .assertComplete()
@@ -831,7 +829,6 @@ public class TestActivities extends AbstractRepoCommonTest {
                                     .assertLastSuccessName(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, "administrator")
                                 .end()
                             .end()
-                            .assertBucketManagementStatisticsOperations(3)
                         .end()
                         .child("composition:1")
                             .assertComplete()
@@ -878,7 +875,6 @@ public class TestActivities extends AbstractRepoCommonTest {
                                     .assertLastSuccessObjectName("administrator")
                                     .assertExecutions(1)
                                 .end()
-                                .assertBucketManagementStatisticsOperations(3)
                             .end()
                         .end()
                         .child("fourth")
