@@ -93,6 +93,8 @@ public interface ConnectorFactory {
      */
     String getFrameworkVersion();
 
+    void registerDiscoveryListener(ConnectorDiscoveryListener listener);
+
     void shutdown();
 
 }

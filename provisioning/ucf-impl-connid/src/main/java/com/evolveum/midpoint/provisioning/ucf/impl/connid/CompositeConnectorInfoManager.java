@@ -33,17 +33,19 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
     private final List<ConnectorInfoManager> managers  = Lists.newCopyOnWriteArrayList();
     private final FileAlterationMonitor monitor;
     private final FileAlterationListener listener = new Listener();
+    private final ConnectorFactoryConnIdImpl ucfFactory;
 
-    private static long DEFAULT_POLL_INTERVAL = TimeUnit.SECONDS.toMillis(60);
+    private static final long DEFAULT_POLL_INTERVAL = TimeUnit.SECONDS.toMillis(60);
 
 
-    public CompositeConnectorInfoManager(ConnectorInfoManagerFactory factory, long pollInterval) {
-        this.factory = factory;
+    public CompositeConnectorInfoManager(ConnectorFactoryConnIdImpl factory, long pollInterval) {
+        this.factory = factory.connectorInfoManagerFactory;
+        this.ucfFactory = factory;
         this.monitor = new FileAlterationMonitor(pollInterval);
     }
 
-    public CompositeConnectorInfoManager(ConnectorInfoManagerFactory factory) {
-        this(factory, DEFAULT_POLL_INTERVAL);
+    public CompositeConnectorInfoManager(ConnectorFactoryConnIdImpl connIdFactory) {
+        this(connIdFactory, DEFAULT_POLL_INTERVAL);
     }
 
     @Override
@@ -66,27 +68,25 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
         return ret;
     }
 
-    public void fileAdded(File maybeConnector) {
-        registerConnector(maybeConnector);
-    }
-
-
-    private void registerConnector(File bundle) {
+    private boolean registerConnector(File bundle) {
         if (ConnectorFactoryConnIdImpl.isThisJarFileBundle(bundle)) {
-            registerConnector(bundle.toURI());
+            return registerConnector(bundle.toURI());
         }
+        return false;
     }
 
-    private void registerConnector(URI bundle) {
+    private boolean registerConnector(URI bundle) {
         if (isLoaded(bundle)) {
-            return;
+            return false;
         }
         Optional<ConnectorInfoManager> maybeConnector = connectorFromURL(bundle);
         if (maybeConnector.isPresent()) {
             ConnectorInfoManager connector = maybeConnector.get();
             uriToManager.put(bundle, connector);
             managers.add(connector);
+            return true;
         }
+        return false;
     }
 
     private boolean isLoaded(URI maybeConnector) {
@@ -149,8 +149,10 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
         public void onFileChange(File file) {
             if (isLoaded(file.toURI())) {
                 LOGGER.warn("Loaded connector bundle {} was modified, System may become unstable.", file);
+            } else {
+                onFileCreate(file);
             }
-            super.onFileChange(file);
+
         }
 
         @Override
@@ -162,7 +164,9 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
 
         @Override
         public void onFileCreate(File file) {
-            registerConnector(file);
+            if (registerConnector(file)) {
+                ucfFactory.notifyConnectorAdded();
+            }
         }
 
     }

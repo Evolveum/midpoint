@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.security.Key;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.annotation.PostConstruct;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
@@ -131,15 +133,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
     }
 
-    private ConnectorInfoManagerFactory connectorInfoManagerFactory;
+    ConnectorInfoManagerFactory connectorInfoManagerFactory;
     private CompositeConnectorInfoManager localConnectorInfoManager;
     private Set<URI> bundleURIs;
-    private Set<ConnectorType> localConnectorTypes = null;
-
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private Protector protector;
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
+    private CopyOnWriteArrayList<ConnectorDiscoveryListener> listeners = new CopyOnWriteArrayList<>();
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -152,7 +153,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public void initialize() {
 
         connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-        localConnectorInfoManager = new CompositeConnectorInfoManager(connectorInfoManagerFactory);
+        localConnectorInfoManager = new CompositeConnectorInfoManager(this);
 
         bundleURIs = new HashSet<>();
 
@@ -262,24 +263,20 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     private Set<ConnectorType> listLocalConnectors() {
-        if (localConnectorTypes == null) {
-            // Lazy initialize connector list
-            localConnectorTypes = new HashSet<>();
+        Set<ConnectorType> localConnectorTypes = new HashSet<>();
 
-            // Fetch list of local connectors from ICF
-            List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
+        // Fetch list of local connectors from ICF
+        List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
-            for (ConnectorInfo connectorInfo : connectorInfos) {
-                ConnectorType connectorType;
-                try {
-                    connectorType = convertToConnectorType(connectorInfo, null);
-                    localConnectorTypes.add(connectorType);
-                } catch (SchemaException e) {
-                    LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
-                }
+        for (ConnectorInfo connectorInfo : connectorInfos) {
+            ConnectorType connectorType;
+            try {
+                connectorType = convertToConnectorType(connectorInfo, null);
+                localConnectorTypes.add(connectorType);
+            } catch (SchemaException e) {
+                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
-
         return localConnectorTypes;
     }
 
@@ -835,4 +832,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         LOGGER.info("Shutting down ConnId framework");
         ConnectorFacadeFactory.getInstance().dispose();
     }
+
+    @Override
+    public void registerDiscoveryListener(ConnectorDiscoveryListener listener) {
+        listeners.add(listener);
+    }
+
+    void notifyConnectorAdded() {
+        for (ConnectorDiscoveryListener listener : listeners) {
+            listener.newConnectorDiscovered(null);
+        }
+    }
+
 }
