@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- Used to test LiveSync task interruption. -->
-
-<resource oid="7a58233a-1cfb-46d1-a404-08cdf4626ebb"
+<resource oid="10079e05-b98e-4630-92aa-26fa4ed8d0eb"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Dummy Resource Interrupted Sync</name>
+    <name>Dummy Resource Errors Target</name>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -36,7 +31,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>interruptedSync</icfi:instanceId>
+            <icfi:instanceId>errors-target</icfi:instanceId>
         </icfc:configurationProperties>
     </connectorConfiguration>
 
@@ -48,53 +43,45 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
+                    <strength>strong</strength>
                     <source>
                         <path>name</path>
                     </source>
                 </outbound>
-                <inbound>
-                    <expression>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.model.intest.sync.DummyInterruptedSyncResource
-
-                                if (input == DummyInterruptedSyncResource.errorOn) {
-                                    throw new IllegalStateException("Got error!")
-                                } else {
-                                    try {
-                                        Thread.sleep(DummyInterruptedSyncResource.delay)
-                                    } catch (InterruptedException e) {
-                                        log.warn('sleep interrupted', e)
-                                    }
-                                    input
-                                }
-                            </code>
-                        </script>
-                    </expression>
-                    <target>
-                        <path>name</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:fullname</ref>
-                <inbound>
-                    <target>
-                        <path>fullName</path>
-                    </target>
-                </inbound>
             </attribute>
         </objectType>
     </schemaHandling>
+    <scripts>
+        <script>
+            <host>resource</host>
+            <language>powerfail</language>
+            <argument>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTask
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-        <configured>
-            <cap:liveSync>
-                <cap:preciseTokenValue>true</cap:preciseTokenValue>
-            </cap:liveSync>
-        </configured>
-    </capabilities>
-
+                        index = Integer.parseInt(basic.stringify(user?.name).substring(2))
+                        if (index % 3 == 0 &amp;&amp; TestLiveSyncTask.produceErrors) {
+                            'generic'
+                            // this will result in IllegalArgumentException that is here considered to be partial
+                        } else {
+                            'none'
+                        }
+                    </code>
+                </script>
+                <name>error</name>
+            </argument>
+            <code>none</code>
+            <operation>add</operation>
+            <kind>account</kind>
+            <order>before</order> <!-- to crash repeatedly also when sync is retried -->
+        </script>
+    </scripts>
+    <consistency>
+        <connectorErrorCriticality>
+            <generic>partial</generic>
+        </connectorErrorCriticality>
+    </consistency>
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>
@@ -102,7 +89,7 @@
                 <q:equal>
                     <q:path>name</q:path>
                     <expression>
-                        <path>$account/attributes/icfs:name</path>
+                        <path>$projection/attributes/icfs:name</path>
                     </expression>
                 </q:equal>
             </correlation>
@@ -113,7 +100,7 @@
             <reaction>
                 <situation>deleted</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
@@ -124,9 +111,6 @@
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
             </reaction>
         </objectSynchronization>
     </synchronization>

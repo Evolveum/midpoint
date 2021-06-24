@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.intest.tasks;
 
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.test.DummyResourceCollection;
@@ -20,14 +20,14 @@ import java.io.File;
  */
 public class DummyInterruptedSyncResource extends AbstractResourceDummyInterruptedSync {
 
-    private static final File TEST_DIR = new File("src/test/resources/sync");
+    private static final File TEST_DIR = new File("src/test/resources/tasks/livesync"); // TODO
 
     private static final File FILE = new File(TEST_DIR, "resource-dummy-interrupted-sync.xml");
     private static final String OID = "7a58233a-1cfb-46d1-a404-08cdf4626ebb";
     private static final String NAME = "interruptedSync";
 
     @Override
-    void init(DummyResourceCollection collection, Task task, OperationResult result) throws Exception {
+    public void init(DummyResourceCollection collection, Task task, OperationResult result) throws Exception {
         controller = collection.initDummyResource(NAME, FILE, OID, null, task, result);
         controller.setSyncStyle(DummySyncStyle.DUMB);
     }

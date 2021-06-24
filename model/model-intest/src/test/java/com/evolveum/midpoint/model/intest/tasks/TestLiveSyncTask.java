@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.intest.tasks;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.trigger.ShadowReconcileTriggerHandler;
 import com.evolveum.midpoint.model.intest.CommonTasks;
+import com.evolveum.midpoint.model.intest.sync.SequenceChecker;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 
@@ -48,14 +49,18 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Tests interruption of live sync task in various scenarios (see MID-5353, MID-5513).
- * In the second part tests various task statistics (MID-5999, MID-5920).
+ * Tests various aspects of live sync task:
+ *
+ * 1. interruption of live sync task in various scenarios (see MID-5353, MID-5513),
+ * 2. statistics (MID-5999, MID-5920).
+ *
+ * TODO other aspects
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrationTest {
+public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/sync");
+    private static final File TEST_DIR = new File("src/test/resources/tasks/livesync");
     private static final int ERRORS_ACCOUNTS = 30;
 
     private DummyInterruptedSyncResource interruptedSyncResource;

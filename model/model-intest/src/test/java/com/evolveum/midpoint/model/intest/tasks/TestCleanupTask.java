@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
 
-    public static final File TEST_DIR = new File("src/test/resources/tasks");
+    public static final File TEST_DIR = new File("src/test/resources/tasks/cleanup");
 
     private static final TestResource<TaskType> TASK_CLEANUP_LEGACY = new TestResource<>(TEST_DIR, "task-cleanup-legacy.xml", "0726d8b4-641e-4a01-9878-a11cabace465");
     private static final TestResource<TaskType> TASK_CLEANUP = new TestResource<>(TEST_DIR, "task-cleanup.xml", "08f630d0-0459-49c7-9c70-a813ba2e9da6");
