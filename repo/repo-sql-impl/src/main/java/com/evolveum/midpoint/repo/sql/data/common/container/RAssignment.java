@@ -9,13 +9,14 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
         @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid") })
 @Persister(impl = MidPointSingleTablePersister.class)
+@DynamicUpdate
 public class RAssignment implements Container<RObject>, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";

@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
@@ -30,9 +31,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
-/**
- * @author lazyman
- */
 @QueryEntity(collections = {
         @VirtualCollection(jaxbName = @JaxbName(localPart = "inducement"), jaxbType = Set.class,
                 jpaName = "assignments", jpaType = Set.class, additionalParams = {
@@ -47,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
         @Index(name = "iAutoassignEnabled", columnList = "autoassign_enabled")
 })
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public abstract class RAbstractRole extends RFocus {
 
     private String identifier;

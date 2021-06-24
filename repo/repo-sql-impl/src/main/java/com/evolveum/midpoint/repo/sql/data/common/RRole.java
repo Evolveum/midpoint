@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -20,9 +21,6 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-/**
- * @author lazyman
- */
 @Entity
 @ForeignKey(name = "fk_role")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_role_name", columnNames = { "name_norm" }),
@@ -31,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RRole extends RAbstractRole {
 
     private RPolyString nameCopy;

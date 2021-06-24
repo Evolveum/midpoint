@@ -24,9 +24,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author lazyman
- */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_user_name", columnNames = { "name_norm" }),
         indexes = {
