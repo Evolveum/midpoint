@@ -6,6 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -15,26 +23,21 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import java.util.Set;
 
 /**
  * @author lazyman
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_user_name", columnNames = {"name_norm"}),
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_user_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iFullName", columnList = "fullName_orig"),
                 @Index(name = "iFamilyName", columnList = "familyName_orig"),
                 @Index(name = "iGivenName", columnList = "givenName_orig"),
                 @Index(name = "iEmployeeNumber", columnList = "employeeNumber"),
-                @Index(name = "iUserNameOrig", columnList = "name_orig")})
+                @Index(name = "iUserNameOrig", columnList = "name_orig") })
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RUser extends RFocus {
 
     private RPolyString nameCopy;
@@ -57,7 +60,7 @@ public class RUser extends RFocus {
     @CollectionTable(name = "m_user_organization", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RPolyString> getOrganization() {
         return organization;
     }
@@ -72,7 +75,7 @@ public class RUser extends RFocus {
     @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RPolyString> getOrganizationalUnit() {
         return organizationalUnit;
     }
@@ -82,7 +85,7 @@ public class RUser extends RFocus {
     @CollectionTable(name = "m_user_employee_type", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getEmployeeType() {
         return employeeType;
     }

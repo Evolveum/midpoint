@@ -96,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         @Index(name = "iObjectLifecycleState", columnList = "lifecycleState") })
 @Inheritance(strategy = InheritanceType.JOINED)
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public abstract class RObject implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
