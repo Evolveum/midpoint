@@ -24,13 +24,19 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     /** TODO */
     @NotNull private final CandidateIdentifierFormatter candidateIdentifierFormatter;
 
+    /** TODO */
+    @NotNull private final ActivityStateDefinition<?> activityStateDefinition;
+
     @NotNull private final Activity<WD, AH> parent;
 
     private EmbeddedActivity(@NotNull ActivityDefinition<WD> definition, @NotNull ExecutionSupplier<WD, AH> executionSupplier,
-            @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter, @NotNull ActivityTree tree, Activity<WD, AH> parent) {
+            @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
+            @NotNull ActivityStateDefinition<?> activityStateDefinition, @NotNull ActivityTree tree,
+            @NotNull Activity<WD, AH> parent) {
         super(definition, tree);
         this.executionSupplier = executionSupplier;
         this.candidateIdentifierFormatter = candidateIdentifierFormatter;
+        this.activityStateDefinition = activityStateDefinition;
         this.parent = parent;
     }
 
@@ -38,8 +44,10 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
             @NotNull ActivityDefinition<WD> definition,
             @NotNull ExecutionSupplier<WD, AH> executionSupplier,
             @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
+            @NotNull ActivityStateDefinition<?> activityStateDefinition,
             @NotNull Activity<WD, AH> parent) {
-        return new EmbeddedActivity<>(definition, executionSupplier, candidateIdentifierFormatter, parent.getTree(), parent);
+        return new EmbeddedActivity<>(definition, executionSupplier, candidateIdentifierFormatter, activityStateDefinition,
+                parent.getTree(), parent);
     }
 
     @NotNull
@@ -56,6 +64,11 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     @Override
     protected @NotNull CandidateIdentifierFormatter getCandidateIdentifierFormatter() {
         return candidateIdentifierFormatter;
+    }
+
+    @Override
+    public @NotNull ActivityStateDefinition<?> getActivityStateDefinition() {
+        return activityStateDefinition;
     }
 
     @NotNull

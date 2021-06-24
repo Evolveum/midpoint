@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.CandidateIdentifierFormatter;
 import com.evolveum.midpoint.repo.common.activity.ExecutionSupplier;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
@@ -56,7 +57,12 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
         return AbstractActivityWorkStateType.COMPLEX_TYPE;
     }
 
-    default boolean shouldCreateWorkStateOnInitialization() {
-        return false;
+    /**
+     * Returns state definition for standalone (root) activity paired with this handler.
+     * Definitions for embedded activities are provided by activities themselves, which are returned
+     * by {@link #createChildActivities(Activity)} method.
+     */
+    default @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return ActivityStateDefinition.normal();
     }
 }

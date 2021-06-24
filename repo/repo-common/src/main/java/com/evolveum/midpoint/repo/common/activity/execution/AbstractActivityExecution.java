@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
@@ -52,7 +53,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 public abstract class AbstractActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        BS extends AbstractActivityWorkStateType> implements ActivityExecution {
+        WS extends AbstractActivityWorkStateType> implements ActivityExecution {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
@@ -66,12 +67,12 @@ public abstract class AbstractActivityExecution<
      */
     @NotNull protected final Activity<WD, AH> activity;
 
+    @NotNull protected final ActivityStateDefinition<WS> activityStateDefinition;
+
     /**
      * TODO
      */
-    @NotNull protected final ActivityState<BS> activityState;
-
-    @NotNull private final QName workStateTypeName;
+    @NotNull protected final ActivityState<WS> activityState;
 
     // Temporary
     private long startTimestamp;
@@ -79,12 +80,15 @@ public abstract class AbstractActivityExecution<
     protected AbstractActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
-        this.workStateTypeName = getWorkStateTypeName(context);
+        this.activityStateDefinition = determineActivityStateDefinition();
         this.activityState = new ActivityState<>(this);
     }
 
-    @NotNull
-    protected abstract QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context);
+    protected ActivityStateDefinition<WS> determineActivityStateDefinition() {
+        // TODO implement type safety here
+        //noinspection unchecked
+        return (ActivityStateDefinition<WS>) activity.getActivityStateDefinition();
+    }
 
     @NotNull
     @Override
@@ -258,7 +262,7 @@ public abstract class AbstractActivityExecution<
         return activity.getHandler();
     }
 
-    public @NotNull ActivityState<BS> getActivityState() {
+    public @NotNull ActivityState<WS> getActivityState() {
         return activityState;
     }
 
@@ -267,7 +271,7 @@ public abstract class AbstractActivityExecution<
     }
 
     public @NotNull QName getWorkStateTypeName() {
-        return workStateTypeName;
+        return activityStateDefinition.getWorkStateTypeName();
     }
 
     public @NotNull ActivityTreeStateOverview getTreeStateOverview() {
@@ -308,10 +312,6 @@ public abstract class AbstractActivityExecution<
         return supportsStatistics(); // Should be overridden in subclasses, if needed.
     }
 
-    public boolean supportsExecutionRecords() {
-        return supportsStatistics() && getPersistenceType() == ActivityStatePersistenceType.SINGLE_REALIZATION;
-    }
-
     public void incrementProgress(@NotNull QualifiedItemProcessingOutcomeType outcome) {
         ActivityProgress.Counters counters = hasProgressCommitPoints() ? UNCOMMITTED : COMMITTED;
         activityState.getLiveProgress().increment(outcome, counters);
@@ -328,5 +328,9 @@ public abstract class AbstractActivityExecution<
 
     public long getStartTimestamp() {
         return startTimestamp;
+    }
+
+    public @NotNull ActivityStateDefinition<WS> getActivityStateDefinition() {
+        return activityStateDefinition;
     }
 }

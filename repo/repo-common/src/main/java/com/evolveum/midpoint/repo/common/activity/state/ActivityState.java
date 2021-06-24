@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
@@ -49,7 +50,9 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     @NotNull private final AbstractActivityExecution<?, ?, WS> activityExecution;
 
-    @NotNull private final ComplexTypeDefinition workStateDefinition;
+    @NotNull private final ActivityStateDefinition<WS> activityStateDefinition;
+
+    @NotNull private final ComplexTypeDefinition workStateComplexTypeDefinition;
 
     @NotNull private final ActivityProgress liveProgress;
 
@@ -62,17 +65,18 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     public ActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
         this.activityExecution = activityExecution;
-        this.workStateDefinition = determineWorkStateDefinition(activityExecution);
+        this.activityStateDefinition = activityExecution.getActivityStateDefinition();
+        this.workStateComplexTypeDefinition = determineWorkStateDefinition(this.activityStateDefinition);
         this.liveProgress = new ActivityProgress(this);
         this.liveStatistics = new ActivityStatistics(this);
     }
 
     @NotNull
-    private ComplexTypeDefinition determineWorkStateDefinition(AbstractActivityExecution<?, ?, WS> activityExecution) {
+    private ComplexTypeDefinition determineWorkStateDefinition(@NotNull ActivityStateDefinition<WS> stateDefinition) {
         return requireNonNull(
                 getBeans().prismContext.getSchemaRegistry()
-                        .findComplexTypeDefinitionByType(activityExecution.getWorkStateTypeName()),
-                () -> new SystemException("Couldn't find definition for " + activityExecution.getWorkStateTypeName()));
+                        .findComplexTypeDefinitionByType(stateDefinition.getWorkStateTypeName()),
+                () -> new SystemException("Couldn't find definition for " + stateDefinition.getWorkStateTypeName()));
     }
 
     //region Initialization
@@ -175,7 +179,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType(getPrismContext())
                         .identifier(identifier)
-                        .persistence(activityExecution.getPersistenceType()))
+                        .persistence(activityStateDefinition.getPersistence()))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);
@@ -195,7 +199,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         Task task = getRunningTask();
         PrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(
-                ActivityStateType.F_WORK_STATE, workStateDefinition);
+                ActivityStateType.F_WORK_STATE, workStateComplexTypeDefinition);
         PrismContainer<?> workStateContainer = def.instantiate();
         PrismContainerValue<?> newWorkStateValue = workStateContainer.createNewValue().clone();
         ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
@@ -211,7 +215,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     private void updatePersistenceType(OperationResult result) throws ActivityExecutionException {
         ActivityStatePersistenceType storedValue =
                 getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
-        ActivityStatePersistenceType requiredValue = activityExecution.getPersistenceType();
+        ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
             flushPendingModificationsChecked(result);
@@ -335,8 +339,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     //endregion
 
     //region Work state
-    public @NotNull ComplexTypeDefinition getWorkStateDefinition() {
-        return workStateDefinition;
+    public @NotNull ComplexTypeDefinition getWorkStateComplexTypeDefinition() {
+        return workStateComplexTypeDefinition;
     }
 
     public <T> T getWorkStatePropertyRealValue(ItemPath path, Class<T> expectedType) {
@@ -375,8 +379,8 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
     @NotNull
     private ItemDefinition<?> getWorkStateItemDefinition(ItemPath path) throws SchemaException {
         return MiscUtil.<ItemDefinition<?>, SchemaException>requireNonNull(
-                workStateDefinition.findItemDefinition(path),
-                () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateDefinition));
+                workStateComplexTypeDefinition.findItemDefinition(path),
+                () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateComplexTypeDefinition));
     }
 
     @NotNull ItemPath getWorkStateItemPath() {
@@ -491,7 +495,7 @@ public class ActivityState<WS extends AbstractActivityWorkStateType> implements 
 
     @NotNull
     private String getEnhancedClassName() {
-        return getClass().getSimpleName() + "<" + workStateDefinition.getTypeName().getLocalPart() + ">";
+        return getClass().getSimpleName() + "<" + workStateComplexTypeDefinition.getTypeName().getLocalPart() + ">";
     }
     //endregion
 

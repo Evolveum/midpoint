@@ -16,8 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-
 public abstract class LocalActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
@@ -60,11 +58,10 @@ public abstract class LocalActivityExecution<
         }
     }
 
+    public boolean supportsExecutionRecords() {
+        return supportsStatistics() && activityStateDefinition.isSingleRealization();
+    }
+
     protected abstract @NotNull ActivityExecutionResult executeLocal(OperationResult result)
             throws ActivityExecutionException, CommonException;
-
-    @Override
-    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context) {
-        return context.getActivity().getHandler().getWorkStateTypeName();
-    }
 }

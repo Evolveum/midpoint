@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
@@ -70,12 +70,14 @@ public class CompositeMockActivityHandler
             children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
                     (context, result) -> new MockOpeningActivityExecution(context),
                     (i) -> "opening",
+                    ActivityStateDefinition.normal(),
                     parentActivity));
         }
         if (workDefinition.isClosingEnabled()) {
             children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
                     (context, result) -> new MockClosingActivityExecution(context),
                     (i) -> "closing",
+                    ActivityStateDefinition.perpetual(),
                     parentActivity));
         }
         return children;

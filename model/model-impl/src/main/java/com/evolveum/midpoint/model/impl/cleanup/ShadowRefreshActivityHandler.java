@@ -8,8 +8,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +70,11 @@ public class ShadowRefreshActivityHandler
     }
 
     @Override
-    public @NotNull QName getWorkStateTypeName() {
-        return ScanWorkStateType.COMPLEX_TYPE;
+    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return new ActivityStateDefinition<>(
+                ScanWorkStateType.COMPLEX_TYPE,
+                ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS // TODO deduplicate with persistentStatistics(false)
+        );
     }
 
     public static class MyActivityExecution
@@ -89,11 +92,6 @@ public class ShadowRefreshActivityHandler
             return super.getDefaultReportingOptions()
                     .enableActionsExecutedStatistics(true)
                     .persistentStatistics(false);
-        }
-
-        @Override
-        public @NotNull ActivityStatePersistenceType getPersistenceType() {
-            return ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS; // TODO deduplicate with persistenStatistics(false)
         }
 
         @Override

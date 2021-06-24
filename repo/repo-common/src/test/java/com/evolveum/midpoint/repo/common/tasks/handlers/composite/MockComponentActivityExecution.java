@@ -51,9 +51,9 @@ public abstract class MockComponentActivityExecution
         long delay = workDef.getDelay();
 
         LOGGER.info("Mock activity starting: id={}, steps={}, delay={}, sub-activity={}:\n{}", workDef.getMessage(),
-                steps, delay, getSubActivity(), debugDumpLazily());
+                steps, delay, getMockSubActivity(), debugDumpLazily());
 
-        String itemName = workDef.getMessage() + ":" + getSubActivity();
+        String itemName = workDef.getMessage() + ":" + getMockSubActivity();
 
         Operation operation = activityState.getLiveItemProcessingStatistics()
                 .recordOperationStart(new IterativeOperationStartInfo(
@@ -74,7 +74,7 @@ public abstract class MockComponentActivityExecution
         operation.done(qualifiedOutcome, null);
         incrementProgress(qualifiedOutcome);
 
-        LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getMessage(), getSubActivity(),
+        LOGGER.info("Mock activity finished: id={}, sub-activity={}:\n{}", workDef.getMessage(), getMockSubActivity(),
                 debugDumpLazily());
 
         return standardExecutionResult();
@@ -102,7 +102,7 @@ public abstract class MockComponentActivityExecution
         return taskExecution;
     }
 
-    abstract String getSubActivity();
+    abstract String getMockSubActivity();
 
     @Override
     public void debugDumpExtra(StringBuilder sb, int indent) {

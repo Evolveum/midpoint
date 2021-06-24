@@ -41,9 +41,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * An activity that distributes (usually bucketed) activity to a set of worker tasks.
+ * What is interesting is that this activity can maintain a work state of the type belonging to activity being distributed.
+ *
+ * @param <WD>
+ * @param <AH>
+ */
 public class DistributingActivityExecution<
         WD extends WorkDefinition,
-        AH extends ActivityHandler<WD, AH>> extends AbstractActivityExecution<WD, AH, DistributionWorkStateType> {
+        AH extends ActivityHandler<WD, AH>,
+        WS extends AbstractActivityWorkStateType>
+        extends AbstractActivityExecution<WD, AH, WS> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DistributingActivityExecution.class);
 
@@ -59,11 +68,6 @@ public class DistributingActivityExecution<
     public DistributingActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         super(context);
         helper = new SubtaskHelper(this);
-    }
-
-    @Override
-    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context) {
-        return DistributionWorkStateType.COMPLEX_TYPE;
     }
 
     private DistributionState distributionState;

@@ -13,6 +13,12 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is an activity that can be instantiated in standalone way (i.e. as a root). It has to have a handler.
+ *
+ * @param <WD>
+ * @param <AH>
+ */
 public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends Activity<WD, AH> {
 
@@ -57,6 +63,11 @@ public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHa
     @Override
     protected @NotNull CandidateIdentifierFormatter getCandidateIdentifierFormatter() {
         return handler;
+    }
+
+    @Override
+    public @NotNull ActivityStateDefinition<?> getActivityStateDefinition() {
+        return handler.getRootActivityStateDefinition();
     }
 
     @Override

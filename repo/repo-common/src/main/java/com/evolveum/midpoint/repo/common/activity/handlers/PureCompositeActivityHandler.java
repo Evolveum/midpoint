@@ -8,9 +8,9 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.StandaloneActivity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
@@ -78,7 +78,7 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     }
 
     @Override
-    public @NotNull QName getWorkStateTypeName() {
-        return PureCompositeWorkStateType.COMPLEX_TYPE;
+    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return ActivityStateDefinition.normal(PureCompositeWorkStateType.COMPLEX_TYPE);
     }
 }

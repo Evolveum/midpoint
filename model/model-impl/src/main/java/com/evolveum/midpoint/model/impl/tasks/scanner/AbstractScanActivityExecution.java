@@ -59,11 +59,6 @@ public class AbstractScanActivityExecution<
     }
 
     @Override
-    public @NotNull ActivityStatePersistenceType getPersistenceType() {
-        return ActivityStatePersistenceType.PERPETUAL;
-    }
-
-    @Override
     protected void initializeExecution(OperationResult opResult) {
         lastScanTimestamp = activityState.getWorkStatePropertyRealValue(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP,
                 XMLGregorianCalendar.class);

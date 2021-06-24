@@ -116,6 +116,8 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     @NotNull
     protected abstract CandidateIdentifierFormatter getCandidateIdentifierFormatter();
 
+    public abstract @NotNull ActivityStateDefinition<?> getActivityStateDefinition();
+
     public AbstractActivityExecution<WD, AH, ?> getExecution() {
         return execution;
     }

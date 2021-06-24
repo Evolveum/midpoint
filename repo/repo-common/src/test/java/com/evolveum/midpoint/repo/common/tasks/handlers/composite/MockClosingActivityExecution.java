@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
-
 import org.jetbrains.annotations.NotNull;
 
 class MockClosingActivityExecution extends MockComponentActivityExecution {
@@ -21,12 +19,7 @@ class MockClosingActivityExecution extends MockComponentActivityExecution {
     }
 
     @Override
-    public @NotNull ActivityStatePersistenceType getPersistenceType() {
-        return ActivityStatePersistenceType.PERPETUAL;
-    }
-
-    @Override
-    String getSubActivity() {
+    String getMockSubActivity() {
         return "closing";
     }
 }

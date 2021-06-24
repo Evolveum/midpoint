@@ -92,9 +92,4 @@ public class SimpleActivityExecution<O extends ObjectType, WD extends WorkDefini
     public EC getExecutionContext() {
         return executionContext;
     }
-
-    @Override
-    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, SimpleActivityHandler<O, WD, EC>> context) {
-        return context.getActivity().getHandler().getWorkStateTypeName();
-    }
 }
