@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.getDebugInfo;
 import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
@@ -3065,16 +3066,24 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws CommonException {
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
+            displaySingleTask("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
         }, timeoutInterval, sleepInterval);
+    }
+
+    private void displaySingleTask(String label, Task task) {
+        if (verbose) {
+            IntegrationTestTools.display(label, task);
+        } else {
+            displayValue(label, getDebugInfo(task));
+        }
     }
 
     protected void waitForTaskSuspend(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
             throws CommonException {
         waitFor("Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
+            displaySingleTask("Task while waiting for it to suspend", task);
             return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
         }, timeoutInterval, sleepInterval);
     }
@@ -3085,7 +3094,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitFor("Waiting for task to close", () -> {
             try {
                 Task task = taskManager.getTaskWithResult(taskOid, result);
-                if (verbose) IntegrationTestTools.display("Task while waiting for it to close", task);
+                displaySingleTask("Task while waiting for it to close/delete", task);
                 return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
             } catch (ObjectNotFoundException e) {
                 return true;
@@ -3098,7 +3107,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             CommonException {
         waitFor("Waiting for task to become ready", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            if (verbose) IntegrationTestTools.display("Task while waiting for it to become ready", task);
+            displaySingleTask("Task while waiting for it to become ready", task);
             return task.isReady();
         }, timeoutInterval, sleepInterval);
     }
@@ -3108,7 +3117,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             CommonException {
         waitFor("Waiting for task to become waiting", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for it to become waiting", task);
+            displaySingleTask("Task while waiting for it to become waiting", task);
             return task.isWaiting();
         }, timeoutInterval, sleepInterval);
     }
@@ -3162,7 +3171,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
         waitFor("Waiting for task manager to start the task", () -> {
             Task task = taskManager.getTaskWithResult(oid, result);
-            IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
+            displaySingleTask("Task while waiting for task manager to start it", task);
             return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
         }, timeoutInterval, sleepInterval);
     }
@@ -3171,7 +3180,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             int threshold) throws CommonException {
         waitFor("Waiting for task progress reaching " + threshold, () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
-            IntegrationTestTools.display("Task while waiting for progress reaching " + threshold, task);
+            displaySingleTask("Task while waiting for progress reaching " + threshold, task);
             return task.getProgress() >= threshold;
         }, timeoutInterval, sleepInterval);
     }
@@ -3375,7 +3384,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             public boolean check() throws CommonException {
                 Task task = taskManager.getTaskWithResult(taskOid, waitResult);
                 waitResult.summarize();
-                display("Task execution status = " + task.getExecutionState());
+                displayValue("Task", getDebugInfo(task));
                 return task.getExecutionState() == TaskExecutionStateType.CLOSED
                         || task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
             }

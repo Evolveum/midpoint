@@ -39,6 +39,13 @@ public class TaskDebugUtil {
             consumer.accept(task);
         }
         DebugUtil.indentDebugDump(sb, indent);
+        dumpTask(sb, task);
+        for (Task subtask : task.listSubtasks(result)) {
+            dumpTaskTree(sb, indent + 1, subtask, consumer, result);
+        }
+    }
+
+    public static void dumpTask(StringBuilder sb, Task task) {
         sb.append(task)
                 .append(" [es:").append(task.getExecutionState())
                 .append(", ss:").append(task.getSchedulingState())
@@ -46,9 +53,12 @@ public class TaskDebugUtil {
                 .append(", p:").append(task.getProgress())
                 .append(", n:").append(task.getNode())
                 .append("]").append("\n");
-        for (Task subtask : task.listSubtasks(result)) {
-            dumpTaskTree(sb, indent + 1, subtask, consumer, result);
-        }
+    }
+
+    public static String getDebugInfo(Task task) {
+        StringBuilder sb = new StringBuilder();
+        dumpTask(sb, task);
+        return sb.toString();
     }
 
     public static String dumpTaskTree(TaskType rootTask) {
