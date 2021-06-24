@@ -1603,6 +1603,12 @@
             <name>Oracle</name>
             <url>https://download.oracle.com/maven/</url>
         </repository>
+
+        <repository>
+            <!-- Jasper references old http repository which fails with 308. -->
+            <id>jaspersoft-third-party</id>
+            <url>https://jaspersoft.jfrog.io/jaspersoft/third-party-ce-artifacts</url>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
