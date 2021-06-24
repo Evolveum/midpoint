@@ -4809,7 +4809,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to users that should execute operations on manual resources.
-                        It may point to user or organization. (Currently only users are supported.)
+                        It may point to user, role (only role members) or organization (only direct org. members).
                         If more than one operator is specified they are considered equivalent.
                     </xsd:documentation>
                     <xsd:appinfo>
