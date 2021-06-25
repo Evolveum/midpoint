@@ -93,11 +93,12 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         return ownerOid;
     }
 
-    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
-    @ManyToOne(targetEntity = RObject.class)//, fetch = FetchType.LAZY)
+
+    @ManyToOne(targetEntity = RObject.class, fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false,
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    @NotFound(action = NotFoundAction.IGNORE)
+    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
+//    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public T getTarget() {
         return target;

@@ -181,7 +181,7 @@
         <testng.version>7.4.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.8.2</xmlunit.version>
-        <hibernate.version>5.5.0.Final</hibernate.version>
+        <hibernate.version>5.5.3.Final</hibernate.version>
         <!--
         Default Spring Boot 2.4.3 uses H2 1.4.200 but that one has NPE bug:
         https://github.com/h2database/h2database/issues/1808
@@ -206,7 +206,7 @@
         <reflections.version>0.9.12</reflections.version>
         <guava.version>30.1.1-jre</guava.version>
         <jcommander.version>1.81</jcommander.version>
-        <failsafe.version>3.0.0-M5</failsafe.version>
+        <failsafe.version>3.0.0-M4</failsafe.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
         <apache-artemis.version>2.17.0</apache-artemis.version> <!-- matching Spring Boot Artemis dependency -->
         <asm.version>9.1</asm.version>

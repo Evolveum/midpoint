@@ -62,10 +62,10 @@ public class RAssignmentReference extends RContainerReference {
     }
 
     @ForeignKey(name = "none")
-    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
-    @ManyToOne//(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
-    @NotFound(action = NotFoundAction.IGNORE)
+    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
+//    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     // declared for HQL use only
     public RObject getTarget() {
