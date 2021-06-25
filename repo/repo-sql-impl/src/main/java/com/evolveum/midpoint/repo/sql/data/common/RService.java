@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
         indexes = {
                 @Index(name = "iServiceNameOrig", columnList = "name_orig"),
                 @Index(name = "iServiceNameNorm", columnList = "name_norm") })
+@org.hibernate.annotations.DynamicUpdate
 public class RService extends RAbstractRole {
 
     private RPolyString nameCopy;

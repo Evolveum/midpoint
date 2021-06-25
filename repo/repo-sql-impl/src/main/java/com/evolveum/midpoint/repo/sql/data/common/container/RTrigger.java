@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 @Entity
 @IdClass(RContainerId.class)
 @Table(indexes = { @Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP) })
+@org.hibernate.annotations.DynamicUpdate
 public class RTrigger implements Container<RObject> {
 
     public static final String F_OWNER = "owner";

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RObjectCollection extends RObject {
 
     private RPolyString nameCopy;

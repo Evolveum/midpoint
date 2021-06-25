@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
         @Index(name = "iAutoassignEnabled", columnList = "autoassign_enabled")
 })
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public abstract class RAbstractRole extends RFocus {
 
     private String identifier;

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RResource extends RObject {
 
     private RPolyString nameCopy;

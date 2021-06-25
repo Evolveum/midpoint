@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 @IdClass(RCaseWorkItemId.class)
 @Table(name = TABLE)
 @Persister(impl = MidPointSingleTablePersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RCaseWorkItem implements Container<RCase> {
 
     public static final String TABLE = "m_case_wi";

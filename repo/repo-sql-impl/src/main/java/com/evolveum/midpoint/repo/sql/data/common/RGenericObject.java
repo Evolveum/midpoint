@@ -30,6 +30,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RGenericObject extends RFocus {
 
     private RPolyString nameCopy;

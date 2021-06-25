@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 )
 @ForeignKey(name = "fk_security_policy")
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RSecurityPolicy extends RObject {
 
     private RPolyString nameCopy;

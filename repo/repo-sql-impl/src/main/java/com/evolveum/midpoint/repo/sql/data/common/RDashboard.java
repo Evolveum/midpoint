@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RDashboard extends RObject {
 
     private static final long serialVersionUID = 1L;

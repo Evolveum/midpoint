@@ -36,6 +36,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RLookupTable extends RObject {
 
     private RPolyString nameCopy;

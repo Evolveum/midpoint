@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_campaign")
+@org.hibernate.annotations.DynamicUpdate
 public class RAccessCertificationCampaign extends RObject {
 
     public static final String TABLE_NAME = "m_acc_cert_campaign";

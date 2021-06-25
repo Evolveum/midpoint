@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES) })
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RShadow extends RObject implements OperationResult {
 
     private RPolyString nameCopy;

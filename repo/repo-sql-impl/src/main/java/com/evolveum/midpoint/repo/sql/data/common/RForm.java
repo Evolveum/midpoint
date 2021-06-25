@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RForm extends RObject {
 
     private RPolyString nameCopy;

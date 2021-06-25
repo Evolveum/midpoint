@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = { "taskIdentifier" }))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RTask extends RObject implements OperationResultFull {
 
     private RPolyString nameCopy;

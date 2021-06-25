@@ -35,6 +35,7 @@ import java.util.Set;
                 @Index(name = "iUserNameOrig", columnList = "name_orig")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RUser extends RFocus {
 
     private RPolyString nameCopy;

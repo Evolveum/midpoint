@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 @Table(indexes = {
         @Index(name = "iArchetypeNameOrig", columnList = "name_orig"),
         @Index(name = "iArchetypeNameNorm", columnList = "name_norm") })
+@org.hibernate.annotations.DynamicUpdate
 public class RArchetype extends RAbstractRole {
 
     private RPolyString nameCopy;

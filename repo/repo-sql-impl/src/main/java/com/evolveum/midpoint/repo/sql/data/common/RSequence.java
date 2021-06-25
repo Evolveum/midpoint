@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RSequence extends RObject {
 
     private RPolyString nameCopy;

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 @Table(indexes = {
         @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
         @Index(name = "iConnectorNameNorm", columnList = "name_norm") })
+@org.hibernate.annotations.DynamicUpdate
 public class RConnector extends RObject {
 
     private RPolyString nameCopy;

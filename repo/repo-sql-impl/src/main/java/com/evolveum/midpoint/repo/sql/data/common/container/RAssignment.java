@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
         @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid") })
 @Persister(impl = MidPointSingleTablePersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RAssignment implements Container<RObject>, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";

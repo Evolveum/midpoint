@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class RFunctionLibrary extends RObject {
 
     private RPolyString nameCopy;

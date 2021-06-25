@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class ROrg extends RAbstractRole {
 
     private RPolyString nameCopy;

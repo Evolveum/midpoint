@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
         @Index(name = "iOpExecStatus", columnList = "status"),
         @Index(name = "iOpExecOwnerOid", columnList = "owner_oid") })
 @Persister(impl = MidPointSingleTablePersister.class)
+@org.hibernate.annotations.DynamicUpdate
 public class ROperationExecution implements Container<RObject> {
 
     private Boolean trans;

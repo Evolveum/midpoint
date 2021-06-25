@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 @Table(name = RReportData.TABLE_NAME, indexes = {
         @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
         @Index(name = "iReportOutputNameNorm", columnList = "name_norm") })
+@org.hibernate.annotations.DynamicUpdate
 public class RReportData extends RObject {
 
     public static final String TABLE_NAME = "m_report_output";
