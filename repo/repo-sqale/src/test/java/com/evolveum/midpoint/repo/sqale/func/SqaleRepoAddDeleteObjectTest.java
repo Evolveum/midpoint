@@ -1696,6 +1696,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .definitionRef(definitionRefOid.toString(), UserType.COMPLEX_TYPE, definitionRefRelationUri)
                 .endTimestamp(MiscUtil.asXMLGregorianCalendar(endTimestamp))
                 .handlerUri("c-handler-uri")
+                // TODO campaignIteration
                 .iteration(3)
                 .ownerRef(ownerRefOid.toString(), UserType.COMPLEX_TYPE, ownerRefRelationUri)
                 .stageNumber(2)
@@ -1716,6 +1717,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .validityStatus(TimeIntervalStatusType.IN)
                         )
                         .currentStageOutcome(currentStageOutcome)
+                        // TODO campaignIteration
                         .iteration(caseIteration)
                         .objectRef(caseObjectRefOid.toString(), ServiceType.COMPLEX_TYPE, caseObjectRefRelationUri)
                         .orgRef(caseOrgRefOid.toString(), OrgType.COMPLEX_TYPE, caseOrgRefRelationUri)
@@ -1741,7 +1743,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.definitionRefRelationId, definitionRefRelationUri);
         assertThat(row.endTimestamp).isEqualTo(endTimestamp);
         assertCachedUri(row.handlerUriId, "c-handler-uri");
-        assertThat(row.iteration).isEqualTo(3);
+        assertThat(row.campaignIteration).isEqualTo(3);
         assertThat(row.ownerRefTargetOid).isEqualTo(ownerRefOid);
         assertThat(row.ownerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(row.ownerRefRelationId, ownerRefRelationUri);
@@ -1769,7 +1771,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(caseRow.validityStatus).isEqualTo(TimeIntervalStatusType.IN);
         assertThat(caseRow.currentStageOutcome).isEqualTo(currentStageOutcome);
         assertContainerFullObject(caseRow.fullObject, accessCertificationCampaign.getCase().get(0));
-        assertThat(caseRow.iteration).isEqualTo(caseIteration);
+        assertThat(caseRow.campaignIteration).isEqualTo(caseIteration);
         assertThat(caseRow.objectRefTargetOid).isEqualTo(caseObjectRefOid);
         assertThat(caseRow.objectRefTargetType).isEqualTo(MObjectType.SERVICE);
         assertCachedUri(caseRow.objectRefRelationId, caseObjectRefRelationUri);

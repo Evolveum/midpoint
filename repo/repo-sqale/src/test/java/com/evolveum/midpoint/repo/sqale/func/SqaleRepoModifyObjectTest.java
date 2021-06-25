@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
+
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -55,6 +57,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
+    private String accessCertificationCampaign1Oid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -71,6 +74,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
+                null, result);
+        // This also indirectly tests ability to create an minimal object (mandatory fields only).
+        accessCertificationCampaign1Oid = repositoryService.addObject(
+                new AccessCertificationCampaignType(prismContext)
+                        .name("campaign-1")
+                        .ownerRef(user1Oid, UserType.COMPLEX_TYPE)
+                        // TODO: campaignIteration
+                        .iteration(1)
+                        .stageNumber(2)
+                        .asPrismObject(),
                 null, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -2295,6 +2308,52 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .hasMessage("Invalid delta path assignment/5."
                         + " Delta path must always point to item, not to value");
     }
+
+    @Test(enabled = false) // WIP 4.4-M2
+    public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        UUID targetOid = UUID.randomUUID();
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_CASE)
+                .add(new AccessCertificationCaseType(prismContext)
+                        .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        // next free CID was assigned
+        assertThat(casesAfter.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+        MAccessCertificationCase aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(targetOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+
+        // TODO: case full object
+    }
+
 
     @Test
     public void test399DeleteAllAssignments()
