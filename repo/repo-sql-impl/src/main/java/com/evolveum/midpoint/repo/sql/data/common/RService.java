@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -23,9 +24,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
-/**
- * @author Viliam Repan (lazyman)
- */
 @Entity
 @ForeignKey(name = "fk_service")
 @Persister(impl = MidPointJoinedPersister.class)
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
         indexes = {
                 @Index(name = "iServiceNameOrig", columnList = "name_orig"),
                 @Index(name = "iServiceNameNorm", columnList = "name_norm") })
+@DynamicUpdate
 public class RService extends RAbstractRole {
 
     private RPolyString nameCopy;
