@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+ <!-- This is a runtime schema that defines data types used in the
+      <extension> part of the objects. It should be loaded during
+      test initialization (creation of prism context). -->
+
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:complexType name="CompositeMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="delay" type="xsd:long" minOccurs="0"/>
+                    <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="opening" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="closing" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="compositeMock" type="tns:CompositeMockDefinitionType" />
+
+    <xsd:complexType name="SimpleMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="initialFailures" type="xsd:int" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="simpleMock" type="tns:SimpleMockDefinitionType" />
+
+    <xsd:complexType name="IterativeMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="from" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="to" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="iterativeMock" type="tns:IterativeMockDefinitionType" />
+
+    <xsd:complexType name="SearchIterativeMockDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectSet" type="c:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="searchIterativeMock" type="tns:SearchIterativeMockDefinitionType" />
+
+    <!-- legacy way -->
+    <xsd:element name="message" type="xsd:string" />
+    <xsd:element name="delay" type="xsd:long" />
+    <xsd:element name="steps" type="xsd:int" />
+
+    <!--<xsd:complexType name="CommonMockWorkStateType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container>true</a:container>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:complexContent>-->
+    <!--        <xsd:restriction base="c:RuntimeDefinedActivityWorkStateType">-->
+    <!--            <xsd:sequence>-->
+    <!--                <xsd:element name="executionCount" type="xsd:int" minOccurs="0"/>-->
+    <!--            </xsd:sequence>-->
+    <!--        </xsd:restriction>-->
+    <!--    </xsd:complexContent>-->
+    <!--</xsd:complexType>-->
+    <!--<xsd:element name="commonMockWorkState" type="tns:CommonMockWorkStateType" />-->
+
+    <xsd:element name="executionCount" type="xsd:int" />
+</xsd:schema>

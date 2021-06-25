@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.*;
+
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,9 +115,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -3787,14 +3786,14 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType) obj)) {
+        if (obj instanceof TaskType && BucketingUtil.isCoordinator((TaskType) obj)) {
             IconType icon = new IconType();
             icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
             builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             if (title.length() > 0) {
                 title.append("\n");
             }
-            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType) obj)).getString());
+            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
         }
 
         if (StringUtils.isNotEmpty(title.toString())) {
@@ -5047,22 +5046,19 @@ public final class WebComponentUtil {
     }
 
     public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
-        TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
-        TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
-        if (partProgress == null) {
-            return null;
-        }
-        String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
+        ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(taskType, TaskResolver.empty());
+        String partProgressHumanReadable = progress.toHumanReadableString(longForm);
 
         if (longForm) {
             partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
             partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
         }
 
-        if (progress.getAllPartsCount() > 1) {
-            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
-            return rv;
-        }
+        // TODO
+//        if (progress.getAllPartsCount() > 1) {
+//            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+//            return rv;
+//        }
 
         return partProgressHumanReadable;
     }

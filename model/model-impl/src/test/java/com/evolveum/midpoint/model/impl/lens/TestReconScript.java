@@ -42,7 +42,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     private static final String ACCOUNT_BEFORE_SCRIPT_OID = "acc00000-0000-0000-0000-000000001234";
 
     @Test
-    public void text001testReconcileScriptsWhenProvisioning() throws Exception {
+    public void test001TestReconcileScriptsWhenProvisioning() throws Exception {
         Task task = getTestTask();
         OperationResult parentResult = createOperationResult();
 
@@ -81,7 +81,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test002testReconcileScriptsWhenReconciling() throws Exception {
+    public void test002TestReconcileScriptsWhenReconciling() throws Exception {
         getDummyResource().getScriptHistory().clear();
 
         importObjectFromFile(new File(TASK_RECON_DUMMY_FILENAME));
@@ -91,6 +91,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 
         waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
+
+        assertTask(TASK_RECON_DUMMY_OID, "after")
+                .display(); // TODO
 
         for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
             String userName = (String) script.getParams().get("midpoint_usercn");
@@ -108,7 +111,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test003testReconcileScriptsAddUserAction() throws Exception {
+    public void test003TestReconcileScriptsAddUserAction() throws Exception {
         Task task = getTestTask();
         OperationResult parentResult = createOperationResult();
 
@@ -123,6 +126,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 
         waitForTaskFinish(TASK_RECON_DUMMY_OID, true);
+
+        assertTask(TASK_RECON_DUMMY_OID, "after")
+                .display(); // TODO
 
         PrismObject<ShadowType> afterRecon = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         AssertJUnit.assertNotNull(afterRecon);
@@ -169,6 +175,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 
         waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 
+        assertTask(TASK_RECON_DUMMY_OID, "after")
+                .display(); // TODO
+
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         AssertJUnit.assertNotNull(shadow);
 
@@ -199,6 +208,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
+
+        assertTask(TASK_RECON_DUMMY_OID, "after")
+                .display(); // TODO
 
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         ShadowAsserter.forShadow(shadow)

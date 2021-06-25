@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="14a41fca-a664-450c-bc5d-d4ce35045346"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-composite-mock</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <extension>
+                <ext:compositeMock>
+                    <ext:message>id1</ext:message>
+                    <ext:delay>100</ext:delay>
+                    <ext:steps>3</ext:steps>
+                </ext:compositeMock>
+            </extension>
+        </work>
+    </activity>
+</task>

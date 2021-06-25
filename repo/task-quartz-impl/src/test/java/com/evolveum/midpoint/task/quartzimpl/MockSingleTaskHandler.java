@@ -12,7 +12,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
@@ -37,7 +38,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     private long delay;
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
         OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");

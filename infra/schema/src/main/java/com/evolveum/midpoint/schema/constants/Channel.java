@@ -117,7 +117,7 @@ public enum Channel {
 
     /**
      * Describes migration from (potentially) old channel URI to a current channel URI.
-     * (What is the most important, is the "change" flag.)
+     * (What is the most important, is the {@link #needed} flag.)
      */
     public static class Migration {
 

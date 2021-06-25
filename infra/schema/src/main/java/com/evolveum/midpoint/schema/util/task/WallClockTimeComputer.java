@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartExecutionRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionRecordType;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -30,7 +30,7 @@ public class WallClockTimeComputer {
     private final Set<Interval> nonOverlappingIntervals;
 
     @SafeVarargs
-    public WallClockTimeComputer(List<TaskPartExecutionRecordType>... lists) {
+    public WallClockTimeComputer(List<ActivityExecutionRecordType>... lists) {
         intervals = Arrays.stream(lists)
                 .flatMap(Collection::stream)
                 .map(Interval::create)
@@ -59,7 +59,7 @@ public class WallClockTimeComputer {
                 .orElse(null);
     }
 
-    public List<TaskPartExecutionRecordType> getNonOverlappingRecords() {
+    public List<ActivityExecutionRecordType> getNonOverlappingRecords() {
         return nonOverlappingIntervals.stream()
                 .map(Interval::getRecord)
                 .collect(Collectors.toList());
@@ -102,15 +102,15 @@ public class WallClockTimeComputer {
     private static class Interval {
         private final long fromMillis;
         private final long toMillis;
-        private final TaskPartExecutionRecordType record;
+        private final ActivityExecutionRecordType record;
 
-        Interval(long fromMillis, long toMillis, TaskPartExecutionRecordType record) {
+        Interval(long fromMillis, long toMillis, ActivityExecutionRecordType record) {
             this.fromMillis = fromMillis;
             this.toMillis = toMillis;
             this.record = record;
         }
 
-        private static Interval create(TaskPartExecutionRecordType record) {
+        private static Interval create(ActivityExecutionRecordType record) {
             if (record.getStartTimestamp() != null && record.getEndTimestamp() != null) {
                 Interval interval = new Interval(
                         XmlTypeConverter.toMillis(record.getStartTimestamp()),
@@ -141,7 +141,7 @@ public class WallClockTimeComputer {
             return toMillis - fromMillis;
         }
 
-        public TaskPartExecutionRecordType getRecord() {
+        public ActivityExecutionRecordType getRecord() {
             return record;
         }
 
@@ -206,7 +206,7 @@ public class WallClockTimeComputer {
             }
 
             return new Interval(newFromMillis, newToMillis, useRecords ?
-                    new TaskPartExecutionRecordType(PrismContext.get())
+                    new ActivityExecutionRecordType(PrismContext.get())
                         .startTimestamp(newFromXml)
                         .endTimestamp(newToXml) : null);
         }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH;
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +40,9 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -56,7 +58,6 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -178,10 +179,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private DummyResourceContoller dummyResourceCtlLime;
     private PrismObject<ResourceType> resourceDummyLime;
 
-    @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
-    private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
+    private DebugReconciliationResultListener reconciliationResultListener;
 
     PrismObject<UserType> userImporter;
 
@@ -189,8 +189,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
-        reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
+        reconciliationResultListener = new DebugReconciliationResultListener();
+        reconciliationActivityHandler.setReconciliationResultListener(reconciliationResultListener);
 
         dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
         dummyResourceCtlAzure.extendSchemaPirate();
@@ -393,7 +393,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(task);
         assertTask(task, "task after")
                 .display()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 1, 0, 0) // stan
                     .assertTransition(null, LINKED, LINKED, null, 2, 0, 0) // guybrush, elaine
@@ -402,11 +402,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(5)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display() // TODO asserts
                     .end()
                 .assertProgress(7);
@@ -474,17 +474,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(task);
         assertTask(task, "task after")
                 .display()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0) // stan, guybrush, elaine, rapp, ht
                     .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display() // TODO asserts
                     .end()
                 .assertProgress(7);
@@ -561,17 +561,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(task);
         assertTask(task, "task after")
                 .display()
-                .synchronizationInformation()
+                .rootSynchronizationInformation()
                     .display()
                     .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0) // rapp
                     .assertTransition(null, UNMATCHED, LINKED, null, 2, 0, 0) // rum, murray
                     .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(3, 0)
                     .end()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display() // TODO asserts
                     .end()
                 .assertProgress(3);
@@ -635,11 +635,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(importTask);
         assertTask(importTask, "task after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(1, 0)
                     .end()
-                .structuredProgress()
+                .rootStructuredProgress()
                     .display()
                     .assertSuccessCount(1, false)
                     .end()
@@ -851,7 +851,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -862,29 +862,46 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
         dumpStatistics(taskAfter);
+
+        // @formatter:off
         assertTask(taskAfter, "task after")
                 .display()
-                .synchronizationInformation()
-                    .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
-                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
-                    .assertTransitions(2)
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
+                        .assertTransitions(2)
                     .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(5, 0, 2)
                     .end()
-                .structuredProgress()
-                    .display() // TODO asserts
+                    .progress()
+                        .display()
+                        .assertCommitted(5, 0, 2)
+                        .assertNoUncommitted()
                     .end()
-                ;
-                //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2, 0, 0)
+                    .end()
+                    .progress()
+                        .display()
+                        .assertCommitted(2, 0, 0)
+                        .assertNoUncommitted()
+                    .end()
+                .end()
+                .assertProgress(9);
+        // @formatter:on
 
         // THEN
         then();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -939,7 +956,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+        // MID-7110
+        // assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -966,7 +984,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1008,12 +1026,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertFailure(reconTaskResult);
 
-        // Check audit
-        displayDumpable("Audit", dummyAuditService);
-
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-        dummyAuditService.assertExecutionMessage();
+        // MID-7110
+//        // Check audit
+//        displayDumpable("Audit", dummyAuditService);
+//
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+//        dummyAuditService.assertExecutionMessage();
     }
 
     /**
@@ -1031,7 +1050,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
@@ -1046,7 +1065,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1087,7 +1106,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+        // MID-7110
+//        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -1118,7 +1138,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1131,26 +1151,27 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(taskAfter);
         assertTask(taskAfter, "task after")
                 .display()
-                .synchronizationInformation()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 4, 1, 0) // error is guybrush
-                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
-                    .assertTransitions(2)
+                    .synchronizationStatistics()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 1, 0) // error is guybrush
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
+                        .assertTransitions(2)
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(6, 1)
                     .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .assertTotalCounts(8, 1)
-                    .end()
-                .structuredProgress()
-                    .display() // TODO asserts
+                    .progress()
+                        .display() // TODO asserts
                     .end()
                 ;
-                //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
+                //.assertProgress(7); // TODO - specify meaning of progress for reconciliation tasks
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 2);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1181,16 +1202,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertStatus(reconTaskResult, OperationResultStatusType.PARTIAL_ERROR);
 
-        OperationResult reconTaskOpResult = OperationResult.createOperationResult(reconTaskResult);
-        // TODO reconsider this
-        OperationResult statistics = reconTaskOpResult
-                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.part2")
-                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.statistics");
-        assertTrue("Errors not mentioned in the task message", statistics.getMessage().contains("got 1 error"));
+//        OperationResult reconTaskOpResult = OperationResult.createOperationResult(reconTaskResult);
+//        // TODO reconsider this
+//        OperationResult statistics = reconTaskOpResult
+//                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.part2")
+//                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.statistics");
+//        assertTrue("Errors not mentioned in the task message", statistics.getMessage().contains("got 1 error"));
 
         // Check audit
-        displayDumpable("Audit", dummyAuditService);
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+        // MID-7110
+        //displayDumpable("Audit", dummyAuditService);
+        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
     }
 
     /**
@@ -1210,7 +1232,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1224,7 +1246,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1270,7 +1292,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+        // MID-7110
+        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -1301,7 +1324,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1314,29 +1337,43 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(taskAfter);
         assertTask(taskAfter, "task after")
                 .display()
-                .synchronizationInformation()
-                    .display()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0) // guybrush, elaine, rapp, stan
-                    .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // htm (new name for ht)
-                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
-                    // TODO implement 3rd part reporting and have: LINKED -> DELETED -> ? for ht (old name for htm)
-                    .assertTransitions(3)
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0) // guybrush, elaine, rapp, stan
+                        .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // htm (new name for ht)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, 2) // daviejones, calypso
+                        // TODO implement 3rd part reporting and have: LINKED -> DELETED -> ? for ht (old name for htm)
+                        .assertTransitions(3)
                     .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .assertTotalCounts(10, 0)
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(5, 0, 2)
                     .end()
-                .structuredProgress()
-                    .display() // TODO asserts
+                    .progress()
+                        .display()
+                        .assertCommitted(5, 0, 2)
+                        .assertNoUncommitted()
                     .end()
-                ;
-                //.assertProgress(8);         // TODO - specify meaning of progress for reconciliation tasks
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(3, 0, 0) // 1 renamed, 2 protected
+                    .end()
+                    .progress()
+                        .display()
+                        .assertCommitted(3, 0, 0)
+                        .assertNoUncommitted()
+                    .end()
+                .end()
+                .assertProgress(10);
 
         dumpShadowSituations(RESOURCE_DUMMY_OID, result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 3);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 3);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1382,7 +1419,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+        // MID-7110
+        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 
         assertShadows(15);
 
@@ -1441,7 +1479,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1459,7 +1497,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1484,7 +1522,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        // MID-7110
+        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
 
         assertShadows(17);
     }
@@ -1503,7 +1542,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1517,7 +1556,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(taskAfter);
 
         then();
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1549,7 +1588,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
+        // MID-7110
+        //assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
 
         assertShadows(17);
     }
@@ -1571,7 +1611,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1589,7 +1629,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1618,7 +1658,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
+        // MID-7110
+        //assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     /**
@@ -1645,7 +1686,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1663,7 +1704,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1716,7 +1757,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
+        // MID-7110
+        //assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     /**
@@ -1753,7 +1795,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1771,7 +1813,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1797,7 +1839,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid);
+        // MID-7110
+        //assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     /**
@@ -1827,7 +1870,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1845,7 +1888,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1870,7 +1913,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
+        // MID-7110
+        //assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     @Test
@@ -1896,7 +1940,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1914,7 +1958,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 2);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 2);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1944,8 +1988,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
+        // MID-7110
         // deleting linkRef
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
     }
 
     @Test
@@ -1961,7 +2006,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -1979,7 +2024,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 4, 0, 0);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 4, 0, 0);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -2016,7 +2061,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2032,15 +2077,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
+        // MID-7110
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2061,7 +2107,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2077,15 +2123,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "grog");
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2107,7 +2154,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2123,15 +2170,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertNoItem(userAfter, UserType.F_COST_CENTER);
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
     }
@@ -2150,7 +2198,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2166,15 +2214,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "rum");
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2195,7 +2244,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2211,15 +2260,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2237,7 +2287,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2253,13 +2303,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_COST_CENTER, "");
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(0);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2280,7 +2331,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2295,15 +2346,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertPassword(userAfter, "d0d3c4h3dr0n");
 
-        displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 11);
-        dummyAuditService.assertTarget(userBefore.getOid());
-        dummyAuditService.assertExecutionSuccess();
+        // MID-7110
+//        displayDumpable("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1);
+//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 11);
+//        dummyAuditService.assertTarget(userBefore.getOid());
+//        dummyAuditService.assertExecutionSuccess();
 
         assertUsers(getNumberOfUsers() + 6);
 
@@ -2322,7 +2374,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         dummyResourceLime.purgeScriptHistory();
         dummyAuditService.clear();
-        reconciliationTaskResultListener.clear();
+        reconciliationResultListener.clear();
 
         // WHEN
         when();
@@ -2340,7 +2392,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 3, 0, 1);
+        reconciliationResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 3, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -2418,8 +2470,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
                 createPolyString("The crew of Titanicum Augusticum"));
 
+        // MID-7110
         // Check audit
-        assertImportAuditModifications(1);
+        //assertImportAuditModifications(1);
 
     }
 
@@ -2485,8 +2538,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 //                createPolyString("The crew of Titanicum Augusticum"),
 //                createPolyString("The crew of Boatum Mailum"));
 
+        // MID-7110
         // Check audit
-        assertImportAuditModifications(1);
+        //assertImportAuditModifications(1);
 
     }
 
@@ -2618,10 +2672,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
         dumpStatistics(taskAfter);
         assertTask(taskAfter, "after")
-                .synchronizationInformation()
-                    .assertTransition(LINKED, LINKED, LINKED, null, 12, 0, 0)
-                    .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
-                    .assertTransitions(2);
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .synchronizationStatistics()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 12, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
+                        .assertTransitions(2);
     }
 
     @Test

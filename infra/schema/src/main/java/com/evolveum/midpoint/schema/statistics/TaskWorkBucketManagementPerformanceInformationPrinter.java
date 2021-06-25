@@ -14,7 +14,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementOperationPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketManagementStatisticsType;
 
 import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.LEFT;
 import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT;
@@ -22,9 +22,9 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
 /**
  * Prints work buckets management performance information.
  */
-public class TaskWorkBucketManagementPerformanceInformationPrinter extends AbstractStatisticsPrinter<WorkBucketManagementPerformanceInformationType> {
+public class TaskWorkBucketManagementPerformanceInformationPrinter extends AbstractStatisticsPrinter<ActivityBucketManagementStatisticsType> {
 
-    public TaskWorkBucketManagementPerformanceInformationPrinter(@NotNull WorkBucketManagementPerformanceInformationType information,
+    public TaskWorkBucketManagementPerformanceInformationPrinter(@NotNull ActivityBucketManagementStatisticsType information,
             Options options, Integer iterations, Integer seconds) {
         super(information, options, iterations, seconds);
     }

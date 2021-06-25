@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
+
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -26,8 +28,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -160,8 +161,7 @@ public class TestUnix extends AbstractStoryTest {
     protected static final String USER_STAN_FIST_NAME = "Stan";
     protected static final String USER_STAN_LAST_NAME = "Salesman";
 
-    @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -207,8 +207,8 @@ public class TestUnix extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        DebugReconciliationTaskResultListener reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
-        reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
+        DebugReconciliationResultListener reconciliationTaskResultListener = new DebugReconciliationResultListener();
+        reconciliationActivityHandler.setReconciliationResultListener(reconciliationTaskResultListener);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);

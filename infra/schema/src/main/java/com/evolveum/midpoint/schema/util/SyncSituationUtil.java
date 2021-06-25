@@ -11,7 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SyncSituationUtil {
 
-    public static SynchronizationSituationTransitionType findMatchingTransition(SynchronizationInformationType sum,
+    public static SynchronizationSituationTransitionType findMatchingTransition(ActivitySynchronizationStatisticsType sum,
             SynchronizationSituationType onProcessingStart, SynchronizationSituationType onSynchronizationStart,
             SynchronizationSituationType onSynchronizationEnd, SynchronizationExclusionReasonType exclusionReason) {
         for (SynchronizationSituationTransitionType existingTransition : sum.getTransition()) {

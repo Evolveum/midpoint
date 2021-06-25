@@ -53,24 +53,24 @@ public class TaskInstantiator {
     /**
      * If necessary, converts a task into running task instance. Does not change the prism data.
      */
-    public RunningTaskQuartzImpl toRunningTaskInstance(@NotNull Task task, @NotNull String rootTaskOid) {
+    public RunningTaskQuartzImpl toRunningTaskInstance(@NotNull Task task, @NotNull Task rootTask) {
         if (task instanceof RunningTask) {
             LOGGER.warn("Task {} is already a RunningTask", task);
             return (RunningTaskQuartzImpl) task;
         } else {
             PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
-            return new RunningTaskQuartzImpl(taskManager, taskPrismObject, rootTaskOid);
+            return new RunningTaskQuartzImpl(taskManager, taskPrismObject, rootTask);
         }
     }
 
     /**
      * If necessary, converts a task into running task instance. Does not change the prism data.
      */
-    public RunningLightweightTaskImpl toRunningLightweightTaskInstance(@NotNull Task task, @NotNull String rootTaskOid,
+    public RunningLightweightTaskImpl toRunningLightweightTaskInstance(@NotNull Task task, @NotNull Task rootTask,
             @NotNull RunningTaskQuartzImpl parent, @NotNull LightweightTaskHandler handler) {
         argCheck(!(task instanceof RunningTask), "Task is already a running task: %s", task);
         PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
 
-        return new RunningLightweightTaskImpl(taskManager, taskPrismObject, rootTaskOid, parent, handler);
+        return new RunningLightweightTaskImpl(taskManager, taskPrismObject, rootTask, parent, handler);
     }
 }

@@ -9,7 +9,9 @@ package com.evolveum.midpoint.schema.util.task;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsProcessingRoleType;
 
 import java.io.Serializable;
 
@@ -35,12 +37,15 @@ public class BucketsProgressInformation implements DebugDumpable, Serializable {
         this.completedBuckets = completedBuckets;
     }
 
-    static BucketsProgressInformation fromWorkState(TaskWorkStateType workState) {
-        if (workState == null) {
-            return new BucketsProgressInformation(null, 0);
+    static BucketsProgressInformation fromActivityState(ActivityStateType state) {
+        if (state == null || state.getBucketing() == null) {
+            return null;
+        } else if (state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.WORKER) {
+            return null; // Workers do not have complete information
         } else {
-            return new BucketsProgressInformation(workState.getNumberOfBuckets(),
-                    TaskWorkStateUtil.getCompleteBucketsNumber(workState));
+            ActivityBucketingStateType bucketing = state.getBucketing();
+            return new BucketsProgressInformation(bucketing.getNumberOfBuckets(),
+                    BucketingUtil.getCompleteBucketsNumber(bucketing));
         }
     }
 

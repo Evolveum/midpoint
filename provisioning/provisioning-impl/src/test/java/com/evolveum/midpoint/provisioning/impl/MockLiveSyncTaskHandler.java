@@ -38,7 +38,7 @@ public class MockLiveSyncTaskHandler {
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 
-        provisioningService.synchronize(coords, syncTokenTask, null, new LiveSyncEventHandler() {
+        provisioningService.synchronize(coords, syncTokenTask, false, new LiveSyncEventHandler() {
             @Override
             public boolean handle(LiveSyncEvent event, OperationResult hResult) {
                 if (event.isComplete()) {

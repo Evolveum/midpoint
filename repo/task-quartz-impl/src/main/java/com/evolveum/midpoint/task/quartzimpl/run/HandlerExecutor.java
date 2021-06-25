@@ -7,24 +7,17 @@
 package com.evolveum.midpoint.task.quartzimpl.run;
 
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import static com.evolveum.midpoint.task.api.TaskRunResult.createFailureTaskRunResult;
 
 /**
  * @author katka
@@ -34,120 +27,44 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 public class HandlerExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(HandlerExecutor.class);
-    private static final String DOT_CLASS = HandlerExecutor.class.getName() + ".";
 
-    @Autowired private TaskBeans beans;
+    @NotNull TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskHandler handler, OperationResult executionResult) {
+        // TODO?
+        startCollectingStatistics(task, handler);
 
-    @NotNull
-    public TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
+        LOGGER.trace("Executing task handler {}", handler.getClass().getName());
+        TaskRunResult runResult;
         try {
-            if (handler instanceof WorkBucketAwareTaskHandler) {
-                return new BucketAwareHandlerExecution(task, (WorkBucketAwareTaskHandler) handler, partition, beans)
-                        .execute(executionResult);
-            } else {
-                return executePlainTaskHandler(task, partition, handler, executionResult);
+            runResult = handler.run(task);
+            if (runResult == null) { // Obviously an error in task handler
+                LOGGER.error("Unable to record run finish: task returned null result");
+                runResult = createFailureTaskRunResult(task, "Task returned null result", null);
             }
-        } catch (ExitExecutionException e) {
-            return e.runResult;
-        }
-    }
-
-    @NotNull
-    private TaskRunResult executePlainTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition,
-            TaskHandler handler, OperationResult result) throws ExitExecutionException {
-        try {
-            startCollectingStatistics(task, handler);
-
-            LOGGER.trace("Executing non-bucketed task handler {}", handler.getClass().getName());
-            TaskRunResult runResult = handler.run(task, partition);
-            LOGGER.trace("runResult is {} for {}", runResult, task);
-
-            updateAndStoreStatisticsIntoRepository(task, result);
-
-            checkNullRunResult(task, runResult);
-            return runResult;
+        } catch (TaskException e) {
+            runResult = TaskRunResult.createFromTaskException(task, e);
         } catch (Throwable t) {
-            return processHandlerException(task, t);
+            LoggingUtils.logUnexpectedException(LOGGER, "Task handler threw unexpected exception: {}: {}; task = {}",
+                    t, t.getClass().getName(), t.getMessage(), task);
+            runResult = createFailureTaskRunResult(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
         }
+        LOGGER.trace("runResult is {} for {}", runResult, task);
+
+        // TODO?
+        updateAndStoreStatisticsIntoRepository(task, executionResult);
+
+        return runResult;
     }
 
-    static TaskRunResult processHandlerException(RunningTaskQuartzImpl task, Throwable t) throws ExitExecutionException {
-        LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-        throw new ExitExecutionException(task, "Task handler threw unexpected exception: " + t.getMessage(), t);
-    }
-
-    static void checkNullRunResult(RunningTask task, TaskRunResult runResult) throws ExitExecutionException {
-        if (runResult == null) {                // Obviously an error in task handler
-            LOGGER.error("Unable to record run finish: task returned null result");
-            throw new ExitExecutionException(task, "Task returned null result", null);
-        }
-    }
-
-    static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
+    private static void startCollectingStatistics(RunningTask task, TaskHandler handler) {
         task.startCollectingStatistics(handler.getStatisticsCollectionStrategy());
     }
 
-    static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private static void updateAndStoreStatisticsIntoRepository(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             task.updateAndStoreStatisticsIntoRepository(true, result);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store operation statistics to {}", e, task);
             // intentionally continuing
-        }
-    }
-
-    @NotNull private static TaskRunResult createFailureTaskRunResult(RunningTask task, String message, Throwable t) {
-        TaskRunResult runResult = createRunResult(task);
-        if (t != null) {
-            runResult.getOperationResult().recordFatalError(message, t);
-        } else {
-            runResult.getOperationResult().recordFatalError(message);
-        }
-        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        return runResult;
-    }
-
-    @NotNull static TaskRunResult createSuccessTaskRunResult(RunningTask task) {
-        TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordSuccess();
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        return runResult;
-    }
-
-    @NotNull static TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
-        TaskRunResult runResult = createRunResult(task);
-        runResult.getOperationResult().recordSuccess();
-        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
-        return runResult;
-    }
-
-    private static TaskRunResult createRunResult(RunningTask task) {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = new OperationResult(DOT_CLASS + (DOT_CLASS + "executeHandler"));
-        }
-        runResult.setOperationResult(opResult);
-        return runResult;
-    }
-
-    /**
-     * Exception signalling we should exit the (plain or bucketed) handler execution.
-     */
-    @Experimental
-    static class ExitExecutionException extends Exception {
-
-        @NotNull final TaskRunResult runResult;
-
-        ExitExecutionException(@NotNull TaskRunResult runResult) {
-            this.runResult = runResult;
-        }
-
-        ExitExecutionException(RunningTask task, String message, Throwable cause) {
-            this.runResult = createFailureTaskRunResult(task, message, cause);
         }
     }
 }

@@ -16,7 +16,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,7 +173,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
                 }
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
-                        new IterationItemInformation(parentCasePrism), SchemaConstants.CLOSED_CASES_CLEANUP_TASK_PART_URI);
+                        new IterationItemInformation(parentCasePrism));
                 startInfo.setStructuredProgressCollector(executionTask);
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {

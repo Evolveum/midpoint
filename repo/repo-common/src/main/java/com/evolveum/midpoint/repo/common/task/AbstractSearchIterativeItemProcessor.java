@@ -7,11 +7,16 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -20,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.NOT_APPLICABLE;
 
 /**
- * Processes individual objects found by the iterative search.
+ * Processes individual objects in iterative activity execution.
  *
  * It provides backwards-compatible {@link #processObject(PrismObject, ItemProcessingRequest, RunningTask, OperationResult)}
  * to be used instead of more generic {@link #process(ItemProcessingRequest, RunningTask, OperationResult)} method.
@@ -29,36 +34,42 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.NOT_APPL
  */
 public abstract class AbstractSearchIterativeItemProcessor<
         O extends ObjectType,
-        TH extends AbstractTaskHandler<TH, TE>,
-        TE extends AbstractTaskExecution<TH, TE>,
-        PE extends AbstractSearchIterativeTaskPartExecution<O, TH, TE, PE, IP>,
-        IP extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, IP>>
-        extends AbstractIterativeItemProcessor<PrismObject<O>, TH, TE, PE, IP> {
+        WD extends WorkDefinition,
+        AH extends ActivityHandler<WD, AH>,
+        AE extends AbstractSearchIterativeActivityExecution<O, WD, AH, AE, ? extends AbstractActivityWorkStateType>>
+        implements ItemProcessor<PrismObject<O>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeItemProcessor.class);
 
     private static final String OP_PREPROCESS_OBJECT = AbstractSearchIterativeItemProcessor.class.getName() + ".preprocessObject";
 
-    public AbstractSearchIterativeItemProcessor(PE partExecution) {
-        super(partExecution);
+    /**
+     * Execution of the containing task part.
+     */
+    @NotNull protected final AE activityExecution;
+
+    public AbstractSearchIterativeItemProcessor(@NotNull AE activityExecution) {
+        this.activityExecution = activityExecution;
     }
 
     @Override
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult result) throws CommonException, PreconditionViolationException {
+            OperationResult result) throws CommonException, ActivityExecutionException {
 
         PrismObject<O> object = request.getItem();
         String oid = object.getOid();
         if (oid != null) {
-            if (!partExecution.checkAndRegisterOid(oid)) {
-                logger.trace("Skipping OID that has been already seen: {}", oid);
+            if (!activityExecution.checkAndRegisterOid(oid)) {
+                LOGGER.trace("Skipping OID that has been already seen: {}", oid);
                 result.recordStatus(NOT_APPLICABLE, "Object has been already seen");
                 return true; // continue working
             }
         } else {
-            logger.trace("OID is null; can be in case of malformed objects");
+            LOGGER.trace("OID is null; can be in case of malformed objects");
         }
 
         if (filteredOutByAdditionalFilter(request)) {
-            logger.trace("Request {} filtered out by additional filter", request);
+            LOGGER.trace("Request {} filtered out by additional filter", request);
             result.recordStatus(NOT_APPLICABLE, "Filtered out by additional filter");
             return true; // continue working
         }
@@ -73,24 +84,28 @@ public abstract class AbstractSearchIterativeItemProcessor<
 
     private boolean filteredOutByAdditionalFilter(ItemProcessingRequest<PrismObject<O>> request)
             throws SchemaException {
-        return partExecution.additionalFilter != null &&
-                !partExecution.additionalFilter.match(request.getItem().getValue(), taskHandler.matchingRuleRegistry);
+        return activityExecution.additionalFilter != null &&
+                !activityExecution.additionalFilter.match(request.getItem().getValue(), getBeans().matchingRuleRegistry);
+    }
+
+    private CommonTaskBeans getBeans() {
+        return activityExecution.getBeans();
     }
 
     private boolean processWithPreprocessing(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
-            OperationResult result) throws CommonException, PreconditionViolationException {
+            OperationResult result) throws CommonException, ActivityExecutionException {
         PrismObject<O> objectToProcess = preprocessObject(request, workerTask, result);
         return processObject(objectToProcess, request, workerTask, result);
     }
 
     private PrismObject<O> preprocessObject(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
             OperationResult parentResult) throws CommonException {
-        if (partExecution.preprocessor == null) {
+        if (activityExecution.preprocessor == null) {
             return request.getItem();
         }
         OperationResult result = parentResult.createMinorSubresult(OP_PREPROCESS_OBJECT);
         try {
-            return partExecution.preprocessor.preprocess(request.getItem(), workerTask, result);
+            return activityExecution.preprocessor.preprocess(request.getItem(), workerTask, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t; // any exceptions thrown are treated in the gatekeeper
@@ -106,12 +121,12 @@ public abstract class AbstractSearchIterativeItemProcessor<
      */
     protected abstract boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
             RunningTask workerTask, OperationResult result)
-            throws CommonException, PreconditionViolationException;
+            throws CommonException, ActivityExecutionException;
 
     @SuppressWarnings({ "WeakerAccess", "unused" })
     protected boolean processError(PrismObject<O> object, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
             OperationResult result)
-            throws CommonException, PreconditionViolationException {
+            throws CommonException, ActivityExecutionException {
         result.recordFatalError("Error in preprocessing: " + errorFetchResult.getMessage());
         return true; // "Can continue" flag is updated by item processing gatekeeper (unfortunately, the exception is lost)
     }

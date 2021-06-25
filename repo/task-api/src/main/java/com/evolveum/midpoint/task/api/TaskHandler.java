@@ -10,21 +10,18 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-
 /**
  * @author Radovan Semancik
  *
  */
 public interface TaskHandler {
 
-    default TaskRunResult run(RunningTask task) {
-        return run(task, null);
-    }
-
-    @Experimental
-    TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
+    /**
+     * Executes a task handler.
+     *
+     * TODO better description
+     */
+    TaskRunResult run(@NotNull RunningTask task) throws TaskException;
 
     default Long heartbeat(Task task) {
         return null;

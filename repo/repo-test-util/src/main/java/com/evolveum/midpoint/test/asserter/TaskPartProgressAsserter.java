@@ -14,7 +14,7 @@ import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressOldType;
 
 /**
  *  Asserter that checks `TaskPartProgressType` objects.
@@ -22,9 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType
 @SuppressWarnings("WeakerAccess")
 public class TaskPartProgressAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final TaskPartProgressType information;
+    private final TaskPartProgressOldType information;
 
-    TaskPartProgressAsserter(TaskPartProgressType information, RA returnAsserter, String details) {
+    TaskPartProgressAsserter(TaskPartProgressOldType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }

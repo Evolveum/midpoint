@@ -107,18 +107,17 @@ public class ObjectQueryUtil {
         return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
     }
 
-    public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+    public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) {
         return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
     }
 
-    public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+    public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
-        AndFilter and = prismContext.queryFactory().createAnd(
+        return prismContext.queryFactory().createAnd(
                 createResourceFilter(resourceOid, prismContext),
                 createObjectClassFilter(objectClass, prismContext));
-        return and;
     }
 
     public static S_AtomicFilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
@@ -159,13 +158,13 @@ public class ObjectQueryUtil {
                 .buildFilter();
     }
 
-    public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) throws SchemaException {
+    public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
         return prismContext.queryFactory().createQuery(createResourceFilter(resourceOid, prismContext));
     }
 
-    public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) throws SchemaException {
+    public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) {
         return prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .buildFilter();
@@ -591,6 +590,10 @@ public class ObjectQueryUtil {
         return rv;
     }
 
+    public static ObjectQuery addConjunctions(ObjectQuery query, ObjectFilter... newConjunctionMembers) {
+        return addConjunctions(query, PrismContext.get(), MiscUtil.asListTreatingNull(newConjunctionMembers));
+    }
+
     public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
             ObjectFilter... newConjunctionMembers) {
         return addConjunctions(query, prismContext, MiscUtil.asListTreatingNull(newConjunctionMembers));
@@ -612,10 +615,7 @@ public class ObjectQueryUtil {
         } else {
             throw new AssertionError();
         }
-
-        ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createQuery();
-        updatedQuery.setFilter(updatedFilter);
-        return updatedQuery;
+        return replaceFilter(query, updatedFilter);
     }
 
     // We intentionally copy new members even if there's no existing filter (to decouple from the original list)
@@ -629,6 +629,16 @@ public class ObjectQueryUtil {
         }
         allConjunctionMembers.addAll(newConjunctionMembers);
         return allConjunctionMembers;
+    }
+
+    public static boolean hasFilter(ObjectQuery query) {
+        return query != null && query.getFilter() != null; // TODO and "filter is not empty"?
+    }
+
+    public static @NotNull ObjectQuery replaceFilter(ObjectQuery original, ObjectFilter newFilter) {
+        ObjectQuery updatedQuery = original != null ? original.clone() : PrismContext.get().queryFactory().createQuery();
+        updatedQuery.setFilter(newFilter);
+        return updatedQuery;
     }
 
     /**

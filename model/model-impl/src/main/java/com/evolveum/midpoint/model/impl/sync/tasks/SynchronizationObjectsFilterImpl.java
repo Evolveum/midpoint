@@ -32,7 +32,7 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
      * This is either "simple" OCD or refined OCD.
      * FIXME this should be clarified; the current state mirrors objectClassDef information in sync handlers
      */
-    @NotNull private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    private final ObjectClassComplexTypeDefinition objectClassDefinition;
 
     /**
      * Kind, as specified in the task extension. Null means "any kind".
@@ -44,7 +44,8 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
      */
     private final String intent;
 
-    public SynchronizationObjectsFilterImpl(@NotNull ObjectClassComplexTypeDefinition objectClassDefinition, ShadowKindType kind, String intent) {
+    public SynchronizationObjectsFilterImpl(ObjectClassComplexTypeDefinition objectClassDefinition,
+            ShadowKindType kind, String intent) {
         this.objectClassDefinition = objectClassDefinition;
         this.kind = kind;
         this.intent = intent;
@@ -56,7 +57,8 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
     }
 
     private boolean matchesObjectClassName(@NotNull PrismObject<ShadowType> shadow) {
-        return QNameUtil.match(objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
+        return objectClassDefinition == null ||
+                QNameUtil.match(objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
     }
 
     /**

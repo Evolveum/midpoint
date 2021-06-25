@@ -26,7 +26,8 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -61,7 +62,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     @Autowired private LensContextHelper lensContextHelper;
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
         try {

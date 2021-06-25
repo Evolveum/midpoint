@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
 
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;

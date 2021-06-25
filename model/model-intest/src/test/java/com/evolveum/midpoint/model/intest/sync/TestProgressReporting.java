@@ -6,39 +6,36 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static org.testng.AssertJUnit.assertTrue;
+
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
-import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.test.TestResource;
-
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.Task;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests for MID-6011.
@@ -142,21 +139,26 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(TASK_RECONCILE_DUMMY_0T_NB_NP.oid, "after")
                 .display()
                 .assertClosed()
-                .structuredProgress()
-                    .display()
-                    .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI)
-                        .assertSuccessCount(0, 1)
+                .rootActivityState()
+                    .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                        .progress()
+                            .assertSuccessCount(0, 1)
                         .end()
-                    .part(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PART_URI)
-                        .assertSuccessCount(0, 10)
-                        .end()
-                    .part(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PART_URI)
-                        .assertSuccessCount(0, 1)
-                        .end()
+                        .itemProcessingStatistics().display().end()
                     .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .end();
+                    .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .progress()
+                            .assertSuccessCount(0, 10)
+                        .end()
+                        .itemProcessingStatistics().display().end()
+                    .end()
+                    .child(RECONCILIATION_REMAINING_SHADOWS_ID)
+                        .progress()
+                            .assertSuccessCount(0, 1)
+                        .end()
+                        .itemProcessingStatistics().display().end()
+                    .end()
+                .end();
 
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_0T_NB_NP.oid);
     }
@@ -217,33 +219,25 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         assertTask(rootAfterSuspension1.asObjectable(), "1st")
-                .display()
-                .structuredProgress()
-                    .display()
-                    .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .end();
+                .display();
 
-        TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        assertTaskProgress(progress1, "after 1st run")
+        assertProgress(reconciliationTask.oid, "after 1st run")
                 .display()
-                .assertAllPartsCount(3)
-                .assertCurrentPartNumber(2)
+                .assertChildren(3)
                 .checkConsistence()
-                .part(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_PART_URI)
-                    .assertNoBucketInformation()
+                .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                    .assertBuckets(1, 1)
                     .assertItems(1, null)
                     .assertComplete()
                     .end()
-                .currentPart()
-                    .assertNoBucketInformation()
+                .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
+                    .assertBuckets(0, 1)
                     .items()
                         .assertProgressGreaterThanZero()
                         .assertNoExpectedTotal();
 
-        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        displayDumpable("perf after 1st run", perf1);
+        assertPerformance(reconciliationTask.oid, "1st")
+                .display();
 
         when("2nd run");
 
@@ -264,26 +258,26 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
+                .display();
+
+        assertProgress(reconciliationTask.oid, "after 2nd run")
                 .display()
-                .structuredProgress()
-                    .display()
+                .assertChildren(3)
+                .checkConsistence()
+                .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                    .assertBuckets(1, 1)
+                    .assertItems(1, null)
+                    .assertComplete()
                     .end()
-                .iterativeTaskInformation()
-                    .display()
-                    .end();
-
-        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        assertTaskProgress(progress2, "after 2nd suspension")
-                .display()
-                .assertAllPartsCount(3)
-                .assertCurrentPartNumber(2)
-                .currentPart()
-                    .assertNoBucketInformation()
+                .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
+                    .assertBuckets(0, 1)
                     .items()
-                        .assertProgressGreaterThanZero();
+                        .assertProgressGreaterThanZero()
+                        .assertNoExpectedTotal();
 
-        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        displayDumpable("perf after 2nd run", perf2);
+
+        assertPerformance(reconciliationTask.oid, "2nd")
+                .display();
     }
 
     private void createAccounts(String accountPrefix, int users) throws ObjectAlreadyExistsException, SchemaViolationException,
@@ -324,37 +318,29 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         assertTask(rootAfterSuspension1.asObjectable(), "after 1st run")
-                .subtaskForPart(1)
+                .subtaskForPath(RECONCILIATION_OPERATION_COMPLETION_PATH)
                     .display()
-                    .structuredProgress()
-                        .display()
-                        .assertSuccessCount(1, false)
-                        .currentPart()
-                            .assertComplete()
-                            .end()
-                        .end()
-                    .end()
-                .subtaskForPart(2)
-                    .display()
-                    .structuredProgress()
-                        .display()
-                        .end()
-                    .iterativeTaskInformation()
-                        .display()
-                        .end();
+                .end()
+                .subtaskForPath(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .display();
 
-        TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st run")
+        ActivityProgressInformation info1 = assertProgress(reconciliationTask.oid, "after 1st run")
                 .display()
-                .assertAllPartsCount(3)
-                .assertCurrentPartNumber(2)
-                .currentPart()
+                .assertChildren(3)
+                .checkConsistence()
+                .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                    .assertBuckets(1, 1)
+                    .assertItems(1, null)
+                    .assertComplete()
+                    .end()
+                .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
                     .assertExpectedBuckets(100)
                     .assertBucketsItemsConsistency(bucketSize, workers)
+                    .items().display().end()
                     .get();
 
-        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        displayDumpable("perf after 1st run", perf1);
+        assertPerformance(reconciliationTask.oid, "1st")
+                .display();
 
         when("2nd run");
 
@@ -375,56 +361,40 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         assertTask(rootAfterSuspension2.asObjectable(), "after 2nd run")
-                .subtaskForPart(1)
+                .subtaskForPath(RECONCILIATION_OPERATION_COMPLETION_PATH)
                     .display()
-                    .structuredProgress()
-                        .display()
-                        .assertSuccessCount(1, false)
-                        .currentPart()
-                            .assertComplete()
-                            .end()
-                        .end()
-                    .end()
-                .subtaskForPart(2)
-                    .display()
-                    .structuredProgress()
-                        .display()
-                        .end()
-                    .iterativeTaskInformation()
-                        .display()
-                        .end();
+                .end()
+                .subtaskForPath(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .display();
 
-        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        assertTaskProgress(progress2, "after 2nd suspension")
+        ActivityProgressInformation info2 = assertProgress(reconciliationTask.oid, "after 2nd run")
                 .display()
-                .assertAllPartsCount(3)
-                .assertCurrentPartNumber(2)
+                .assertChildren(3)
                 .checkConsistence()
-                .currentPart()
+                .child(RECONCILIATION_OPERATION_COMPLETION_ID)
+                    .assertBuckets(1, 1)
+                    .assertItems(1, null)
+                    .assertComplete()
+                    .end()
+                .child(RECONCILIATION_RESOURCE_OBJECTS_ID)
                     .assertExpectedBuckets(100)
                     .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
                     .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
                     .assertBucketsItemsConsistency(bucketSize, workers)
+                    .items().display().end()
                     .get();
 
-        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        displayDumpable("perf after 2nd run", perf2);
+        assertPerformance(reconciliationTask.oid, "2nd")
+                .display();
 
         PrismObject<TaskType> subtask2 = assertTask(rootAfterSuspension2.asObjectable(), "after 2nd run")
-                .subtaskForPart(2)
+                .subtaskForPath(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .getObject();
         List<TaskType> children2 = TaskTreeUtil.getResolvedSubtasks(subtask2.asObjectable());
         if (!children2.isEmpty()) {
             TaskType worker = children2.get(0);
             assertTask(worker, "worker")
-                    .display()
-                    .structuredProgress()
                     .display();
-            TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(worker);
-            assertTaskProgress(progressOfSubtask, "worker task progress")
-                    .display()
-                    .part(null)
-                        .assertNoBucketInformation(); // MID-7006
         }
     }
 
@@ -482,18 +452,15 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(rootAfterSuspension1.asObjectable(), "1st")
                 .display();
 
-        TaskProgressInformation progress1 = TaskProgressInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        TaskPartProgressInformation info1 = assertTaskProgress(progress1, "after 1st suspension")
+        ActivityProgressInformation info1 = assertProgress(recomputationTask.oid, "1st")
                 .display()
-                .assertAllPartsCount(1)
-                .assertCurrentPartNumber(1)
-                .currentPart()
-                    .assertExpectedBuckets(100)
-                    .assertBucketsItemsConsistency(bucketSize, workers)
-                    .get();
+                .assertChildren(0)
+                .assertExpectedBuckets(100)
+                .assertBucketsItemsConsistency(bucketSize, workers)
+                .get();
 
-        TaskPerformanceInformation perf1 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension1.asObjectable());
-        displayDumpable("perf after 1st run", perf1);
+        assertPerformance(recomputationTask.oid, "1st")
+                .display();
 
         when("2nd run");
 
@@ -514,37 +481,17 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         assertTask(rootAfterSuspension2.asObjectable(), "2nd")
+                .display();
+
+        assertProgress(recomputationTask.oid, "1st")
                 .display()
-                .structuredProgress()
-                    .display();
+                .assertChildren(0)
+                .assertExpectedBuckets(100)
+                .assertBucketsItemsConsistency(bucketSize, workers)
+                .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
+                .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress());
 
-        TaskProgressInformation progress2 = TaskProgressInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        assertTaskProgress(progress2, "after 2nd suspension")
-                .display()
-                .assertAllPartsCount(1)
-                .assertCurrentPartNumber(1)
-                .currentPart()
-                    .assertExpectedBuckets(100)
-                    .assertBucketsItemsConsistency(bucketSize, workers)
-                    .assertCompletedBucketsAtLeast(info1.getBucketsProgress().getCompletedBuckets())
-                    .assertItemsProgressAtLeast(info1.getItemsProgress().getProgress())
-                    .get();
-
-        TaskPerformanceInformation perf2 = TaskPerformanceInformation.fromTaskTree(rootAfterSuspension2.asObjectable());
-        displayDumpable("perf after 2nd run", perf2);
-
-        List<TaskType> subtasks = TaskTreeUtil.getResolvedSubtasks(rootAfterSuspension2.asObjectable());
-        if (!subtasks.isEmpty()) {
-            TaskType subtask = subtasks.get(0);
-            assertTask(subtask, "subtask")
-                    .display()
-                    .structuredProgress()
-                        .display();
-            TaskProgressInformation progressOfSubtask = TaskProgressInformation.fromTaskTree(subtask);
-            assertTaskProgress(progressOfSubtask, "subtask progress")
-                    .display()
-                    .part(null)
-                        .assertNoBucketInformation(); // MID-7006
-        }
+        assertTask(rootAfterSuspension2.asObjectable(), "2nd")
+                .display();
     }
 }

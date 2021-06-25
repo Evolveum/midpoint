@@ -28,8 +28,6 @@ public abstract class SchemaConstants {
     public static final String NS_MIDPOINT_PUBLIC_COMMON = NS_MIDPOINT_PUBLIC + "/common";
     public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-    public static final Map<String, String> PREFIX_NS_MAP = new HashMap<>();
-
     // NAMESPACES
 
     public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
@@ -322,6 +320,9 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
     public static final ItemName MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION = new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
     public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+
+    public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
+            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
@@ -669,10 +670,10 @@ public abstract class SchemaConstants {
 
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 
-    public static final String AUDIT_RECORDS_CLEANUP_TASK_PART_URI = "auditRecords";
-    public static final String CLOSED_TASKS_CLEANUP_TASK_PART_URI = "closedTasks";
-    public static final String CLOSED_CASES_CLEANUP_TASK_PART_URI = "closedCases";
-    public static final String DEAD_NODES_CLEANUP_TASK_PART_URI = "deadNodes";
-    public static final String OUTPUT_REPORTS_CLEANUP_TASK_PART_URI = "outputReports";
-    public static final String CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP_TASK_PART_URI = "closedCertificationCampaigns";
+    public static final String ID_AUDIT_RECORDS_CLEANUP = "auditRecords";
+    public static final String ID_CLOSED_TASKS_CLEANUP = "closedTasks";
+    public static final String ID_CLOSED_CASES_CLEANUP = "closedCases";
+    public static final String ID_DEAD_NODES_CLEANUP = "deadNodes";
+    public static final String ID_OUTPUT_REPORTS_CLEANUP = "outputReports";
+    public static final String ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP = "closedCertificationCampaigns";
 }

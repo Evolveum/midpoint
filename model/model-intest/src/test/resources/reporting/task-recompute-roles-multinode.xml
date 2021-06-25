@@ -16,52 +16,54 @@
 
     <name>Recompute: Roles Multinode</name>
 
-    <extension>
-        <ext:objectType>RoleType</ext:objectType>
-        <ext:objectQuery>
-            <q:filter>
-                <q:substring>
-                    <q:path>name</q:path>
-                    <q:value>ry</q:value>
-                    <q:anchorStart>true</q:anchorStart>
-                </q:substring>
-            </q:filter>
-        </ext:objectQuery>
-        <ext:workerThreads>2</ext:workerThreads>
-    </extension>
-
     <taskIdentifier>c8cfe559-3888-4b39-b835-3aead9a46581</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
-    <workManagement>
-        <taskKind>coordinator</taskKind>
-        <buckets>
-            <stringSegmentation>
-                <discriminator>name</discriminator>
-                <boundary>
-                    <position>1</position>
-                    <characters>r</characters>
-                </boundary>
-                <boundary>
-                    <position>2</position>
-                    <characters>y</characters>
-                </boundary>
-                <boundary>
-                    <position>3</position>
-                    <position>4</position>
-                    <characters>0-9</characters>
-                </boundary>
-                <comparisonMethod>prefix</comparisonMethod>
-            </stringSegmentation>
-        </buckets>
-        <workers>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-            <workersPerNode>
-                <count>2</count>
-            </workersPerNode>
-        </workers>
-    </workManagement>
     <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>RoleType</type>
+                    <query>
+                        <q:filter>
+                            <q:substring>
+                                <q:path>name</q:path>
+                                <q:value>ry</q:value>
+                                <q:anchorStart>true</q:anchorStart>
+                            </q:substring>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+        <distribution>
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>name</discriminator>
+                    <boundary>
+                        <position>1</position>
+                        <characters>r</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>y</characters>
+                    </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <position>4</position>
+                        <characters>0-9</characters>
+                    </boundary>
+                    <comparisonMethod>prefix</comparisonMethod>
+                </stringSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+            <workerThreads>2</workerThreads>
+        </distribution>
+    </activity>
 </task>

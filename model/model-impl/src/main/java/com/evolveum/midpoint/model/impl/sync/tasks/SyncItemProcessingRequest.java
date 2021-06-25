@@ -8,15 +8,15 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.task.AbstractIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
-import com.evolveum.midpoint.repo.common.task.AbstractIterativeItemProcessor;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -34,8 +34,8 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         extends ItemProcessingRequest<SE>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
-    SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessor<SE, ?, ?, ?, ?> itemProcessor) {
-        super(item, itemProcessor);
+    public SyncItemProcessingRequest(SE item, AbstractIterativeActivityExecution<SE, ?, ?, ?> activityExecution) {
+        super(item, activityExecution);
     }
 
     @Override

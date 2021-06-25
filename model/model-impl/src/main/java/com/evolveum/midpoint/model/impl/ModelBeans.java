@@ -11,18 +11,21 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
-import com.evolveum.midpoint.model.impl.lens.ClockworkConflictResolver;
-import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
+import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaService;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
@@ -90,4 +93,11 @@ public class ModelBeans {
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired(required = false) public WorkflowManager workflowManager; // not available e.g. during tests
     @Autowired public ClockworkConflictResolver clockworkConflictResolver;
+    @Autowired public ContextFactory contextFactory;
+    @Autowired public Clockwork clockwork;
+    @Autowired public SyncTaskHelper syncTaskHelper;
+    @Autowired public EventDispatcher eventDispatcher;
+    @Autowired public SystemObjectCache systemObjectCache;
+    @Autowired public CacheConfigurationManager cacheConfigurationManager;
+    @Autowired public SynchronizationService synchronizationService;
 }

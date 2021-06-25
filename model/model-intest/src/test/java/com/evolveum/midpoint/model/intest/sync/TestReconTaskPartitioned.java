@@ -40,7 +40,7 @@ public class TestReconTaskPartitioned extends TestReconTask {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        taskManager.setFreeBucketWaitInterval(100L);
+        bucketingManager.setFreeBucketWaitIntervalOverride(100L);
     }
 
     @SuppressWarnings("Duplicates")

@@ -15,6 +15,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.List;
+import java.util.function.Consumer;
+
+import static com.evolveum.midpoint.schema.util.OperationResultUtil.isError;
 
 /**
  * @author mederly
@@ -22,13 +25,27 @@ import java.util.List;
 public class TaskDebugUtil {
 
     public static String dumpTaskTree(Task rootTask, OperationResult result) throws SchemaException {
+        return dumpTaskTree(rootTask, null, result);
+    }
+
+    public static String dumpTaskTree(Task rootTask, Consumer<Task> consumer, OperationResult result) throws SchemaException {
         StringBuilder sb = new StringBuilder();
-        dumpTaskTree(sb, 0, rootTask, result);
+        dumpTaskTree(sb, 0, rootTask, consumer, result);
         return sb.toString();
     }
 
-    private static void dumpTaskTree(StringBuilder sb, int indent, Task task, OperationResult result) throws SchemaException {
+    private static void dumpTaskTree(StringBuilder sb, int indent, Task task, Consumer<Task> consumer, OperationResult result) throws SchemaException {
+        if (consumer != null) {
+            consumer.accept(task);
+        }
         DebugUtil.indentDebugDump(sb, indent);
+        dumpTask(sb, task);
+        for (Task subtask : task.listSubtasks(result)) {
+            dumpTaskTree(sb, indent + 1, subtask, consumer, result);
+        }
+    }
+
+    public static void dumpTask(StringBuilder sb, Task task) {
         sb.append(task)
                 .append(" [es:").append(task.getExecutionState())
                 .append(", ss:").append(task.getSchedulingState())
@@ -36,9 +53,12 @@ public class TaskDebugUtil {
                 .append(", p:").append(task.getProgress())
                 .append(", n:").append(task.getNode())
                 .append("]").append("\n");
-        for (Task subtask : task.listSubtasks(result)) {
-            dumpTaskTree(sb, indent + 1, subtask, result);
-        }
+    }
+
+    public static String getDebugInfo(Task task) {
+        StringBuilder sb = new StringBuilder();
+        dumpTask(sb, task);
+        return sb.toString();
     }
 
     public static String dumpTaskTree(TaskType rootTask) {
@@ -64,5 +84,13 @@ public class TaskDebugUtil {
                 throw new IllegalStateException("Subtask " + subRef + " in " + task + " is not resolved");
             }
         }
+    }
+
+    public static Consumer<Task> suspendedWithErrorCollector(List<Task> suspended) {
+        return task -> {
+            if (task.isSuspended() && isError(task.getResultStatus())) {
+                suspended.add(task);
+            }
+        };
     }
 }

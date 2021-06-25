@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="f4c9cad8-2015-42d3-a627-7495d72dfb03"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-220</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <extension>
+                <ext:compositeMock>
+                    <ext:message>id1</ext:message>
+                    <ext:delay>100</ext:delay>
+                    <ext:steps>3</ext:steps>
+                </ext:compositeMock>
+            </extension>
+        </work>
+        <tailoring>
+            <change>
+                <reference>opening</reference>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </change>
+            <change>
+                <reference>closing</reference>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>

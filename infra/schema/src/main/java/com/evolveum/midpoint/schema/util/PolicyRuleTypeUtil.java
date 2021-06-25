@@ -313,6 +313,16 @@ public class PolicyRuleTypeUtil {
                 .collect(Collectors.toList());
     }
 
+    public static @NotNull List<TimeValidityPolicyConstraintType> getTimeValidityConstraints(PolicyRuleType policyRule) {
+        return policyRule != null && policyRule.getPolicyConstraints() != null ?
+                policyRule.getPolicyConstraints().getObjectTimeValidity() : List.of();
+    }
+
+    public static boolean hasNotificationActions(PolicyRuleType policyRule) {
+        return policyRule != null && policyRule.getPolicyActions() != null &&
+                !policyRule.getPolicyActions().getNotification().isEmpty();
+    }
+
     @FunctionalInterface
     interface ConstraintVisitor {
         /**

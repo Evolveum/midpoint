@@ -19,11 +19,33 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/partitioned-focus-validity-scanner/handler-3</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
         <interval>5</interval>
     </schedule>
+
+    <activity>
+        <work>
+            <focusValidityScan>
+                <queryStyle>separateObjectAndAssignmentQueries</queryStyle>
+            </focusValidityScan>
+        </work>
+        <tailoring>
+            <!-- TODO simplify this specification -->
+            <change>
+                <reference>objects</reference>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </change>
+            <change>
+                <reference>assignments</reference>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
 
 </task>
