@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import java.time.Duration;
 import java.util.Iterator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,7 +20,6 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoComp
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -82,7 +82,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                     super.updateAjaxAttributes(attributes);
                     AutoCompleteSettings settings = createAutoCompleteSettings();
-                    attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(settings.getThrottleDelay()), true));
+                    attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(settings.getThrottleDelay()), true));
                 }
             });
         }

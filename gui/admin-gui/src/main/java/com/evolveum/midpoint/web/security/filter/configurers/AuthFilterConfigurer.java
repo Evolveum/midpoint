@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.session.InvalidSessionStrategy;
@@ -42,7 +43,7 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         MidpointAuthFilter mpFilter = postProcess(new MidpointAuthFilter(sharedObjects));
         mpFilter.createFilterForAuthenticatedRequest();
         http.addFilterBefore(mpFilter, SessionManagementFilter.class);
-        http.addFilterBefore(new TranslateExceptionFilter(), MidpointAuthFilter.class);
+        http.addFilterAfter(new TranslateExceptionFilter(), AnonymousAuthenticationFilter.class);
     }
 
     private void setSharedObject(Map<Class<? extends Object>, Object> sharedObjects, H http, Class<? extends Object> clazz) {

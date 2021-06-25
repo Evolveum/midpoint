@@ -140,10 +140,6 @@
             <artifactId>spring-security-cas</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>webjars-locator-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
             <exclusions>
@@ -206,7 +202,7 @@
                 </exclusion>
                 <exclusion>
                     <!-- unused library -->
-                    <groupId>org.webjars</groupId>
+                    <groupId>org.webjars.npm</groupId>
                     <artifactId>handlebars</artifactId>
                 </exclusion>
                 <exclusion>
@@ -218,6 +214,11 @@
                     <groupId>com.darrinholst</groupId>
                     <artifactId>sass-java-gems</artifactId>
                 </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.webjars.npm</groupId>
+                    <artifactId>jshint</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -226,6 +227,13 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+            <exclusions>
+                <!-- in favor of com.google.guava:guava -->
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
@@ -632,6 +640,12 @@
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-security-impl</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.cryptacular</groupId>
+                    <artifactId>cryptacular</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

@@ -13,7 +13,8 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
-import org.apache.wicket.util.time.Duration;
+
+import java.time.Duration;
 
 /**
  * @author semancik
@@ -37,7 +38,7 @@ public abstract class AbstractAutoCompletePanel extends InputPanel {
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 AutoCompleteSettings settings = createAutoCompleteSettings();
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(settings.getThrottleDelay()), true));
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(settings.getThrottleDelay()), true));
             }
         };
         add(showChoices);

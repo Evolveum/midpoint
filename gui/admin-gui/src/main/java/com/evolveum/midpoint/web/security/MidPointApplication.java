@@ -214,6 +214,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public void init() {
         super.init();
 
+        getCspSettings().blocking().disabled();
+
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/AdminLTE/2.4.18/bower_components/jquery/dist/jquery.min.js")); //todo no jquery.js is found

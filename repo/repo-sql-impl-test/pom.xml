@@ -99,7 +99,6 @@
         <dependency>
             <groupId>net.ttddyy</groupId>
             <artifactId>datasource-proxy</artifactId>
-            <version>1.5.1</version>
         </dependency>
 
         <dependency>
@@ -120,6 +119,13 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+            <exclusions>
+                <!-- in favor of com.google.guava:guava -->
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
@@ -161,13 +167,11 @@
         <dependency>
             <groupId>org.javabits.jgrapht</groupId>
             <artifactId>jgrapht-core</artifactId>
-            <version>0.9.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>colt</groupId>
             <artifactId>colt</artifactId>
-            <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
