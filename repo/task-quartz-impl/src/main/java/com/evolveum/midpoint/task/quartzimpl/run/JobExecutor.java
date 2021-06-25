@@ -19,10 +19,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.base.MoreObjects;
 import org.quartz.*;
 import org.springframework.security.core.Authentication;
-
-import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.*;
 import static com.evolveum.midpoint.task.quartzimpl.run.StopJobException.Severity.*;
@@ -40,7 +39,7 @@ public class JobExecutor implements InterruptableJob {
     public static final String OP_EXECUTE = DOT_CLASS + "execute";
 
     /**
-     * JobExecutor is instantiated at each execution of the task, so we can store
+     * JobExecutor is instantiated at each execution of the task, so we can safely store
      * the task here.
      *
      * http://quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-03
@@ -77,6 +76,8 @@ public class JobExecutor implements InterruptableJob {
             // We do not need to propagate this.
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception occurred during task execution", t);
+            // This is e.g. an Error, so let us propagate that to Quartz.
+            // (But actually nothing special is done with it there.)
             throw t;
         }
     }
@@ -99,8 +100,8 @@ public class JobExecutor implements InterruptableJob {
 
         checkGroupLimits(result);
 
-        boolean nodeAndStateSet = false;
-        boolean taskRegistered = false;
+        boolean nodeAndStateSet = false; // To know if we should reset task node/state information.
+        boolean taskRegistered = false; // To know if we should unregister the task.
         TaskHandler handler = null;
         try {
             checkForConcurrentExecution(result);
@@ -151,8 +152,8 @@ public class JobExecutor implements InterruptableJob {
     }
 
     private void executeHandler(TaskHandler handler, OperationResult result) throws StopJobException {
-        TaskCycleExecutor taskCycleExecutor = new TaskCycleExecutor(task, handler, this, beans);
-        taskCycleExecutor.execute(result);
+        new TaskCycleExecutor(task, handler, this, beans)
+                .execute(result);
     }
 
     private void setupSecurityContext(OperationResult result) throws StopJobException {
@@ -190,12 +191,15 @@ public class JobExecutor implements InterruptableJob {
     }
 
     private TaskHandler getHandler(OperationResult result) throws StopJobException {
-        TaskHandler handler = beans.handlerRegistry.getHandler(task.getHandlerUri());
+        String handlerUri = task.getHandlerUri();
+        String effectiveHandlerUri = handlerUri != null ? handlerUri : beans.handlerRegistry.getDefaultHandlerUri();
+
+        TaskHandler handler = beans.handlerRegistry.getHandler(effectiveHandlerUri);
         if (handler != null) {
             return handler;
         }
 
-        LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
+        LOGGER.error("No handler for URI '{}', task {} - closing it.", effectiveHandlerUri, task);
         closeFlawedTaskRecordingResult(result);
         throw new StopJobException();
     }
@@ -232,29 +236,31 @@ public class JobExecutor implements InterruptableJob {
             return false;
         }
 
-        if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
-            LOGGER.info("Closing recovered non-resilient task {}", task);
-            closeTask(task, result);
-            throw new StopJobException();
-        } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
-            LOGGER.info("Suspending recovered non-resilient task {}", task);
-            // Using DO_NOT_STOP because we are the task that is to be suspended
-            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
-            throw new StopJobException();
-        } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
-            LOGGER.info("Recovering resilient task {}", task);
-            return true;
-        } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
-            if (task.isRecurring() && task.isLooselyBound()) {
-                LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, "
-                        + "the task will be rescheduled; task = {}", task);
+        ThreadStopActionType action = MoreObjects.firstNonNull(task.getThreadStopAction(), ThreadStopActionType.RESTART);
+        switch (action) {
+            case CLOSE:
+                LOGGER.info("Closing recovered non-resilient task {}", task);
+                closeTask(task, result);
                 throw new StopJobException();
-            } else {
+            case SUSPEND:
+                LOGGER.info("Suspending recovered non-resilient task {}", task);
+                // Using DO_NOT_STOP because we are the task that is to be suspended
+                beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
+                throw new StopJobException();
+            case RESTART:
                 LOGGER.info("Recovering resilient task {}", task);
                 return true;
-            }
-        } else {
-            throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
+            case RESCHEDULE:
+                if (task.isRecurring() && task.isLooselyBound()) {
+                    LOGGER.info("Recovering resilient task with RESCHEDULE thread stop action - exiting the execution, "
+                            + "the task will be rescheduled; task = {}", task);
+                    throw new StopJobException();
+                } else {
+                    LOGGER.info("Recovering resilient task {}", task);
+                    return true;
+                }
+            default:
+                throw new SystemException("Unknown value of ThreadStopAction: " + action + " for task " + task);
         }
     }
 
@@ -286,8 +292,8 @@ public class JobExecutor implements InterruptableJob {
     private void fetchTheTask(String oid, OperationResult result) throws StopJobException {
         try {
             TaskQuartzImpl taskWithResult = beans.taskRetriever.getTaskWithResult(oid, result);
-            String rootOid = beans.taskRetriever.getRootTaskOid(taskWithResult, result);
-            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootOid);
+            Task rootTask = beans.taskRetriever.getRootTask(taskWithResult, result);
+            task = beans.taskInstantiator.toRunningTaskInstance(taskWithResult, rootTask);
         } catch (ObjectNotFoundException e) {
             beans.localScheduler.deleteTaskFromQuartz(oid, false, result);
             throw new StopJobException(ERROR, "Task with OID %s no longer exists. "
@@ -299,6 +305,11 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
+    /**
+     * This is a sanity check against concurrent executions of a task in a cluster.
+     * Quartz should take care of it but it looks like it sometimes fails to do that
+     * (e.g. when the time is not synchronized enough).
+     */
     private void checkForConcurrentExecution(OperationResult result)
             throws ObjectNotFoundException, SchemaException, StopJobException {
         if (beans.configuration.isCheckForTaskConcurrentExecution()) {
@@ -307,7 +318,8 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    private void setExecutionNodeAndState(OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private void setExecutionNodeAndState(OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         task.setExecutionState(TaskExecutionStateType.RUNNING);
         task.setNode(beans.configuration.getNodeId());
         task.flushPendingModifications(result);
@@ -374,7 +386,7 @@ public class JobExecutor implements InterruptableJob {
 
     private void checkGroupLimits(OperationResult result) throws StopJobException {
         GroupLimitsChecker checker = new GroupLimitsChecker(task, beans);
-        RescheduleTime rescheduleTime = checker.checkIfAllowed(result);
+        RescheduleTime rescheduleTime = checker.checkIfAllowedToRun(result);
         if (rescheduleTime == null) {
             return; // everything ok
         }
@@ -394,45 +406,64 @@ public class JobExecutor implements InterruptableJob {
         beans.lightweightTaskManager.waitForTransientChildrenAndCloseThem(task, result);
     }
 
-    // returns true if the execution of the task should continue
-
-    // called when task is externally stopped (can occur on node shutdown, node scheduler stop, node threads deactivation, or task suspension)
-    // we have to act (i.e. reschedule resilient tasks or close/suspend non-resilient tasks) in all cases, except task suspension
-    // we recognize it by looking at task status: RUNNABLE means that the task is stopped as part of node shutdown
+    /**
+     * Called when we learned that the task was externally stopped. It can occur on:
+     *
+     *  - task suspension,
+     *  - node shutdown,
+     *  - node scheduler stop,
+     *  - node threads deactivation,
+     *  - or when the task is started but local scheduler is stopped (should not occur).
+     *
+     * We need to act accordingly (except for when the task has been suspended):
+     *
+     *  - reschedule resilient tasks
+     *  - close/suspend non-resilient tasks
+     */
     private void processTaskStop(OperationResult executionResult) {
 
         try {
             task.refresh(executionResult);
 
             if (!task.isReady()) {
-                LOGGER.trace("processTaskStop: task scheduling status is not READY (it is " + task.getSchedulingState() + "), so ThreadStopAction does not apply; task = " + task);
+                LOGGER.trace("processTaskStop: task scheduling status is not READY (it is {}), "
+                                + "so ThreadStopAction does not apply; task = {}", task.getSchedulingState(), task);
                 return;
             }
 
-            if (task.getThreadStopAction() == ThreadStopActionType.CLOSE) {
-                LOGGER.info("Closing non-resilient task on node shutdown; task = {}", task);
-                closeTask(task, executionResult);
-            } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
-                LOGGER.info("Suspending non-resilient task on node shutdown; task = {}", task);
-                // we must NOT wait here, as we would wait infinitely -- we do not have to stop the task neither, because we are that task
-                beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, executionResult);
-            } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
-                LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
-                beans.taskStateManager.scheduleTaskNow(task, executionResult);
-            } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
-                if (task.isRecurring() && task.isLooselyBound()) {
-                    // nothing to do, task will be automatically started by Quartz on next trigger fire time
-                } else {
-                    // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+            ThreadStopActionType action = MoreObjects.firstNonNull(task.getThreadStopAction(), ThreadStopActionType.RESTART);
+            switch (action) {
+                case CLOSE:
+                    LOGGER.info("Closing non-resilient task on node shutdown; task = {}", task);
+                    closeTask(task, executionResult);
+                    break;
+                case SUSPEND:
+                    LOGGER.info("Suspending non-resilient task on node shutdown; task = {}", task);
+                    // We must NOT wait here, as we would wait infinitely.
+                    // And we do not have to stop the task neither, because we are that task.
+                    beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, executionResult);
+                    break;
+                case RESTART:
+                    LOGGER.info("Rescheduling resilient task to run immediately; task = {}", task);
                     beans.taskStateManager.scheduleTaskNow(task, executionResult);
-                }
-            } else {
-                throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
+                    break;
+                case RESCHEDULE:
+                    if (task.isRecurring() && task.isLooselyBound()) {
+                        // nothing to do, task will be automatically started by Quartz on next trigger fire time
+                    } else {
+                        // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+                        beans.taskStateManager.scheduleTaskNow(task, executionResult);
+                    }
+                    break;
+                default:
+                    throw new SystemException("Unknown value of ThreadStopAction: " + action + " for task " + task);
             }
         } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied, because the task no longer exists: " + task, e);
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "ThreadStopAction cannot be applied, because of schema exception. Task = " + task, e);
+            LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied because the task no longer exists: {}",
+                    e, task);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "ThreadStopAction cannot be applied because of unexpected exception: {}",
+                    e, task);
         }
     }
 

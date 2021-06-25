@@ -305,7 +305,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            TaskPartitionDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
+            boolean simulate, LiveSyncEventHandler handler, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -325,7 +325,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             PrismObject<ResourceType> resource = getResource(resourceOid, task, result); // TODO avoid double fetching the resource
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, handler, result);
+            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, simulate, handler, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {

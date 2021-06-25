@@ -119,7 +119,7 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     }
 
     private void addActionsTablePanel() {
-        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = createActionsEntryProvider(ActionsExecutedInformationType.F_OBJECT_ACTIONS_ENTRY);
+        ListDataProvider<ObjectActionsExecutedEntryType> objectActionsEntry = createActionsEntryProvider(ActivityActionsExecutedType.F_OBJECT_ACTIONS_ENTRY);
         BoxedTablePanel<ObjectActionsExecutedEntryType> actionTable = new BoxedTablePanel<>(ID_ACTION_ENTRY, objectActionsEntry, createActionEntryColumns()) {
             @Override
             protected boolean hideFooterIfSinglePage() {
@@ -138,14 +138,14 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     }
 
     private boolean hasObjectActionsEntry() {
-        ActionsExecutedInformationType actionsExecutedInformationType = getActionExecutedInformationType();
-        if (actionsExecutedInformationType == null) {
+        ActivityActionsExecutedType activityActionsExecutedType = getActionExecutedInformationType();
+        if (activityActionsExecutedType == null) {
             return false;
         }
-        return CollectionUtils.isNotEmpty(actionsExecutedInformationType.getObjectActionsEntry());
+        return CollectionUtils.isNotEmpty(activityActionsExecutedType.getObjectActionsEntry());
     }
 
-    private ActionsExecutedInformationType getActionExecutedInformationType() {
+    private ActivityActionsExecutedType getActionExecutedInformationType() {
         if (statisticsModel == null) {
             return null;
         }
@@ -155,13 +155,13 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
             return null;
         }
 
-        ActionsExecutedInformationType actionsExecutedInformationType = stats.getActionsExecutedInformation();
-        return actionsExecutedInformationType;
+        ActivityActionsExecutedType activityActionsExecutedType = stats.getActionsExecutedInformation();
+        return activityActionsExecutedType;
     }
 
     private void addResultingEntryPanel() {
         BoxedTablePanel<ObjectActionsExecutedEntryType> resultingEntry =
-                new BoxedTablePanel<>(ID_RESULTING_ENTRY, createActionsEntryProvider(ActionsExecutedInformationType.F_RESULTING_OBJECT_ACTIONS_ENTRY), createActionEntryColumns()) {
+                new BoxedTablePanel<>(ID_RESULTING_ENTRY, createActionsEntryProvider(ActivityActionsExecutedType.F_RESULTING_OBJECT_ACTIONS_ENTRY), createActionEntryColumns()) {
             @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
@@ -179,15 +179,15 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
     }
 
     private boolean hasResultingEntry() {
-        ActionsExecutedInformationType actionsExecutedInformationType = getActionExecutedInformationType();
-        if (actionsExecutedInformationType == null) {
+        ActivityActionsExecutedType activityActionsExecutedType = getActionExecutedInformationType();
+        if (activityActionsExecutedType == null) {
             return false;
         }
-        return CollectionUtils.isNotEmpty(actionsExecutedInformationType.getResultingObjectActionsEntry());
+        return CollectionUtils.isNotEmpty(activityActionsExecutedType.getResultingObjectActionsEntry());
     }
 
     private String getSynchronizationTransitionExpression() {
-        return OperationStatsType.F_SYNCHRONIZATION_INFORMATION.getLocalPart() + "." + SynchronizationInformationType.F_TRANSITION.getLocalPart();
+        return OperationStatsType.F_SYNCHRONIZATION_INFORMATION.getLocalPart() + "." + ActivitySynchronizationStatisticsType.F_TRANSITION.getLocalPart();
     }
 
     private <T> EnumPropertyColumn<T> createEnumColumn() {

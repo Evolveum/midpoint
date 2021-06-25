@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Maintains task listeners.
@@ -34,15 +35,15 @@ public class TaskListenerRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskListenerRegistry.class);
 
-    private final Set<TaskListener> taskListeners = new HashSet<>();
+    private final Set<TaskListener> taskListeners = ConcurrentHashMap.newKeySet();
 
-    private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
+    private final Set<TaskDeletionListener> taskDeletionListeners = ConcurrentHashMap.newKeySet();
 
-    public void registerTaskListener(TaskListener taskListener) {
+    void registerTaskListener(TaskListener taskListener) {
         taskListeners.add(taskListener);
     }
 
-    public void unregisterTaskListener(TaskListener taskListener) {
+    void unregisterTaskListener(TaskListener taskListener) {
         taskListeners.remove(taskListener);
     }
 
@@ -90,7 +91,7 @@ public class TaskListenerRegistry {
         }
     }
 
-    public void registerTaskDeletionListener(TaskDeletionListener listener) {
+    void registerTaskDeletionListener(TaskDeletionListener listener) {
         Validate.notNull(listener, "Task deletion listener is null");
         taskDeletionListeners.add(listener);
     }

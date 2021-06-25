@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -99,6 +100,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                 processModification(modification);
             } catch (IllegalArgumentException e) {
                 logger.warn("Modification failed/not implemented yet: {}", e.toString());
+                throw new SystemException(e);
             }
         }
 

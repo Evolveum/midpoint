@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.util;
 
+import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -26,7 +26,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @FunctionalInterface
 public interface ProcessorMethodRef<X extends ObjectType> {
 
-    void run(LensContext<X> lensContext, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException;
+    void run(LensContext<X> lensContext, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException;
 
 }

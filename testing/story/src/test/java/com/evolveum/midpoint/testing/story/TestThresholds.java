@@ -23,8 +23,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
+import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
@@ -122,7 +122,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
         assertNotNull(stats, "No statistics in task");
 
-        SynchronizationInformationType syncInfo = stats.getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = stats.getSynchronizationInformation();
         assertNotNull(syncInfo, "No sync info in task");
 
 //        assertEquals((Object) syncInfo.getCountUnmatched(), getDefaultUsers());
@@ -264,8 +264,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertSynchronizationStatisticsActivation(taskAfter);
     }
 
-    void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
-        displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
+    void dumpSynchronizationInformation(ActivitySynchronizationStatisticsType synchronizationInformation) {
+        displayValue("Synchronization information", ActivitySynchronizationStatisticsUtil.format(synchronizationInformation));
     }
 
     protected void adapTaskConfig(Task task, OperationResult result) throws Exception {
@@ -289,7 +289,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
     int getFailureCount(Task taskAfter) {
         // TODO separate the statistics dump
         OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
+//        displayValue("Iterative statistics", IterationInformation.format(stats.getIterativeTaskInformation()));
         return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
     }
 }

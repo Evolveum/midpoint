@@ -128,6 +128,9 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     }
 
     public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        if (subcontext == null) {
+            throw new IllegalArgumentException("Null update subcontext for item path: " + itemPath);
+        }
         if (subcontexts.containsKey(itemPath)) {
             // This should not happen if code above is written properly, but prevents losing
             // updates when multiple modifications use the same container path segment.

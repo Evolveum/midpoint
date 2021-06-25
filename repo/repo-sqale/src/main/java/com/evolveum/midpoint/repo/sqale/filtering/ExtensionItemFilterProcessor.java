@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -52,8 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Filter processor for extension items stored in JSONB.
  * This takes care of any supported type, scalar or array, and handles any operation.
  */
-public class ExtensionItemFilterProcessor<T extends PrismValue>
-        extends ItemFilterProcessor<ValueFilter<T, ?>> {
+public class ExtensionItemFilterProcessor extends ItemFilterProcessor<ValueFilter<?, ?>> {
 
     // QName.toString produces different results, QNameUtil must be used here:
     public static final String STRING_TYPE = QNameUtil.qNameToUri(DOMUtil.XSD_STRING);
@@ -71,9 +70,9 @@ public class ExtensionItemFilterProcessor<T extends PrismValue>
     private final MExtItemHolderType holderType;
     protected final JsonbPath path;
 
-    public <Q extends FlexibleRelationalPathBase<R>, R> ExtensionItemFilterProcessor(
-            SqlQueryContext<?, Q, R> context,
-            Function<Q, JsonbPath> rootToExtensionPath,
+    public ExtensionItemFilterProcessor(
+            SqlQueryContext<?, ?, ?> context,
+            Function<FlexibleRelationalPathBase<?>, JsonbPath> rootToExtensionPath,
             MExtItemHolderType holderType) {
         super(context);
 
@@ -82,7 +81,7 @@ public class ExtensionItemFilterProcessor<T extends PrismValue>
     }
 
     @Override
-    public Predicate process(ValueFilter<T, ?> filter) throws RepositoryException {
+    public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         ItemDefinition<?> definition = filter.getDefinition();
         MExtItem extItem = ((SqaleQueryContext<?, ?, ?>) context).repositoryContext()
                 .resolveExtensionItem(definition, holderType);
@@ -96,13 +95,12 @@ public class ExtensionItemFilterProcessor<T extends PrismValue>
             return processReference(extItem, (RefFilter) filter);
         }
 
-        //noinspection unchecked
-        PropertyValueFilter<T> propertyValueFilter = (PropertyValueFilter<T>) filter;
+        PropertyValueFilter<?> propertyValueFilter = (PropertyValueFilter<?>) filter;
         ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
         // TODO where do we want tu support eq with multiple values?
         FilterOperation operation = operation(filter);
 
-        List<T> filterValues = filter.getValues();
+        List<?> filterValues = filter.getValues();
         if (filterValues == null || filterValues.isEmpty()) {
             if (operation.isAnyEqualOperation()) {
                 return extItemIsNull(extItem);

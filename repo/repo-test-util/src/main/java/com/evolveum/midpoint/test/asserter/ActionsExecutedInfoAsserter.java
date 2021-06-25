@@ -9,20 +9,20 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityActionsExecutedType;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 
 /**
  * Asserter that checks task "actions executed" information.
  */
 public class ActionsExecutedInfoAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final ActionsExecutedInformationType information;
+    private final ActivityActionsExecutedType information;
 
-    ActionsExecutedInfoAsserter(ActionsExecutedInformationType information, RA returnAsserter, String details) {
+    ActionsExecutedInfoAsserter(ActivityActionsExecutedType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.information = information;
     }
@@ -33,7 +33,7 @@ public class ActionsExecutedInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActionsExecutedInfoAsserter<RA> display() {
-        IntegrationTestTools.display(desc(), ActionsExecutedInformation.format(information));
+        IntegrationTestTools.display(desc(), ActionsExecutedInformationUtil.format(information));
         return this;
     }
 
@@ -44,14 +44,14 @@ public class ActionsExecutedInfoAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActionsExecutedPartInfoAsserter<ActionsExecutedInfoAsserter<RA>> resulting() {
-        return part(ActionsExecutedInformation.Part.RESULTING);
+        return part(ActionsExecutedInformationUtil.Part.RESULTING);
     }
 
     public ActionsExecutedPartInfoAsserter<ActionsExecutedInfoAsserter<RA>> all() {
-        return part(ActionsExecutedInformation.Part.ALL);
+        return part(ActionsExecutedInformationUtil.Part.ALL);
     }
 
-    public ActionsExecutedPartInfoAsserter<ActionsExecutedInfoAsserter<RA>> part(@NotNull ActionsExecutedInformation.Part part) {
+    public ActionsExecutedPartInfoAsserter<ActionsExecutedInfoAsserter<RA>> part(@NotNull ActionsExecutedInformationUtil.Part part) {
         ActionsExecutedPartInfoAsserter<ActionsExecutedInfoAsserter<RA>> asserter =
                 new ActionsExecutedPartInfoAsserter<>(information, this, part, getDetails());
         copySetupTo(asserter);

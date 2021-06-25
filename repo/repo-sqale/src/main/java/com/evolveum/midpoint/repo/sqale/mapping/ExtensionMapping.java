@@ -13,15 +13,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
 /**
- * TODO
+ * This acts like a container mapping for extension/attributes containers.
+ * Compared to other subclasses of {@link QueryModelMapping} this does NOT use the item mapping
+ * and resolver maps, but instead creates the mapper on the fly with currently available information
+ * and lets the extension mapper/resolver do the real work.
+ * This allows for dynamic mapping which is needed especially for shadow attributes.
  *
  * @param <C> schema type for the extension/attributes container
  * @param <Q> type of entity path
@@ -45,6 +49,6 @@ public class ExtensionMapping<C extends Containerable, Q extends FlexibleRelatio
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
         MExtItemHolderType holderType = schemaType().equals(ExtensionType.class)
                 ? MExtItemHolderType.EXTENSION : MExtItemHolderType.ATTRIBUTES;
-        return new ExtensionItemSqlMapper<Q, R>(rootToExtensionPath, itemName, holderType);
+        return new ExtensionItemSqlMapper<>(rootToExtensionPath, itemName, holderType);
     }
 }

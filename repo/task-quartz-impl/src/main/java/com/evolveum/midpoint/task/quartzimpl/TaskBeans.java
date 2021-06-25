@@ -27,8 +27,6 @@ import com.evolveum.midpoint.task.quartzimpl.tasks.TaskInstantiator;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskPersister;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,8 +58,6 @@ public class TaskBeans {
     @Autowired public LocalNodeState localNodeState;
     @Autowired public NodeCleaner nodeCleaner;
     @Autowired public NodeRegistrar nodeRegistrar;
-    @Autowired public WorkStateManager workStateManager;
-    @Autowired public WorkersManager workersManager;
     @Autowired public UpAndDown upAndDown;
     @Autowired public LightweightTaskManager lightweightTaskManager;
     @Autowired public TaskSynchronizer taskSynchronizer;

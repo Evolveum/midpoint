@@ -56,6 +56,8 @@ public class TestCommandLine extends AbstractIntegrationTest {
 
     @Test
     public void test100PlainExecuteEcho() throws Exception {
+        given();
+
         if (!isOsUnix()) {
             displaySkip();
             return;

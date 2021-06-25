@@ -17,7 +17,6 @@ import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 
 import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
 
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,7 +45,7 @@ class TaskCycleExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final String DOT_CLASS = TaskCycleExecutor.class.getName() + ".";
-    public static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
+    private static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
 
     @NotNull private final RunningTaskQuartzImpl task;
     @NotNull private final TaskHandler handler;
@@ -55,7 +54,7 @@ class TaskCycleExecutor {
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
-    public TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
+    TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
             @NotNull JobExecutor jobExecutor, @NotNull TaskBeans beans) {
         this.task = task;
         this.handler = handler;
@@ -69,8 +68,8 @@ class TaskCycleExecutor {
         } else if (task.isRecurring()) {
             executeRecurringTask();
         } else {
-            LOGGER.error("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
-            result.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Sorry.");
+            LOGGER.error("Tasks must be either recurring or single-run. This one is neither. Sorry.");
+            result.recordFatalError("Tasks must be either recurring or single-run. This one is neither. Sorry.");
             jobExecutor.closeFlawedTaskRecordingResult(result);
             throw new StopJobException();
         }
@@ -100,7 +99,7 @@ class TaskCycleExecutor {
                 if (task.isTightlyBound()) {
                     waitForNextRun(result);
                 } else {
-                    LOGGER.trace("CycleRunner loop: task is loosely bound, exiting the execution cycle");
+                    LOGGER.trace("Execution loop: task is loosely bound, exiting the execution cycle");
                     break;
                 }
             }
@@ -124,21 +123,16 @@ class TaskCycleExecutor {
     /** Task is refreshed after returning from this method. */
     private TaskRunResult executeTaskCycleRun(OperationResult result) throws StopTaskException {
         processCycleRunStart(result);
-        TaskRunResult runResult = executeHandler(handler, result);
+        TaskRunResult runResult = executeHandler(result);
         processCycleRunFinish(runResult, result);
         return runResult;
     }
 
     @NotNull
-    private TaskRunResult executeHandler(TaskHandler handler, OperationResult result) {
-        if (task.getResult() == null) {
-            LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
-            task.setResultTransient(TaskQuartzImpl.createUnnamedTaskResult());
-        }
-
+    private TaskRunResult executeHandler(OperationResult result) {
         TaskRunResult runResult;
         try {
-            runResult = beans.handlerExecutor.executeHandler(task, null, handler, result);
+            runResult = beans.handlerExecutor.executeHandler(task, handler, result);
         } finally {
             // TEMPORARY see MID-6343; TODO implement correctly!
             beans.counterManager.cleanupCounters(task.getOid());
@@ -160,7 +154,6 @@ class TaskCycleExecutor {
             setNewOperationResult();
             task.flushPendingModifications(result);
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot process run start for task {}", e, task);
             throw new SystemException("Cannot process cycle run start: " + e.getMessage(), e);
         }
     }
@@ -210,6 +203,13 @@ class TaskCycleExecutor {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
                     task.setResult(runResult.getOperationResult());
                 }
+            } else {
+                // This updates the result in the task object. TODO improve
+                OperationResult taskResult = task.getResult();
+                if (runResult.getOperationResultStatus() != null) {
+                    taskResult.recordStatus(runResult.getOperationResultStatus(), ""); // TODO
+                }
+                task.setResult(taskResult);
             }
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             task.flushPendingModifications(result);
@@ -230,8 +230,8 @@ class TaskCycleExecutor {
             LOGGER.info("Task encountered temporary error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR) {
-            LOGGER.trace("Task encountered permanent error. Closing it. Task = {}", task);
-            beans.taskStateManager.closeTask(task, result);
+            LOGGER.trace("Task encountered permanent error. Suspending it. Task = {}", task);
+            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);

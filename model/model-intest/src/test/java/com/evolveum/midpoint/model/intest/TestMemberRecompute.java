@@ -350,7 +350,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
             assertTask(triggerScanner, "trigger scanner after")
                     .display()
                     .assertSuccess()
-                    .iterativeTaskInformation()
+                    .rootItemProcessingInformation()
                         .assertSuccessCount(3);
         } finally {
             clock.resetOverride();

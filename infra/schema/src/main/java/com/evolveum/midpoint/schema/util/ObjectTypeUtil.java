@@ -982,6 +982,60 @@ public class ObjectTypeUtil {
         object.asObjectable().setFetchResult(resultBean);
     }
 
+    public static Collection<ObjectReferenceType> createObjectRefs(Collection<PrismReferenceValue> values) {
+        return values.stream()
+                .map(ObjectTypeUtil::createObjectRef)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns display name for given object, e.g. fullName for a user, displayName for a role,
+     * and more detailed description for a shadow. TODO where exactly does this method belong?
+     */
+    public static <O extends ObjectType> String getDetailedDisplayName(PrismObject<O> object) {
+        if (object == null) {
+            return null;
+        }
+        O objectable = object.asObjectable();
+        if (objectable instanceof UserType) {
+            return PolyString.getOrig(((UserType) objectable).getFullName());
+        } else if (objectable instanceof AbstractRoleType) {
+            return PolyString.getOrig(((AbstractRoleType) objectable).getDisplayName());
+        } else if (objectable instanceof ShadowType) {
+            ShadowType shadow = (ShadowType) objectable;
+            String objectName = PolyString.getOrig(shadow.getName());
+            QName oc = shadow.getObjectClass();
+            String ocName = oc != null ? oc.getLocalPart() : null;
+            return objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the type name for an object.
+     * (This really belongs somewhere else, not here.)
+     */
+    public static QName getObjectType(ObjectType object, PrismContext prismContext) {
+        if (object == null) {
+            return null;
+        }
+        PrismObjectDefinition<?> objectDef = object.asPrismObject().getDefinition();
+        if (objectDef != null) {
+            return objectDef.getTypeName();
+        }
+        Class<? extends Objectable> clazz = object.asPrismObject().getCompileTimeClass();
+        if (clazz == null) {
+            return null;
+        }
+        PrismObjectDefinition<?> defFromRegistry = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        if (defFromRegistry != null) {
+            return defFromRegistry.getTypeName();
+        } else {
+            return ObjectType.COMPLEX_TYPE;
+        }
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

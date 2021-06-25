@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,8 +27,7 @@ public class RepoCommonUtils {
 
     public static void processErrorCriticality(Object object, CriticalityType criticality, Throwable e, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            PreconditionViolationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         switch (criticality) {
             case FATAL:
                 LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
@@ -56,8 +54,7 @@ public class RepoCommonUtils {
 
     public static void throwException(Throwable e, OperationResult result)
         throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            PreconditionViolationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         if (result != null) {
             result.recordFatalError(e);
         }
@@ -81,8 +78,6 @@ public class RepoCommonUtils {
             throw (ExpressionEvaluationException)e;
         } else if (e instanceof ObjectAlreadyExistsException) {
             throw (ObjectAlreadyExistsException)e;
-        } else if (e instanceof PreconditionViolationException) {
-            throw (PreconditionViolationException)e;
         } else {
             throw new SystemException(e.getMessage(), e);
         }

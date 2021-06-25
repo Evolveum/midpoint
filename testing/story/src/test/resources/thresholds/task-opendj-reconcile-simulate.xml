@@ -27,33 +27,36 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3</handlerUri>
-
-    <workManagement>
-        <partitions>
-            <partition>
-                <index>2</index>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-                <stage>execute</stage>
-                <errorCriticality>
-                    <policy>fatal</policy>
-                </errorCriticality>
-            </partition>
-            <partition>
-                <index>1</index>
-                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-                <stage>simulate</stage>
-                <errorCriticality>
-                    <policy>fatal</policy>
-                </errorCriticality>
-            </partition>
-        </partitions>
-    </workManagement>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 
     <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
+
     <recurrence>recurring</recurrence>
     <schedule>
         <interval>5</interval>
     </schedule>
+
+    <activity>
+        <tailoring>
+            <change>
+                <reference>resourceReconciliationSimulation</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>resourceReconciliation</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadows</reference>
+                <controlFlow>
+                    <processingOption>skip</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
 
 </task>

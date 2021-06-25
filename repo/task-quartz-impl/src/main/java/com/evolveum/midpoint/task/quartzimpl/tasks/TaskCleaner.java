@@ -15,7 +15,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -72,7 +73,7 @@ public class TaskCleaner {
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
-        int bigProblems = 0;
+        int subtasksProblems = 0;
         for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
 
             if (!executionTask.canRun()) {
@@ -83,7 +84,7 @@ public class TaskCleaner {
             }
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
-                    new IterationItemInformation(rootTaskPrism), SchemaConstants.CLOSED_TASKS_CLEANUP_TASK_PART_URI);
+                    new IterationItemInformation(rootTaskPrism));
             iterativeOperationStartInfo.setStructuredProgressCollector(executionTask);
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {
@@ -105,7 +106,7 @@ public class TaskCleaner {
                         lastProblem = e;
                         problems++;
                         if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
-                            bigProblems++;
+                            subtasksProblems++;
                         }
                     }
                 }
@@ -125,10 +126,10 @@ public class TaskCleaner {
 
         LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished")
                 + ". Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
-        if (bigProblems > 0) {
+        if (subtasksProblems > 0) {
             LOGGER.error(
                     "{} subtask(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.",
-                    bigProblems);
+                    subtasksProblems);
         }
         String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
@@ -138,8 +139,8 @@ public class TaskCleaner {
             result.createSubresult(OP_STATISTICS)
                     .recordPartialError("Successfully deleted " + deleted + " task(s), "
                             + "there was problems with deleting " + problems + " tasks." + suffix
-                            + (bigProblems > 0 ?
-                            (" " + bigProblems + " subtask(s) couldn't be deleted, please see the log.") :
+                            + (subtasksProblems > 0 ?
+                            (" " + subtasksProblems + " subtask(s) couldn't be deleted, please see the log.") :
                             ""));
         }
     }

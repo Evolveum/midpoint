@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -80,7 +79,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
     }
 
     public void execute(OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            PreconditionViolationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException,
+            ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
         if (!shouldExecute()) {
@@ -124,7 +123,12 @@ public class ProjectionChangeExecution<O extends ObjectType> {
 
             if (!skipDeltaExecution) {
                 DeltaExecution<O, ShadowType> deltaExecution = new DeltaExecution<>(context, projCtx, projectionDelta, null, task, b);
-                deltaExecution.execute(result);
+                try {
+                    deltaExecution.execute(result);
+                } catch (ConflictDetectedException e) {
+                    throw new SystemException("Unexpected conflict exception (these should be present on focus objects only): "
+                            + e.getMessage(), e);
+                }
                 shadowLivenessState = deltaExecution.getShadowLivenessState();
                 if (projCtx.isAdd() && deltaExecution.getObjectAfterModification() != null) {
                     // FIXME This is suspicious. For example, the shadow creation can be delayed.

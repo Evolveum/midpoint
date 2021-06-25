@@ -37,7 +37,7 @@ class ConcurrentExecutionChecker {
     private final RunningTaskQuartzImpl task;
     private final TaskBeans beans;
 
-    public ConcurrentExecutionChecker(RunningTaskQuartzImpl task, TaskBeans beans) {
+    ConcurrentExecutionChecker(RunningTaskQuartzImpl task, TaskBeans beans) {
         this.task = task;
         this.beans = beans;
     }

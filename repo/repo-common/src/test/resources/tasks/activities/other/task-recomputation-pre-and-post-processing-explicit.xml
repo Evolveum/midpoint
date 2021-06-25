@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="68da9812-45ed-4cd6-86eb-1006b3f7d9ea"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>task-single-recomputation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <scripting>
+                        <executeScript>
+                            <s:execute>
+                                <s:script>
+                                    <code>log.info('hi')</code>
+                                </s:script>
+                            </s:execute>
+                        </executeScript>
+                    </scripting>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <work>
+                    <recomputation>
+                        <objectSet>
+                            <objectType>UserType</objectType>
+                        </objectSet>
+                    </recomputation>
+                </work>
+            </activity>
+            <activity>
+                <order>3</order>
+                <work>
+                    <scripting>
+                        <executeScript>
+                            <s:execute>
+                                <s:script>
+                                    <code>log.info('done')</code>
+                                </s:script>
+                            </s:execute>
+                        </executeScript>
+                    </scripting>
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>

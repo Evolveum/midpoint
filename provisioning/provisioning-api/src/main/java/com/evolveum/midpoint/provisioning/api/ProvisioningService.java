@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -164,8 +163,9 @@ public interface ProvisioningService {
      *
      * TODO: Better description
      *
-     * @param resourceOid
-     *            OID of the resource for which to attempt synchronization
+     * @param shadowCoordinates
+     *            where to attempt synchronization
+     * @param simulate
      * @param parentResult
      *            parent OperationResult (in/out)
      * @return the number of processed changes
@@ -181,10 +181,10 @@ public interface ProvisioningService {
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition,
+    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, boolean simulate,
             LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
+            ExpressionEvaluationException, PolicyViolationException;
 
     /**
      * Processes asynchronous updates for a given resource.

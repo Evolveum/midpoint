@@ -11,6 +11,8 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,7 +40,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 
 /**
@@ -64,11 +65,11 @@ public class LiveSynchronizer {
 
     @NotNull
     public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, TaskPartitionDefinitionType partition, LiveSyncEventHandler handler, OperationResult gResult)
+            Task task, boolean simulate, LiveSyncEventHandler handler, OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, partition, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, simulate, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -229,12 +230,12 @@ public class LiveSynchronizer {
         private final OldestTokenWatcher oldestTokenWatcher;
         private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType partition, OperationResult result)
+        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, boolean simulate, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.create(shadowCoordinates, task, result);
             this.task = task;
-            this.simulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
+            this.simulate = simulate;
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 

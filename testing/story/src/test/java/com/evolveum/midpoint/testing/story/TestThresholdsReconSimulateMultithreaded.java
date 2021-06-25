@@ -11,12 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 /**
  * @author katka
@@ -54,7 +54,7 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
         assertThat(getFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
@@ -74,7 +74,7 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
         assertThat(getFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
@@ -94,7 +94,7 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
         assertEquals(getFailureCount(taskAfter), 1);
 
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
 //        //user4

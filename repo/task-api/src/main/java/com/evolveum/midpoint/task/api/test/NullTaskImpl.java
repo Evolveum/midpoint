@@ -11,9 +11,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -279,7 +283,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> void setExtensionPropertyValue(QName propertyName, T value) {
+    public <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException {
         throw new UnsupportedOperationException();
     }
 
@@ -415,7 +419,27 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
+        return null;
+    }
+
+    @Override
+    public <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        return null;
+    }
+
+    @Override
+    public <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        return null;
+    }
+
+    @Override
+    public ObjectReferenceType getReferenceRealValue(ItemPath path) {
+        return null;
+    }
+
+    @Override
+    public Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path) {
         return null;
     }
 
@@ -559,10 +583,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
-    }
-
-    @Override
     public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
     }
 
@@ -575,23 +595,23 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier, @NotNull QualifiedItemProcessingOutcomeType outcome) {
+    public void startCollectingSynchronizationStatistics(SynchronizationStatisticsCollector collector) {
     }
 
     @Override
-    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    public void stopCollectingSynchronizationStatistics(@NotNull QualifiedItemProcessingOutcomeType outcome) {
     }
 
     @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
     }
 
     @Override
-    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
+    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
     }
 
     @Override
-    public IterativeTaskInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
+    public IterationInformation.@NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         throw new UnsupportedOperationException();
     }
 
@@ -600,19 +620,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
-    }
-
-    @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> objectOld, Class<T> objectTypeClass, String oid, ChangeType delete, String channel, Throwable o) {
-    }
-
-    @Override
-    public void markObjectActionExecutedBoundary() {
     }
 
     @Override
@@ -655,13 +667,33 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public TaskWorkManagementType getWorkManagement() {
+    public WorkDistributionType getWorkManagement() {
         return null;
     }
 
     @Override
-    public TaskWorkStateType getWorkState() {
+    public TaskActivityStateType getWorkState() {
         return null;
+    }
+
+    @Override
+    public TaskActivityStateType getActivitiesStateOrClone() {
+        return null;
+    }
+
+    @Override
+    public <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type) {
+        return null;
+    }
+
+    @Override
+    public boolean doesItemExist(ItemPath path) {
+        return false;
+    }
+
+    @Override
+    public ActivityStateType getActivityStateOrClone(ItemPath path) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -713,11 +745,6 @@ public class NullTaskImpl implements Task {
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
     }
 
-    @Override
-    public boolean isScavenger() {
-        return false;
-    }
-
     @NotNull
     @Override
     public Collection<TracingRootType> getTracingRequestedFor() {
@@ -745,5 +772,21 @@ public class NullTaskImpl implements Task {
     @Override
     public boolean hasAssignments() {
         return false;
+    }
+
+    @Override
+    public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    }
+
+    @Override
+    public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
+    }
+
+    @Override
+    public void startCollectingActionsExecuted(ActionsExecutedCollector collector) {
+    }
+
+    @Override
+    public void stopCollectingActionsExecuted() {
     }
 }

@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -18,7 +18,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +27,6 @@ import javax.annotation.PostConstruct;
 
 /**
  * The task handler for automatic campaign start.
- *
- * @author mederly
  */
 @Component
 public class AccessCertificationCampaignCreationTaskHandler implements TaskHandler {
@@ -55,7 +52,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");

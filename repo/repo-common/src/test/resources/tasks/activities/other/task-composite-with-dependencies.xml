@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="68da9812-45ed-4cd6-86eb-1006b3f7d9ea"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
+    <name>composite-with-dependencies</name>
+
+    <activity>
+        <composition>
+            <activity>
+                <identifier>recomputation1</identifier>
+                <work>
+                    <recomputation>
+                        <objectSet>
+                            <objectType>UserType</objectType>
+                        </objectSet>
+                    </recomputation>
+                </work>
+            </activity>
+            <activity>
+                <identifier>recomputation2</identifier>
+                <work>
+                    <recomputation>
+                        <objectSet>
+                            <objectType>RoleType</objectType>
+                        </objectSet>
+                    </recomputation>
+                </work>
+                <distribution>
+                    <workerThreads>100</workerThreads>
+                </distribution>
+            </activity>
+
+            <activity>
+
+                <identifier>script-and-final-recomputation</identifier>
+                <composition>
+                    <activity>
+                        <order>1</order>
+                        <work>
+                            <scripting>
+                                <executeScript>
+                                    <s:execute>
+                                        <s:script>
+                                            <code>log.info('hi')</code>
+                                        </s:script>
+                                    </s:execute>
+                                </executeScript>
+                            </scripting>
+                        </work>
+                    </activity>
+                    <activity>
+                        <order>2</order>
+                        <work>
+                            <recomputation/>
+                        </work>
+                    </activity>
+
+                </composition>
+                <controlFlow>
+                    <prerequisite>recomputation1</prerequisite>
+                    <prerequisite>recomputation2</prerequisite>
+                </controlFlow>
+
+            </activity>
+
+        </composition>
+        <controlFlow>
+            <!-- relates to top-level activities only -->
+            <parallelExecution>true</parallelExecution>
+        </controlFlow>
+    </activity>
+
+</task>

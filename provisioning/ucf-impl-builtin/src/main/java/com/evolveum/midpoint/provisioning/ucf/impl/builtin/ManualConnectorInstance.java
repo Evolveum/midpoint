@@ -226,7 +226,31 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
         List<ObjectReferenceType> operators = new ArrayList<>();
         if (businessConfiguration != null) {
-            operators.addAll(businessConfiguration.getOperatorRef());
+            businessConfiguration.getOperatorRef().stream().forEach((ObjectReferenceType operatorRef) -> {
+
+                if (operatorRef.getType().equals(RoleType.COMPLEX_TYPE)
+                        || operatorRef.getType().equals(OrgType.COMPLEX_TYPE)) {
+                    ObjectQuery membersQuery = getPrismContext().queryFor(UserType.class)
+                            .type(UserType.class)
+                            .item(FocusType.F_ROLE_MEMBERSHIP_REF)
+                            .ref(getPrismContext().itemFactory().createReferenceValue(operatorRef.getOid()))
+                            .build();
+
+                    List<PrismObject<UserType>> members = null;
+
+                    try {
+                        members = repositoryService.searchObjects(UserType.class, membersQuery, null, result);
+                    } catch (SchemaException ex) {
+                        LOGGER.error("Manual connector could not find members in operators role {}", ex);
+                    }
+
+                    if (members != null && !members.isEmpty()) {
+                        operators.addAll(ObjectTypeUtil.objectListToReferences(members));
+                    }
+                } else {
+                    operators.add(operatorRef);
+                }
+            });
         }
         if (operators.isEmpty() && configuration.getDefaultAssignee() != null) {
             ObjectQuery query = getPrismContext().queryFor(UserType.class)

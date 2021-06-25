@@ -321,12 +321,6 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertEquals("Bad type of 'dead' property (from repo)", DOMUtil.XSD_INT, deadPropertyRepo.getDefinition().getTypeName());
     }
 
-    private void assertSuccess(Task task) {
-        OperationResult taskResult = task.getResult();
-        assertNotNull("Task result is null", taskResult);
-        assertTrue("Task did not yield 'success' status: it is " + taskResult.getStatus(), taskResult.isSuccess());
-    }
-
     private void assertSuccessOrInProgress(Task task) {
         OperationResult taskResult = task.getResult();
         assertNotNull("Task result is null", taskResult);
@@ -786,8 +780,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
-            assertTrue("Handler has not run", handler.hasRun());
-            assertTrue("Handler has not exited", handler.hasExited());
+            assertTrue("Handler has not run in " + subtask, handler.hasRun());
+            assertTrue("Handler has not exited in " + subtask, handler.hasExited());
         }
     }
 
@@ -834,9 +828,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
                     .item(TaskType.F_SUBTASK_REF).retrieve()
                     .build();
             TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
-            int totalSuccessCount = or0(TaskOperationStatsUtil.getItemsProcessed(task.getOperationStats()));
             System.out.println((System.currentTimeMillis() - start) + ": subtasks: " + task.getSubtaskRef().size() +
-                    ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
+                    ", progress = " + task.getProgress());
             if (task.getSchedulingState() != TaskSchedulingStateType.READY) {
                 System.out.println("Done. Status = " + task.getExecutionStatus());
                 break;
@@ -1085,7 +1078,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         when();
 
         TaskType getTaskPlain_rootNoChildren = taskManager.getTaskPlain(rootOid, null, result).getUpdatedTaskObject().asObjectable();
-        TaskType getTaskPlain_rootWithChildren = taskManager.getTaskPlain(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
+        TaskType getTaskPlain_rootWithChildren = taskManager.getTaskPlain(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable(); // no children will be fetched
         TaskType getTask_rootNoChildren = taskManager.getTask(rootOid, null, result).getUpdatedTaskObject().asObjectable();
         TaskType getTask_rootWithChildren = taskManager.getTask(rootOid, withChildren, result).getUpdatedTaskObject().asObjectable();
         TaskType getObject_rootNoChildren = taskManager.getObject(TaskType.class, rootOid, null, result).asObjectable();

@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
 
 import org.apache.wicket.model.Model;
 
@@ -138,12 +137,12 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
                             options, iterations, seconds))
                     .append("\n");
         }
-        WorkBucketManagementPerformanceInformationType buckets = statistics.getWorkBucketManagementPerformanceInformation();
-        if (buckets != null && !buckets.getOperation().isEmpty()) {
-            sb.append("Work buckets management performance information\n\n")
-                    .append(TaskWorkBucketManagementPerformanceInformationUtil.format(buckets, options, iterations, seconds))
-                    .append("\n");
-        }
+//        BucketManagementStatisticsType buckets = statistics.getWorkBucketManagementPerformanceInformation();
+//        if (buckets != null && !buckets.getOperation().isEmpty()) {
+//            sb.append("Work buckets management performance information\n\n")
+//                    .append(ActivityBucketManagementStatisticsUtil.format(buckets, options, iterations, seconds))
+//                    .append("\n");
+//        }
         if (statistics.getCachesPerformanceInformation() != null) {
             sb.append("Cache performance information\n\n")
                     .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation(), options))
@@ -157,16 +156,16 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
         }
         sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         sb.append("Other performance-related information that is shown elsewhere (provided here just for completeness):\n\n");
-        if (statistics.getIterativeTaskInformation() != null) {
-            sb.append("Iterative task information\n\n")
-                    .append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation(), options))
-                    .append("\n");
-        }
-        if (statistics.getActionsExecutedInformation() != null) {
-            sb.append("Actions executed:\n")
-                    .append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
-                    .append("\n");
-        }
+//        if (statistics.getIterativeTaskInformation() != null) {
+//            sb.append("Iterative task information\n\n")
+//                    .append(IterationInformation.format(statistics.getIterativeTaskInformation(), options))
+//                    .append("\n");
+//        }
+//        if (statistics.getActionsExecutedInformation() != null) {
+//            sb.append("Actions executed:\n")
+//                    .append(ActionsExecutedInformationUtil.format(statistics.getActionsExecutedInformation()))
+//                    .append("\n");
+//        }
         if (statistics.getEnvironmentalPerformanceInformation() != null) {
             sb.append("Environmental performance information:\n")
                     .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))

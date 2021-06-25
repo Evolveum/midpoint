@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressOldType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -111,7 +111,7 @@ public class StructuredTaskProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     @NotNull
-    private TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(TaskPartProgressType part, String description) {
+    private TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> part(TaskPartProgressOldType part, String description) {
         assertThat(part).as(description).isNotNull();
         TaskPartProgressAsserter<StructuredTaskProgressAsserter<RA>> asserter =
                 new TaskPartProgressAsserter<>(part, this, getDetails());

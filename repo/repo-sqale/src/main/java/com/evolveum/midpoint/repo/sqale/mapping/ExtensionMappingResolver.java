@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.update.NestedContainerUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -21,7 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  *
  * @param <S> schema type for the extension/attributes container
  * @param <Q> query type of entity where the mapping is declared
- * @param <R> row type of {@link Q} // TODO any useful?
+ * @param <R> row type of {@link Q}
  */
 public class ExtensionMappingResolver<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqaleItemRelationResolver<Q, R> {
@@ -39,14 +38,14 @@ public class ExtensionMappingResolver<S extends Containerable, Q extends Flexibl
     /** Returns the same context and nested mapping. */
     @Override
     public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
-        // TODO needed item definition comes in the filter, no need to capture sub-context, mapping has everything we need
+        // Needed item definition comes in the filter, no need for sub-context, mapping is enough.
         return new ResolutionResult(context, mapping);
     }
 
     @Override
-    public NestedContainerUpdateContext<S, Q, R> resolve(
+    public SqaleUpdateContext<S, Q, R> resolve(
             SqaleUpdateContext<?, Q, R> context, ItemPath ignored) {
-        return null; // TODO
+        return null; // TODO something that simply says to reconstruct ext because it was changed
 //        return new NestedContainerUpdateContext<>(context, mapping);
     }
 }
