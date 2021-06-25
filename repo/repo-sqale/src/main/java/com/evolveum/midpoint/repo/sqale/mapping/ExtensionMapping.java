@@ -49,6 +49,6 @@ public class ExtensionMapping<C extends Containerable, Q extends FlexibleRelatio
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
         MExtItemHolderType holderType = schemaType().equals(ExtensionType.class)
                 ? MExtItemHolderType.EXTENSION : MExtItemHolderType.ATTRIBUTES;
-        return new ExtensionItemSqlMapper<>(rootToExtensionPath, itemName, holderType);
+        return new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType);
     }
 }

@@ -32,7 +32,9 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -68,7 +70,7 @@ public class ExtensionItemFilterProcessor extends ItemFilterProcessor<ValueFilte
     public static final String POLY_STRING_TYPE = QNameUtil.qNameToUri(PolyStringType.COMPLEX_TYPE);
 
     private final MExtItemHolderType holderType;
-    protected final JsonbPath path;
+    private final JsonbPath path;
 
     public ExtensionItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
@@ -83,7 +85,7 @@ public class ExtensionItemFilterProcessor extends ItemFilterProcessor<ValueFilte
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         ItemDefinition<?> definition = filter.getDefinition();
-        MExtItem extItem = ((SqaleQueryContext<?, ?, ?>) context).repositoryContext()
+        MExtItem extItem = new ExtensionProcessor((SqaleRepoContext) context.repositoryContext())
                 .resolveExtensionItem(definition, holderType);
         assert definition != null;
         if (extItem == null) {

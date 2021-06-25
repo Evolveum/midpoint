@@ -2407,6 +2407,47 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
     // endregion
 
+    // region extension items
+    @Test
+    public void test500SettingExtensionItemValue() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding string extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("string"))
+                .replace("string-value500")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull();
+        assertThat(extensionContainer.asPrismContainerValue().findItem(new ItemName("string")))
+                .isNotNull()
+                .extracting(i -> i.getRealValue())
+                .isEqualTo("string-value500");
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500");
+    }
+
+    // TODO index only not done
+    // endregion
+
     // TODO: photo test, currently it puts it into fullObject and not into column.
     //  It should be other way around.
 

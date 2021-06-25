@@ -34,9 +34,9 @@ public class NestedContainerUpdateContext<S extends Containerable, Q extends Fle
     }
 
     @Override
-    public Q path() {
+    public Q entityPath() {
         //noinspection unchecked
-        return (Q) parentContext.path();
+        return (Q) parentContext.entityPath();
     }
 
     @Override

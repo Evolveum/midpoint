@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1438,9 +1437,8 @@ AND(
     @Test
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
-                f -> f.item(ItemPath.create(
-                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv")),
-                        shadowAttributeDefinition)
+                f -> f.itemWithDef(shadowAttributeDefinition,
+                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
     }

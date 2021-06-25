@@ -66,7 +66,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                         .and(rootPath.version.eq(objectVersion)));
     }
 
-    public Q path() {
+    public Q entityPath() {
         return rootPath;
     }
 

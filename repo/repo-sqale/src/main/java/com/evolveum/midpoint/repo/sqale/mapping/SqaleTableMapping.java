@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.*;
-
-import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -21,10 +19,9 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.ExtUtils;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
@@ -33,8 +30,6 @@ import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
-import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
-import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -55,7 +50,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -373,124 +367,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .execute();
     }
 
-    // region extension processing
-
-    /** Contains ext item from catalog and additional info needed for processing. */
-    private static class ExtItemInfo {
-        public MExtItem item;
-        public QName defaultRefTargetType;
-
-        public String getId() {
-            return item.id.toString();
-        }
-    }
-
-    protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
-        if (extContainer == null) {
-            return null;
-        }
-
-        Map<String, Object> extMap = new LinkedHashMap<>();
-        PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
-        for (Item<?, ?> item : prismContainerValue.getItems()) {
-            try {
-                ExtItemInfo extItemInfo = findExtensionItem(item, holderType);
-                if (extItemInfo == null) {
-                    continue; // not-indexed, skipping this item
-                }
-                extMap.put(extItemInfo.getId(), extItemValue(item, extItemInfo));
-            } catch (RuntimeException e) {
-                // If anything happens (like NPE in Map.of) we want to capture the "bad" item.
-                throw new SystemException(
-                        "Unexpected exception while processing extension item " + item, e);
-            }
-        }
-
-        try {
-            return Jsonb.from(extMap);
-        } catch (IOException e) {
-            throw new SystemException(e);
-        }
-    }
-
-    /** Returns ext item definition or null if the item is not indexed and should be skipped. */
-    private ExtItemInfo findExtensionItem(Item<?, ?> item, MExtItemHolderType holderType) {
-        Objects.requireNonNull(item, "Object for converting must not be null.");
-
-        ItemDefinition<?> definition = item.getDefinition();
-        MExtItem extItem = repositoryContext().resolveExtensionItem(definition, holderType);
-        if (extItem == null) {
-            return null;
-        }
-
-        // TODO review any need for shadow attributes, now they are stored fine, but the code here
-        //  is way too simple compared to the old repo.
-
-        ExtItemInfo info = new ExtItemInfo();
-        info.item = extItem;
-        if (definition instanceof PrismReferenceDefinition) {
-            info.defaultRefTargetType = ((PrismReferenceDefinition) definition).getTargetTypeName();
-        }
-
-        return info;
-    }
-
-    private Object extItemValue(Item<?, ?> item, ExtItemInfo extItemInfo) {
-        MExtItem extItem = extItemInfo.item;
-        if (extItem.cardinality == MExtItemCardinality.ARRAY) {
-            List<Object> vals = new ArrayList<>();
-            for (Object realValue : item.getRealValues()) {
-                vals.add(convertExtItemValue(realValue, extItemInfo));
-            }
-            return vals;
-        } else {
-            return convertExtItemValue(item.getRealValue(), extItemInfo);
-        }
-    }
-
-    private Object convertExtItemValue(Object realValue, ExtItemInfo extItemInfo) {
-        if (realValue instanceof String
-                || realValue instanceof Number
-                || realValue instanceof Boolean) {
-            return realValue;
-        }
-
-        if (realValue instanceof PolyString) {
-            PolyString poly = (PolyString) realValue;
-            return Map.of(EXT_POLY_ORIG_KEY, poly.getOrig(),
-                    EXT_POLY_NORM_KEY, poly.getNorm());
-        }
-
-        if (realValue instanceof Referencable) {
-            Referencable ref = (Referencable) realValue;
-            // we always want to store the type for consistent search results
-            QName targetType = ref.getType();
-            if (targetType == null) {
-                targetType = extItemInfo.defaultRefTargetType;
-            }
-            if (targetType == null) {
-                throw new IllegalArgumentException(
-                        "Reference without target type can't be stored: " + ref);
-            }
-            return Map.of(EXT_REF_TARGET_OID_KEY, ref.getOid(),
-                    EXT_REF_TARGET_TYPE_KEY, schemaTypeToObjectType(targetType),
-                    EXT_REF_RELATION_KEY, processCacheableRelation(ref.getRelation()));
-        }
-
-        if (realValue instanceof Enum) {
-            return realValue.toString();
-        }
-
-        if (realValue instanceof XMLGregorianCalendar) {
-            // XMLGregorianCalendar stores only millis, but we cut it to 3 fraction digits
-            // to make the behavior explicit and consistent.
-            return ExtUtils.extensionDateTime((XMLGregorianCalendar) realValue);
-        }
-
-        throw new IllegalArgumentException(
-                "Unsupported type '" + realValue.getClass() + "' for value '" + realValue + "'.");
-    }
-
     /**
      * Adds extension container mapping, mainly the resolver for the extension container path.
      *
@@ -502,7 +378,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Function<Q, JsonbPath> rootToPath) {
         ExtensionMapping<C, Q, R> mapping =
                 new ExtensionMapping<>(nestedSchemaType, queryType(), rootToPath);
-        addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, itemName));
+        addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
     }
-    // endregion
+
+    /** Converts extension container to the JSONB value. */
+    protected Jsonb processExtensions(Containerable extContainer, MExtItemHolderType holderType) {
+        if (extContainer == null) {
+            return null;
+        }
+
+        return new ExtensionProcessor(repositoryContext())
+                .processExtensions(extContainer, holderType);
+    }
 }

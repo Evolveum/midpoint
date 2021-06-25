@@ -7,14 +7,14 @@
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.function.Function;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.item.ExtensionItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ExtensionItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -33,15 +33,12 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
         implements UpdatableItemSqlMapper<Q, R> {
 
     private final Function<Q, JsonbPath> rootToExtensionPath;
-    private final QName itemName; // TODO remove if not needed for deltas/modify
     private final MExtItemHolderType holderType;
 
     public ExtensionItemSqlMapper(
             @NotNull Function<Q, JsonbPath> rootToExtensionPath,
-            @NotNull QName itemName,
             @NotNull MExtItemHolderType holderType) {
         this.rootToExtensionPath = rootToExtensionPath;
-        this.itemName = itemName;
         this.holderType = holderType;
     }
 
@@ -65,9 +62,8 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public <T> ItemDeltaValueProcessor<T> createItemDeltaProcessor(
+    public ItemDeltaProcessor createItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
-        // TODO
-        return null;
+        return new ExtensionItemDeltaProcessor(sqlUpdateContext, holderType);
     }
 }

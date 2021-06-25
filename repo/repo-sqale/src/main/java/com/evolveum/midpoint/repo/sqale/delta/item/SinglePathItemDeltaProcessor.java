@@ -32,7 +32,7 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
     public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemDeltaProcessor(
             SqaleUpdateContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
         super(context);
-        this.path = rootToQueryItem.apply(context.path());
+        this.path = rootToQueryItem.apply(context.entityPath());
     }
 
     @Override
