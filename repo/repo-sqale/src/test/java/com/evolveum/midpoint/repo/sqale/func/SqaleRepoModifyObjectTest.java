@@ -10,12 +10,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 
 import org.assertj.core.api.Assertions;
@@ -2312,7 +2315,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         + " Delta path must always point to item, not to value");
     }
 
-    @Test(enabled = false) // WIP 4.4-M2
+    @Test
     public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
@@ -2320,10 +2323,13 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta adding case for campaign 1");
         UUID targetOid = UUID.randomUUID();
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+                .stageNumber(3)
+                .iteration(4)
+                .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
         ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_CASE)
-                .add(new AccessCertificationCaseType(prismContext)
-                        .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE)) // default relation
+                .add(caseBefore) // default relation
                 .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
@@ -2354,9 +2360,18 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
         assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
 
-        // TODO: case full object
+        String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
+        display("Case full object:\n" + fullObjectStr);
+        String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(caseBefore.asPrismContainerValue());
+        assertThat(fullObjectStr).isEqualTo(caseBeforeStr);
     }
 
+    // TODO: cert case modify test, assert correct full object
 
     @Test
     public void test399DeleteAllAssignments()
