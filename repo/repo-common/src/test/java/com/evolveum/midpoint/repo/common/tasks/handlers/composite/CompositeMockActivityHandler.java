@@ -13,7 +13,14 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
+
+import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
+
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +45,7 @@ public class CompositeMockActivityHandler
 
     @Autowired ActivityHandlerRegistry registry;
     @Autowired WorkDefinitionFactory workDefinitionFactory;
+    @Autowired private CommonMockActivityHelper mockHelper;
     @Autowired MockRecorder recorder;
 
     @PostConstruct
@@ -67,15 +75,19 @@ public class CompositeMockActivityHandler
         CompositeMockWorkDefinition workDefinition = parentActivity.getWorkDefinition();
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         if (workDefinition.isOpeningEnabled()) {
-            children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+            children.add(EmbeddedActivity.create(
+                    parentActivity.getDefinition(),
                     (context, result) -> new MockOpeningActivityExecution(context),
+                    this::runBeforeExecution,
                     (i) -> "opening",
                     ActivityStateDefinition.normal(),
                     parentActivity));
         }
         if (workDefinition.isClosingEnabled()) {
-            children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+            children.add(EmbeddedActivity.create(
+                    parentActivity.getDefinition(),
                     (context, result) -> new MockClosingActivityExecution(context),
+                    this::runBeforeExecution,
                     (i) -> "closing",
                     ActivityStateDefinition.perpetual(),
                     parentActivity));
@@ -83,9 +95,36 @@ public class CompositeMockActivityHandler
         return children;
     }
 
-    @NotNull
-    public MockRecorder getRecorder() {
+    private void runBeforeExecution(EmbeddedActivity<CompositeMockWorkDefinition, CompositeMockActivityHandler> activity,
+            RunningTask runningTask, OperationResult result) throws CommonException {
+        ActivityState<?> parentActivityState =
+                ActivityState.getActivityState(
+                        activity.getPath().allExceptLast(),
+                        runningTask,
+                        AbstractActivityWorkStateType.COMPLEX_TYPE,
+                        result);
+        getMockHelper().setLastMessage(
+                parentActivityState,
+                createUpdatedMessage(
+                        getMockHelper().getLastMessage(parentActivityState),
+                        activity.getIdentifier()),
+                result);
+    }
+
+    private String createUpdatedMessage(String lastMessage, String currentMessage) {
+        if (lastMessage != null) {
+            return lastMessage + " + " + currentMessage;
+        } else {
+            return currentMessage;
+        }
+    }
+
+    public @NotNull MockRecorder getRecorder() {
         return recorder;
+    }
+
+    public @NotNull CommonMockActivityHelper getMockHelper() {
+        return mockHelper;
     }
 
     @Override

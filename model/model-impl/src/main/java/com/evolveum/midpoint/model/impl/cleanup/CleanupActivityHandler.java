@@ -80,7 +80,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
                                 (p, task, result1) -> auditService.cleanupAudit(p, result1)),
-                (i) -> Part.AUDIT_RECORDS.identifier,
+                null, (i) -> Part.AUDIT_RECORDS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -89,7 +89,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
                                 (p, task, result1) -> taskManager.cleanupTasks(p, task, result1)),
-                (i) -> Part.CLOSED_TASKS.identifier,
+                null, (i) -> Part.CLOSED_TASKS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -98,7 +98,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CASES, CleanupPoliciesType::getClosedCases,
                                 this::cleanupCases),
-                (i) -> Part.CLOSED_CASES.identifier,
+                null, (i) -> Part.CLOSED_CASES.identifier,
                 stateDef,
                 parentActivity));
 
@@ -107,7 +107,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
                                 (p, task, result1) -> taskManager.cleanupNodes(p, task, result1)),
-                (i) -> Part.DEAD_NODES.identifier,
+                null, (i) -> Part.DEAD_NODES.identifier,
                 stateDef,
                 parentActivity));
 
@@ -116,7 +116,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
                                 (p, task, result1) -> cleanupReports(p, result1)),
-                (i) -> Part.OUTPUT_REPORTS.identifier,
+                null, (i) -> Part.OUTPUT_REPORTS.identifier,
                 stateDef,
                 parentActivity));
 
@@ -125,7 +125,7 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,
                                 (p, task, result1) -> certificationService.cleanupCampaigns(p, task, result1)),
-                (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
+                null, (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
                 stateDef,
                 parentActivity));
 

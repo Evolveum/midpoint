@@ -31,7 +31,7 @@ class LegacyProgressUpdater {
         this.taskExecution = taskExecution;
     }
 
-    public static void update(@NotNull ActivityState<?> activityState) {
+    public static void update(@NotNull CurrentActivityState<?> activityState) {
 
         AbstractActivityExecution<?, ?, ?> activityExecution = activityState.getActivityExecution();
         ActivityTree activityTree = activityExecution.getActivity().getTree();

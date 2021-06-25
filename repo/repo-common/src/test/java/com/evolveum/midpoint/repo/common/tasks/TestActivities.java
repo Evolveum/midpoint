@@ -1978,7 +1978,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(root.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000000, 200);
 
         then();
 

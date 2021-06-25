@@ -154,6 +154,11 @@ public class ActivityStateUtil {
         return currentWorkStatePath;
     }
 
+    public static boolean isLocal(@NotNull ActivityPath activityPath, @NotNull TaskActivityStateType taskActivityState) {
+        return activityPath.startsWith(
+                getLocalRootPath(taskActivityState));
+    }
+
     /**
      * Returns child activity state - failing if not unique or not existing.
      */

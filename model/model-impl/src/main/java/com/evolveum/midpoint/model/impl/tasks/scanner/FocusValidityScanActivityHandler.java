@@ -66,7 +66,7 @@ public class FocusValidityScanActivityHandler
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, COMBINED),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
                         stateDef,
                         parentActivity));
                 break;
@@ -74,13 +74,13 @@ public class FocusValidityScanActivityHandler
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, OBJECTS),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
                         stateDef,
                         parentActivity));
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, ASSIGNMENTS),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
                         stateDef,
                         parentActivity));
                 break;

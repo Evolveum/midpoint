@@ -79,18 +79,27 @@ public class ActivityPath {
     }
 
     public String first() {
-        stateCheck(!isEmpty(), "Path is empty");
+        checkNotEmpty();
         return identifiers.get(0);
     }
 
-    public ActivityPath rest() {
+    private void checkNotEmpty() {
         stateCheck(!isEmpty(), "Path is empty");
+    }
+
+    public ActivityPath rest() {
+        checkNotEmpty();
         return ActivityPath.fromList(identifiers.subList(1, identifiers.size()));
     }
 
     public String last() {
-        stateCheck(!isEmpty(), "Path is empty");
+        checkNotEmpty();
         return identifiers.get(identifiers.size() - 1);
+    }
+
+    public @NotNull ActivityPath allExceptLast() {
+        checkNotEmpty();
+        return new ActivityPath(identifiers.subList(0, identifiers.size() - 1));
     }
 
     @Override

@@ -27,14 +27,14 @@ public class ActivityStatistics {
     @NotNull private static final ItemPath ACTIONS_EXECUTED_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ACTIONS_EXECUTED);
     @NotNull private static final ItemPath BUCKET_MANAGEMENT_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_BUCKET_MANAGEMENT);
 
-    @NotNull private final ActivityState<?> activityState;
+    @NotNull private final CurrentActivityState<?> activityState;
 
     @NotNull private final ActivityItemProcessingStatistics itemProcessing;
     @NotNull private final ActivitySynchronizationStatistics synchronizationStatistics;
     @NotNull private final ActivityActionsExecuted actionsExecuted;
     @NotNull private final ActivityBucketManagementStatistics bucketManagement;
 
-    ActivityStatistics(@NotNull ActivityState<?> activityState) {
+    ActivityStatistics(@NotNull CurrentActivityState<?> activityState) {
         this.activityState = activityState;
         this.itemProcessing = new ActivityItemProcessingStatistics(activityState);
         this.synchronizationStatistics = new ActivitySynchronizationStatistics();
@@ -97,7 +97,7 @@ public class ActivityStatistics {
         }
     }
 
-    public @NotNull ActivityState<?> getActivityState() {
+    public @NotNull CurrentActivityState<?> getActivityState() {
         return activityState;
     }
 

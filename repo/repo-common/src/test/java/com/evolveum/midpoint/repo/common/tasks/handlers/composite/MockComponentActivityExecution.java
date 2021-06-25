@@ -9,6 +9,10 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 
+import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
@@ -43,7 +47,7 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    protected @NotNull ActivityExecutionResult executeLocal(OperationResult result) {
+    protected @NotNull ActivityExecutionResult executeLocal(OperationResult result) throws CommonException {
 
         CompositeMockWorkDefinition workDef = activity.getWorkDefinition();
 
@@ -78,6 +82,11 @@ public abstract class MockComponentActivityExecution
                 debugDumpLazily());
 
         return standardExecutionResult();
+    }
+
+    @NotNull
+    private CommonMockActivityHelper getMockHelper() {
+        return getActivityHandler().getMockHelper();
     }
 
     @NotNull

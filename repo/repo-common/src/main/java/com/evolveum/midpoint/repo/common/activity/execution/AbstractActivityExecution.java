@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.*;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityProgress;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
+import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -26,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
@@ -72,7 +69,7 @@ public abstract class AbstractActivityExecution<
     /**
      * TODO
      */
-    @NotNull protected final ActivityState<WS> activityState;
+    @NotNull protected final CurrentActivityState<WS> activityState;
 
     // Temporary
     private long startTimestamp;
@@ -81,7 +78,7 @@ public abstract class AbstractActivityExecution<
         this.taskExecution = context.getTaskExecution();
         this.activity = context.getActivity();
         this.activityStateDefinition = determineActivityStateDefinition();
-        this.activityState = new ActivityState<>(this);
+        this.activityState = new CurrentActivityState<>(this);
     }
 
     protected ActivityStateDefinition<WS> determineActivityStateDefinition() {
@@ -139,6 +136,7 @@ public abstract class AbstractActivityExecution<
     @NotNull
     private ActivityExecutionResult executeTreatingExceptions(OperationResult result) {
         try {
+            executeBeforeExecutionRunner(result);
             return executeInternal(result);
         } catch (ActivityExecutionException e) {
             if (e.getOpResultStatus() != SUCCESS) {
@@ -149,6 +147,23 @@ public abstract class AbstractActivityExecution<
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception in {}", e, this);
             return ActivityExecutionResult.exception(FATAL_ERROR, PERMANENT_ERROR, e);
         }
+    }
+
+    /* TODO better name */
+    private void executeBeforeExecutionRunner(OperationResult result) throws ActivityExecutionException, CommonException {
+        if (!(activity instanceof EmbeddedActivity)) {
+            return;
+        }
+        if (this instanceof DelegatingActivityExecution) {
+            return; // We want this to run only for local + distributing executions - TODO TODO TODO
+        }
+        EmbeddedActivity<WD, AH> embeddedActivity = (EmbeddedActivity<WD, AH>) this.activity;
+        BeforeExecutionRunner<WD, AH> beforeExecutionRunner = embeddedActivity.getBeforeExecutionRunner();
+        if (beforeExecutionRunner == null) {
+            return;
+        }
+
+        beforeExecutionRunner.run(embeddedActivity, getRunningTask(), result);
     }
 
     /**
@@ -262,7 +277,7 @@ public abstract class AbstractActivityExecution<
         return activity.getHandler();
     }
 
-    public @NotNull ActivityState<WS> getActivityState() {
+    public @NotNull CurrentActivityState<WS> getActivityState() {
         return activityState;
     }
 

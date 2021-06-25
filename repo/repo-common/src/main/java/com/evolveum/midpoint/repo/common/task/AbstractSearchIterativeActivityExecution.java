@@ -242,7 +242,7 @@ public abstract class AbstractSearchIterativeActivityExecution<
         searchSpecification.setUseRepository(customizeUseRepository(searchSpecification.getUseRepository(), opResult));
     }
 
-    protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult) {
+    protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult) throws CommonException {
         return configuredQuery;
     }
 
