@@ -1502,6 +1502,20 @@
                 <version>3.0.0</version>
                 <scope>runtime</scope>
             </dependency>
+
+            <!-- Version from Spring Boot, but with checker-qual exclusion. -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+                <exclusions>
+                    <!-- in favor of com.google.guava:guava -->
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1513,13 +1527,12 @@
             <name>Evolveum Public Releases</name>
             <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
         </repository>
-      <!-- FIXME -->
+        <!-- FIXME -->
         <repository>
             <id>evolveum-snapshots</id>
             <name>Evolveum Snapshots</name>
             <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </repository>
-      <!-- -->
         <repository>
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
@@ -1539,9 +1552,9 @@
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-          <id>evolveum-nexus</id>
-          <name>Plugin Snapshots</name>
-          <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <id>evolveum-nexus</id>
+            <name>Plugin Snapshots</name>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </pluginRepository>
         <pluginRepository>
             <id>evolveum</id>
