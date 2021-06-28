@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
@@ -15,6 +14,7 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_campaign")
+@DynamicUpdate
 public class RAccessCertificationCampaign extends RObject {
 
     public static final String TABLE_NAME = "m_acc_cert_campaign";

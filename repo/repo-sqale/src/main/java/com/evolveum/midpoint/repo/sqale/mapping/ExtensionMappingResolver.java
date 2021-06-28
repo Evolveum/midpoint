@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
+import java.util.function.Function;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
+import com.evolveum.midpoint.repo.sqale.update.ExtensionUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -26,13 +29,13 @@ public class ExtensionMappingResolver<S extends Containerable, Q extends Flexibl
         implements SqaleItemRelationResolver<Q, R> {
 
     private final ExtensionMapping<S, Q, R> mapping;
-    private final ItemName itemName; // name of the extension container // TODO needed?
+    private final Function<Q, JsonbPath> rootToExtensionPath;
 
     public ExtensionMappingResolver(
             @NotNull ExtensionMapping<S, Q, R> mapping,
-            @NotNull ItemName itemName) {
+            @NotNull Function<Q, JsonbPath> rootToExtensionPath) {
         this.mapping = mapping;
-        this.itemName = itemName;
+        this.rootToExtensionPath = rootToExtensionPath;
     }
 
     /** Returns the same context and nested mapping. */
@@ -45,7 +48,7 @@ public class ExtensionMappingResolver<S extends Containerable, Q extends Flexibl
     @Override
     public SqaleUpdateContext<S, Q, R> resolve(
             SqaleUpdateContext<?, Q, R> context, ItemPath ignored) {
-        return null; // TODO something that simply says to reconstruct ext because it was changed
-//        return new NestedContainerUpdateContext<>(context, mapping);
+        JsonbPath jsonbPath = rootToExtensionPath.apply(context.entityPath());
+        return new ExtensionUpdateContext<>(context, mapping, jsonbPath);
     }
 }

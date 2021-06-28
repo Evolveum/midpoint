@@ -146,9 +146,9 @@ public class BasicValidatorTest extends AbstractUnitTest
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         String message = result.getMessage();
-        AssertJUnit.assertTrue(message.contains("Unexpected close tag"));
+        AssertJUnit.assertTrue(message.contains("The element type \"resource\" must be terminated by the matching end-tag \"</resource>\"."));
         // Check if line number is in the error
-        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("26"));
+        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("25"));
 
     }
 
@@ -161,7 +161,7 @@ public class BasicValidatorTest extends AbstractUnitTest
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         String message = result.getMessage();
-        AssertJUnit.assertTrue(message.contains("Undeclared namespace prefix"));
+        AssertJUnit.assertTrue(message.contains("Element type \"ri:Account\" must be followed by either attribute specifications, \">\" or \"/>\"."));
         // Check if line number is in the error
         AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("28"));
 

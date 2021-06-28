@@ -48,7 +48,8 @@ public class QAccessCertificationCampaignMapping
         addItemMapping(F_END_TIMESTAMP,
                 timestampMapper(q -> q.endTimestamp));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
-        addItemMapping(F_ITERATION, integerMapper(q -> q.iteration));
+        // TODO
+        addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addItemMapping(F_OWNER_REF, refMapper(
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
@@ -86,7 +87,8 @@ public class QAccessCertificationCampaignMapping
         row.endTimestamp =
                 MiscUtil.asInstant(schemaObject.getEndTimestamp());
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
-        row.iteration = schemaObject.getIteration();
+        // TODO
+        row.campaignIteration = schemaObject.getIteration();
         setReference(schemaObject.getOwnerRef(),
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,

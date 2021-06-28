@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem.TABLE;
@@ -32,15 +31,12 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-/**
- * @author mederly
- */
-
 @JaxbType(type = CaseWorkItemType.class)
 @Entity
 @IdClass(RCaseWorkItemId.class)
 @Table(name = TABLE)
 @Persister(impl = MidPointSingleTablePersister.class)
+@DynamicUpdate
 public class RCaseWorkItem implements Container<RCase> {
 
     public static final String TABLE = "m_case_wi";

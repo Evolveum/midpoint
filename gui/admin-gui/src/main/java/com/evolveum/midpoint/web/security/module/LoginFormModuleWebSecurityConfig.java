@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
@@ -76,8 +77,7 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
 
         http.logout().clearAuthentication(true)
-                .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
-//                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
+                .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() + "/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
@@ -87,7 +87,7 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
             http.addFilterBefore(requestSingleLogoutFilter, LogoutFilter.class);
         }
 
-                                if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
             http.addFilterBefore(requestAttributeAuthenticationFilter, LogoutFilter.class);
         }
     }

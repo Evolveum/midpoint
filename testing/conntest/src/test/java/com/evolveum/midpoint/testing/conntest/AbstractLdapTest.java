@@ -587,9 +587,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             }
         } else {
             List<String> vals = new ArrayList<>();
-            Iterator<Value<?>> iterator = ldapAttribute.iterator();
+            Iterator<Value> iterator = ldapAttribute.iterator();
             while (iterator.hasNext()) {
-                Value<?> value = iterator.next();
+                Value value = iterator.next();
                 if (matchingRule == null) {
                     if (expectedValue.equals(value.getString())) {
                         return;
@@ -613,7 +613,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         String dn = entry.getDn().toString();
         Attribute ldapAttribute = entry.get(attrName);
         if (ldapAttribute != null) {
-            for (Value<?> value : ldapAttribute) {
+            for (Value value : ldapAttribute) {
                 if (matchingRule == null) {
                     if (expectedValue.equals(value.getString())) {
                         AssertJUnit.fail("Attribute " + attrName + " in " + dn + " contains value " + expectedValue + ", but it should not have it");

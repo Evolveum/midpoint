@@ -33,7 +33,7 @@ public class MAccessCertificationCase extends MContainer {
 
     public String currentStageOutcome;
     public byte[] fullObject;
-    public Integer iteration;
+    public Integer campaignIteration;
     public UUID objectRefTargetOid;
     public MObjectType objectRefTargetType;
     public Integer objectRefRelationId;

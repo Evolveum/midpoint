@@ -112,7 +112,12 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
         return row;
     }
 
-    public abstract Q path();
+    /**
+     * Returns entity path (table) for the context.
+     * This is NOT the path for item column, which can be actually multiple columns (ref, poly)
+     * or just part of the value in the column (JSONB).
+     */
+    public abstract Q entityPath();
 
     public abstract QueryModelMapping<S, Q, R> mapping();
 

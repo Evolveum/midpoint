@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -17,25 +26,16 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-/**
- * @author Viliam Repan (lazyman)
- */
 @Entity
 @ForeignKey(name = "fk_lookup_table")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = {"name_norm"}),
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iLookupTableNameOrig", columnList = "name_orig"),
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RLookupTable extends RObject {
 
     private RPolyString nameCopy;
@@ -66,8 +66,9 @@ public class RLookupTable extends RObject {
     }
 
     // dynamically called
-    public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, RepositoryContext repositoryContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
+    public static void copyFromJAXB(
+            LookupTableType jaxb, RLookupTable repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));

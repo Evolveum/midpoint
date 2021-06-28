@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_NAME;
@@ -14,6 +13,7 @@ import java.util.*;
 import javax.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,13 +34,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-/**
- * @author mederly
- */
 @Ignore
 @Entity
 @IdClass(RObjectTextInfoId.class)
 @Table(name = TABLE_NAME)
+@DynamicUpdate
 public class RObjectTextInfo implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RObjectTextInfo.class);

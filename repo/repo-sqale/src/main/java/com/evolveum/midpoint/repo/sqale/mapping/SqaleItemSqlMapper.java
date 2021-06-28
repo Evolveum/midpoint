@@ -77,7 +77,7 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
      */
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <T> ItemDeltaValueProcessor<T> createItemDeltaProcessor(
+    public ItemDeltaValueProcessor<?> createItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> sqlUpdateContext) {
         return deltaProcessorFactory.apply((SqaleUpdateContext) sqlUpdateContext);
     }
