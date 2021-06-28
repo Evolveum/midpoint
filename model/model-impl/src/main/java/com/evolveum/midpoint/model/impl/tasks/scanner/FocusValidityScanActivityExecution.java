@@ -14,15 +14,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * TODO
  */
-public class FocusValidityScanCompositeExecution
+class FocusValidityScanActivityExecution
         extends AbstractCompositeActivityExecution<
         FocusValidityScanWorkDefinition,
         FocusValidityScanActivityHandler,
         ScanWorkStateType> {
 
-    protected FocusValidityScanCompositeExecution(
+    FocusValidityScanActivityExecution(
             ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context) {
         super(context);
     }
-
 }

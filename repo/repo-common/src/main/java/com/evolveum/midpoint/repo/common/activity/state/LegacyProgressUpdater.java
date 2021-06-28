@@ -21,24 +21,25 @@ import java.util.concurrent.atomic.AtomicLong;
  * Responsible for updating the legacy progress for the current task.
  * (Based on structured progress of all local activities.)
  */
-class LegacyProgressUpdater {
+public class LegacyProgressUpdater {
 
-    @NotNull private final ActivityTree activityTree;
     @NotNull private final GenericTaskExecution taskExecution;
 
-    public LegacyProgressUpdater(@NotNull ActivityTree activityTree, @NotNull GenericTaskExecution taskExecution) {
-        this.activityTree = activityTree;
+    private LegacyProgressUpdater(@NotNull GenericTaskExecution taskExecution) {
         this.taskExecution = taskExecution;
     }
 
-    public static void update(@NotNull ActivityState<?> activityState) {
-
+    public static void update(@NotNull CurrentActivityState<?> activityState) {
         AbstractActivityExecution<?, ?, ?> activityExecution = activityState.getActivityExecution();
-        ActivityTree activityTree = activityExecution.getActivity().getTree();
         GenericTaskExecution taskExecution = activityExecution.getTaskExecution();
 
-        new LegacyProgressUpdater(activityTree, taskExecution)
+        new LegacyProgressUpdater(taskExecution)
                 .updateProgress();
+    }
+
+    public static long compute(@NotNull GenericTaskExecution taskExecution) {
+        return new LegacyProgressUpdater(taskExecution)
+                .computeProgress();
     }
 
     private void updateProgress() {
@@ -54,6 +55,7 @@ class LegacyProgressUpdater {
         return totalProgress.get();
     }
 
+    // TODO what about completed activities?
     private long getActivityProgress(Activity<?, ?> activity) {
         AbstractActivityExecution<?, ?, ?> execution = activity.getExecution();
         if (execution == null) {

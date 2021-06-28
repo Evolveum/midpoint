@@ -115,4 +115,8 @@
     <!--<xsd:element name="commonMockWorkState" type="tns:CommonMockWorkStateType" />-->
 
     <xsd:element name="executionCount" type="xsd:int" />
+
+    <!-- To be stored in work state extension for the composite mock activity -->
+    <xsd:element name="lastMessage" type="xsd:string" />
+
 </xsd:schema>

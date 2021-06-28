@@ -59,7 +59,7 @@ class SimpleMockActivityExecution
         getRecorder().recordExecution(message);
 
         CommonMockActivityHelper helper = getActivityHandler().getMockHelper();
-        helper.increaseExecutionCount(this, result);
+        helper.increaseExecutionCount(activityState, result);
 
         try {
             helper.failIfNeeded(this, activity.getWorkDefinition().getInitialFailures());

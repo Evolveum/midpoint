@@ -18,7 +18,7 @@ class MockOpeningActivityExecution extends MockComponentActivityExecution {
     }
 
     @Override
-    String getSubActivity() {
+    String getMockSubActivity() {
         return "opening";
     }
 }

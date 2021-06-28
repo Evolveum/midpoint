@@ -52,9 +52,9 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
-        assertThat(getFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
+        assertThat(getReconFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
@@ -72,9 +72,9 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        assertThat(getFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
+        assertThat(getReconFailureCount(taskAfter)).isBetween(1, WORKER_THREADS);
 
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        // user4, user5, user6, user7, user8
@@ -92,9 +92,9 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        assertEquals(getFailureCount(taskAfter), 1);
+        assertEquals(getReconFailureCount(taskAfter), 1);
 
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        //user4

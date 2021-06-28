@@ -39,14 +39,14 @@ public class ActivityProgress extends Initializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityProgress.class);
 
-    @NotNull private final ActivityState<?> activityState;
+    @NotNull private final CurrentActivityState<?> activityState;
 
     /**
      * Current value. Guarded by: this.
      */
     @NotNull private final ActivityProgressType value = new ActivityProgressType(PrismContext.get());
 
-    ActivityProgress(@NotNull ActivityState<?> activityState) {
+    ActivityProgress(@NotNull CurrentActivityState<?> activityState) {
         this.activityState = activityState;
     }
 

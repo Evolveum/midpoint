@@ -11,8 +11,9 @@ import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPa
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,29 +51,37 @@ public class FocusValidityScanActivityHandler
     public AbstractActivityExecution<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
             @NotNull OperationResult result) {
-        return new FocusValidityScanCompositeExecution(context);
+        return new FocusValidityScanActivityExecution(context);
     }
 
     @Override
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
+        ActivityStateDefinition<AbstractActivityWorkStateType> stateDef =
+                ActivityStateDefinition.perpetual(ScanWorkStateType.COMPLEX_TYPE);
         ValidityScanQueryStyleType queryStyle = parentActivity.getWorkDefinition().getQueryStyle();
         switch (queryStyle) {
             case SINGLE_QUERY:
-                children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                children.add(EmbeddedActivity.create(
+                        parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, COMBINED),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
+                        stateDef,
                         parentActivity));
                 break;
             case SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES:
-                children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                children.add(EmbeddedActivity.create(
+                        parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, OBJECTS),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
+                        stateDef,
                         parentActivity));
-                children.add(EmbeddedActivity.create(parentActivity.getDefinition(),
+                children.add(EmbeddedActivity.create(
+                        parentActivity.getDefinition(),
                         (context, result) -> new FocusValidityScanPartialExecution(context, ASSIGNMENTS),
-                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
+                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
+                        stateDef,
                         parentActivity));
                 break;
             default:
@@ -84,10 +93,5 @@ public class FocusValidityScanActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "focus-validity-scan";
-    }
-
-    @Override
-    public @NotNull QName getWorkStateTypeName() {
-        return ScanWorkStateType.COMPLEX_TYPE;
     }
 }

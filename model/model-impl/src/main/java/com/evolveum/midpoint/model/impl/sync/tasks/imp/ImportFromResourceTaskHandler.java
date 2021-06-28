@@ -92,7 +92,7 @@ public class ImportFromResourceTaskHandler {
             result.computeStatusIfUnknown();
             return !result.isError();
         } catch (ActivityExecutionException t) {
-            result.recordFatalError(t);
+            result.recordStatus(t.getOpResultStatus(), t.getMessage(), t);
             throw new SystemException(t); // FIXME unwrap the exception
         } catch (Throwable t) {
             result.recordFatalError(t);

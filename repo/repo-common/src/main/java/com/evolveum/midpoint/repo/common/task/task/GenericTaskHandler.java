@@ -38,7 +38,7 @@ public class GenericTaskHandler implements TaskHandler {
      * Executions (instances) of the current task handler. Used to delegate {@link #heartbeat(Task)} method calls.
      * Note: the future of this method is unclear.
      */
-    @NotNull private final Map<String, TaskExecution> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
+    @NotNull private final Map<String, GenericTaskExecution> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
 
     /** Common beans */
     @Autowired private CommonTaskBeans beans;
@@ -75,7 +75,7 @@ public class GenericTaskHandler implements TaskHandler {
     @Override
     public TaskRunResult run(@NotNull RunningTask localCoordinatorTask)
             throws TaskException {
-        TaskExecution taskExecution = new GenericTaskExecution(localCoordinatorTask, this);
+        GenericTaskExecution taskExecution = new GenericTaskExecution(localCoordinatorTask, this);
         try {
             registerExecution(localCoordinatorTask, taskExecution);
             return taskExecution.run(localCoordinatorTask.getResult());
@@ -85,7 +85,7 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     /** TODO decide what to do with this method. */
-    private TaskExecution getCurrentTaskExecution(Task task) {
+    private GenericTaskExecution getCurrentTaskExecution(Task task) {
         return currentTaskExecutions.get(task.getOid());
     }
 
@@ -114,7 +114,7 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     /** TODO decide what to do with this method. */
-    private void registerExecution(RunningTask localCoordinatorTask, TaskExecution execution) {
+    private void registerExecution(RunningTask localCoordinatorTask, GenericTaskExecution execution) {
         currentTaskExecutions.put(localCoordinatorTask.getOid(), execution);
     }
 

@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import java.io.File;
+import java.util.function.Function;
+
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.test.DummyResourceCollection;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import java.io.File;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Configuration and behavior-controlling data for resource-dummy-interrupted-sync resources.
@@ -26,6 +27,13 @@ public class DummyInterruptedSyncResource extends AbstractResourceDummyInterrupt
     private static final String OID = "7a58233a-1cfb-46d1-a404-08cdf4626ebb";
     private static final String NAME = "interruptedSync";
 
+    public static DummyInterruptedSyncResource create(DummyResourceCollection collection, Task task, OperationResult result)
+            throws Exception {
+        DummyInterruptedSyncResource resource = new DummyInterruptedSyncResource();
+        resource.init(collection, task, result);
+        return resource;
+    }
+
     @Override
     public void init(DummyResourceCollection collection, Task task, OperationResult result) throws Exception {
         controller = collection.initDummyResource(NAME, FILE, OID, null, task, result);
@@ -36,4 +44,10 @@ public class DummyInterruptedSyncResource extends AbstractResourceDummyInterrupt
 
     public static long delay = 1;
     public static String errorOn = null;
+
+    public void createAccounts(int users, Function<Integer, String> userNameFormatter) throws Exception {
+        for (int i = 0; i < users; i++) {
+            controller.addAccount(userNameFormatter.apply(i));
+        }
+    }
 }

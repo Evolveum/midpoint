@@ -6554,6 +6554,7 @@
     </xsd:complexType>
     <xsd:element name="distributionWorkState" type="tns:DistributionWorkStateType" />
 
+    <!-- TODO consider removal -->
     <xsd:complexType name="PropagationWorkStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6569,5 +6570,33 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="propagationWorkState" type="tns:PropagationWorkStateType" />
+
+    <xsd:complexType name="ReconciliationWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjectsReconciliationStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When did the resource objects reconciliation start? This information is used in the last
+                                activity (remaining shadows), where we look for shadows with synchronization timestamp less
+                                than this value - i.e. ones that were not touched by resource object reconciliation activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType" />
 
 </xsd:schema>

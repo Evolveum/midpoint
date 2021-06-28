@@ -55,11 +55,6 @@ public class AsyncUpdateActivityExecution
     }
 
     @Override
-    public @NotNull ActivityStatePersistenceType getPersistenceType() {
-        return ActivityStatePersistenceType.PERPETUAL;
-    }
-
-    @Override
     protected void initializeExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
         RunningTask runningTask = getTaskExecution().getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();

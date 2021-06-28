@@ -26,10 +26,12 @@
     <activity>
         <work>
             <liveSynchronization>
-                <resourceRef oid="10000000-0000-0000-0000-000000000003" />
-                <kind>account</kind>
-                <intent>default</intent>
-                <objectclass>ri:inetOrgPerson</objectclass>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
             </liveSynchronization>
         </work>
         <executionMode>execute</executionMode>

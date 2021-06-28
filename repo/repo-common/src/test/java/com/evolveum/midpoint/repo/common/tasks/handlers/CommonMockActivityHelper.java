@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType.F_EXTENSION;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -31,10 +32,12 @@ public class CommonMockActivityHelper {
     public static final ItemName EXECUTION_COUNT_NAME = new ItemName(NS_EXT, "executionCount");
     private static final ItemPath EXECUTION_COUNT_PATH = ItemPath.create(F_EXTENSION, EXECUTION_COUNT_NAME);
 
-    public void increaseExecutionCount(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        ActivityState<?> activityState = activityExecution.getActivityState();
+    public static final ItemName LAST_MESSAGE_NAME = new ItemName(NS_EXT, "lastMessage");
+    private static final ItemPath LAST_MESSAGE_PATH = ItemPath.create(F_EXTENSION, LAST_MESSAGE_NAME);
 
+    //region Execution count
+    public void increaseExecutionCount(@NotNull CurrentActivityState<?> activityState, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         int count = or0(activityState.getWorkStatePropertyRealValue(EXECUTION_COUNT_PATH, Integer.class));
         activityState.setWorkStateItemRealValues(EXECUTION_COUNT_PATH, count + 1);
         activityState.flushPendingModifications(result);
@@ -47,4 +50,17 @@ public class CommonMockActivityHelper {
                     count, initialFailures));
         }
     }
+    //endregion
+
+    //region Last message
+    public String getLastMessage(@NotNull ActivityState<?> activityState) {
+        return activityState.getWorkStatePropertyRealValue(LAST_MESSAGE_PATH, String.class);
+    }
+
+    public void setLastMessage(@NotNull ActivityState<?> activityState, String message, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        activityState.setWorkStateItemRealValues(LAST_MESSAGE_PATH, message);
+        activityState.flushPendingModifications(result);
+    }
+    //endregion
 }

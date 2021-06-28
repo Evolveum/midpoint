@@ -11,7 +11,9 @@ import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
 
 /**
  * Scans shadows for unfinished operations and tries to finish them.
@@ -76,7 +81,8 @@ class RemainingShadowsActivityExecution
      * TODO change it!
      */
     @Override
-    protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult) {
+    protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException {
         return getPrismContext().queryFor(ShadowType.class)
                 .block()
                     .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(getReconciliationStartTimestamp(opResult))
@@ -87,8 +93,14 @@ class RemainingShadowsActivityExecution
                 .build();
     }
 
-    private XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult opResult) {
-        return XmlTypeConverter.createXMLGregorianCalendar(getRunningTask().getLastRunStartTimestamp()); // FIXME!!!!
+    private @NotNull XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException {
+        ActivityState<?> reconState = getActivityState().
+                getParentActivityState(ReconciliationWorkStateType.COMPLEX_TYPE, opResult);
+        XMLGregorianCalendar started =
+                reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class);
+        stateCheck(started != null, "No reconciliation start timestamp in %s", reconState);
+        return started;
     }
 
     // Ignoring configured search options. TODO ok?

@@ -7,24 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
+import java.util.ArrayList;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.CandidateIdentifierFormatter;
 import com.evolveum.midpoint.repo.common.activity.ExecutionSupplier;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecution;
 import com.evolveum.midpoint.task.api.TaskHandler;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Spring component that ensures handling activity invocations.
@@ -52,11 +48,12 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
         return getClass().getSimpleName(); // should be overridden as this does not look nice
     }
 
-    default @NotNull QName getWorkStateTypeName() {
-        return AbstractActivityWorkStateType.COMPLEX_TYPE;
-    }
-
-    default boolean shouldCreateWorkStateOnInitialization() {
-        return false;
+    /**
+     * Returns state definition for standalone (root) activity paired with this handler.
+     * Definitions for embedded activities are provided by activities themselves, which are returned
+     * by {@link #createChildActivities(Activity)} method.
+     */
+    default @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return ActivityStateDefinition.normal();
     }
 }

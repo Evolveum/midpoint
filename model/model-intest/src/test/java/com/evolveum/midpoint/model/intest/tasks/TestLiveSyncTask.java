@@ -722,8 +722,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         stabilize();
         Task taskAfter = taskManager.getTaskWithResult(TASK_NO_POLICY.oid, result);
         display("Task after", taskAfter);
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
+//        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+//        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
 
@@ -1021,8 +1021,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         stabilize();
         Task taskAfter = taskManager.getTaskWithResult(TASK_MULTI_CHANGES.oid, result);
         display("Task after", taskAfter);
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
+//        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+//        displayValue("Sync info", ActivitySynchronizationStatisticsUtil.format(syncInfo));
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
     }

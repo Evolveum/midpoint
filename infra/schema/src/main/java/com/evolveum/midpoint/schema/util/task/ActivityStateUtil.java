@@ -154,6 +154,11 @@ public class ActivityStateUtil {
         return currentWorkStatePath;
     }
 
+    public static boolean isLocal(@NotNull ActivityPath activityPath, @NotNull TaskActivityStateType taskActivityState) {
+        return activityPath.startsWith(
+                getLocalRootPath(taskActivityState));
+    }
+
     /**
      * Returns child activity state - failing if not unique or not existing.
      */
@@ -163,8 +168,8 @@ public class ActivityStateUtil {
                 .filter(child -> Objects.equals(child.getIdentifier(), identifier))
                 .collect(Collectors.toList());
         return MiscUtil.extractSingletonRequired(matching,
-                () -> new IllegalStateException("More than one matching activity work state for " + identifier + " in " + state),
-                () -> new IllegalStateException("No matching activity work state for " + identifier + " in " + state));
+                () -> new IllegalStateException("More than one matching activity state for " + identifier + " in " + state),
+                () -> new IllegalStateException("No matching activity state for " + identifier + " in " + state));
     }
 
     /**

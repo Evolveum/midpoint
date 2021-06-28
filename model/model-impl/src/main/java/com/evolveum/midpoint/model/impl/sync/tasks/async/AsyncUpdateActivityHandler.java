@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateWorkDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,5 +57,10 @@ public class AsyncUpdateActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "async-update";
+    }
+
+    @Override
+    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return ActivityStateDefinition.perpetual();
     }
 }
