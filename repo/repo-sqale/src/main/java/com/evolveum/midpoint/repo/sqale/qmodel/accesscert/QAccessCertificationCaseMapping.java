@@ -14,11 +14,13 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
@@ -174,6 +176,8 @@ public class QAccessCertificationCaseMapping
 
         insert(row, jdbcSession);
 
+        storeWorkItems(ownerRow, row, acase, jdbcSession);
+
 //        storeRefs(row, acase.getAssigneeRef(),
 //                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
 //        storeRefs(row, acase.getCandidateRef(),
@@ -191,5 +195,16 @@ public class QAccessCertificationCaseMapping
                         .skipTransient(true))
                 .serialize(schemaObject.asPrismContainerValue())
                 .getBytes(StandardCharsets.UTF_8);
+    }
+
+    public void storeWorkItems(@NotNull MAccessCertificationCampaign campaignRow,
+            @NotNull MAccessCertificationCase caseRow, @NotNull AccessCertificationCaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+
+        List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
+        if (!wis.isEmpty()) {
+            for (AccessCertificationWorkItemType wi : wis) {
+                QAccessCertificationWorkItemMapping.get().insert(wi, campaignRow, caseRow, jdbcSession);
+            }
+        }
     }
 }

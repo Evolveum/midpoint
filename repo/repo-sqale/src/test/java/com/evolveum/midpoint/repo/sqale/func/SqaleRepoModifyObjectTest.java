@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
@@ -17,8 +18,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 
 import org.assertj.core.api.Assertions;
@@ -59,11 +62,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
+    private static final long CAMPAIGN_1_CASE_2_ID = 55L;
+
     private String user1Oid; // typical object
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
     private String accessCertificationCampaign1Oid;
+    private UUID accessCertificationCampaign1Case2ObjectOid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -2329,7 +2335,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
         ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_CASE)
-                .add(caseBefore) // default relation
+                .add(caseBefore)
                 .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
@@ -2359,7 +2365,71 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.targetRefTargetOid).isEqualTo(targetOid);
         assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
         assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.stageNumber).isEqualTo(3);
+        assertThat(aRow.campaignIteration).isEqualTo(4);
 
+        assertCertificationCaseFullObject(aRow, caseBefore);
+    }
+
+    @Test
+    public void test331AddedCertificationCaseStoresItFixedId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        accessCertificationCampaign1Case2ObjectOid = UUID.randomUUID();
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+                .id(CAMPAIGN_1_CASE_2_ID)
+                .stageNumber(5)
+                .iteration(7)
+                .objectRef(accessCertificationCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
+                .outcome("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_CASE)
+                .add(caseBefore)
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        assertThat(casesAfter.get(1).getId()).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+
+        List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(caseRows).hasSize(2);
+        caseRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationCase aRow = caseRows.get(1);
+        assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isNull();
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        assertThat(aRow.stageNumber).isEqualTo(5);
+        assertThat(aRow.campaignIteration).isEqualTo(7);
+
+        assertCertificationCaseFullObject(aRow, caseBefore);
+    }
+
+    private void assertCertificationCaseFullObject(MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore) throws SchemaException {
         String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
         display("Case full object:\n" + fullObjectStr);
         String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
@@ -2371,7 +2441,66 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(fullObjectStr).isEqualTo(caseBeforeStr);
     }
 
-    // TODO: cert case modify test, assert correct full object
+    @Test
+    public void test332ModifiedCertificationCaseStoresIt()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(ItemPath.create(AccessCertificationCampaignType.F_CASE, CAMPAIGN_1_CASE_2_ID, AccessCertificationCaseType.F_OUTCOME))
+                .replace("People are the problem")
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        assertThat(casesAfter.get(1).getId()).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+
+        List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(caseRows).hasSize(2);
+        caseRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationCase aRow = caseRows.get(1);
+        assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isNull();
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.outcome).isEqualTo("People are the problem");
+        assertThat(aRow.stageNumber).isEqualTo(5);
+        assertThat(aRow.campaignIteration).isEqualTo(7);
+
+        // Check that case (container) fullObject was updated, as opposed to campaign (object) fullObject
+        PrismContainerValue<AccessCertificationCaseType> fullObjectCval = prismContext
+                .parserFor(new String(aRow.fullObject, StandardCharsets.UTF_8))
+                .xml()
+                .parseItemValue();
+
+        // Unchanged
+        assertThat(fullObjectCval.asContainerable().getStageNumber()).isEqualTo(5);
+        assertThat(fullObjectCval.asContainerable().getIteration()).isEqualTo(7);
+        // Changed
+        assertThat(fullObjectCval.asContainerable().getOutcome()).isEqualTo("People are the problem");
+    }
 
     @Test
     public void test399DeleteAllAssignments()

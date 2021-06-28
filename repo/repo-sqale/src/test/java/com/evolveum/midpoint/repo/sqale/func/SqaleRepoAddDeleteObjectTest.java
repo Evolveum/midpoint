@@ -1678,6 +1678,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         Instant endTimestamp = Instant.ofEpochMilli(System.currentTimeMillis());
         String disableReason = "Whatever!";
         String currentStageOutcome = "Big bada BOOM";
+
         Integer caseIteration = 5;
         UUID caseObjectRefOid = UUID.randomUUID();
         QName caseObjectRefRelationUri = QName.valueOf("{https://other.uri}case-object-ref-relation");
@@ -1689,6 +1690,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName caseTargetRefRelationUri = QName.valueOf("{https://some.uri}case-target-ref-relation");
         UUID caseTenantRefOid = UUID.randomUUID();
         QName caseTenantRefRelationUri = QName.valueOf("{https://some.uri}case-tenant-ref-relation");
+
+        Instant wiCloseTimestamp = Instant.ofEpochMilli(999123);
+        Instant wiOutputChangeTimestamp = Instant.ofEpochMilli(999001);
+        UUID performer1Oid = UUID.randomUUID();
+        QName performer1Relation = QName.valueOf("{https://random.org/ns}wi-performer1-rel");
+
 
         var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
                 .name(objectName)
@@ -1727,6 +1734,19 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                         .stageNumber(caseStageNumber)
                         .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
                         .tenantRef(caseTenantRefOid.toString(), OrgType.COMPLEX_TYPE, caseTenantRefRelationUri)
+                        .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .id(55L)
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wiCloseTimestamp))
+                                // TODO: iteration -> campaignIteration
+                                .iteration(81)
+                                .output(new AbstractWorkItemOutputType()
+                                        .outcome("almost, but not quite, entirely done")
+                                )
+                                .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wiOutputChangeTimestamp))
+                                .performerRef(performer1Oid.toString(),
+                                        UserType.COMPLEX_TYPE, performer1Relation)
+                                .stageNumber(21)
+                        )
                 );
 
         when("adding it to the repository");
@@ -1758,6 +1778,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MAccessCertificationCase caseRow = caseRows.get(0);
         assertThat(caseRow.cid).isEqualTo(48); // assigned in advance
+        assertThat(caseRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
         assertThat(caseRow.administrativeStatus).isEqualTo(ActivationStatusType.ARCHIVED);
         assertThat(caseRow.archiveTimestamp).isEqualTo(archiveTimestamp);
         assertThat(caseRow.disableReason).isEqualTo(disableReason);
@@ -1789,6 +1810,24 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(caseRow.tenantRefTargetType).isEqualTo(MObjectType.ORG);
         assertCachedUri(caseRow.tenantRefRelationId, caseTenantRefRelationUri);
 
+        QAccessCertificationWorkItem wiAlias = aliasFor(QAccessCertificationWorkItem.class);
+        List<MAccessCertificationWorkItem> wiRows = select(wiAlias,
+                wiAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
+        assertThat(wiRows).hasSize(1);
+        wiRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationWorkItem wiRow = wiRows.get(0);
+        assertThat(wiRow.cid).isEqualTo(55); // assigned in advance
+        assertThat(wiRow.accCertCaseCid).isEqualTo(48);
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_WORK_ITEM);
+        assertThat(wiRow.closeTimestamp).isEqualTo(wiCloseTimestamp);
+        assertThat(wiRow.campaignIteration).isEqualTo(81);
+        assertThat(wiRow.outcome).isEqualTo("almost, but not quite, entirely done");
+        assertThat(wiRow.outputChangeTimestamp).isEqualTo(wiOutputChangeTimestamp);
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer1Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer1Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(21);
     }
 
     private <C extends Containerable> void assertContainerFullObject(byte[] rowFullObject, C sObject) throws Exception {

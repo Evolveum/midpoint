@@ -10,6 +10,8 @@ import javax.sql.DataSource;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCaseMapping;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWorkItemMapping;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -131,6 +133,7 @@ public class SqaleRepositoryBeanConfig {
                         QAccessCertificationCampaignMapping.init(repositoryContext))
                 .register(AccessCertificationCaseType.COMPLEX_TYPE,
                         QAccessCertificationCaseMapping.init(repositoryContext))
+                .register(AccessCertificationWorkItemType.COMPLEX_TYPE, QAccessCertificationWorkItemMapping.init(repositoryContext))
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.init(repositoryContext))
                 .register(AssignmentHolderType.COMPLEX_TYPE,
                         QAssignmentHolderMapping.init(repositoryContext))
