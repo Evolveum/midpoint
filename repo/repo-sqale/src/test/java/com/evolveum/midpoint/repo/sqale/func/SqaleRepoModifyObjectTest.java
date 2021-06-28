@@ -2454,6 +2454,116 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "string"), "string-value500");
     }
 
+    @Test
+    public void test501AddingAnotherExtensionItem() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int"))
+                .replace(555)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                // old value is still there
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500")
+                // and new one is added
+                .containsEntry(extensionKey(extensionContainer, "int"), 555);
+    }
+
+    @Test
+    public void test502AddingAndDeletingMultipleItems() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int")).replace(47)
+                .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s1", "s2", "s3", "s4")
+                .item(FocusType.F_EXTENSION, new QName("string")).delete("string-value500")
+                .item(FocusType.F_EXTENSION, new QName("poly-mv")).add(
+                        new PolyString("poly-ext1"), new PolyString("poly-ext2"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .doesNotContainKey(extensionKey(extensionContainer, "string")) // deleted
+                .containsEntry(extensionKey(extensionContainer, "int"), 47) // replaced
+                .containsEntry(extensionKey(extensionContainer, "string-mv"), // added
+                        List.of("s1", "s2", "s3", "s4"))
+                .containsEntry(extensionKey(extensionContainer, "poly-mv"),
+                        List.of(Map.of("o", "poly-ext1", "n", "polyext1"),
+                                Map.of("o", "poly-ext2", "n", "polyext2")));
+    }
+
+//    @Test // TODO
+    public void test503SettingExtContainerToEmpty() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION).replace(new ExtensionType())
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
+
+        and("ext column is cleared");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNull();
+    }
+
+    // TODO add/replace of the whole extension container
+
     // TODO index only not done
     // endregion
 

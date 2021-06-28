@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
+import static com.querydsl.core.types.ExpressionUtils.template;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -60,8 +63,18 @@ public class ExtensionUpdateContext<S extends Containerable, Q extends FlexibleR
 
     @Override
     public <P extends Path<T>, T> void set(P path, T value) {
+        throw new UnsupportedOperationException("not needed, not supported");
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> value) {
         // set is called directly on the parent in finishExecutionOwn()
         throw new UnsupportedOperationException("Not available for extension update context");
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        throw new UnsupportedOperationException("not needed, not supported");
     }
 
     public void setChangedItem(String extItemId, Object value) {
@@ -75,8 +88,23 @@ public class ExtensionUpdateContext<S extends Containerable, Q extends FlexibleR
     @Override
     protected void finishExecutionOwn() throws SchemaException, RepositoryException {
         try {
-            // TODO finish, now it just overwrites, no delete, etc.
-            parentContext.set(jsonbPath, Jsonb.from(changedItems));
+            if (deletedItems.isEmpty() && changedItems.isEmpty()) {
+                throw new IllegalStateException(
+                        "Extension modification executed but no changes detected");
+            }
+
+            // We need to avoid NULL otherwise the operations lower return NULL too.
+            Expression<Jsonb> resultJsonb =
+                    template(Jsonb.class, "coalesce({0}, '{}')::jsonb", jsonbPath);
+            if (!deletedItems.isEmpty()) {
+                resultJsonb = template(Jsonb.class, "{0} - {1}", resultJsonb, deletedItems);
+            }
+            if (!changedItems.isEmpty()) {
+                resultJsonb = template(Jsonb.class, "{0} || {1}::jsonb",
+                        resultJsonb, Jsonb.from(changedItems));
+            }
+
+            parentContext.set(jsonbPath, resultJsonb);
         } catch (IOException e) {
             throw new RepositoryException("Unexpected problem with JSONB construction", e);
         }

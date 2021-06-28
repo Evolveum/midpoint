@@ -88,6 +88,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
+    @Override
     public SqaleRepoContext repositoryContext() {
         return (SqaleRepoContext) super.repositoryContext();
     }

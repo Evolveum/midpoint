@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 import java.util.Collection;
 import java.util.UUID;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 import org.jetbrains.annotations.NotNull;
@@ -171,6 +172,16 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> expression) {
+        update.set(path, expression);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        update.setNull(path);
     }
 
     public UUID objectOid() {

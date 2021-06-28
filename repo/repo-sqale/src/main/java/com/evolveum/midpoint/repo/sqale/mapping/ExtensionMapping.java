@@ -32,8 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
  * @param <R> row type related to the {@link Q}
  */
 public class ExtensionMapping<C extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
-        extends QueryModelMapping<C, Q, R>
-        implements SqaleMappingMixin<C, Q, R> {
+        extends QueryModelMapping<C, Q, R> {
 
     private final Function<Q, JsonbPath> rootToExtensionPath;
 

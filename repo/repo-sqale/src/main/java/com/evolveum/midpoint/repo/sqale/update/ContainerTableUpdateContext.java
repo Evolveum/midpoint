@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Update context for multi-value containers stored in separate table.
@@ -64,6 +66,16 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
 
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> value) {
+        throw new UnsupportedOperationException("not needed, not supported");
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        update.setNull(path);
     }
 
     /** Executes updates if applicable, nothing is done if set methods were not used. */

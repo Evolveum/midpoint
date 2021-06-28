@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.update;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -122,6 +123,10 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     public abstract QueryModelMapping<S, Q, R> mapping();
 
     public abstract <P extends Path<T>, T> void set(P path, T value);
+
+    public abstract <P extends Path<T>, T> void set(P path, Expression<T> value);
+
+    public abstract <P extends Path<T>, T> void setNull(P path);
 
     @SuppressWarnings("UnusedReturnValue")
     public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) throws SchemaException {

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -47,6 +48,16 @@ public class NestedContainerUpdateContext<S extends Containerable, Q extends Fle
     @Override
     public <P extends Path<T>, T> void set(P path, T value) {
         parentContext.set(path, value);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> value) {
+        parentContext.set(path, value);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        parentContext.setNull(path);
     }
 
     @Override

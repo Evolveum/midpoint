@@ -63,8 +63,8 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
 
     @Override
     public void delete() {
-        context.set(oidPath, null);
-        context.set(typePath, null);
-        context.set(relationIdPath, null);
+        context.setNull(oidPath);
+        context.setNull(typePath);
+        context.setNull(relationIdPath);
     }
 }
