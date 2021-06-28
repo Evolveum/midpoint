@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
 /**
  * This acts like a container mapping for extension/attributes containers.
@@ -27,27 +26,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
  * and lets the extension mapper/resolver do the real work.
  * This allows for dynamic mapping which is needed especially for shadow attributes.
  *
- * @param <C> schema type for the extension/attributes container
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class ExtensionMapping<C extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
-        extends QueryModelMapping<C, Q, R> {
+public class ExtensionMapping<Q extends FlexibleRelationalPathBase<R>, R>
+        extends QueryModelMapping<Containerable, Q, R> {
 
+    private final MExtItemHolderType holderType;
     private final Function<Q, JsonbPath> rootToExtensionPath;
 
     protected ExtensionMapping(
-            @NotNull Class<C> containerType,
+            @NotNull MExtItemHolderType holderType,
             @NotNull Class<Q> queryType,
             @NotNull Function<Q, JsonbPath> rootToExtensionPath) {
-        super(containerType, queryType);
+        super(Containerable.class, queryType);
+
+        this.holderType = holderType;
         this.rootToExtensionPath = rootToExtensionPath;
     }
 
     @Override
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
-        MExtItemHolderType holderType = schemaType().equals(ExtensionType.class)
-                ? MExtItemHolderType.EXTENSION : MExtItemHolderType.ATTRIBUTES;
         return new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType);
+    }
+
+    public MExtItemHolderType holderType() {
+        return holderType;
     }
 }

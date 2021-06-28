@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -72,7 +71,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     }
 
     @Override
-    public QueryModelMapping<S, Q, R> mapping() {
+    public QObjectMapping<S, Q, R> mapping() {
         return mapping;
     }
 
