@@ -17,15 +17,13 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
-
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
@@ -1667,7 +1666,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata()).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
 
         and("all externalized columns for metadata are cleared");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1685,7 +1685,31 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test207AddingEmptyNestedMetadataContainer()
+    public void test207SettingMetadataContainerToNull()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta replacing metadata with nothing for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ObjectType.F_METADATA).replace()
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata()).isNull();
+    }
+
+    @Test
+    public void test208AddingEmptyNestedMetadataContainer()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -1704,24 +1728,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        // this one is not narrowed to empty modifications, version is incremented
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        // but empty container is not left in the full object
-        assertThat(taskObject.getMetadata()).isNull();
-
-        and("all externalized columns for metadata are set (or left) null");
-        MTask row = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.creatorRefTargetOid).isNull();
-        assertThat(row.creatorRefTargetType).isNull();
-        assertThat(row.creatorRefRelationId).isNull();
-        assertThat(row.createChannelId).isNull();
-        assertThat(row.createTimestamp).isNull();
-        assertThat(row.modifierRefTargetOid).isNull();
-        assertThat(row.modifierRefTargetType).isNull();
-        assertThat(row.modifierRefRelationId).isNull();
-        assertThat(row.modifyChannelId).isNull();
-        assertThat(row.modifyTimestamp).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
     }
 
     @Test
