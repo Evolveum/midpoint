@@ -168,8 +168,8 @@ public class ActivityStateUtil {
                 .filter(child -> Objects.equals(child.getIdentifier(), identifier))
                 .collect(Collectors.toList());
         return MiscUtil.extractSingletonRequired(matching,
-                () -> new IllegalStateException("More than one matching activity work state for " + identifier + " in " + state),
-                () -> new IllegalStateException("No matching activity work state for " + identifier + " in " + state));
+                () -> new IllegalStateException("More than one matching activity state for " + identifier + " in " + state),
+                () -> new IllegalStateException("No matching activity state for " + identifier + " in " + state));
     }
 
     /**

@@ -148,9 +148,10 @@ public class TestThresholdsReconFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {
-        assertEquals(getFailureCount(taskAfter), 1);
+        assertEquals(getReconFailureCount(taskAfter), 1);
 
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
+        dumpSynchronizationInformation(syncInfo);
 
 //        assertEquals((int) syncInfo.getCountUnmatched(), 5);
 //        assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -164,15 +165,16 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     private void assertSynchronizationStatisticsFull(Task taskAfter) {
-        assertEquals(getFailureCount(taskAfter), 0);
+        assertEquals(getReconFailureCount(taskAfter), 0);
         assertNull(taskAfter.getWorkState(), "Unexpected work state in task.");
     }
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        assertEquals(getFailureCount(taskAfter), 1);
+        assertEquals(getReconFailureCount(taskAfter), 1);
 
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
+        dumpSynchronizationInformation(syncInfo);
 
 //        assertEquals((int) syncInfo.getCountUnmatched(), 5);
 //        assertEquals((int) syncInfo.getCountDeleted(), 0);
@@ -186,10 +188,10 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        assertEquals(getFailureCount(taskAfter), 1);
+        assertEquals(getReconFailureCount(taskAfter), 1);
 
-        ActivitySynchronizationStatisticsType synchronizationInformation = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        dumpSynchronizationInformation(synchronizationInformation);
+        ActivitySynchronizationStatisticsType syncInfo = getReconSyncStats(taskAfter);
+        dumpSynchronizationInformation(syncInfo);
 
 //        assertEquals((int) synchronizationInformation.getCountUnmatched(), 0);
 //        assertEquals((int) synchronizationInformation.getCountDeleted(), 0);
