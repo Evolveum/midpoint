@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
+
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
@@ -50,12 +53,8 @@ public class SyncTaskHelper {
             ResourceObjectSetType set, Task task, OperationResult opResult)
             throws ActivityExecutionException, SchemaException {
 
-        ResourceObjectClassSpecification resourceObjectClassSpecification;
-        try {
-            resourceObjectClassSpecification = createObjectClassSpecInternal(set, false, task, opResult);
-        } catch (MaintenanceException e) {
-            throw new AssertionError(e);
-        }
+        ResourceObjectClassSpecification resourceObjectClassSpecification =
+                createObjectClassSpecInternal(set, false, task, opResult);
 
         ObjectQuery basicQuery = resourceObjectClassSpecification.createBasicQuery();
         ObjectQuery query;
@@ -82,7 +81,7 @@ public class SyncTaskHelper {
     @NotNull
     public ResourceObjectClassSpecification createObjectClassSpec(@NotNull ResourceObjectSetType resourceObjectSet,
             Task task, OperationResult opResult)
-            throws ActivityExecutionException, MaintenanceException {
+            throws ActivityExecutionException {
         ResourceObjectClassSpecification objectClassSpec =
                 createObjectClassSpecInternal(resourceObjectSet, true, task, opResult);
 
@@ -93,12 +92,12 @@ public class SyncTaskHelper {
     @NotNull
     private ResourceObjectClassSpecification createObjectClassSpecInternal(@NotNull ResourceObjectSetType resourceObjectSet,
             boolean checkForMaintenance, Task task, OperationResult opResult)
-            throws ActivityExecutionException, MaintenanceException {
+            throws ActivityExecutionException {
 
         String resourceOid = getResourceOid(resourceObjectSet);
         ResourceType resource = getResource(resourceOid, task, opResult);
         if (checkForMaintenance) {
-            ResourceTypeUtil.checkNotInMaintenance(resource);
+            checkNotInMaintenance(resource);
         }
 
         RefinedResourceSchema refinedSchema = getRefinedResourceSchema(resource);
@@ -120,10 +119,10 @@ public class SyncTaskHelper {
 
     @NotNull
     public ResourceObjectClassSpecification createObjectClassSpecForShadow(ShadowType shadow, Task task, OperationResult opResult)
-            throws ActivityExecutionException, MaintenanceException, SchemaException {
+            throws ActivityExecutionException, SchemaException {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
-        ResourceTypeUtil.checkNotInMaintenance(resource);
+        checkNotInMaintenance(resource);
         RefinedResourceSchema refinedSchema = getRefinedResourceSchema(resource);
 
         // TODO reconsider the algorithm used for deriving object class
@@ -177,6 +176,15 @@ public class SyncTaskHelper {
         } else {
             throw new ActivityExecutionException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
                     PERMANENT_ERROR);
+        }
+    }
+
+    /**
+     * This method is to be used on the activity start. So it should fail gracefully - maintenance is not a fatal error here.
+     */
+    static void checkNotInMaintenance(ResourceType resource) throws ActivityExecutionException {
+        if (isInMaintenance(resource)) {
+            throw new ActivityExecutionException("Resource is in maintenance", HANDLED_ERROR, TEMPORARY_ERROR);
         }
     }
 }
