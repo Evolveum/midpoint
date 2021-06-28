@@ -18,6 +18,8 @@ import com.evolveum.midpoint.repo.common.activity.execution.DistributingActivity
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,8 +73,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     /**
      * References to the children, indexed by their identifier.
+     *
+     * Thread safety: Must be synchronized because of external access in {@link TaskHandler#heartbeat(Task)} method.
      */
-    @NotNull private final LinkedHashMap<String, Activity<?, ?>> childrenMap = new LinkedHashMap<>();
+    @NotNull private final Map<String, Activity<?, ?>> childrenMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
     private boolean childrenMapInitialized;
 
@@ -133,9 +137,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public abstract Activity<?, ?> getParent();
 
-    @NotNull
-    public LinkedHashMap<String, Activity<?, ?>> getChildrenMap() {
-        return childrenMap;
+    public @NotNull List<Activity<?, ?>> getChildrenCopy() {
+        synchronized (childrenMap) {
+            return new ArrayList<>(childrenMap.values());
+        }
     }
 
     @Override

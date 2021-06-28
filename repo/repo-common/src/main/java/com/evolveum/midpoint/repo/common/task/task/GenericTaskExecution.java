@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task.task;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.state.LegacyProgressUpdater;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
@@ -165,5 +166,10 @@ public class GenericTaskExecution implements TaskExecution {
 
     public Activity<?, ?> getLocalRootActivity() {
         return localRootActivity;
+    }
+
+    @Override
+    public Long heartbeat() {
+        return LegacyProgressUpdater.compute(this);
     }
 }
