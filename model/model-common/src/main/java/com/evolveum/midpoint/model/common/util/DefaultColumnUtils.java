@@ -76,7 +76,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AbstractRoleType.F_DISPLAY_NAME, true),
                         new ColumnWrapper(AbstractRoleType.F_DESCRIPTION),
                         new ColumnWrapper(AbstractRoleType.F_IDENTIFIER, true),
-                        new ColumnWrapper(AbstractRoleType.F_LINK_REF)))
+                        new ColumnWrapper(AbstractRoleType.F_LINK_REF, "FocusType.linkRef", DisplayValueType.NUMBER)))
                 .put(TaskType.class, Arrays.asList(
                         new ColumnWrapper(TaskType.F_NAME),
                         new ColumnWrapper(TaskType.F_CATEGORY),
