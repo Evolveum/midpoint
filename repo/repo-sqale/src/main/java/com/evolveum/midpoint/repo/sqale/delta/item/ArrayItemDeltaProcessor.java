@@ -83,6 +83,6 @@ public class ArrayItemDeltaProcessor<V, E> extends ItemDeltaValueProcessor<E> {
 
     @Override
     public void delete() {
-        context.set(path, null);
+        context.setNull(path);
     }
 }

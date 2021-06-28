@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -277,14 +276,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return repositoryContext().createStringSerializer()
-                .itemsToSkip(fullObjectItemsToSkip())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(schemaObject.asPrismObject())
-                .getBytes(StandardCharsets.UTF_8);
+        return repositoryContext().createFullObject(schemaObject);
     }
 
     protected Collection<? extends QName> fullObjectItemsToSkip() {

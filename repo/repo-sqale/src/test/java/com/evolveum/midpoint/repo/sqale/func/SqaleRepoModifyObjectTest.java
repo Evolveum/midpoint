@@ -29,6 +29,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
@@ -1673,7 +1676,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata()).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
 
         and("all externalized columns for metadata are cleared");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1691,7 +1695,31 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test207AddingEmptyNestedMetadataContainer()
+    public void test207SettingMetadataContainerToNull()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta replacing metadata with nothing for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ObjectType.F_METADATA).replace()
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata()).isNull();
+    }
+
+    @Test
+    public void test208AddingEmptyNestedMetadataContainer()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -1710,24 +1738,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        // this one is not narrowed to empty modifications, version is incremented
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        // but empty container is not left in the full object
-        assertThat(taskObject.getMetadata()).isNull();
-
-        and("all externalized columns for metadata are set (or left) null");
-        MTask row = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.creatorRefTargetOid).isNull();
-        assertThat(row.creatorRefTargetType).isNull();
-        assertThat(row.creatorRefRelationId).isNull();
-        assertThat(row.createChannelId).isNull();
-        assertThat(row.createTimestamp).isNull();
-        assertThat(row.modifierRefTargetOid).isNull();
-        assertThat(row.modifierRefTargetType).isNull();
-        assertThat(row.modifierRefRelationId).isNull();
-        assertThat(row.modifyChannelId).isNull();
-        assertThat(row.modifyTimestamp).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
     }
 
     @Test
@@ -2573,6 +2586,116 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(extMap)
                 .containsEntry(extensionKey(extensionContainer, "string"), "string-value500");
     }
+
+    @Test
+    public void test501AddingAnotherExtensionItem() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int"))
+                .replace(555)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                // old value is still there
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500")
+                // and new one is added
+                .containsEntry(extensionKey(extensionContainer, "int"), 555);
+    }
+
+    @Test
+    public void test502AddingAndDeletingMultipleItems() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int")).replace(47)
+                .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s1", "s2", "s3", "s4")
+                .item(FocusType.F_EXTENSION, new QName("string")).delete("string-value500")
+                .item(FocusType.F_EXTENSION, new QName("poly-mv")).add(
+                        new PolyString("poly-ext1"), new PolyString("poly-ext2"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .doesNotContainKey(extensionKey(extensionContainer, "string")) // deleted
+                .containsEntry(extensionKey(extensionContainer, "int"), 47) // replaced
+                .containsEntry(extensionKey(extensionContainer, "string-mv"), // added
+                        List.of("s1", "s2", "s3", "s4"))
+                .containsEntry(extensionKey(extensionContainer, "poly-mv"),
+                        List.of(Map.of("o", "poly-ext1", "n", "polyext1"),
+                                Map.of("o", "poly-ext2", "n", "polyext2")));
+    }
+
+//    @Test // TODO
+    public void test503SettingExtContainerToEmpty() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION).replace(new ExtensionType())
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
+
+        and("ext column is cleared");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNull();
+    }
+
+    // TODO add/replace of the whole extension container
 
     // TODO index only not done
     // endregion

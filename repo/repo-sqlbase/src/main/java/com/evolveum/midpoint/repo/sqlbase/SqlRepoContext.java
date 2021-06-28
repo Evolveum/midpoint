@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -158,5 +159,16 @@ public class SqlRepoContext {
 
     public void normalizeAllRelations(PrismObject<?> prismObject) {
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
+    }
+
+    /** Creates serialized (byte array) form of an object or a container. */
+    public byte[] createFullObject(Containerable container) throws SchemaException {
+        return createStringSerializer()
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(container.asPrismContainerValue())
+                .getBytes(StandardCharsets.UTF_8);
     }
 }

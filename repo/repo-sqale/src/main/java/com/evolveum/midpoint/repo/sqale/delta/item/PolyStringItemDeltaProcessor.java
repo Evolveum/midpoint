@@ -40,7 +40,7 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<
 
     @Override
     public void delete() {
-        context.set(origPath, null);
-        context.set(normPath, null);
+        context.setNull(origPath);
+        context.setNull(normPath);
     }
 }
