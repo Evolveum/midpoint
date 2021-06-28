@@ -49,7 +49,7 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
                         .and(path.cid.eq(row.cid)));
     }
 
-    public Q path() {
+    public Q entityPath() {
         return path;
     }
 

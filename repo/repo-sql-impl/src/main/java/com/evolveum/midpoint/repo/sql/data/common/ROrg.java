@@ -7,12 +7,13 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -24,9 +25,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-/**
- * @author lazyman
- */
 @Entity
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_org_name", columnNames = { "name_norm" }),
@@ -35,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class ROrg extends RAbstractRole {
 
     private RPolyString nameCopy;

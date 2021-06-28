@@ -53,8 +53,8 @@ public class QAccessCertificationCase extends QContainer<MAccessCertificationCas
             ColumnMetadata.named("currentStageOutcome").ofType(Types.VARCHAR);
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
-    public static final ColumnMetadata ITERATION =
-            ColumnMetadata.named("iteration").ofType(Types.INTEGER);
+    public static final ColumnMetadata CAMPAIGN_ITERATION =
+            ColumnMetadata.named("campaignIteration").ofType(Types.INTEGER);
     public static final ColumnMetadata OBJECT_REF_TARGET_OID =
             ColumnMetadata.named("objectRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OBJECT_REF_TARGET_TYPE =
@@ -113,7 +113,7 @@ public class QAccessCertificationCase extends QContainer<MAccessCertificationCas
 
     public final StringPath currentStageOutcome = createString("currentStageOutcome", CURRENT_STAGE_OUTCOME);
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
-    public final NumberPath<Integer> iteration = createInteger("iteration", ITERATION);
+    public final NumberPath<Integer> campaignIteration = createInteger("campaignIteration", CAMPAIGN_ITERATION);
     public final UuidPath objectRefTargetOid =
             createUuid("objectRefTargetOid", OBJECT_REF_TARGET_OID);
     public final EnumPath<MObjectType> objectRefTargetType =

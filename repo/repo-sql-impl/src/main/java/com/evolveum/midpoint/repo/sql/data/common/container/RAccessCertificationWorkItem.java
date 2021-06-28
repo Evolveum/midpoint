@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import static com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem.TABLE;
@@ -13,13 +12,13 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -31,15 +30,12 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
-/**
- * @author mederly
- */
-
 @JaxbType(type = AccessCertificationWorkItemType.class)
 @Entity
 @IdClass(RCertWorkItemId.class)
 @Table(name = TABLE)
 @Persister(impl = MidPointSingleTablePersister.class)
+@DynamicUpdate
 public class RAccessCertificationWorkItem implements L2Container<RAccessCertificationCase> {
 
     public static final String TABLE = "m_acc_cert_wi";

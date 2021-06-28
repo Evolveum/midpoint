@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 @Entity
 @IdClass(RContainerId.class)
 @Table(indexes = { @Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP) })
+@DynamicUpdate
 public class RTrigger implements Container<RObject> {
 
     public static final String F_OWNER = "owner";
@@ -36,11 +38,11 @@ public class RTrigger implements Container<RObject> {
 
     private Boolean trans;
 
-    //identificator
+    // identifier fields
     private RObject owner;
     private String ownerOid;
     private Integer id;
-    //trigger fields
+    // trigger fields
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
 

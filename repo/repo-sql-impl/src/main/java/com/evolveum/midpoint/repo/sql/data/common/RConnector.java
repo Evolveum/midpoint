@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -24,15 +25,13 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
-/**
- * @author lazyman
- */
 @Entity
 @ForeignKey(name = "fk_connector")
 @Persister(impl = MidPointJoinedPersister.class)
 @Table(indexes = {
         @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
         @Index(name = "iConnectorNameNorm", columnList = "name_norm") })
+@DynamicUpdate
 public class RConnector extends RObject {
 
     private RPolyString nameCopy;

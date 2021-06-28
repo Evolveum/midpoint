@@ -10,11 +10,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeClass;
@@ -58,6 +63,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
+    private String accessCertificationCampaign1Oid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -74,6 +80,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
+                null, result);
+        // This also indirectly tests ability to create an minimal object (mandatory fields only).
+        accessCertificationCampaign1Oid = repositoryService.addObject(
+                new AccessCertificationCampaignType(prismContext)
+                        .name("campaign-1")
+                        .ownerRef(user1Oid, UserType.COMPLEX_TYPE)
+                        // TODO: campaignIteration
+                        .iteration(1)
+                        .stageNumber(2)
+                        .asPrismObject(),
                 null, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -2300,6 +2316,64 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        UUID targetOid = UUID.randomUUID();
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+                .stageNumber(3)
+                .iteration(4)
+                .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_CASE)
+                .add(caseBefore) // default relation
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        // next free CID was assigned
+        assertThat(casesAfter.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+        MAccessCertificationCase aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(targetOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+
+        String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
+        display("Case full object:\n" + fullObjectStr);
+        String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(caseBefore.asPrismContainerValue());
+        assertThat(fullObjectStr).isEqualTo(caseBeforeStr);
+    }
+
+    // TODO: cert case modify test, assert correct full object
+
+    @Test
     public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
@@ -2331,6 +2405,47 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
+    // endregion
+
+    // region extension items
+    @Test
+    public void test500SettingExtensionItemValue() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding string extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("string"))
+                .replace("string-value500")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull();
+        assertThat(extensionContainer.asPrismContainerValue().findItem(new ItemName("string")))
+                .isNotNull()
+                .extracting(i -> i.getRealValue())
+                .isEqualTo("string-value500");
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        Map<String, Object> extMap = Jsonb.toMap(row.ext);
+        assertThat(extMap)
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500");
+    }
+
+    // TODO index only not done
     // endregion
 
     // TODO: photo test, currently it puts it into fullObject and not into column.

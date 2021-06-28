@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
@@ -14,9 +13,6 @@ import javax.xml.namespace.QName;
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -113,27 +109,7 @@ public class SqaleRepoContext extends SqlRepoContext {
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
-    public MExtItem resolveExtensionItem(
-            ItemDefinition<?> definition, MExtItemHolderType holderType) {
-        Objects.requireNonNull(definition,
-                "Item '" + definition.getItemName() + "' without definition can't be saved.");
-
-        if (definition instanceof PrismPropertyDefinition) {
-            Boolean indexed = ((PrismPropertyDefinition<?>) definition).isIndexed();
-            // null is default which is "indexed"
-            if (indexed != null && !indexed) {
-                return null;
-            }
-            // enum is recognized by having allowed values
-            if (!ExtUtils.SUPPORTED_INDEXED_EXTENSION_TYPES.contains(definition.getTypeName())
-                    && !ExtUtils.isEnumDefinition(((PrismPropertyDefinition<?>) definition))) {
-                return null;
-            }
-        } else if (!(definition instanceof PrismReferenceDefinition)) {
-            throw new UnsupportedOperationException("Unknown definition type '" + definition
-                    + "', can't say if '" + definition.getItemName() + "' is indexed or not.");
-        } // else it's reference which is indexed implicitly
-
-        return extItemCache.resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
+        return extItemCache.resolveExtensionItem(extItemKey);
     }
 }

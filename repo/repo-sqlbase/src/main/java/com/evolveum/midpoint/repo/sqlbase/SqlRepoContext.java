@@ -115,7 +115,6 @@ public class SqlRepoContext {
         }
     }
 
-    // TODO review from here - this is stuff merged from support service
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {
         return schemaService.typeQNameToSchemaClass(qName);
     }

@@ -15,15 +15,13 @@ import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
-public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
+public class WizardButtonBar extends Panel{
 
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_NEXT = "next";
@@ -181,21 +179,21 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
         getPage().setResponsePage(getPage());
     }
 
-    @Override
-    public IFormSubmittingComponent getDefaultButton(IWizardModel model) {
-
-        if (model.isNextAvailable()){
-            return (IFormSubmittingComponent)get("next");
-        }
-
-        else if (model.isLastAvailable()){
-            return (IFormSubmittingComponent)get("last");
-        }
-
-        else if (model.isLastStep(model.getActiveStep())){
-            return (IFormSubmittingComponent)get("finish");
-        }
-
-        return null;
-    }
+//    @Override
+//    public IFormSubmittingComponent getDefaultButton(IWizardModel model) {
+//
+//        if (model.isNextAvailable()){
+//            return (IFormSubmittingComponent)get("next");
+//        }
+//
+//        else if (model.isLastAvailable()){
+//            return (IFormSubmittingComponent)get("last");
+//        }
+//
+//        else if (model.isLastStep(model.getActiveStep())){
+//            return (IFormSubmittingComponent)get("finish");
+//        }
+//
+//        return null;
+//    }
 }

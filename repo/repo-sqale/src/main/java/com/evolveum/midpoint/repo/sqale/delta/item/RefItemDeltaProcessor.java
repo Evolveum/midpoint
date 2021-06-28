@@ -34,9 +34,9 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
             Function<Q, EnumPath<MObjectType>> rootToTypePath,
             Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
         this(context,
-                rootToOidPath.apply(context.path()),
-                rootToTypePath != null ? rootToTypePath.apply(context.path()) : null,
-                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.path()) : null);
+                rootToOidPath.apply(context.entityPath()),
+                rootToTypePath != null ? rootToTypePath.apply(context.entityPath()) : null,
+                rootToRelationIdPath != null ? rootToRelationIdPath.apply(context.entityPath()) : null);
     }
 
     /**

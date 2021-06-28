@@ -76,7 +76,8 @@ public class QAccessCertificationCaseMapping
 
         // TODO: full object
 
-        addItemMapping(F_ITERATION, integerMapper(q -> q.iteration));
+        // TODO: iteration -> campaignIteration
+        addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addItemMapping(F_OBJECT_REF, refMapper(
                 q -> q.objectRefTargetOid,
                 q -> q.objectRefTargetType,
@@ -147,7 +148,8 @@ public class QAccessCertificationCaseMapping
 
         row.currentStageOutcome = acase.getCurrentStageOutcome();
         row.fullObject = createFullObject(acase);
-        row.iteration = acase.getIteration();
+        // TODO
+        row.campaignIteration = acase.getIteration();
         setReference(acase.getObjectRef(),
                 o -> row.objectRefTargetOid = o,
                 t -> row.objectRefTargetType = t,

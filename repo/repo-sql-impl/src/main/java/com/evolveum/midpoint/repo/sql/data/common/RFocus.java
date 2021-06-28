@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         @Index(name = "iFocusValidTo", columnList = "validTo")
 })
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public abstract class RFocus extends RObject {
 
     private Set<RObjectReference<RShadow>> linkRef; // FocusType

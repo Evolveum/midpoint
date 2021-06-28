@@ -8,12 +8,13 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.persistence.*;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -30,9 +31,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-/**
- * @author lazyman
- */
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = { "name_norm" }),
@@ -41,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RResource extends RObject {
 
     private RPolyString nameCopy;

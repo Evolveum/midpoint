@@ -14,7 +14,8 @@ import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
+
+import java.time.Duration;
 
 public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior {
 
@@ -60,7 +61,7 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
                 super.respond(requestCycle);
             }
         }.setContentDisposition(ContentDisposition.ATTACHMENT)
-                .setCacheDuration(Duration.ONE_SECOND);
+                .setCacheDuration(Duration.ofSeconds(1));
         if (StringUtils.isNotEmpty(getFileName())){
             reqHandler.setFileName(getFileName());
         }

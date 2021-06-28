@@ -15,6 +15,7 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
+@DynamicUpdate
 public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
