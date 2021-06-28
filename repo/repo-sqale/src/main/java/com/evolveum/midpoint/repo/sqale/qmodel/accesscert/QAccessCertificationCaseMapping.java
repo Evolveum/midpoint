@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -26,16 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 /**
  * Mapping between {@link QAccessCertificationCase} and {@link AccessCertificationCaseType}.
@@ -199,12 +194,10 @@ public class QAccessCertificationCaseMapping
             SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
             throws SchemaException {
 
+        PrismContainer<AccessCertificationCampaignType> caseContainer = (PrismContainer) updateContext.findItem(AccessCertificationCampaignType.F_CASE);
         // row in context already knows its CID
-        ItemPath containerPath = ItemPath.create(
-                AccessCertificationCampaignType.F_CASE, updateContext.row().cid);
-        AccessCertificationCaseType aCase =
-                (AccessCertificationCaseType) updateContext.findItem(containerPath);
-        byte[] fullObject = repositoryContext().createFullObject(aCase);
+        PrismContainerValue<AccessCertificationCampaignType> caseContainerValue = caseContainer.findValue(updateContext.row().cid);
+        byte[] fullObject = repositoryContext().createFullObject(caseContainerValue.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 
