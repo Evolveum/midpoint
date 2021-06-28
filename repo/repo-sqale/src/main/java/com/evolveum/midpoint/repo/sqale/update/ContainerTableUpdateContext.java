@@ -80,8 +80,9 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
 
     /** Executes updates if applicable, nothing is done if set methods were not used. */
     @Override
-    protected void finishExecutionOwn() {
+    protected void finishExecutionOwn() throws SchemaException {
         if (!update.isEmpty()) {
+            mapping.afterModify(this);
             update.execute();
         }
     }

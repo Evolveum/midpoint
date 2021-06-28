@@ -6,23 +6,23 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 /**
  * Mapping between {@link QAccessCertificationCase} and {@link AccessCertificationCaseType}.
@@ -74,8 +74,6 @@ public class QAccessCertificationCaseMapping
 
         addItemMapping(F_CURRENT_STAGE_OUTCOME, stringMapper(q -> q.currentStageOutcome));
 
-        // TODO: full object
-
         // TODO: iteration -> campaignIteration
         addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addItemMapping(F_OBJECT_REF, refMapper(
@@ -104,7 +102,6 @@ public class QAccessCertificationCaseMapping
 //                QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
 //        addRefMapping(F_CANDIDATE_REF,
 //                QCaseWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
-
 
     }
 
@@ -147,7 +144,7 @@ public class QAccessCertificationCaseMapping
         }
 
         row.currentStageOutcome = acase.getCurrentStageOutcome();
-        row.fullObject = createFullObject(acase);
+        row.fullObject = repositoryContext().createFullObject(acase);
         // TODO
         row.campaignIteration = acase.getIteration();
         setReference(acase.getObjectRef(),
@@ -182,14 +179,17 @@ public class QAccessCertificationCaseMapping
         return row;
     }
 
-    private byte[] createFullObject(AccessCertificationCaseType schemaObject) throws SchemaException {
+    @Override
+    public void afterModify(
+            SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
+            throws SchemaException {
 
-        return repositoryContext().createStringSerializer()
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(schemaObject.asPrismContainerValue())
-                .getBytes(StandardCharsets.UTF_8);
+        // row in context already knows its CID
+        ItemPath containerPath = ItemPath.create(
+                AccessCertificationCampaignType.F_CASE, updateContext.row().cid);
+        AccessCertificationCaseType aCase =
+                (AccessCertificationCaseType) updateContext.findItem(containerPath);
+        byte[] fullObject = repositoryContext().createFullObject(aCase);
+        updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 }

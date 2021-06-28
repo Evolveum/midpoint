@@ -62,6 +62,10 @@ public class NestedContainerUpdateContext<S extends Containerable, Q extends Fle
 
     @Override
     protected void finishExecutionOwn() {
-        // nothing to do, parent context has all the updates
+        // Nothing to do, parent context has all the updates.
+
+        // mapping.afterModify(); currently not needed for any nested container, but possible
+        // If implemented, perhaps set "dirty" flag in "set" methods and only execute
+        // if the nested container columns are really changed.
     }
 }
