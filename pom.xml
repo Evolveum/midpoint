@@ -596,12 +596,9 @@
                 <version>2.1.1</version>
             </dependency>
             <dependency>
-                <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                       As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                     Therefore explicitly use the custom version. -->
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.3.e3</version>
+                <version>4.5.13</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -611,12 +608,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                       As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                     Therefore explicitly use the custom version. -->
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.6</version>
+                <version>4.4.14</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -717,16 +711,12 @@
                 <version>${cxf.version}</version>
                 <exclusions>
                     <exclusion>
-                        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                             Therefore explicitly use the custom version. -->
+                        <!-- use custom version -->
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpclient</artifactId>
                     </exclusion>
                     <exclusion>
-                        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                             Therefore explicitly use the custom version. -->
+                        <!-- use custom version -->
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpcore</artifactId>
                     </exclusion>
