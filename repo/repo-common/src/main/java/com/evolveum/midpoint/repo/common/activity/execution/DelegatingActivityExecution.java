@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -133,34 +135,38 @@ public class DelegatingActivityExecution<
     private void delegate(OperationResult result) throws ActivityExecutionException {
         helper.deleteRelevantSubtasksIfPossible(result);
 
-        createSuspendedChildTask(result);
+        Task child = createSuspendedChildTask(result);
 
-        helper.switchExecutionToChildren(List.of(childTask), result);
+        helper.switchExecutionToChildren(List.of(child), result);
 
         setTaskRef();
         activityState.markInProgressDelegated(result);
     }
 
-    private void createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
+    private Task createSuspendedChildTask(OperationResult result) throws ActivityExecutionException {
         try {
             RunningTask parent = getRunningTask();
-            childTask = new TaskType(getPrismContext());
-            childTask.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
+            TaskType childToCreate = new TaskType(getPrismContext());
+            childToCreate.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
             // group?
-            childTask.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
-            childTask.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
-            childTask.setOwnerRef(CloneUtil.clone(parent.getOwnerRef()));
-            childTask.setRecurrence(TaskRecurrenceType.SINGLE);
-            childTask.setParent(parent.getTaskIdentifier());
-            childTask.setExecutionEnvironment(CloneUtil.clone(parent.getExecutionEnvironment()));
+            childToCreate.setExecutionStatus(TaskExecutionStateType.SUSPENDED);
+            childToCreate.setSchedulingState(TaskSchedulingStateType.SUSPENDED);
+            childToCreate.setOwnerRef(CloneUtil.clone(parent.getOwnerRef()));
+            childToCreate.setRecurrence(TaskRecurrenceType.SINGLE);
+            childToCreate.setParent(parent.getTaskIdentifier());
+            childToCreate.setExecutionEnvironment(CloneUtil.clone(parent.getExecutionEnvironment()));
             ActivityPath localRoot = getActivityPath();
-            childTask.beginActivityState()
+            childToCreate.beginActivityState()
                     .localRoot(localRoot.toBean())
                     .localRootActivityExecutionRole(ActivityExecutionRoleType.DELEGATE);
 
-            LOGGER.info("Creating activity subtask {} with local root {}", childTask.getName(), localRoot);
-            String childOid = getBeans().taskManager.addTask(childTask.asPrismObject(), result);
-            LOGGER.debug("Created activity subtask {}: {}", childTask.getName(), childOid);
+            LOGGER.info("Creating activity subtask {} with local root {}", childToCreate.getName(), localRoot);
+            String childOid = getBeans().taskManager.addTask(childToCreate.asPrismObject(), result);
+            LOGGER.debug("Created activity subtask {}: {}", childToCreate.getName(), childOid);
+
+            Task child = getBeans().taskManager.getTaskPlain(childOid, result); // TODO eliminate this extra read some day
+            childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
+            return child;
         } catch (Exception e) {
             throw new ActivityExecutionException("Couldn't create activity child task", FATAL_ERROR, PERMANENT_ERROR, e);
         }

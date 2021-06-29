@@ -124,7 +124,7 @@ public class GenericTaskExecution implements TaskExecution {
     }
 
     private boolean isRootExecution() {
-        return localRootActivity.isExecutionTheTreeRootOne(this);
+        return localRootActivity.doesTaskExecuteTreeRootActivity(runningTask);
     }
 
     private void logStart() {

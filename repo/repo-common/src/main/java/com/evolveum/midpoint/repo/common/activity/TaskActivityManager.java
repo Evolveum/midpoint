@@ -10,10 +10,12 @@ package com.evolveum.midpoint.repo.common.activity;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -44,6 +46,7 @@ public class TaskActivityManager {
     @Autowired private SchemaService schemaService;
     @Autowired @Qualifier("repositoryService") private RepositoryService plainRepositoryService;
     @Autowired private TaskManager taskManager;
+    @Autowired private CommonTaskBeans beans;
 
     // TODO reconsider this
     //  How should we clear the "not executed" flag in the tree overview when using e.g. the tests?
@@ -121,5 +124,11 @@ public class TaskActivityManager {
         return taskManager.getTask(oid, withChildren, result)
                 .getUpdatedTaskObject()
                 .asObjectable();
+    }
+
+    public @NotNull Activity<?, ?> getActivity(Task rootTask, ActivityPath activityPath)
+            throws SchemaException {
+        return ActivityTree.create(rootTask, beans)
+                .getActivity(activityPath);
     }
 }

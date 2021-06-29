@@ -11,7 +11,6 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -80,6 +79,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_SCHEDULE_TASK_NOW = DOT_INTERFACE + "scheduleTaskNow";
     private static final String OP_SUSPEND_AND_DELETE_TASK = DOT_INTERFACE + "suspendAndDeleteTask";
     private static final String OP_SUSPEND_AND_DELETE_TASKS = DOT_INTERFACE + "suspendAndDeleteTasks";
+    private static final String OP_SUSPEND_AND_CLOSE_TASK_NO_EXCEPTION = DOT_INTERFACE + "suspendAndCloseTaskNoException";
     private static final String OP_MODIFY_TASK = DOT_INTERFACE + "modifyTask";
     private static final String OP_ADD_TASK = DOT_INTERFACE + "addTask";
     private static final String OP_RESUME_TASKS = DOT_INTERFACE + "resumeTasks";
@@ -456,6 +456,21 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public void suspendAndCloseTaskNoException(Task task, long suspendTimeout, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(OP_SUSPEND_AND_CLOSE_TASK_NO_EXCEPTION);
+        result.addArbitraryObjectAsParam("task", task);
+        result.addParam("suspendTimeout", suspendTimeout);
+        try {
+            taskStateManager.suspendAndCloseTaskNoException((TaskQuartzImpl) task, suspendTimeout, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't suspend and close task {}", t, task);
         } finally {
             result.computeStatusIfUnknown();
         }

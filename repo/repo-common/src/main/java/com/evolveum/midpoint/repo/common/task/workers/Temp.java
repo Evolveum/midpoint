@@ -7,12 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.task.workers;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.springframework.stereotype.Component;
 
 @Component

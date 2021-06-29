@@ -30,7 +30,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -47,6 +46,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  */
 public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         implements DebugDumpable {
+
+    private static final @NotNull ItemPath LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE);
 
     /**
      * Identifier of the activity. It is unique at the current level in the activity tree.
@@ -166,7 +167,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     public AbstractActivityExecution<?, ?, ?> createExecution(GenericTaskExecution taskExecution, OperationResult result) {
         stateCheck(execution == null, "Execution is already created in %s", this);
         ExecutionInstantiationContext<WD, AH> context = new ExecutionInstantiationContext<>(this, taskExecution);
-        ExecutionType executionType = determineExecutionType(taskExecution);
+        ExecutionType executionType = determineExecutionType(taskExecution.getRunningTask());
         switch (executionType) {
             case LOCAL:
                 execution = getLocalExecutionSupplier()
@@ -184,13 +185,13 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return execution;
     }
 
-    private @NotNull ExecutionType determineExecutionType(TaskExecution taskExecution) {
-        if (isInDistributedExecution(taskExecution)) {
-            // This is a worker. It cannot be nothing but local execution.
+    private @NotNull ExecutionType determineExecutionType(Task activityTask) {
+        if (doesTaskExecuteThisActivityAsWorker(activityTask)) {
+            // This is a worker. It must be local execution then.
             return ExecutionType.LOCAL;
         }
 
-        if (definition.getDistributionDefinition().isSubtask() && !isInDelegatedExecution(taskExecution)) {
+        if (definition.getDistributionDefinition().isSubtask() && !doesTaskExecuteThisActivityAsDelegate(activityTask)) {
             return ExecutionType.DELEGATING;
         } else if (definition.getDistributionDefinition().hasWorkers()) {
             return ExecutionType.DISTRIBUTING;
@@ -199,32 +200,29 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         }
     }
 
-    private boolean isInDelegatedExecution(TaskExecution taskExecution) {
-        return isLocalRoot() && isRoleDelegate(taskExecution);
+    private boolean doesTaskExecuteThisActivityAsDelegate(Task activityTask) {
+        return isLocalRoot() && isTaskRoleDelegate(activityTask);
     }
 
-    private boolean isRoleDelegate(TaskExecution taskExecution) {
-        return getRole(taskExecution) == ActivityExecutionRoleType.DELEGATE;
+    private boolean isTaskRoleDelegate(Task activityTask) {
+        return getRoleOfTask(activityTask) == ActivityExecutionRoleType.DELEGATE;
     }
 
-    private boolean isInDistributedExecution(TaskExecution taskExecution) {
+    private boolean doesTaskExecuteThisActivityAsWorker(Task activityTask) {
         // Actually, the worker tasks cannot have a local child activity, so isLocalRoot should always be true.
-        return isLocalRoot() && isRoleWorker(taskExecution);
+        return isLocalRoot() && isTaskRoleWorker(activityTask);
     }
 
-    private boolean isRoleWorker(TaskExecution taskExecution) {
-        return getRole(taskExecution) == ActivityExecutionRoleType.WORKER;
+    private boolean isTaskRoleWorker(Task activityTask) {
+        return getRoleOfTask(activityTask) == ActivityExecutionRoleType.WORKER;
     }
 
-    public boolean isExecutionTheTreeRootOne(TaskExecution taskExecution) {
-        return isRoot() && getRole(taskExecution) == null;
+    public boolean doesTaskExecuteTreeRootActivity(Task activityTask) {
+        return isRoot() && getRoleOfTask(activityTask) == null;
     }
 
-    private ActivityExecutionRoleType getRole(TaskExecution taskExecution) {
-        return taskExecution.getRunningTask()
-                .getPropertyRealValue(
-                        ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE),
-                        ActivityExecutionRoleType.class);
+    private ActivityExecutionRoleType getRoleOfTask(Task activityTask) {
+        return activityTask.getPropertyRealValue(LOCAL_ROOT_ACTIVITY_EXECUTION_ROLE_PATH, ActivityExecutionRoleType.class);
     }
 
     @NotNull

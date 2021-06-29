@@ -43,15 +43,14 @@ public class NoOpTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskWorkBucketProcessingResult run(@NotNull RunningTask task) {
+    public TaskRunResult run(@NotNull RunningTask task) {
 
         String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
         OperationResult opResult = new OperationResult(NoOpTaskHandler.class.getName()+".run");
-        TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
+        TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
-        runResult.setBucketComplete(false);     // overridden later
 
         PrismProperty<Integer> delayProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         PrismProperty<Integer> stepsProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_STEPS_QNAME);
@@ -86,22 +85,11 @@ public class NoOpTaskHandler implements TaskHandler {
             steps = 1;
         }
 
-        // TODO bucket
         LOGGER.info("NoOpTaskHandler run starting; progress = {}, steps to be executed = {}, delay for one step = {},"
-                + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, null, task);
+                + " partition = '{}', in task {}", task.getProgress(), steps, delay, partition, task);
 
         int objectFrom = 0;
         int objectTo = 0;
-
-        // TODO
-//        if (workBucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
-//            NumericIntervalWorkBucketContentType interval = (NumericIntervalWorkBucketContentType) workBucket.getContent();
-//            objectFrom = interval.getFrom() != null ? interval.getFrom().intValue() : 0;
-//            objectTo = interval.getTo() != null ? interval.getTo().intValue() - 1 : objectFrom;
-//        } else {
-//            objectFrom = 0;
-//            objectTo = 0;
-//        }
 
 outer:  for (int o = objectFrom; o <= objectTo; o++) {
             for (int i = 0; i < steps; i++) {
@@ -136,7 +124,6 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
 
         LOGGER.info("NoOpTaskHandler run finishing; progress = {} in task {}", task.getProgress(), task);
 
-        runResult.setBucketComplete(task.canRun());
         return runResult;
     }
 

@@ -57,6 +57,7 @@ public class OtherActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void initialize(@NotNull QName workStateTypeName) {
+        // TODO we can derive the definition also from the existing work state (if present)
         workStateComplexTypeDefinition = determineWorkStateDefinition(workStateTypeName);
     }
 

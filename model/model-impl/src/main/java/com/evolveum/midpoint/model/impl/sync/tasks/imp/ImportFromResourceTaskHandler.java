@@ -82,7 +82,7 @@ public class ImportFromResourceTaskHandler {
             ResourceObjectClassSpecification spec = syncTaskHelper.createObjectClassSpecForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
                     spec.getResource(),
-                    spec.getObjectClassDefinition(),
+                    spec.getObjectClassDefinitionRequired(),
                     new NullSynchronizationObjectFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,

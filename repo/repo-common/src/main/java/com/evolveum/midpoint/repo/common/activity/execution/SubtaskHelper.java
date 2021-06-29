@@ -64,6 +64,7 @@ class SubtaskHelper {
         }
     }
 
+    // TODO deduplicate
     @NotNull List<? extends Task> getRelevantChildren(OperationResult result) throws SchemaException {
         List<? extends Task> allChildren = getRunningTask().listSubtasks(true, result);
         List<? extends Task> relevantChildren = allChildren.stream()
@@ -74,14 +75,16 @@ class SubtaskHelper {
         return relevantChildren;
     }
 
-    void switchExecutionToChildren(Collection<TaskType> children, OperationResult result) throws ActivityExecutionException {
+    void switchExecutionToChildren(Collection<Task> children, OperationResult result) throws ActivityExecutionException {
         try {
             RunningTask runningTask = getRunningTask();
             runningTask.makeWaitingForOtherTasks(TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
             runningTask.flushPendingModifications(result);
-            for (TaskType child : children) {
-                getBeans().taskManager.resumeTask(child.getOid(), result);
-                LOGGER.debug("Started prepared child {}", child);
+            for (Task child : children) {
+                if (child.isSuspended()) {
+                    getBeans().taskManager.resumeTask(child.getOid(), result);
+                    LOGGER.debug("Started prepared child {}", child);
+                }
             }
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
             throw new ActivityExecutionException("Couldn't switch execution to activity subtask",

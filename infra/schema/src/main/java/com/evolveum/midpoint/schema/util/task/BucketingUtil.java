@@ -157,4 +157,8 @@ public class BucketingUtil {
         ActivityBucketingStateType bucketing = ActivityStateUtil.getActivityStateRequired(taskState, activityPath).getBucketing();
         return bucketing != null && Boolean.TRUE.equals(bucketing.isScavenger());
     }
+
+    public static boolean isWorkComplete(ActivityStateType state) {
+        return state != null && state.getBucketing() != null && Boolean.TRUE.equals(state.getBucketing().isWorkComplete());
+    }
 }

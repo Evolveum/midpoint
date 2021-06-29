@@ -368,17 +368,14 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
     private WorkBucketType getWorkBucket(Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
-        return getWorkBucket(task, 0, result);
+        return getWorkBucket(task, task, 0, result);
     }
 
-    /**
-     * Tests the get-complete cycle (4x) with explicit, filter-based segmentation providing 3 buckets.
-     */
-    private WorkBucketType getWorkBucket(Task task, int freeBucketWaitTime, OperationResult result)
+    private WorkBucketType getWorkBucket(Task workerTask, Task coordinatorTask, int freeBucketWaitTime, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
         ActivityDistributionDefinition distributionDefinition =
-                ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone());
-        return bucketingManager.getWorkBucket(task.getOid(), distributionDefinition, freeBucketWaitTime, result);
+                ActivityDistributionDefinition.create(coordinatorTask.getRootActivityDefinitionOrClone());
+        return bucketingManager.getWorkBucket(workerTask.getOid(), distributionDefinition, freeBucketWaitTime, result);
     }
 
     /**
@@ -613,10 +610,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_200_WORKER, result); // suspended
 
         Task worker = taskManager.getTaskPlain(TASK_200_WORKER.oid, result);
+        Task coordinator = taskManager.getTaskPlain(TASK_200_COORDINATOR.oid, result);
 
         when();
 
-        WorkBucketType bucket = getWorkBucket(worker, result);
+        WorkBucketType bucket = getWorkBucket(worker, coordinator, 0, result);
 
         then();
 
@@ -649,6 +647,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_210_WORKER_4, result); // suspended
         taskAdd(TASK_210_WORKER_5, result); // suspended
 
+        Task coordinator = taskManager.getTaskPlain(TASK_210_COORDINATOR.oid, result);
         Task worker1 = taskManager.getTaskPlain(TASK_210_WORKER_1.oid, result);
         Task worker2 = taskManager.getTaskPlain(TASK_210_WORKER_2.oid, result);
         Task worker3 = taskManager.getTaskPlain(TASK_210_WORKER_3.oid, result);
@@ -657,11 +656,11 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        WorkBucketType bucket1 = getWorkBucket(worker1, result);
-        WorkBucketType bucket2 = getWorkBucket(worker2, result);
-        WorkBucketType bucket3 = getWorkBucket(worker3, result);
-        WorkBucketType bucket4 = getWorkBucket(worker4, result);
-        WorkBucketType bucket4a = getWorkBucket(worker4, result);     // should be the same as bucket4
+        WorkBucketType bucket1 = getWorkBucket(worker1, coordinator, 0, result);
+        WorkBucketType bucket2 = getWorkBucket(worker2, coordinator, 0, result);
+        WorkBucketType bucket3 = getWorkBucket(worker3, coordinator, 0, result);
+        WorkBucketType bucket4 = getWorkBucket(worker4, coordinator, 0, result);
+        WorkBucketType bucket4a = getWorkBucket(worker4, coordinator, 0, result);     // should be the same as bucket4
 
         then();
 
@@ -674,7 +673,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
         worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
         worker4 = taskManager.getTaskPlain(worker4.getOid(), result);
-        Task coordinator = taskManager.getTaskPlain(TASK_210_COORDINATOR.oid, result);
+        coordinator.refresh(result);
         displayDumpable("coordinator task after 4+1x allocation", coordinator);
         displayDumpable("worker1 task after 4+1x allocation", worker1);
         displayDumpable("worker2 task after 4+1x allocation", worker2);
@@ -734,7 +733,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         when("complete bucket #1");
 
         bucketingManager.completeWorkBucket(worker1.getOid(), ActivityPath.empty(), 1, null, result);
-        WorkBucketType bucket = getWorkBucket(worker1, result);
+        WorkBucketType bucket = getWorkBucket(worker1, coordinator, 0, result);
 
         then("complete bucket #1");
 
@@ -760,7 +759,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("no more buckets");
 
-        WorkBucketType nothing = getWorkBucket(worker5, result);
+        WorkBucketType nothing = getWorkBucket(worker5, coordinator, 0, result);
 
         then("no more buckets");
 
@@ -792,7 +791,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         when("complete bucket #3");
 
         bucketingManager.completeWorkBucket(worker3.getOid(), ActivityPath.empty(), 3, null, result);
-        bucket = getWorkBucket(worker5, result);
+        bucket = getWorkBucket(worker5, coordinator, 0, result);
 
         then("complete bucket #3");
 
@@ -841,7 +840,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when("reclaiming mis-allocated bucket");
 
-        bucket = getWorkBucket(worker1, -1, result);
+        bucket = getWorkBucket(worker1, coordinator, -1, result);
         assertThat(bucket).isNotNull();
 
         then("reclaiming mis-allocated bucket");

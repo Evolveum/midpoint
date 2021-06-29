@@ -398,6 +398,10 @@ public interface TaskManager {
             throws SchemaException, ObjectNotFoundException;
 
     /**
+     * TODO
+     */
+    void suspendAndCloseTaskNoException(Task task, long suspendTimeout, OperationResult parentResult);
+    /**
      * Resume suspended task.
      *
      * @param task task instance to be resumed.
