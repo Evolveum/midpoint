@@ -8,17 +8,18 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -58,18 +59,26 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
+    public Predicate process(@NotNull ObjectFilter filter) throws RepositoryException {
+        // To compare with old repo see: QueryInterpreter.findAndCreateRestrictionInternal
+        if (filter instanceof InOidFilter) {
+            return new InOidFilterProcessor(this).process((InOidFilter) filter);
+        } else if (filter instanceof OrgFilter) {
+            return new OrgFilterProcessor(this).process((OrgFilter) filter);
+        } else if (filter instanceof FullTextFilter) {
+            // TODO
+            throw new QueryException("TODO filter " + filter);
+        } else if (filter instanceof TypeFilter) {
+            // TODO
+            throw new QueryException("TODO filter " + filter);
+        } else {
+            return super.process(filter);
+        }
+    }
+
+    @Override
     public SqaleRepoContext repositoryContext() {
         return (SqaleRepoContext) super.repositoryContext();
-    }
-
-    @Override
-    public FilterProcessor<InOidFilter> createInOidFilter() {
-        return new InOidFilterProcessor(this);
-    }
-
-    @Override
-    public FilterProcessor<OrgFilter> createOrgFilter() {
-        return new OrgFilterProcessor(this);
     }
 
     public @NotNull Integer searchCachedRelationId(QName qName) {

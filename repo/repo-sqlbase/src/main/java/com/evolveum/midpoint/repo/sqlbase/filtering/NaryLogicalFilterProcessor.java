@@ -30,7 +30,7 @@ public class NaryLogicalFilterProcessor implements FilterProcessor<NaryLogicalFi
         Predicate predicate = null;
         Operator operator = (filter instanceof AndFilter) ? Ops.AND : Ops.OR;
         for (ObjectFilter subfilter : filter.getConditions()) {
-            Predicate right = new ObjectFilterProcessor(context).process(subfilter);
+            Predicate right = context.process(subfilter);
             predicate = predicate != null
                     ? ExpressionUtils.predicate(operator, predicate, right)
                     : right;

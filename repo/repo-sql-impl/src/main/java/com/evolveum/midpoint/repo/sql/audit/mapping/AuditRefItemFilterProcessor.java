@@ -39,7 +39,7 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
                 ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null, null));
     }
 
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<Q, R> mapper(
             Function<Q, StringPath> rootToOidPath,
             Function<Q, StringPath> rootToNamePath,
             Function<Q, NumberPath<Integer>> rootToTypePath) {

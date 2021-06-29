@@ -18,6 +18,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +27,9 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.NaryLogicalFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.NotFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
@@ -115,16 +118,45 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return path(rootType);
     }
 
-    @Override
-    public Predicate process(ObjectFilter filter) throws RepositoryException {
-        if (filter == null) {
-            return null;
+    /** Processes the object filter and sets the WHERE clause. */
+    public void processFilter(ObjectFilter filter) throws RepositoryException {
+        if (filter != null) {
+            sqlQuery.where(process(filter));
         }
+    }
 
-        Predicate condition = new ObjectFilterProcessor(this).process(filter);
-        sqlQuery.where(condition);
-        // probably not used after added to where, but let's respect the contract
-        return condition;
+    /**
+     * Implements contract for {@link FilterProcessor} working as a top-level dispatcher
+     * to concrete filter types.
+     * This is a universal/generic filter processor that dispatches to the actual filter processor
+     * based on the filter type.
+     * It is used both as an entry point for the root filter of the query, but also when various
+     * structural filters need to resolve their components (e.g. AND uses this for its components).
+     *
+     * Some subtypes of {@link ObjectFilter} (from Prism API) are not supported here
+     * but in the query context subclass.
+     */
+    @Override
+    public Predicate process(@NotNull ObjectFilter filter) throws RepositoryException {
+        // To compare with old repo see: QueryInterpreter.findAndCreateRestrictionInternal
+        if (filter instanceof NaryLogicalFilter) {
+            return new NaryLogicalFilterProcessor(this)
+                    .process((NaryLogicalFilter) filter);
+        } else if (filter instanceof NotFilter) {
+            return new NotFilterProcessor(this)
+                    .process((NotFilter) filter);
+        } else if (filter instanceof ValueFilter) {
+            // here are the values applied (ref/property value filters)
+            return new ValueFilterProcessor(this)
+                    .process((ValueFilter<?, ?>) filter);
+        } else if (filter instanceof AllFilter) {
+            // TODO throws in old repo, do we want to throw here too? (the same for NoneFilter and UndefinedFilter)
+            return Expressions.asBoolean(true).isTrue();
+        } else if (filter instanceof NoneFilter) {
+            return Expressions.asBoolean(true).isFalse();
+        } else {
+            throw new QueryException("Unsupported filter " + filter);
+        }
     }
 
     /**
@@ -378,16 +410,6 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     @NotNull
     public QName normalizeRelation(QName qName) {
         return sqlRepoContext.normalizeRelation(qName);
-    }
-
-    public FilterProcessor<InOidFilter> createInOidFilter() {
-        // not supported for audit, overridden in repo-sqale
-        throw new UnsupportedOperationException();
-    }
-
-    public FilterProcessor<OrgFilter> createOrgFilter() {
-        // not supported for audit, overridden in repo-sqale
-        throw new UnsupportedOperationException();
     }
 
     // before-query hook, empty by default
