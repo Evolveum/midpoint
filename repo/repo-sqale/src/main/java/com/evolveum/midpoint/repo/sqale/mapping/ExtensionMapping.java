@@ -22,8 +22,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * This acts like a container mapping for extension/attributes containers.
  * Compared to other subclasses of {@link QueryModelMapping} this does NOT use the item mapping
- * and resolver maps, but instead creates the mapper on the fly with currently available information
- * and lets the extension mapper/resolver do the real work.
+ * and resolver maps, but instead returns the same stateless mapper which then delegates
+ * all the real work to item filter/delta processors (see {@link ExtensionItemSqlMapper}).
  * This allows for dynamic mapping which is needed especially for shadow attributes.
  *
  * @param <Q> type of entity path
@@ -33,7 +33,7 @@ public class ExtensionMapping<Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryModelMapping<Containerable, Q, R> {
 
     private final MExtItemHolderType holderType;
-    private final Function<Q, JsonbPath> rootToExtensionPath;
+    private final ExtensionItemSqlMapper<Q, R> itemMapper;
 
     protected ExtensionMapping(
             @NotNull MExtItemHolderType holderType,
@@ -42,12 +42,12 @@ public class ExtensionMapping<Q extends FlexibleRelationalPathBase<R>, R>
         super(Containerable.class, queryType);
 
         this.holderType = holderType;
-        this.rootToExtensionPath = rootToExtensionPath;
+        this.itemMapper = new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType);
     }
 
     @Override
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
-        return new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType);
+        return itemMapper;
     }
 
     public MExtItemHolderType holderType() {
