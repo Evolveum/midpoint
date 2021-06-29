@@ -75,6 +75,8 @@ CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
+    'ACCESS_CERT_WI_ASSIGNEE',
+    'ACCESS_CERT_WI_CANDIDATE',
     'CASE_WI_ASSIGNEE',
     'CASE_WI_CANDIDATE',
     'DELEGATED',
@@ -1306,7 +1308,6 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
--- TODO WIP
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
@@ -1346,48 +1347,67 @@ CREATE TABLE m_access_cert_case (
 )
     INHERITS(m_container);
 
--- TODO not mapped yet
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
-    accCertCaseCid INTEGER NOT NULL, -- PK+FK
+    accessCertCaseCid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_WORK_ITEM'),
     closeTimestamp TIMESTAMPTZ,
     campaignIteration INTEGER NOT NULL,
-    outcome TEXT,
+    outcome TEXT, -- stores output/outcome
     outputChangeTimestamp TIMESTAMPTZ,
     performerRefTargetOid UUID,
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
 
-    PRIMARY KEY (ownerOid, accCertCaseCid, cid)
+    PRIMARY KEY (ownerOid, accessCertCaseCid, cid)
 )
     INHERITS(m_container);
 
 ALTER TABLE m_access_cert_wi
-    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accCertCaseCid)
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accessCertCaseCid)
         REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
--- TODO rework to inherit from reference tables
-CREATE TABLE m_access_cert_wi_reference (
-    ownerOid UUID NOT NULL, -- PK+FK
-    accCertCaseCid INTEGER NOT NULL, -- PK+FK
-    accCertWiCid INTEGER NOT NULL, -- PK+FK
-    targetOid UUID NOT NULL, -- more PK columns...
-    targetType ObjectType,
-    relationId INTEGER NOT NULL REFERENCES m_uri(id),
+-- stores case/workItem/assigneeRef
+CREATE TABLE m_access_cert_wi_assignee (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    accessCertCaseCid INTEGER NOT NULL,
+    accessCertWorkItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ACCESS_CERT_WI_ASSIGNEE') STORED,
 
-    -- TODO is the order of last two components optimal for index/query?
-    PRIMARY KEY (ownerOid, accCertCaseCid, accCertWiCid, relationId, targetOid)
-);
+    PRIMARY KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
 
-ALTER TABLE m_access_cert_wi_reference
-    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
-        FOREIGN KEY (ownerOid, accCertCaseCid, accCertWiCid)
-            REFERENCES m_access_cert_wi (ownerOid, accCertCaseCid, cid)
-            ON DELETE CASCADE;
+ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+
+ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
+    FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE; -- TODO is the cascade needed?
+
+-- stores case/workItem/candidateRef
+CREATE TABLE m_access_cert_wi_candidate (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    accessCertCaseCid INTEGER NOT NULL,
+    accessCertWorkItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ACCESS_CERT_WI_CANDIDATE') STORED,
+
+    PRIMARY KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+
+ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
+    FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE; -- TODO is the cascade needed?
+
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
 ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (nameNorm);

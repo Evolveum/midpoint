@@ -57,11 +57,10 @@ public class QAccessCertificationWorkItemMapping
                 q -> q.performerRefTargetType,
                 q -> q.performerRefRelationId));
 
-        // TODO
-//        addRefMapping(F_ASSIGNEE_REF,
-//                QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
-//        addRefMapping(F_CANDIDATE_REF,
-//                QCaseWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
+        addRefMapping(F_ASSIGNEE_REF,
+                QAccessCertificationWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
+        addRefMapping(F_CANDIDATE_REF,
+                QAccessCertificationWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
 
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
 
@@ -88,7 +87,7 @@ public class QAccessCertificationWorkItemMapping
     @SuppressWarnings("DuplicatedCode")
     public MAccessCertificationWorkItem insert(AccessCertificationWorkItemType workItem, MAccessCertificationCampaign campaignRow, MAccessCertificationCase caseRow, JdbcSession jdbcSession) {
         MAccessCertificationWorkItem row = initRowObject(workItem, campaignRow);
-        row.accCertCaseCid = caseRow.cid;
+        row.accessCertCaseCid = caseRow.cid;
 
         row.closeTimestamp = MiscUtil.asInstant(workItem.getCloseTimestamp());
         // TODO: iteration -> campaignIteration
@@ -110,11 +109,10 @@ public class QAccessCertificationWorkItemMapping
 
         insert(row, jdbcSession);
 
-        // TODO
-//        storeRefs(row, workItem.getAssigneeRef(),
-//                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
-//        storeRefs(row, workItem.getCandidateRef(),
-//                QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
+        storeRefs(row, workItem.getAssigneeRef(),
+                QAccessCertificationWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
+        storeRefs(row, workItem.getCandidateRef(),
+                QAccessCertificationWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
 
         return row;
     }

@@ -1668,7 +1668,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         Instant startTimestamp = Instant.ofEpochMilli(1234);
         Instant validFrom = Instant.ofEpochMilli(444000);
         Instant validityChangeTimestamp = Instant.ofEpochMilli(444001);
-        Instant currentStageCreateTimestamp = Instant.ofEpochMilli(444333);
+        Instant case1CurrentStageCreateTimestamp = Instant.ofEpochMilli(444333);
+        Instant case2CurrentStageCreateTimestamp = Instant.ofEpochMilli(2444333);
         Instant remediedTimestamp = Instant.ofEpochMilli(444555);
         Instant currentStageDeadline = Instant.ofEpochMilli(444666);
         Instant validTo = Instant.ofEpochMilli(999000);
@@ -1677,9 +1678,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         Instant archiveTimestamp = Instant.ofEpochMilli(555123);
         Instant endTimestamp = Instant.ofEpochMilli(System.currentTimeMillis());
         String disableReason = "Whatever!";
-        String currentStageOutcome = "Big bada BOOM";
+        String case1CurrentStageOutcome = "Bada BOOM";
+        String case2CurrentStageOutcome = "Big bada BOOM";
 
-        Integer caseIteration = 5;
+        Integer case1Iteration = 5;
+        Integer case2Iteration = 15;
         UUID caseObjectRefOid = UUID.randomUUID();
         QName caseObjectRefRelationUri = QName.valueOf("{https://other.uri}case-object-ref-relation");
         UUID caseOrgRefOid = UUID.randomUUID();
@@ -1691,11 +1694,38 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UUID caseTenantRefOid = UUID.randomUUID();
         QName caseTenantRefRelationUri = QName.valueOf("{https://some.uri}case-tenant-ref-relation");
 
-        Instant wiCloseTimestamp = Instant.ofEpochMilli(999123);
-        Instant wiOutputChangeTimestamp = Instant.ofEpochMilli(999001);
+        Instant wi1CloseTimestamp = Instant.ofEpochMilli(999123);
+        Instant wi2CloseTimestamp = Instant.ofEpochMilli(2999123);
+        Instant wi3CloseTimestamp = Instant.ofEpochMilli(3999123);
+        Instant wi1OutputChangeTimestamp = Instant.ofEpochMilli(999001);
+        Instant wi2OutputChangeTimestamp = Instant.ofEpochMilli(2999001);
+        Instant wi3OutputChangeTimestamp = Instant.ofEpochMilli(3999001);
         UUID performer1Oid = UUID.randomUUID();
         QName performer1Relation = QName.valueOf("{https://random.org/ns}wi-performer1-rel");
+        UUID performer2Oid = UUID.randomUUID();
+        QName performer2Relation = QName.valueOf("{https://random.org/ns}wi-performer2-rel");
+        UUID performer3Oid = UUID.randomUUID();
+        QName performer3Relation = QName.valueOf("{https://random.org/ns}wi-performer3-rel");
 
+
+        UUID wi1AssigneeRef1Oid = UUID.fromString("7508a482-d8d1-11eb-9435-9b077bcc684b"); // explicit UUID, to ensure ordering
+        QName wi1AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}acwi-1-assignee-1-rel");
+        UUID wi1AssigneeRef2Oid = UUID.fromString("77267d0c-d8d1-11eb-9ae9-8fb4530e4e64"); // explicit UUID, to ensure ordering
+        QName wi1AssigneeRef2Relation = QName.valueOf("{https://random.org/ns}acwi-1-assignee-2-rel");
+        UUID wi1CandidateRef1Oid = UUID.fromString("754f391a-d8d1-11eb-b269-9b322a63128e"); // explicit UUID, to ensure ordering
+        QName wi1CandidateRef1Relation = QName.valueOf("{https://random.org/ns}acwi-1-candidate-1-rel");
+
+        UUID wi2AssigneeRef1Oid = UUID.fromString("75cde882-d8d1-11eb-841f-6b8c0f5075f8"); // explicit UUID, to ensure ordering
+        QName wi2AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}acwi-2-assignee-1-rel");
+        UUID wi2CandidateRef1Oid = UUID.fromString("765709aa-d8d1-11eb-9340-33ef5ec6b0e2"); // explicit UUID, to ensure ordering
+        QName wi2CandidateRef1Relation = QName.valueOf("{https://random.org/ns}acwi-2-candidate-1-rel");
+        UUID wi2CandidateRef2Oid = UUID.fromString("7576bd0a-d8d1-11eb-9171-bf2238c132b7"); // explicit UUID, to ensure ordering
+        QName wi2CandidateRef2Relation = QName.valueOf("{https://random.org/ns}acwi-2-candidate-2-rel");
+
+        UUID wi3AssigneeRef1Oid = UUID.fromString("b9f969b0-d8e4-11eb-aa14-6f0a7aff9550"); // explicit UUID, to ensure ordering
+        QName wi3AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}acwi-3-assignee-1-rel");
+        UUID wi3CandidateRef1Oid = UUID.fromString("bb23b638-d8e4-11eb-9601-872386b50ce3"); // explicit UUID, to ensure ordering
+        QName wi3CandidateRef1Relation = QName.valueOf("{https://random.org/ns}acwi-3-candidate-1-rel");
 
         var accessCertificationCampaign = new AccessCertificationCampaignType(prismContext)
                 .name(objectName)
@@ -1722,32 +1752,71 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(validityChangeTimestamp))
                                 .validityStatus(TimeIntervalStatusType.IN)
                         )
-                        .currentStageOutcome(currentStageOutcome)
+                        .currentStageOutcome(case1CurrentStageOutcome)
                         // TODO campaignIteration
-                        .iteration(caseIteration)
+                        .iteration(case1Iteration)
                         .objectRef(caseObjectRefOid.toString(), ServiceType.COMPLEX_TYPE, caseObjectRefRelationUri)
                         .orgRef(caseOrgRefOid.toString(), OrgType.COMPLEX_TYPE, caseOrgRefRelationUri)
                         .outcome(caseOutcome)
                         .remediedTimestamp(MiscUtil.asXMLGregorianCalendar(remediedTimestamp))
                         .currentStageDeadline(MiscUtil.asXMLGregorianCalendar(currentStageDeadline))
-                        .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(currentStageCreateTimestamp))
+                        .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(case1CurrentStageCreateTimestamp))
                         .stageNumber(caseStageNumber)
                         .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
                         .tenantRef(caseTenantRefOid.toString(), OrgType.COMPLEX_TYPE, caseTenantRefRelationUri)
                         .workItem(new AccessCertificationWorkItemType(prismContext)
                                 .id(55L)
-                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wiCloseTimestamp))
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi1CloseTimestamp))
                                 // TODO: iteration -> campaignIteration
                                 .iteration(81)
                                 .output(new AbstractWorkItemOutputType()
                                         .outcome("almost, but not quite, entirely done")
                                 )
-                                .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wiOutputChangeTimestamp))
-                                .performerRef(performer1Oid.toString(),
-                                        UserType.COMPLEX_TYPE, performer1Relation)
+                                .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi1OutputChangeTimestamp))
+                                .performerRef(performer1Oid.toString(), UserType.COMPLEX_TYPE, performer1Relation)
                                 .stageNumber(21)
+                                .assigneeRef(wi1AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef1Relation)
+                                .assigneeRef(wi1AssigneeRef2Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef2Relation)
+                                .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation)
                         )
-                );
+                        .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .id(56L)
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2CloseTimestamp))
+                                // TODO: iteration -> campaignIteration
+                                .iteration(82)
+                                .output(new AbstractWorkItemOutputType()
+                                        .outcome("A tad more than almost, but not quite, entirely done")
+                                )
+                                .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2OutputChangeTimestamp))
+                                .performerRef(performer2Oid.toString(), UserType.COMPLEX_TYPE, performer2Relation)
+                                .stageNumber(22)
+                                .assigneeRef(wi2AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2AssigneeRef1Relation)
+                                .candidateRef(wi2CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2CandidateRef1Relation)
+                                .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)
+                        ))
+                    ._case(new AccessCertificationCaseType(prismContext)
+                            .id(49L)
+                            .currentStageOutcome(case2CurrentStageOutcome)
+                            // TODO campaignIteration
+                            .iteration(case2Iteration)
+                            .outcome("whatever")
+                            .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(case2CurrentStageCreateTimestamp))
+                            .stageNumber(25)
+                            .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
+                            .workItem(new AccessCertificationWorkItemType(prismContext)
+                                    .id(59L)
+                                    .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3CloseTimestamp))
+                                    // TODO: iteration -> campaignIteration
+                                    .iteration(83)
+                                    .output(new AbstractWorkItemOutputType()
+                                            .outcome("certainly not quite done")
+                                    )
+                                    .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3OutputChangeTimestamp))
+                                    .performerRef(performer3Oid.toString(), UserType.COMPLEX_TYPE, performer3Relation)
+                                    .stageNumber(21)
+                                    .assigneeRef(wi3AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi3AssigneeRef1Relation)
+                                    .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)
+                            ));
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);
@@ -1773,7 +1842,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QAccessCertificationCase caseAlias = aliasFor(QAccessCertificationCase.class);
         List<MAccessCertificationCase> caseRows = select(caseAlias,
                 caseAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
-        assertThat(caseRows).hasSize(1);
+        assertThat(caseRows).hasSize(2);
         caseRows.sort(comparing(tr -> tr.cid));
 
         MAccessCertificationCase caseRow = caseRows.get(0);
@@ -1789,9 +1858,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(caseRow.validTo).isEqualTo(validTo);
         assertThat(caseRow.validityChangeTimestamp).isEqualTo(validityChangeTimestamp);
         assertThat(caseRow.validityStatus).isEqualTo(TimeIntervalStatusType.IN);
-        assertThat(caseRow.currentStageOutcome).isEqualTo(currentStageOutcome);
+        assertThat(caseRow.currentStageOutcome).isEqualTo(case1CurrentStageOutcome);
         assertContainerFullObject(caseRow.fullObject, accessCertificationCampaign.getCase().get(0));
-        assertThat(caseRow.campaignIteration).isEqualTo(caseIteration);
+        assertThat(caseRow.campaignIteration).isEqualTo(case1Iteration);
         assertThat(caseRow.objectRefTargetOid).isEqualTo(caseObjectRefOid);
         assertThat(caseRow.objectRefTargetType).isEqualTo(MObjectType.SERVICE);
         assertCachedUri(caseRow.objectRefRelationId, caseObjectRefRelationUri);
@@ -1801,7 +1870,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(caseRow.outcome).isEqualTo(caseOutcome);
         assertThat(caseRow.remediedTimestamp).isEqualTo(remediedTimestamp);
         assertThat(caseRow.currentStageDeadline).isEqualTo(currentStageDeadline);
-        assertThat(caseRow.currentStageCreateTimestamp).isEqualTo(currentStageCreateTimestamp);
+        assertThat(caseRow.currentStageCreateTimestamp).isEqualTo(case1CurrentStageCreateTimestamp);
         assertThat(caseRow.stageNumber).isEqualTo(caseStageNumber);
         assertThat(caseRow.targetRefTargetOid).isEqualTo(caseTargetRefOid);
         assertThat(caseRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
@@ -1810,24 +1879,168 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(caseRow.tenantRefTargetType).isEqualTo(MObjectType.ORG);
         assertCachedUri(caseRow.tenantRefRelationId, caseTenantRefRelationUri);
 
+        caseRow = caseRows.get(1);
+        assertThat(caseRow.cid).isEqualTo(49); // assigned in advance
+        assertThat(caseRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(caseRow.administrativeStatus).isNull();
+        assertThat(caseRow.archiveTimestamp).isNull();
+        assertThat(caseRow.disableReason).isNull();
+        assertThat(caseRow.disableTimestamp).isNull();
+        assertThat(caseRow.effectiveStatus).isNull();
+        assertThat(caseRow.enableTimestamp).isNull();
+        assertThat(caseRow.validFrom).isNull();
+        assertThat(caseRow.validTo).isNull();
+        assertThat(caseRow.validityChangeTimestamp).isNull();
+        assertThat(caseRow.validityStatus).isNull();
+        assertThat(caseRow.currentStageOutcome).isEqualTo(case2CurrentStageOutcome);
+        assertContainerFullObject(caseRow.fullObject, accessCertificationCampaign.getCase().get(1));
+        assertThat(caseRow.campaignIteration).isEqualTo(case2Iteration);
+        assertThat(caseRow.objectRefTargetOid).isNull();
+        assertThat(caseRow.objectRefTargetType).isNull();
+        assertThat(caseRow.objectRefRelationId).isNull();
+        assertThat(caseRow.orgRefTargetOid).isNull();
+        assertThat(caseRow.orgRefTargetType).isNull();
+        assertThat(caseRow.orgRefRelationId).isNull();
+        assertThat(caseRow.outcome).isEqualTo("whatever");
+        assertThat(caseRow.remediedTimestamp).isNull();
+        assertThat(caseRow.currentStageDeadline).isNull();
+        assertThat(caseRow.currentStageCreateTimestamp).isEqualTo(case2CurrentStageCreateTimestamp);
+        assertThat(caseRow.stageNumber).isEqualTo(25);
+        assertThat(caseRow.targetRefTargetOid).isEqualTo(caseTargetRefOid);
+        assertThat(caseRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(caseRow.targetRefRelationId, caseTargetRefRelationUri);
+        assertThat(caseRow.tenantRefTargetOid).isNull();
+        assertThat(caseRow.tenantRefTargetType).isNull();
+        assertThat(caseRow.tenantRefRelationId).isNull();
+
         QAccessCertificationWorkItem wiAlias = aliasFor(QAccessCertificationWorkItem.class);
         List<MAccessCertificationWorkItem> wiRows = select(wiAlias,
                 wiAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
-        assertThat(wiRows).hasSize(1);
+        assertThat(wiRows).hasSize(3);
         wiRows.sort(comparing(tr -> tr.cid));
 
         MAccessCertificationWorkItem wiRow = wiRows.get(0);
         assertThat(wiRow.cid).isEqualTo(55); // assigned in advance
-        assertThat(wiRow.accCertCaseCid).isEqualTo(48);
+        assertThat(wiRow.accessCertCaseCid).isEqualTo(48);
         assertThat(wiRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_WORK_ITEM);
-        assertThat(wiRow.closeTimestamp).isEqualTo(wiCloseTimestamp);
+        assertThat(wiRow.closeTimestamp).isEqualTo(wi1CloseTimestamp);
         assertThat(wiRow.campaignIteration).isEqualTo(81);
         assertThat(wiRow.outcome).isEqualTo("almost, but not quite, entirely done");
-        assertThat(wiRow.outputChangeTimestamp).isEqualTo(wiOutputChangeTimestamp);
+        assertThat(wiRow.outputChangeTimestamp).isEqualTo(wi1OutputChangeTimestamp);
         assertThat(wiRow.performerRefTargetOid).isEqualTo(performer1Oid);
         assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(wiRow.performerRefRelationId, performer1Relation);
         assertThat(wiRow.stageNumber).isEqualTo(21);
+
+        wiRow = wiRows.get(1);
+        assertThat(wiRow.cid).isEqualTo(56); // assigned in advance
+        assertThat(wiRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(wiRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_WORK_ITEM);
+        assertThat(wiRow.closeTimestamp).isEqualTo(wi2CloseTimestamp);
+        assertThat(wiRow.campaignIteration).isEqualTo(82);
+        assertThat(wiRow.outcome).isEqualTo("A tad more than almost, but not quite, entirely done");
+        assertThat(wiRow.outputChangeTimestamp).isEqualTo(wi2OutputChangeTimestamp);
+        assertThat(wiRow.performerRefTargetOid).isEqualTo(performer2Oid);
+        assertThat(wiRow.performerRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(wiRow.performerRefRelationId, performer2Relation);
+        assertThat(wiRow.stageNumber).isEqualTo(22);
+
+        // Assignee refs
+        QAccessCertificationWorkItemReference assigneeRefAlias =
+                QAccessCertificationWorkItemReferenceMapping.getForCaseWorkItemAssignee().defaultAlias();
+        List<MAccessCertificationWorkItemReference> assigneeRefRows = select(assigneeRefAlias,
+                assigneeRefAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
+        assertThat(assigneeRefRows).hasSize(4);
+        assigneeRefRows.sort(comparing(tr -> tr.targetOid));
+
+        MAccessCertificationWorkItemReference assigneeRefRow = assigneeRefRows.get(0);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi3AssigneeRef1Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi3AssigneeRef1Relation);
+        assertThat(assigneeRefRow.accessCertCaseCid).isEqualTo(49);
+        assertThat(assigneeRefRow.accessCertWorkItemCid).isEqualTo(59);
+
+        assigneeRefRow = assigneeRefRows.get(1);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi1AssigneeRef1Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi1AssigneeRef1Relation);
+        assertThat(assigneeRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(assigneeRefRow.accessCertWorkItemCid).isEqualTo(55);
+
+        assigneeRefRow = assigneeRefRows.get(2);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi2AssigneeRef1Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi2AssigneeRef1Relation);
+        assertThat(assigneeRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(assigneeRefRow.accessCertWorkItemCid).isEqualTo(56);
+
+        assigneeRefRow = assigneeRefRows.get(3);
+        assertThat(assigneeRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(assigneeRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(assigneeRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_ASSIGNEE);
+        assertThat(assigneeRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(assigneeRefRow.targetOid).isEqualTo(wi1AssigneeRef2Oid);
+        assertCachedUri(assigneeRefRow.relationId, wi1AssigneeRef2Relation);
+        assertThat(assigneeRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(assigneeRefRow.accessCertWorkItemCid).isEqualTo(55);
+
+        // Candidate refs
+        QAccessCertificationWorkItemReference candidateRefAlias =
+                QAccessCertificationWorkItemReferenceMapping.getForCaseWorkItemCandidate().defaultAlias();
+        List<MAccessCertificationWorkItemReference> candidateRefRows = select(candidateRefAlias,
+                candidateRefAlias.ownerOid.eq(UUID.fromString(accessCertificationCampaign.getOid())));
+        assertThat(candidateRefRows).hasSize(4);
+        candidateRefRows.sort(comparing(tr -> tr.targetOid));
+
+        MAccessCertificationWorkItemReference candidateRefRow = candidateRefRows.get(0);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.ORG);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi3CandidateRef1Oid);
+        assertCachedUri(candidateRefRow.relationId, wi3CandidateRef1Relation);
+        assertThat(candidateRefRow.accessCertCaseCid).isEqualTo(49);
+        assertThat(candidateRefRow.accessCertWorkItemCid).isEqualTo(59);
+
+        candidateRefRow = candidateRefRows.get(1);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi1CandidateRef1Oid);
+        assertCachedUri(candidateRefRow.relationId, wi1CandidateRef1Relation);
+        assertThat(candidateRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(candidateRefRow.accessCertWorkItemCid).isEqualTo(55);
+
+        candidateRefRow = candidateRefRows.get(2);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.ORG);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi2CandidateRef2Oid);
+        assertCachedUri(candidateRefRow.relationId, wi2CandidateRef2Relation);
+        assertThat(candidateRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(candidateRefRow.accessCertWorkItemCid).isEqualTo(56);
+
+        candidateRefRow = candidateRefRows.get(3);
+        assertThat(candidateRefRow.ownerOid).isEqualTo(UUID.fromString(accessCertificationCampaign.getOid()));
+        assertThat(candidateRefRow.ownerType).isEqualTo(MObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        assertThat(candidateRefRow.referenceType).isEqualTo(MReferenceType.ACCESS_CERT_WI_CANDIDATE);
+        assertThat(candidateRefRow.targetType).isEqualTo(MObjectType.USER);
+        assertThat(candidateRefRow.targetOid).isEqualTo(wi2CandidateRef1Oid);
+        assertCachedUri(candidateRefRow.relationId, wi2CandidateRef1Relation);
+        assertThat(candidateRefRow.accessCertCaseCid).isEqualTo(48);
+        assertThat(candidateRefRow.accessCertWorkItemCid).isEqualTo(56);
+
     }
 
     private <C extends Containerable> void assertContainerFullObject(byte[] rowFullObject, C sObject) throws Exception {

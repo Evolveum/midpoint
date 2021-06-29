@@ -548,6 +548,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
             assertThat(result.get(0).getOid()).isEqualTo(expectedCaseOid);
         }
     }
+
+    // TODO: search cert workitems
+    // TODO: setup: cert workitems in two campaigns that have the same value, make sure campaign and case are properly reflected in the query.
+
     // endregion
 
     // region org filter

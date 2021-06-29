@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 public class MAccessCertificationWorkItem extends MContainer {
 
-    public Long accCertCaseCid;
+    public Long accessCertCaseCid;
 
     public Instant closeTimestamp;
     public Integer campaignIteration;
