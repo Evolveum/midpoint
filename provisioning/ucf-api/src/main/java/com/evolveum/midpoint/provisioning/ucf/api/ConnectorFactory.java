@@ -93,6 +93,11 @@ public interface ConnectorFactory {
      */
     String getFrameworkVersion();
 
+    /**
+     * Registers an listener for automatic connector discovery
+     *
+     * @param listener Listener which will be notified once new connector is discovered
+     */
     void registerDiscoveryListener(ConnectorDiscoveryListener listener);
 
     void shutdown();

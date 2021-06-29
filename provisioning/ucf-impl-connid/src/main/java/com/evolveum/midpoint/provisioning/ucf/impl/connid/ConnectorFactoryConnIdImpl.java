@@ -134,7 +134,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     ConnectorInfoManagerFactory connectorInfoManagerFactory;
-    private CompositeConnectorInfoManager localConnectorInfoManager;
+    private DirectoryScanningInfoManager localConnectorInfoManager;
     private Set<URI> bundleURIs;
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private Protector protector;
@@ -153,7 +153,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public void initialize() {
 
         connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-        localConnectorInfoManager = new CompositeConnectorInfoManager(this);
+        localConnectorInfoManager = new DirectoryScanningInfoManager(this);
 
         bundleURIs = new HashSet<>();
 
@@ -843,5 +843,4 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             listener.newConnectorDiscovered(null);
         }
     }
-
 }

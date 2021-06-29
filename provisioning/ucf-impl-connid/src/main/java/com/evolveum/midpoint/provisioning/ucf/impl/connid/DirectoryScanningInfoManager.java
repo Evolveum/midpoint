@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.io.File;
@@ -22,10 +28,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.Optional;
 import com.google.common.collect.Lists;
 
-public class CompositeConnectorInfoManager implements ConnectorInfoManager {
+public class DirectoryScanningInfoManager implements ConnectorInfoManager {
 
 
-    private static final Trace LOGGER = TraceManager.getTrace(CompositeConnectorInfoManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DirectoryScanningInfoManager.class);
 
     private final ConnectorInfoManagerFactory factory;
 
@@ -38,13 +44,13 @@ public class CompositeConnectorInfoManager implements ConnectorInfoManager {
     private static final long DEFAULT_POLL_INTERVAL = TimeUnit.SECONDS.toMillis(60);
 
 
-    public CompositeConnectorInfoManager(ConnectorFactoryConnIdImpl factory, long pollInterval) {
+    public DirectoryScanningInfoManager(ConnectorFactoryConnIdImpl factory, long pollInterval) {
         this.factory = factory.connectorInfoManagerFactory;
         this.ucfFactory = factory;
         this.monitor = new FileAlterationMonitor(pollInterval);
     }
 
-    public CompositeConnectorInfoManager(ConnectorFactoryConnIdImpl connIdFactory) {
+    public DirectoryScanningInfoManager(ConnectorFactoryConnIdImpl connIdFactory) {
         this(connIdFactory, DEFAULT_POLL_INTERVAL);
     }
 
