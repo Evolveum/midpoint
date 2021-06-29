@@ -854,7 +854,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addParam("oid", oid)
                 .build();
 
-        // TODO executeAttempts
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_GET_VERSION, type);
 
