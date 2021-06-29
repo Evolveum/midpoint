@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-
-import org.jetbrains.annotations.NotNull;
 
 public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends Activity<WD, AH> {
@@ -21,25 +22,38 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
      */
     @NotNull private final ExecutionSupplier<WD, AH> executionSupplier;
 
+    /** TODO better name */
+    @Nullable private final BeforeExecutionRunner<WD, AH> beforeExecutionRunner;
+
     /** TODO */
     @NotNull private final CandidateIdentifierFormatter candidateIdentifierFormatter;
+
+    /** TODO */
+    @NotNull private final ActivityStateDefinition<?> activityStateDefinition;
 
     @NotNull private final Activity<WD, AH> parent;
 
     private EmbeddedActivity(@NotNull ActivityDefinition<WD> definition, @NotNull ExecutionSupplier<WD, AH> executionSupplier,
-            @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter, @NotNull ActivityTree tree, Activity<WD, AH> parent) {
+            @Nullable BeforeExecutionRunner<WD, AH> beforeExecutionRunner, @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
+            @NotNull ActivityStateDefinition<?> activityStateDefinition, @NotNull ActivityTree tree,
+            @NotNull Activity<WD, AH> parent) {
         super(definition, tree);
         this.executionSupplier = executionSupplier;
+        this.beforeExecutionRunner = beforeExecutionRunner;
         this.candidateIdentifierFormatter = candidateIdentifierFormatter;
+        this.activityStateDefinition = activityStateDefinition;
         this.parent = parent;
     }
 
     public static <WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> EmbeddedActivity<WD, AH> create(
             @NotNull ActivityDefinition<WD> definition,
             @NotNull ExecutionSupplier<WD, AH> executionSupplier,
+            @Nullable BeforeExecutionRunner<WD, AH> beforeExecutionRunner,
             @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
+            @NotNull ActivityStateDefinition<?> activityStateDefinition,
             @NotNull Activity<WD, AH> parent) {
-        return new EmbeddedActivity<>(definition, executionSupplier, candidateIdentifierFormatter, parent.getTree(), parent);
+        return new EmbeddedActivity<>(definition, executionSupplier, beforeExecutionRunner, candidateIdentifierFormatter,
+                activityStateDefinition, parent.getTree(), parent);
     }
 
     @NotNull
@@ -58,9 +72,18 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
         return candidateIdentifierFormatter;
     }
 
+    @Override
+    public @NotNull ActivityStateDefinition<?> getActivityStateDefinition() {
+        return activityStateDefinition;
+    }
+
     @NotNull
     @Override
     public Activity<WD, AH> getParent() {
         return parent;
+    }
+
+    public @Nullable BeforeExecutionRunner<WD, AH> getBeforeExecutionRunner() {
+        return beforeExecutionRunner;
     }
 }

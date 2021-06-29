@@ -11,6 +11,13 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -116,14 +123,11 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         waitForTaskFinish(TASK_IMPORT_BASE_USERS_OID, true, TASK_TIMEOUT);
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_IMPORT_BASE_USERS_OID, result);
-        display("Task after test001testImportBaseUsers:", taskAfter);
-
-        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        assertNotNull(stats, "No statistics in task");
-
-        ActivitySynchronizationStatisticsType syncInfo = stats.getSynchronizationInformation();
-        assertNotNull(syncInfo, "No sync info in task");
+        assertTask(TASK_IMPORT_BASE_USERS_OID, "after")
+                .display()
+                .rootActivityState()
+                    .synchronizationStatistics()
+                        .display();
 
 //        assertEquals((Object) syncInfo.getCountUnmatched(), getDefaultUsers());
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
@@ -286,10 +290,30 @@ public abstract class TestThresholds extends AbstractStoryTest {
                 .assertPropertyValuesEqual(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, getWorkerThreads());
     }
 
-    int getFailureCount(Task taskAfter) {
-        // TODO separate the statistics dump
-        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-//        displayValue("Iterative statistics", IterationInformation.format(stats.getIterativeTaskInformation()));
-        return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
+    int getReconFailureCount(Task task) {
+        return getFailureCount(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
+    }
+
+    int getRootFailureCount(Task task) {
+        return getFailureCount(task, ActivityPath.empty());
+    }
+
+    ActivitySynchronizationStatisticsType getReconSyncStats(Task task) {
+        return getSyncStats(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
+    }
+
+    ActivitySynchronizationStatisticsType getRootSyncStats(Task task) {
+        return getSyncStats(task, ActivityPath.empty());
+    }
+
+    int getFailureCount(Task task, ActivityPath path) {
+        ActivityStateType state = ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path);
+        return ActivityItemProcessingStatisticsUtil.getErrorsShallow(state.getStatistics().getItemProcessing());
+    }
+
+    ActivitySynchronizationStatisticsType getSyncStats(Task task, ActivityPath path) {
+        return ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path)
+                .getStatistics()
+                .getSynchronization();
     }
 }

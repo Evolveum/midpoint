@@ -6,12 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
-import java.io.IOException;
+import static com.querydsl.core.types.ExpressionUtils.template;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -19,28 +21,26 @@ import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.mapping.ExtensionMapping;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Update context for extension/attributes JSONB column.
  *
- * @param <S> schema type for the extension/attributes container
  * @param <Q> entity query type that holds the data for the mapped attributes
  * @param <R> row type related to the {@link Q}
  */
-public class ExtensionUpdateContext<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
-        extends SqaleUpdateContext<S, Q, R> {
+public class ExtensionUpdateContext<Q extends FlexibleRelationalPathBase<R>, R>
+        extends SqaleUpdateContext<Containerable, Q, R> {
 
-    private final ExtensionMapping<S, Q, R> mapping;
+    private final ExtensionMapping<Q, R> mapping;
     private final JsonbPath jsonbPath;
 
     private final Map<String, Object> changedItems = new HashMap<>();
     private final List<String> deletedItems = new ArrayList<>();
 
     public ExtensionUpdateContext(SqaleUpdateContext<?, ?, ?> parentContext,
-            ExtensionMapping<S, Q, R> mapping, JsonbPath jsonbPath) {
+            ExtensionMapping<Q, R> mapping, JsonbPath jsonbPath) {
         super(parentContext, null);
 
         this.mapping = mapping;
@@ -54,14 +54,24 @@ public class ExtensionUpdateContext<S extends Containerable, Q extends FlexibleR
     }
 
     @Override
-    public QueryModelMapping<S, Q, R> mapping() {
+    public ExtensionMapping<Q, R> mapping() {
         return mapping;
     }
 
     @Override
     public <P extends Path<T>, T> void set(P path, T value) {
+        throw new UnsupportedOperationException("not needed, not supported");
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> value) {
         // set is called directly on the parent in finishExecutionOwn()
         throw new UnsupportedOperationException("Not available for extension update context");
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        throw new UnsupportedOperationException("not needed, not supported");
     }
 
     public void setChangedItem(String extItemId, Object value) {
@@ -74,11 +84,22 @@ public class ExtensionUpdateContext<S extends Containerable, Q extends FlexibleR
 
     @Override
     protected void finishExecutionOwn() throws SchemaException, RepositoryException {
-        try {
-            // TODO finish, now it just overwrites, no delete, etc.
-            parentContext.set(jsonbPath, Jsonb.from(changedItems));
-        } catch (IOException e) {
-            throw new RepositoryException("Unexpected problem with JSONB construction", e);
+        if (deletedItems.isEmpty() && changedItems.isEmpty()) {
+            throw new IllegalStateException(
+                    "Extension modification executed but no changes detected");
         }
+
+        // We need to avoid NULL otherwise the operations lower return NULL too.
+        Expression<Jsonb> resultJsonb =
+                template(Jsonb.class, "coalesce({0}, '{}')::jsonb", jsonbPath);
+        if (!deletedItems.isEmpty()) {
+            resultJsonb = template(Jsonb.class, "{0} - {1}", resultJsonb, deletedItems);
+        }
+        if (!changedItems.isEmpty()) {
+            resultJsonb = template(Jsonb.class, "{0} || {1}::jsonb",
+                    resultJsonb, Jsonb.from(changedItems));
+        }
+
+        parentContext.set(jsonbPath, resultJsonb);
     }
 }

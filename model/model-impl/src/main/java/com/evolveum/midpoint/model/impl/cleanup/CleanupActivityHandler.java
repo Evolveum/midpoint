@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +34,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowRefreshWorkDefinitionType;
 
 @Component
 public class CleanupActivityHandler
@@ -74,12 +73,15 @@ public class CleanupActivityHandler
 
         // TODO or should we create only activities that correspond to real work we are going to do?
 
-        children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
+        ActivityStateDefinition<AbstractActivityWorkStateType> stateDef = ActivityStateDefinition.normal();
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().clone(),
                 (context, result) ->
                         new CleanupPartialActivityExecution<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
                                 (p, task, result1) -> auditService.cleanupAudit(p, result1)),
-                (i) -> Part.AUDIT_RECORDS.identifier,
+                null, (i) -> Part.AUDIT_RECORDS.identifier,
+                stateDef,
                 parentActivity));
 
         children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
@@ -87,7 +89,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
                                 (p, task, result1) -> taskManager.cleanupTasks(p, task, result1)),
-                (i) -> Part.CLOSED_TASKS.identifier,
+                null, (i) -> Part.CLOSED_TASKS.identifier,
+                stateDef,
                 parentActivity));
 
         children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
@@ -95,7 +98,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CASES, CleanupPoliciesType::getClosedCases,
                                 this::cleanupCases),
-                (i) -> Part.CLOSED_CASES.identifier,
+                null, (i) -> Part.CLOSED_CASES.identifier,
+                stateDef,
                 parentActivity));
 
         children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
@@ -103,7 +107,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
                                 (p, task, result1) -> taskManager.cleanupNodes(p, task, result1)),
-                (i) -> Part.DEAD_NODES.identifier,
+                null, (i) -> Part.DEAD_NODES.identifier,
+                stateDef,
                 parentActivity));
 
         children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
@@ -111,7 +116,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
                                 (p, task, result1) -> cleanupReports(p, result1)),
-                (i) -> Part.OUTPUT_REPORTS.identifier,
+                null, (i) -> Part.OUTPUT_REPORTS.identifier,
+                stateDef,
                 parentActivity));
 
         children.add(EmbeddedActivity.create(parentActivity.getDefinition().clone(),
@@ -119,7 +125,8 @@ public class CleanupActivityHandler
                         new CleanupPartialActivityExecution<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,
                                 (p, task, result1) -> certificationService.cleanupCampaigns(p, task, result1)),
-                (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
+                null, (i) -> Part.CLOSED_CERTIFICATION_CAMPAIGNS.identifier,
+                stateDef,
                 parentActivity));
 
         return children;

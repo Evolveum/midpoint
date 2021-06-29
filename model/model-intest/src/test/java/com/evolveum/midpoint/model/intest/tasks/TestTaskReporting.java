@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest.reporting;
+package com.evolveum.midpoint.model.intest.tasks;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -44,11 +44,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests reporting of task state, progress, and errors.
  */
+@Deprecated // TODO move to task-specific tests
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/reporting");
+    private static final File TEST_DIR = new File("src/test/resources/reporting"); // TODO move
 
     private static final String ACCOUNT_NAME_PATTERN = "u-%06d";
 

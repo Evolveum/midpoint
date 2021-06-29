@@ -3071,7 +3071,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }, timeoutInterval, sleepInterval);
     }
 
-    private void displaySingleTask(String label, Task task) {
+    protected void displaySingleTask(String label, Task task) {
         if (verbose) {
             IntegrationTestTools.display(label, task);
         } else {

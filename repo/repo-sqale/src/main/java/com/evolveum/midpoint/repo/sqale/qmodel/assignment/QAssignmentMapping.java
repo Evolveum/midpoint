@@ -20,7 +20,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
@@ -100,7 +103,7 @@ public class QAssignmentMapping<OR extends MObject>
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
 
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
-        addExtensionMapping(F_EXTENSION, ExtensionType.class, q -> q.ext);
+        addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, refMapper(
                         q -> q.resourceRefTargetOid,

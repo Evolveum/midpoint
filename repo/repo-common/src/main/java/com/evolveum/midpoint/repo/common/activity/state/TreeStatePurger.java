@@ -129,12 +129,12 @@ public class TreeStatePurger {
         }
 
         private void doPurge(Context ctx) throws CommonException {
-            LOGGER.info("doPurge called for {}, processing children", ctx);
+            LOGGER.trace("doPurge called for {}, processing children", ctx);
             for (ActivityStateType child : ctx.currentState.getActivity()) {
                 doPurge(
                         ctx.forChild(child));
             }
-            LOGGER.info("doPurge continuing with {}, paths to keep: {}", ctx.currentActivityPath, pathsToKeep);
+            LOGGER.trace("doPurge continuing with {}, paths to keep: {}", ctx.currentActivityPath, pathsToKeep);
             if (isTransient(ctx.currentState) && hasNoPersistentChild(ctx.currentActivityPath)) {
                 removeCurrentState(ctx);
             } else {
@@ -156,8 +156,8 @@ public class TreeStatePurger {
         }
 
         private void deleteFromSingle(Context ctx) throws SchemaException {
-            LOGGER.info("Deleting from single: task = {}, activity path = '{}', item path = '{}'",
-                    task, ctx.currentActivityPath, ctx.currentStateItemPath); // TODO trace
+            LOGGER.trace("Deleting from single: task = {}, activity path = '{}', item path = '{}'",
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath);
 
             deltas.addAll(
                     beans.prismContext.deltaFor(TaskType.class)
@@ -166,8 +166,8 @@ public class TreeStatePurger {
         }
 
         private void deleteFromMulti(Context ctx, Long id) throws SchemaException {
-            LOGGER.info("Deleting from multi: task = {}, activity path = '{}', item path = '{}' with id = {}",
-                    task, ctx.currentActivityPath, ctx.currentStateItemPath, id); // TODO trace
+            LOGGER.trace("Deleting from multi: task = {}, activity path = '{}', item path = '{}' with id = {}",
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath, id);
 
             argCheck(id != null, "Null activity state PCV id in task %s activity path '%s' item path '%s'",
                     task, ctx.currentActivityPath, ctx.currentStateItemPath);
@@ -182,8 +182,8 @@ public class TreeStatePurger {
                 pathsToKeep.add(ctx.currentActivityPath);
             }
 
-            LOGGER.info("Purging from multi: task = {}, activity path = '{}', item path = '{}'",
-                    task, ctx.currentActivityPath, ctx.currentStateItemPath); // TODO trace
+            LOGGER.trace("Purging from multi: task = {}, activity path = '{}', item path = '{}'",
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath);
 
             deltas.addAll(
                     beans.prismContext.deltaFor(TaskType.class)

@@ -21,26 +21,27 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Delta processor for embedded single-value containers.
+ * Delta processor for whole embedded single-value containers.
+ * While the single value is PCV and is complex, the {@link ItemDeltaSingleValueProcessor#process}
+ * high-level implementation still works, but the details are more complex and implemented here.
  *
  * @param <T> type of the processed container (target)
- * @param <OS> schema type of the owner of the embedded container
- * @param <OQ> query type of the owner entity
- * @param <OR> type of the owner row
  */
-public class EmbeddedContainerDeltaProcessor<T extends Containerable,
-        OS, OQ extends FlexibleRelationalPathBase<OR>, OR>
+public class EmbeddedContainerDeltaProcessor<T extends Containerable>
         extends ItemDeltaSingleValueProcessor<T> {
 
-    // TODO: perhaps this could be <T, OQ, OR> but we need mechanism to create new instance for
-    //  embedded context on the same query type for that. The also <OS> can go away.
-    private final SqaleUpdateContext<OS, OQ, OR> context;
-    private final SqaleNestedMapping<T, OQ, OR> mapping;
+    private final SqaleNestedMapping<T, ?, ?> mapping;
 
-    public EmbeddedContainerDeltaProcessor(
+    /**
+     * Constructs the delta processor, here we care about type match for parameters, later we don't.
+     *
+     * @param <OS> schema type of the owner of the embedded container
+     * @param <OQ> query type of the owner entity
+     * @param <OR> type of the owner row
+     */
+    public <OS, OQ extends FlexibleRelationalPathBase<OR>, OR> EmbeddedContainerDeltaProcessor(
             SqaleUpdateContext<OS, OQ, OR> context, SqaleNestedMapping<T, OQ, OR> nestedMapping) {
         super(context);
-        this.context = context;
         this.mapping = nestedMapping;
     }
 
@@ -54,9 +55,9 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
             return;
         }
 
-        Map<QName, ItemSqlMapper<OQ, OR>> mappers = mapping.getItemMappings();
+        Map<QName, ? extends ItemSqlMapper<?, ?>> mappers = mapping.getItemMappings();
         for (Item<?, ?> item : pcv.getItems()) {
-            ItemSqlMapper<OQ, OR> mapper = mappers.remove(item.getElementName());
+            ItemSqlMapper<?, ?> mapper = mappers.remove(item.getElementName());
             if (mapper == null) {
                 continue; // ok, not mapped to database
             }
@@ -70,14 +71,19 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
         mappers.values().forEach(this::deleteUsing);
     }
 
+    /**
+     * Sets all columns for the embedded container to `null` using all the known mappers.
+     */
     @Override
     public void delete() {
-        for (ItemSqlMapper<OQ, OR> mapper : mapping.getItemMappings().values()) {
+        for (ItemSqlMapper<?, ?> mapper : mapping.getItemMappings().values()) {
             deleteUsing(mapper);
         }
     }
 
-    private void deleteUsing(ItemSqlMapper<OQ, OR> mapper) {
+    private void deleteUsing(ItemSqlMapper<?, ?> mapper) {
+        // It seems simple to just set all the columns, but only mappers know the columns
+        // and only delta processors know how to properly clear it.
         ItemDeltaValueProcessor<?> processor = createItemDeltaProcessor(mapper);
         processor.delete();
     }
@@ -87,9 +93,8 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable,
             throw new IllegalArgumentException("No delta processor available for " + mapper
                     + " in mapping " + mapping + "! (Only query mapping is available.)");
         }
-        // TODO fix parametrized types? Is OS right here? it is required by the context, but
-        // this hints at some type misuse or missing one? the context serves both the owning and the embedded schema type
-        SqaleItemSqlMapper<OS, OQ, OR> sqaleMapper = (SqaleItemSqlMapper<OS, OQ, OR>) mapper;
+
+        SqaleItemSqlMapper<?, ?, ?> sqaleMapper = (SqaleItemSqlMapper<?, ?, ?>) mapper;
         return sqaleMapper.createItemDeltaProcessor(context);
     }
 }

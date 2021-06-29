@@ -406,9 +406,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .display()
                     .assertTotalCounts(7, 0)
                     .end()
-                .rootStructuredProgress()
-                    .display() // TODO asserts
-                    .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -483,9 +480,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .rootItemProcessingInformation()
                     .display()
                     .assertTotalCounts(7, 0)
-                    .end()
-                .rootStructuredProgress()
-                    .display() // TODO asserts
                     .end()
                 .assertProgress(7);
 
@@ -571,9 +565,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .display()
                     .assertTotalCounts(3, 0)
                     .end()
-                .rootStructuredProgress()
-                    .display() // TODO asserts
-                    .end()
                 .assertProgress(3);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -635,14 +626,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dumpStatistics(importTask);
         assertTask(importTask, "task after")
                 .display()
-                .rootItemProcessingInformation()
-                    .display()
-                    .assertTotalCounts(1, 0)
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(1, 0)
                     .end()
-                .rootStructuredProgress()
-                    .display()
-                    .assertSuccessCount(1, false)
+                    .progress()
+                        .display()
+                        .assertSuccessCount(1, false)
                     .end()
+                .end()
                 .assertProgress(1);
     }
 

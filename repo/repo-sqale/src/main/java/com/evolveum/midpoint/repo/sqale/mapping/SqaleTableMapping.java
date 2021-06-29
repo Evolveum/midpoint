@@ -88,6 +88,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
     }
 
+    @Override
     public SqaleRepoContext repositoryContext() {
         return (SqaleRepoContext) super.repositoryContext();
     }
@@ -241,6 +242,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return schemaObject;
     }
 
+    // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
+    //  but can this be used for adding index-only exts to schema object even from JSON?)
     @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
@@ -369,16 +372,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Adds extension container mapping, mainly the resolver for the extension container path.
-     *
-     * @param <C> schema type of the extension container
      */
-    public <C extends Containerable> void addExtensionMapping(
+    public void addExtensionMapping(
             @NotNull ItemName itemName,
-            @NotNull Class<C> nestedSchemaType,
+            @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
-        ExtensionMapping<C, Q, R> mapping =
-                new ExtensionMapping<>(nestedSchemaType, queryType(), rootToPath);
+        ExtensionMapping<Q, R> mapping =
+                new ExtensionMapping<>(holderType, queryType(), rootToPath);
         addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
+        addItemMapping(itemName, new SqaleItemSqlMapper<>(
+                ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));
     }
 
     /** Converts extension container to the JSONB value. */

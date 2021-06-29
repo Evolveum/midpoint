@@ -227,16 +227,6 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    @Deprecated
-    public ActionsExecutedInfoAsserter<TaskAsserter<RA>> actionsExecutedInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActivityActionsExecutedType information = operationStats != null ?
-                operationStats.getActionsExecutedInformation() : new ActivityActionsExecutedType();
-        ActionsExecutedInfoAsserter<TaskAsserter<RA>> asserter = new ActionsExecutedInfoAsserter<>(information, this, getDetails());
-        copySetupTo(asserter);
-        return asserter;
-    }
-
     public TaskAsserter<RA> assertClosed() {
         assertExecutionStatus(TaskExecutionStateType.CLOSED);
         assertSchedulingState(TaskSchedulingStateType.CLOSED);

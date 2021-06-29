@@ -50,7 +50,6 @@ public class FocusValidityScanPartialExecution
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScanPartialExecution.class);
 
-
     /** Determines whether we want to search for objects, assignments, or both at once. */
     @NotNull private final ScanScope scanScope;
 

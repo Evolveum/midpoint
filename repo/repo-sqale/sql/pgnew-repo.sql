@@ -1306,7 +1306,7 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
--- TODO not mapped yet
+-- TODO WIP
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
@@ -1346,6 +1346,7 @@ CREATE TABLE m_access_cert_case (
 )
     INHERITS(m_container);
 
+-- TODO not mapped yet
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
     accCertCaseCid INTEGER NOT NULL, -- PK+FK

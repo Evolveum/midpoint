@@ -23,7 +23,7 @@ import java.io.FileNotFoundException;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestReconTaskMultiNode extends TestReconTaskPartitioned {
+public class TestReconTasksMultiNode extends TestReconTasksPartitioned {
 
     protected static final String TASK_RECONCILE_DUMMY_MULTINODE_FILENAME = COMMON_DIR + "/task-reconcile-dummy-multinode.xml";
     protected static final String TASK_RECONCILE_DUMMY_MULTINODE_OID = "10000000-0000-0000-565M-565600000004";

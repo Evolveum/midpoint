@@ -52,16 +52,24 @@ public class Jsonb {
         MAPPER.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
     }
 
-    public static Jsonb from(Map<String, Object> map) throws IOException {
+    public static Jsonb from(Map<String, Object> map) {
         if (map == null || map.isEmpty()) {
             return null;
         }
 
-        return new Jsonb(MAPPER.writeValueAsString(map));
+        try {
+            return new Jsonb(MAPPER.writeValueAsString(map));
+        } catch (JsonProcessingException e) {
+            throw new JsonbException("Unexpected error while writing JSONB value", e);
+        }
     }
 
-    public static Map<String, Object> toMap(Jsonb jsonb) throws JsonProcessingException {
-        //noinspection unchecked
-        return MAPPER.readValue(jsonb.value, Map.class);
+    public static Map<String, Object> toMap(Jsonb jsonb) {
+        try {
+            //noinspection unchecked
+            return MAPPER.readValue(jsonb.value, Map.class);
+        } catch (JsonProcessingException e) {
+            throw new JsonbException("Unexpected error while reading JSONB value", e);
+        }
     }
 }

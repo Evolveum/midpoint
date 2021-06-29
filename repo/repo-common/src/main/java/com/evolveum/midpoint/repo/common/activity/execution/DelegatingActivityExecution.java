@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +46,8 @@ public class DelegatingActivityExecution<
     }
 
     @Override
-    protected @NotNull QName getWorkStateTypeName(@NotNull ExecutionInstantiationContext<WD, AH> context) {
-        return DelegationWorkStateType.COMPLEX_TYPE;
+    protected ActivityStateDefinition<DelegationWorkStateType> determineActivityStateDefinition() {
+        return ActivityStateDefinition.normal(DelegationWorkStateType.COMPLEX_TYPE);
     }
 
     private DelegationState delegationState;

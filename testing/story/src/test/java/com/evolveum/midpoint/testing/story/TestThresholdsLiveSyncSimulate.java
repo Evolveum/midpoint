@@ -49,7 +49,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);
@@ -63,7 +63,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
@@ -74,12 +74,9 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
 //        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);

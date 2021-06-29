@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.intest.tasks;
 
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -40,11 +40,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Tests for MID-6011.
  */
+@Deprecated // TODO move progress checking functionality to task-specific tests
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/reporting");
+    private static final File TEST_DIR = new File("src/test/resources/reporting"); // TODO move
 
     /**
      * We currently do not use slow-down nor error inducing behavior of this resource

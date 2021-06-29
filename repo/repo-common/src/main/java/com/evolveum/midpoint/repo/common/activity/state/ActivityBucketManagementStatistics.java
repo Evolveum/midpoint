@@ -23,7 +23,7 @@ public class ActivityBucketManagementStatistics extends Initializable {
     /** Current value. Guarded by this. */
     @NotNull private final ActivityBucketManagementStatisticsType value = new ActivityBucketManagementStatisticsType();
 
-    ActivityBucketManagementStatistics(ActivityState<?> activityState) {
+    ActivityBucketManagementStatistics(CurrentActivityState<?> activityState) {
     }
 
     public void initialize(ActivityBucketManagementStatisticsType initialValue) {

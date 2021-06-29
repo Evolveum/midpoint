@@ -75,7 +75,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
      */
     private final boolean collectExecutions;
 
-    ActivityItemProcessingStatistics(@NotNull ActivityState<?> activityState) {
+    ActivityItemProcessingStatistics(@NotNull CurrentActivityState<?> activityState) {
         this.prismContext = activityState.getBeans().prismContext;
         this.value = new ActivityItemProcessingStatisticsType(prismContext);
         this.collectExecutions = true; // TODO

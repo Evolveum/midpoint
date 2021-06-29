@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
 
-    private final ExtensionUpdateContext<?, ?, ?> context;
+    private final ExtensionUpdateContext<?, ?> context;
     private final MExtItemHolderType holderType;
 
     /**
@@ -32,7 +32,7 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
      */
     public ExtensionItemDeltaProcessor(
             SqaleUpdateContext<?, ?, ?> context, MExtItemHolderType holderType) {
-        this.context = (ExtensionUpdateContext<?, ?, ?>) context;
+        this.context = (ExtensionUpdateContext<?, ?>) context;
         this.holderType = holderType;
     }
 

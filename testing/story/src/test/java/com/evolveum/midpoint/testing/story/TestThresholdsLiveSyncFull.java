@@ -49,7 +49,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);
@@ -67,7 +67,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
@@ -80,7 +80,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);

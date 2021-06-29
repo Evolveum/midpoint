@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
@@ -68,15 +69,17 @@ public abstract class AbstractCompositeActivityExecution<
 
         boolean allChildrenFinished = true;
 
+        Collection<Activity<?, ?>> children = activity.getChildrenCopy();
+
         // We create state before starting the execution in order to allow correct progress information reporting.
         // (It needs to know the total number of activity executions at any open level.)
         // An alternative would be to provide the count of executions explicitly.
-        for (Activity<?, ?> child : activity.getChildrenMap().values()) {
+        for (Activity<?, ?> child : children) {
             child.createExecution(taskExecution, result)
                     .initializeState(result);
         }
 
-        for (Activity<?, ?> child : activity.getChildrenMap().values()) {
+        for (Activity<?, ?> child : children) {
             ActivityExecutionResult childExecutionResult = child.getExecution().execute(result);
             childResults.add(childExecutionResult);
             executionResult.updateRunResultStatus(childExecutionResult, canRun());

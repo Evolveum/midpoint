@@ -42,6 +42,6 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
 
     @Override
     public void delete() {
-        context.set(path, null);
+        context.setNull(path);
     }
 }

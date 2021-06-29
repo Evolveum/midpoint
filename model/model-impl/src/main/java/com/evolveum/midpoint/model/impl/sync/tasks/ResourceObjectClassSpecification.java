@@ -17,12 +17,12 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
@@ -100,8 +100,8 @@ public class ResourceObjectClassSpecification implements DebugDumpable {
         }
     }
 
-    public void checkNotInMaintenance() throws MaintenanceException {
-        ResourceTypeUtil.checkNotInMaintenance(resource);
+    public void checkNotInMaintenance() throws ActivityExecutionException {
+        SyncTaskHelper.checkNotInMaintenance(resource);
     }
 
     ObjectQuery createBasicQuery() throws SchemaException {

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import static com.evolveum.midpoint.repo.sqale.ExtUtils.*;
 
-import java.io.IOException;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -54,11 +53,7 @@ public class ExtensionProcessor {
             }
         }
 
-        try {
-            return Jsonb.from(extMap);
-        } catch (IOException e) {
-            throw new SystemException(e);
-        }
+        return Jsonb.from(extMap);
     }
 
     /** Returns ext item definition or null if the item is not indexed and should be skipped. */

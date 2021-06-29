@@ -29,6 +29,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
@@ -170,6 +171,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
+    @Autowired protected GenericTaskHandler genericTaskHandler;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -3311,13 +3313,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Checker checker = new Checker() {
             @Override
             public boolean check() throws CommonException {
-                Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
-                RunningTask runningTask = taskManager.getLocallyRunningTaskByIdentifier(freshTask.getTaskIdentifier()); // ugly hack
-                long progress = runningTask != null ? runningTask.getProgress() : freshTask.getProgress();
+                Task freshRepoTask = taskManager.getTaskWithResult(taskOid, waitResult);
+                displaySingleTask("Repo task while waiting for progress reach " + progressToReach, freshRepoTask);
+                Long heartbeat = genericTaskHandler.heartbeat(freshRepoTask);
+                if (heartbeat != null) {
+                    displayValue("Heartbeat", heartbeat);
+                }
+                long progress = heartbeat != null ? heartbeat : freshRepoTask.getProgress();
                 boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
                 return extraTestSuccess ||
-                        freshTask.getExecutionState() == TaskExecutionStateType.SUSPENDED ||
-                        freshTask.getExecutionState() == TaskExecutionStateType.CLOSED ||
+                        freshRepoTask.getExecutionState() == TaskExecutionStateType.SUSPENDED ||
+                        freshRepoTask.getExecutionState() == TaskExecutionStateType.CLOSED ||
                         progress >= progressToReach;
             }
 
@@ -3334,7 +3340,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         };
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " progress reaching " + progressToReach,
-                checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+                checker, timeout, sleepTime);
 
         Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());

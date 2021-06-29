@@ -64,9 +64,4 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     public String getIdentifierPrefix() {
         return "propagation";
     }
-
-    @Override
-    public @NotNull QName getWorkStateTypeName() {
-        return PropagationWorkStateType.COMPLEX_TYPE;
-    }
 }

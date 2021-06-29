@@ -6,23 +6,31 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import java.util.Objects;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+
+import java.util.List;
 
 /**
  * Mapping between {@link QAccessCertificationCase} and {@link AccessCertificationCaseType}.
@@ -74,8 +82,6 @@ public class QAccessCertificationCaseMapping
 
         addItemMapping(F_CURRENT_STAGE_OUTCOME, stringMapper(q -> q.currentStageOutcome));
 
-        // TODO: full object
-
         // TODO: iteration -> campaignIteration
         addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addItemMapping(F_OBJECT_REF, refMapper(
@@ -104,7 +110,6 @@ public class QAccessCertificationCaseMapping
 //                QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
 //        addRefMapping(F_CANDIDATE_REF,
 //                QCaseWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
-
 
     }
 
@@ -147,7 +152,7 @@ public class QAccessCertificationCaseMapping
         }
 
         row.currentStageOutcome = acase.getCurrentStageOutcome();
-        row.fullObject = createFullObject(acase);
+        row.fullObject = repositoryContext().createFullObject(acase);
         // TODO
         row.campaignIteration = acase.getIteration();
         setReference(acase.getObjectRef(),
@@ -174,6 +179,8 @@ public class QAccessCertificationCaseMapping
 
         insert(row, jdbcSession);
 
+        storeWorkItems(ownerRow, row, acase, jdbcSession);
+
 //        storeRefs(row, acase.getAssigneeRef(),
 //                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
 //        storeRefs(row, acase.getCandidateRef(),
@@ -182,14 +189,26 @@ public class QAccessCertificationCaseMapping
         return row;
     }
 
-    private byte[] createFullObject(AccessCertificationCaseType schemaObject) throws SchemaException {
+    @Override
+    public void afterModify(
+            SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
+            throws SchemaException {
 
-        return repositoryContext().createStringSerializer()
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(schemaObject.asPrismContainerValue())
-                .getBytes(StandardCharsets.UTF_8);
+        PrismContainer<AccessCertificationCampaignType> caseContainer = (PrismContainer) updateContext.findItem(AccessCertificationCampaignType.F_CASE);
+        // row in context already knows its CID
+        PrismContainerValue<AccessCertificationCampaignType> caseContainerValue = caseContainer.findValue(updateContext.row().cid);
+        byte[] fullObject = repositoryContext().createFullObject(caseContainerValue.asContainerable());
+        updateContext.set(updateContext.entityPath().fullObject, fullObject);
+    }
+
+    public void storeWorkItems(@NotNull MAccessCertificationCampaign campaignRow,
+            @NotNull MAccessCertificationCase caseRow, @NotNull AccessCertificationCaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+
+        List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
+        if (!wis.isEmpty()) {
+            for (AccessCertificationWorkItemType wi : wis) {
+                QAccessCertificationWorkItemMapping.get().insert(wi, campaignRow, caseRow, jdbcSession);
+            }
+        }
     }
 }

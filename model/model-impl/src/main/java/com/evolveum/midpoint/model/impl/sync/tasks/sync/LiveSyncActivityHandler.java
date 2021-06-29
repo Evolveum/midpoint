@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateWorkDefinitionType;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
 
@@ -58,5 +58,10 @@ public class LiveSyncActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "live-sync";
+    }
+
+    @Override
+    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+        return ActivityStateDefinition.perpetual(); // todo custom type
     }
 }

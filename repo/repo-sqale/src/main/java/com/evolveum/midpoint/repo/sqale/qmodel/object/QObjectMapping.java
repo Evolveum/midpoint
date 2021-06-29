@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -35,7 +34,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
@@ -77,7 +79,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
         // full-text is not item mapping, but filter on the whole object
-        addExtensionMapping(F_EXTENSION, ExtensionType.class, q -> q.ext);
+        addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
 
         addNestedMapping(F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
@@ -277,14 +279,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return repositoryContext().createStringSerializer()
-                .itemsToSkip(fullObjectItemsToSkip())
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(schemaObject.asPrismObject())
-                .getBytes(StandardCharsets.UTF_8);
+        return repositoryContext().createFullObject(schemaObject);
     }
 
     protected Collection<? extends QName> fullObjectItemsToSkip() {

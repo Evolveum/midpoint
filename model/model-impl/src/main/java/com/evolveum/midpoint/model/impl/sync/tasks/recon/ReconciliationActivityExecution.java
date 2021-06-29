@@ -85,7 +85,7 @@ class ReconciliationActivityExecution
     }
 
     @NotNull List<PartialReconciliationActivityExecution<?>> getPartialActivityExecutions() {
-        return activity.getChildrenMap().values().stream()
+        return activity.getChildrenCopy().stream()
                 .map(Activity::getExecution)
                 .filter(childExec -> childExec instanceof PartialReconciliationActivityExecution)
                 .map(childExec -> (PartialReconciliationActivityExecution<?>) childExec)
