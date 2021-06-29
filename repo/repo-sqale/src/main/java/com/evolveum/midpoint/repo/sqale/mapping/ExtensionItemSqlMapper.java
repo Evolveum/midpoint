@@ -24,7 +24,11 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * TODO: this much "lazier" than normal item mapper, we'll get to ext definitions only here, not sooner.
+ * Extension item mapper that is much lazier than {@link SqaleItemSqlMapper} for typical column.
+ * Normally the mapper knows how to get from the query/update contextual information to the columns.
+ * This mapper only knows the way to the JSONB column and lets extension item filter/delta
+ * processors to do the rest of the work based on the context and item information contained in
+ * the filter/modification.
  *
  * @param <Q> entity path owning the mapped item
  * @param <R> row type with the mapped item
@@ -48,6 +52,7 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
         //  - sorting by ext does not make sense, we want to sort by ext->something (or ->>)
         //  - that also means that we don't want to return Path but Expression instead
         //  - but sorting by ext/something is not yet supported in SqlQueryContext.processOrdering
+        //  In short, we will not even get here
         return rootToExtensionPath.apply(entityPath);
     }
 
