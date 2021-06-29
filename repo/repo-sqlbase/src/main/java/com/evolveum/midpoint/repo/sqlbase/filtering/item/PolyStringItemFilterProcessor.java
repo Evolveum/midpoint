@@ -31,15 +31,15 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class PolyStringItemFilterProcessor
         extends ItemFilterProcessor<PropertyValueFilter<PolyString>> {
 
-    private static final String STRICT = PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME.getLocalPart();
-    private static final String ORIG = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME.getLocalPart();
-    private static final String NORM = PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME.getLocalPart();
-    private static final String DEFAULT = PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart();
+    public static final String STRICT = PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME.getLocalPart();
+    public static final String ORIG = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME.getLocalPart();
+    public static final String NORM = PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME.getLocalPart();
+    public static final String DEFAULT = PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart();
 
     // special IC cases of match rules, these are not defined in PrismConstants
-    private static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
-    private static final String ORIG_IGNORE_CASE = "origIgnoreCase";
-    private static final String NORM_IGNORE_CASE = "normIgnoreCase";
+    public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
+    public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
+    public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
     private final StringPath origPath;
     private final StringPath normPath;

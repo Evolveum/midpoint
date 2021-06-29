@@ -45,12 +45,12 @@ public class StructuredTaskProgressPrinter extends AbstractStatisticsPrinter<Str
         information.getPart().forEach(this::createData);
     }
 
-    private void createData(TaskPartProgressType partProgress) {
+    private void createData(TaskPartProgressOldType partProgress) {
         createDataFromCounters(partProgress, partProgress.getClosed(), STATE_CLOSED);
         createDataFromCounters(partProgress, partProgress.getOpen(), STATE_OPEN);
     }
 
-    private void createDataFromCounters(TaskPartProgressType partProgress, List<OutcomeKeyedCounterType> countersOriginal,
+    private void createDataFromCounters(TaskPartProgressOldType partProgress, List<OutcomeKeyedCounterType> countersOriginal,
             String state) {
 
         ArrayList<OutcomeKeyedCounterType> counters = new ArrayList<>(countersOriginal);

@@ -15,7 +15,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 
 /**
  * @author katka
@@ -49,7 +49,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);
@@ -67,7 +67,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
     }
 
     protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
 //        // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
@@ -80,7 +80,7 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 
     @Override
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
+        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
         dumpSynchronizationInformation(syncInfo);
 
         assertSyncToken(taskAfter, 4);

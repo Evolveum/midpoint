@@ -200,15 +200,15 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         then();
         assertTask(TASK_RECOMPUTE_MULTI.oid, "after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display();
         assertTask(TASK_ASYNC_UPDATE_MULTI.oid, "after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display();
         assertTask(TASK_ASYNC_UPDATE.oid, "after")
                 .display()
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .display();
     }
 

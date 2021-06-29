@@ -487,7 +487,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         } catch (ExpressionEvaluationException e) {
             // THEN
-            assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("unexpected token"));
+            assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("Unexpected input"));
         }
 
     }

@@ -37,7 +37,7 @@ class UnpauseHelper {
     @Autowired private CloseHelper closeHelper;
     @Autowired private ScheduleNowHelper scheduleNowHelper;
 
-    public void unpauseTask(TaskQuartzImpl task, OperationResult result)
+    boolean unpauseTask(TaskQuartzImpl task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 
         // Here can a race condition occur. If the parent was WAITING but has become SUSPENDED in the meanwhile,
@@ -51,37 +51,32 @@ class UnpauseHelper {
                     + ", scheduling state = " + task.getSchedulingState();
             LOGGER.error(message);
             result.recordFatalError(message);
-            return;
-        }
-        if (task.getHandlerUri() == null) {
-            LOGGER.trace("No handler in task being unpaused - closing it: {}", task);
-            closeHelper.closeTask(task, result);
-            result.computeStatusIfUnknown();
-            return;
+            return false;
         }
 
         TaskUnpauseActionType action = getUnpauseAction(task);
         switch (action) {
             case EXECUTE_IMMEDIATELY:
-                LOGGER.trace("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
+                LOGGER.debug("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
                 scheduleNowHelper.scheduleWaitingTaskNow(task, result);
                 break;
             case RESCHEDULE:
                 if (task.isRecurring()) {
-                    LOGGER.trace("Unpausing recurring task using 'reschedule' action (making it runnable): {}", task);
+                    LOGGER.debug("Unpausing recurring task using 'reschedule' action (making it runnable): {}", task);
                     makeWaitingTaskRunnable(task, result);
                 } else {
-                    LOGGER.trace("Unpausing task using 'reschedule' action (closing it, because the task is single-run): {}", task);
+                    LOGGER.debug("Unpausing task using 'reschedule' action (closing it, because the task is single-run): {}", task);
                     closeHelper.closeTask(task, result);
                 }
                 break;
             case CLOSE:
-                LOGGER.trace("Unpausing task using 'close' action: {}", task);
+                LOGGER.debug("Unpausing task using 'close' action: {}", task);
                 closeHelper.closeTask(task, result);
                 break;
             default:
                 throw new IllegalStateException("Unsupported unpause action: " + action);
         }
+        return true;
     }
 
     @NotNull
@@ -116,32 +111,38 @@ class UnpauseHelper {
     /**
      * Caller must ensure that the task is closed or deleted!
      */
-    public void unpauseDependentsIfPossible(TaskQuartzImpl task, OperationResult result)
+    void unpauseDependentsIfPossible(TaskQuartzImpl task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        LOGGER.trace("unpauseDependentsIfPossible starting for {}", task);
+        LOGGER.debug("unpauseDependentsIfPossible starting for {}", task);
+        int unpaused = 0;
 
         List<Task> dependents = task.listDependents(result);
-        LOGGER.trace("dependents: {}", dependents);
+        LOGGER.debug("dependents: {}", dependents);
         for (Task dependent : dependents) {
-            unpauseTaskIfPossible((TaskQuartzImpl) dependent, result);
+            if (unpauseTaskIfPossible((TaskQuartzImpl) dependent, result)) {
+                unpaused++;
+            }
         }
 
         TaskQuartzImpl parentTask = task.getParentTask(result);
-        LOGGER.trace("parent: {}", parentTask);
+        LOGGER.debug("parent: {}", parentTask);
         if (parentTask != null) {
-            unpauseTaskIfPossible(parentTask, result);
+            if (unpauseTaskIfPossible(parentTask, result)) {
+                unpaused++;
+            }
         }
 
-        LOGGER.trace("unpauseDependentsIfPossible finished for {}", task);
+        LOGGER.debug("unpauseDependentsIfPossible finished for {}; unpaused {} task(s)", task, unpaused);
     }
 
-    public void unpauseTaskIfPossible(TaskQuartzImpl task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    /** @return true if unpaused */
+    boolean unpauseTaskIfPossible(TaskQuartzImpl task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (task.getSchedulingState() != TaskSchedulingStateType.WAITING ||
                 task.getWaitingReason() != TaskWaitingReasonType.OTHER_TASKS) {
-            LOGGER.trace("Not considering task for unpausing {} because the state does not match: {}/{}",
+            LOGGER.debug("Not considering task for unpausing {} because the state does not match: {}/{}",
                     task, task.getSchedulingState(), task.getWaitingReason());
-            return;
+            return false;
         }
 
         List<TaskQuartzImpl> allPrerequisites = task.listSubtasks(result);
@@ -151,16 +152,17 @@ class UnpauseHelper {
 
         for (Task prerequisite : allPrerequisites) {
             if (!prerequisite.isClosed()) {
-                LOGGER.trace("Prerequisite {} of {} is not closed (scheduling state = {})",
+                LOGGER.debug("Prerequisite {} of {} is not closed (scheduling state = {})",
                         prerequisite, task, prerequisite.getSchedulingState());
-                return;
+                return false;
             }
         }
-        LOGGER.trace("All prerequisites of {} are closed, unpausing the task", task);
+        LOGGER.debug("All prerequisites of {} are closed, unpausing the task", task);
         try {
-            unpauseTask(task, result);
+            return unpauseTask(task, result);
         } catch (PreconditionViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Task cannot be unpaused because it is no longer in WAITING state -- ignoring", e, this);
+            return false;
         }
     }
 }

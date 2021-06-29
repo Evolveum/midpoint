@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Combined two reconciliations, recomputation, and report</name>
+
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <reconciliation>
+                        <resourceRef oid="1"/>
+                    </reconciliation>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <work>
+                    <reconciliation>
+                        <resourceRef oid="2"/>
+                    </reconciliation>
+                </work>
+            </activity>
+            <activity>
+                <order>3</order>
+                <work>
+                    <recomputation>
+                        <objectSet>
+                            <objectType>UserType</objectType>
+                        </objectSet>
+                    </recomputation>
+                </work>
+            </activity>
+            <activity>
+                <order>4</order>
+                <work>
+                    <report>
+                        <!-- ... -->
+                    </report>
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>

@@ -190,6 +190,8 @@ public interface TaskManager {
      */
     void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    /** TODO */
+    void deleteTaskTree(String rootTaskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Basic working with tasks (create instance, get, modify, delete)
@@ -276,11 +278,20 @@ public interface TaskManager {
     Task getTaskPlain(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
+     * TODO
+     */
+    @NotNull
+    Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
+
+    /**
      * Gets the task (as in getTaskPlain) but with its operation result.
      */
     @NotNull
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    @VisibleForTesting // TODO
+    void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.
@@ -408,11 +419,11 @@ public interface TaskManager {
     void resumeTaskTree(String coordinatorOid, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
 
-    void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+//    void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
+//            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
-    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException;
+//    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, OperationResult parentResult)
+//            throws SchemaException, ObjectNotFoundException;
 
     /**
      * Puts a WAITING task back into RUNNABLE state.
@@ -612,39 +623,39 @@ public interface TaskManager {
 
     /**
      * Registers a handler for a specified handler URI.
-     *
      * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3
      * @param handler instance of the handler
      */
-    void registerHandler(String uri, TaskHandler handler);
+    void registerHandler(@NotNull String uri, @NotNull TaskHandler handler);
+
+    /**
+     * Unregisters a handler URI (registered either as "standard", additional or deprecated handler URI).
+     */
+    void unregisterHandler(String uri);
 
     /**
      * Registers additional handler URI for a given handler.
      * The difference from registerHandler() is that these additional URIs are not returned when searching for a handler
      * matching a given task category.
      */
-    void registerAdditionalHandlerUri(String uri, TaskHandler handler);
+    void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
 
     /**
      * Registers additional (deprecated) handler URI for a given handler.
      */
-    void registerDeprecatedHandlerUri(String uri, TaskHandler handler);
+    void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler);
 
     void registerTaskDeletionListener(TaskDeletionListener listener);
+
+    void setDefaultHandlerUri(String uri);
 
     //endregion
 
     //region TODO
-    /**
-     * TODO. EXPERIMENTAL.
-     */
-    ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
-            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
-            WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
-
-    TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
-
-    void setFreeBucketWaitInterval(long value);
+//    /**
+//     * TODO. EXPERIMENTAL.
+//     */
+//    TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
 
     /**
      * EXPERIMENTAL. Relaxes some assumptions on cluster structure e.g. that IP addresses of cluster members must be different.
@@ -670,14 +681,11 @@ public interface TaskManager {
      * Use only for tests. (Even in that case it is an ugly hack.)
      */
     @VisibleForTesting
-    RunningTask createFakeRunningTask(Task task, String rootTaskOid);
+    RunningTask createFakeRunningTask(Task task);
 
     TaskHandler getHandler(String handlerUri);
 
     NodeType getLocalNode();
-
-    // TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
-    Object getWorkStateManager();
 
     // A little bit of hack as well
     CacheConfigurationManager getCacheConfigurationManager();

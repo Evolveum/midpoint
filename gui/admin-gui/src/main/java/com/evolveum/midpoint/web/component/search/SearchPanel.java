@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,7 +54,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -568,7 +568,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 super.updateAjaxAttributes(attributes);
 
                 attributes.setThrottlingSettings(
-                        new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
+                        new ThrottlingSettings(ID_ADVANCED_AREA, Duration.ofMillis(500), true));
             }
         });
         advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
@@ -589,7 +589,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 super.updateAjaxAttributes(attributes);
 
                 attributes.setThrottlingSettings(
-                        new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.milliseconds(500), true));
+                        new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.ofMillis(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         });

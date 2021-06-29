@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task oid="49914528-edc1-414c-9672-69d54750c4e4"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-recomputation-multithreaded</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <recomputation>
+                <objectSet>
+                    <objectType>UserType</objectType>
+                </objectSet>
+            </recomputation>
+        </work>
+        <distribution>
+            <workerThreads>1</workerThreads>
+        </distribution>
+    </activity>
+</task>

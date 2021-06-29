@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressOldType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StructuredTaskProgressType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType;
 
 /**
  * This is "live" structured task progress information.
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartProgressType
  * 2. But queries are invoked either from this thread, or from some observer (task manager or GUI thread).
  *
  */
+@Deprecated
 public class StructuredTaskProgress {
 
     private static final Trace LOGGER = TraceManager.getTrace(StructuredTaskProgress.class);
@@ -74,7 +76,7 @@ public class StructuredTaskProgress {
         value.setCurrentPartUri(partUri);
         value.setCurrentPartNumber(partNumber);
         value.setExpectedParts(expectedParts);
-        TaskPartProgressType part = findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
+        TaskPartProgressOldType part = findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
 //        System.out.printf("New part registered: URI = %s, number = %d, expected parts = %d\n", partUri, partNumber, expectedParts);
 //        System.out.printf("Open items cleared: %d\n", TaskProgressUtil.getTotalProgressOpen(part));
         part.getOpen().clear();
@@ -84,7 +86,7 @@ public class StructuredTaskProgress {
      * Increments the progress.
      */
     public synchronized void increment(String partUri, QualifiedItemProcessingOutcomeType outcome) {
-        TaskPartProgressType part =
+        TaskPartProgressOldType part =
                 findOrCreateMatchingPart(value.getPart(), partUri, prismContext);
         int count = OutcomeKeyedCounterTypeUtil.incrementCounter(part.getOpen(), outcome, prismContext);
         LOGGER.trace("Incremented structured progress to {}. Part uri = {}, outcome = {}", count, partUri, outcome);
@@ -96,9 +98,9 @@ public class StructuredTaskProgress {
      */
     public synchronized void changeOnWorkBucketCompletion() {
         LOGGER.trace("Updating structured progress on work bucket completion. Part URI: {}", value.getCurrentPartUri());
-        Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
+        Optional<TaskPartProgressOldType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
         if (partOptional.isPresent()) {
-            TaskPartProgressType part = partOptional.get();
+            TaskPartProgressOldType part = partOptional.get();
             openToClosed(part);
         } else {
             LOGGER.warn("Didn't update structured progress for part {} as there are no records present for that part",
@@ -106,7 +108,7 @@ public class StructuredTaskProgress {
         }
     }
 
-    private void openToClosed(TaskPartProgressType part) {
+    private void openToClosed(TaskPartProgressOldType part) {
 //        System.out.printf("Updating progress on work bucket completion. Moving %d items from open to closed.\n",
 //                    TaskProgressUtil.getTotalProgressOpen(part));
         OutcomeKeyedCounterTypeUtil.addCounters(part.getClosed(), part.getOpen());
@@ -115,9 +117,9 @@ public class StructuredTaskProgress {
 
     public synchronized void markAsComplete() {
         LOGGER.trace("Closing structured progress. Part URI: {}", value.getCurrentPartUri());
-        Optional<TaskPartProgressType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
+        Optional<TaskPartProgressOldType> partOptional = findMatchingPart(value.getPart(), value.getCurrentPartUri());
         if (partOptional.isPresent()) {
-            TaskPartProgressType part = partOptional.get();
+            TaskPartProgressOldType part = partOptional.get();
             part.setComplete(true);
 //            System.out.printf("Updating progress on work completion. Part = %s\n", part);
         } else {
@@ -139,29 +141,29 @@ public class StructuredTaskProgress {
     }
 
     /** Looks for matching parts (created if necessary) and adds them. */
-    private static void addMatchingParts(List<TaskPartProgressType> sumParts, List<TaskPartProgressType> deltaParts) {
-        for (TaskPartProgressType deltaPart : deltaParts) {
-            TaskPartProgressType matchingPart = findOrCreateMatchingPart(sumParts, deltaPart.getPartUri(), null);
+    private static void addMatchingParts(List<TaskPartProgressOldType> sumParts, List<TaskPartProgressOldType> deltaParts) {
+        for (TaskPartProgressOldType deltaPart : deltaParts) {
+            TaskPartProgressOldType matchingPart = findOrCreateMatchingPart(sumParts, deltaPart.getPartUri(), null);
             addPartInformation(matchingPart, deltaPart);
         }
     }
 
-    private static TaskPartProgressType findOrCreateMatchingPart(
-            List<TaskPartProgressType> parts, String partUri, PrismContext prismContext) {
+    private static TaskPartProgressOldType findOrCreateMatchingPart(
+            List<TaskPartProgressOldType> parts, String partUri, PrismContext prismContext) {
         return findMatchingPart(parts, partUri)
                 .orElseGet(
-                        () -> OutcomeKeyedCounterTypeUtil.add(parts, new TaskPartProgressType(prismContext).partUri(partUri)));
+                        () -> OutcomeKeyedCounterTypeUtil.add(parts, new TaskPartProgressOldType(prismContext).partUri(partUri)));
     }
 
-    private static Optional<TaskPartProgressType> findMatchingPart(
-            List<TaskPartProgressType> parts, String partUri) {
+    private static Optional<TaskPartProgressOldType> findMatchingPart(
+            List<TaskPartProgressOldType> parts, String partUri) {
         return parts.stream()
                 .filter(item -> Objects.equals(item.getPartUri(), partUri))
                 .findFirst();
     }
 
     /** Adds two "part information" */
-    private static void addPartInformation(@NotNull TaskPartProgressType sum, @NotNull TaskPartProgressType delta) {
+    private static void addPartInformation(@NotNull TaskPartProgressOldType sum, @NotNull TaskPartProgressOldType delta) {
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getClosed(), delta.getClosed());
         OutcomeKeyedCounterTypeUtil.addCounters(sum.getOpen(), delta.getOpen());
     }

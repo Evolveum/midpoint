@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +16,9 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
 /**
  * Mapping between {@link QAccessCertificationCampaign}
@@ -44,7 +47,8 @@ public class QAccessCertificationCampaignMapping
         addItemMapping(F_END_TIMESTAMP,
                 timestampMapper(q -> q.endTimestamp));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
-        addItemMapping(F_ITERATION, integerMapper(q -> q.iteration));
+        // TODO
+        addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addItemMapping(F_OWNER_REF, refMapper(
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
@@ -53,6 +57,10 @@ public class QAccessCertificationCampaignMapping
         addItemMapping(F_START_TIMESTAMP,
                 timestampMapper(q -> q.startTimestamp));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
+
+        addContainerTableMapping(F_CASE,
+                QAccessCertificationCaseMapping.init(repositoryContext),
+                joinOn((o, acase) -> o.oid.eq(acase.ownerOid)));
     }
 
     @Override
@@ -78,7 +86,8 @@ public class QAccessCertificationCampaignMapping
         row.endTimestamp =
                 MiscUtil.asInstant(schemaObject.getEndTimestamp());
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
-        row.iteration = schemaObject.getIteration();
+        // TODO
+        row.campaignIteration = schemaObject.getIteration();
         setReference(schemaObject.getOwnerRef(),
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,
@@ -89,5 +98,19 @@ public class QAccessCertificationCampaignMapping
         row.state = schemaObject.getState();
 
         return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull MAccessCertificationCampaign row, @NotNull AccessCertificationCampaignType schemaObject,
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        List<AccessCertificationCaseType> cases = schemaObject.getCase();
+        if (!cases.isEmpty()) {
+            for (AccessCertificationCaseType c : cases) {
+                MAccessCertificationCase cRow = QAccessCertificationCaseMapping.get().insert(c, row, jdbcSession);
+            }
+        }
     }
 }

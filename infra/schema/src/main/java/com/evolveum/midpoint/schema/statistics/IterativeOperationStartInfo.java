@@ -18,8 +18,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
-    private final String partUri;
-    private final Long partStartTimestamp;
 
     private final long startTimeMillis;
     private final long startTimeNanos;
@@ -33,17 +31,7 @@ public class IterativeOperationStartInfo {
     private StructuredProgressCollector structuredProgressCollector;
 
     public IterativeOperationStartInfo(IterationItemInformation item) {
-        this(item, null);
-    }
-
-    public IterativeOperationStartInfo(IterationItemInformation item, String partUri) {
-        this(item, partUri, null);
-    }
-
-    public IterativeOperationStartInfo(IterationItemInformation item, String partUri, Long partStartTimestamp) {
         this.item = item;
-        this.partUri = partUri;
-        this.partStartTimestamp = partStartTimestamp;
 
         this.startTimeMillis = System.currentTimeMillis();
         this.startTimeNanos = System.nanoTime();
@@ -61,14 +49,6 @@ public class IterativeOperationStartInfo {
         return startTimeNanos;
     }
 
-    public Long getPartStartTimestamp() {
-        return partStartTimestamp;
-    }
-
-    public String getPartUri() {
-        return partUri;
-    }
-
     public StructuredProgressCollector getStructuredProgressCollector() {
         return structuredProgressCollector;
     }
@@ -82,8 +62,6 @@ public class IterativeOperationStartInfo {
         return getClass().getSimpleName() + "{" +
                 "item=" + item +
                 ", startTimeMillis=" + startTimeMillis +
-                ", partStartTimestamp=" + partStartTimestamp +
-                ", partUri=" + partUri +
                 ", structuredProgressCollector=" + structuredProgressCollector +
                 '}';
     }

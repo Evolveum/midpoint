@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
-import static com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath.JSONB_TYPE;
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 
 import java.sql.Types;
 import java.time.Instant;
@@ -14,10 +14,10 @@ import java.time.Instant;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -149,7 +149,7 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public final StringPath extOid = createString("extOid", EXT_OID);
     public final ArrayPath<Integer[], Integer> policySituations =
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
-    public final JsonbPath ext = createJsonb("ext", EXT);
+    public final JsonbPath ext = addMetadata(add(new JsonbPath(forProperty("ext"))), EXT);
     // construction attributes
     public final UuidPath resourceRefTargetOid =
             createUuid("resourceRefTargetOid", RESOURCE_REF_TARGET_OID);

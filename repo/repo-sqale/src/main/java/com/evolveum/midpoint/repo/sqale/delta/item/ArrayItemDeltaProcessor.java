@@ -49,7 +49,7 @@ public class ArrayItemDeltaProcessor<V, E> extends ItemDeltaValueProcessor<E> {
             Class<E> elementType,
             @Nullable Function<V, E> conversionFunction) {
         super(context);
-        this.path = rootToQueryItem.apply(context.path());
+        this.path = rootToQueryItem.apply(context.entityPath());
         this.elementType = elementType;
         this.conversionFunction = conversionFunction;
     }
@@ -83,6 +83,6 @@ public class ArrayItemDeltaProcessor<V, E> extends ItemDeltaValueProcessor<E> {
 
     @Override
     public void delete() {
-        context.set(path, null);
+        context.setNull(path);
     }
 }

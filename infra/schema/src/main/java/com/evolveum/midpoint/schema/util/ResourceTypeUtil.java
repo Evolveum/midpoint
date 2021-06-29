@@ -742,12 +742,6 @@ public class ResourceTypeUtil {
         return consistency != null ? consistency.getConnectorErrorCriticality() : null;
     }
 
-    public static void checkNotInMaintenance(PrismObject<ResourceType> resource) throws MaintenanceException {
-        if (isInMaintenance(resource)) {
-            throw new MaintenanceException("Resource " + resource + " is in the maintenance");
-        }
-    }
-
     public static boolean isInMaintenance(PrismObject<ResourceType> resource) {
         return isInMaintenance(resource.asObjectable());
     }

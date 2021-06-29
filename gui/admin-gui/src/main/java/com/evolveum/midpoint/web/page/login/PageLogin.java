@@ -90,6 +90,15 @@ public class PageLogin extends AbstractPageLogin {
                     return false;
                 }
 
+                if (finalSecurityPolicy != null && finalSecurityPolicy.getCredentialsReset() != null
+                        && StringUtils.isNotBlank(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
+                    AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(finalSecurityPolicy.getCredentialsReset().getAuthenticationSequenceName(), finalSecurityPolicy.getAuthentication());
+                    if (sequence != null
+                            && (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix()))){
+                        return false;
+                    }
+                }
+
                 CredentialsPolicyType creds = finalSecurityPolicy.getCredentials();
 
                 // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled.
@@ -106,10 +115,11 @@ public class PageLogin extends AbstractPageLogin {
                 && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
             if (sequence != null) {
-//                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
 
                 if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-                    throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
+                    String message = "Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix";
+                    LOGGER.error(message, new IllegalArgumentException(message));
+                    error(message);
                 }
                 link.add(AttributeModifier.replace("href", new IModel<String>() {
                     @Override

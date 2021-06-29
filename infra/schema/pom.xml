@@ -278,7 +278,7 @@
                     <dependency>
                         <groupId>org.jvnet.jaxb2_commons</groupId>
                         <artifactId>jaxb2-basics</artifactId>
-                        <version>0.6.3</version>
+                        <version>0.10.0</version>
                     </dependency>
                     <dependency>
                         <groupId>com.evolveum.prism.tools</groupId>

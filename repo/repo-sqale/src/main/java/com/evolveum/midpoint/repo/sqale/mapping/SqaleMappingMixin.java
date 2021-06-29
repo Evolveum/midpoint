@@ -17,10 +17,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Mix of common mapping support methods that is needed on both {@link SqaleNestedMapping}
@@ -95,5 +97,10 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ContainerTableDeltaProcessor<>(ctx, containerMapping)));
         return this;
+    }
+
+    /** Method called from {@link SqaleUpdateContext#finishExecutionOwn()} for containers. */
+    default void afterModify(SqaleUpdateContext<S, Q, R> updateContext) throws SchemaException {
+        // nothing by default
     }
 }

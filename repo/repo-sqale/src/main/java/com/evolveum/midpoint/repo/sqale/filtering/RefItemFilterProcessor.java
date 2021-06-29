@@ -84,6 +84,15 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         } else if (!filter.isOidNullAsAny()) {
             predicate = oidPath.isNull();
         }
+
+        if (ref.getTargetType() != null) {
+            MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
+            predicate = ExpressionUtils.and(predicate,
+                    predicateWithNotTreated(typePath, typePath.eq(objectType)));
+        } else if (!filter.isTargetTypeNullAsAny()) {
+            predicate = ExpressionUtils.and(predicate, typePath.isNull());
+        }
+
         if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
             Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
                     .searchCachedRelationId(ref.getRelation());
@@ -92,13 +101,7 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         } else {
             // relation == Q_ANY, no additional predicate needed
         }
-        if (ref.getTargetType() != null) {
-            MObjectType objectType = MObjectType.fromTypeQName(ref.getTargetType());
-            predicate = ExpressionUtils.and(predicate,
-                    predicateWithNotTreated(typePath, typePath.eq(objectType)));
-        } else if (!filter.isTargetTypeNullAsAny()) {
-            predicate = ExpressionUtils.and(predicate, typePath.isNull());
-        }
+
         return predicate;
     }
 }

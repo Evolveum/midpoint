@@ -28,8 +28,8 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<
             Function<Q, StringPath> origMapping,
             Function<Q, StringPath> normMapping) {
         super(context);
-        this.origPath = origMapping.apply(context.path());
-        this.normPath = normMapping.apply(context.path());
+        this.origPath = origMapping.apply(context.entityPath());
+        this.normPath = normMapping.apply(context.entityPath());
     }
 
     @Override
@@ -40,7 +40,7 @@ public class PolyStringItemDeltaProcessor extends ItemDeltaSingleValueProcessor<
 
     @Override
     public void delete() {
-        context.set(origPath, null);
-        context.set(normPath, null);
+        context.setNull(origPath);
+        context.setNull(normPath);
     }
 }

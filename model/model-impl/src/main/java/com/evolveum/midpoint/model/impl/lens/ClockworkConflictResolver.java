@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,7 +54,13 @@ public class ClockworkConflictResolver {
 
     static class Context {
         private boolean focusConflictPresent;
+        private boolean conflictExceptionPresent;
         private ConflictResolutionType resolutionPolicy;
+
+        void recordConflictException() {
+            focusConflictPresent = true;
+            conflictExceptionPresent = true;
+        }
     }
 
     <F extends ObjectType> void createConflictWatcherOnStart(LensContext<F> context) {
@@ -76,7 +81,7 @@ public class ClockworkConflictResolver {
         context.unregisterConflictWatcher(repositoryService);
     }
 
-    <F extends ObjectType> void checkFocusConflicts(LensContext<F> context, Context resolutionContext, OperationResult result) {
+    <F extends ObjectType> void detectFocusConflicts(LensContext<F> context, Context resolutionContext, OperationResult result) {
         resolutionContext.resolutionPolicy = ModelImplUtils.getConflictResolution(context);
         ConflictWatcher watcher = context.getFocusConflictWatcher();
         if (watcher != null && resolutionContext.resolutionPolicy != null &&
@@ -89,13 +94,14 @@ public class ClockworkConflictResolver {
         }
     }
 
+    // When null is returned, the process should be repeated
     <F extends ObjectType> HookOperationMode resolveFocusConflictIfPresent(LensContext<F> context, Context resolutionContext,
             HookOperationMode finalMode, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (resolutionContext.focusConflictPresent) {
             assert finalMode == HookOperationMode.FOREGROUND;
-            return resolveFocusConflict(context, resolutionContext.resolutionPolicy, task, result);
+            return resolveFocusConflict(context, resolutionContext, task, result);
         } else {
             if (context.getConflictResolutionAttemptNumber() > 0) {
                 LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
@@ -105,24 +111,33 @@ public class ClockworkConflictResolver {
     }
 
     private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context,
-            ConflictResolutionType resolutionPolicy, Task task, OperationResult result)
+            Context resolutionContext, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+        ConflictResolutionType resolutionPolicy = resolutionContext.resolutionPolicy;
         if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
+            if (resolutionContext.conflictExceptionPresent) {
+                throw new SystemException("Conflict exception present but resolution policy is null/NONE");
+            }
             return HookOperationMode.FOREGROUND;
         }
         PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
         ModelExecuteOptions options = new ModelExecuteOptions(prismContext);
         switch (resolutionPolicy.getAction()) {
-            case FAIL: throw new SystemException("Conflict detected while updating " + focusObject);
+            case FAIL:
+                throw new SystemException("Conflict detected while updating " + focusObject);
             case LOG:
                 LOGGER.warn("Conflict detected while updating {}", focusObject);
                 return HookOperationMode.FOREGROUND;
+            case ERROR: // TODO what to do with this?
+            case RESTART: // TODO what to do with this?
             case RECOMPUTE:
                 break;
             case RECONCILE:
                 options.reconcile();
                 break;
+            case NONE:
+                throw new AssertionError("Already treated");
             default:
                 throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
         }
@@ -130,21 +145,11 @@ public class ClockworkConflictResolver {
         // so, recompute is the action
         LOGGER.debug("CONFLICT: Conflict detected while updating {}, recomputing (options={})", focusObject, options);
 
-        if (context.getFocusContext() == null) {
-            LOGGER.warn("No focus context, not possible to resolve conflict by focus recomputation");       // should really never occur
-            return HookOperationMode.FOREGROUND;
-        }
-        String oid = context.getFocusContext().getOid();
-        if (oid == null) {
-            LOGGER.warn("No focus OID, not possible to resolve conflict by focus recomputation");       // should really never occur
-            return HookOperationMode.FOREGROUND;
-        }
-        Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
-        if (TaskType.class.isAssignableFrom(focusClass)) {
-            return HookOperationMode.FOREGROUND;        // this is actually quite expected, so don't bother anyone with that
-        }
-        if (!FocusType.class.isAssignableFrom(focusClass)) {
-            LOGGER.warn("Focus is not of FocusType (it is {}); not possible to resolve conflict by focus recomputation", focusClass.getName());
+        String nonEligibilityReason = getNonEligibilityReason(context);
+        if (nonEligibilityReason != null) {
+            if (!nonEligibilityReason.isEmpty()) {
+                LOGGER.warn("Not eligible for conflict resolution by repetition: {}", nonEligibilityReason);
+            }
             return HookOperationMode.FOREGROUND;
         }
 
@@ -165,6 +170,9 @@ public class ClockworkConflictResolver {
 
             delay(context, resolutionPolicy, attemptNew + preconditionAttempts);
 
+            Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
+            String oid = context.getFocusContext().getOid();
+
             PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
             LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
             contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
@@ -173,18 +181,19 @@ public class ClockworkConflictResolver {
             LOGGER.debug("CONFLICT: Recomputing {} as reaction to conflict (options={}, attempts={},{}, readVersion={})",
                     context.getFocusContext().getHumanReadableName(), options, attemptNew, preconditionAttempts, contextNew.getFocusContext().getObjectReadVersion());
 
-            try {
+            ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
 
-                // this is a recursion; but limited to max attempts which should not be a large number
-                HookOperationMode hookOperationMode = clockwork.run(contextNew, task, result);
+            // this is a recursion; but limited to max attempts which should not be a large number
+            HookOperationMode hookOperationMode = clockwork.runWithConflictDetection(contextNew, conflictResolutionContext, task, result);
 
-                // This may be in fact a give-up after recompute that was not able to cleanly proceed.
-                LOGGER.debug("CONFLICT: Clean recompute (or give-up) of {} achieved (options={}, attempts={},{})",
+            if (!conflictResolutionContext.focusConflictPresent) {
+                LOGGER.debug("CONFLICT: Clean recompute of {} achieved (options={}, attempts={},{})",
                         context.getFocusContext().getHumanReadableName(), options, attemptNew, preconditionAttempts);
-
                 return hookOperationMode;
+            }
 
-            } catch (PreconditionViolationException e) {
+            // Actually, we could stop distinguish precondition-based and "normal" retries...
+            if (conflictResolutionContext.conflictExceptionPresent) {
                 preconditionAttempts++;
                 LOGGER.debug("CONFLICT: Recompute precondition failed (attempt {}, precondition attempt {}), trying again", attemptNew, preconditionAttempts);
                 if (preconditionAttempts < MAX_PRECONDITION_CONFLICT_RESOLUTION_ATTEMPTS) {
@@ -195,6 +204,24 @@ public class ClockworkConflictResolver {
                 return HookOperationMode.FOREGROUND;
             }
         }
+    }
+
+    private String getNonEligibilityReason(LensContext<?> context) {
+        if (context.getFocusContext() == null) {
+            return "No focus context, not possible to resolve conflict by focus recomputation"; // should really never occur
+        }
+        String oid = context.getFocusContext().getOid();
+        if (oid == null) {
+            return "No focus OID, not possible to resolve conflict by focus recomputation"; // should really never occur
+        }
+        Class<?> focusClass = context.getFocusContext().getObjectTypeClass();
+        if (TaskType.class.isAssignableFrom(focusClass)) {
+            return ""; // this is actually quite expected, so don't bother anyone with that
+        }
+        if (!FocusType.class.isAssignableFrom(focusClass)) {
+            return String.format("Focus is not of FocusType (it is %s); not possible to resolve conflict by focus recomputation", focusClass.getName());
+        }
+        return null;
     }
 
     private boolean shouldExecuteAttempt(@NotNull ConflictResolutionType resolutionPolicy, int attempt) {
@@ -218,4 +245,21 @@ public class ClockworkConflictResolver {
         context.reportProgress(new ProgressInformation(WAITING, EXITING));
     }
 
+    public <O extends ObjectType> boolean shouldCreatePrecondition(LensContext<O> context, ConflictResolutionType conflictResolution) {
+        if (conflictResolution == null) {
+            // can occur e.g. for projections, TODO clean up!
+            return false;
+        }
+        ConflictResolutionActionType action = conflictResolution.getAction();
+        if (action == null || action == ConflictResolutionActionType.NONE || action == ConflictResolutionActionType.LOG) {
+            LOGGER.debug("Not creating modification precondition because conflict resolution action is {}", action);
+            return false;
+        }
+        String reason = getNonEligibilityReason(context);
+        if (reason != null) {
+            LOGGER.debug("Not creating modification precondition because: {}", reason);
+            return false;
+        }
+        return true;
+    }
 }

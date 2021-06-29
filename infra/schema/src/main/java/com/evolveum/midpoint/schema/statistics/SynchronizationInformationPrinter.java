@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Prints synchronization information (new, i.e. transition-based).
  */
-public class SynchronizationInformationPrinter extends AbstractStatisticsPrinter<SynchronizationInformationType> {
+public class SynchronizationInformationPrinter extends AbstractStatisticsPrinter<ActivitySynchronizationStatisticsType> {
 
-    public SynchronizationInformationPrinter(@NotNull SynchronizationInformationType information, Options options) {
+    public SynchronizationInformationPrinter(@NotNull ActivitySynchronizationStatisticsType information, Options options) {
         super(information, options, null, null);
     }
 

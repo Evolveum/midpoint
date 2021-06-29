@@ -6,20 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.File;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestActivation;
@@ -37,9 +23,22 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.File;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Radovan Semancik
@@ -70,6 +69,13 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, initResult);
     }
 
+    @Override
+    protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+        // There can be conflicts here (modifications on foreground + validity-induced recomputations on background
+        return ConflictResolutionActionType.NONE;
+    }
+
+
     protected String getValidityScannerTaskFileName() {
         return TASK_VALIDITY_SCANNER_FILENAME;
     }
@@ -98,7 +104,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(startCal, endCal);
 
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
@@ -1327,7 +1333,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.DISABLED);
         assertValidityStatus(userHermanAfter, TimeIntervalStatusType.AFTER);
 
-        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(startCal, endCal);
     }
 
     @Test
@@ -1345,7 +1351,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastTriggerScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
     }
 
@@ -1780,5 +1786,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     protected void waitForValidityNextRunAssertSuccess() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+    }
+
+    // Overridden to check the partitioned case
+    protected void assertLastScanTimestamp(XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
+            throws ObjectNotFoundException, SchemaException {
+        assertLastValidityFullScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
     }
 }

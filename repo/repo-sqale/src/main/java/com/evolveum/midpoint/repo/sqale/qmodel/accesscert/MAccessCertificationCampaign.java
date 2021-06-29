@@ -23,7 +23,7 @@ public class MAccessCertificationCampaign extends MObject {
     public Integer definitionRefRelationId;
     public Instant endTimestamp;
     public Integer handlerUriId;
-    public Integer iteration;
+    public Integer campaignIteration;
     public UUID ownerRefTargetOid;
     public MObjectType ownerRefTargetType;
     public Integer ownerRefRelationId;

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 
 /**
  * Querydsl "row bean" type related to {@link QObject}.

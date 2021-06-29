@@ -51,7 +51,7 @@ public class QShadowMapping
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
-        // TODO attributes JSONB
+        addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
     }
 
     @Override

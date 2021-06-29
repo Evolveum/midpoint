@@ -341,9 +341,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // Herman should be recomputed now
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
-        TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
-        assertEquals("Wrong success count", 1, TaskOperationStatsUtil.getItemsProcessedWithSuccess(recomputeTask));
-        assertEquals("Wrong failure count", 0, TaskOperationStatsUtil.getItemsProcessedWithFailure(recomputeTask));
+        assertTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, "recon task after")
+                .activityState()
+                    .rootActivity()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(1, 0, 0);
 
         assertUsers(7);
 
@@ -423,21 +426,24 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // Herman should be recomputed now
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
-        TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
-        assertEquals("Wrong success count", 7, TaskOperationStatsUtil.getItemsProcessedWithSuccess(recomputeTask));
-        assertEquals("Wrong failure count", 0, TaskOperationStatsUtil.getItemsProcessedWithFailure(recomputeTask));
+        assertTask(TASK_USER_RECOMPUTE_LIGHT_OID, "recon task after")
+                .activityState()
+                    .rootActivity()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(7, 0, 0);
 
         assertUser(USER_JACK_OID, "user jack after")
                 .display()
                 .assertNoArchetypeRef()     // MID-6061
                 .assignments()
-                .single()
-                .assertRole(ROLE_JUDGE_OID)
-                .end()
+                    .single()
+                        .assertRole(ROLE_JUDGE_OID)
+                    .end()
                 .end()
                 .roleMembershipRefs()
-                .single()
-                .assertOid(ROLE_JUDGE_OID);
+                    .single()
+                        .assertOid(ROLE_JUDGE_OID);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User guybrush after", userGuybrushAfter);

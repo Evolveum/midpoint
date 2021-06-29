@@ -17,7 +17,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcesso
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -81,8 +80,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
     public <AH extends AssignmentHolderType> void processFocus(LensContext<AH> context, String activityDescription, XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
-            PreconditionViolationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConflictDetectedException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();

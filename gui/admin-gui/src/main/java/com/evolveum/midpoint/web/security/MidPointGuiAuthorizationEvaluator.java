@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDecisionManager;
@@ -46,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
+
+    private final String authUrl = "/" + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE + "/*";
 
     private final SecurityEnforcer securityEnforcer;
     private final SecurityContextManager securityContextManager;
@@ -254,6 +258,10 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     private boolean isPermitAll(FilterInvocation filterInvocation) {
+        if (filterInvocation.getResponse() != null && filterInvocation.getResponse().isCommitted()
+                && new AntPathRequestMatcher(authUrl).matches(filterInvocation.getRequest())) {
+            return true;
+        }
         for (String url : DescriptorLoader.getPermitAllUrls()) {
             AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
             if (matcher.matches(filterInvocation.getRequest())) {

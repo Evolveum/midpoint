@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.PrismObject.cast;
 import static com.evolveum.midpoint.schema.GetOperationOptions.disableReadOnly;
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -305,7 +304,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            TaskPartitionDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
+            boolean simulate, LiveSyncEventHandler handler, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -322,10 +321,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         SynchronizationOperationResult liveSyncResult;
 
         try {
-            PrismObject<ResourceType> resource = getResource(resourceOid, task, result); // TODO avoid double fetching the resource
+            // TODO avoid double fetching the resource
+            PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, handler, result);
+            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, simulate, handler, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -345,12 +345,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         // TODO clean up the above exception and operation result processing
 
         return new SynchronizationResult(liveSyncResult.getChangesProcessed());
-    }
-
-    private PrismObject<ResourceType> getResource(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
-        checkNotInMaintenance(resource);
-        return resource;
     }
 
     @Override

@@ -1239,7 +1239,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertTask(taskAfterFirstRun, "task after first run")
                 .assertProgress(numberOfUsers)
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .assertSuccessCount(numberOfUsers);
 
         // Testing for MID-6488
@@ -1249,7 +1249,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         then("second run");
         assertTask(taskAfterSecondRun, "task after second run")
                 .assertProgress(numberOfUsers)
-                .iterativeTaskInformation()
+                .rootItemProcessingInformation()
                     .assertSuccessCount(numberOfUsers);
     }
 

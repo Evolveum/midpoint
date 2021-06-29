@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 @Table(name = RReportData.TABLE_NAME, indexes = {
         @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
         @Index(name = "iReportOutputNameNorm", columnList = "name_norm") })
+@DynamicUpdate
 public class RReportData extends RObject {
 
     public static final String TABLE_NAME = "m_report_output";

@@ -86,22 +86,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-        </dependency>
-        <!-- Our favourite JDBC driver, needed for JSONB support -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
         </dependency>
 
         <dependency>
@@ -122,15 +108,5 @@
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-core</artifactId>
         </dependency>
-        <!--
-        Needed only for re-generation of Q-classes from tables
-        TODO: perhaps move to some tools or out of project completely including plugin below.
-        <dependency>
-            <groupId>com.querydsl</groupId>
-            <artifactId>querydsl-sql-codegen</artifactId>
-            <version>${querydsl.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        -->
     </dependencies>
 </project>

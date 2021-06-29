@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -64,7 +66,7 @@ public class QAssignmentHolderMapping<
 
     @Override
     public void storeRelatedEntities(
-            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         List<AssignmentType> assignments = schemaObject.getAssignment();

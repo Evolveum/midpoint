@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.async.update;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
@@ -233,6 +234,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("Shadow was not created in the repository", accountRepo);
         display("Repository shadow", accountRepo);
         checkRepoAccountShadow(accountRepo);
+        assertNoUnacknowledgedMessages();
     }
 
     @Test
@@ -267,6 +269,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
                     .attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3").end()
                     .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6").end();
         }
+        assertNoUnacknowledgedMessages();
     }
 
     @Test
@@ -301,6 +304,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
                     .attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3", "value4").end()
                     .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6", "group7").end();
         }
+        assertNoUnacknowledgedMessages();
     }
 
     @Test // MID-5832
@@ -335,6 +339,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
                     .attribute(ATTR_TEST).assertRealValues("value1", "value3", "value4").end()
                     .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6", "group7").end();
         }
+        assertNoUnacknowledgedMessages();
     }
 
     @Test // MID-5832
@@ -369,6 +374,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
                     .attribute(ATTR_TEST).assertRealValues("value100").end()
                     .attribute(ATTR_MEMBER_OF).assertRealValues("group100", "group101").end();
         }
+        assertNoUnacknowledgedMessages();
     }
 
     @Test
@@ -392,6 +398,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("Current shadow is missing", lastChange.getShadowedResourceObject());
 
         getAndersonFull(false, task, result);
+        assertNoUnacknowledgedMessages();
     }
 
     @Test
@@ -422,6 +429,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         display("change current shadow", lastChange.getShadowedResourceObject());
 
         getAndersonFull(false, task, result);
+        assertNoUnacknowledgedMessages();
     }
 
     @Test
@@ -445,6 +453,25 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         //current shadow was added during the processing
 
         getAndersonFull(true, task, result);
+        assertNoUnacknowledgedMessages();
+    }
+
+    @Test
+    public void test140ProcessingEmptyMessage() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        prepareMessage(null);
+
+        syncServiceMock.reset();
+
+        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+
+        ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+        assertThat(lastChange).as("last change").isNull();
+
+        assertNoUnacknowledgedMessages();
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -468,7 +495,17 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     void prepareMessage(File messageFile)
             throws java.io.IOException, com.evolveum.midpoint.util.exception.SchemaException, TimeoutException {
         MockAsyncUpdateSource.INSTANCE.reset();
-        MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(messageFile).parseRealValue());
+        if (messageFile != null) {
+            MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(messageFile).parseRealValue());
+        } else {
+            MockAsyncUpdateSource.INSTANCE.prepareMessage(null);
+        }
+    }
+
+    void assertNoUnacknowledgedMessages() {
+        assertThat(MockAsyncUpdateSource.INSTANCE.getUnacknowledgedMessagesCount())
+                .as("unacknowledged messages count")
+                .isEqualTo(0);
     }
 
     @Contract("false,_,_ -> !null")

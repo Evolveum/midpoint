@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -99,7 +101,7 @@ public class QCaseMapping
 
     @Override
     public void storeRelatedEntities(
-            @NotNull MCase row, @NotNull CaseType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull MCase row, @NotNull CaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         List<CaseWorkItemType> workItems = schemaObject.getWorkItem();

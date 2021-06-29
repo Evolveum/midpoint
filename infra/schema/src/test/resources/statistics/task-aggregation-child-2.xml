@@ -70,7 +70,7 @@
         </environmentalPerformanceInformation>
         <iterativeTaskInformation>
             <part id="1000">
-                <partUri>resourceObjects:2</partUri> <!-- fake URI to check the aggregation -->
+                <partIdentifier>resourceObjects:2</partIdentifier> <!-- fake URI to check the aggregation -->
                 <processed id="1001">
                     <outcome>
                         <outcome>success</outcome>

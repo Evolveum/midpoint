@@ -96,7 +96,8 @@ CREATE TYPE ExtItemCardinality AS ENUM (
     'ARRAY');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
-CREATE TYPE AccessCertificationCampaignStateType AS ENUM ('CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
+    'CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
 
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
@@ -255,6 +256,17 @@ CREATE TABLE m_object (
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
     textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    /*
+    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+    and values are stored as follows (this is internal and has no effect on how query is written):
+    - string and boolean are stored as-is
+    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+    - enum as toString() or name() of the Java enum instance
+    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+    */
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -962,9 +974,7 @@ CREATE INDEX m_value_policy_policySituation_idx
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
-        CHECK (objectType = 'REPORT'),
-    orientation OrientationType,
-    parent BOOLEAN
+        CHECK (objectType = 'REPORT')
 )
     INHERITS (m_assignment_holder);
 
@@ -979,7 +989,6 @@ CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
 CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
--- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
@@ -1263,7 +1272,6 @@ CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
 
--- TODO not mapped yet
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED
@@ -1273,7 +1281,7 @@ CREATE TABLE m_access_cert_campaign (
     definitionRefRelationId INTEGER REFERENCES m_uri(id),
     endTimestamp TIMESTAMPTZ,
     handlerUriId INTEGER REFERENCES m_uri(id),
-    iteration INTEGER NOT NULL,
+    campaignIteration INTEGER NOT NULL,
     ownerRefTargetOid UUID,
     ownerRefTargetType ObjectType,
     ownerRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1298,23 +1306,24 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
 
+-- TODO WIP
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_CASE'),
-    administrativeStatus INTEGER,
+    administrativeStatus ActivationStatusType,
     archiveTimestamp TIMESTAMPTZ,
     disableReason TEXT,
     disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
+    effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
+    validityStatus TimeIntervalStatusType,
     currentStageOutcome TEXT,
     fullObject BYTEA,
-    iteration INTEGER NOT NULL,
+    campaignIteration INTEGER NOT NULL,
     objectRefTargetOid UUID,
     objectRefTargetType ObjectType,
     objectRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1323,8 +1332,8 @@ CREATE TABLE m_access_cert_case (
     orgRefRelationId INTEGER REFERENCES m_uri(id),
     outcome TEXT,
     remediedTimestamp TIMESTAMPTZ,
-    reviewDeadline TIMESTAMPTZ,
-    reviewRequestedTimestamp TIMESTAMPTZ,
+    currentStageDeadline TIMESTAMPTZ,
+    currentStageCreateTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRefTargetOid UUID,
     targetRefTargetType ObjectType,
@@ -1337,13 +1346,14 @@ CREATE TABLE m_access_cert_case (
 )
     INHERITS(m_container);
 
+-- TODO not mapped yet
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
     accCertCaseCid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_WORK_ITEM'),
     closeTimestamp TIMESTAMPTZ,
-    iteration INTEGER NOT NULL,
+    campaignIteration INTEGER NOT NULL,
     outcome TEXT,
     outputChangeTimestamp TIMESTAMPTZ,
     performerRefTargetOid UUID,

@@ -13,11 +13,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
-import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -51,11 +49,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Long lastOperationStatsUpdateTimestamp;
 
     /**
-     * OID of the root of this task hierarchy.
-     * (Note that each running task must have a persistent root.)
+     * Root of the task hierarchy. It is not guaranteed to be current. It is initialized when the task is started.
+     * Can even point to the this task object.
      */
     @Experimental
-    @NotNull private final String rootTaskOid;
+    @NotNull private final Task rootTask;
 
     /**
      * Lightweight asynchronous subtasks.
@@ -84,9 +82,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Level originalProfilingLevel;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
-            @NotNull String rootTaskOid) {
+            @NotNull Task rootTask) {
         super(taskManager, taskPrism);
-        this.rootTaskOid = rootTaskOid;
+        this.rootTask = rootTask;
     }
 
     //region Task execution (canRun, executing thread)
@@ -121,7 +119,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public @NotNull RunningLightweightTask createSubtask(@NotNull LightweightTaskHandler handler) {
         RunningLightweightTaskImpl sub = beans.taskInstantiator
-                .toRunningLightweightTaskInstance(createSubtask(), rootTaskOid, this, handler);
+                .toRunningLightweightTaskInstance(createSubtask(), rootTask, this, handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
             lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
@@ -235,7 +233,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void storeStatisticsIntoRepository(OperationResult result) {
         try {
             addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
-            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
+            // FIXME addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
             flushPendingModifications(result);
@@ -329,9 +327,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         return statistics;
     }
 
-    public WorkBucketStatisticsCollector getWorkBucketStatisticsCollector() {
-        return statistics;
-    }
     //endregion
 
     //region Tracing and profiling
@@ -403,10 +398,38 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
     //endregion
 
+    //region Switching to waiting state
+    @Override
+    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    @Override
+    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
+        setExecutionState(execState);
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    private void setUnpauseAction(TaskUnpauseActionType value) {
+        setProperty(TaskType.F_UNPAUSE_ACTION, value);
+    }
+
+    //endregion
+
     //region Misc
     @Override
     public @NotNull String getRootTaskOid() {
-        return rootTaskOid;
+        return rootTask.getOid();
+    }
+
+    @Override
+    @NotNull
+    public Task getRootTask() {
+        return rootTask;
     }
     //endregion
 }

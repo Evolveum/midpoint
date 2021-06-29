@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
+import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.getDebugInfo;
+import static com.evolveum.midpoint.task.api.TaskDebugUtil.suspendedWithErrorCollector;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
+
+import static java.util.Collections.singleton;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,6 +25,7 @@ import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +35,7 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -36,6 +49,14 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
+
+import com.evolveum.midpoint.test.asserter.*;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,9 +124,6 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ResourceAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -145,6 +163,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     private static final String MACRO_TEST_NAME_SHORT_TRACER_PARAM = "testNameShort";
 
     private static final float FLOAT_EPSILON = 0.001f;
+
+    // TODO make configurable. Due to a race condition there can be a small number of unoptimized complete buckets
+    //  (it should not exceed the number of workers ... at least not by much)
+    private static final int OPTIMIZED_BUCKETS_THRESHOLD = 8;
+
+    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
+    protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
+    protected static final long DEFAULT_TASK_TREE_SLEEP_TIME = 1000;
 
     // Values used to check if something is unchanged or changed properly
 
@@ -192,6 +218,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
     private volatile boolean initSystemExecuted = false;
+
+    protected boolean verbose = false;
 
     /**
      * With TestNG+Spring we can use {@code PostConstruct} for class-wide initialization.
@@ -440,11 +468,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource resource, OperationResult parentResult)
+    protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource<T> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
         resource.object = object;
         return object;
+    }
+
+    protected Task taskAdd(TestResource<TaskType> resource, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException, ObjectNotFoundException {
+        PrismObject<TaskType> task = prismContext.parseObject(resource.file);
+        String oid = taskManager.addTask(task, parentResult);
+        return taskManager.getTaskPlain(oid, parentResult);
     }
 
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
@@ -3027,6 +3062,226 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
     }
 
+    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displaySingleTask("Task while waiting for it to close", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void displaySingleTask(String label, Task task) {
+        if (verbose) {
+            IntegrationTestTools.display(label, task);
+        } else {
+            displayValue(label, getDebugInfo(task));
+        }
+    }
+
+    protected void waitForTaskSuspend(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displaySingleTask("Task while waiting for it to suspend", task);
+            return task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskCloseOrDelete(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+            throws CommonException {
+        waitFor("Waiting for task to close", () -> {
+            try {
+                Task task = taskManager.getTaskWithResult(taskOid, result);
+                displaySingleTask("Task while waiting for it to close/delete", task);
+                return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
+            } catch (ObjectNotFoundException e) {
+                return true;
+            }
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskReady(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task to become ready", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displaySingleTask("Task while waiting for it to become ready", task);
+            return task.isReady();
+        }, timeoutInterval, sleepInterval);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskWaiting(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task to become waiting", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displaySingleTask("Task while waiting for it to become waiting", task);
+            return task.isWaiting();
+        }, timeoutInterval, sleepInterval);
+    }
+
+    // TODO reconsider this method, see e.g. waitForTaskCloseCheckingSubtaskSuspension
+    @SuppressWarnings("SameParameterValue")
+    protected void waitForTaskCloseCheckingSubtasks(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+            CommonException {
+        waitFor("Waiting for task manager to execute the task", () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displayValue("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+            List<? extends Task> subtasks = task.listSubtasksDeeply(result);
+            for (Task subtask : subtasks) {
+                if (subtask.getResultStatus() == OperationResultStatusType.FATAL_ERROR
+                        || subtask.getResultStatus() == OperationResultStatusType.PARTIAL_ERROR) {
+                    display("Error detected in subtask, finishing waiting: " + subtask);
+                    return true;
+                }
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskTreeCloseCheckingSuspensionWithError(String taskOid, OperationResult result,
+            long timeoutInterval, long sleepInterval) throws CommonException {
+        waitFor("Waiting for task manager to finish the task", () -> {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                    .item(TaskType.F_RESULT).retrieve()
+                    .build();
+            Task task = taskManager.getTaskPlain(taskOid, options, result);
+            List<Task> suspendedWithError = new ArrayList<>();
+            String dump = TaskDebugUtil.dumpTaskTree(task, suspendedWithErrorCollector(suspendedWithError), result);
+            displayValue("Task tree while waiting", dump);
+            if (task.isClosed()) {
+                display("Task is closed, finishing waiting: " + task);
+                return true;
+            }
+
+            if (!suspendedWithError.isEmpty()) {
+                display("Some of tasks are suspended with error, finishing waiting: " + suspendedWithError);
+                return true;
+            }
+            return false;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
+        waitFor("Waiting for task manager to start the task", () -> {
+            Task task = taskManager.getTaskWithResult(oid, result);
+            displaySingleTask("Task while waiting for task manager to start it", task);
+            return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskProgress(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            int threshold) throws CommonException {
+        waitFor("Waiting for task progress reaching " + threshold, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            displaySingleTask("Task while waiting for progress reaching " + threshold, task);
+            return task.getProgress() >= threshold;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void waitForTaskRunFinish(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
+            long laterThan) throws CommonException {
+        waitFor("Waiting for task run finish later than " + laterThan, () -> {
+            Task task = taskManager.getTaskWithResult(taskOid, result);
+            IntegrationTestTools.display("Task while waiting for run finish later than " + laterThan, task);
+            return or0(task.getLastRunFinishTimestamp()) > laterThan;
+        }, timeoutInterval, sleepInterval);
+    }
+
+    protected void suspendAndDeleteTasks(String... oids) {
+        taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
+    }
+
+    protected void sleepChecked(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            // nothing to do here
+        }
+    }
+
+    private int getSuccessClosed(Collection<? extends Task> workers) {
+        return workers.stream()
+                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
+                .sum();
+    }
+
+    protected void assertNoWorkBuckets(ActivityStateType ws) {
+        assertTrue(ws == null || ws.getBucketing() == null || ws.getBucketing().getBucket().isEmpty());
+    }
+
+    protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, Integer start, Integer end) {
+        assertBucket(bucket, state, seqNumber);
+        AbstractWorkBucketContentType content = bucket.getContent();
+        assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
+        NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
+        assertEquals("Wrong bucket start", toBig(start), numContent.getFrom());
+        assertEquals("Wrong bucket end", toBig(end), numContent.getTo());
+    }
+
+    protected void assertBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber) {
+        if (state != null) {
+            assertEquals("Wrong bucket state", state, bucket.getState());
+        }
+        assertBucketWorkerRefSanity(bucket);
+        assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
+    }
+
+    private void assertBucketWorkerRefSanity(WorkBucketType bucket) {
+        switch (defaultIfNull(bucket.getState(), WorkBucketStateType.READY)) {
+            case READY:
+                assertNull("workerRef present in " + bucket, bucket.getWorkerRef());
+                break;
+            case DELEGATED:
+                assertNotNull("workerRef not present in " + bucket, bucket.getWorkerRef());
+                break;
+            case COMPLETE:
+                break; // either one is OK
+            default:
+                fail("Wrong state: " + bucket.getState());
+        }
+    }
+
+    private BigInteger toBig(Integer integer) {
+        return integer != null ? BigInteger.valueOf(integer) : null;
+    }
+
+    protected void assertOptimizedCompletedBuckets(Task task, ActivityPath activityPath) {
+        ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
+        long completed = getBuckets(workState).stream()
+                .filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
+                .count();
+        if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
+            displayDumpable("Task with more than one completed bucket", task);
+            fail("More than one completed bucket found in task: " + completed + " in " + task);
+        }
+    }
+
+    protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
+        ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
+        assertEquals("Wrong # of expected buckets", expectedNumber, getNumberOfBuckets(workState));
+    }
+
+    protected void assertCachingProfiles(Task task, String... expectedProfiles) {
+        Set<String> realProfiles = getCachingProfiles(task);
+        assertEquals("Wrong caching profiles in " + task, new HashSet<>(Arrays.asList(expectedProfiles)), realProfiles);
+    }
+
+    private Set<String> getCachingProfiles(Task task) {
+        TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
+        return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
+    }
+
+    protected void assertSchedulingState(Task task, TaskSchedulingStateType expected) {
+        assertThat(task.getSchedulingState()).as("task scheduling state").isEqualTo(expected);
+    }
+
     protected void setMaxAttempts(String oid, int number, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)
@@ -3034,5 +3289,425 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .replace(number)
                 .asItemDeltas();
         repositoryService.modifyObject(ResourceType.class, oid, deltas, result);
+    }
+
+    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
+        return assertTask(task, message);
+    }
+
+    protected TaskAsserter<Void> assertTaskTree(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, taskOid, options, getTestOperationResult());
+        return assertTask(task.asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(Task task, String message) {
+        return assertTask(task.getUpdatedTaskObject().asObjectable(), message);
+    }
+
+    protected TaskAsserter<Void> assertTask(TaskType task, String message) {
+        return TaskAsserter.forTask(task.asPrismObject(), message);
+    }
+
+    protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStateType expectedExecutionStatus)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong executionStatus in " + task, expectedExecutionStatus, task.getExecutionState());
+    }
+
+    protected void assertTaskSchedulingState(String taskOid, TaskSchedulingStateType expectedState)
+            throws ObjectNotFoundException, SchemaException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
+        Task task = taskManager.getTaskPlain(taskOid, result);
+        assertEquals("Wrong schedulingState in " + task, expectedState, task.getSchedulingState());
+    }
+
+    protected void waitForTaskFinish(Task task) throws Exception {
+        waitForTaskFinish(task, false, DEFAULT_TASK_WAIT_TIMEOUT);
+    }
+
+    protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
+        waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    }
+
+    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
+        waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
+    }
+
+    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                task.refresh(waitResult);
+                waitResult.summarize();
+                OperationResult result = task.getResult();
+                if (verbose) { display("Check result", result); }
+                assert !isError(result, checkSubresult) : "Error in " + task + ": " + TestUtil.getErrorMessage(result);
+                assert !isUnknown(result, checkSubresult) : "Unknown result in " + task + ": " + TestUtil.getErrorMessage(result);
+                return !isInProgress(result, checkSubresult);
+            }
+
+            @Override
+            public void timeout() {
+                try {
+                    task.refresh(waitResult);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+                OperationResult result = task.getResult();
+                logger.debug("Result of timed-out task:\n{}", result.debugDump());
+                assert false : "Timeout (" + timeout + ") while waiting for " + task + " to finish. Last result " + result;
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
+    }
+
+    protected void waitForTaskCloseOrSuspend(String taskOid) throws Exception {
+        waitForTaskCloseOrSuspend(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
+    }
+
+    protected void waitForTaskCloseOrSuspend(String taskOid, final int timeout) throws Exception {
+        waitForTaskCloseOrSuspend(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
+    }
+
+    protected void waitForTaskCloseOrSuspend(
+            final String taskOid, final int timeout, long sleepTime) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskCloseOrSuspend");
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                Task task = taskManager.getTaskWithResult(taskOid, waitResult);
+                waitResult.summarize();
+                displayValue("Task", getDebugInfo(task));
+                return task.getExecutionState() == TaskExecutionStateType.CLOSED
+                        || task.getExecutionState() == TaskExecutionStateType.SUSPENDED;
+            }
+
+            @Override
+            public void timeout() {
+                Task task = null;
+                try {
+                    task = taskManager.getTaskWithResult(taskOid, waitResult);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+                OperationResult result = null;
+                if (task != null) {
+                    result = task.getResult();
+                    logger.debug("Result of timed-out task:\n{}", result.debugDump());
+                }
+                assert false : "Timeout (" + timeout + ") while waiting for " + taskOid + " to close or suspend. Last result " + result;
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for " + taskOid + " close/suspend", checker, timeout, sleepTime);
+    }
+
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    }
+
+    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, false, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    }
+
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
+    }
+
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
+    }
+
+    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
+    }
+
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, int timeout, boolean errorOk,
+            int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
+        TaskFinishChecker.Builder builder = new TaskFinishChecker.Builder()
+                .taskManager(taskManager)
+                .taskOid(taskOid)
+                .waitResult(waitResult)
+                .checkSubresult(checkSubresult)
+                .errorOk(errorOk)
+                .timeout(timeout)
+                .showProgressEach(showProgressEach)
+                .verbose(verbose);
+        if (customizer != null) {
+            builder = customizer.apply(builder);
+        }
+        TaskFinishChecker checker = builder.build();
+        IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, realStartTime, timeout, DEFAULT_TASK_SLEEP_TIME);
+        return checker.getLastTask();
+    }
+
+    protected void dumpTaskTree(String oid, OperationResult result)
+            throws ObjectNotFoundException,
+            SchemaException {
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
+        dumpTaskAndSubtasks(task.asObjectable(), 0);
+    }
+
+    protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
+        String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
+        displayValue("Task (level " + level + ")", xml);
+        for (TaskType subtask : TaskTreeUtil.getResolvedSubtasks(task)) {
+            dumpTaskAndSubtasks(subtask, level + 1);
+        }
+    }
+
+    protected long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return getTaskRunDurationMillis(getTask(taskReconOpendjOid).asObjectable());
+    }
+
+    protected long getTaskRunDurationMillis(TaskType taskType) {
+        long duration = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp())
+                - XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+        System.out.println("Duration for " + taskType.getName() + " is " + duration);
+        return duration;
+    }
+
+    protected long getTreeRunDurationMillis(String rootTaskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+        return TaskTreeUtil.getAllTasksStream(rootTask.asObjectable())
+                .mapToLong(this::getTaskRunDurationMillis)
+                .max().orElse(0);
+    }
+
+    protected void displayOperationStatistics(OperationStatsType statistics) {
+        displayValue("Task operation statistics for " + getTestNameShort(), TaskOperationStatsUtil.format(statistics));
+    }
+
+    @Nullable
+    protected OperationStatsType getTaskTreeOperationStatistics(String rootTaskOid)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+        return TaskTreeUtil.getAllTasksStream(rootTask.asObjectable())
+                .map(TaskType::getOperationStats)
+                .reduce(TaskOperationStatsUtil::sum)
+                .orElse(null);
+    }
+
+    public static boolean isError(OperationResult result, boolean checkSubresult) {
+        OperationResult subresult = getSubresult(result, checkSubresult);
+        return subresult != null && subresult.isError();
+    }
+
+    public static boolean isUnknown(OperationResult result, boolean checkSubresult) {
+        OperationResult subresult = getSubresult(result, checkSubresult);
+        return subresult != null && subresult.isUnknown();            // TODO or return true if null?
+    }
+
+    public static boolean isInProgress(OperationResult result, boolean checkSubresult) {
+        OperationResult subresult = getSubresult(result, checkSubresult);
+        return subresult == null || subresult.isInProgress();        // "true" if there are no subresults
+    }
+
+    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) { // TODO delete unused parameter
+        return result;
+    }
+
+    protected PrismObject<TaskType> getTask(String taskOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Task task = createPlainTask("getTask");
+        OperationResult result = task.getResult();
+        PrismObject<TaskType> retTask = repositoryService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT), result);
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject(Task) result not success", result);
+        return retTask;
+    }
+
+    protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Task task = createPlainTask("getTaskTree");
+        OperationResult result = task.getResult();
+        PrismObject<TaskType> retTask = repositoryService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF), result);
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject(Task) result not success", result);
+        return retTask;
+    }
+
+    protected OperationResult resumeTaskAndWaitForNextFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskResume");
+        Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
+
+        final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
+        final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+
+        taskManager.resumeTask(origTask, waitResult);
+
+        final Holder<OperationResult> taskResultHolder = new Holder<>();
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+                OperationResult taskResult = freshTask.getResult();
+                if (verbose) { display("Check result", taskResult); }
+                taskResultHolder.setValue(taskResult);
+                if (isError(taskResult, checkSubresult)) {
+                    return true;
+                }
+                if (isUnknown(taskResult, checkSubresult)) {
+                    return false;
+                }
+                if (freshTask.getLastRunFinishTimestamp() == null) {
+                    return false;
+                }
+                if (freshTask.getLastRunStartTimestamp() == null) {
+                    return false;
+                }
+                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
+                //  It is because it requires that the task is not running. And this can be a problem if the
+                //  typical run time is approximately the same (or even larger) than the interval.
+                return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+                        && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+                        && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
+            }
+
+            @Override
+            public void timeout() {
+                try {
+                    Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+                    OperationResult result = freshTask.getResult();
+                    logger.debug("Timed-out task:\n{}", freshTask.debugDump());
+                    displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                            + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+                            + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+                            + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+                    assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " next run. Last result " + result;
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for resumed task " + origTask + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+        Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+        logger.debug("Final task:\n{}", freshTask.debugDump());
+        displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
+                + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+                + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+                + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+
+        return taskResultHolder.getValue();
+    }
+
+    protected void restartTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".restartTask");
+        try {
+            restartTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    protected void restartTask(String taskOid, OperationResult result) throws CommonException {
+        // Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
+        // executed and then restarted and executed within the same millisecond then the second execution will not be
+        // detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
+        // timestamps are different. And 1ms is not that long to significantly affect test run times.
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            logger.warn("Sleep interrupted: {}", e.getMessage(), e);
+        }
+
+        Task task = taskManager.getTaskWithResult(taskOid, result);
+        logger.info("Restarting task {}", taskOid);
+        if (task.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
+            logger.debug("Task {} is suspended, resuming it", task);
+            taskManager.resumeTask(task, result);
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
+            logger.debug("Task {} is closed, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
+            if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+                // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+                logger.debug("Task {} is running, waiting while it finishes before restarting", task);
+                waitForTaskFinish(taskOid, false);
+            }
+            logger.debug("Task {} is finished, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else {
+            throw new IllegalStateException(
+                    "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionState());
+        }
+    }
+
+    protected boolean suspendTask(String taskOid) throws CommonException {
+        return suspendTask(taskOid, 3000);
+    }
+
+    protected boolean suspendTask(String taskOid, int waitTime) throws CommonException {
+        final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".suspendTask");
+        Task task = taskManager.getTaskWithResult(taskOid, result);
+        logger.info("Suspending task {}", taskOid);
+        try {
+            return taskManager.suspendTask(task, waitTime, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't suspend task {}", e, task);
+            return false;
+        }
+    }
+
+    /**
+     * Restarts task and waits for finish.
+     */
+    protected Task rerunTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".rerunTask");
+        try {
+            return rerunTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    protected Task rerunTask(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+    }
+
+    protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
+    }
+
+    protected String longTimeToString(Long longTime) {
+        if (longTime == null) {
+            return "null";
+        }
+        return longTime.toString();
+    }
+
+    protected ActivityProgressInformationAsserter<Void> assertProgress(ActivityProgressInformation info, String message) {
+        ActivityProgressInformationAsserter<Void> asserter = new ActivityProgressInformationAsserter<>(info, null, message);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
+    protected ActivityPerformanceInformationAsserter<Void> assertPerformance(TreeNode<ActivityPerformanceInformation> node, String message) {
+        ActivityPerformanceInformationAsserter<Void> asserter = new ActivityPerformanceInformationAsserter<>(node, null, message);
+        initializeAsserter(asserter);
+        return asserter;
     }
 }

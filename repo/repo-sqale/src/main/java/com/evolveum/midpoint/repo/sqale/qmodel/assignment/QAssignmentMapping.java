@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 
 import java.util.Objects;
 
@@ -102,7 +103,7 @@ public class QAssignmentMapping<OR extends MObject>
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
 
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
-        // TODO ext mapping can't be done statically
+        addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
                 .addItemMapping(ConstructionType.F_RESOURCE_REF, refMapper(
                         q -> q.resourceRefTargetOid,

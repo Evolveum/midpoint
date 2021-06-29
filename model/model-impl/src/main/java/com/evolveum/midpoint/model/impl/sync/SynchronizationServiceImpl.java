@@ -140,7 +140,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throw new SystemException(ex);
         } finally {
             result.computeStatusIfUnknown();
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -389,8 +388,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
         } catch (Throwable t) {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
-        } finally {
-            task.markObjectActionExecutedBoundary();
         }
     }
 

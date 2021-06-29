@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
+
+import java.util.UUID;
 
 import org.testng.annotations.Test;
 
@@ -16,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
@@ -24,7 +28,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -90,6 +93,31 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
         assertThat(object).isNotNull();
         assertSingleOperationRecorded(pm, RepositoryService.OP_GET_OBJECT);
+    }
+
+    @Test
+    public void test210GetVersion() throws SchemaException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+
+        when("getVersion is called for known OID");
+        String version = repositoryService.getVersion(UserType.class, sanityUserOid, result);
+
+        then("non-null version string is obtained");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(version).isNotNull();
+    }
+
+    @Test
+    public void test211GetVersionFailure() {
+        OperationResult result = createOperationResult();
+
+        expect("getVersion for non-existent OID throws exception");
+        assertThatThrownBy(() -> repositoryService.getVersion(
+                UserType.class, UUID.randomUUID().toString(), result))
+                .isInstanceOf(ObjectNotFoundException.class);
+
+        and("operation result is fatal error");
+        assertThatOperationResult(result).isFatalError();
     }
 
     // TODO test for getObject() with typical options (here or separate class?)

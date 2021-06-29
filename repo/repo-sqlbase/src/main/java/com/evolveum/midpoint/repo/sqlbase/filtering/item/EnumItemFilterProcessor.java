@@ -44,9 +44,9 @@ public class EnumItemFilterProcessor<E extends Enum<E>>
     }
 
     @Override
-    protected Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+    protected FilterOperation operation(ValueFilter<?, ?> filter) throws QueryException {
         if (filter instanceof EqualFilter && filter.getMatchingRule() == null) {
-            return Ops.EQ;
+            return FilterOperation.of(Ops.EQ);
         } else {
             throw new QueryException("Can't translate filter '" + filter + "' to operation."
                     + " Enumeration value supports only equals with no matching rule.");

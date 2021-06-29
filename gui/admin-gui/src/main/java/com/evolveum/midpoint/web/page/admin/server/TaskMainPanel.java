@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -142,25 +141,27 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isWorkManagementVisible(getTask());
             }
         };
-        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new SingleContainerPanel<TaskWorkManagementType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), TaskWorkManagementType.COMPLEX_TYPE) {
-
-                    @Override
-                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                        return getWorkManagementVisibility(itemWrapper.getPath());
-                    }
-
-                    @Override
-                    protected ItemEditabilityHandler getEditabilityHandler() {
-                        return getTaskEditabilityHandler();
-                    }
-                };
-            }
-        });
+//        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.workManagement.title"), workManagementTabVisibility) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public WebMarkupContainer createPanel(String panelId) {
+//                // TODO FIX THIS after task schema change
+//                return new SingleContainerPanel<WorkDistributionType>(panelId,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_PARTS), WorkDistributionType.COMPLEX_TYPE) {
+//
+//                    @Override
+//                    protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+//                        return getWorkManagementVisibility(itemWrapper.getPath());
+//                    }
+//
+//                    @Override
+//                    protected ItemEditabilityHandler getEditabilityHandler() {
+//                        return getTaskEditabilityHandler();
+//                    }
+//                };
+//            }
+//        });
     }
 
     private void createExecutionConstraintsTab(List<ITab> tabs, PageTask parentPage) {
@@ -378,21 +379,22 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             return ItemVisibility.AUTO;
         }
 
-        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
-            if (handler.endsWith("task/workers-creation/handler-3")) {
-                return ItemVisibility.AUTO;
-            } else {
-                return ItemVisibility.HIDDEN;
-            }
-        }
-
-        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
-            if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
-                    || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
-                return ItemVisibility.AUTO;
-            }
-            return ItemVisibility.HIDDEN;
-        }
+        // FIXME ALL OF THIS
+//        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
+//            if (handler.endsWith("task/workers-creation/handler-3")) {
+//                return ItemVisibility.AUTO;
+//            } else {
+//                return ItemVisibility.HIDDEN;
+//            }
+//        }
+//
+//        if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_PARTITIONS).equivalent(path)) {
+//            if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+//                    || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
+//                return ItemVisibility.AUTO;
+//            }
+//            return ItemVisibility.HIDDEN;
+//        }
 
         return ItemVisibility.AUTO;
 

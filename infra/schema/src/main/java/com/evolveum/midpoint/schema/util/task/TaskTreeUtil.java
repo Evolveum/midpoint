@@ -10,6 +10,9 @@ package com.evolveum.midpoint.schema.util.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -43,6 +46,10 @@ public class TaskTreeUtil {
      * Expects that the subtasks are resolved into full objects.
      */
     public static List<TaskType> getResolvedSubtasks(TaskType parent) {
+        return getResolvedSubtasks(parent, TaskResolver.empty());
+    }
+
+    public static List<TaskType> getResolvedSubtasks(TaskType parent, TaskResolver taskResolver) {
         List<TaskType> rv = new ArrayList<>();
         for (ObjectReferenceType childRef : parent.getSubtaskRef()) {
             if (childRef.getOid() == null && childRef.getObject() == null) {
@@ -50,11 +57,20 @@ public class TaskTreeUtil {
             }
             //noinspection unchecked
             PrismObject<TaskType> child = childRef.getObject();
+            @NotNull TaskType resolved;
             if (child != null) {
-                rv.add(child.asObjectable());
+                resolved = child.asObjectable();
             } else {
-                throw new IllegalStateException("Unresolved subtaskRef in " + parent + ": " + childRef);
+                try {
+                    resolved = taskResolver.resolve(childRef.getOid());
+                } catch (SchemaException e) {
+                    throw new SystemException("Couldn't resolve subtask " + childRef.getOid() + " of " + parent +
+                            " because of schema exception", e);
+                } catch (ObjectNotFoundException e) {
+                    throw new IllegalStateException("Unresolvable subtaskRef in " + parent + ": " + childRef);
+                }
             }
+            rv.add(resolved);
         }
         return rv;
     }
@@ -73,5 +89,18 @@ public class TaskTreeUtil {
             }
         }
         return null;
+    }
+
+    public static TaskType findChildIfResolved(TaskType parent, String childOid) {
+        if (allSubtasksAreResolved(parent)) {
+            return findChild(parent, childOid);
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean allSubtasksAreResolved(TaskType parent) {
+        return parent.getSubtaskRef().stream()
+                .noneMatch(childRef -> childRef.getOid() != null && childRef.getObject() == null);
     }
 }

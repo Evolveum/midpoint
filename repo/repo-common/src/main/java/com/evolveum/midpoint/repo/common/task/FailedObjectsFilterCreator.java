@@ -4,6 +4,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
@@ -24,13 +25,13 @@ import static java.util.Objects.requireNonNull;
 class FailedObjectsFilterCreator {
 
     @NotNull private final FailedObjectsSelectorType selector;
-    @NotNull private final AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?> taskPartExecution;
+    @NotNull private final RunningTask task;
     @NotNull private final PrismContext prismContext;
 
-    public FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector,
-            @NotNull AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?> taskPartExecution, @NotNull PrismContext prismContext) {
+    public FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector, @NotNull RunningTask task,
+            @NotNull PrismContext prismContext) {
         this.selector = selector;
-        this.taskPartExecution = taskPartExecution;
+        this.task = task;
         this.prismContext = prismContext;
     }
 
@@ -81,7 +82,7 @@ class FailedObjectsFilterCreator {
 
     @NotNull
     private String getRootTaskOid() {
-        return requireNonNull(taskPartExecution.getRootTaskOid(), "no root task OID");
+        return requireNonNull(task.getRootTaskOid(), "no root task OID");
     }
 
     private List<OperationResultStatusType> getStatusList() {
@@ -103,7 +104,7 @@ class FailedObjectsFilterCreator {
             // TODO What if the task was suspended and resumed?
             // TODO What about multinode or partitioned tasks?
             return XmlTypeConverter.createXMLGregorianCalendar(
-                    requireNonNull(taskPartExecution.localCoordinatorTask.getLastRunStartTimestamp(),
+                    requireNonNull(task.getLastRunStartTimestamp(),
                             "no start time for the current task"));
         } else {
             return null;

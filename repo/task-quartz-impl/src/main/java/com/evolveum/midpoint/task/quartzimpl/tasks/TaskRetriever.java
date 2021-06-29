@@ -435,9 +435,9 @@ public class TaskRetriever {
      * PRE: task is either persistent or is a RunningTask
      */
     @NotNull
-    public String getRootTaskOid(TaskQuartzImpl task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public Task getRootTask(TaskQuartzImpl task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTaskOid();
+            return ((RunningTask) task).getRootTask();
         }
 
         OperationResult result = parentResult.subresult(OP_GET_ROOT_TASK_OID)
@@ -456,7 +456,7 @@ public class TaskRetriever {
                     if (current.getOid() == null) {
                         throw new IllegalStateException("Called getRootTaskOid for non-persistent task");
                     }
-                    return current.getOid();
+                    return current;
                 }
                 current = getTaskByIdentifier(parentIdentifier, result);
             }

@@ -17,6 +17,9 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  * <p>
@@ -27,27 +30,31 @@ import com.evolveum.midpoint.util.exception.*;
  */
 public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine, CompiledScript> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
+
     private final ScriptEngine scriptEngine;
+    private final String engineName;
 
     public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext,
             Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
 
+        this.engineName = engineName;
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
         if (scriptEngine == null) {
-            throw new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
+            SystemException e = new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
     @Override
-    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception {
+    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext) throws Exception {
         return ((Compilable) scriptEngine).compile(codeString);
     }
 
     @Override
     protected Object evaluateScript(CompiledScript compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
-
         Bindings bindings = convertToBindings(context);
         return compiledScript.eval(bindings);
     }
@@ -59,42 +66,15 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
         return bindings;
     }
 
-//    public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
-//            ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
-//
-//        Bindings bindings = convertToBindings(context);
-//
-////        String codeString = code;
-//        if (codeString == null) {
-//            throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
-//        }
-//
-//        boolean allowEmptyValues = true;
-////        if (expressionType.isAllowEmptyValues() != null) {
-////            allowEmptyValues = expressionType.isAllowEmptyValues();
-////        }
-//
-//        CompiledScript compiledScript = getCompiledScript(codeString, context);
-//
-//        Object evalRawResult;
-//        try {
-//            InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-//            evalRawResult = compiledScript.eval(bindings);
-//        } catch (Throwable e) {
-//            throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
-//        }
-//
-//
-//
-//        return evalRawResult;
-//    }
-
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#getLanguageName()
      */
     @Override
     public String getLanguageName() {
-        return scriptEngine.getFactory().getLanguageName();
+        if (scriptEngine != null) {
+            return scriptEngine.getFactory().getLanguageName();
+        }
+        return engineName;
     }
 
     /* (non-Javadoc)

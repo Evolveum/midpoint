@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task oid="49914528-edc1-414c-9672-69d54750c4e4"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3">
+    <name>task-two-mock-parts-subtasks</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <extension>
+                        <noop:noop>
+                            <noop:delay>100</noop:delay>
+                            <noop:steps>3</noop:steps>
+                        </noop:noop>
+                    </extension>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <work>
+                    <extension>
+                        <noop:noop>
+                            <noop:delay>200</noop:delay>
+                            <noop:steps>2</noop:steps>
+                        </noop:noop>
+                    </extension>
+                </work>
+            </activity>
+        </composition>
+        <distribution>
+            <subtasks/>
+        </distribution>
+    </activity>
+</task>

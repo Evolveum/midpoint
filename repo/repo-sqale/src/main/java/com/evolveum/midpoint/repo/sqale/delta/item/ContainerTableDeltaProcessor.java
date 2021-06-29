@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -44,8 +46,10 @@ public class ContainerTableDeltaProcessor<
     }
 
     @Override
-    public void addValues(Collection<T> values) {
-        values.forEach(ref -> context.insertOwnedRow(containerTableMapping, ref));
+    public void addValues(Collection<T> values) throws SchemaException {
+        for (T ref: values) {
+            context.insertOwnedRow(containerTableMapping, ref);
+        }
     }
 
     @Override

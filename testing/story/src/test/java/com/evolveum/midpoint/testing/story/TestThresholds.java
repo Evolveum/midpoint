@@ -11,6 +11,13 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,8 +30,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation;
+import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
@@ -116,14 +123,11 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         waitForTaskFinish(TASK_IMPORT_BASE_USERS_OID, true, TASK_TIMEOUT);
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_IMPORT_BASE_USERS_OID, result);
-        display("Task after test001testImportBaseUsers:", taskAfter);
-
-        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        assertNotNull(stats, "No statistics in task");
-
-        SynchronizationInformationType syncInfo = stats.getSynchronizationInformation();
-        assertNotNull(syncInfo, "No sync info in task");
+        assertTask(TASK_IMPORT_BASE_USERS_OID, "after")
+                .display()
+                .rootActivityState()
+                    .synchronizationStatistics()
+                        .display();
 
 //        assertEquals((Object) syncInfo.getCountUnmatched(), getDefaultUsers());
 //        assertEquals((Object) syncInfo.getCountDeleted(), 0);
@@ -264,8 +268,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
         assertSynchronizationStatisticsActivation(taskAfter);
     }
 
-    void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
-        displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
+    void dumpSynchronizationInformation(ActivitySynchronizationStatisticsType synchronizationInformation) {
+        displayValue("Synchronization information", ActivitySynchronizationStatisticsUtil.format(synchronizationInformation));
     }
 
     protected void adapTaskConfig(Task task, OperationResult result) throws Exception {
@@ -286,10 +290,30 @@ public abstract class TestThresholds extends AbstractStoryTest {
                 .assertPropertyValuesEqual(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, getWorkerThreads());
     }
 
-    int getFailureCount(Task taskAfter) {
-        // TODO separate the statistics dump
-        OperationStatsType stats = taskAfter.getStoredOperationStatsOrClone();
-        displayValue("Iterative statistics", IterativeTaskInformation.format(stats.getIterativeTaskInformation()));
-        return TaskOperationStatsUtil.getItemsProcessedWithFailure(stats);
+    int getReconFailureCount(Task task) {
+        return getFailureCount(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
+    }
+
+    int getRootFailureCount(Task task) {
+        return getFailureCount(task, ActivityPath.empty());
+    }
+
+    ActivitySynchronizationStatisticsType getReconSyncStats(Task task) {
+        return getSyncStats(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
+    }
+
+    ActivitySynchronizationStatisticsType getRootSyncStats(Task task) {
+        return getSyncStats(task, ActivityPath.empty());
+    }
+
+    int getFailureCount(Task task, ActivityPath path) {
+        ActivityStateType state = ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path);
+        return ActivityItemProcessingStatisticsUtil.getErrorsShallow(state.getStatistics().getItemProcessing());
+    }
+
+    ActivitySynchronizationStatisticsType getSyncStats(Task task, ActivityPath path) {
+        return ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path)
+                .getStatistics()
+                .getSynchronization();
     }
 }

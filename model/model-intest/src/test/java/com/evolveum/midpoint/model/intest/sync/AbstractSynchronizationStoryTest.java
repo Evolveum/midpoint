@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -74,7 +76,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
     @Override
     protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
-        return ConflictResolutionActionType.NONE;       // too many conflicts in these scenarios
+        return ConflictResolutionActionType.NONE; // too many conflicts in these scenarios
     }
 
     protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
@@ -158,11 +160,15 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
             assertThat(getOrig(provisioningStatistics.getEntry().get(0).getResourceRef().getTargetName())).isEqualTo("Dummy Resource Green");
             assertThat(provisioningStatistics.getEntry().get(0).getOperation()).isNotEmpty(); // search and sometimes get
 
-            Integer itemsProcessed = TaskOperationStatsUtil.getItemsProcessed(stats);
-
             // MID-6930: We should process exactly 1 item even for partitioned reconciliation:
             // mancomb must not be processed in the 3rd part!
-            assertThat(itemsProcessed).as("items processed").isEqualTo(1);
+            assertPerformance(syncTaskOid, "progress")
+                    .display()
+                    .child(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID)
+                        .assertItemsProcessed(1)
+                    .end()
+                    .child(ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID)
+                        .assertItemsProcessed(0);
         }
 
         // notifications

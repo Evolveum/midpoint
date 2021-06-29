@@ -76,6 +76,11 @@ public class TaskStateManager {
     public void deleteTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         suspendAndDeleteHelper.deleteTask(oid, result);
     }
+
+    public void deleteTaskTree(String rootTaskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        suspendAndDeleteHelper.deleteTaskTree(rootTaskOid, result);
+    }
     //endregion
 
     //region Task resuming

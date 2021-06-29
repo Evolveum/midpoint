@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -48,7 +50,7 @@ public class QObjectTemplateMapping
 
     @Override
     public void storeRelatedEntities(@NotNull MObject row,
-            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getIncludeRef(),

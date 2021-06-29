@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task handler that supports bucketed tasks. Its `run` method provides bucket-related parameters
@@ -19,12 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 public interface WorkBucketAwareTaskHandler extends TaskHandler {
 
     @Override
-    default TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+    default TaskRunResult run(@NotNull RunningTask task) {
         throw new UnsupportedOperationException("run with no work bucket is not supported here");
     }
 
     TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-            TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
+            ActivityDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
 
     default TaskWorkBucketProcessingResult onNoMoreBuckets(RunningTask task,
             TaskWorkBucketProcessingResult previousRunResult, OperationResult result) {

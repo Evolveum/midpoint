@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -1225,5 +1226,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             }
         }
         return updatedOptionsList;
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToNoFetch(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptions(originalOptions, opt -> opt.setNoFetch(true));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options, Consumer<GetOperationOptions> updater) {
+        return SelectorOptions.updateRootOptions(options, updater, GetOperationOptions::new);
     }
 }

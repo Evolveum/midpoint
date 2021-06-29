@@ -40,8 +40,8 @@ public class QAccessCertificationCampaign extends QAssignmentHolder<MAccessCerti
                     .ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata HANDLER_URI_ID =
             ColumnMetadata.named("handlerUriId").ofType(Types.INTEGER);
-    public static final ColumnMetadata ITERATION =
-            ColumnMetadata.named("iteration").ofType(Types.INTEGER);
+    public static final ColumnMetadata CAMPAIGN_ITERATION =
+            ColumnMetadata.named("campaignIteration").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_REF_TARGET_OID =
             ColumnMetadata.named("ownerRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OWNER_REF_TARGET_TYPE =
@@ -65,7 +65,7 @@ public class QAccessCertificationCampaign extends QAssignmentHolder<MAccessCerti
     public final DateTimePath<Instant> endTimestamp =
             createInstant("endTimestamp", END_TIMESTAMP);
     public final NumberPath<Integer> handlerUriId = createInteger("handlerUriId", HANDLER_URI_ID);
-    public final NumberPath<Integer> iteration = createInteger("iteration", ITERATION);
+    public final NumberPath<Integer> campaignIteration = createInteger("campaignIteration", CAMPAIGN_ITERATION);
     public final UuidPath ownerRefTargetOid =
             createUuid("ownerRefTargetOid", OWNER_REF_TARGET_OID);
     public final EnumPath<MObjectType> ownerRefTargetType =
