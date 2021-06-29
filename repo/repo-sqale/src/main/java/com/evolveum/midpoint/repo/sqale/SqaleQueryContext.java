@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.TypeFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -68,9 +69,11 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         } else if (filter instanceof FullTextFilter) {
             // TODO
             throw new QueryException("TODO filter " + filter);
-        } else if (filter instanceof TypeFilter) {
+        } else if (filter instanceof ExistsFilter) {
             // TODO
             throw new QueryException("TODO filter " + filter);
+        } else if (filter instanceof TypeFilter) {
+            return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
         } else {
             return super.process(filter);
         }

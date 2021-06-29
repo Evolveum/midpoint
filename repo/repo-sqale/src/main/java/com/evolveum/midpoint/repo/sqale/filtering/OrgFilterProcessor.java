@@ -42,7 +42,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         FlexibleRelationalPathBase<?> path = context.root();
         if (!(path instanceof QObject)) {
             throw new QueryException("Org filter can only be used for objects,"
-                    + " not for path " + path + " of type " + path.getColumns());
+                    + " not for path " + path + " of type " + path.getClass());
         }
 
         QObject<?> objectPath = (QObject<?>) path;

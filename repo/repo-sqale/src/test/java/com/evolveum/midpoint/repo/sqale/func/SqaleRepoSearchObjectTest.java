@@ -763,7 +763,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     }
     // endregion
 
-    // region other filters: inOid, type, any
+    // region other filters: inOid, type, exists
     @Test
     public void test300QueryForObjectsWithInOid() throws SchemaException {
         when("searching objects by list of OIDs");
@@ -798,8 +798,6 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder(user1Oid, org2Oid);
     }
 
-    /*
-    // TODO TYPE tests - unclear how to implement TYPE filter at the moment
     @Test
     public void test310QueryWithTypeFilter() throws SchemaException {
         when("query includes type filter");
@@ -809,7 +807,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .type(FocusType.class)
                         .block()
                         .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
-                        .and()
+                        .or()
                         .item(FocusType.F_COST_CENTER).eq("5")
                         .endBlock()
                         .build(),
@@ -817,11 +815,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         then("search is narrowed only to objects of specific type");
         assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
+        assertThat(result)
                 .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, org2Oid);
+                .containsExactlyInAnyOrder(user1Oid, org2Oid, org21Oid);
     }
-    */
 
 /* TODO EXISTS tests
 1. @Count property => pendingOperationCount > 0; see: ClassDefinitionParser#parseMethod() + getJaxbName()
@@ -1448,7 +1445,7 @@ AND(
     }
 
     @Test
-    public void test595SearchObjectByNotIndexedExtensionFails() throws SchemaException {
+    public void test595SearchObjectByNotIndexedExtensionFails() {
         given("query for not-indexed extension");
         OperationResult operationResult = createOperationResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
