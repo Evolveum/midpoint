@@ -407,7 +407,7 @@ public class ColumnUtils {
                             @Override
                             public void onClick() {
                                 PageParameters parameters = new PageParameters();
-                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef);
+                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef.getOid());
                                 pageBase.navigateToNext(PageOrgUnit.class, parameters);
                             }
 
