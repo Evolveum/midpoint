@@ -37,9 +37,8 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         this.owningActivityDefinition = owningActivity;
     }
 
-    @NotNull
     @Override
-    public ExecutionModeType getExecutionMode() {
+    public @NotNull ExecutionModeType getExecutionMode() {
         return executionMode;
     }
 

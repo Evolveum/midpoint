@@ -290,7 +290,7 @@ public abstract class AbstractIterativeActivityExecution<
      * Creates the processing coordinator. Usually no customization is needed here.
      */
     private ProcessingCoordinator<I> setupCoordinator() {
-        return new ProcessingCoordinator<>(getRunningTask(), beans.taskManager);
+        return new ProcessingCoordinator<>(getWorkerThreadsCount(), getRunningTask(), beans.taskManager);
     }
 
     /**
@@ -446,16 +446,15 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     private Integer getWorkerThreadsCount() {
-        // FIXME - take also from distribution definition
-        return getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+        return getActivity().getDistributionDefinition().getWorkerThreads();
     }
 
     public void ensureNoWorkerThreads() {
-        Integer tasks = getWorkerThreadsCount();
-        if (tasks != null && tasks != 0) {
-            throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks +
-                    ". This task cannot be run with worker threads. Please remove workerThreads "
-                    + "extension property or set its value to 0.");
+        int threads = getWorkerThreadsCount();
+        if (threads != 0) {
+            throw new UnsupportedOperationException("Unsupported number of worker threads: " + threads +
+                    ". This task cannot be run with worker threads. Please remove workerThreads task "
+                    + "extension property and/or workerThreads distribution definition item or set its value to 0.");
         }
     }
 
@@ -494,7 +493,15 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     public boolean isSimulate() {
-        return activity.getDefinition().getExecutionMode() == ExecutionModeType.SIMULATE;
+        return getExecutionMode() == ExecutionModeType.SIMULATE;
+    }
+
+    public boolean isDryRun() {
+        return getExecutionMode() == ExecutionModeType.DRY_RUN;
+    }
+
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return activity.getDefinition().getExecutionMode();
     }
 
     public @NotNull String getRootTaskOid() {

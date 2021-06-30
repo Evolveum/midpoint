@@ -6111,7 +6111,25 @@
                     <xsd:element name="batchSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Batch size for live sync operations: if specified as N > 0, live synchronization fetches
+                                at most N records during each provisioning.synchronize() method execution - i.e. during
+                                any live sync task run. (Currently, it leaves unprocessed changes for the next live sync
+                                task run. This may change in the future.)
+
+                                USE WITH CARE. This feature assumes that the connector provides LiveSync capability
+                                with preciseTokenValue = true, i.e. that it assigns sync tokens to individual changes
+                                "incrementally" so it can resume live sync operation on each individual change. This
+                                can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="updateLiveSyncTokenInDryRun" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates if the LiveSync token should be updated when running in dry run mode.
+                                If false (the default) then LiveSync will not update token to a new value so it
+                                will process objects fetched on the next run (either dry or normal). If true, it
+                                will update the token, and therefore marks objects as processed.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -6598,6 +6616,32 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType" />
+
+    <xsd:complexType name="LiveSyncWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="token" type="xsd:anyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The token value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
 
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>

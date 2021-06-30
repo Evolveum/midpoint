@@ -1598,7 +1598,7 @@ public class ResourceObjectConverter {
     }
 
     public UcfFetchChangesResult fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken,
-            ResourceObjectLiveSyncChangeListener outerListener,
+            @Nullable Integer maxChangesConfigured, ResourceObjectLiveSyncChangeListener outerListener,
             OperationResult gResult) throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -1611,7 +1611,7 @@ public class ResourceObjectConverter {
         }
 
         ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, gResult);
-        Integer maxChanges = getMaxChanges(ctx);
+        Integer maxChanges = getMaxChanges(maxChangesConfigured, ctx);
 
         AtomicInteger processed = new AtomicInteger(0);
         UcfLiveSyncChangeListener localListener = (ucfChange, lParentResult) -> {
@@ -1679,27 +1679,26 @@ public class ResourceObjectConverter {
     }
 
     @Nullable
-    private Integer getMaxChanges(ProvisioningContext ctx) throws SchemaException, ObjectNotFoundException,
+    private Integer getMaxChanges(@Nullable Integer maxChangesConfigured, ProvisioningContext ctx) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE);
         LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
         if (capability != null) {
             if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
-                return batchSizeInTask;
+                return maxChangesConfigured;
             } else {
-                checkMaxChanges(batchSizeInTask, "LiveSync capability has preciseTokenValue not set to 'true'");
+                checkMaxChanges(maxChangesConfigured, "LiveSync capability has preciseTokenValue not set to 'true'");
                 return null;
             }
         } else {
             // Is this possible?
-            checkMaxChanges(batchSizeInTask, "LiveSync capability is not found or disabled");
+            checkMaxChanges(maxChangesConfigured, "LiveSync capability is not found or disabled");
             return null;
         }
     }
 
     private void checkMaxChanges(Integer maxChangesFromTask, String reason) {
         if (maxChangesFromTask != null && maxChangesFromTask > 0) {
-            throw new IllegalArgumentException("Cannot apply " + SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE.getLocalPart() +
+            throw new IllegalArgumentException("Cannot apply " + LiveSyncWorkDefinitionType.F_BATCH_SIZE.getLocalPart() +
                     " because " + reason);
         }
     }

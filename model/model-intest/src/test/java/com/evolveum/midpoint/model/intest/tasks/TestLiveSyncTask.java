@@ -6,47 +6,46 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
-import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
-
-import static com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType.*;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
+import static com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
-
-import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.model.impl.trigger.ShadowReconcileTriggerHandler;
-import com.evolveum.midpoint.model.intest.CommonTasks;
-import com.evolveum.midpoint.model.intest.sync.SequenceChecker;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
-
-import com.evolveum.midpoint.test.DummyTestResource;
-
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.util.exception.CommonException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.model.impl.trigger.ShadowReconcileTriggerHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.intest.CommonTasks;
+import com.evolveum.midpoint.model.intest.sync.SequenceChecker;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests various aspects of live sync task:
@@ -156,17 +155,22 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         initLiveSyncTask(TASK_SLOW_MODEL_IMPRECISE, initTask, initResult);
         initLiveSyncTask(TASK_BATCHED, initTask, initResult);
 
-        addObject(TASK_BATCHED_IMPRECISE.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
+        addObject(applyLegacyFlag(TASK_BATCHED_IMPRECISE.file), initTask, initResult,
+                workerThreadsCustomizer(getWorkerThreads()));
         // Starting this task results in (expected) exception
 
         initLiveSyncTask(TASK_ERROR, initTask, initResult);
         initLiveSyncTask(TASK_ERROR_IMPRECISE, initTask, initResult);
         initLiveSyncTask(TASK_DRY_RUN, initTask, initResult);
         initLiveSyncTask(TASK_DRY_RUN_WITH_UPDATE, initTask, initResult);
-        initLiveSyncTask(TASK_NO_POLICY, initTask, initResult);
-        initLiveSyncTask(TASK_XFER1, initTask, initResult);
-        initLiveSyncTask(TASK_XFER2, initTask, initResult);
-        initLiveSyncTask(TASK_MULTI_CHANGES, initTask, initResult);
+
+        if (!isLegacy()) {
+            initLiveSyncTask(TASK_NO_POLICY, initTask, initResult);
+            initLiveSyncTask(TASK_XFER1, initTask, initResult);
+            initLiveSyncTask(TASK_XFER2, initTask, initResult);
+            initLiveSyncTask(TASK_MULTI_CHANGES, initTask, initResult);
+        }
+
         initLiveSyncTask(TASK_ERRORS_PRECISE_IGNORE, initTask, initResult);
         initLiveSyncTask(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL, initTask, initResult);
         initLiveSyncTask(TASK_ERRORS_PRECISE_STOP_ON_ANY, initTask, initResult);
@@ -186,7 +190,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
     private void initLiveSyncTask(TestResource<TaskType> testResource, Task initTask, OperationResult initResult)
             throws java.io.IOException, CommonException {
-        PrismObject<TaskType> task = addObject(testResource.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
+        File taskFile = applyLegacyFlag(testResource.file);
+        PrismObject<TaskType> task = addObject(taskFile, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
         if (task.asObjectable().getRecurrence() != TaskRecurrenceType.RECURRING) {
             waitForTaskFinish(testResource.oid, false);
         } else {
@@ -194,8 +199,21 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         }
     }
 
+    private File applyLegacyFlag(File original) {
+        if (isLegacy()) {
+            return new File(original.getParent(), "legacy-" + original.getName());
+        } else {
+            return original;
+        }
+    }
+
     int getWorkerThreads() {
         return 0;
+    }
+
+    private int getProcessingThreads() {
+        int workerThreads = getWorkerThreads();
+        return workerThreads > 0 ? workerThreads : 1;
     }
 
     private String getUserName(int i, boolean precise) {
@@ -289,6 +307,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
         DummyInterruptedSyncResource.delay = 100;
 
+        Set<String> threads = ConcurrentHashMap.newKeySet();
+        DummyInterruptedSyncResource.setExecutionListener(() -> threads.add(Thread.currentThread().getName()));
+
         // WHEN
         when();
 
@@ -320,6 +341,10 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 //                    token <= progress);
 //            assertObjects(UserType.class, getStartsWithQuery(USER_P), progress);
         }
+
+        DummyInterruptedSyncResource.setExecutionListener(null);
+        displayValue("threads", threads);
+        assertThat(threads).as("threads").hasSize(getProcessingThreads());
     }
 
     /**
@@ -703,6 +728,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200NoPolicy() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
 
         given();
         Task task = getTestTask();
@@ -753,6 +781,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test210Xfer1InitialSync() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         RESOURCE_DUMMY_XFER1_TARGET_DELETABLE.controller.getDummyResource().setOperationDelayOffset(500);
         doXferInitialSync(1, TASK_XFER1, RESOURCE_DUMMY_XFER1_SOURCE);
     }
@@ -762,6 +793,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test215Xfer2InitialSync() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         doXferInitialSync(2, TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE);
     }
 
@@ -833,6 +867,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test220Xfer1RenameAccounts() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         TaskAsserter<Void> asserter = doXferRenameAndSync(TASK_XFER1, RESOURCE_DUMMY_XFER1_SOURCE);
         assertXfer1StateAfterRename(asserter);
     }
@@ -872,6 +909,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test225Xfer2RenameAccounts() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
         doXferRenameAndSync(TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE)
                 .assertSuspended()
@@ -938,6 +978,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test230Xfer1RepeatedLiveSync() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         TaskAsserter<Void> asserter = doXferLiveSync(TASK_XFER1);
         assertXfer1StateAfterRename(asserter); // the state is exactly the same as after previous live sync
     }
@@ -949,6 +992,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test235Xfer2RepeatedLiveSync() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         if (getWorkerThreads() > 0) {
             doXferLiveSync(TASK_XFER2)
                     .assertSuspended()
@@ -996,6 +1042,9 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test240TestAffinityController() throws Exception {
+        if (isLegacy()) {
+            throw new SkipException("Not in legacy");
+        }
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1319,5 +1368,13 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
             System.out.println("Deleting " + shadow);
             repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
         }
+    }
+
+    protected boolean isLegacy() {
+        return false;
+    }
+
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+        return workerThreadsCustomizer(threads, isLegacy());
     }
 }

@@ -664,7 +664,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 return true;
             }
         };
-        provisioningService.synchronize(coords, task, false, handler, result);
+        provisioningService.synchronize(coords, task, null, handler, result);
         assertThat(events).isEmpty();
 
         createAccountExternalUid(GOOD_ACCOUNT, 1, null);
@@ -674,7 +674,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         when();
 
-        provisioningService.synchronize(coords, task, false, handler, result);
+        provisioningService.synchronize(coords, task, null, handler, result);
 
         then();
         display("events", events);

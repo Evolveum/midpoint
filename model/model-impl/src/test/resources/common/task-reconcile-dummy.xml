@@ -19,6 +19,7 @@
     <!-- Resource printable name -->
     <name>Reconciliation: Dummy</name>
 
+    <!-- Must be legacy spec, because dryRun flag is set in extension by TestReconScript -->
     <extension>
         <syncext:freshnessInterval>1000</syncext:freshnessInterval>
         <syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>

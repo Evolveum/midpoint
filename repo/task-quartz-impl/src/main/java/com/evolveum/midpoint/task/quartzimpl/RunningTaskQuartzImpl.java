@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -80,6 +81,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     /** TODO */
     private Level originalProfilingLevel;
+
+    /**
+     * Execution mode (execute, dry run, simulate, ...) taken from the activity definition.
+     */
+    @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
             @NotNull Task rootTask) {
@@ -430,6 +436,16 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @NotNull
     public Task getRootTask() {
         return rootTask;
+    }
+
+    @Override
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return executionMode;
+    }
+
+    @Override
+    public void setExecutionMode(@NotNull ExecutionModeType executionMode) {
+        this.executionMode = requireNonNull(executionMode);
     }
     //endregion
 }

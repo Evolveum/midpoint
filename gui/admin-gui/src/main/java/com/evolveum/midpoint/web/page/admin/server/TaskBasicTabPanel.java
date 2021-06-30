@@ -222,7 +222,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("task/workers-restart/handler-3")) {
             //no attributes
         } else if (taskHandler.endsWith("model/synchronization/task/delete-not-updated-shadow/handler-3")) {
-            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION),
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
                     TaskType.F_OBJECT_REF);
         } else if (taskHandler.endsWith("model/shadowRefresh/handler-3")) {

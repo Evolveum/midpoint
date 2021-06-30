@@ -304,7 +304,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            boolean simulate, LiveSyncEventHandler handler, OperationResult parentResult)
+            LiveSyncOptions options, LiveSyncEventHandler handler,
+            OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -317,6 +318,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".synchronize");
         result.addParam(OperationResult.PARAM_OID, resourceOid);
         result.addParam(OperationResult.PARAM_TASK, task.toString());
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
 
         SynchronizationOperationResult liveSyncResult;
 
@@ -325,7 +327,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, simulate, handler, result);
+            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, options, handler, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {

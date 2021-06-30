@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -32,7 +33,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,6 +51,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 
 import com.evolveum.midpoint.test.asserter.*;
@@ -1338,7 +1339,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        RefinedAttributeDefinition<T> attrDef = Objects.requireNonNull(
+        RefinedAttributeDefinition<T> attrDef = requireNonNull(
                 objectClassDefinition.findAttributeDefinition(attributeName),
                 () -> "No attribute " + attributeName + " in " + objectClassDefinition);
         ResourceAttribute<T> attr = attrDef.instantiate();
@@ -3018,7 +3019,25 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.unsetGlobalTracingOverride();
     }
 
-    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads, boolean legacy) {
+        if (legacy) {
+            return workerThreadsCustomizerLegacy(threads);
+        } else {
+            return workerThreadsCustomizerNew(threads);
+        }
+    }
+
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizerNew(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionUtil.findOrCreateDistribution(
+                        requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition"))
+                        .setWorkerThreads(threads);
+            }
+        };
+    }
+
+    private Consumer<PrismObject<TaskType>> workerThreadsCustomizerLegacy(int threads) {
         return taskObject -> {
             if (threads != 0) {
                 //noinspection unchecked

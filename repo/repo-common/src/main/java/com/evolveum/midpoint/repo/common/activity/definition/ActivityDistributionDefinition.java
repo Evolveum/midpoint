@@ -14,18 +14,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
     @NotNull private WorkDistributionType bean;
 
-    private ActivityDistributionDefinition(ActivityDefinitionType activityDefinitionBean) {
-        this.bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
-                activityDefinitionBean.getDistribution() : new WorkDistributionType(PrismContext.get());
+    private ActivityDistributionDefinition(@NotNull WorkDistributionType bean) {
+        this.bean = bean;
     }
 
     @NotNull
-    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean) {
-        return new ActivityDistributionDefinition(activityDefinitionBean);
+    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean,
+            Supplier<Integer> workerThreadsSupplier) {
+        WorkDistributionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
+                activityDefinitionBean.getDistribution().clone() : new WorkDistributionType(PrismContext.get());
+        if (bean.getWorkerThreads() == null) {
+            bean.setWorkerThreads(workerThreadsSupplier.get());
+        }
+        return new ActivityDistributionDefinition(bean);
     }
 
     @Override
@@ -56,6 +65,10 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
 
     public WorkersManagementType getWorkers() {
         return bean.getWorkers();
+    }
+
+    public int getWorkerThreads() {
+        return or0(bean.getWorkerThreads());
     }
 
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {

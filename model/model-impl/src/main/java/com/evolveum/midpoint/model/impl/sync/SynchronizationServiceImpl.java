@@ -121,15 +121,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
 
-            boolean fullRun = !TaskUtil.isDryRun(syncCtx.getTask());
-            saveSyncMetadata(syncCtx, change, fullRun, result);
+            ExecutionModeType executionMode = TaskUtil.getExecutionMode(task);
+            boolean dryRun = executionMode == ExecutionModeType.DRY_RUN;
 
-            if (fullRun) {
+            saveSyncMetadata(syncCtx, change, !dryRun, result);
+
+            if (!dryRun) {
                 reactToChange(syncCtx, change, result);
             }
 
-            LOGGER.debug("SYNCHRONIZATION: DONE ({}) for {}", fullRun ? "full run" : "dry run",
-                    change.getShadowedResourceObject());
+            LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}", executionMode, change.getShadowedResourceObject());
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap

@@ -110,7 +110,10 @@ class ItemProcessingGatekeeper<I> {
 
     boolean process(OperationResult parentResult) {
 
+        ExecutionModeType originalExecutionMode = workerTask.getExecutionMode();
         try {
+
+            workerTask.setExecutionMode(activityExecution.getExecutionMode());
 
             startTracingAndDynamicProfiling();
             logOperationStart();
@@ -159,6 +162,9 @@ class ItemProcessingGatekeeper<I> {
             acknowledgeItemProcessedAsEmergency();
 
             return false;
+
+        } finally {
+            workerTask.setExecutionMode(originalExecutionMode);
         }
     }
 

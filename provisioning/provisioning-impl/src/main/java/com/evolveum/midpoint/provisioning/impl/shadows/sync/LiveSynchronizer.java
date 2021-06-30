@@ -9,9 +9,10 @@ package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +36,9 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 
 /**
@@ -65,11 +64,11 @@ public class LiveSynchronizer {
 
     @NotNull
     public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, boolean simulate, LiveSyncEventHandler handler, OperationResult gResult)
+            Task task, LiveSyncOptions options, LiveSyncEventHandler handler, OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, simulate, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, options, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -112,7 +111,8 @@ public class LiveSynchronizer {
 
         UcfFetchChangesResult fetchChangesResult;
         try {
-            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), listener, gResult);
+            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(),
+                    ctx.getBatchSize(), listener, gResult);
         } finally {
             handler.allEventsSubmitted(gResult);
         }
@@ -140,16 +140,15 @@ public class LiveSynchronizer {
 
         LiveSyncCapabilityType capability = ctx.context.getEffectiveCapability(LiveSyncCapabilityType.class);
         boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
-        boolean isDryRun = TaskUtil.isDryRun(ctx.task);
-        boolean updateTokenInDryRun = TaskUtil.findExtensionItemValueInThisOrParent(ctx.task,
-                SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN, false);
+        boolean isDryRun = ctx.isDryRun();
+        boolean updateTokenInDryRun = ctx.isUpdateLiveSyncTokenInDryRun();
         PrismProperty<?> initialToken = ctx.getInitialToken();
 
         PrismProperty<?> oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
         LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
         PrismProperty<?> tokenToSet;
-        if (ctx.simulate) {
-            tokenToSet = null;        // Token should not be updated during simulation.
+        if (ctx.isSimulate()) {
+            tokenToSet = null; // Token should not be updated during simulation.
         } else if (isDryRun && !updateTokenInDryRun) {
             tokenToSet = null;
         } else if (!ctx.syncResult.isHaltingErrorEncountered() && !ctx.syncResult.isSuspendEncountered() && ctx.syncResult.isAllChangesFetched()) {
@@ -211,7 +210,7 @@ public class LiveSynchronizer {
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
                     ctx.context.getShadowCoordinates(), ctx.task);
-        } else if (!ctx.simulate) {
+        } else if (!ctx.isSimulate()) {
             LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
             ctx.task.setExtensionProperty(currentToken);
             ctx.task.flushPendingModifications(result);
@@ -223,19 +222,20 @@ public class LiveSynchronizer {
     }
 
     private class LiveSyncCtx {
-        private final SynchronizationOperationResult syncResult;
-        private final ProvisioningContext context;
-        private final Task task; // redundant to simplify access
-        private final boolean simulate;
-        private final OldestTokenWatcher oldestTokenWatcher;
+        @NotNull private final SynchronizationOperationResult syncResult;
+        @NotNull private final ProvisioningContext context;
+        @NotNull private final Task task; // redundant to simplify access
+        @NotNull private final LiveSyncOptions options;
+        @NotNull private final OldestTokenWatcher oldestTokenWatcher;
         private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, boolean simulate, OperationResult result)
+        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+                LiveSyncOptions options, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.create(shadowCoordinates, task, result);
             this.task = task;
-            this.simulate = simulate;
+            this.options = options != null ? options : new LiveSyncOptions();
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 
@@ -247,5 +247,20 @@ public class LiveSynchronizer {
             return getInitialToken() != null;
         }
 
+        private boolean isSimulate() {
+            return options.getExecutionMode() == ExecutionModeType.SIMULATE;
+        }
+
+        private boolean isDryRun() {
+            return options.getExecutionMode() == ExecutionModeType.DRY_RUN;
+        }
+
+        public Integer getBatchSize() {
+            return options.getBatchSize();
+        }
+
+        public boolean isUpdateLiveSyncTokenInDryRun() {
+            return options.isUpdateLiveSyncTokenInDryRun();
+        }
     }
 }

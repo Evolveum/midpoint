@@ -13,16 +13,17 @@
 
     <name>Live Sync Interrupted: Error Imprecise</name>
 
-    <extension>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-        <ext:retryLiveSyncErrors>true</ext:retryLiveSyncErrors>
-    </extension>
-
-    <taskIdentifier>c554ec0f-95c3-40ac-b069-876708d28393</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-    <objectRef oid="e396b76e-e010-46ed-bbf5-a3da78d358ea" type="ResourceType"/>
     <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="e396b76e-e010-46ed-bbf5-a3da78d358ea" />
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
 </task>

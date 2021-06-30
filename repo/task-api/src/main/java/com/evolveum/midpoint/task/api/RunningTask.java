@@ -11,6 +11,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
 
@@ -98,4 +99,16 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      * Currently use only on transient tasks OR from within task handler.
      */
     void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction);
+
+    /**
+     * Returns the execution mode (e.g. execute, simulate, dry run) for the current operation.
+     * This is a little hack to avoid the need of passing this information throughout the whole call tree.
+     * (Originally this was implemented in task extension.)
+     */
+    @NotNull ExecutionModeType getExecutionMode();
+
+    /**
+     * Sets the execution mode for the current task.
+     */
+    void setExecutionMode(@NotNull ExecutionModeType mode);
 }

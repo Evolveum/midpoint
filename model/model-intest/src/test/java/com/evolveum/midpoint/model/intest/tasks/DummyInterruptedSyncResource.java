@@ -44,10 +44,24 @@ public class DummyInterruptedSyncResource extends AbstractResourceDummyInterrupt
 
     public static long delay = 1;
     public static String errorOn = null;
+    private static Runnable executionListener;
 
     public void createAccounts(int users, Function<Integer, String> userNameFormatter) throws Exception {
         for (int i = 0; i < users; i++) {
             controller.addAccount(userNameFormatter.apply(i));
         }
+    }
+
+    /**
+     * Called from inbound mapping.
+     */
+    public static void onMappingExecution() {
+        if (executionListener != null) {
+            executionListener.run();
+        }
+    }
+
+    public static void setExecutionListener(Runnable executionListener) {
+        DummyInterruptedSyncResource.executionListener = executionListener;
     }
 }

@@ -142,7 +142,7 @@ class RemainingShadowsActivityExecution
                 shadow.asObjectable().getFullSynchronizationTimestamp());
         try {
             Collection<SelectorOptions<GetOperationOptions>> options;
-            if (TaskUtil.isDryRun(task)) {
+            if (isDryRun()) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
             } else {
                 options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());

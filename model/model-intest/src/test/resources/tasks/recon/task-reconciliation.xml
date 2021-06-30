@@ -8,14 +8,9 @@
 
 <task oid="1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation</name>
-
-    <extension>
-        <syncext:freshnessInterval>1000</syncext:freshnessInterval>
-    </extension>
 
     <taskIdentifier>10000000-0000-0000-5656-56560000a204</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

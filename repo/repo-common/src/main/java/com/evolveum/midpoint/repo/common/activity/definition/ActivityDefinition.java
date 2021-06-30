@@ -67,7 +67,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         rootWorkDefinition.addTailoring(getTailoring(bean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
-        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean);
+        ActivityDistributionDefinition distributionDefinition =
+                ActivityDistributionDefinition.create(bean, getWorkerThreadsSupplier(rootTask));
 
         return new ActivityDefinition<>(bean, rootWorkDefinition, controlFlowDefinition, distributionDefinition, factory);
     }
@@ -91,7 +92,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         definition.addTailoring(getTailoring(activityBean));
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(activityBean);
-        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(activityBean);
+        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(activityBean, () -> null);
 
         return new ActivityDefinition<>(activityBean, definition, controlFlowDefinition, distributionDefinition,
                 parent.workDefinitionFactory);
@@ -153,6 +154,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             Boolean taskDryRun = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             return Boolean.TRUE.equals(taskDryRun) ? ExecutionModeType.DRY_RUN : ExecutionModeType.EXECUTE;
         };
+    }
+
+    private static Supplier<Integer> getWorkerThreadsSupplier(Task task) {
+        return () -> task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
     }
 
     private static ActivitiesTailoringType getTailoring(ActivityDefinitionType local) {
