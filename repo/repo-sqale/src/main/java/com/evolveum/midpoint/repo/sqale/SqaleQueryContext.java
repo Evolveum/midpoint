@@ -55,8 +55,9 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
-            SqaleQueryContext<?, ?, ?> parentContext) {
-        super(entityPath, mapping, parentContext);
+            SqaleQueryContext<?, ?, ?> parentContext,
+            SQLQuery<?> sqlQuery) {
+        super(entityPath, mapping, parentContext, sqlQuery);
     }
 
     @Override
@@ -96,16 +97,26 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         }
     }
 
-    /**
-     * Returns derived {@link SqaleQueryContext} for join or subquery.
-     */
+    /** Returns derived {@link SqaleQueryContext} for JOIN. */
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
-    deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new SqaleQueryContext<>(
                 newPath,
                 (SqaleTableMapping<TS, TQ, TR>) newMapping,
-                this);
+                this,
+                this.sqlQuery);
+    }
+
+    /** Returns derived {@link SqaleQueryContext} for subquery. */
+    @Override
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
+        return new SqaleQueryContext<>(
+                newPath,
+                (SqaleTableMapping<TS, TQ, TR>) newMapping,
+                this,
+                query);
     }
 
     @Override

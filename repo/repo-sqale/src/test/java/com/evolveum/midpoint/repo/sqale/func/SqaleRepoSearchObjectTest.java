@@ -766,58 +766,67 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     // region other filters: inOid, type, exists
     @Test
     public void test300QueryForObjectsWithInOid() throws SchemaException {
-        when("searching objects by list of OIDs");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .id(user1Oid, task1Oid, org2Oid)
-                        .build(),
-                operationResult);
-
-        then("all objects with specified OIDs are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, task1Oid, org2Oid);
+        searchObjectTest("having OID in the list", ObjectType.class,
+                f -> f.id(user1Oid, task1Oid, org2Oid),
+                user1Oid, task1Oid, org2Oid);
     }
 
     @Test
     public void test301QueryForFocusWithInOid() throws SchemaException {
-        when("searching focus objects by list of OIDs");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<FocusType> result = searchObjects(FocusType.class,
-                prismContext.queryFor(FocusType.class)
-                        .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
-                        .build(),
-                operationResult);
-
-        then("all focus objects with specified OIDs are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, org2Oid);
+        searchObjectTest("having OID in the list", FocusType.class,
+                f -> f.id(user1Oid, task1Oid, org2Oid), // task will not match, it's not a focus
+                user1Oid, org2Oid);
     }
 
     @Test
-    public void test310QueryWithTypeFilter() throws SchemaException {
-        when("query includes type filter");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .type(FocusType.class)
+    public void test310QueryWithEmptyTypeFilter() throws SchemaException {
+        searchObjectTest("matching the type filter without inner filter", ObjectType.class,
+                f -> f.type(TaskType.class),
+                task1Oid, task2Oid);
+    }
+
+    @Test
+    public void test311QueryWithTypeFilterWithConditions() throws SchemaException {
+        searchObjectTest("matching the type filter with inner filter", ObjectType.class,
+                f -> f.type(FocusType.class)
                         .block()
                         .id(user1Oid, task1Oid, org2Oid) // task will not match, it's not a focus
                         .or()
                         .item(FocusType.F_COST_CENTER).eq("5")
-                        .endBlock()
-                        .build(),
-                operationResult);
+                        .endBlock(),
+                user1Oid, org2Oid, org21Oid);
+    }
 
-        then("search is narrowed only to objects of specific type");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, org2Oid, org21Oid);
+    @Test
+    public void test312QueryWithTwoTypeFiltersInOr() throws SchemaException {
+        searchObjectTest("matching two OR-ed type filters", ObjectType.class,
+                f -> f.type(TaskType.class)
+                        .id(task1Oid)
+                        .or()
+                        .type(OrgType.class)
+                        .item(FocusType.F_COST_CENTER).eq("5"),
+                task1Oid, org21Oid);
+    }
+
+    @Test
+    public void test313QueryWithTwoTypeFiltersInOrOneTypeMatchingTheQuery() throws SchemaException {
+        searchObjectTest("matching two OR-ed type filters, one matching the query type",
+                ObjectType.class,
+                f -> f.block()
+                        .type(FocusType.class)
+                        .item(ObjectType.F_SUBTYPE).eq("workerA")
+                        .endBlock()
+                        .or()
+                        .type(OrgType.class)
+                        .item(FocusType.F_COST_CENTER).eq("5"),
+                user1Oid, user2Oid, org21Oid);
+    }
+
+    @Test
+    public void test314QueryWithTypeFiltersMatchingTheQuery() throws SchemaException {
+        searchObjectTest("matching the type filter matching the query type", TaskType.class,
+                f -> f.type(TaskType.class),
+                task1Oid, task2Oid);
     }
 
 /* TODO EXISTS tests

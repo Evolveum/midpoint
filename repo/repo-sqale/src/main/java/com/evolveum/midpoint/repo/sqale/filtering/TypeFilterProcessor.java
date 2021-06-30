@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 
 import com.querydsl.core.types.Predicate;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor that resolves {@link TypeFilter}.
@@ -49,13 +51,23 @@ public class TypeFilterProcessor<Q extends QObject<R>, R extends MObject, TQ ext
         Class<TQ> filterQueryType = (Class<TQ>)
                 MObjectType.fromTypeQName(filter.getType()).getQueryType();
 
-        SqaleQueryContext<?, ? extends QObject<?>, ?> filterContext = context;
-        if (!path.getClass().equals(filterQueryType)) {
-            filterContext = (SqaleQueryContext<?, ? extends QObject<?>, ?>)
-                    context.leftJoin(filterQueryType, (oldQ, newQ) -> oldQ.oid.eq(newQ.oid));
-        }
+        ObjectFilter innerFilter = filter.getFilter();
 
-        filterContext.processFilter(filter.getFilter());
-        return null; // is ignored by WHERE in the parent context
+        if (path.getClass().equals(filterQueryType)) {
+            // Unexpected, but let's take the shortcut.
+            return innerFilter != null
+                    ? context.process(innerFilter)
+                    : QuerydslUtils.EXPRESSION_TRUE;
+            // We can't just return null, we need some condition meaning "everything" for cases
+            // when the filter is in OR. It can't be just no-op in such cases.
+        } else {
+            SqaleQueryContext<?, TQ, TR> filterContext =
+                    (SqaleQueryContext<?, TQ, TR>) context.subquery(filterQueryType);
+            filterContext.sqlQuery().where(filterContext.path().oid.eq(path.oid));
+
+            // Here we call processFilter that actually adds the WHERE conditions to the subquery.
+            filterContext.processFilter(innerFilter);
+            return filterContext.sqlQuery().exists(); // and this fulfills the processor contract
+        }
     }
 }

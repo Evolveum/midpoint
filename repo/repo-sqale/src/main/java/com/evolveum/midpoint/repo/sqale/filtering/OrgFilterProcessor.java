@@ -10,7 +10,6 @@ import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor that resolves {@link OrgFilter}.
@@ -101,7 +101,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
     }
 
     private SQLQuery<Integer> subQuery(FlexibleRelationalPathBase<?> entityPath) {
-        return new SQLQuery<>().select(Expressions.constant(1))
+        return new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
                 .from(entityPath);
     }
 
