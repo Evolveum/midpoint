@@ -829,6 +829,22 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 task1Oid, task2Oid);
     }
 
+    @Test
+    public void test315QueryWithTypeFilterForSupertype() throws SchemaException {
+        // works fine, task is also an object, nothing bad happens
+        searchObjectTest("matching the type filter of supertype", TaskType.class,
+                f -> f.type(ObjectType.class),
+                task1Oid, task2Oid);
+    }
+
+    @Test
+    public void test316QueryWithTypeFilterForUnrelatedType() throws SchemaException {
+        // "works" but for obvious reasons finds nothing, there is no common OID between the two
+        searchObjectTest("matching the type filter of unrelated type", TaskType.class,
+                f -> f.type(FocusType.class));
+    }
+
+
 /* TODO EXISTS tests
 1. @Count property => pendingOperationCount > 0; see: ClassDefinitionParser#parseMethod() + getJaxbName()
 EXISTS(pendingOperation, null)
