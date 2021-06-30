@@ -22,9 +22,8 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
     // Type parameters the same as in the class documentation.
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, SqlRepoContext sqlRepoContext) {
-
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> AuditSqlQueryContext<S, Q, R>
+    from(Class<S> schemaType, SqlRepoContext sqlRepoContext) {
         QueryTableMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
         Q rootPath = rootMapping.defaultAlias();
         SQLQuery<?> query = sqlRepoContext.newQuery().from(rootPath);
@@ -48,13 +47,13 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
             AuditSqlQueryContext<?, ?, ?> parentContext) {
-        super(entityPath, mapping, parentContext);
+        super(entityPath, mapping, parentContext, parentContext.sqlQuery);
     }
 
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
-    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
-        return new AuditSqlQueryContext<>(
-                newPath, newMapping, this);
+    SqlQueryContext<TS, TQ, TR> newSubcontext(
+            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
+        return new AuditSqlQueryContext<>(newPath, newMapping, this);
     }
 }

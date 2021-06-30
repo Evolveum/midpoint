@@ -47,13 +47,10 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
         if (filter.getRightHandSidePath() != null) {
-            // TODO
+            // TODO implement
             throw new QueryException(
                     "Filter with right-hand-side path is not supported YET: " + filter.getPath());
         }
-
-        // TODO: needed only for Any filter?
-//        ItemDefinition definition = filter.getDefinition();
 
         QName itemName = resolvePath(filter.getPath());
         ItemFilterProcessor<ObjectFilter> filterProcessor =

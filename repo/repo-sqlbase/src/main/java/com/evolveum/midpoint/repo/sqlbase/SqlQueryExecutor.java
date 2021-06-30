@@ -41,7 +41,7 @@ public class SqlQueryExecutor {
             throws RepositoryException {
 
         if (query != null) {
-            context.process(query.getFilter());
+            context.processFilter(query.getFilter());
         }
         // TODO MID-6319: all options can be applied, just like for list?
         context.processOptions(options);
@@ -59,7 +59,7 @@ public class SqlQueryExecutor {
             throws RepositoryException, SchemaException {
 
         if (query != null) {
-            context.process(query.getFilter());
+            context.processFilter(query.getFilter());
             context.processObjectPaging(query.getPaging());
         }
         context.processOptions(options);

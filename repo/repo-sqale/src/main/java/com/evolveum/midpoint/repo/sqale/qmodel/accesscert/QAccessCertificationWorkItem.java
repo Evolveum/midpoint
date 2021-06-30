@@ -26,8 +26,8 @@ public class QAccessCertificationWorkItem extends QContainer<MAccessCertificatio
 
     public static final String TABLE_NAME = "m_access_cert_wi";
 
-    public static final ColumnMetadata ACC_CERT_CASE_CID =
-            ColumnMetadata.named("accCertCaseCid").ofType(Types.BIGINT).notNull();
+    public static final ColumnMetadata ACCESS_CERT_CASE_CID =
+            ColumnMetadata.named("accessCertCaseCid").ofType(Types.BIGINT).notNull();
 
     public static final ColumnMetadata CLOSE_TIMESTAMP =
             ColumnMetadata.named("closeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
@@ -48,8 +48,8 @@ public class QAccessCertificationWorkItem extends QContainer<MAccessCertificatio
 
     // attributes
 
-    public final NumberPath<Long> accCertCaseCid =
-            createLong("accCertCaseCid", ACC_CERT_CASE_CID);
+    public final NumberPath<Long> accessCertCaseCid =
+            createLong("accessCertCaseCid", ACCESS_CERT_CASE_CID);
 
     public final DateTimePath<Instant> closeTimestamp =
             createInstant("closeTimestamp", CLOSE_TIMESTAMP);

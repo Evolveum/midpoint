@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationDefinition;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
@@ -42,7 +44,8 @@ public enum MObjectType {
 
     // mapping of codes and schema types must be unique
     ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class),
-    ACCESS_CERTIFICATION_CAMPAIGN(null, AccessCertificationCampaignType.class), // TODO
+    ACCESS_CERTIFICATION_CAMPAIGN(
+            QAccessCertificationCampaign.class, AccessCertificationCampaignType.class),
     ACCESS_CERTIFICATION_DEFINITION(
             QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class),
     ARCHETYPE(QArchetype.class, ArchetypeType.class),
@@ -60,7 +63,7 @@ public enum MObjectType {
     OBJECT(QObject.CLASS, ObjectType.class),
     OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class),
     OBJECT_TEMPLATE(QObjectTemplate.class, ObjectTemplateType.class),
-    ORG(null, OrgType.class), // TODO
+    ORG(QOrg.class, OrgType.class),
     REPORT(QReport.class, ReportType.class),
     REPORT_DATA(QReportData.class, ReportDataType.class),
     RESOURCE(QResource.class, ResourceType.class),
