@@ -30,9 +30,9 @@
         </work>
         <tailoring>
             <change>
-                <reference>operationCompletion</reference>
                 <distribution>
                     <subtask/>
+                    <tailoringMode>overwriteSpecified</tailoringMode>
                 </distribution>
             </change>
             <change>
@@ -54,13 +54,6 @@
                         </stringSegmentation>
                     </buckets>
                     <workerThreads>2</workerThreads>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
-                <reference>remainingShadows</reference>
-                <distribution>
-                    <subtask/>
                 </distribution>
             </change>
         </tailoring>

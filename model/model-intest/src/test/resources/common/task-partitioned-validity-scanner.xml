@@ -32,20 +32,11 @@
             </focusValidityScan>
         </work>
         <tailoring>
-            <!-- TODO simplify this specification -->
             <change>
-                <reference>objects</reference>
-                <distribution>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
-                <reference>assignments</reference>
                 <distribution>
                     <subtask/>
                 </distribution>
             </change>
         </tailoring>
     </activity>
-
 </task>

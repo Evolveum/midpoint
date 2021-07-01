@@ -2070,10 +2070,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="reference" type="xsd:string" minOccurs="0">
+            <xsd:element name="reference" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of existing activity that is to be tailored.
+                        Identifier of existing activity or activities that are to be tailored.
+                        No value means all activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2084,25 +2085,111 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
-                        TODO partial overriding
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:WorkDistributionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
-                        TODO partial overriding
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="ActivityControlFlowSpecificationTailoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityControlFlowSpecificationType">
+                <xsd:sequence>
+                    <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the tailoring is applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkDistributionTailoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WorkDistributionType">
+                <xsd:sequence>
+                    <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the tailoring is applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TailoringModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the tailoring is applied.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="overwrite">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specified container value overwrites everything that was configured for an activity.
+                            This is the default.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERWRITE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="overwriteSpecified">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Only specified (first-level) items are overwritten.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERWRITE_SPECIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ActivityCompositionType">
         <xsd:annotation>
@@ -3157,14 +3244,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="subtasks" type="tns:PartsSubtasksRealizationType" minOccurs="0">
+            <xsd:element name="autoscaling" type="tns:AutoscalingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Parameters describing the realization of this complex part via subtasks.
+                        Whether and how is this activity work distribution auto-scaled.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.4</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -6751,4 +6835,26 @@
     </xsd:complexType>
     <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType" />
 
+    <xsd:complexType name="AutoscalingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is autoscaling enabled for this activity? The default is "true" if the autoscaling configuration
+                        exists. (Note that this may change in the future.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

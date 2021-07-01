@@ -73,7 +73,7 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
 
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         if (tailoring.getDistribution() != null) {
-            this.bean = tailoring.getDistribution();
+            bean = TailoringUtil.getTailoredBean(bean, tailoring.getDistribution());
         } else {
             // null means we do not want it to change.
         }

@@ -29,9 +29,9 @@
         </work>
         <tailoring>
             <change>
-                <reference>operationCompletion</reference>
                 <distribution>
                     <subtask/>
+                    <tailoringMode>overwriteSpecified</tailoringMode>
                 </distribution>
             </change>
             <change>
@@ -50,12 +50,6 @@
                             <count>2</count>
                         </workersPerNode>
                     </workers>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
-                <reference>remainingShadows</reference>
-                <distribution>
                     <subtask/>
                 </distribution>
             </change>

@@ -19,9 +19,9 @@
                 <identifier>recomputation</identifier>
                 <work>
                     <recomputation>
-                        <objectSet>
-                            <objectType>UserType</objectType>
-                        </objectSet>
+                        <objects>
+                            <type>UserType</type>
+                        </objects>
                     </recomputation>
                 </work>
             </activity>
@@ -30,30 +30,30 @@
             <insertBefore>
                 <activity>
                     <work>
-                        <scripting>
-                            <executeScript>
+                        <iterativeScripting>
+                            <scriptExecutionRequest>
                                 <s:execute>
                                     <s:script>
                                         <code>log.info('hi')</code>
                                     </s:script>
                                 </s:execute>
-                            </executeScript>
-                        </scripting>
+                            </scriptExecutionRequest>
+                        </iterativeScripting>
                     </work>
                 </activity>
             </insertBefore>
             <insertAfter>
                 <activity>
                     <work>
-                        <scripting>
-                            <executeScript>
+                        <iterativeScripting>
+                            <scriptExecutionRequest>
                                 <s:execute>
                                     <s:script>
                                         <code>log.info('done')</code>
                                     </s:script>
                                 </s:execute>
-                            </executeScript>
-                        </scripting>
+                            </scriptExecutionRequest>
+                        </iterativeScripting>
                     </work>
                 </activity>
             </insertAfter>

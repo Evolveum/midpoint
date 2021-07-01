@@ -26,11 +26,6 @@
         <tailoring>
             <change>
                 <reference>opening</reference>
-                <distribution>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
                 <reference>closing</reference>
                 <distribution>
                     <subtask/>

@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.common.activity;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityTailoring;
 
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Objects;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 class ActivityTailor {
@@ -33,18 +33,23 @@ class ActivityTailor {
 
     public void execute() throws SchemaException {
         for (ActivityTailoringType change : tailoring.getChanges()) {
-            Activity<?, ?> child = findChild(change.getReference());
-            child.applyChangeTailoring(change);
+            findChildren(change.getReference())
+                    .forEach(child -> child.applyChangeTailoring(change));
         }
     }
 
-    private @NotNull Activity<?, ?> findChild(String reference) throws SchemaException {
-        Objects.requireNonNull(reference, "An existing child identifier is required when tailoring");
-        return MiscUtil.extractSingletonRequired(
-                childrenList.stream()
-                        .filter(ch -> reference.equals(ch.getIdentifier()))
-                        .collect(Collectors.toList()),
-                () -> new SchemaException("More than one child activity with identifier '" + reference + "' in " + activity),
-                () -> new SchemaException("No child activity with identifier '" + reference + "' in " + activity));
+    private @NotNull Collection<Activity<?, ?>> findChildren(List<String> references) throws SchemaException {
+        if (!references.isEmpty()) {
+            List<Activity<?, ?>> matching = childrenList.stream()
+                    .filter(ch -> references.contains(ch.getIdentifier()))
+                    .collect(Collectors.toList());
+            if (matching.isEmpty()) {
+                throw new SchemaException("No child activity matching " + references + " in " + activity);
+            } else {
+                return matching;
+            }
+        } else {
+            return childrenList;
+        }
     }
 }
