@@ -64,14 +64,14 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
  * Test UCF implementation with OpenDJ and ICF LDAP connector.
- * <p/>
+ *
  * This test is using embedded OpenDJ as a resource and ICF LDAP connector. The
  * test is executed by direct calls to the UCF interface.
  *
  * @author Radovan Semancik
  * @author Katka Valalikova
- * <p/>
- * This is an UCF test. It shold not need repository or other things
+ *
+ * This is an UCF test. It should not need repository or other things
  * from the midPoint spring context except from the provisioning beans.
  * But due to a general issue with spring context initialization this is
  * a lesser evil for now (MID-392)
@@ -336,14 +336,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test200FetchChanges() throws Exception {
         OperationResult result = createOperationResult();
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
-        PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
         System.out.println("Property:");
         System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
         System.out.println("token " + lastToken.toString());
 
         assertNotNull("No last token", lastToken);
-        assertNotNull("No last token value", lastToken.getRealValue());
 
         CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);

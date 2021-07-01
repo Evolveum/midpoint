@@ -42,9 +42,19 @@ public class DummyInterruptedSyncResource extends AbstractResourceDummyInterrupt
 
     // behavior control, referenced from Groovy code in the resource
 
-    public static long delay = 1;
-    public static String errorOn = null;
+    public static long delay;
+    public static String errorOn;
     private static Runnable executionListener;
+
+    static {
+        reset();
+    }
+
+    public static void reset() {
+        delay = 1;
+        errorOn = null;
+        executionListener = null;
+    }
 
     public void createAccounts(int users, Function<Integer, String> userNameFormatter) throws Exception {
         for (int i = 0; i < users; i++) {

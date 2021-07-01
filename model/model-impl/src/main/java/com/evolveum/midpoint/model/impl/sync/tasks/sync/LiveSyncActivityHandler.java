@@ -14,6 +14,8 @@ import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +64,6 @@ public class LiveSyncActivityHandler
 
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return ActivityStateDefinition.perpetual(); // todo custom type
+        return ActivityStateDefinition.perpetual(LiveSyncWorkStateType.COMPLEX_TYPE);
     }
 }

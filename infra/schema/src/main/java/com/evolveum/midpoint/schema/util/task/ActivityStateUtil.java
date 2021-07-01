@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -183,5 +185,32 @@ public class ActivityStateUtil {
         return state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DELEGATED ||
                 state.getWorkState() instanceof DelegationWorkStateType &&
                 ((DelegationWorkStateType) state.getWorkState()).getTaskRef() != null;
+    }
+
+    public static @Nullable Object getSyncTokenRealValue(@NotNull TaskType task, @NotNull ActivityPath path)
+            throws SchemaException {
+        ActivityStateType activityState = getActivityState(task.getActivityState(), path);
+        if (activityState == null) {
+            return null;
+        }
+        AbstractActivityWorkStateType workState = activityState.getWorkState();
+        if (workState == null) {
+            return null;
+        } else if (workState instanceof LiveSyncWorkStateType) {
+            return ((LiveSyncWorkStateType) workState).getToken();
+        } else {
+            throw new SchemaException("No live sync work state present in " + task + ", activity path '" + path + "': " +
+                    MiscUtil.getClass(workState));
+        }
+    }
+
+    public static @Nullable Object getRootSyncTokenRealValue(@NotNull TaskType task) throws SchemaException {
+        return getSyncTokenRealValue(task, ActivityPath.empty());
+    }
+
+    public static @NotNull Object getRootSyncTokenRealValueRequired(@NotNull TaskType task) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getSyncTokenRealValue(task, ActivityPath.empty()),
+                () -> "No live sync token value in " + task);
     }
 }

@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -29,18 +28,18 @@ public class UcfLiveSyncChange extends UcfChange {
     /**
      * Sync token.
      */
-    @NotNull private final PrismProperty<?> token;
+    @NotNull private final UcfSyncToken token;
 
     public UcfLiveSyncChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition,
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject,
-            @NotNull PrismProperty<?> token, UcfErrorState errorState) {
+            @NotNull UcfSyncToken token, UcfErrorState errorState) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject,
                 errorState);
         this.token = token;
     }
 
-    public @NotNull PrismProperty<?> getToken() {
+    public @NotNull UcfSyncToken getToken() {
         return token;
     }
 
@@ -52,7 +51,7 @@ public class UcfLiveSyncChange extends UcfChange {
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "token", String.valueOf(token), indent + 1);
     }
 
     @Override

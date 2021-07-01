@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -29,7 +30,7 @@ class OldestTokenWatcher {
     private final AtomicInteger counter = new AtomicInteger(0);
     private final Map<Integer, TokenInfo> tokenInfoMap = new LinkedHashMap<>();
 
-    synchronized int changeArrived(PrismProperty<?> token) {
+    synchronized int changeArrived(LiveSyncToken token) {
         int seq = counter.getAndIncrement();
         tokenInfoMap.put(seq, new TokenInfo(token));
         LOGGER.trace("changeArrived: seq={}, token={}", seq, token);
@@ -74,11 +75,11 @@ class OldestTokenWatcher {
         }
     }
 
-    synchronized PrismProperty<?> getOldestTokenProcessed() {
+    synchronized LiveSyncToken getOldestTokenProcessed() {
         Iterator<Map.Entry<Integer, TokenInfo>> iterator = tokenInfoMap.entrySet().iterator();
         Map.Entry<Integer, TokenInfo> first = iterator.hasNext() ? iterator.next() : null;
         if (first != null && first.getValue().processed) {
-            PrismProperty<?> token = first.getValue().token;
+            LiveSyncToken token = first.getValue().token;
             if (token == null) {
                 // This is quite unfortunate situation. It should not occur in any reasonable conditions.
                 LOGGER.warn("Restart point is a null token!");
@@ -92,10 +93,10 @@ class OldestTokenWatcher {
     }
 
     private static class TokenInfo {
-        private final PrismProperty<?> token;
+        private final LiveSyncToken token;
         private boolean processed;
 
-        private TokenInfo(PrismProperty<?> token) {
+        private TokenInfo(LiveSyncToken token) {
             this.token = token;
         }
 

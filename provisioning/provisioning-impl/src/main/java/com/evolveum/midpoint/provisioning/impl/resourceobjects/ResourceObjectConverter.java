@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
@@ -1463,14 +1464,13 @@ public class ResourceObjectConverter {
         return tracingRequested;
     }
 
-    @SuppressWarnings("rawtypes")
-    public PrismProperty fetchCurrentToken(ProvisioningContext ctx, OperationResult parentResult)
+    public LiveSyncToken fetchCurrentToken(ProvisioningContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.trace("Fetcing current sync token for {}", ctx);
+        LOGGER.trace("Fetching current sync token for {}", ctx);
 
-        PrismProperty lastToken;
+        UcfSyncToken lastToken;
         ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
         try {
             lastToken = connector.fetchCurrentToken(ctx.getObjectClassDefinition(), ctx, parentResult);
@@ -1489,9 +1489,8 @@ public class ResourceObjectConverter {
 
         computeResultStatus(parentResult);
 
-        return lastToken;
+        return TokenUtil.fromUcf(lastToken);
     }
-
 
     public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
@@ -1597,7 +1596,7 @@ public class ResourceObjectConverter {
         return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
     }
 
-    public UcfFetchChangesResult fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken,
+    public UcfFetchChangesResult fetchChanges(ProvisioningContext ctx, @NotNull LiveSyncToken initialToken,
             @Nullable Integer maxChangesConfigured, ResourceObjectLiveSyncChangeListener outerListener,
             OperationResult gResult) throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -1667,8 +1666,8 @@ public class ResourceObjectConverter {
         };
 
         // get changes from the connector
-        UcfFetchChangesResult fetchChangesResult = connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken,
-                attrsToReturn, maxChanges, ctx, localListener, gResult);
+        UcfFetchChangesResult fetchChangesResult = connector.fetchChanges(ctx.getObjectClassDefinition(),
+                TokenUtil.toUcf(initialToken), attrsToReturn, maxChanges, ctx, localListener, gResult);
 
         computeResultStatus(gResult);
 

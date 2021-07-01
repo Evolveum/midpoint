@@ -6635,6 +6635,9 @@
                             <xsd:documentation>
                                 The token value.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:rawType>true</a:rawType> <!-- TODO ok? -->
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

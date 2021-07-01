@@ -10,6 +10,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import com.evolveum.midpoint.provisioning.impl.TokenUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
@@ -18,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiv
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchChangesResult;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,12 +64,12 @@ public class LiveSynchronizer {
     @Autowired private ChangeProcessingBeans beans;
 
     @NotNull
-    public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, LiveSyncOptions options, LiveSyncEventHandler handler, OperationResult gResult)
+    public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, LiveSyncOptions options,
+            LiveSyncTokenStorage tokenStorage, LiveSyncEventHandler handler, Task task, OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, options, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, options, tokenStorage, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -111,42 +112,41 @@ public class LiveSynchronizer {
 
         UcfFetchChangesResult fetchChangesResult;
         try {
-            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(),
-                    ctx.getBatchSize(), listener, gResult);
+            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), ctx.getBatchSize(),
+                    listener, gResult);
         } finally {
             handler.allEventsSubmitted(gResult);
         }
 
         if (fetchChangesResult.isAllChangesFetched()) {
             ctx.syncResult.setAllChangesFetched(true);
-            ctx.finalToken = fetchChangesResult.getFinalToken();
+            ctx.finalToken = TokenUtil.fromUcf(fetchChangesResult.getFinalToken());
         }
 
         acknowledgeGate.waitForIssuedEventsAcknowledge(gResult);
 
-        updateTokenValue(ctx);
-        task.flushPendingModifications(gResult);
+        updateTokenValue(ctx, gResult);
 
         return ctx.syncResult;
     }
 
     private void setupInitialToken(LiveSyncCtx ctx) {
-        PrismProperty<?> initialToken = getTokenFromTask(ctx.task);
-        ctx.syncResult.setInitialToken(initialToken);
+        ctx.syncResult.setInitialToken(
+                ctx.tokenStorage.getToken());
     }
 
-    private void updateTokenValue(LiveSyncCtx ctx) throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+    private void updateTokenValue(LiveSyncCtx ctx, OperationResult result) throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException {
 
         LiveSyncCapabilityType capability = ctx.context.getEffectiveCapability(LiveSyncCapabilityType.class);
         boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
         boolean isDryRun = ctx.isDryRun();
         boolean updateTokenInDryRun = ctx.isUpdateLiveSyncTokenInDryRun();
-        PrismProperty<?> initialToken = ctx.getInitialToken();
+        LiveSyncToken initialToken = ctx.getInitialToken();
 
-        PrismProperty<?> oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
+        LiveSyncToken oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
         LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
-        PrismProperty<?> tokenToSet;
+        LiveSyncToken tokenToSet;
         if (ctx.isSimulate()) {
             tokenToSet = null; // Token should not be updated during simulation.
         } else if (isDryRun && !updateTokenInDryRun) {
@@ -173,24 +173,8 @@ public class LiveSynchronizer {
 
         if (tokenToSet != null) {
             LOGGER.trace("Setting token value of {}", SchemaDebugUtil.prettyPrintLazily(tokenToSet));
-            ctx.task.setExtensionProperty(tokenToSet);
-            ctx.syncResult.setTaskTokenUpdatedTo(tokenToSet);
-        }
-    }
-
-    private PrismProperty<?> getTokenFromTask(Task task) {
-        PrismProperty<?> tokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        LOGGER.trace("Initial token from the task: {}", SchemaDebugUtil.prettyPrintLazily(tokenProperty));
-        if (tokenProperty != null) {
-            if (tokenProperty.getAnyRealValue() != null) {
-                return tokenProperty;
-            } else {
-                LOGGER.warn("Sync token in task exists, but it is empty (null value). Ignoring it. Task: {}", task);
-                LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDumpLazily());
-                return null;
-            }
-        } else {
-            return null;
+            ctx.tokenStorage.setToken(tokenToSet, result);
+            ctx.syncResult.setTokenUpdatedTo(tokenToSet);
         }
     }
 
@@ -206,15 +190,14 @@ public class LiveSynchronizer {
     private void fetchAndRememberCurrentToken(LiveSyncCtx ctx, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
-        PrismProperty<?> currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
+        LiveSyncToken currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
                     ctx.context.getShadowCoordinates(), ctx.task);
         } else if (!ctx.isSimulate()) {
             LOGGER.debug("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
-            ctx.task.setExtensionProperty(currentToken);
-            ctx.task.flushPendingModifications(result);
-            ctx.syncResult.setTaskTokenUpdatedTo(currentToken);
+            ctx.tokenStorage.setToken(currentToken, result);
+            ctx.syncResult.setTokenUpdatedTo(currentToken);
         } else {
             LOGGER.debug("We would set initial live sync token ({}) in task: {}; but not doing so because in simulation mode",
                     currentToken, ctx.task);
@@ -226,20 +209,22 @@ public class LiveSynchronizer {
         @NotNull private final ProvisioningContext context;
         @NotNull private final Task task; // redundant to simplify access
         @NotNull private final LiveSyncOptions options;
+        @NotNull private final LiveSyncTokenStorage tokenStorage;
         @NotNull private final OldestTokenWatcher oldestTokenWatcher;
-        private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
+        private LiveSyncToken finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
         private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
-                LiveSyncOptions options, OperationResult result)
+                LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.create(shadowCoordinates, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
+            this.tokenStorage = tokenStorage;
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 
-        public PrismProperty<?> getInitialToken() {
+        public LiveSyncToken getInitialToken() {
             return syncResult.getInitialToken();
         }
 

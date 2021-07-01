@@ -109,10 +109,11 @@ public class LiveSyncActivityExecution
         };
 
         LiveSyncOptions options = createLiveSyncOptions();
+        ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(this);
 
         ModelImplUtils.clearRequestee(getRunningTask());
         syncResult = getModelBeans().provisioningService
-                .synchronize(objectClassSpecification.getCoords(), getRunningTask(), options, handler, opResult);
+                .synchronize(objectClassSpecification.getCoords(), options, tokenStorage, handler, getRunningTask(), opResult);
     }
 
     @NotNull

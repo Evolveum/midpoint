@@ -1522,15 +1522,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertSyncToken(task, expectedValue);
     }
 
-    protected void assertSyncToken(Task task, Object expectedValue) {
-        PrismProperty<Object> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        if (expectedValue == null && syncTokenProperty == null) {
-            return;
-        }
-        Object syncTokenPropertyValue = syncTokenProperty.getAnyRealValue();
-        if (!MiscUtil.equals(expectedValue, syncTokenPropertyValue)) {
+    protected void assertSyncToken(Task task, Object expectedValue) throws SchemaException {
+        Object token = ActivityStateUtil.getRootSyncTokenRealValue(task.getRawTaskObjectClonedIfNecessary().asObjectable());
+        if (!MiscUtil.equals(expectedValue, token)) {
             AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue == null ? "" : (", " + expectedValue.getClass().getName())) +
-                    ", was: " + syncTokenPropertyValue + (syncTokenPropertyValue == null ? "" : (", " + syncTokenPropertyValue.getClass().getName())));
+                    ", was: " + token + (token == null ? "" : (", " + token.getClass().getName())));
         }
     }
 

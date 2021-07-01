@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Options for the {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, Task, LiveSyncOptions, LiveSyncEventHandler, OperationResult)} operation.
+ * Options for the {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)} operation.
  */
 public class LiveSyncOptions {
 

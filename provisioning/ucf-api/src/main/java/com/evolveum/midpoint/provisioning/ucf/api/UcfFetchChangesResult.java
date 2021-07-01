@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
@@ -15,14 +14,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  */
 @Experimental
 public class UcfFetchChangesResult {
-
-    public boolean isAllChangesFetched() {
-        return allChangesFetched;
-    }
-
-    public PrismProperty<?> getFinalToken() {
-        return finalToken;
-    }
 
     /**
      * Set to true when all changes from the resource were fetched. This is meant to let the caller know that
@@ -32,9 +23,17 @@ public class UcfFetchChangesResult {
      */
     private final boolean allChangesFetched;
 
-    private final PrismProperty<?> finalToken;
+    private final UcfSyncToken finalToken;
 
-    public UcfFetchChangesResult(boolean allChangesFetched, PrismProperty<?> finalToken) {
+    public boolean isAllChangesFetched() {
+        return allChangesFetched;
+    }
+
+    public UcfSyncToken getFinalToken() {
+        return finalToken;
+    }
+
+    public UcfFetchChangesResult(boolean allChangesFetched, UcfSyncToken finalToken) {
         this.allChangesFetched = allChangesFetched;
         this.finalToken = finalToken;
     }

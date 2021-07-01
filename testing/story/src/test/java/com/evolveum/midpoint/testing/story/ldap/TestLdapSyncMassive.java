@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -131,7 +133,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
-        lastSyncToken = ObjectTypeUtil.getExtensionItemRealValue(syncTask, SchemaConstants.SYNC_TOKEN);
+        lastSyncToken = (Integer) ActivityStateUtil.getRootSyncTokenRealValue(syncTask.asObjectable());
         displayValue("Initial sync token", lastSyncToken);
         assertNotNull("Null sync token", lastSyncToken);
 
@@ -446,7 +448,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     private void assertSyncTokenIncrement(int expectedIncrement) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
-        Integer currentSyncToken = ObjectTypeUtil.getExtensionItemRealValue(syncTask, SchemaConstants.SYNC_TOKEN);
+        Integer currentSyncToken = (Integer) ActivityStateUtil.getRootSyncTokenRealValueRequired(syncTask.asObjectable());
         display("Sync token, last=" + lastSyncToken + ", current=" + currentSyncToken + ", expectedIncrement=" + expectedIncrement);
         if (currentSyncToken != lastSyncToken + expectedIncrement) {
             fail("Expected sync token increment " + expectedIncrement + ", but it was " + (currentSyncToken - lastSyncToken));

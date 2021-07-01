@@ -170,21 +170,36 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
     }
 
     public void setWorkStateItemRealValues(ItemPath path, Object... values) throws SchemaException {
-        setWorkStateItemRealValues(path, isSingleNull(values) ? List.of() : Arrays.asList(values));
+        setWorkStateItemRealValues(path, null, values);
     }
 
-    public void setWorkStateItemRealValues(ItemPath path, Collection<?> values) throws SchemaException {
+    /**
+     * @param explicitDefinition If present, we do not try to derive the definition from work state CTD.
+     */
+    public void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Object... values)
+            throws SchemaException {
+        setWorkStateItemRealValues(path, explicitDefinition, isSingleNull(values) ? List.of() : Arrays.asList(values));
+    }
+
+    /**
+     * @param explicitDefinition If present, we do not try to derive the definition from work state CTD.
+     */
+    public void setWorkStateItemRealValues(ItemPath path, ItemDefinition<?> explicitDefinition, Collection<?> values)
+            throws SchemaException {
         Task task = getTask();
         LOGGER.trace("setWorkStateItemRealValues: path={}, values={} in {}", path, values, task);
 
         task.modify(
                 PrismContext.get().deltaFor(TaskType.class)
-                        .item(getWorkStateItemPath().append(path), getWorkStateItemDefinition(path))
+                        .item(getWorkStateItemPath().append(path), getWorkStateItemDefinition(path, explicitDefinition))
                         .replaceRealValues(values)
                         .asItemDelta());
     }
 
-    private @NotNull ItemDefinition<?> getWorkStateItemDefinition(ItemPath path) throws SchemaException {
+    private @NotNull ItemDefinition<?> getWorkStateItemDefinition(ItemPath path, ItemDefinition<?> definition) throws SchemaException {
+        if (definition != null) {
+            return definition;
+        }
         ComplexTypeDefinition workStateTypeDef = getWorkStateComplexTypeDefinition();
         return MiscUtil.<ItemDefinition<?>, SchemaException>requireNonNull(
                 workStateTypeDef.findItemDefinition(path),

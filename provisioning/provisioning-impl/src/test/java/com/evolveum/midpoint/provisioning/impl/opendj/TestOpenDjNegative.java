@@ -9,8 +9,9 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
-import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -321,7 +322,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         try {
 
-            mockLiveSyncTaskHandler.synchronize(coords, task, task, result);
+            mockLiveSyncTaskHandler.synchronize(coords, new DummyTokenStorageImpl(), task, result);
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {
@@ -592,7 +593,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         try {
 
-            mockLiveSyncTaskHandler.synchronize(coords, task, task, result);
+            mockLiveSyncTaskHandler.synchronize(coords, new DummyTokenStorageImpl(), task, result);
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {

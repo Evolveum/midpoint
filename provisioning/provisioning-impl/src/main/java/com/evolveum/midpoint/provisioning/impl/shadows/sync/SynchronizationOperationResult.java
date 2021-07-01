@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,8 +23,8 @@ public class SynchronizationOperationResult {
     private Throwable exceptionEncountered;             // FIXME this is a workaround for thresholds
     private volatile boolean taskSuspensionRequested;
     private boolean allChangesFetched;
-    private PrismProperty<?> initialToken;
-    private PrismProperty<?> taskTokenUpdatedTo;
+    private LiveSyncToken initialToken;
+    private LiveSyncToken tokenUpdatedTo;
 
     public int getChangesProcessed() {
         return changesProcessed.get();
@@ -74,20 +74,20 @@ public class SynchronizationOperationResult {
         this.allChangesFetched = allChangesFetched;
     }
 
-    public PrismProperty<?> getInitialToken() {
+    public LiveSyncToken getInitialToken() {
         return initialToken;
     }
 
-    public void setInitialToken(PrismProperty<?> initialToken) {
+    public void setInitialToken(LiveSyncToken initialToken) {
         this.initialToken = initialToken;
     }
 
-    public PrismProperty<?> getTaskTokenUpdatedTo() {
-        return taskTokenUpdatedTo;
+    public LiveSyncToken getTokenUpdatedTo() {
+        return tokenUpdatedTo;
     }
 
-    public void setTaskTokenUpdatedTo(PrismProperty<?> taskTokenUpdatedTo) {
-        this.taskTokenUpdatedTo = taskTokenUpdatedTo;
+    public void setTokenUpdatedTo(LiveSyncToken tokenUpdatedTo) {
+        this.tokenUpdatedTo = tokenUpdatedTo;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class SynchronizationOperationResult {
                 ", taskSuspensionRequested=" + taskSuspensionRequested +
                 ", allChangesFetched=" + allChangesFetched +
                 ", initialToken=" + initialToken +
-                ", taskTokenUpdatedTo=" + taskTokenUpdatedTo;
+                ", taskTokenUpdatedTo=" + tokenUpdatedTo;
     }
 
     @SuppressWarnings("UnusedReturnValue")

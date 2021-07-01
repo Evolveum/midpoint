@@ -34,7 +34,15 @@ public class DummyInterruptedSyncImpreciseResource extends AbstractResourceDummy
 
     // behavior control, referenced from Groovy code in the resources
 
-    public static long delay = 1;
-    public static String errorOn = null;
+    public static long delay;
+    public static String errorOn;
 
+    static {
+        reset();
+    }
+
+    public static void reset() {
+        delay = 1;
+        errorOn = null;
+    }
 }

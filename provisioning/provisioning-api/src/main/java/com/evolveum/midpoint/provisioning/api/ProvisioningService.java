@@ -174,14 +174,14 @@ public interface ProvisioningService {
      *             error communicating with the resource
      * @throws SchemaException
      *             error dealing with resource schema
-     * @throws ConfigurationException
      * @throws SecurityViolationException
      *                 Security violation while communicating with the connector or processing provisioning policies
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            LiveSyncOptions options, LiveSyncEventHandler handler, OperationResult parentResult)
+    @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+            LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
 

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -15,9 +16,9 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -39,7 +39,7 @@ public class TestParseTask extends AbstractSchemaTest {
 
     public static final File TASK_FILE = new File("src/test/resources/common/task-1.xml");
 
-    @Test(enabled = false)
+    @Test
     public void testParseTaskFile() throws Exception {
         // GIVEN
         PrismContext prismContext = getPrismContext();
@@ -58,30 +58,11 @@ public class TestParseTask extends AbstractSchemaTest {
         task.getValue().applyDefinition(taskDef);
     }
 
-    @Test(enabled = false)
-    public void testParseTaskDom() throws SchemaException {
-        // GIVEN
-        PrismContext prismContext = getPrismContext();
-
-        Document document = DOMUtil.parseFile(TASK_FILE);
-        Element taskElement = DOMUtil.getFirstChildElement(document);
-
-        // WHEN
-        PrismObject<TaskType> task = prismContext.parserFor(taskElement).parse();
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(task.debugDump());
-
-        assertTask(task);
-    }
-
     private void assertTask(PrismObject<TaskType> task) {
 
         task.checkConsistence();
 
         assertEquals("Wrong oid", "44444444-4444-4444-4444-000000001111", task.getOid());
-//        assertEquals("Wrong version", "42", user.getVersion());
         PrismObjectDefinition<TaskType> usedDefinition = task.getDefinition();
         assertNotNull("No task definition", usedDefinition);
         PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "task"),
@@ -96,7 +77,7 @@ public class TestParseTask extends AbstractSchemaTest {
         assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
         assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
 
-        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 1, 1);
+        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStateType.class), 0, 1);
         PrismProperty<TaskExecutionStateType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
         PrismPropertyValue<TaskExecutionStateType> executionStatusValue = executionStatusProperty.getValue();
         TaskExecutionStateType executionStatus = executionStatusValue.getValue();
@@ -104,27 +85,17 @@ public class TestParseTask extends AbstractSchemaTest {
 
         // TODO: more tests
 
-//        PrismContainer extension = user.getExtension();
-//        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-//        PrismContainerValue extensionValue = extension.getValue();
-//        assertTrue("Extension parent", extensionValue.getParent() == extension);
-//        assertNull("Extension ID", extensionValue.getId());
+        Object tokenRealValue =
+                ((LiveSyncWorkStateType) task.asObjectable().getActivityState().getActivity().getWorkState()).getToken();
+        assertThat(tokenRealValue).as("token real value").isEqualTo(1002);
 
-//        PropertyPath enabledPath = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
-//        PrismProperty enabledProperty1 = task.findProperty(enabledPath);
-//        PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
-//        assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
-//        PrismAsserts.assertPropertyValue(enabledProperty1, true);
-
-//        PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
-//        assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
-//        PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
-
-//        PrismReference accountRef = task.findReference(UserType.F_ACCOUNT_REF);
-//        assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
-//        PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000001111");
-//        PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000002222");
-//        PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000003333");
+        PrismProperty<Integer> tokenProperty = task.findProperty(
+                ItemPath.create(
+                        TaskType.F_ACTIVITY_STATE,
+                        TaskActivityStateType.F_ACTIVITY,
+                        ActivityStateType.F_WORK_STATE,
+                        LiveSyncWorkStateType.F_TOKEN));
+        // TODO
     }
 
     private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
@@ -151,17 +122,28 @@ public class TestParseTask extends AbstractSchemaTest {
         PrismProperty<QueryType> queryProp = queryDef.instantiate();
         queryProp.setRealValue(queryType);
 
-        TaskType taskType = getPrismContext().createObject(TaskType.class).asObjectable();
-        taskType.setExtension(new ExtensionType(getPrismContext()));
-        taskType.getExtension().asPrismContainerValue().add(queryProp);
-        taskType.setName(PolyStringType.fromOrig("Test task"));
+        TaskType taskBean = getPrismContext().createObject(TaskType.class).asObjectable();
+        taskBean.setExtension(new ExtensionType(getPrismContext()));
+        taskBean.getExtension().asPrismContainerValue().add(queryProp);
+        taskBean.setName(PolyStringType.fromOrig("Test task"));
 
-        String xml = getPrismContext().xmlSerializer().serialize(taskType.asPrismObject());
+        LiveSyncWorkStateType workState = new LiveSyncWorkStateType(PrismContext.get());
+        workState.setToken(111);
+
+        taskBean.beginActivityState()
+                .beginActivity()
+                .setWorkState(workState);
+
+        String xml = getPrismContext().xmlSerializer().serialize(taskBean.asPrismObject());
         System.out.println("Task serialized:\n" + xml);
 
         PrismObject<TaskType> taskParsed = getPrismContext().parserFor(xml).parse();
+
+        Object tokenRealValue =
+                ((LiveSyncWorkStateType) taskParsed.asObjectable().getActivityState().getActivity().getWorkState()).getToken();
+        assertThat(tokenRealValue).as("token real value").isEqualTo(111);
+
         String xmlSerializedAgain = getPrismContext().xmlSerializer().serialize(taskParsed);
         System.out.println("Task serialized again:\n" + xmlSerializedAgain);
     }
-
 }

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
@@ -284,26 +283,20 @@ public interface ConnectorInstance {
             throws CommunicationException, GenericFrameworkException;
 
     /**
-     * Creates a live Java object from a token previously serialized to string.
-     *
-     * Serialized token is not portable to other connectors or other resources.
-     * However, newer versions of the connector should understand tokens generated
-     * by previous connector version.
-     */
-    PrismProperty<?> deserializeToken(Object serializedToken);
-
-    /**
      * Returns the latest token. In other words, returns a token that
      * corresponds to a current state of the resource. If fetchChanges
      * is immediately called with this token, nothing should be returned
      * (Figuratively speaking, neglecting concurrent resource modifications).
      */
-    <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+    default UcfSyncToken fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException {
+        return null;
+    }
 
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
