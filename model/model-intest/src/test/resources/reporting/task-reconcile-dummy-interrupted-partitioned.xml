@@ -54,6 +54,7 @@
                         </stringSegmentation>
                     </buckets>
                     <workerThreads>2</workerThreads>
+                    <tailoringMode>overwriteSpecified</tailoringMode>
                 </distribution>
             </change>
         </tailoring>

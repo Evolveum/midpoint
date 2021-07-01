@@ -93,37 +93,18 @@ public class WorkersReconciliation {
         }
 
         expectedWorkersSetup = ExpectedWorkersSetup.create(activity, workersConfigBean, beans, coordinatorTask, rootTask, result);
-
-        currentWorkers = getCurrentWorkers(result);
         shouldBeWorkers = expectedWorkersSetup.getWorkersMap();
-
-        int startingWorkersCount = currentWorkers.size();
         int startingShouldBeWorkersCount = shouldBeWorkers.size();
 
-        currentWorkers.sort(Comparator.comparing(t -> {
-            if (t.getSchedulingState() == TaskSchedulingStateType.READY) {
-                if (t.getExecutionState() == TaskExecutionStateType.RUNNING) {
-                    return 0;
-                } else if (t.getNode() != null) {
-                    return 1;
-                } else {
-                    return 2;
-                }
-            } else if (t.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
-                return 3;
-            } else if (t.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
-                return 4;
-            } else {
-                return 5;
-            }
-        }));
+        currentWorkers = getCurrentWorkersSorted(result);
+        int startingWorkersCount = currentWorkers.size();
 
         LOGGER.trace("Before reconciliation:\nCurrent workers: {}\nShould be workers: {}", currentWorkers, shouldBeWorkers);
 
         matchWorkers();
         renameWorkers(result);
         closeExecutingWorkers(result);
-        moveWorkers(result);
+        moveOrCloseWorkers(result);
         createWorkers(result);
 
         // TODO ensure that enough scavengers are present
@@ -157,6 +138,32 @@ public class WorkersReconciliation {
             argCheck(BucketingUtil.isCoordinator(coordinatorActivityState), "Activity %s in %s (%s) is not a coordinator",
                     activityPath, rootTask, coordinatorTask);
         }
+    }
+
+    private @NotNull List<Task> getCurrentWorkersSorted(OperationResult result) throws SchemaException {
+        List<Task> currentWorkers = getCurrentWorkers(result);
+        sortCurrentWorkers(currentWorkers);
+        return currentWorkers;
+    }
+
+    private void sortCurrentWorkers(List<Task> currentWorkers) {
+        currentWorkers.sort(Comparator.comparing(t -> {
+            if (t.getSchedulingState() == TaskSchedulingStateType.READY) {
+                if (t.getExecutionState() == TaskExecutionStateType.RUNNING) {
+                    return 0;
+                } else if (t.getNode() != null) {
+                    return 1;
+                } else {
+                    return 2;
+                }
+            } else if (t.getSchedulingState() == TaskSchedulingStateType.SUSPENDED) {
+                return 3;
+            } else if (t.getSchedulingState() == TaskSchedulingStateType.CLOSED) {
+                return 4;
+            } else {
+                return 5;
+            }
+        }));
     }
 
     public @NotNull List<Task> getCurrentWorkers(OperationResult result) throws SchemaException {
@@ -248,10 +255,10 @@ public class WorkersReconciliation {
     }
 
     /**
-     * Moving workers to correct groups (and renaming them if needed).
+     * Moving workers to correct groups (and renaming them if needed). Closing the superfluous ones.
      * We assume none of the workers are currently being executed.
      */
-    private void moveWorkers(OperationResult result)
+    private void moveOrCloseWorkers(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         int moved = 0, closed = 0;
         Iterator<WorkerSpec> shouldBeIterator = shouldBeWorkers.values().iterator();
