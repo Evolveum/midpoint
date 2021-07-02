@@ -46,14 +46,22 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     private AuditSqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
-            AuditSqlQueryContext<?, ?, ?> parentContext) {
-        super(entityPath, mapping, parentContext, parentContext.sqlQuery);
+            AuditSqlQueryContext<?, ?, ?> parentContext,
+            SQLQuery<?> sqlQuery) {
+        super(entityPath, mapping, parentContext, sqlQuery);
     }
 
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> newSubcontext(
             TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
-        return new AuditSqlQueryContext<>(newPath, newMapping, this);
+        return new AuditSqlQueryContext<>(newPath, newMapping, this, this.sqlQuery);
+    }
+
+    @Override
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> newSubcontext(
+            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
+        return new AuditSqlQueryContext<>(newPath, newMapping, this, query);
     }
 }

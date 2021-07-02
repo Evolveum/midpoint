@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.BiFunction;
 
+import com.querydsl.core.types.Operation;
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -88,15 +91,23 @@ public class DetailTableItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws RepositoryException {
-        SqlQueryContext<?, DQ, DR> joinContext =
-                context.leftJoin(detailQueryType, joinOnPredicate);
+        SqlQueryContext<?, DQ, DR> subcontext = context.subquery(detailQueryType);
+        SQLQuery<?> subquery = subcontext.sqlQuery();
+        subquery.where(joinOnPredicate.apply(context.path(), subcontext.path()));
 
         FilterProcessor<ValueFilter<?, ?>> filterProcessor =
-                nestedItemMapper.createFilterProcessor(joinContext);
+                nestedItemMapper.createFilterProcessor(subcontext);
         if (filterProcessor == null) {
             throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
             // this should not even happen, we can't even create a Query that would cause this
         }
-        return filterProcessor.process(filter);
+
+        Predicate predicate = filterProcessor.process(filter);
+        if (predicate instanceof Operation
+                && ((Operation<?>) predicate).getOperator().equals(Ops.IS_NULL)) {
+            return subquery.notExists();
+        } else {
+            return subquery.where(predicate).exists();
+        }
     }
 }
