@@ -87,7 +87,8 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     }
 
     @Override
-    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.assignmentCid));
+    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.assignmentCid));
     }
 }

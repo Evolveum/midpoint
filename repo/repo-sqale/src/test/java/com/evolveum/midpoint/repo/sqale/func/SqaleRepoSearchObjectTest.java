@@ -496,10 +496,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void test180SearchCaseWorkItemByOutcome() throws Exception {
         searchCaseWorkItemByOutcome("OUTCOME one", case1Oid);
         searchCaseWorkItemByOutcome("OUTCOME two", case1Oid);
-        searchCaseWorkItemByOutcome("OUTCOME nonexist", null);
+        searchCaseWorkItemByOutcome("OUTCOME nonexist");
     }
 
-    private void searchCaseWorkItemByOutcome(String wiOutcome, String expectedCaseOid) throws Exception {
+    private void searchCaseWorkItemByOutcome(String wiOutcome, String... expectedCaseOids) throws Exception {
         when("searching case with query for workitem/output/outcome " + wiOutcome);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
@@ -511,12 +511,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         then("case with the matching workitem outcome is returned");
         assertThatOperationResult(operationResult).isSuccess();
-        if (expectedCaseOid == null) {
-            assertThat(result).hasSize(0);
-        } else {
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getOid()).isEqualTo(expectedCaseOid);
-        }
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedCaseOids);
     }
 
     /**
@@ -527,10 +524,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE1_OID, case1Oid);
         searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE2_OID, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXIST_OID, null);
+        searchCaseWorkItemByAssignee(NONEXIST_OID);
     }
 
-    private void searchCaseWorkItemByAssignee(String assigneeOid, String expectedCaseOid) throws Exception {
+    private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
         when("searching case with query for workitem/assigneeRef OID " + assigneeOid);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
@@ -541,12 +538,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         then("case with the matching workitem assigneeRef is returned");
         assertThatOperationResult(operationResult).isSuccess();
-        if (expectedCaseOid == null) {
-            assertThat(result).hasSize(0);
-        } else {
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getOid()).isEqualTo(expectedCaseOid);
-        }
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedCaseOids);
     }
 
     // TODO: search cert workitems
@@ -852,7 +846,7 @@ EXISTS(pendingOperation, null)
 2. multi-value container stored in table:
 EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
 
-3. cointainer query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
+3. container query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
   matching on parent's ownerID (OID of AccessCertificationCampaignType) + its own CID (AccessCertificationCaseType)
 EXISTS({http://prism.evolveum.com/xml/ns/public/types-3}parent, AND(IN OID (for owner): e8c07a7a-1b11-11e8-9b32-1715a2e8273b, IN OID: 1))
 
@@ -931,7 +925,7 @@ AND(
                 .anyMatch(o -> o.getOid().equals(user2Oid));
     }
 
-    @Test(enabled = false) // TODO ref matching must be changed to SQL EXISTS, then it may work
+    @Test
     public void test401SearchObjectNotHavingSpecifiedRef() throws SchemaException {
         when("searching users not having specified value of parent org ref");
         OperationResult operationResult = createOperationResult();

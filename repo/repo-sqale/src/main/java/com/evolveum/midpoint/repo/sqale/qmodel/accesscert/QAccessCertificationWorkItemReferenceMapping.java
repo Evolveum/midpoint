@@ -80,7 +80,9 @@ public class QAccessCertificationWorkItemReferenceMapping
     }
 
     @Override
-    public BiFunction<QAccessCertificationWorkItem, QAccessCertificationWorkItemReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.accessCertWorkItemCid)).and(a.accessCertCaseCid.eq(r.accessCertCaseCid));
+    public BiFunction<QAccessCertificationWorkItem, QAccessCertificationWorkItemReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.accessCertWorkItemCid))
+                .and(a.accessCertCaseCid.eq(r.accessCertCaseCid));
     }
 }

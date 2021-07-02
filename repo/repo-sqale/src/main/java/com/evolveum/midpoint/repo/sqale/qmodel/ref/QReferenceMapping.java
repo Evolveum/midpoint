@@ -75,10 +75,12 @@ public class QReferenceMapping<
                 "Reference bean creation for owner row called on abstract reference mapping");
     }
 
-    /** Returns a bi-function that constructs JOIN query predicate for owner and reference. */
-    public BiFunction<OQ, Q, Predicate> joinOnPredicate() {
+    /**
+     * Returns a bi-function that constructs correlation query predicate for owner and reference.
+     */
+    public BiFunction<OQ, Q, Predicate> correlationPredicate() {
         throw new UnsupportedOperationException(
-                "joinOnPredicate not supported on abstract reference mapping");
+                "correlationPredicate not supported on abstract reference mapping");
     }
 
     /**

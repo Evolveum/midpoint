@@ -79,7 +79,8 @@ public class QCaseWorkItemReferenceMapping
     }
 
     @Override
-    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.workItemCid));
+    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.workItemCid));
     }
 }

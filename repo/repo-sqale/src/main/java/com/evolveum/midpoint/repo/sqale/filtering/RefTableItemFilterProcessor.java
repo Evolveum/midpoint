@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
@@ -41,13 +42,14 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
 
     @Override
     public Predicate process(RefFilter filter) {
-        // TODO change to EXISTS to fix SqaleRepoSearchObjectTest.test401SearchObjectNotHavingSpecifiedRef
-        // This also fixes the number of right result for such filter, or for filter using multiple values
-        SqlQueryContext<?, Q, R> refContext =
-                context.leftJoin(referenceMapping, referenceMapping.joinOnPredicate());
-        QReference<?, ?> ref = refContext.path();
+        SqlQueryContext<?, Q, R> refContext = context.subquery(referenceMapping);
+        SQLQuery<?> subquery = refContext.sqlQuery();
+        Q ref = refContext.path();
+        subquery.where(referenceMapping.correlationPredicate().apply(context.path(), ref));
 
-        return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
-                .process(filter);
+        subquery.where(
+                new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
+                        .process(filter));
+        return subquery.exists();
     }
 }

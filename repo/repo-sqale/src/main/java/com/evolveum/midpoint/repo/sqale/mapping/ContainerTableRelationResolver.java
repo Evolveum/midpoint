@@ -38,13 +38,13 @@ public class ContainerTableRelationResolver<
         implements SqaleItemRelationResolver<Q, R> {
 
     private final QContainerMapping<TS, TQ, TR, R> targetMapping;
-    private final BiFunction<Q, TQ, Predicate> joinPredicate;
+    private final BiFunction<Q, TQ, Predicate> correlationPredicate;
 
     public ContainerTableRelationResolver(
             @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
         this.targetMapping = targetMapping;
-        this.joinPredicate = joinPredicate;
+        this.correlationPredicate = correlationPredicate;
     }
 
     /**
@@ -59,7 +59,7 @@ public class ContainerTableRelationResolver<
         SqlQueryContext<TS, TQ, TR> subcontext =
                 context.subquery(targetMapping.queryType());
         SQLQuery<?> subquery = subcontext.sqlQuery();
-        subquery.where(joinPredicate.apply(context.path(), subcontext.path()));
+        subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 
         return new ResolutionResult(subcontext, subcontext.mapping(), true);
     }
