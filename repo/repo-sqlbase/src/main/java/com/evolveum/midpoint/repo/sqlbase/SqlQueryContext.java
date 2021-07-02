@@ -339,7 +339,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         // We don't want to collide with other JOIN aliases, but no need to check other subqueries.
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
         TQ subqueryPath = targetMapping.newAlias(aliasName);
-        SQLQuery<Integer> subquery = new SQLQuery<Integer>()
+        SQLQuery<?> subquery = new SQLQuery<Integer>()
                 .select(QuerydslUtils.EXPRESSION_ONE)
                 .from(subqueryPath);
         return newSubcontext(subqueryPath, targetMapping, subquery);

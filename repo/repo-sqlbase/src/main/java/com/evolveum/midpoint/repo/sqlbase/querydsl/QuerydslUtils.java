@@ -17,6 +17,7 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.H2Templates;
 import com.querydsl.sql.MySQLTemplates;
@@ -34,7 +35,7 @@ public enum QuerydslUtils {
 
     public static final BooleanExpression EXPRESSION_TRUE = Expressions.asBoolean(true).isTrue();
     public static final BooleanExpression EXPRESSION_FALSE = Expressions.asBoolean(true).isFalse();
-    public static final Expression<Integer> EXPRESSION_ONE = Expressions.constant(1);
+    public static final StringTemplate EXPRESSION_ONE = Expressions.stringTemplate("1");
 
     /**
      * Returns configuration for Querydsl based on the used database type.
