@@ -10,7 +10,6 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -35,70 +34,58 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
 
     /** Query context and mapping is not final as it can change during complex path resolution. */
-    private SqlQueryContext<?, ?, ?> context;
-    private QueryModelMapping<?, ?, ?> mapping;
-    private boolean transformPredicateToExists;
+    private final SqlQueryContext<?, ?, ?> context;
+    private final QueryModelMapping<?, ?, ?> mapping;
 
     public ValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
+        this(context, context.mapping());
+    }
+
+    private ValueFilterProcessor(
+            SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
         this.context = context;
-        this.mapping = context.mapping();
+        this.mapping = mapping;
     }
 
     @Override
     public Predicate process(ValueFilter<?, ?> filter) throws RepositoryException {
+        return process(filter.getPath(), filter);
+    }
+
+    private Predicate process(ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
         if (filter.getRightHandSidePath() != null) {
             // TODO implement
             throw new QueryException(
-                    "Filter with right-hand-side path is not supported YET: " + filter.getPath());
+                    "Filter with right-hand-side path is not supported YET: " + path);
         }
 
-        QName itemName = resolvePath(filter.getPath());
-        ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
-                mapping.itemMapper(itemName)
-                        .createFilterProcessor(context);
-        if (filterProcessor == null) {
-            throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
-            // this should not even happen, we can't even create a Query that would cause this
-        }
+        if (path.isSingleName()) {
+            QName itemName = path.asSingleName();
+            ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
+                    mapping.itemMapper(itemName)
+                            .createFilterProcessor(context);
+            if (filterProcessor == null) {
+                throw new QueryException("Filtering on " + path + " is not supported.");
+                // this should not even happen, we can't even create a Query that would cause this
+            }
 
-        Predicate predicate = filterProcessor.process(filter);
-        if (transformPredicateToExists) {
-            context.sqlQuery().where(predicate);
-            return context.sqlQuery().exists();
+            return filterProcessor.process(filter);
         } else {
-            return predicate;
-        }
-    }
-
-    /**
-     * Resolves potentially complex path and returns {@link ItemName} of its last component.
-     * Initial elements (all-but-last) may add new JOINs to the query (or find matching ones),
-     * but not necessarily, e.g. for containers embedded in a table (like {@code metadata}).
-     */
-    private QName resolvePath(ItemPath path) throws QueryException {
-        // TODO do we want to cache it? where to keep the cache? sqlQueryContext probably...
-        //  Also: when we want to reuse the resolution and when we want to add new JOINs?
-        //  Embedded mapping is probably cacheable, but what if it is behind JOIN?
-
-        while (!path.isSingleName()) {
-            ItemName firstName = path.firstName();
-            path = path.rest();
-
             // we know nothing about context and resolver types, so we have to ignore it
             //noinspection rawtypes
-            ItemRelationResolver resolver = mapping.relationResolver(firstName);
+            ItemRelationResolver resolver = mapping.relationResolver(path.firstName());
             //noinspection unchecked
             ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
-            context = resolution.context;
-            mapping = resolution.mapping;
-            // If set, we don't want to reset it by e.g. another nested container.
-            // TODO: if multiple tables are crossed, only first EXISTS should be enough,
-            //  the rest can be joined to the subquery.
-            //  Nested exists must be treated too, this indicates some need for "context"
-            //  for each resolved component of the path? Or Value nested value filter processor
-            //  for the yet unresolved "tail" of the path?
-            transformPredicateToExists |= resolution.subquery;
+            SqlQueryContext<?, ?, ?> subcontext = resolution.context;
+            ValueFilterProcessor nestedProcessor =
+                    new ValueFilterProcessor(subcontext, resolution.mapping);
+            Predicate predicate = nestedProcessor.process(path.rest(), filter);
+            if (resolution.subquery) {
+                subcontext.sqlQuery().where(predicate);
+                return subcontext.sqlQuery().exists();
+            } else {
+                return predicate;
+            }
         }
-        return path.asSingleName();
     }
 }
