@@ -161,31 +161,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private transient SecurityPolicyType securityPolicy;
 
     /**
-     * Evaluated policy rules. Currently used only for focus objects.
+     * Everything related to policy rules evaluation and processing.
      */
-    private final Collection<EvaluatedPolicyRuleImpl> policyRules = new ArrayList<>();
-
-    /**
-     * Policy state modifications that should be applied.
-     * Currently we apply them in ChangeExecutor.executeChanges only.
-     *
-     * In the future we plan to be able to apply some state modifications even
-     * if the clockwork is exited in non-standard way (e.g. in primary state or with an exception).
-     * But we must be sure what policy state to store, because some constraints might be triggered
-     * because of expectation of future state (like conflicting assignment is added etc.)
-     * ---
-     * Although placed in LensElementContext, support for this data is currently implemented only
-     * for focus, not for projections.
-     */
-    @NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
-
-    /**
-     * Policy state modifications for assignments.
-     *
-     * Although we put here also deltas for assignments that are to be deleted, we do not execute these
-     * (because we implement execution only for the standard exit-path from the clockwork).
-     */
-    @NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
+    @NotNull final PolicyRulesContext policyRulesContext = new PolicyRulesContext();
 
     /**
      * Link to the parent context.
@@ -406,29 +384,33 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @NotNull
     public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
-        return pendingObjectPolicyStateModifications;
+        return policyRulesContext.getPendingObjectPolicyStateModifications();
     }
 
-    public void clearPendingObjectPolicyStateModifications() {
-        pendingObjectPolicyStateModifications.clear();
+    public void clearPendingPolicyStateModifications() {
+        policyRulesContext.clearPendingPolicyStateModifications();
     }
 
     public void addToPendingObjectPolicyStateModifications(ItemDelta<?, ?> modification) {
-        pendingObjectPolicyStateModifications.add(modification);
+        policyRulesContext.addToPendingObjectPolicyStateModifications(modification);
     }
 
     @NotNull
     public Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
-        return pendingAssignmentPolicyStateModifications;
+        return policyRulesContext.getPendingAssignmentPolicyStateModifications();
     }
 
-    public void clearPendingAssignmentPolicyStateModifications() {
-        pendingAssignmentPolicyStateModifications.clear();
+    public void addToPendingAssignmentPolicyStateModifications(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode,
+            @NotNull ItemDelta<?, ?> modification) {
+        policyRulesContext.addToPendingAssignmentPolicyStateModifications(assignment, mode, modification);
     }
 
-    public void addToPendingAssignmentPolicyStateModifications(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode, @NotNull ItemDelta<?, ?> modification) {
-        AssignmentSpec spec = new AssignmentSpec(assignment, mode);
-        pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
+    public Integer getPolicyRuleCounter(String policyRuleIdentifier) {
+        return policyRulesContext.getCounter(policyRuleIdentifier);
+    }
+
+    public void setPolicyRuleCounter(String policyRuleIdentifier, int value) {
+        policyRulesContext.setCounter(policyRuleIdentifier, value);
     }
 
     public boolean isModify() {
@@ -580,17 +562,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         setFresh(false);
     }
 
-    @NotNull
-    public Collection<EvaluatedPolicyRuleImpl> getPolicyRules() {
-        return policyRules;
+    public @NotNull Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+        return policyRulesContext.getObjectPolicyRules();
     }
 
-    public void addPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        this.policyRules.add(policyRule);
+    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
+        policyRulesContext.addObjectPolicyRule(policyRule);
     }
 
-    public void clearPolicyRules() {
-        policyRules.clear();
+    public void clearObjectPolicyRules() {
+        policyRulesContext.clearObjectPolicyRules();
     }
 
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
@@ -784,7 +765,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setFresh(isFresh);
     }
 
-    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, Task task, OperationResult result) throws SchemaException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? (PrismObject) objectTypeOld.asPrismObject() : null;

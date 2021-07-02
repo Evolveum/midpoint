@@ -645,4 +645,12 @@ public class PolicyRuleTypeUtil {
             }
         }
     }
+
+    public static String createId(String containingObjectOid, Long containerId) {
+        return containingObjectOid + ":" + containerId;
+    }
+
+    public static String createId(String containingObjectOid) {
+        return containingObjectOid + ":rule";
+    }
 }

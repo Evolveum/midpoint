@@ -1523,9 +1523,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertSyncToken(Task task, Object expectedValue) {
+        assertSyncToken(task.getRawTaskObjectClonedIfNecessary().asObjectable(), expectedValue);
+    }
+
+    protected void assertSyncToken(TaskType task, Object expectedValue) {
         Object token;
         try {
-            token = ActivityStateUtil.getRootSyncTokenRealValue(task.getRawTaskObjectClonedIfNecessary().asObjectable());
+            token = ActivityStateUtil.getRootSyncTokenRealValue(task);
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

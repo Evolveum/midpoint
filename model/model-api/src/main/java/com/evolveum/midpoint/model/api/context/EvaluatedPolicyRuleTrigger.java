@@ -139,7 +139,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
     }
 
-    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
         fillCommonContent(rv);

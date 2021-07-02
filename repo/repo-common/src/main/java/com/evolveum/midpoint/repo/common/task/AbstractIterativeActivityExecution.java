@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionRes
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.task.api.ExecutionContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -62,7 +63,7 @@ public abstract class AbstractIterativeActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         WS extends AbstractActivityWorkStateType>
-        extends LocalActivityExecution<WD, AH, WS> {
+        extends LocalActivityExecution<WD, AH, WS> implements ExecutionContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 

@@ -65,6 +65,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
+        super(activityExecution.getBeans());
         this.activityExecution = activityExecution;
         this.activityStateDefinition = activityExecution.getActivityStateDefinition();
         this.workStateComplexTypeDefinition = determineWorkStateDefinition(this.activityStateDefinition.getWorkStateTypeName());

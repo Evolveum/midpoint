@@ -2713,6 +2713,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="counters" type="tns:ActivityCounterGroupsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters related to the execution of the activity, grouped into related categories.
+                        One of the categories are counters needed to implement thresholds for policy rules.
+
+                        Note: The counters may be moved to separate repository object later to improve performance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="workState" type="tns:AbstractActivityWorkStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6856,5 +6866,82 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterGroupsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Counters related to the execution of the activity, grouped into related categories.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters for policy rules.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterGroupType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A group of related counters.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="counter" type="tns:ActivityCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single counter.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single counter.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counter identifier (key).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current counter value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO other data, like start timestamp (maybe) -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 </xsd:schema>

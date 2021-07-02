@@ -940,5 +940,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
         return getParent() == null;
     }
 
+    default ExecutionContext getExecutionContext() {
+        return null;
+    }
+
     //endregion
 }

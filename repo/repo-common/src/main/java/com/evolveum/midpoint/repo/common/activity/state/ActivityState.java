@@ -11,7 +11,11 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.execution.ActivityCountersGroup;
+import com.evolveum.midpoint.repo.common.activity.state.counters.CountersIncrementOperation;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -47,12 +51,18 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
 
     private static final int MAX_TREE_DEPTH = 30;
 
+    @NotNull private final CommonTaskBeans beans;
+
     /**
      * Path to the work state container value related to this execution. Can be null if the state was not
      * yet initialized (for the {@link CurrentActivityState}) or if the state does not exist in a given
      * task (for the {@link OtherActivityState}).
      */
     protected ItemPath stateItemPath;
+
+    protected ActivityState(@NotNull CommonTaskBeans beans) {
+        this.beans = beans;
+    }
 
     //region Specific getters
 
@@ -261,30 +271,40 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityState(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, result);
+        return getActivityState(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
     }
 
     public static @NotNull ActivityState<?> getActivityState(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getActivityState(activityPath, task, workStateTypeName, 0, result);
+            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getActivityState(activityPath, task, workStateTypeName, 0, beans, result);
     }
 
     private static @NotNull ActivityState<?> getActivityState(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, int level, OperationResult result) throws SchemaException, ObjectNotFoundException {
+            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskActivityStateType taskActivityState =
                 Objects.requireNonNull(
                         task.getActivitiesStateOrClone(),
                         () -> "No task activity state in " + task);
         if (isLocal(activityPath, taskActivityState)) {
-            return new OtherActivityState<>(task, taskActivityState, activityPath, workStateTypeName);
+            return new OtherActivityState<>(task, taskActivityState, activityPath, workStateTypeName, beans);
         }
         if (level >= MAX_TREE_DEPTH) {
             throw new IllegalStateException("Maximum tree depth reached while looking for activity state in " + task);
         }
         Task parentTask = task.getParentTask(result);
-        return getActivityState(activityPath, parentTask, workStateTypeName, level + 1, result);
+        return getActivityState(activityPath, parentTask, workStateTypeName, level + 1, beans, result);
     }
 
     public abstract @NotNull ActivityPath getActivityPath();
+    //endregion
+
+    //region Counters (thresholds)
+    public void incrementCounters(@NotNull ActivityCountersGroup counterGroup, @NotNull List<? extends Countable> countables,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
+        new CountersIncrementOperation(getTask(), counterGroupItemPath, countables, beans)
+                .execute(result);
+    }
     //endregion
 }

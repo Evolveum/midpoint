@@ -5,8 +5,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<role oid="00000000-role-0000-0000-888111111112">
-    <name>Stop on delete user (1)</name>
+<role oid="ad3b7db8-15ea-4b47-87bc-3e75ff949a0f" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Stop on delete user (6)</name>
     <inducement>
         <policyRule>
             <name>Delete user</name>

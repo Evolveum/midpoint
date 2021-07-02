@@ -6,16 +6,15 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-
-import java.io.File;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 /**
  * @author katka
@@ -24,17 +23,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizat
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsLiveSyncFull extends TestThresholds {
 
-    private static final File TASK_LIVESYNC_OPENDJ_FULL_FILE = new File(TEST_DIR, "task-opendj-livesync-full.xml");
-    private static final String TASK_LIVESYNC_OPENDJ_FULL_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
+    private static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_FULL = new TestResource<>(TEST_DIR, "task-opendj-livesync-full.xml", "95bd6a35-ab67-46c9-bda6-51f5bfb070da");
 
     @Override
-    protected File getTaskFile() {
-        return TASK_LIVESYNC_OPENDJ_FULL_FILE;
-    }
-
-    @Override
-    protected String getTaskOid() {
-        return TASK_LIVESYNC_OPENDJ_FULL_OID;
+    protected TestResource<TaskType> getTaskResource() {
+        return TASK_LIVESYNC_OPENDJ_FULL;
     }
 
     @Override
@@ -47,52 +40,112 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
         return 4;
     }
 
+    /**
+     * We imported user4 to user9.
+     *
+     * LS events received are:
+     *
+     * - add user4 - creates a user (succeeds)
+     * - add user5 - creates a user (succeeds)
+     * - add user6 - creates a user (succeeds)
+     * - add user7 - creates a user (succeeds)
+     * - add user8 - cannot create a user because of a threshold of 5 (fails)
+     * - add user9
+     */
     @Override
-    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
-        dumpSynchronizationInformation(syncInfo);
+    protected void assertAfterFirstImport(TaskType taskAfter) {
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(4, 1, 0)
+                        .assertLastSuccessObjectName("uid=user7,ou=people,dc=example,dc=com")
+                        .assertLastFailureObjectName("uid=user8,ou=people,dc=example,dc=com")
+                    .end()
+                    .synchronizationStatistics()
+                        .assertTransition(null, UNMATCHED, LINKED, null, 4, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 0, 1, 0)
+                        .assertTransitions(2);
 
-        assertSyncToken(taskAfter, 4);
-
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
-//        assertEquals((Object) syncInfo.getCountDeleted(), 0);
-//        assertEquals((Object) syncInfo.getCountLinked(), 0);
-//        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
-//
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
-//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountLinkedAfter(), getProcessedUsers());
-//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
-
+        assertSyncToken(taskAfter, 3);
     }
 
-    protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
-        dumpSynchronizationInformation(syncInfo);
+    /**
+     * We imported user10 to user15.
+     *
+     * However, the token is still 3. So LS events received are:
+     *
+     * - add user4 - noop (succeeds)
+     * - add user5 - noop (succeeds)
+     * - add user6 - noop (succeeds)
+     * - add user7 - noop (succeeds)
+     * - add user8 - creates a user (succeeds)
+     * - add user9 - creates a user (succeeds)
+     * - add user10 - creates a user (succeeds)
+     * - add user11 - creates a user (succeeds)
+     * - add user12 - cannot create a user because of a threshold of 5 (fails)
+     * - add user13
+     * - add user14
+     * - add user15
+     */
+    @Override
+    protected void assertAfterSecondImport(TaskType taskAfter) {
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(8, 1, 0) // 4 users re-processed because of token not updated by default, 4+1 users new
+                        .assertLastSuccessObjectName("uid=user11,ou=people,dc=example,dc=com")
+                        .assertLastFailureObjectName("uid=user12,ou=people,dc=example,dc=com")
+                    .end()
+                    .synchronizationStatistics()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0) // users created in the first run (re-processed because of token not updated by default)
+                        .assertTransition(UNMATCHED, UNMATCHED, LINKED, null, 1, 0, 0) // user failing in the first run
+                        .assertTransition(null, UNMATCHED, LINKED, null, 3, 0, 0) // 3 users succeeding in the current run
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 0, 1, 0) // "threshold" user failing in the current run
+                        .assertTransitions(4);
 
-//        // It's actually not much clear how these numbers are obtained. The task processes various (yet unprocessed) changes
-//        // and stops after seeing third disabled account.
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 3);
-//        assertEquals((Object) syncInfo.getCountDeleted(), 0);
-//        assertEquals((Object) syncInfo.getCountLinked(), 11); // TODO?
-//        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
+        assertSyncToken(taskAfter, 3);
     }
 
-    @Override
-    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        ActivitySynchronizationStatisticsType syncInfo = getRootSyncStats(taskAfter);
-        dumpSynchronizationInformation(syncInfo);
+    /**
+     * Now we disabled users 1 to 6. Note that previous changes were additions of user4 to user15.
+     *
+     * We start with token of 3, because the token was not updated during previous runs.
+     *
+     * It looks like OpenDJ provides the following sync events:
+     *
+     * - add user4 - noop (succeeds)
+     * - add user5 - noop (succeeds)
+     * - add user6 - noop (succeeds)
+     * - add user7 - noop (succeeds)
+     * - add user8 - noop (succeeds)
+     * - add user9 - noop (succeeds)
+     * - add user10 - noop (succeeds)
+     * - add user11 - noop (succeeds)
+     * - add user12 - creates a user (succeeds); rule is no longer there
+     * - add user13 - creates a user (succeeds); rule is no longer there
+     * - add user14 - creates a user (succeeds); rule is no longer there
+     * - add user15 - creates a user (succeeds); rule is no longer there
+     * - disable user1 - updates a user (succeeds)
+     * - disable user2 - updates a user (succeeds)
+     * - disable user3 - fails to update a user because of a threshold
+     * - disable user4
+     * - disable user5
+     * - disable user6
+     */
+    protected void assertAfterDisablingAccounts(TaskType taskAfter) {
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(14, 1) // see above
+                        .assertLastSuccessObjectName("uid=user2,ou=People,dc=example,dc=com")
+                        .assertLastFailureObjectName("uid=user3,ou=People,dc=example,dc=com")
+                    .end()
+                    .synchronizationStatistics()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 8+2, 1, 0) // failing is user3
+                        .assertTransition(UNMATCHED, UNMATCHED, LINKED, null, 1, 0, 0) // user12
+                        .assertTransition(null, UNMATCHED, LINKED, null, 3, 0, 0) // user13..15
+                        .assertTransitions(3);
 
-        assertSyncToken(taskAfter, 4);
-
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
-//        assertEquals((Object) syncInfo.getCountDeleted(), 0);
-//        assertEquals((Object) syncInfo.getCountLinked(), 4);     // this is because LiveSync re-processes changes by default (FIXME)
-//        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
-//
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 1);     // this is the one that failed
-//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountLinkedAfter(), 8);    // this is because LiveSync re-processes changes by default (FIXME)
-//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
+        assertSyncToken(taskAfter, 3);
     }
 }

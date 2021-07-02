@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.execution;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.repo.common.activity.*;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
@@ -16,6 +17,9 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,6 +39,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
@@ -347,5 +353,12 @@ public abstract class AbstractActivityExecution<
 
     public @NotNull ActivityStateDefinition<WS> getActivityStateDefinition() {
         return activityStateDefinition;
+    }
+
+    @Override
+    public void incrementCounters(ActivityCountersGroup counterGroup, List<? extends Countable> countables, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        // TODO this may be other activity state!
+        activityState.incrementCounters(counterGroup, countables, result);
     }
 }

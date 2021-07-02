@@ -6,8 +6,6 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
 <task oid="20335c7c-838f-11e8-93a6-4b1dd0ab58e4"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
@@ -20,10 +18,6 @@
         <mext:kind>account</mext:kind>
         <mext:intent>default</mext:intent>
     </extension>
-
-    <assignment>
-        <targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/>
-    </assignment>
 
     <taskIdentifier>20335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -42,7 +36,7 @@
         <!-- we use legacy way to specify the work -->
         <tailoring>
             <change>
-                <reference>resourceReconciliation</reference>
+                <reference>resourceObjects</reference>
                 <distribution>
                     <workerThreads>4</workerThreads>
                 </distribution>

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * @author semancik
  *
  */
-public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
+public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable, Countable {
 
     @NotNull
     Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
@@ -46,7 +47,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     String getName();
 
-    PolicyRuleType getPolicyRule();
+    @NotNull PolicyRuleType getPolicyRule();
 
     PolicyConstraintsType getPolicyConstraints();
 
@@ -68,7 +69,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     Collection<PolicyExceptionType> getPolicyExceptions();
 
-    void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
+    void addToEvaluatedPolicyRuleBeans(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
             Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector, PrismContext prismContext);
 
     boolean isGlobal();
@@ -97,4 +98,10 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     //experimental
     String getPolicyRuleIdentifier();
+
+    default boolean hasThreshold() {
+        return getPolicyRule().getPolicyThreshold() != null; // refine this if needed
+    }
+
+    int getCount();
 }

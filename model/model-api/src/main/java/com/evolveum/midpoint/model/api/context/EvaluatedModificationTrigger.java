@@ -30,7 +30,7 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
     }
 
     @Override
-    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
         fillCommonContent(rv);

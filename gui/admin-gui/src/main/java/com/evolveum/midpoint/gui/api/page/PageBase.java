@@ -16,8 +16,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 
-import com.evolveum.midpoint.report.api.ReportService;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -91,7 +89,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.repo.common.activity.CounterManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;

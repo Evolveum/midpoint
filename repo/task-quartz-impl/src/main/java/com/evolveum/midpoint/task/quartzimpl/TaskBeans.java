@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -17,20 +24,19 @@ import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformationRetriever;
 import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.task.quartzimpl.execution.*;
+import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
+import com.evolveum.midpoint.task.quartzimpl.execution.Schedulers;
+import com.evolveum.midpoint.task.quartzimpl.execution.TaskStopper;
+import com.evolveum.midpoint.task.quartzimpl.execution.TaskThreadsDumper;
 import com.evolveum.midpoint.task.quartzimpl.nodes.NodeCleaner;
 import com.evolveum.midpoint.task.quartzimpl.nodes.NodeRetriever;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
 import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskInstantiator;
-import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskPersister;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 
 /**
  * Beans to be used by non-Spring component classes in task manager module.
@@ -73,7 +79,6 @@ public class TaskBeans {
     @Autowired public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
     @Autowired public CacheRegistry cacheRegistry;
-    @Autowired public CounterManager counterManager;
     @Autowired
     @Qualifier("securityContextManager")
     public SecurityContextManager securityContextManager;

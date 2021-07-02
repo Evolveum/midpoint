@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
+import com.evolveum.midpoint.task.api.ExecutionContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -110,10 +111,9 @@ class ItemProcessingGatekeeper<I> {
 
     boolean process(OperationResult parentResult) {
 
-        ExecutionModeType originalExecutionMode = workerTask.getExecutionMode();
+        ExecutionContext originalExecutionContext = workerTask.getExecutionContext();
         try {
-
-            workerTask.setExecutionMode(activityExecution.getExecutionMode());
+            workerTask.setExecutionContext(activityExecution);
 
             startTracingAndDynamicProfiling();
             logOperationStart();
@@ -164,7 +164,7 @@ class ItemProcessingGatekeeper<I> {
             return false;
 
         } finally {
-            workerTask.setExecutionMode(originalExecutionMode);
+            workerTask.setExecutionContext(originalExecutionContext);
         }
     }
 

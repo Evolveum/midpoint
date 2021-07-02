@@ -602,7 +602,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
         LensFocusContext<?> focusContext = ((LensContext<?>) recordingListener.getModelContext()).getFocusContext();
         displayDumpable("focusContext", focusContext);
-        assertEquals("Wrong # of focus policy rules", 0, focusContext.getPolicyRules().size());
+        assertEquals("Wrong # of focus policy rules", 0, focusContext.getObjectPolicyRules().size());
     }
 
     /**

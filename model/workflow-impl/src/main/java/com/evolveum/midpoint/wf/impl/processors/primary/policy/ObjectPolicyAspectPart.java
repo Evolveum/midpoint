@@ -85,7 +85,7 @@ public class ObjectPolicyAspectPart {
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
             List<? extends EvaluatedPolicyRule> triggeredApprovalActionRules = main
-                    .selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
+                    .selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));
 

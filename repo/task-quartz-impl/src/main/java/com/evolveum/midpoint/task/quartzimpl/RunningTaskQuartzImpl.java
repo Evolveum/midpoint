@@ -83,9 +83,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Level originalProfilingLevel;
 
     /**
-     * Execution mode (execute, dry run, simulate, ...) taken from the activity definition.
+     * Execution context. Currently used to store activity execution during item processing in worker tasks.
      */
-    @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
+    private ExecutionContext executionContext;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
             @NotNull Task rootTask) {
@@ -439,13 +439,13 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public @NotNull ExecutionModeType getExecutionMode() {
-        return executionMode;
+    public ExecutionContext getExecutionContext() {
+        return executionContext;
     }
 
     @Override
-    public void setExecutionMode(@NotNull ExecutionModeType executionMode) {
-        this.executionMode = requireNonNull(executionMode);
+    public void setExecutionContext(ExecutionContext executionContext) {
+        this.executionContext = executionContext;
     }
     //endregion
 }

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.cache.counters;
+package com.evolveum.midpoint.repo.common.activity;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,8 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.CounterManager;
-import com.evolveum.midpoint.repo.api.CounterSpecification;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
