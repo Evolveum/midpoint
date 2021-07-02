@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Sorting is always executed by {@code *_orig} column.
  */
 public class PolyStringItemFilterProcessor
-        extends ItemFilterProcessor<PropertyValueFilter<PolyString>> {
+        extends ItemValueFilterProcessor<PropertyValueFilter<PolyString>> {
 
     public static final String STRICT = PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME.getLocalPart();
     public static final String ORIG = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME.getLocalPart();

@@ -30,12 +30,12 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
  *
  * See {@link ValueFilterProcessor} for details how complex paths are resolved to its last part.
  */
-public abstract class ItemFilterProcessor<O extends ObjectFilter>
+public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         implements FilterProcessor<O> {
 
     protected final SqlQueryContext<?, ?, ?> context;
 
-    protected ItemFilterProcessor(SqlQueryContext<?, ?, ?> context) {
+    protected ItemValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
     }
 

@@ -13,7 +13,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  */
 public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends MReference,
         OQ extends FlexibleRelationalPathBase<OR>, OR>
-        extends ItemFilterProcessor<RefFilter> {
+        extends ItemValueFilterProcessor<RefFilter> {
 
     private final SqlQueryContext<?, OQ, OR> context;
     private final QReferenceMapping<Q, R, OQ, OR> referenceMapping;

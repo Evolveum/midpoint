@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.sqlbase.mapping;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -27,7 +27,7 @@ public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
     @Nullable Path<?> itemPrimaryPath(Q entityPath);
 
     /**
-     * Creates {@link ItemFilterProcessor} based on this mapping.
+     * Creates {@link ItemValueFilterProcessor} based on this mapping.
      * Provided {@link SqlQueryContext} is used to figure out the query paths when this is executed
      * (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
@@ -39,6 +39,6 @@ public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
      * This may return null if the subclass supports other type of mapping for this item,
      * but not filtering for queries (e.g. update only item).
      */
-    @Nullable <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+    @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext);
 }

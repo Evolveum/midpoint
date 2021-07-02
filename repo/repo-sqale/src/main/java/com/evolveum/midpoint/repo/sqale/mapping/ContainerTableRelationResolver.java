@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -55,10 +56,12 @@ public class ContainerTableRelationResolver<
      */
     @Override
     public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> joinContext =
-                context.leftJoin(targetMapping.queryType(), joinPredicate);
+        SqlQueryContext<TS, TQ, TR> subcontext =
+                context.subquery(targetMapping.queryType());
+        SQLQuery<?> subquery = subcontext.sqlQuery();
+        subquery.where(joinPredicate.apply(context.path(), subcontext.path()));
 
-        return new ResolutionResult(joinContext, joinContext.mapping());
+        return new ResolutionResult(subcontext, subcontext.mapping(), true);
     }
 
     @Override

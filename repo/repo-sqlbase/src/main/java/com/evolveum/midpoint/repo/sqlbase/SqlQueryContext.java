@@ -127,7 +127,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      */
     public void processFilter(ObjectFilter filter) throws RepositoryException {
         if (filter != null) {
-            sqlQuery.where(process(filter));
+            Predicate predicate = process(filter);
+            try {
+                sqlQuery.where(predicate);
+            } catch (IllegalArgumentException e) {
+                throw new RepositoryException("Query construction problem, current query: "
+                        + sqlQuery + "\n  Predicate: " + predicate, e);
+            }
         }
     }
 
@@ -164,6 +170,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         } else {
             throw new QueryException("Unsupported filter " + filter);
         }
+    }
+
+    // TODO EXPLAIN
+    public Predicate transform(Predicate predicate) {
+        return predicate;
     }
 
     /**

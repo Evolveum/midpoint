@@ -12,12 +12,11 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
@@ -30,7 +29,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * a filter which it processes.
  * During multi-part item path it creates necessary JOINs or subqueries creating new
  * {@link #context} and {@link #mapping} instances in the process.
- * Finally, it then delegates to the right {@link ItemFilterProcessor} to process the values
+ * Finally, it then delegates to the right {@link ItemValueFilterProcessor} to process the values
  * and construct SQL conditions.
  */
 public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
@@ -38,6 +37,7 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
     /** Query context and mapping is not final as it can change during complex path resolution. */
     private SqlQueryContext<?, ?, ?> context;
     private QueryModelMapping<?, ?, ?> mapping;
+    private boolean transformPredicateToExists;
 
     public ValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
@@ -53,14 +53,21 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
         }
 
         QName itemName = resolvePath(filter.getPath());
-        ItemFilterProcessor<ObjectFilter> filterProcessor =
+        ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
                 mapping.itemMapper(itemName)
                         .createFilterProcessor(context);
         if (filterProcessor == null) {
             throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
             // this should not even happen, we can't even create a Query that would cause this
         }
-        return filterProcessor.process(filter);
+
+        Predicate predicate = filterProcessor.process(filter);
+        if (transformPredicateToExists) {
+            context.sqlQuery().where(predicate);
+            return context.sqlQuery().exists();
+        } else {
+            return predicate;
+        }
     }
 
     /**
@@ -84,6 +91,13 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
             ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
             context = resolution.context;
             mapping = resolution.mapping;
+            // If set, we don't want to reset it by e.g. another nested container.
+            // TODO: if multiple tables are crossed, only first EXISTS should be enough,
+            //  the rest can be joined to the subquery.
+            //  Nested exists must be treated too, this indicates some need for "context"
+            //  for each resolved component of the path? Or Value nested value filter processor
+            //  for the yet unresolved "tail" of the path?
+            transformPredicateToExists |= resolution.subquery;
         }
         return path.asSingleName();
     }

@@ -11,8 +11,8 @@ import java.util.function.BiFunction;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Filter processor for a an attribute path (Prism item) that is stored in detail table.
  * Mapper using this processor defines how to get to the actual column on the detail table
- * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemFilterProcessor}.
+ * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemValueFilterProcessor}.
  *
  * @param <S> schema type for the owner of the detail table mapping
  * @param <Q> query type (entity path) from which we traverse to the detail table (owner)
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  */
 public class DetailTableItemFilterProcessor
         <S, Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
-        extends ItemFilterProcessor<PropertyValueFilter<String>> {
+        extends ItemValueFilterProcessor<PropertyValueFilter<String>> {
 
     /**
      * Creates composition mapper that defines:
@@ -91,7 +91,7 @@ public class DetailTableItemFilterProcessor
         SqlQueryContext<?, DQ, DR> joinContext =
                 context.leftJoin(detailQueryType, joinOnPredicate);
 
-        FilterProcessor<ObjectFilter> filterProcessor =
+        FilterProcessor<ValueFilter<?, ?>> filterProcessor =
                 nestedItemMapper.createFilterProcessor(joinContext);
         if (filterProcessor == null) {
             throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");

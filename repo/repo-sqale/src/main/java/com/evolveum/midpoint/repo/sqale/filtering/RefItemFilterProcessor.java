@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * OID is represented by UUID column, type by ID (see {@link MObjectType} and relation
  * by Integer (foreign key) to {@link QUri}.
  */
-public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
+public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> {
 
     // only oidPath is strictly not-null, but then the filter better not ask for type or relation
     private final UuidPath oidPath;

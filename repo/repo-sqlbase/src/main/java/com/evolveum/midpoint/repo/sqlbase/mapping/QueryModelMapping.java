@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -113,7 +113,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     /**
      * Returns {@link ItemSqlMapper} for provided {@link ItemName} or throws.
-     * This is later used to create {@link ItemFilterProcessor}.
+     * This is later used to create {@link ItemValueFilterProcessor}.
      *
      * @throws QueryException if the mapper for the item is not found
      */
