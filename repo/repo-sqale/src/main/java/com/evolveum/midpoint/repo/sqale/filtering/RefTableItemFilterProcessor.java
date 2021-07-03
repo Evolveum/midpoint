@@ -45,11 +45,11 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
         SqlQueryContext<?, Q, R> refContext = context.subquery(referenceMapping);
         SQLQuery<?> subquery = refContext.sqlQuery();
         Q ref = refContext.path();
-        subquery.where(referenceMapping.correlationPredicate().apply(context.path(), ref));
-
-        subquery.where(
-                new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId)
-                        .process(filter));
-        return subquery.exists();
+        return subquery
+                .where(referenceMapping.correlationPredicate().apply(context.path(), ref))
+                .where(new RefItemFilterProcessor(
+                        context, ref.targetOid, ref.targetType, ref.relationId)
+                        .process(filter))
+                .exists();
     }
 }

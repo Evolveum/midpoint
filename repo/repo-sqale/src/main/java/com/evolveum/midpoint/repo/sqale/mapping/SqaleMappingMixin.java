@@ -41,7 +41,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     @SuppressWarnings("UnusedReturnValue")
     QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver<Q, R> itemRelationResolver);
+            @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName, @NotNull ItemSqlMapper<Q, R> itemMapper);
@@ -99,7 +99,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return this;
     }
 
-    /** Method called from {@link SqaleUpdateContext#finishExecutionOwn()} for containers. */
+    /** Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers. */
     default void afterModify(SqaleUpdateContext<S, Q, R> updateContext) throws SchemaException {
         // nothing by default
     }

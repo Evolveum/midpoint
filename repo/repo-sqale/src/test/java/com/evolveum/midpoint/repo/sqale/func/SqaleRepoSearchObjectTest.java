@@ -146,6 +146,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .subtype("workerC")
                 .policySituation("situationA")
                 .policySituation("situationC")
+                .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("assignment1")
+                        .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -170,8 +173,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         addExtensionValue(user1Extension, "string-ni", "not-indexed-item");
+
         ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
         user1.assignment(new AssignmentType(prismContext)
+                .lifecycleState("activationExt")
                 .extension(user1AssignmentExtension));
         addExtensionValue(user1AssignmentExtension, "integer", 47);
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
@@ -836,6 +841,14 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
         // "works" but for obvious reasons finds nothing, there is no common OID between the two
         searchObjectTest("matching the type filter of unrelated type", TaskType.class,
                 f -> f.type(FocusType.class));
+    }
+
+    @Test
+    public void test320QueryWithExistsFilter() throws SchemaException {
+        searchUsersTest("matching the exists filter for assignment",
+                f -> f.exists(UserType.F_ASSIGNMENT)
+                        .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1"),
+                user1Oid);
     }
 
 

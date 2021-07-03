@@ -35,7 +35,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
-        implements SqaleItemRelationResolver<Q, R> {
+        implements SqaleItemRelationResolver<Q, R, TQ, TR> {
 
     private final QContainerMapping<TS, TQ, TR, R> targetMapping;
     private final BiFunction<Q, TQ, Predicate> correlationPredicate;
@@ -55,13 +55,13 @@ public class ContainerTableRelationResolver<
      * @return result with context for JOINed entity path and its mapping
      */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
         SqlQueryContext<TS, TQ, TR> subcontext =
                 context.subquery(targetMapping.queryType());
         SQLQuery<?> subquery = subcontext.sqlQuery();
         subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 
-        return new ResolutionResult(subcontext, subcontext.mapping(), true);
+        return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
     }
 
     @Override

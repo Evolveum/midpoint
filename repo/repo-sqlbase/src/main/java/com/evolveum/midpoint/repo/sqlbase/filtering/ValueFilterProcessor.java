@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Filter processor that resolves item path and then constructs an SQL condition for it.
@@ -26,23 +27,26 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * Despite the class name it does not directly contain code that creates conditions based on values.
  * This is still a structural processor and the name "value filter" merely reflects the type of
  * a filter which it processes.
- * During multi-part item path it creates necessary JOINs or subqueries creating new
- * {@link #context} and {@link #mapping} instances in the process.
- * Finally, it then delegates to the right {@link ItemValueFilterProcessor} to process the values
- * and construct SQL conditions.
+ *
+ * If the path has multiple names it creates new instance of this filter processor for each
+ * step to preserve contextual information - e.g. when predicate needs to be applied to the current
+ * subcontext and EXISTS subquery needs to be propagated higher.
+ *
+ * For the last path component it delegates to the right {@link ItemValueFilterProcessor}
+ * to process the values and construct SQL conditions.
  */
-public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> {
+public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
+        implements FilterProcessor<ValueFilter<?, ?>> {
 
-    /** Query context and mapping is not final as it can change during complex path resolution. */
-    private final SqlQueryContext<?, ?, ?> context;
-    private final QueryModelMapping<?, ?, ?> mapping;
+    private final SqlQueryContext<?, Q, R> context;
+    private final QueryModelMapping<?, Q, R> mapping;
 
-    public ValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
+    public ValueFilterProcessor(SqlQueryContext<?, Q, R> context) {
         this(context, context.mapping());
     }
 
     private ValueFilterProcessor(
-            SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+            SqlQueryContext<?, Q, R> context, QueryModelMapping<?, Q, R> mapping) {
         this.context = context;
         this.mapping = mapping;
     }
@@ -52,7 +56,8 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
         return process(filter.getPath(), filter);
     }
 
-    private Predicate process(ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
+    private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
+            ItemPath path, ValueFilter<?, ?> filter) throws RepositoryException {
         if (filter.getRightHandSidePath() != null) {
             // TODO implement
             throw new QueryException(
@@ -71,18 +76,16 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
 
             return filterProcessor.process(filter);
         } else {
-            // we know nothing about context and resolver types, so we have to ignore it
-            //noinspection rawtypes
-            ItemRelationResolver resolver = mapping.relationResolver(path.firstName());
-            //noinspection unchecked
-            ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
-            SqlQueryContext<?, ?, ?> subcontext = resolution.context;
-            ValueFilterProcessor nestedProcessor =
-                    new ValueFilterProcessor(subcontext, resolution.mapping);
+            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
+            SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
+            ValueFilterProcessor<TQ, TR> nestedProcessor =
+                    new ValueFilterProcessor<>(subcontext, resolution.mapping);
             Predicate predicate = nestedProcessor.process(path.rest(), filter);
             if (resolution.subquery) {
-                subcontext.sqlQuery().where(predicate);
-                return subcontext.sqlQuery().exists();
+                return subcontext.sqlQuery()
+                        .where(predicate)
+                        .exists();
             } else {
                 return predicate;
             }

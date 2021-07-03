@@ -71,7 +71,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             path = path.rest();
 
             QueryModelMapping<?, ?, ?> mapping = context.mapping();
-            ItemRelationResolver<?, ?> relationResolver = mapping.getRelationResolver(firstName);
+            ItemRelationResolver<?, ?, ?, ?> relationResolver = mapping.getRelationResolver(firstName);
             if (relationResolver == null) {
                 return null; // unmapped, not persisted, nothing to do
             }

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <R> row type of {@link Q}
  */
 public class ExtensionMappingResolver<Q extends FlexibleRelationalPathBase<R>, R>
-        implements SqaleItemRelationResolver<Q, R> {
+        implements SqaleItemRelationResolver<Q, R, Q, R> {
 
     private final ExtensionMapping<Q, R> mapping;
     private final Function<Q, JsonbPath> rootToExtensionPath;
@@ -38,9 +38,9 @@ public class ExtensionMappingResolver<Q extends FlexibleRelationalPathBase<R>, R
 
     /** Returns the same context and nested mapping. */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
         // Needed item definition comes in the filter, no need for sub-context, mapping is enough.
-        return new ResolutionResult(context, mapping);
+        return new ResolutionResult<>(context, mapping);
     }
 
     @Override

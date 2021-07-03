@@ -360,11 +360,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param <TQ> query type for the new (target) table
      * @param <TR> row type related to the {@link TQ}
      */
-    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> newSubcontext(
-            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
-        throw new UnsupportedOperationException("Not supported, implement in subclass");
-    }
+            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =
