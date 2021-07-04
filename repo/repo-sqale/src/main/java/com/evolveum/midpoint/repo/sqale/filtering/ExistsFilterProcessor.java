@@ -12,12 +12,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor that resolves {@link ExistsFilter}.
@@ -55,25 +55,26 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             // empty filter means EXISTS, NOT can be added before the filter
             return innerFilter != null
                     ? context.process(innerFilter)
-                    : QuerydslUtils.EXPRESSION_TRUE;
+                    : null;
+        }
+
+        ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
+        // Instead of cleaner but arguably confusing solution that would follow the code lower
+        // we resolve this corner case here and now.
+        if (resolver instanceof CountMappingResolver<?, ?, ?>) {
+            return ((CountMappingResolver<?, Q, R>) resolver).createExistsPredicate(context);
+        }
+
+        ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
+        //noinspection unchecked
+        SqaleQueryContext<?, TQ, TR> subcontext = (SqaleQueryContext<?, TQ, TR>) resolution.context;
+        ExistsFilterProcessor<TQ, TR> nestedProcessor =
+                new ExistsFilterProcessor<>(subcontext, resolution.mapping);
+        Predicate predicate = nestedProcessor.process(path.rest(), filter);
+        if (resolution.subquery) {
+            return subcontext.sqlQuery().where(predicate).exists();
         } else {
-            // TODO for count like in Shadow.pendingOperationCount we need to change this to GET
-            //  relation resolver and do something about returned null.
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
-            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
-            //noinspection unchecked
-            SqaleQueryContext<?, TQ, TR> subcontext =
-                    (SqaleQueryContext<?, TQ, TR>) resolution.context;
-            ExistsFilterProcessor<TQ, TR> nestedProcessor =
-                    new ExistsFilterProcessor<>(subcontext, resolution.mapping);
-            Predicate predicate = nestedProcessor.process(path.rest(), filter);
-            if (resolution.subquery) {
-                return subcontext.sqlQuery()
-                        .where(predicate)
-                        .exists();
-            } else {
-                return predicate;
-            }
+            return predicate;
         }
     }
 }
