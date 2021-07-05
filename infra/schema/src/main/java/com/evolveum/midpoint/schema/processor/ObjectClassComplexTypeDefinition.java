@@ -94,6 +94,10 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
                 .anyMatch(idDef -> QNameUtil.match(idDef.getItemName(), attrName));
     }
 
+    default boolean isIdentifier(QName attrName) {
+        return isPrimaryIdentifier(attrName) || isSecondaryIdentifier(attrName);
+    }
+
     /**
      * Returns the definition of secondary identifier attributes of a resource
      * object.

@@ -400,6 +400,7 @@ public class ConsolidationProcessor {
             LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
                     itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
+            boolean existingItemKnown = projCtx.hasFullShadow() || rOcDef.isIdentifier(itemDefinition.getItemName());
             ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
             try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
@@ -413,10 +414,10 @@ public class ConsolidationProcessor {
                     .comparator(comparator)
                     .addUnchangedValues(addUnchangedValues || forceAddUnchangedValues)
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
-                    .existingItemKnown(projCtx.hasFullShadow())
+                    .existingItemKnown(existingItemKnown)
                     .isExclusiveStrong(isExclusiveStrong)
                     .contextDescription(discr.toHumanReadableDescription())
-                    .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
+                    .strengthSelector(existingItemKnown ? strengthSelector : strengthSelector.notWeak())
                     .result(result)
                     .prismContext(prismContext)
                     .build()) {
