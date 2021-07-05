@@ -26,7 +26,7 @@ import java.io.FileNotFoundException;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestReconTasksPartitioned extends TestReconTasks {
+public class TestSyncStoryUsingReconciliationPartitioned extends TestSyncStoryUsingReconciliation {
 
     protected static final String TASK_RECONCILE_DUMMY_PARTITIONED_FILENAME = COMMON_DIR + "/task-reconcile-dummy-partitioned.xml";
     protected static final String TASK_RECONCILE_DUMMY_PARTITIONED_OID = "10000000-0000-0000-565P-565600000004";

@@ -64,7 +64,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
         WD rootWorkDefinition = createRootWorkDefinition(bean, rootTask, factory);
         rootWorkDefinition.setExecutionMode(determineExecutionMode(bean, getModeSupplier(rootTask)));
-        rootWorkDefinition.addTailoring(getTailoring(bean));
+        rootWorkDefinition.addTailoringFrom(bean);
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition =
@@ -79,22 +79,22 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
      * beans all the way up.
      */
-    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType activityBean, ActivityDefinition<?> parent)
+    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean, ActivityDefinition<?> parent)
             throws SchemaException {
-        AbstractWorkDefinition definition = createFromBean(activityBean, parent.workDefinitionFactory);
+        AbstractWorkDefinition definition = createFromBean(bean, parent.workDefinitionFactory);
 
         // TODO enhance with defaultWorkDefinition
         if (definition == null) {
-            throw new SchemaException("Child work definition is not present for " + activityBean + " in " + parent);
+            throw new SchemaException("Child work definition is not present for " + bean + " in " + parent);
         }
 
-        definition.setExecutionMode(determineExecutionMode(activityBean, () -> ExecutionModeType.EXECUTE));
-        definition.addTailoring(getTailoring(activityBean));
+        definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.EXECUTE));
+        definition.addTailoringFrom(bean);
 
-        ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(activityBean);
-        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(activityBean, () -> null);
+        ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
+        ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
 
-        return new ActivityDefinition<>(activityBean, definition, controlFlowDefinition, distributionDefinition,
+        return new ActivityDefinition<>(bean, definition, controlFlowDefinition, distributionDefinition,
                 parent.workDefinitionFactory);
     }
 
@@ -160,10 +160,6 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return () -> task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
     }
 
-    private static ActivitiesTailoringType getTailoring(ActivityDefinitionType local) {
-        return local != null ? local.getTailoring() : null;
-    }
-
     @Deprecated
     public ErrorSelectorType getErrorCriticality() {
         return null; // FIXME
@@ -212,6 +208,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         controlFlowDefinition.applyChangeTailoring(tailoring);
         distributionDefinition.applyChangeTailoring(tailoring);
         applyExecutionModeTailoring(tailoring);
+    }
+
+    public void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+        distributionDefinition.applySubtaskTailoring(subtaskSpecification);
     }
 
     private void applyExecutionModeTailoring(@NotNull ActivityTailoringType tailoring) {

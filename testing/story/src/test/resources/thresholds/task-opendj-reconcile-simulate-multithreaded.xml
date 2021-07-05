@@ -10,20 +10,12 @@
 
 <task oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation Simulate: Dummy</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-
-    <recurrence>recurring</recurrence>
-    <schedule>
-        <interval>3</interval>
-    </schedule>
 
     <activity>
         <work>

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestReconTasksMultithreaded extends TestReconTasks {
+public class TestSyncStoryUsingReconciliationMultithreaded extends TestSyncStoryUsingReconciliation {
 
     private static final String TASK_RECONCILE_DUMMY_MULTITHREADED_FILENAME = COMMON_DIR + "/task-reconcile-dummy-multithreaded.xml";
     private static final String TASK_RECONCILE_DUMMY_MULTITHREADED_OID = "74d4297d-cdeb-43e6-a7f9-0af38d36de12";

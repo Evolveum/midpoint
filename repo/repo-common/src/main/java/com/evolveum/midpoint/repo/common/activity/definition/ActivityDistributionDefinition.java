@@ -79,6 +79,14 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         }
     }
 
+    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+        if (bean.getSubtask() != null) {
+            return;
+        }
+        bean = bean.clone();
+        bean.setSubtask(subtaskSpecification.clone());
+    }
+
     @Override
     public ActivityDistributionDefinition clone() {
         try {

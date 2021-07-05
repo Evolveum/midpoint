@@ -3557,7 +3557,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getTaskTree");
         OperationResult result = task.getResult();
-        PrismObject<TaskType> retTask = repositoryService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF), result);
+        PrismObject<TaskType> retTask = taskManager.getObject(
+                TaskType.class,
+                taskOid,
+                retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF),
+                result);
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;

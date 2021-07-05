@@ -8,32 +8,25 @@
 
 <task oid="20335c7c-838f-11e8-93a6-4b1dd0ab58e4"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Reconciliation Full: Dummy</name>
 
-    <extension>
-        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
-        <mext:kind>account</mext:kind>
-        <mext:intent>default</mext:intent>
-    </extension>
-
-    <taskIdentifier>20335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-
-    <objectRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-
-    <recurrence>recurring</recurrence>
-    <schedule>
-        <interval>5</interval>
-    </schedule>
-
     <activity>
-        <!-- we use legacy way to specify the work -->
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <executionMode>execute</executionMode>
         <tailoring>
             <change>
                 <reference>resourceObjects</reference>
@@ -42,7 +35,5 @@
                 </distribution>
             </change>
         </tailoring>
-        <executionMode>execute</executionMode>
     </activity>
-
 </task>

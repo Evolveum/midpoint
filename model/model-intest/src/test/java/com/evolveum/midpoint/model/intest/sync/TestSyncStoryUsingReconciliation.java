@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestReconTasks extends AbstractSynchronizationStoryTest {
+public class TestSyncStoryUsingReconciliation extends AbstractSynchronizationStoryTest {
 
     @Override
     protected boolean isReconciliation() {

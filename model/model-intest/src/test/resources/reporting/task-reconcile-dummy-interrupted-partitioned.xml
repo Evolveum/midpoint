@@ -28,13 +28,10 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
         <tailoring>
-            <change>
-                <distribution>
-                    <subtask/>
-                    <tailoringMode>overwriteSpecified</tailoringMode>
-                </distribution>
-            </change>
             <change>
                 <reference>resourceObjects</reference>
                 <distribution>
@@ -54,7 +51,6 @@
                         </stringSegmentation>
                     </buckets>
                     <workerThreads>2</workerThreads>
-                    <tailoringMode>overwriteSpecified</tailoringMode>
                 </distribution>
             </change>
         </tailoring>

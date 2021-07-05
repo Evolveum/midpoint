@@ -27,13 +27,10 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
         <tailoring>
-            <change>
-                <distribution>
-                    <subtask/>
-                    <tailoringMode>overwriteSpecified</tailoringMode>
-                </distribution>
-            </change>
             <change>
                 <reference>resourceObjects</reference>
                 <distribution>
@@ -50,7 +47,6 @@
                             <count>2</count>
                         </workersPerNode>
                     </workers>
-                    <subtask/>
                 </distribution>
             </change>
         </tailoring>

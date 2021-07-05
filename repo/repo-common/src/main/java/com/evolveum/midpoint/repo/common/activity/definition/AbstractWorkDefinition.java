@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import com.google.common.base.MoreObjects;
@@ -51,8 +51,8 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         return activityTailoring;
     }
 
-    void addTailoring(ActivitiesTailoringType tailoring) {
-        activityTailoring.add(tailoring);
+    void addTailoringFrom(ActivityDefinitionType activityDefinitionBean) {
+        activityTailoring.addFrom(activityDefinitionBean);
     }
 
     @Override

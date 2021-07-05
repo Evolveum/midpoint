@@ -368,6 +368,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         definition.applyChangeTailoring(tailoring);
     }
 
+    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+        definition.applySubtaskTailoring(subtaskSpecification);
+    }
+
     public void accept(@NotNull ActivityVisitor visitor) {
         visitor.visit(this);
         childrenMap.values()
