@@ -7,20 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.execution;
 
-import com.evolveum.midpoint.repo.api.Countable;
-
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.task.task.TaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
-
-import java.util.List;
 
 /**
  * Implements and represents an execution of an activity.
@@ -47,8 +39,4 @@ public interface ActivityExecution extends DebugDumpable {
      * Returns task execution that contains this activity execution.
      */
     @NotNull TaskExecution getTaskExecution();
-
-    /** TODO */
-    void incrementCounters(ActivityCountersGroup counterGroup, List<? extends Countable> countables, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 }

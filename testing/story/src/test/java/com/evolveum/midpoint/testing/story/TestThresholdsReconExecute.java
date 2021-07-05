@@ -6,43 +6,53 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-
-import java.io.File;
-
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-
-import com.evolveum.midpoint.test.TestResource;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconFull extends TestThresholds {
+public class TestThresholdsReconExecute extends TestThresholdsRecon {
 
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_FULL = new TestResource<>(TEST_DIR, "task-opendj-reconcile-full.xml", "20335c7c-838f-11e8-93a6-4b1dd0ab58e4");
+    /**
+     * This task is used for common import tests drive by the superclass.
+     */
+    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_EXECUTE = new TestResource<>(TEST_DIR,
+            "task-opendj-reconcile-execute.xml", "20335c7c-838f-11e8-93a6-4b1dd0ab58e4");
 
-    private static final File ROLE_POLICY_RULE_DELETE_FILE = new File(TEST_DIR, "role-stop-on-6th-user-deletion.xml");
-    private static final String ROLE_POLICY_RULE_DELETE_OID = "00000000-role-0000-0000-888111111112";
+    /**
+     * This task is used in test600+test610 that check for obeying user deletion policy rule.
+     * The mode is simulate + execute, so no deletion will take place.
+     */
+    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE = new TestResource<>(TEST_DIR,
+            "task-opendj-reconcile-deleted-simulate-execute.xml", "449c3ab7-d50b-4ffa-b72f-9ea238fe2553");
 
-    private static final File TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_FILE = new File(TEST_DIR, "task-opendj-reconcile-simulate-execute.xml");
-    private static final String TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID = "00000000-838f-11e8-93a6-4b1dd0ab58e4";
+    /**
+     * This task is used in test620 that checks for obeying user deletion policy rule.
+     * The mode is plain execute, so first two objects will be deleted.
+     */
+    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_DELETED_EXECUTE = new TestResource<>(TEST_DIR,
+            "task-opendj-reconcile-deleted-execute.xml", "2ae8a1ef-c9f4-4312-a1d1-9b04805b1953");
+
+    /**
+     * This role is assigned to the two "deleted" tasks above.
+     */
+    private static final TestResource<TaskType> ROLE_STOP_ON_3RD_USER_DELETION = new TestResource<>(TEST_DIR,
+            "role-stop-on-3rd-user-deletion.xml", "ad3b7db8-15ea-4b47-87bc-3e75ff949a0f");
 
     @Override
-    protected TestResource<TaskType> getTaskResource() {
-        return TASK_RECONCILE_OPENDJ_FULL;
+    protected TestResource<TaskType> getTaskTestResource() {
+        return TASK_RECONCILE_OPENDJ_EXECUTE;
     }
 
     @Override
@@ -51,55 +61,40 @@ public class TestThresholdsReconFull extends TestThresholds {
     }
 
     @Override
-    protected int getProcessedUsers() {
-        return 4;
-    }
-
-    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(ROLE_POLICY_RULE_DELETE_FILE, initResult);
-        repoAddObjectFromFile(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_FILE, initResult);
+        repoAdd(ROLE_STOP_ON_3RD_USER_DELETION, initResult);
+        addObject(TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE, initTask, initResult);
+        addObject(TASK_RECONCILE_OPENDJ_DELETED_EXECUTE, initTask, initResult);
     }
 
     @Test
-    public void test600ChangeTaskPolicyRule() throws Exception {
-        //WHEN
-        Task task = createPlainTask();
+    public void test600TestFullRecon() throws Exception {
+        given();
+
+        Task task = getTestTask();
         OperationResult result = task.getResult();
-        assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, ROLE_POLICY_RULE_DELETE_OID, task, result);
 
-        //THEN
-        PrismObject<TaskType> taskAfter = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID);
-        display("Task after:", taskAfter);
-        assertAssignments(taskAfter, 1);
-        assertAssigned(taskAfter, ROLE_POLICY_RULE_DELETE_OID, RoleType.COMPLEX_TYPE);
-        assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskExecutionStateType.SUSPENDED);
-    }
-
-    @Test
-    public void test610TestFullRecon() throws Exception {
-        OperationResult result = createOperationResult();
-
-        //WHEN
         when();
-        OperationResult reconResult = resumeTaskAndWaitForNextFinish(
-                TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, TASK_TIMEOUT);
-        assertInProgressOrSuccess(reconResult); // temporary solution: the task should NOT be recurring
+        rerunTask(TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE.oid, result);
 
-        //THEN
-
-        Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, result);
-
-        assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
-        assertSynchronizationStatisticsFull(taskAfter);
-
+        then();
+        assertTask(TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE.oid, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess();
     }
 
-    @Test
-    public void test611TestFullRecon() throws Exception {
-        OperationResult result = createOperationResult();
+    /**
+     * Disabled because policy rules are ignored on focus deletion.
+     */
+    @Test(enabled = false)
+    public void test610TestDeleteAndRecon() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");
         openDJController.delete("uid=user11,ou=People,dc=example,dc=com");
@@ -108,38 +103,50 @@ public class TestThresholdsReconFull extends TestThresholds {
         openDJController.delete("uid=user14,ou=People,dc=example,dc=com");
         openDJController.delete("uid=user15,ou=People,dc=example,dc=com");
 
-        //WHEN
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+
         when();
-        OperationResult reconResult = waitForTaskNextRun(
-                TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, true, TASK_TIMEOUT, false);
-        assertInProgressOrSuccess(reconResult); // temporary solution: the task should NOT be recurring
+        rerunTaskErrorsOk(TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE.oid, result);
 
-        //THEN
+        then();
+        assertTask(TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError();
 
-        Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, result);
+        assertObjectByName(UserType.class, "user10", task, result);
+        assertObjectByName(UserType.class, "user11", task, result);
+        assertObjectByName(UserType.class, "user12", task, result);
+        assertObjectByName(UserType.class, "user13", task, result);
+        assertObjectByName(UserType.class, "user14", task, result);
+        assertObjectByName(UserType.class, "user15", task, result);
+    }
 
-        assertTaskSchedulingState(TASK_RECONCILE_OPENDJ_SIMULATE_EXECUTE_OID, TaskSchedulingStateType.READY);
+    /**
+     * Disabled because policy rules are ignored on focus deletion.
+     */
+    @Test(enabled = false)
+    public void test620ReconFull() throws Exception {
+        given();
 
-        assertEquals(TaskOperationStatsUtil.getItemsProcessedWithFailure(taskAfter.getStoredOperationStatsOrClone()), 0);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-        PrismObject<UserType> user10 = findUserByUsername("user10");
-        assertNull(user10);
+        when();
+        rerunTaskErrorsOk(TASK_RECONCILE_OPENDJ_DELETED_EXECUTE.oid, result);
 
-        PrismObject<UserType> user11 = findUserByUsername("user11");
-        assertNull(user11);
+        then();
+        assertTask(TASK_RECONCILE_OPENDJ_DELETED_EXECUTE.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError();
 
-        PrismObject<UserType> user12 = findUserByUsername("user12");
-        assertNull(user12);
-
-        PrismObject<UserType> user13 = findUserByUsername("user13");
-        assertNull(user13);
-
-        PrismObject<UserType> user14 = findUserByUsername("user14");
-        assertNull(user14);
-
-        PrismObject<UserType> user15 = findUserByUsername("user15");
-        assertNull(user15);
-
+        assertNoObjectByName(UserType.class, "user10", task, result);
+        assertNoObjectByName(UserType.class, "user11", task, result);
+        assertObjectByName(UserType.class, "user12", task, result);
+        assertObjectByName(UserType.class, "user13", task, result);
+        assertObjectByName(UserType.class, "user14", task, result);
+        assertObjectByName(UserType.class, "user15", task, result);
     }
 
     @Override
@@ -158,11 +165,6 @@ public class TestThresholdsReconFull extends TestThresholds {
 //        assertEquals((int) syncInfo.getCountDeleted(), 0);
 //        assertEquals((int) syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
 //        assertEquals((int) syncInfo.getCountUnlinked(), 0);
-    }
-
-    private void assertSynchronizationStatisticsFull(Task taskAfter) {
-        assertEquals(getReconFailureCount(taskAfter), 0);
-        assertNull(taskAfter.getWorkState(), "Unexpected work state in task.");
     }
 
     @Override

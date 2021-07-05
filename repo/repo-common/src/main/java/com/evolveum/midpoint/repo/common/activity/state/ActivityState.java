@@ -11,14 +11,14 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityCountersGroup;
 import com.evolveum.midpoint.repo.common.activity.state.counters.CountersIncrementOperation;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -32,9 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
@@ -42,7 +40,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
-public abstract class ActivityState<WS extends AbstractActivityWorkStateType> implements DebugDumpable {
+public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
@@ -165,6 +163,7 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
         return getPropertyRealValue(ActivityStateType.F_WORK_STATE.append(path), expectedType);
     }
 
+    @SuppressWarnings("unused")
     public <T> T getWorkStateItemRealValueClone(ItemPath path, Class<T> expectedType) {
         return getItemRealValueClone(ActivityStateType.F_WORK_STATE.append(path), expectedType);
     }
@@ -174,6 +173,7 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
                 .getReferenceRealValue(getWorkStateItemPath().append(path));
     }
 
+    @SuppressWarnings("unused")
     public Collection<ObjectReferenceType> getWorkStateReferenceRealValues(ItemPath path) {
         return getTask()
                 .getReferenceRealValues(getWorkStateItemPath().append(path));
@@ -211,6 +211,7 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
             return definition;
         }
         ComplexTypeDefinition workStateTypeDef = getWorkStateComplexTypeDefinition();
+        //noinspection RedundantTypeArguments
         return MiscUtil.<ItemDefinition<?>, SchemaException>requireNonNull(
                 workStateTypeDef.findItemDefinition(path),
                 () -> new SchemaException("Definition for " + path + " couldn't be found in " + workStateTypeDef));
@@ -267,43 +268,89 @@ public abstract class ActivityState<WS extends AbstractActivityWorkStateType> im
      * Note: the caller must know the work state type name. This can be resolved somehow in the future, e.g. by requiring
      * that the work state already exists.
      */
-    public @NotNull ActivityState<?> getParentActivityState(@NotNull QName workStateTypeName, OperationResult result)
+    public @NotNull ActivityState getParentActivityState(@NotNull QName workStateTypeName, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityState(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
+        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
     }
 
-    public static @NotNull ActivityState<?> getActivityState(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getActivityState(activityPath, task, workStateTypeName, 0, beans, result);
+    public static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
+            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return getActivityStateUpwards(activityPath, task, workStateTypeName, 0, beans, result);
     }
 
-    private static @NotNull ActivityState<?> getActivityState(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        TaskActivityStateType taskActivityState =
-                Objects.requireNonNull(
-                        task.getActivitiesStateOrClone(),
-                        () -> "No task activity state in " + task);
+    private static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
+            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        TaskActivityStateType taskActivityState = getTaskActivityStateRequired(task);
         if (isLocal(activityPath, taskActivityState)) {
-            return new OtherActivityState<>(task, taskActivityState, activityPath, workStateTypeName, beans);
+            return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName, beans);
         }
         if (level >= MAX_TREE_DEPTH) {
             throw new IllegalStateException("Maximum tree depth reached while looking for activity state in " + task);
         }
         Task parentTask = task.getParentTask(result);
-        return getActivityState(activityPath, parentTask, workStateTypeName, level + 1, beans, result);
+        return getActivityStateUpwards(activityPath, parentTask, workStateTypeName, level + 1, beans, result);
+    }
+
+    public static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
+            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return getActivityStateDownwards(activityPath, task, workStateTypeName, 0, beans, result);
+    }
+
+    /**
+     * UNTESTED. Use with care.
+     *
+     * TODO cleanup and test thoroughly
+     */
+    private static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
+            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        TaskActivityStateType taskActivityState = getTaskActivityStateRequired(task);
+        if (level >= MAX_TREE_DEPTH) {
+            throw new IllegalStateException("Maximum tree depth reached while looking for activity state in " + task);
+        }
+
+        ActivityPath localRootPath = ActivityStateUtil.getLocalRootPath(taskActivityState);
+        stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
+                activityPath, localRootPath);
+
+        ActivityStateType currentWorkState = taskActivityState.getActivity();
+        ItemPath currentWorkStatePath = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+        List<String> localIdentifiers = activityPath.getIdentifiers().subList(localRootPath.size(), activityPath.size());
+        for (String identifier : localIdentifiers) {
+            stateCheck(currentWorkState != null, "Current work state is not present; path = %s", currentWorkStatePath);
+            currentWorkState = ActivityStateUtil.findChildActivityStateRequired(currentWorkState, identifier);
+            stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
+            currentWorkStatePath = currentWorkStatePath.append(ActivityStateType.F_ACTIVITY, currentWorkState.getId());
+            if (currentWorkState.getWorkState() instanceof DelegationWorkStateType) {
+                ObjectReferenceType childRef = ((DelegationWorkStateType) currentWorkState.getWorkState()).getTaskRef();
+                Task child = beans.taskManager.getTaskPlain(childRef.getOid(), result);
+                return getActivityStateDownwards(activityPath, child, workStateTypeName, level + 1, beans, result);
+            }
+        }
+        LOGGER.trace(" -> resulting work state path: {}", currentWorkStatePath);
+        return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName, beans);
+    }
+
+    private static TaskActivityStateType getTaskActivityStateRequired(@NotNull Task task) {
+        return Objects.requireNonNull(
+                task.getActivitiesStateOrClone(),
+                () -> "No task activity state in " + task);
     }
 
     public abstract @NotNull ActivityPath getActivityPath();
     //endregion
 
     //region Counters (thresholds)
-    public void incrementCounters(@NotNull ActivityCountersGroup counterGroup, @NotNull List<? extends Countable> countables,
-            @NotNull OperationResult result)
+    public Map<String, Integer> incrementCounters(ExecutionSupport.@NotNull CountersGroup counterGroup,
+            @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
-        new CountersIncrementOperation(getTask(), counterGroupItemPath, countables, beans)
+        return new CountersIncrementOperation(getTask(), counterGroupItemPath, countersIdentifiers, beans)
                 .execute(result);
     }
     //endregion

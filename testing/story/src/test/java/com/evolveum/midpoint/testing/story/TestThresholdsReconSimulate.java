@@ -9,7 +9,6 @@ package com.evolveum.midpoint.testing.story;
 import static org.testng.Assert.assertEquals;
 
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,22 +20,17 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconSimulate extends TestThresholds {
+public class TestThresholdsReconSimulate extends TestThresholdsRecon {
 
     private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_SIMULATE = new TestResource<>(TEST_DIR, "task-opendj-reconcile-simulate.xml", "10335c7c-838f-11e8-93a6-4b1dd0ab58e4");
 
     @Override
-    protected TestResource<TaskType> getTaskResource() {
+    protected TestResource<TaskType> getTaskTestResource() {
         return TASK_RECONCILE_OPENDJ_SIMULATE;
     }
 
     @Override
     protected int getWorkerThreads() {
-        return 0;
-    }
-
-    @Override
-    protected int getProcessedUsers() {
         return 0;
     }
 

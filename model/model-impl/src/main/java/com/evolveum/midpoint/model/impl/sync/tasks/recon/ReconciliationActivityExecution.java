@@ -66,9 +66,9 @@ class ReconciliationActivityExecution
         }
     }
 
-    @Nullable ResourceReconciliationActivityExecution getResourceReconciliationExecution() {
+    @Nullable ResourceObjectsReconciliationActivityExecution getResourceReconciliationExecution() {
         try {
-            return (ResourceReconciliationActivityExecution) activity.getChild(RECONCILIATION_RESOURCE_OBJECTS_ID)
+            return (ResourceObjectsReconciliationActivityExecution) activity.getChild(RECONCILIATION_RESOURCE_OBJECTS_ID)
                     .getExecution();
         } catch (SchemaException e) {
             throw new IllegalStateException(e); // Occurs only during children map initialization

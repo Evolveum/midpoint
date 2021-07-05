@@ -332,7 +332,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, options, tokenStorage, handler, task, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
+                ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             result.summarize(true);
             throw e;
@@ -348,7 +349,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         }
         // TODO clean up the above exception and operation result processing
 
-        return new SynchronizationResult(liveSyncResult.getChangesProcessed());
+        return new SynchronizationResult(); // TODO
     }
 
     @Override

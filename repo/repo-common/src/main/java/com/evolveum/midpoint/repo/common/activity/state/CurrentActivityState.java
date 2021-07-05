@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <WS>
  */
 public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
-        extends ActivityState<WS> {
+        extends ActivityState {
 
     private static final Trace LOGGER = TraceManager.getTrace(CurrentActivityState.class);
 

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * @author semancik
  *
  */
-public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable, Countable {
+public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
 
     @NotNull
     Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
@@ -104,4 +103,6 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     }
 
     int getCount();
+
+    void setCount(int value);
 }

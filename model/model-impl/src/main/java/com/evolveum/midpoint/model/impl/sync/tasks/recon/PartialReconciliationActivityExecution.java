@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
@@ -41,7 +47,7 @@ public class PartialReconciliationActivityExecution<AE extends PartialReconcilia
     protected ResourceObjectClassSpecification objectClassSpec;
     protected SynchronizationObjectsFilterImpl objectsFilter;
 
-    public PartialReconciliationActivityExecution(
+    PartialReconciliationActivityExecution(
             @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context,
             @NotNull String shortNameCapitalized) {
         super(context, shortNameCapitalized);
@@ -63,5 +69,19 @@ public class PartialReconciliationActivityExecution<AE extends PartialReconcilia
 
     protected @NotNull ResourceObjectSetType getResourceObjectSet() {
         return activity.getWorkDefinition().getResourceObjectSetSpecification();
+    }
+
+    @Override
+    protected ActivityState determineActivityStateForCounters(@NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return activityState.getParentActivityState(ReconciliationWorkStateType.COMPLEX_TYPE, result);
+
+        /*
+                return ActivityState.getActivityStateDownwards(
+                getActivityPath(),
+                getTaskExecution().getRootTask(),
+                AbstractActivityWorkStateType.COMPLEX_TYPE,
+                getBeans(),
+                result);
+         */
     }
 }

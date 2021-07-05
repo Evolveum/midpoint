@@ -119,11 +119,15 @@ public class LiveSynchronizer {
         }
 
         if (fetchChangesResult.isAllChangesFetched()) {
-            ctx.syncResult.setAllChangesFetched(true);
+            ctx.syncResult.setAllChangesFetched();
             ctx.finalToken = TokenUtil.fromUcf(fetchChangesResult.getFinalToken());
         }
 
         acknowledgeGate.waitForIssuedEventsAcknowledge(gResult);
+
+        if (ctx.oldestTokenWatcher.isEverythingProcessed()) {
+            ctx.syncResult.setAllFetchedChangesProcessed();
+        }
 
         updateTokenValue(ctx, gResult);
 
@@ -148,24 +152,27 @@ public class LiveSynchronizer {
         LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
         LiveSyncToken tokenToSet;
         if (ctx.isSimulate()) {
-            tokenToSet = null; // Token should not be updated during simulation.
-        } else if (isDryRun && !updateTokenInDryRun) {
+            LOGGER.trace("Simulation mode -> token will not be updated.");
             tokenToSet = null;
-        } else if (!ctx.syncResult.isHaltingErrorEncountered() && !ctx.syncResult.isSuspendEncountered() && ctx.syncResult.isAllChangesFetched()) {
-            // Everything went OK. Everything was processed.
+        } else if (isDryRun && !updateTokenInDryRun) {
+            LOGGER.trace("Dry run mode with updateTokenInDryRun=false -> token will not be updated.");
+            tokenToSet = null;
+        } else if (ctx.canRun() && ctx.syncResult.isAllChangesFetched() && ctx.syncResult.isAllFetchedChangesProcessed()) {
             tokenToSet = ctx.finalToken != null ? ctx.finalToken : oldestTokenProcessed;
+            LOGGER.trace("All changes fetched and processed (positively acknowledged). "
+                    + "Task is not suspended. Updating token to {}", tokenToSet);
             // Note that it is theoretically possible that tokenToSet is null here: it happens when no changes are fetched from
             // the resource and the connector returns null from .sync() method. But in this case nothing wrong happens: the
             // token in task will simply stay as it is. That's the correct behavior for such a case.
         } else if (preciseTokenValue) {
-            // Something was wrong but we can continue on latest change.
+            LOGGER.trace("Processing is not complete but we can count on precise token values.");
             tokenToSet = oldestTokenProcessed;
             LOGGER.info("Capability of providing precise token values is present. Token in task is updated so the processing will "
                     + "continue where it was stopped. New token value is '{}' (initial value was '{}')",
                     SchemaDebugUtil.prettyPrint(tokenToSet), SchemaDebugUtil.prettyPrint(initialToken));
         } else {
-            // Something was wrong and we must restart from the beginning.
-            tokenToSet = null; // So we will not update the token.
+            LOGGER.trace("Processing is not complete and we cannot count on precise token values. So we'll not update the token");
+            tokenToSet = null;
             LOGGER.info("Capability of providing precise token values is NOT present. Token will not be updated so the "
                             + "processing will restart from the beginning at next task run. So token value stays as it was: '{}'",
                     SchemaDebugUtil.prettyPrint(initialToken));
@@ -244,8 +251,12 @@ public class LiveSynchronizer {
             return options.getBatchSize();
         }
 
-        public boolean isUpdateLiveSyncTokenInDryRun() {
+        boolean isUpdateLiveSyncTokenInDryRun() {
             return options.isUpdateLiveSyncTokenInDryRun();
+        }
+
+        public boolean canRun() {
+            return context.canRun();
         }
     }
 }

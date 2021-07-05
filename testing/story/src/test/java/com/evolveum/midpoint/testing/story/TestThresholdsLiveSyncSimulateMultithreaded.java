@@ -20,28 +20,13 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholds {
+public class TestThresholdsLiveSyncSimulateMultithreaded extends TestThresholdsLiveSyncSimulate {
 
     private static final int WORKER_THREADS = 2;
 
     @Override
-    protected TestResource<TaskType> getTaskResource() {
-        return TASK_LIVESYNC_OPENDJ_SIMULATE;
-    }
-
-    @Override
     protected int getWorkerThreads() {
         return WORKER_THREADS;
-    }
-
-    @Override
-    protected int getProcessedUsers() {
-        return 0;
-    }
-
-    @Override
-    protected boolean isSimulate() {
-        return true;
     }
 
     @Override

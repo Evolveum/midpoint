@@ -3024,15 +3024,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.unsetGlobalTracingOverride();
     }
 
-    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads, boolean legacy) {
+    protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads, boolean legacy) {
         if (legacy) {
             return workerThreadsCustomizerLegacy(threads);
         } else {
-            return workerThreadsCustomizerNew(threads);
+            return rootActivityWorkerThreadsCustomizer(threads);
         }
     }
 
-    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizerNew(int threads) {
+    protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
         return taskObject -> {
             if (threads != 0) {
                 ActivityDefinitionUtil.findOrCreateDistribution(
@@ -3040,6 +3040,40 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         .setWorkerThreads(threads);
             }
         };
+    }
+
+    protected Consumer<PrismObject<TaskType>> tailoringWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionType definition = requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition");
+                if (definition.getTailoring() == null) {
+                    definition.setTailoring(new ActivitiesTailoringType(prismContext));
+                }
+                definition.getTailoring().beginChange()
+                        .beginDistribution()
+                            .workerThreads(threads)
+                            .tailoringMode(TailoringModeType.OVERWRITE_SPECIFIED);
+            }
+        };
+    }
+
+    // TODO generalize
+    protected Consumer<PrismObject<TaskType>> roleAssignmentCustomizer(String roleOid) {
+        return object -> {
+            if (roleOid != null) {
+                object.asObjectable().beginAssignment()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE);
+            }
+        };
+    }
+
+    // TODO generalize
+    @SafeVarargs
+    protected final Consumer<PrismObject<TaskType>> aggregateCustomizer(
+            Consumer<PrismObject<TaskType>>... customizers) {
+        return object ->
+                Arrays.stream(customizers)
+                        .forEachOrdered(customizer -> customizer.accept(object));
     }
 
     private Consumer<PrismObject<TaskType>> workerThreadsCustomizerLegacy(int threads) {

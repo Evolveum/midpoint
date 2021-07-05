@@ -1381,6 +1381,6 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     }
 
     private Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
-        return workerThreadsCustomizer(threads, isLegacy());
+        return rootActivityWorkerThreadsCustomizer(threads, isLegacy());
     }
 }

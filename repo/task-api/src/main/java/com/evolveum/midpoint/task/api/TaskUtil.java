@@ -83,4 +83,15 @@ public class TaskUtil {
         }
         return item.getValues().iterator().next().getValue();
     }
+
+    public static List<? extends Task> getLeafTasks(List<? extends Task> allSubtasksInTree) {
+        return allSubtasksInTree.stream()
+                .filter(task -> !hasChildren(task, allSubtasksInTree))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean hasChildren(Task task, List<? extends Task> allTasks) {
+        return allTasks.stream()
+                .anyMatch(t -> task.getTaskIdentifier().equals(t.getParent()));
+    }
 }

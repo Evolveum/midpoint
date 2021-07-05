@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +19,9 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
+    /**
+     * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
+     */
     @NotNull private WorkDistributionType bean;
 
     private ActivityDistributionDefinition(@NotNull WorkDistributionType bean) {
@@ -80,19 +82,14 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
     }
 
     void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
-        if (bean.getSubtask() != null) {
-            return;
+        if (bean.getSubtask() == null) {
+            bean.setSubtask(subtaskSpecification.clone());
         }
-        bean = bean.clone();
-        bean.setSubtask(subtaskSpecification.clone());
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ActivityDistributionDefinition clone() {
-        try {
-            return (ActivityDistributionDefinition) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new SystemException(e);
-        }
+        return new ActivityDistributionDefinition(bean.clone());
     }
 }

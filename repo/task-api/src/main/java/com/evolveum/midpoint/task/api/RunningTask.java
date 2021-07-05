@@ -107,11 +107,11 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      */
     @Experimental
     default @NotNull ExecutionModeType getExecutionMode() {
-        ExecutionContext executionContext = getExecutionContext();
-        return executionContext != null ? executionContext.getExecutionMode() : ExecutionModeType.EXECUTE;
+        ExecutionSupport executionSupport = getExecutionSupport();
+        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.EXECUTE;
     }
 
-    ExecutionContext getExecutionContext();
+    ExecutionSupport getExecutionSupport();
 
-    void setExecutionContext(ExecutionContext executionContext);
+    void setExecutionSupport(ExecutionSupport executionContext);
 }

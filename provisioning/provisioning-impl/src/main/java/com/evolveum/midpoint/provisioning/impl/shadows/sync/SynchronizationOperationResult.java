@@ -9,69 +9,39 @@ package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  *  EXPERIMENTAL
  */
-@SuppressWarnings({ "unused" })
 public class SynchronizationOperationResult {
-    private final AtomicInteger changesProcessed = new AtomicInteger(0);
-    private final AtomicInteger errors = new AtomicInteger(0);
-    private volatile boolean suspendEncountered;
-    private volatile boolean haltingErrorEncountered;
-    private Throwable exceptionEncountered;             // FIXME this is a workaround for thresholds
-    private volatile boolean taskSuspensionRequested;
+
+    /**
+     * True if all changes from the resource were fetched.
+     * (They might or might not be completely processed, though.)
+     */
     private boolean allChangesFetched;
+
+    /**
+     * True if all fetched changes were processed (i.e. positively acknowledged).
+     */
+    private boolean allFetchedChangesProcessed;
+
     private LiveSyncToken initialToken;
     private LiveSyncToken tokenUpdatedTo;
 
-    public int getChangesProcessed() {
-        return changesProcessed.get();
-    }
-
-    public int getErrors() {
-        return errors.get();
-    }
-
-    public boolean isSuspendEncountered() {
-        return suspendEncountered;
-    }
-
-    public void setSuspendEncountered(boolean suspendEncountered) {
-        this.suspendEncountered = suspendEncountered;
-    }
-
-    public boolean isHaltingErrorEncountered() {
-        return haltingErrorEncountered;
-    }
-
-    public void setHaltingErrorEncountered(boolean haltingErrorEncountered) {
-        this.haltingErrorEncountered = haltingErrorEncountered;
-    }
-
-    public Throwable getExceptionEncountered() {
-        return exceptionEncountered;
-    }
-
-    public void setExceptionEncountered(Throwable exceptionEncountered) {
-        this.exceptionEncountered = exceptionEncountered;
-    }
-
-    public boolean isTaskSuspensionRequested() {
-        return taskSuspensionRequested;
-    }
-
-    public void setTaskSuspensionRequested(boolean taskSuspensionRequested) {
-        this.taskSuspensionRequested = taskSuspensionRequested;
-    }
-
-    public boolean isAllChangesFetched() {
+    boolean isAllChangesFetched() {
         return allChangesFetched;
     }
 
-    public void setAllChangesFetched(boolean allChangesFetched) {
-        this.allChangesFetched = allChangesFetched;
+    void setAllChangesFetched() {
+        this.allChangesFetched = true;
+    }
+
+    boolean isAllFetchedChangesProcessed() {
+        return allFetchedChangesProcessed;
+    }
+
+    void setAllFetchedChangesProcessed() {
+        this.allFetchedChangesProcessed = true;
     }
 
     public LiveSyncToken getInitialToken() {
@@ -86,30 +56,15 @@ public class SynchronizationOperationResult {
         return tokenUpdatedTo;
     }
 
-    public void setTokenUpdatedTo(LiveSyncToken tokenUpdatedTo) {
-        this.tokenUpdatedTo = tokenUpdatedTo;
+    public void setTokenUpdatedTo(LiveSyncToken value) {
+        this.tokenUpdatedTo = value;
     }
 
     @Override
     public String toString() {
-        return "changesProcessed=" + changesProcessed +
-                ", errors=" + errors +
-                ", suspendEncountered=" + suspendEncountered +
-                ", haltingErrorEncountered=" + haltingErrorEncountered +
-                ", exceptionEncountered=" + exceptionEncountered +
-                ", taskSuspensionRequested=" + taskSuspensionRequested +
-                ", allChangesFetched=" + allChangesFetched +
+        return "allChangesFetched=" + allChangesFetched +
+                ", allFetchedChangesProcessed=" + allFetchedChangesProcessed +
                 ", initialToken=" + initialToken +
-                ", taskTokenUpdatedTo=" + tokenUpdatedTo;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public int incrementErrors() {
-        return errors.incrementAndGet();
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public int incrementChangesProcessed() {
-        return changesProcessed.incrementAndGet();
+                ", tokenUpdatedTo=" + tokenUpdatedTo;
     }
 }

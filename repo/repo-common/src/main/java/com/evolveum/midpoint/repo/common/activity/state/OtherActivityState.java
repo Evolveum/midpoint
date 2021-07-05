@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 
@@ -25,11 +24,8 @@ import javax.xml.namespace.QName;
  * State of activity not connected to the current activity execution.
  * Does not maintain live progress/statistics and assumes that the work state was already created.
  * (Otherwise it cannot use it.)
- *
- * @param <WS> Type of the work state container.
  */
-public class OtherActivityState<WS extends AbstractActivityWorkStateType>
-        extends ActivityState<WS> {
+public class OtherActivityState extends ActivityState {
 
     /**
      * Task in which this activity state resides.
@@ -73,4 +69,12 @@ public class OtherActivityState<WS extends AbstractActivityWorkStateType>
         return workStateComplexTypeDefinition;
     }
 
+    @Override
+    public String toString() {
+        return "OtherActivityState{" +
+                "activityPath=" + activityPath +
+                ", task=" + task +
+                ", stateItemPath=" + stateItemPath +
+                '}';
+    }
 }

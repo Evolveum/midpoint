@@ -85,7 +85,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     /**
      * Execution context. Currently used to store activity execution during item processing in worker tasks.
      */
-    private ExecutionContext executionContext;
+    private ExecutionSupport executionSupport;
 
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
             @NotNull Task rootTask) {
@@ -439,13 +439,13 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public ExecutionContext getExecutionContext() {
-        return executionContext;
+    public ExecutionSupport getExecutionSupport() {
+        return executionSupport;
     }
 
     @Override
-    public void setExecutionContext(ExecutionContext executionContext) {
-        this.executionContext = executionContext;
+    public void setExecutionSupport(ExecutionSupport executionSupport) {
+        this.executionSupport = executionSupport;
     }
     //endregion
 }

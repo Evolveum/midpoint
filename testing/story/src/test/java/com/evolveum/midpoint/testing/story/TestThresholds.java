@@ -6,37 +6,34 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
+import java.util.Collection;
+import java.util.function.Consumer;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.TestResource;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
@@ -46,6 +43,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 public abstract class TestThresholds extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "thresholds");
+
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
@@ -75,10 +74,22 @@ public abstract class TestThresholds extends AbstractStoryTest {
     private static final TestResource<RoleType> ROLE_STOP_ON_3RD_STATUS_CHANGE = new TestResource<>(TEST_DIR, "role-stop-on-3rd-status-change.xml", "fdd65b29-d892-452a-9260-f26c7f20e507");
     private static final TestResource<TaskType> TASK_IMPORT_BASE_USERS = new TestResource<>(TEST_DIR, "task-opendj-import-base-users.xml", "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d");
 
-    static final int TASK_TIMEOUT = 60000;
+    private static final int TASK_TIMEOUT = 60000;
 
     public static final int RULE_CREATE_WATERMARK = 5;
     public static final int RULE_ACTIVATION_WATERMARK = 3;
+
+    @Autowired CommonTaskBeans commonTaskBeans;
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
+
+    @Override
+    protected boolean isAvoidLoggingChange() {
+        return false; // we want our own logging
+    }
 
     @Override
     protected void importSystemTasks(OperationResult initResult) throws FileNotFoundException {
@@ -99,9 +110,11 @@ public abstract class TestThresholds extends AbstractStoryTest {
         openDJController.stop();
     }
 
-    protected abstract TestResource<TaskType> getTaskResource();
+    protected abstract TestResource<TaskType> getTaskTestResource();
     protected abstract int getWorkerThreads();
-    protected abstract int getProcessedUsers();
+    protected boolean isMultiNode() {
+        return false;
+    }
     protected abstract void assertAfterFirstImport(TaskType taskAfter) throws Exception;
     protected abstract void assertAfterSecondImport(TaskType taskAfter);
     protected abstract void assertAfterDisablingAccounts(TaskType taskAfter);
@@ -114,21 +127,23 @@ public abstract class TestThresholds extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        bucketingManager.setFreeBucketWaitTimeOverride(3000L); // experimental
+
         PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(
                 ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         repoAdd(ROLE_STOP_ON_5TH_USER_CREATION, initResult);
         repoAdd(ROLE_STOP_ON_3RD_STATUS_CHANGE, initResult);
-
-        addObject(getTaskResource().file, initTask, initResult, workerThreadsCustomizerNew(getWorkerThreads()));
     }
+
+    abstract Consumer<PrismObject<TaskType>> getWorkerThreadsCustomizer();
 
     /**
      * Imports base users in an auxiliary task ("import base users").
      */
     @Test
-    public void test001testImportBaseUsers() throws Exception {
+    public void test001ImportBaseUsers() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -165,29 +180,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
         return super.getNumberOfUsers() + getStartingAccounts();
     }
 
-    /**
-     * Assigns the rule of "Stop after 4 created users" to the main task.
-     */
-    @Test
-    public void test100AssignCreationLimitToTask() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        when();
-        assignRole(TaskType.class, getTaskOid(), ROLE_STOP_ON_5TH_USER_CREATION.oid, task, result);
-
-        then();
-        assertTask(getTaskOid(), "after")
-                .display()
-                .assertSuspended()
-                .assignments()
-                    .assertRole(ROLE_STOP_ON_5TH_USER_CREATION.oid)
-                    .assertAssignments(1);
-    }
-
-    private String getTaskOid() {
-        return getTaskResource().oid;
+    String getTaskOid() {
+        return getTaskTestResource().oid;
     }
 
     /**
@@ -203,17 +197,16 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         assertUsers(getNumberOfInitialUsers());
 
-        clearCountersAndStatistics(result);
+        addObject(getTaskTestResource().file, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_STOP_ON_5TH_USER_CREATION.oid),
+                        getWorkerThreadsCustomizer()));
 
         when();
-        rerunTaskErrorsOk(getTaskOid(), result);
+        runTask(result);
 
         then();
-        TaskType taskAfter = assertTask(getTaskOid(), "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .getObjectable();
+        TaskType taskAfter = assertTaskAfter();
 
         int expectedUsersImported = isSimulate() ? 0 : RULE_CREATE_WATERMARK-1;
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
@@ -235,55 +228,41 @@ public abstract class TestThresholds extends AbstractStoryTest {
         int expectedUsersImported = isSimulate() ? 0 : RULE_CREATE_WATERMARK-1;
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
 
-        clearCountersAndStatistics(result);
+        taskManager.deleteTaskTree(getTaskOid(), result);
+        addObject(getTaskTestResource().file, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_STOP_ON_5TH_USER_CREATION.oid),
+                        getWorkerThreadsCustomizer()));
 
         when();
-        rerunTaskErrorsOk(getTaskOid(), result);
+        runTask(result);
 
         then();
-        TaskType taskAfter = assertTask(getTaskOid(), "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .getObjectable();
+        TaskType taskAfter = assertTaskAfter();
 
         assertUsers(getNumberOfInitialUsers() + 2*expectedUsersImported);
 
         assertAfterSecondImport(taskAfter);
     }
 
-    private void clearCountersAndStatistics(OperationResult result) throws SchemaException, ObjectAlreadyExistsException,
-            ObjectNotFoundException {
-        ItemPath activityStatePath = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
-        List<ItemDelta<?, ?>> modifications = deltaFor(TaskType.class)
-                .item(activityStatePath.append(ActivityStateType.F_COUNTERS)).replace()
-                .item(activityStatePath.append(ActivityStateType.F_STATISTICS)).replace()
-                .item(activityStatePath.append(ActivityStateType.F_PROGRESS)).replace()
-                .asItemDeltas();
-        repositoryService.modifyObject(TaskType.class, getTaskOid(), modifications, result);
-    }
+//    private void clearCountersAndStatistics(OperationResult result) throws SchemaException, ObjectAlreadyExistsException,
+//            ObjectNotFoundException, ActivityExecutionException {
+//        Collection<ActivityState> activityStates = getExecutionStates(result);
+//        for (ActivityState activityState : activityStates) {
+//            activityState.setItemRealValues(ActivityStateType.F_COUNTERS);
+//            activityState.setItemRealValues(ActivityStateType.F_STATISTICS);
+//            activityState.setItemRealValues(ActivityStateType.F_PROGRESS);
+//            activityState.setItemRealValues(ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKET));
+//            activityState.setItemRealValues(ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_WORK_COMPLETE));
+//            activityState.flushPendingModifications(result);
+//        }
+//    }
 
     /**
-     * Changes the rule to "Stop after having 2 users with changed activation/administrativeStatus".
+     * Returns the state(s) of activity/activities where the "real execution" takes place: it is the root activity in LS tasks
+     * and children activities in reconciliation ones.
      */
-    @Test
-    public void test500AssignModificationLimitToTask() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        when();
-        unassignRole(TaskType.class, getTaskOid(), ROLE_STOP_ON_5TH_USER_CREATION.oid, task, result);
-        assignRole(TaskType.class, getTaskOid(), ROLE_STOP_ON_3RD_STATUS_CHANGE.oid, task, result);
-
-        then();
-        assertTask(getTaskOid(), "after")
-                .display()
-                .assertSuspended()
-                .assignments()
-                    .assertRole(ROLE_STOP_ON_3RD_STATUS_CHANGE.oid)
-                    .assertAssignments(1);
-    }
+    protected abstract Collection<ActivityState> getExecutionStates(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Disables accounts for users1..6 on the resource. Expects to stop after processing 2 of them.
@@ -296,49 +275,37 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
         openDJController.executeLdifChanges(LDIF_CHANGE_ACTIVATION_FILE);
 
-        clearCountersAndStatistics(result);
+        taskManager.deleteTaskTree(getTaskOid(), result);
+        addObject(getTaskTestResource().file, task, result,
+                aggregateCustomizer(
+                        roleAssignmentCustomizer(ROLE_STOP_ON_3RD_STATUS_CHANGE.oid),
+                        getWorkerThreadsCustomizer()));
 
         when();
-        rerunTaskErrorsOk(getTaskOid(), result);
+        runTask(result);
 
         then();
-        TaskType taskAfter = assertTask(getTaskOid(), "after")
-                .display()
-                .assertSuspended()
-                .assertFatalError()
-                .getObjectable();
+        TaskType taskAfter = assertTaskAfter();
 
         assertAfterDisablingAccounts(taskAfter);
     }
 
-    void dumpSynchronizationInformation(ActivitySynchronizationStatisticsType synchronizationInformation) {
-        displayValue("Synchronization information", ActivitySynchronizationStatisticsUtil.format(synchronizationInformation));
+    private void runTask(OperationResult result) throws Exception {
+        if (isMultiNode()) {
+            runTaskTreeAndWaitForFinish(getTaskOid(), TASK_TIMEOUT);
+        } else {
+            rerunTaskErrorsOk(getTaskOid(), result);
+        }
     }
 
-    int getReconFailureCount(Task task) {
-        return getFailureCount(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
-    }
-
-    int getRootFailureCount(Task task) {
-        return getFailureCount(task, ActivityPath.empty());
-    }
-
-    ActivitySynchronizationStatisticsType getReconSyncStats(Task task) {
-        return getSyncStats(task, ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH);
-    }
-
-    ActivitySynchronizationStatisticsType getRootSyncStats(Task task) {
-        return getSyncStats(task, ActivityPath.empty());
-    }
-
-    int getFailureCount(Task task, ActivityPath path) {
-        ActivityStateType state = ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path);
-        return ActivityItemProcessingStatisticsUtil.getErrorsShallow(state.getStatistics().getItemProcessing());
-    }
-
-    ActivitySynchronizationStatisticsType getSyncStats(Task task, ActivityPath path) {
-        return ActivityStateUtil.getActivityStateRequired(task.getActivitiesStateOrClone(), path)
-                .getStatistics()
-                .getSynchronization();
+    /**
+     * Special for multi-node reconciliation.
+     */
+    TaskType assertTaskAfter() throws SchemaException, ObjectNotFoundException {
+        return assertTask(getTaskOid(), "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .getObjectable();
     }
 }

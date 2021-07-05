@@ -7,23 +7,18 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 /**
  * Definition for pure composite activity.
  */
 public class CompositeWorkDefinition extends AbstractWorkDefinition {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CompositeWorkDefinition.class);
 
     private final ActivityCompositionType composition;
 
@@ -35,10 +30,10 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
         return composition;
     }
 
-    public List<ActivityDefinition<?>> createChildDefinitions() throws SchemaException {
+    public List<ActivityDefinition<?>> createChildDefinitions(WorkDefinitionFactory workDefinitionFactory) throws SchemaException {
         List<ActivityDefinition<?>> definitions = new ArrayList<>();
         for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
-            definitions.add(ActivityDefinition.createChild(activityDefinitionBean, getOwningActivityDefinition()));
+            definitions.add(ActivityDefinition.createChild(activityDefinitionBean, workDefinitionFactory));
         }
         return definitions;
     }

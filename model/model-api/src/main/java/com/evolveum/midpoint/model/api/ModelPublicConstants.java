@@ -50,7 +50,9 @@ public class ModelPublicConstants {
     public static final String CLUSTER_REPORT_FILE_FILENAME_PARAMETER = "filename";
 
     public static final String RECONCILIATION_OPERATION_COMPLETION_ID = "operationCompletion";
+    public static final String RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID = "resourceObjectsSimulation";
     public static final String RECONCILIATION_RESOURCE_OBJECTS_ID = "resourceObjects";
+    public static final String RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID = "remainingShadowsSimulation";
     public static final String RECONCILIATION_REMAINING_SHADOWS_ID = "remainingShadows";
 
     public static final ActivityPath RECONCILIATION_OPERATION_COMPLETION_PATH = ActivityPath.fromId(RECONCILIATION_OPERATION_COMPLETION_ID);

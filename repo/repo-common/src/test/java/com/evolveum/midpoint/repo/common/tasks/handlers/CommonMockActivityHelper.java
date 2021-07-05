@@ -53,11 +53,11 @@ public class CommonMockActivityHelper {
     //endregion
 
     //region Last message
-    public String getLastMessage(@NotNull ActivityState<?> activityState) {
+    public String getLastMessage(@NotNull ActivityState activityState) {
         return activityState.getWorkStatePropertyRealValue(LAST_MESSAGE_PATH, String.class);
     }
 
-    public void setLastMessage(@NotNull ActivityState<?> activityState, String message, OperationResult result)
+    public void setLastMessage(@NotNull ActivityState activityState, String message, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         activityState.setWorkStateItemRealValues(LAST_MESSAGE_PATH, message);
         activityState.flushPendingModifications(result);

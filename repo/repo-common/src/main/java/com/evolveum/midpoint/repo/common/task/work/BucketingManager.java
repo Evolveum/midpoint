@@ -63,6 +63,7 @@ public class BucketingManager {
     @Autowired private WorkBucketContentHandlerRegistry handlerFactory;
 
     private Long freeBucketWaitIntervalOverride;
+    private Long freeBucketWaitTimeOverride;
 
     /**
      * Allocates work bucket. If no free work buckets are currently present it tries to create one.
@@ -75,7 +76,8 @@ public class BucketingManager {
             long freeBucketWaitTime, Supplier<Boolean> canRun, boolean executeInitialWait,
             ActivityBucketManagementStatistics statistics, @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
-        GetBucketOperation.Options options = new GetBucketOperation.Options(freeBucketWaitTime, executeInitialWait);
+        long realFreeBucketWaitTime = freeBucketWaitTimeOverride != null ? freeBucketWaitTimeOverride : freeBucketWaitTime;
+        GetBucketOperation.Options options = new GetBucketOperation.Options(realFreeBucketWaitTime, executeInitialWait);
         return new GetBucketOperation(workerTaskOid, activityPath, distributionDefinition, statistics, this, canRun, options)
                 .execute(result);
     }
@@ -126,6 +128,10 @@ public class BucketingManager {
                 contentHandler.createSpecificFilters(workBucket, segmentationConfig, type, itemDefinitionProvider));
 
         return ObjectQueryUtil.addConjunctions(query, prismContext, conjunctionMembers);
+    }
+
+    public void setFreeBucketWaitTimeOverride(Long value) {
+        this.freeBucketWaitTimeOverride = value;
     }
 
     public void setFreeBucketWaitIntervalOverride(Long value) {

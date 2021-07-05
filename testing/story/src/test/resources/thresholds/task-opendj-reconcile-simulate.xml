@@ -28,13 +28,13 @@
         </work>
         <tailoring>
             <change>
-                <reference>resourceReconciliationSimulation</reference>
+                <reference>resourceObjectsSimulation</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
             </change>
             <change>
-                <reference>resourceReconciliation</reference>
+                <reference>resourceObjects</reference>
                 <controlFlow>
                     <processingOption>skip</processingOption>
                 </controlFlow>

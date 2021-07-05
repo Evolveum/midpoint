@@ -6,42 +6,20 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
-
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_SIMULATE_FILE = new TestResource<>(TEST_DIR, "task-opendj-reconcile-simulate-multithreaded.xml", "10335c7c-838f-11e8-93a6-4b1dd0ab58e4");
+public class TestThresholdsReconSimulateMultithreaded extends TestThresholdsReconSimulate {
 
     private static final int WORKER_THREADS = 3;
-
-    @Override
-    protected TestResource<TaskType> getTaskResource() {
-        return TASK_RECONCILE_OPENDJ_SIMULATE_FILE;
-    }
-
-    @Override
-    protected int getProcessedUsers() {
-        return 0;
-    }
-
-    @Override
-    protected boolean isSimulate() {
-        return true;
-    }
 
     @Override
     protected int getWorkerThreads() {

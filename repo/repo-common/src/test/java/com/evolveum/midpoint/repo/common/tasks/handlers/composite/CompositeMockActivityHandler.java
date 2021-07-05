@@ -99,8 +99,8 @@ public class CompositeMockActivityHandler
 
     private void runBeforeExecution(EmbeddedActivity<CompositeMockWorkDefinition, CompositeMockActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
-        ActivityState<?> parentActivityState =
-                ActivityState.getActivityState(
+        ActivityState parentActivityState =
+                ActivityState.getActivityStateUpwards(
                         activity.getPath().allExceptLast(),
                         runningTask,
                         AbstractActivityWorkStateType.COMPLEX_TYPE,

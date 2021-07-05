@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
-import com.evolveum.midpoint.task.api.ExecutionContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -111,9 +110,8 @@ class ItemProcessingGatekeeper<I> {
 
     boolean process(OperationResult parentResult) {
 
-        ExecutionContext originalExecutionContext = workerTask.getExecutionContext();
         try {
-            workerTask.setExecutionContext(activityExecution);
+            workerTask.setExecutionSupport(activityExecution);
 
             startTracingAndDynamicProfiling();
             logOperationStart();
@@ -164,7 +162,7 @@ class ItemProcessingGatekeeper<I> {
             return false;
 
         } finally {
-            workerTask.setExecutionContext(originalExecutionContext);
+            workerTask.setExecutionSupport(null);
         }
     }
 
@@ -325,10 +323,12 @@ class ItemProcessingGatekeeper<I> {
     private boolean handleError(OperationResult result) {
         OperationResultStatus status = result.getStatus();
         Throwable exception = processingResult.getExceptionRequired();
-        LOGGER.debug("Starting handling error with status={}, exception={}", status, exception);
+        LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
 
         ErrorHandlingStrategyExecutor.FollowUpAction followUpAction =
                 activityExecution.handleError(status, exception, request, result);
+
+        LOGGER.debug("Follow-up action: {}", followUpAction);
 
         switch (followUpAction) {
             case CONTINUE:

@@ -7,32 +7,26 @@
 
 package com.evolveum.midpoint.repo.common.activity.state.counters;
 
-import static java.util.Objects.requireNonNull;
-
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterGroupType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.Countable;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterGroupType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCounterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -48,8 +42,8 @@ public class CountersIncrementOperation {
     /** Points directly to multi-valued "counter" sub-container in the group. */
     @NotNull private final ItemPath countersItemPath;
 
-    /** In-memory representation of the counters. */
-    @NotNull private final List<? extends Countable> countables;
+    /** Identifiers of counters to be incremented. */
+    @NotNull private final Collection<String> countersIdentifiers;
 
     /** Useful beans */
     @NotNull private final CommonTaskBeans beans;
@@ -58,17 +52,18 @@ public class CountersIncrementOperation {
     private final Map<String, Integer> updatedValues = new HashMap<>();
 
     public CountersIncrementOperation(@NotNull Task task, @NotNull ItemPath counterGroupItemPath,
-            @NotNull List<? extends Countable> countables,
+            @NotNull Collection<String> countersIdentifiers,
             @NotNull CommonTaskBeans beans) {
         this.task = task;
         this.countersItemPath = counterGroupItemPath.append(ActivityCounterGroupType.F_COUNTER);
-        this.countables = countables;
+        this.countersIdentifiers = countersIdentifiers;
         this.beans = beans;
     }
 
-    public void execute(OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public Map<String, Integer> execute(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         incrementCountersInRepository(result);
-        updateCountables();
+        return updatedValues;
     }
 
     private void incrementCountersInRepository(OperationResult result)
@@ -80,9 +75,8 @@ public class CountersIncrementOperation {
     private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
         updatedValues.clear();
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-        for (Countable countable : countables) {
-            String identifier = countable.getIdentifier();
-            ActivityCounterType currentCounter = getCurrentCounter(task, identifier);
+        for (String counterIdentifier : countersIdentifiers) {
+            ActivityCounterType currentCounter = getCurrentCounter(task, counterIdentifier);
             ItemDelta<?, ?> itemDelta;
             int newValue;
             if (currentCounter != null) {
@@ -96,13 +90,13 @@ public class CountersIncrementOperation {
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
                         .item(countersItemPath)
                         .add(new ActivityCounterType(beans.prismContext)
-                                .identifier(identifier)
+                                .identifier(counterIdentifier)
                                 .value(newValue))
                         .asItemDelta();
             }
             deltas.add(itemDelta);
-            System.out.println("New value for " + identifier + " is " + newValue); // TODO remove
-            updatedValues.put(identifier, newValue);
+            System.out.println("New value for " + counterIdentifier + " is " + newValue); // TODO remove
+            updatedValues.put(counterIdentifier, newValue);
         }
         LOGGER.info("Counter deltas:\n{}", DebugUtil.debugDumpLazily(deltas, 1)); // TODO trace
         return deltas;
@@ -121,14 +115,5 @@ public class CountersIncrementOperation {
             }
         }
         return null;
-    }
-
-    private void updateCountables() {
-        for (Countable countable : countables) {
-            int updatedValue = requireNonNull(
-                    updatedValues.get(countable.getIdentifier()),
-                    "Missing updated value for " + countable.getIdentifier());
-            countable.setCount(updatedValue);
-        }
     }
 }

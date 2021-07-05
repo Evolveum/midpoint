@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -90,6 +89,11 @@ class OldestTokenWatcher {
         } else {
             return null;
         }
+    }
+
+    synchronized boolean isEverythingProcessed() {
+        return tokenInfoMap.values().stream()
+                .allMatch(tokenInfo -> tokenInfo.processed);
     }
 
     private static class TokenInfo {

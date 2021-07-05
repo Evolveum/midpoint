@@ -21,23 +21,18 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncFull extends TestThresholds {
+public class TestThresholdsLiveSyncExecute extends TestThresholdsLiveSync {
 
     private static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_FULL = new TestResource<>(TEST_DIR, "task-opendj-livesync-full.xml", "95bd6a35-ab67-46c9-bda6-51f5bfb070da");
 
     @Override
-    protected TestResource<TaskType> getTaskResource() {
+    protected TestResource<TaskType> getTaskTestResource() {
         return TASK_LIVESYNC_OPENDJ_FULL;
     }
 
     @Override
     protected int getWorkerThreads() {
         return 0;
-    }
-
-    @Override
-    protected int getProcessedUsers() {
-        return 4;
     }
 
     /**

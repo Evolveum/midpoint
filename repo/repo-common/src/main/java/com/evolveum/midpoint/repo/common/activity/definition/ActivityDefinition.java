@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpable, Cloneable {
 
-    private final ActivityDefinitionType definitionBean;
+    private final String identifierFromDefinition;
 
     /** Should not be changed. */
     @NotNull private final WD workDefinition;
@@ -39,16 +39,16 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
 
-    private ActivityDefinition(ActivityDefinitionType definitionBean, @NotNull WD workDefinition,
+    private ActivityDefinition(String identifierFromDefinition,
+            @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @NotNull WorkDefinitionFactory workDefinitionFactory) {
-        this.definitionBean = definitionBean;
+        this.identifierFromDefinition = identifierFromDefinition;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
         this.workDefinitionFactory = workDefinitionFactory;
-        workDefinition.setOwningActivityDefinition(this);
     }
 
     /**
@@ -70,7 +70,12 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityDistributionDefinition distributionDefinition =
                 ActivityDistributionDefinition.create(bean, getWorkerThreadsSupplier(rootTask));
 
-        return new ActivityDefinition<>(bean, rootWorkDefinition, controlFlowDefinition, distributionDefinition, factory);
+        return new ActivityDefinition<>(
+                bean != null ? bean.getIdentifier() : null,
+                rootWorkDefinition,
+                controlFlowDefinition,
+                distributionDefinition,
+                factory);
     }
 
     /**
@@ -79,13 +84,14 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
      * beans all the way up.
      */
-    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean, ActivityDefinition<?> parent)
+    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean,
+            @NotNull WorkDefinitionFactory workDefinitionFactory)
             throws SchemaException {
-        AbstractWorkDefinition definition = createFromBean(bean, parent.workDefinitionFactory);
+        AbstractWorkDefinition definition = createFromBean(bean, workDefinitionFactory);
 
         // TODO enhance with defaultWorkDefinition
         if (definition == null) {
-            throw new SchemaException("Child work definition is not present for " + bean + " in " + parent);
+            throw new SchemaException("Child work definition is not present for " + bean);
         }
 
         definition.setExecutionMode(determineExecutionMode(bean, () -> ExecutionModeType.EXECUTE));
@@ -94,8 +100,12 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
 
-        return new ActivityDefinition<>(bean, definition, controlFlowDefinition, distributionDefinition,
-                parent.workDefinitionFactory);
+        return new ActivityDefinition<>(
+                bean.getIdentifier(),
+                definition,
+                controlFlowDefinition,
+                distributionDefinition,
+                workDefinitionFactory);
     }
 
     @NotNull
@@ -197,11 +207,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     public String getIdentifier() {
-        if (definitionBean != null) {
-            return definitionBean.getIdentifier();
-        } else {
-            return null;
-        }
+        return identifierFromDefinition;
     }
 
     public void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
@@ -220,12 +226,16 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         }
     }
 
+    /**
+     * Does the deep clone. The goal is to be able to modify cloned definition freely.
+     */
     @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
     @Override
     public ActivityDefinition<WD> clone() {
+        //noinspection unchecked
         return new ActivityDefinition<>(
-                definitionBean,
-                workDefinition,
+                identifierFromDefinition,
+                (WD) workDefinition.clone(),
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
                 workDefinitionFactory);

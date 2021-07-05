@@ -34,6 +34,8 @@ import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 
+import com.evolveum.midpoint.task.api.TaskUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -3351,18 +3353,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
     }
 
     protected OperationResult runTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         restartTask(rootTaskOid, waitResult);
-        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, true);
+    }
+
+    protected OperationResult resumeTaskTreeAndWaitForFinish(String rootTaskOid, int timeout) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".runTaskTreeAndWaitForFinish");
+        Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
+        taskManager.resumeTaskTree(rootTaskOid, waitResult);
+        return waitForTaskTreeNextFinishedRun(origRootTask.getUpdatedTaskObject().asObjectable(), timeout, waitResult, false);
     }
 
     // a bit experimental
-    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult) throws Exception {
+    protected OperationResult waitForTaskTreeNextFinishedRun(TaskType origRootTask, int timeout, OperationResult waitResult,
+            boolean checkRootTaskLastStartTimestamp) throws Exception {
         long origLastRunStartTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunStartTimestamp());
         long origLastRunFinishTimestamp = XmlTypeConverter.toMillis(origRootTask.getLastRunFinishTimestamp());
         long start = System.currentTimeMillis();
@@ -3382,6 +3392,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             long lastRunStartTimestamp = or0(freshRootTask.getLastRunStartTimestamp());
             long lastRunFinishTimestamp = or0(freshRootTask.getLastRunFinishTimestamp());
             if (!triggered.get() &&
+                    checkRootTaskLastStartTimestamp &&
                     (lastRunStartTimestamp == origLastRunStartTimestamp
                             || lastRunFinishTimestamp == origLastRunFinishTimestamp
                             || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
@@ -3395,14 +3406,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             triggered.set(true);
 
             aggregateResult.getSubresults().clear();
-            List<? extends Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
-            for (Task subtask : subtasks) {
+            List<? extends Task> allSubtasks = freshRootTask.listSubtasksDeeply(waitResult);
+            for (Task subtask : allSubtasks) {
                 try {
-                    subtask.refresh(waitResult);        // quick hack to get operation results
+                    subtask.refresh(waitResult); // quick hack to get operation results
                 } catch (ObjectNotFoundException e) {
                     logger.warn("Task {} does not exist any more", subtask);
                 }
             }
+            if (!checkRootTaskLastStartTimestamp && allSubtasks.isEmpty()) {
+                display("No subtasks yet (?) => continuing waiting: " + description);
+                return false;
+            }
+
+            List<? extends Task> subtasks = TaskUtil.getLeafTasks(allSubtasks);
             Task failedTask = null;
             for (Task subtask : subtasks) {
                 if (subtask.getSchedulingState() == TaskSchedulingStateType.READY) {

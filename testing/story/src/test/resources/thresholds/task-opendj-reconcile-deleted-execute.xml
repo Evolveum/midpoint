@@ -6,13 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
-<task oid="00000000-838f-11e8-93a6-4b1dd0ab58e4"
+<task oid="2ae8a1ef-c9f4-4312-a1d1-9b04805b1953"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Reconciliation Simulate Execute: Dummy</name>
+    <name>Reconciliation Deleted Full</name>
+
+    <assignment>
+        <targetRef oid="ad3b7db8-15ea-4b47-87bc-3e75ff949a0f" type="RoleType" />
+    </assignment>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
@@ -28,14 +30,5 @@
                 </resourceObjects>
             </reconciliation>
         </work>
-        <tailoring>
-            <change>
-                <reference>resourceReconciliationSimulation</reference>
-                <controlFlow>
-                    <processingOption>process</processingOption>
-                </controlFlow>
-            </change>
-        </tailoring>
     </activity>
-
 </task>

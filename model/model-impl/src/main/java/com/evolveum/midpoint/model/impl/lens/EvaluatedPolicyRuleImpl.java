@@ -514,16 +514,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     }
 
     @Override
-    public String getIdentifier() {
-        return getPolicyRuleIdentifier();
+    public int getCount() {
+        return count;
     }
 
     @Override
     public void setCount(int value) {
         count = value;
-    }
-
-    public int getCount() {
-        return count;
     }
 }

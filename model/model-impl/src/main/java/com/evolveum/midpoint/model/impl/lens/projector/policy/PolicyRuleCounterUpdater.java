@@ -14,9 +14,8 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ExecutionContext;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -27,8 +26,10 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.repo.common.activity.execution.ActivityCountersGroup.POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.POLICY_RULES;
 
 /**
  * Updates counters for policy rules, with the goal of determining if rules' thresholds have been reached.
@@ -40,15 +41,15 @@ import static com.evolveum.midpoint.repo.common.activity.execution.ActivityCount
 public class PolicyRuleCounterUpdater implements ProjectorProcessor {
 
     @ProcessorMethod
-    public <AH extends AssignmentHolderType> void updateCounters(LensContext<AH> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public <AH extends AssignmentHolderType> void updateCounters(LensContext<AH> context,
+            @SuppressWarnings("unused") XMLGregorianCalendar now,
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        ExecutionContext executionContext = task.getExecutionContext();
-        if (!(executionContext instanceof ActivityExecution)) {
-            result.recordNotApplicable();
+        ExecutionSupport executionSupport = task.getExecutionSupport();
+        if (executionSupport == null) {
             return;
         }
-        ActivityExecution activityExecution = (ActivityExecution) executionContext;
 
         /*
          * We update the counters in rules with thresholds in the following ways:
@@ -71,19 +72,31 @@ public class PolicyRuleCounterUpdater implements ProjectorProcessor {
             if (!rule.hasThreshold()) {
                 continue;
             }
-            Integer knownCounterValue = focusContext.getPolicyRuleCounter(rule.getPolicyRuleIdentifier());
-            if (knownCounterValue != null) {
-                rule.setCount(knownCounterValue);
-            } else {
-                if (rule.isTriggered()) {
-                    rulesToIncrement.add(rule);
-                }
+            Integer alreadyIncrementedValue = focusContext.getPolicyRuleCounter(rule.getPolicyRuleIdentifier());
+            if (alreadyIncrementedValue != null) {
+                rule.setCount(alreadyIncrementedValue);
+                continue;
             }
+
+            if (!rule.isTriggered()) {
+                continue;
+            }
+            rulesToIncrement.add(rule);
         }
-        if (!rulesToIncrement.isEmpty()) {
-            activityExecution.incrementCounters(POLICY_RULES, rulesToIncrement, result);
-            rulesToIncrement.forEach(
-                    rule -> focusContext.setPolicyRuleCounter(rule.getPolicyRuleIdentifier(), rule.getCount()));
+
+        if (rulesToIncrement.isEmpty()) {
+            return;
         }
+
+        Map<String, EvaluatedPolicyRule> rulesByIdentifier = rulesToIncrement.stream()
+                .collect(Collectors.toMap(EvaluatedPolicyRule::getPolicyRuleIdentifier, Function.identity()));
+
+        Map<String, Integer> currentValues =
+                executionSupport.incrementCounters(POLICY_RULES, rulesByIdentifier.keySet(), result);
+
+        currentValues.forEach((id, value) -> {
+            rulesByIdentifier.get(id).setCount(value);
+            focusContext.setPolicyRuleCounter(id, value);
+        });
     }
 }

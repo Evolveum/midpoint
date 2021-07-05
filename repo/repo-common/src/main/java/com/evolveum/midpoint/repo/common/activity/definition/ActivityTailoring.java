@@ -22,7 +22,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-public class ActivityTailoring {
+public class ActivityTailoring implements Cloneable {
 
     @NotNull private final List<ActivityTailoringType> changes = new ArrayList<>();
 
@@ -32,6 +32,15 @@ public class ActivityTailoring {
      * specified simply in parent task distribution section.
      */
     private ActivitySubtaskSpecificationType subtasksForChildren;
+
+    ActivityTailoring() {
+    }
+
+    private ActivityTailoring(ActivityTailoring prototype) {
+        changes.addAll(CloneUtil.cloneCollectionMembers(prototype.changes));
+        subtasksForChildren = CloneUtil.clone(prototype.subtasksForChildren);
+    }
+
 
     void addFrom(ActivityDefinitionType activityDefinitionBean) {
         if (activityDefinitionBean == null) {
@@ -59,5 +68,11 @@ public class ActivityTailoring {
 
     public ActivitySubtaskSpecificationType getSubtasksForChildren() {
         return subtasksForChildren;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public ActivityTailoring clone() {
+        return new ActivityTailoring(this);
     }
 }
