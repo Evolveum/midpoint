@@ -27,11 +27,6 @@
             <version>4.4-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>4.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
             <version>4.4-SNAPSHOT</version>
