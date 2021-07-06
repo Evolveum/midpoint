@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatisticsType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -50,5 +53,18 @@ public class ActivityStatisticsUtil {
     private static <T> T add(List<T> list, T value) {
         list.add(value);
         return value;
+    }
+
+    /**
+     * Returns the total number of items processed in all activities in this physical task.
+     * Used e.g. to provide "iterations" for task internal performance counters.
+     */
+    public static Integer getAllItemsProcessed(TaskActivityStateType taskActivityState) {
+        if (taskActivityState != null) {
+            return ActivityItemProcessingStatisticsUtil.getItemsProcessed(
+                    ActivityTreeUtil.getAllLocalStates(taskActivityState));
+        } else {
+            return null;
+        }
     }
 }

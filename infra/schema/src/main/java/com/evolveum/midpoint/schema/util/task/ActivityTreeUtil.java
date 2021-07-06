@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -139,5 +140,19 @@ public class ActivityTreeUtil {
         return TaskTreeUtil.getResolvedSubtasks(task, taskResolver).stream()
                 .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
                 .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<ActivityStateType> getAllLocalStates(@NotNull TaskActivityStateType taskActivityState) {
+        List<ActivityStateType> allStates = new ArrayList<>();
+        collectLocalStates(allStates, taskActivityState.getActivity());
+        return allStates;
+    }
+
+    private static void collectLocalStates(@NotNull List<ActivityStateType> allStates, @Nullable ActivityStateType state) {
+        if (state == null) {
+            return;
+        }
+        allStates.add(state);
+        state.getActivity().forEach(child -> collectLocalStates(allStates, child));
     }
 }
