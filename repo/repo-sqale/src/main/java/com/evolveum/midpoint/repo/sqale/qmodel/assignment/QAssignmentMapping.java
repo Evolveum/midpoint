@@ -156,6 +156,70 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
+    public AssignmentType toSchemaObject(MAssignment row) {
+        AssignmentType assignment = new AssignmentType();
+        // TODO is there any place we can put row.ownerOid reasonably?
+        //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
+        //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
+        //  For assignments we can use ownerType, but this is not general for all containers.
+        assignment.id(row.cid)
+                .lifecycleState(row.lifecycleState)
+                .order(row.orderValue)
+                .orgRef(objectReference(row.orgRefTargetOid,
+                        row.orgRefTargetType, row.orgRefRelationId))
+                .targetRef(objectReference(row.targetRefTargetOid,
+                        row.targetRefTargetType, row.targetRefRelationId))
+                .tenantRef(objectReference(row.tenantRefTargetOid,
+                        row.tenantRefTargetType, row.tenantRefRelationId));
+
+        // TODO extId/extOid - if meaningful for new repo
+
+        // TODO ext... wouldn't serialized fullObject part of the assignment be better after all?
+
+        if (row.policySituations != null) {
+            for (Integer policySituationId : row.policySituations) {
+                assignment.policySituation(resolveIdToUri(policySituationId));
+            }
+        }
+
+        if (row.resourceRefTargetOid != null) {
+            assignment.construction(new ConstructionType(prismContext())
+                    .resourceRef(objectReference(row.resourceRefTargetOid,
+                            row.resourceRefTargetType, row.resourceRefRelationId)));
+        }
+
+        ActivationType activation = new ActivationType(prismContext());
+        activation.administrativeStatus(row.administrativeStatus);
+        activation.effectiveStatus(row.effectiveStatus);
+        activation.enableTimestamp(MiscUtil.asXMLGregorianCalendar(row.enableTimestamp));
+        activation.disableTimestamp(MiscUtil.asXMLGregorianCalendar(row.disableTimestamp));
+        activation.disableReason(row.disableReason);
+        activation.validityStatus(row.validityStatus);
+        activation.validFrom(MiscUtil.asXMLGregorianCalendar(row.validFrom));
+        activation.validTo(MiscUtil.asXMLGregorianCalendar(row.validTo));
+        activation.validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(row.validityChangeTimestamp));
+        activation.archiveTimestamp(MiscUtil.asXMLGregorianCalendar(row.archiveTimestamp));
+        if (!activation.asPrismContainerValue().isEmpty()) {
+            assignment.activation(activation);
+        }
+
+        MetadataType metadata = new MetadataType(prismContext());
+        metadata.creatorRef(objectReference(row.creatorRefTargetOid,
+                row.creatorRefTargetType, row.creatorRefRelationId));
+        metadata.createChannel(resolveIdToUri(row.createChannelId));
+        metadata.createTimestamp(MiscUtil.asXMLGregorianCalendar(row.createTimestamp));
+        metadata.modifierRef(objectReference(row.modifierRefTargetOid,
+                row.modifierRefTargetType, row.modifierRefRelationId));
+        metadata.modifyChannel(resolveIdToUri(row.modifyChannelId));
+        metadata.modifyTimestamp(MiscUtil.asXMLGregorianCalendar(row.modifyTimestamp));
+        if (!metadata.asPrismContainerValue().isEmpty()) {
+            assignment.metadata(metadata);
+        }
+
+        return assignment;
+    }
+
+    @Override
     protected QAssignment<OR> newAliasInstance(String alias) {
         return new QAssignment<>(alias);
     }

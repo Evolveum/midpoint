@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -151,11 +152,14 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                         .validFrom("2021-07-04T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
                 .assignment(new AssignmentType(prismContext)
-                        .lifecycleState("assignment1")
+                        .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
                         .activation(new ActivationType(prismContext)
                                 .validFrom("2021-03-01T00:00:00Z")
                                 .validTo("2022-07-04T00:00:00Z")))
+                .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("assignment1-2")
+                        .order(1))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -183,7 +187,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
         user1.assignment(new AssignmentType(prismContext)
-                .lifecycleState("activationExt")
+                .lifecycleState("assignment1-3-ext")
                 .extension(user1AssignmentExtension));
         addExtensionValue(user1AssignmentExtension, "integer", 47);
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
@@ -865,7 +869,7 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void test320QueryWithExistsFilter() throws SchemaException {
         searchUsersTest("matching the exists filter for assignment",
                 f -> f.exists(UserType.F_ASSIGNMENT)
-                        .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1"),
+                        .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1-1"),
                 user1Oid);
     }
 
@@ -1535,6 +1539,28 @@ AND(
                 .hasMessageContaining("not indexed");
     }
 
+    @Test
+    public void test600SearchContainersByOwnerId() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "assignments by owner OID", AssignmentType.class, f -> f.ownerId(user1Oid));
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactlyInAnyOrder("assignment1-1", "assignment1-2", "assignment1-3-ext");
+        // more extensive test of one assignment instance
+        assertThat(result).filteredOn(a -> a.getLifecycleState().equals("assignment1-1"))
+                .singleElement()
+                .matches(a -> a.getConstruction() == null)
+                .matches(a -> a.getActivation().getValidFrom().equals(
+                        createXMLGregorianCalendar("2021-03-01T00:00:00Z")))
+                .matches(a -> a.getActivation().getValidTo().equals(
+                        createXMLGregorianCalendar("2022-07-04T00:00:00Z")))
+                .matches(a -> a.getOrgRef().getOid().equals(org1Oid))
+                .matches(a -> a.getOrgRef().getType().equals(OrgType.COMPLEX_TYPE))
+                .matches(a -> a.getOrgRef().getRelation().equals(relation1))
+                .matches(a -> a.getMetadata() == null);
+
+    }
+
     // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
     // endregion
 
@@ -1682,10 +1708,11 @@ AND(
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
+        display("QUERY: " + query);
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
         String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
                 queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("QUERY: " + serializedQuery);
+        display("Serialized QUERY: " + serializedQuery);
 
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
@@ -1696,5 +1723,45 @@ AND(
                 Arrays.asList(selectorOptions),
                 operationResult)
                 .map(p -> p.asObjectable());
+    }
+
+    private <T extends Containerable> SearchResultList<T> searchContainerTest(
+            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_FilterExit> filter)
+            throws SchemaException {
+        String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
+        when("searching for " + typeName + "(s) " + description);
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<T> result = searchContainers(type,
+                filter.apply(prismContext.queryFor(type)).build(),
+                operationResult);
+
+        then(typeName + "(s) " + description + " are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        return result;
+    }
+
+    /** Search containers using {@link ObjectQuery}. */
+    @SafeVarargs
+    @NotNull
+    private <T extends Containerable> SearchResultList<T> searchContainers(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        display("QUERY: " + query);
+        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        display("Serialized QUERY: " + serializedQuery);
+
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
+        return repositoryService.searchContainers(
+                type,
+                query,
+                Arrays.asList(selectorOptions),
+                operationResult);
     }
 }

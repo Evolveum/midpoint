@@ -109,6 +109,18 @@ public class SqaleRepoContext extends SqlRepoContext {
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
+    public String resolveIdToUri(Integer uriId) {
+        return uriId != null
+                ? uriCache.resolveToUri(uriId)
+                : null;
+    }
+
+    public QName resolveUriIdToQName(Integer uriId) {
+        return uriId != null
+                ? QNameUtil.uriToQName(uriCache.resolveToUri(uriId))
+                : null;
+    }
+
     public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
         return extItemCache.resolveExtensionItem(extItemKey);
     }

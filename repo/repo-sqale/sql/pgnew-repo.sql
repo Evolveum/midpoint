@@ -1114,7 +1114,7 @@ CREATE TABLE m_task (
         CHECK (objectType = 'TASK'),
     taskIdentifier TEXT,
     binding TaskBindingType,
-    category TEXT,
+    category TEXT, -- TODO revise, deprecated, probably can go away soon
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStateType,
     fullResult BYTEA,
