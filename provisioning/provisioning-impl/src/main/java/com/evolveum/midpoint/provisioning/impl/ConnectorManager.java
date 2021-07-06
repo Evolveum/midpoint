@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -74,7 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
  *
  */
 @Component
-public class ConnectorManager implements Cache {
+public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
 
@@ -122,7 +123,9 @@ public class ConnectorManager implements Cache {
             for (String connectorFactoryBeanName: connectorFactoryBeanNames) {
                 Object bean = springContext.getBean(connectorFactoryBeanName);
                 if (bean instanceof ConnectorFactory) {
-                    connectorFactories.add((ConnectorFactory)bean);
+                    ConnectorFactory connFactory = (ConnectorFactory)bean;
+                    connectorFactories.add(connFactory);
+                    connFactory.registerDiscoveryListener(this);
                 } else {
                     LOGGER.error("Bean {} is not instance of ConnectorFactory, it is {}, skipping", connectorFactoryBeanName, bean.getClass());
                 }
@@ -693,6 +696,15 @@ public class ConnectorManager implements Cache {
         if (LOGGER_CONTENT.isInfoEnabled()) {
             connectorInstanceCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached connector instance: {}: {}", k, v));
             connectorBeanCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached connector bean: {}: {}", k, v));
+        }
+    }
+
+    @Override
+    public void newConnectorDiscovered(ConnectorHostType host) {
+        try {
+            discoverConnectors(host, new OperationResult("connectorDiscovered"));
+        } catch (CommunicationException e) {
+            LOGGER.error("Error occured during discovery of connectors");
         }
     }
 }
