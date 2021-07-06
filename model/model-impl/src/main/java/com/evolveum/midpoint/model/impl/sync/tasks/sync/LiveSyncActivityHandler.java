@@ -10,21 +10,16 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkStateType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
@@ -35,13 +30,12 @@ public class LiveSyncActivityHandler
         extends ModelActivityHandler<LiveSyncWorkDefinition, LiveSyncActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
-    private static final Trace LOGGER = TraceManager.getTrace(LiveSyncActivityHandler.class);
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(LiveSyncWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this);
+                LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

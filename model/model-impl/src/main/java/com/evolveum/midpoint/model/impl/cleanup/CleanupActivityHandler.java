@@ -24,7 +24,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -40,9 +39,9 @@ public class CleanupActivityHandler
         extends ModelActivityHandler<CleanupWorkDefinition, CleanupActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
 
     @Autowired private TaskManager taskManager;
-    @Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
     @Autowired(required = false) private WorkflowManager workflowManager;
     @Autowired private AccessCertificationService certificationService;
@@ -51,7 +50,7 @@ public class CleanupActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(CleanupWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                CleanupWorkDefinition.class, CleanupWorkDefinition::new, this);
+                CleanupWorkDefinition.class, CleanupWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

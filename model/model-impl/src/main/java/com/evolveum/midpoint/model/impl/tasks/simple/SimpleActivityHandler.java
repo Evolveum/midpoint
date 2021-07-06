@@ -12,6 +12,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,7 +68,7 @@ public abstract class SimpleActivityHandler<O extends ObjectType, WD extends Wor
     @PostConstruct
     public void register() {
         handlerRegistry.register(getWorkDefinitionTypeName(), getLegacyHandlerUri(), getWorkDefinitionClass(),
-                getWorkDefinitionSupplier(), this);
+                getWorkDefinitionSupplier(), this, getArchetypeOid());
     }
 
     @PreDestroy
@@ -94,6 +95,8 @@ public abstract class SimpleActivityHandler<O extends ObjectType, WD extends Wor
     protected abstract @NotNull WorkDefinitionSupplier getWorkDefinitionSupplier();
 
     protected abstract @NotNull String getLegacyHandlerUri();
+
+    protected abstract @Nullable String getArchetypeOid();
 
     protected abstract @NotNull String getShortName();
 

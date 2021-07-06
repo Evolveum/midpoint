@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,15 +46,24 @@ public class ActivityHandlerRegistry {
     /**
      * Contains activity implementation objects keyed by work definition class (e.g. PropagationWorkDefinition).
      */
-    private final Map<Class<? extends WorkDefinition>, ActivityHandler<?, ?>> handlersMap = new ConcurrentHashMap<>();
+    @NotNull private final Map<Class<? extends WorkDefinition>, ActivityHandler<?, ?>> handlersMap = new ConcurrentHashMap<>();
+
+    /**
+     * Maps legacy handler URI to archetype OID. This is a temporary tool for the current GUI.
+     */
+    @NotNull private final Map<String, String> archetypeMap = new ConcurrentHashMap<>();
 
     /**
      * Registers both the work definition factory and the activity handler.
      */
     public void register(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass,
-            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
+            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler,
+            @Nullable String archetypeOid) {
         workDefinitionFactory.registerSupplier(typeName, legacyHandlerUri, supplier);
         registerHandler(definitionClass, activityHandler);
+        if (legacyHandlerUri != null && archetypeOid != null) {
+            registerArchetypeOid(legacyHandlerUri, archetypeOid);
+        }
     }
 
     /**
@@ -64,12 +74,19 @@ public class ActivityHandlerRegistry {
         handlersMap.put(definitionClass, activityHandler);
     }
 
+    private void registerArchetypeOid(String legacyHandlerUri, String archetypeOid) {
+        archetypeMap.put(legacyHandlerUri, archetypeOid);
+    }
+
     /**
      * Unregisters work definition factory and activity handler.
      */
     public void unregister(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass) {
         workDefinitionFactory.unregisterSupplier(typeName, legacyHandlerUri);
         unregisterHandler(definitionClass);
+        if (legacyHandlerUri != null) {
+            unregisterArchetypeOid(legacyHandlerUri);
+        }
     }
 
     /**
@@ -78,6 +95,10 @@ public class ActivityHandlerRegistry {
     public void unregisterHandler(Class<? extends WorkDefinition> definitionClass) {
         LOGGER.trace("Unregistering activity handler for {}", definitionClass);
         handlersMap.remove(definitionClass);
+    }
+
+    private void unregisterArchetypeOid(String legacyHandlerUri) {
+        archetypeMap.remove(legacyHandlerUri);
     }
 
     @NotNull
@@ -89,5 +110,9 @@ public class ActivityHandlerRegistry {
         return (AH) requireNonNull(handlersMap.get(workDefinitionClass),
                         () -> new IllegalStateException("Couldn't find implementation for " + workDefinitionClass +
                                 " in " + activityDefinition));
+    }
+
+    public @Nullable String getArchetypeOid(@NotNull String legacyHandlerUri) {
+        return archetypeMap.get(legacyHandlerUri);
     }
 }

@@ -127,7 +127,7 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(); // todo reconsider
     }
 

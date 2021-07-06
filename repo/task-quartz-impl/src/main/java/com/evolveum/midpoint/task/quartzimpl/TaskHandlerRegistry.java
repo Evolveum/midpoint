@@ -131,7 +131,7 @@ public class TaskHandlerRegistry {
 
     public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
         return getHandlerUriMap(nonDeprecatedOnly).entrySet().stream()
-                .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid()))
+                .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid(entry.getKey())))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
     }

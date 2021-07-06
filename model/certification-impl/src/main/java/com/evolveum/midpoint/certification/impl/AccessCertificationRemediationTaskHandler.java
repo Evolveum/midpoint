@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -158,7 +159,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class MultiPropagationActivityHandler implements ActivityHandler<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-3";
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired ActivityHandlerRegistry handlerRegistry;
@@ -42,7 +41,7 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     @PostConstruct
     public void register() {
         handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this);
+                MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

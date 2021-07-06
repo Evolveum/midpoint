@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -77,6 +79,11 @@ public class ChangeExecutionActivityHandler
     @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 
     @Override

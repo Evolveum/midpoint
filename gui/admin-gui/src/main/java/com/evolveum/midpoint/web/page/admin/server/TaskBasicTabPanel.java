@@ -20,15 +20,11 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,7 +75,8 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                 }
 
                 if (!WebComponentUtil.hasAnyArchetypeAssignment(getTask())) {
-                    WebComponentUtil.addNewArchetype(TaskBasicTabPanel.this.getModelObject(), taskHandler.getArchetypeOid(), target, getPageBase());
+                    String archetypeOid = taskHandler.getArchetypeOid(newHandlerUri);
+                    WebComponentUtil.addNewArchetype(TaskBasicTabPanel.this.getModelObject(), archetypeOid, target, getPageBase());
                 }
 
                 PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());

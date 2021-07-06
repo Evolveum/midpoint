@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.api;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -63,7 +64,11 @@ public interface TaskHandler {
     }
 
     /**
-     * @return Archetype OID for tasks that are powered by this handler.
+     * TODO Decide on the fate of this method.
+     *
+     * @param handlerUri One the handler URIs supported by this handler.
+     *
+     * @return Archetype OID for tasks that are powered by this handler and have the specified handler URI.
      */
-    String getArchetypeOid();
+    @Nullable String getArchetypeOid(@Nullable String handlerUri);
 }

@@ -44,11 +44,12 @@ public class ShadowRefreshActivityHandler
         extends ModelActivityHandler<ShadowRefreshActivityHandler.MyWorkDefinition, ShadowRefreshActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MyWorkDefinition.class, MyWorkDefinition::new, this);
+                MyWorkDefinition.class, MyWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

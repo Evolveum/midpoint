@@ -8,9 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class PropagationActivityHandler implements ActivityHandler<PropagationWorkDefinition, PropagationActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired ActivityHandlerRegistry handlerRegistry;
@@ -44,7 +41,7 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     @PostConstruct
     public void register() {
         handlerRegistry.register(PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                PropagationWorkDefinition.class, PropagationWorkDefinition::new, this);
+                PropagationWorkDefinition.class, PropagationWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

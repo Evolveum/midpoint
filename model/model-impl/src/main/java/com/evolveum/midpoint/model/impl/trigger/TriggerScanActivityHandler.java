@@ -12,6 +12,8 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,13 +37,14 @@ public class TriggerScanActivityHandler
         extends ModelActivityHandler<TriggerScanWorkDefinition, TriggerScanActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(TriggerScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                TriggerScanWorkDefinition.class, TriggerScanWorkDefinition::new, this);
+                TriggerScanWorkDefinition.class, TriggerScanWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

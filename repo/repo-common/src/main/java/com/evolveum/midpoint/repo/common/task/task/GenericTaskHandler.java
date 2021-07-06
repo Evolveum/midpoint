@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.task.api.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,8 +62,12 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
-        return null; // TODO
+    public @Nullable String getArchetypeOid(@Nullable String handlerUri) {
+        if (handlerUri == null) {
+            return null;
+        } else {
+            return beans.activityHandlerRegistry.getArchetypeOid(handlerUri);
+        }
     }
 
     /**

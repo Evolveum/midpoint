@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -17,8 +16,6 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -27,13 +24,12 @@ public class ImportActivityHandler
         extends ModelActivityHandler<ImportWorkDefinition, ImportActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
-    private static final Trace LOGGER = TraceManager.getTrace(ImportActivityHandler.class);
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(ImportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                ImportWorkDefinition.class, ImportWorkDefinition::new, this);
+                ImportWorkDefinition.class, ImportWorkDefinition::new, this, ARCHETYPE_OID);
     }
 
     @PreDestroy

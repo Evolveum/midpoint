@@ -39,7 +39,7 @@ public class SimpleMockActivityHandler extends AbstractMockActivityHandler<Simpl
     @PostConstruct
     public void register() {
         handlerRegistry.register(SimpleMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
-                SimpleMockWorkDefinition.class, SimpleMockWorkDefinition::new, this);
+                SimpleMockWorkDefinition.class, SimpleMockWorkDefinition::new, this, null);
     }
 
     @PreDestroy

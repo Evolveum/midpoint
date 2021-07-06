@@ -53,7 +53,7 @@ public class CompositeMockActivityHandler
     @PostConstruct
     public void register() {
         registry.register(CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, LEGACY_HANDLER_URI,
-                CompositeMockWorkDefinition.class, CompositeMockWorkDefinition::new, this);
+                CompositeMockWorkDefinition.class, CompositeMockWorkDefinition::new, this, null);
     }
 
     @PreDestroy
