@@ -225,6 +225,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
     }
 
+    /**
+     * Implemented for searchable containers that do not use fullObject for their recreation.
+     */
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
@@ -256,8 +259,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Fails if OID is not null and {@code repoObjectType} is null.
      */
     @Nullable
-    protected ObjectReferenceType objectReferenceType(
-            @Nullable String oid, MObjectType repoObjectType, String targetName) {
+    protected ObjectReferenceType objectReference(
+            @Nullable UUID oid, MObjectType repoObjectType, Integer relationId) {
         if (oid == null) {
             return null;
         }
@@ -267,10 +270,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
 
         return new ObjectReferenceType()
-                .oid(oid)
+                .oid(oid.toString())
                 .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
-                .description(targetName)
-                .targetName(targetName);
+                .relation(resolveUriIdToQName(relationId));
     }
 
     /**
@@ -319,6 +321,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return uris.stream()
                 .map(uri -> processCacheableUri(uri))
                 .toArray(Integer[]::new);
+    }
+
+    public String resolveIdToUri(Integer uriId) {
+        return repositoryContext().resolveIdToUri(uriId);
+    }
+
+    public QName resolveUriIdToQName(Integer uriId) {
+        return repositoryContext().resolveUriIdToQName(uriId);
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
