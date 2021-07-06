@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCusto
  * with the same item filter processors used for non-extension columns (only the mapping
  * registration would be dynamic, which is not a big deal).
  */
-public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
+public class AuditCustomColumnItemFilterProcessor extends ItemValueFilterProcessor<
         PropertyValueFilter<AuditEventRecordCustomColumnPropertyType>> {
 
     /**

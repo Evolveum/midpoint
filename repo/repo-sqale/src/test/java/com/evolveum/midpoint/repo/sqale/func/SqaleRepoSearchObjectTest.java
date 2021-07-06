@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
 import java.math.BigDecimal;
@@ -146,6 +147,15 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .subtype("workerC")
                 .policySituation("situationA")
                 .policySituation("situationC")
+                .activation(new ActivationType(prismContext)
+                        .validFrom("2021-07-04T00:00:00Z")
+                        .validTo("2022-07-04T00:00:00Z"))
+                .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("assignment1")
+                        .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
+                        .activation(new ActivationType(prismContext)
+                                .validFrom("2021-03-01T00:00:00Z")
+                                .validTo("2022-07-04T00:00:00Z")))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user1Extension = user1.getExtension();
         addExtensionValue(user1Extension, "string", "string-value");
@@ -170,8 +180,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 ref(org1Oid, null, relation2), // type is nullable if provided in schema
                 ref(org2Oid, OrgType.COMPLEX_TYPE)); // default relation
         addExtensionValue(user1Extension, "string-ni", "not-indexed-item");
+
         ExtensionType user1AssignmentExtension = new ExtensionType(prismContext);
         user1.assignment(new AssignmentType(prismContext)
+                .lifecycleState("activationExt")
                 .extension(user1AssignmentExtension));
         addExtensionValue(user1AssignmentExtension, "integer", 47);
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
@@ -180,6 +192,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                 .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
                 .subtype("workerA")
+                .activation(new ActivationType(prismContext)
+                        .validFrom("2021-03-01T00:00:00Z")
+                        .validTo("2022-07-04T00:00:00Z"))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
@@ -201,6 +216,12 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
                 .policySituation("situationA")
+                .assignment(new AssignmentType(prismContext)
+                        .activation(new ActivationType(prismContext)
+                                .validFrom("2021-01-01T00:00:00Z")))
+                .assignment(new AssignmentType(prismContext)
+                        .activation(new ActivationType(prismContext)
+                                .validTo("2022-01-01T00:00:00Z")))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 3);
@@ -228,6 +249,8 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 null, result);
 
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
+                .pendingOperation(new PendingOperationType().attemptNumber(1))
+                .pendingOperation(new PendingOperationType().attemptNumber(2))
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
@@ -496,10 +519,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void test180SearchCaseWorkItemByOutcome() throws Exception {
         searchCaseWorkItemByOutcome("OUTCOME one", case1Oid);
         searchCaseWorkItemByOutcome("OUTCOME two", case1Oid);
-        searchCaseWorkItemByOutcome("OUTCOME nonexist", null);
+        searchCaseWorkItemByOutcome("OUTCOME nonexist");
     }
 
-    private void searchCaseWorkItemByOutcome(String wiOutcome, String expectedCaseOid) throws Exception {
+    private void searchCaseWorkItemByOutcome(String wiOutcome, String... expectedCaseOids) throws Exception {
         when("searching case with query for workitem/output/outcome " + wiOutcome);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
@@ -511,12 +534,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         then("case with the matching workitem outcome is returned");
         assertThatOperationResult(operationResult).isSuccess();
-        if (expectedCaseOid == null) {
-            assertThat(result).hasSize(0);
-        } else {
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getOid()).isEqualTo(expectedCaseOid);
-        }
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedCaseOids);
     }
 
     /**
@@ -527,10 +547,10 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE1_OID, case1Oid);
         searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE2_OID, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXIST_OID, null);
+        searchCaseWorkItemByAssignee(NONEXIST_OID);
     }
 
-    private void searchCaseWorkItemByAssignee(String assigneeOid, String expectedCaseOid) throws Exception {
+    private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
         when("searching case with query for workitem/assigneeRef OID " + assigneeOid);
         OperationResult operationResult = createOperationResult();
         SearchResultList<CaseType> result = searchObjects(CaseType.class,
@@ -541,12 +561,9 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
 
         then("case with the matching workitem assigneeRef is returned");
         assertThatOperationResult(operationResult).isSuccess();
-        if (expectedCaseOid == null) {
-            assertThat(result).hasSize(0);
-        } else {
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getOid()).isEqualTo(expectedCaseOid);
-        }
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(expectedCaseOids);
     }
 
     // TODO: search cert workitems
@@ -844,6 +861,43 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                 f -> f.type(FocusType.class));
     }
 
+    @Test
+    public void test320QueryWithExistsFilter() throws SchemaException {
+        searchUsersTest("matching the exists filter for assignment",
+                f -> f.exists(UserType.F_ASSIGNMENT)
+                        .item(AssignmentType.F_LIFECYCLE_STATE).eq("assignment1"),
+                user1Oid);
+    }
+
+    @Test
+    public void test322AndFilterVersusExistsAndFilter() throws SchemaException {
+        searchUsersTest("matching the AND filter for assignment (across multiple assignments)",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
+                        .lt(createXMLGregorianCalendar("2021-02-01T00:00:00Z"))
+                        .and()
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
+                        .gt(createXMLGregorianCalendar("2021-12-01T00:00:00Z")),
+                user3Oid); // matches the user with two assignments
+
+        searchUsersTest("matching the AND inside EXISTS filter for assignment",
+                f -> f.exists(UserType.F_ASSIGNMENT)
+                        .block() // block necessary, otherwise the second item goes from User
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
+                        .lt(createXMLGregorianCalendar("2021-02-01T00:00:00Z"))
+                        .and()
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
+                        .gt(createXMLGregorianCalendar("2021-12-01T00:00:00Z"))
+                        .endBlock());
+        // but no user with one assignment matching both conditions exists
+    }
+
+    @Test
+    public void test325ExistsFilterWithSizeColumn() throws SchemaException {
+        searchObjectTest("having pending operations", ShadowType.class,
+                f -> f.exists(ShadowType.F_PENDING_OPERATION),
+                shadow1Oid);
+    }
+
 
 /* TODO EXISTS tests
 1. @Count property => pendingOperationCount > 0; see: ClassDefinitionParser#parseMethod() + getJaxbName()
@@ -852,7 +906,7 @@ EXISTS(pendingOperation, null)
 2. multi-value container stored in table:
 EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
 
-3. cointainer query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
+3. container query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
   matching on parent's ownerID (OID of AccessCertificationCampaignType) + its own CID (AccessCertificationCaseType)
 EXISTS({http://prism.evolveum.com/xml/ns/public/types-3}parent, AND(IN OID (for owner): e8c07a7a-1b11-11e8-9b32-1715a2e8273b, IN OID: 1))
 
@@ -893,9 +947,7 @@ OR(
       LESS-OR-EQUAL: activation/validFrom,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
       LESS-OR-EQUAL: activation/validTo,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00))))
 
-7. typical case EXISTS(assignment, ...)
-
-8. AND(2x EXISTS with multiple ref values)
+8. AND(2x EXISTS with multiple ref values) - why are both exists branches the same?
 main >>> Q{
 AND(
   EXISTS(assignment,
@@ -931,7 +983,7 @@ AND(
                 .anyMatch(o -> o.getOid().equals(user2Oid));
     }
 
-    @Test(enabled = false) // TODO ref matching must be changed to SQL EXISTS, then it may work
+    @Test
     public void test401SearchObjectNotHavingSpecifiedRef() throws SchemaException {
         when("searching users not having specified value of parent org ref");
         OperationResult operationResult = createOperationResult();
@@ -1611,7 +1663,7 @@ AND(
         when("searching for " + typeName + "(s) " + description);
         OperationResult operationResult = createOperationResult();
         SearchResultList<T> result = searchObjects(type,
-                filter.apply(prismContext.queryFor(UserType.class)).build(),
+                filter.apply(prismContext.queryFor(type)).build(),
                 operationResult);
 
         then(typeName + "(s) " + description + " are returned");

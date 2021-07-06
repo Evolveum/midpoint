@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <R> row type of {@link Q}
  */
 public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
-        implements SqaleItemRelationResolver<Q, R> {
+        implements SqaleItemRelationResolver<Q, R, Q, R> {
 
     private final SqaleNestedMapping<S, Q, R> mapping;
 
@@ -31,8 +31,8 @@ public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRe
 
     /** Returns the same context and nested mapping. */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
-        return new ResolutionResult(context, mapping);
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
+        return new ResolutionResult<>(context, mapping);
     }
 
     @Override

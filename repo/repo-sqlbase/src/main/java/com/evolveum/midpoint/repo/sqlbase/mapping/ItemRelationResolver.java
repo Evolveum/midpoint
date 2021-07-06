@@ -15,24 +15,37 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  *
  * @param <Q> query type with the mapping
  * @param <R> row type related to {@link Q}
+ * @param <TQ> type of target entity path
+ * @param <TR> row type related to the target entity path {@link TQ}
  */
-public interface ItemRelationResolver<Q extends FlexibleRelationalPathBase<R>, R> {
+public interface ItemRelationResolver<
+        Q extends FlexibleRelationalPathBase<R>, R,
+        TQ extends FlexibleRelationalPathBase<TR>, TR> {
 
     /**
      * Resolves a query context to {@link ResolutionResult} with new context and mapping.
      * The information about the resolved item is captured in the instance resolver already
-     * in a manner that is specific for various types of resolution (JOIN or nested mapping).
+     * in a manner that is specific for various types of resolution (subquery or nested mapping).
      */
-    ResolutionResult resolve(SqlQueryContext<?, Q, R> context);
+    ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context);
 
-    class ResolutionResult {
-        public final SqlQueryContext<?, ?, ?> context;
-        public final QueryModelMapping<?, ?, ?> mapping;
+    class ResolutionResult<TQ extends FlexibleRelationalPathBase<TR>, TR> {
+        public final SqlQueryContext<?, TQ, TR> context;
+        public final QueryModelMapping<?, TQ, TR> mapping;
+        public final boolean subquery;
 
         public ResolutionResult(
-                SqlQueryContext<?, ?, ?> context, QueryModelMapping<?, ?, ?> mapping) {
+                SqlQueryContext<?, TQ, TR> context, QueryModelMapping<?, TQ, TR> mapping) {
             this.context = context;
             this.mapping = mapping;
+            subquery = false;
+        }
+
+        public ResolutionResult(SqlQueryContext<?, TQ, TR> context,
+                QueryModelMapping<?, TQ, TR> mapping, boolean subquery) {
+            this.context = context;
+            this.mapping = mapping;
+            this.subquery = subquery;
         }
     }
 }

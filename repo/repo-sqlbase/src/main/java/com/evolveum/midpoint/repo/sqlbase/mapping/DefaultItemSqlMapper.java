@@ -13,10 +13,10 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -46,10 +46,10 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     @Nullable private final Function<Q, Path<?>> primaryItemMapping;
 
     @NotNull private final
-    Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory;
+    Function<SqlQueryContext<S, Q, R>, ItemValueFilterProcessor<?>> filterProcessorFactory;
 
     public <P extends Path<?>> DefaultItemSqlMapper(
-            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemValueFilterProcessor<?>> filterProcessorFactory,
             @Nullable Function<Q, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         //noinspection unchecked
@@ -57,7 +57,7 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     public DefaultItemSqlMapper(
-            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory) {
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemValueFilterProcessor<?>> filterProcessorFactory) {
         this(filterProcessorFactory, null);
     }
 
@@ -66,7 +66,7 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     /**
-     * Creates {@link ItemFilterProcessor} based on this mapping.
+     * Creates {@link ItemValueFilterProcessor} based on this mapping.
      * Provided {@link SqlQueryContext} is used to figure out the query paths when this is executed
      * (as the entity path instance is not yet available when the mapping is configured
      * in a declarative manner).
@@ -79,9 +79,9 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
      * but not filtering for queries.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public @Nullable <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+    public @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
-        return (ItemFilterProcessor<T>) filterProcessorFactory
+        return (ItemValueFilterProcessor<T>) filterProcessorFactory
                 .apply((SqlQueryContext) sqlQueryContext);
     }
 }

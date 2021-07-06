@@ -218,7 +218,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     }
 
     @Override
-    public BiFunction<OQ, QObjectReference<OR>, Predicate> joinOnPredicate() {
+    public BiFunction<OQ, QObjectReference<OR>, Predicate> correlationPredicate() {
         return (o, r) -> o.oid.eq(r.ownerOid);
     }
 }

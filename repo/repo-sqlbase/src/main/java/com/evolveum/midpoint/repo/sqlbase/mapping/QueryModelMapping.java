@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -47,7 +47,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     private final Class<Q> queryType;
 
     private final Map<QName, ItemSqlMapper<Q, R>> itemMappings = new LinkedHashMap<>();
-    private final Map<QName, ItemRelationResolver<Q, R>> itemRelationResolvers = new HashMap<>();
+    private final Map<QName, ItemRelationResolver<Q, R, ?, ?>> itemRelationResolvers = new HashMap<>();
 
     public QueryModelMapping(
             @NotNull Class<S> schemaType,
@@ -106,14 +106,14 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver<Q, R> itemRelationResolver) {
+            @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver) {
         itemRelationResolvers.put(itemName, itemRelationResolver);
         return this;
     }
 
     /**
      * Returns {@link ItemSqlMapper} for provided {@link ItemName} or throws.
-     * This is later used to create {@link ItemFilterProcessor}.
+     * This is later used to create {@link ItemValueFilterProcessor}.
      *
      * @throws QueryException if the mapper for the item is not found
      */
@@ -137,11 +137,14 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Returns {@link ItemRelationResolver} for provided {@link ItemName} or throws.
      * Relation resolver helps with traversal over all-but-last components of item paths.
      *
+     * @param <TQ> type of target entity path
+     * @param <TR> row type related to the target entity path {@link TQ}
      * @throws QueryException if the resolver for the item is not found
      */
-    public final @NotNull ItemRelationResolver<Q, R> relationResolver(ItemName itemName)
+    public final @NotNull <TQ extends FlexibleRelationalPathBase<TR>, TR>
+    ItemRelationResolver<Q, R, TQ, TR> relationResolver(ItemName itemName)
             throws QueryException {
-        ItemRelationResolver<Q, R> resolver = getRelationResolver(itemName);
+        ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {
             throw new QueryException("Missing relation resolver for '" + itemName
                     + "' in mapping " + getClass().getSimpleName());
@@ -151,9 +154,15 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     /**
      * Returns {@link ItemRelationResolver} for provided {@link ItemName} or `null`.
+     *
+     * @param <TQ> type of target entity path
+     * @param <TR> row type related to the target entity path {@link TQ}
      */
-    public final @Nullable ItemRelationResolver<Q, R> getRelationResolver(ItemName itemName) {
-        return QNameUtil.getByQName(itemRelationResolvers, itemName);
+    public final @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
+    ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(ItemName itemName) {
+        //noinspection unchecked
+        return (ItemRelationResolver<Q, R, TQ, TR>)
+                QNameUtil.getByQName(itemRelationResolvers, itemName);
     }
 
     /** Returns copy of the map of the item mappings. */

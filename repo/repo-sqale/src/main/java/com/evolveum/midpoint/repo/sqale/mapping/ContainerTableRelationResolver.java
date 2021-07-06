@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -34,16 +35,16 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
-        implements SqaleItemRelationResolver<Q, R> {
+        implements SqaleItemRelationResolver<Q, R, TQ, TR> {
 
     private final QContainerMapping<TS, TQ, TR, R> targetMapping;
-    private final BiFunction<Q, TQ, Predicate> joinPredicate;
+    private final BiFunction<Q, TQ, Predicate> correlationPredicate;
 
     public ContainerTableRelationResolver(
             @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
         this.targetMapping = targetMapping;
-        this.joinPredicate = joinPredicate;
+        this.correlationPredicate = correlationPredicate;
     }
 
     /**
@@ -54,11 +55,13 @@ public class ContainerTableRelationResolver<
      * @return result with context for JOINed entity path and its mapping
      */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> joinContext =
-                context.leftJoin(targetMapping.queryType(), joinPredicate);
+    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
+        SqlQueryContext<TS, TQ, TR> subcontext =
+                context.subquery(targetMapping.queryType());
+        SQLQuery<?> subquery = subcontext.sqlQuery();
+        subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 
-        return new ResolutionResult(joinContext, joinContext.mapping());
+        return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
     }
 
     @Override

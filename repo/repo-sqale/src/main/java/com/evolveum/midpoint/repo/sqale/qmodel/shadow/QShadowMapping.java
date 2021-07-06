@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -45,13 +46,14 @@ public class QShadowMapping
         addItemMapping(F_EXISTS, booleanMapper(q -> q.exist));
         addItemMapping(F_FULL_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.fullSynchronizationTimestamp));
-        // TODO size filter? how?
-//        addItemMapping(F_PENDING_OPERATION, integerMapper(q -> q.pendingOperationCount));
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE, stringMapper(q -> q.primaryIdentifierValue));
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
                 timestampMapper(q -> q.synchronizationTimestamp));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
+
+        addRelationResolver(F_PENDING_OPERATION,
+                new CountMappingResolver<>(q -> q.pendingOperationCount));
     }
 
     @Override

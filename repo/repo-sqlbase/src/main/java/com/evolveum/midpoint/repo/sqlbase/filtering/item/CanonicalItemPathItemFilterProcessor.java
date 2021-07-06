@@ -32,7 +32,6 @@ public class CanonicalItemPathItemFilterProcessor
     /**
      * Returns the mapper creating the item path filter processor from the context.
      *
-     * @param <S> schema type of the mapping owner
      * @param <Q> entity query type of the mapping
      * @param <R> row type related to the {@link Q}
      */

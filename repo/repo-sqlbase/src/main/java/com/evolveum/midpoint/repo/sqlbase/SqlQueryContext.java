@@ -127,7 +127,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      */
     public void processFilter(ObjectFilter filter) throws RepositoryException {
         if (filter != null) {
-            sqlQuery.where(process(filter));
+            Predicate predicate = process(filter);
+            try {
+                sqlQuery.where(predicate);
+            } catch (IllegalArgumentException e) {
+                throw new RepositoryException("Query construction problem, current query: "
+                        + sqlQuery + "\n  Predicate: " + predicate, e);
+            }
         }
     }
 
@@ -164,6 +170,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         } else {
             throw new QueryException("Unsupported filter " + filter);
         }
+    }
+
+    // TODO EXPLAIN
+    public Predicate transform(Predicate predicate) {
+        return predicate;
     }
 
     /**
@@ -328,7 +339,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         // We don't want to collide with other JOIN aliases, but no need to check other subqueries.
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
         TQ subqueryPath = targetMapping.newAlias(aliasName);
-        SQLQuery<Integer> subquery = new SQLQuery<Integer>()
+        SQLQuery<?> subquery = new SQLQuery<Integer>()
                 .select(QuerydslUtils.EXPRESSION_ONE)
                 .from(subqueryPath);
         return newSubcontext(subqueryPath, targetMapping, subquery);
@@ -349,11 +360,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param <TQ> query type for the new (target) table
      * @param <TR> row type related to the {@link TQ}
      */
-    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> newSubcontext(
-            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
-        throw new UnsupportedOperationException("Not supported, implement in subclass");
-    }
+            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =

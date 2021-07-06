@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <P> type of the Querydsl path
  */
 public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
-        extends ItemFilterProcessor<PropertyValueFilter<T>> {
+        extends ItemValueFilterProcessor<PropertyValueFilter<T>> {
 
     protected final P path;
 

@@ -12,7 +12,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.ExtensionItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ExtensionItemFilterProcessor;
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -57,10 +57,10 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    public @Nullable <T extends ObjectFilter> ItemFilterProcessor<T> createFilterProcessor(
+    public @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
         //noinspection unchecked
-        return (ItemFilterProcessor<T>) new ExtensionItemFilterProcessor(
+        return (ItemValueFilterProcessor<T>) new ExtensionItemFilterProcessor(
                 sqlQueryContext,
                 (Function<FlexibleRelationalPathBase<?>, JsonbPath>) rootToExtensionPath,
                 holderType);

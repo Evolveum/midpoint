@@ -70,7 +70,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
 
         if (filter.getScope() == OrgFilter.Scope.ONE_LEVEL) {
             QObjectReference<MObject> ref = getNewRefAlias();
-            SQLQuery<Integer> subQuery = subQuery(ref)
+            SQLQuery<?> subQuery = subQuery(ref)
                     .where(ref.ownerOid.eq(objectPath.oid)
                             .and(ref.targetOid.eq(UUID.fromString(oidParam))));
             if (relationId != null) {
@@ -80,7 +80,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         } else if (filter.getScope() == OrgFilter.Scope.SUBTREE) {
             QObjectReference<MObject> ref = getNewRefAlias();
             QOrgClosure oc = getNewClosureAlias();
-            SQLQuery<Integer> subQuery = subQuery(ref)
+            SQLQuery<?> subQuery = subQuery(ref)
                     .join(oc).on(oc.descendantOid.eq(ref.targetOid))
                     .where(ref.ownerOid.eq(objectPath.oid)
                             .and(oc.ancestorOid.eq(UUID.fromString(oidParam))));
@@ -100,7 +100,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         }
     }
 
-    private SQLQuery<Integer> subQuery(FlexibleRelationalPathBase<?> entityPath) {
+    private SQLQuery<?> subQuery(FlexibleRelationalPathBase<?> entityPath) {
         return new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
                 .from(entityPath);
     }

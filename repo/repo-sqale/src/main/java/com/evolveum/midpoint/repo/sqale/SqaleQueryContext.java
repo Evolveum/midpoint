@@ -13,6 +13,7 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.sqale.filtering.ExistsFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.TypeFilterProcessor;
@@ -71,8 +72,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             // TODO
             throw new QueryException("TODO filter " + filter);
         } else if (filter instanceof ExistsFilter) {
-            // TODO
-            throw new QueryException("TODO filter " + filter);
+            return new ExistsFilterProcessor<>(this).process((ExistsFilter) filter);
         } else if (filter instanceof TypeFilter) {
             return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
         } else {
