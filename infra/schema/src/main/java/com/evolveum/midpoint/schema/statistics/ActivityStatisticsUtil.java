@@ -10,15 +10,18 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatisticsType;
+import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.*;
 
 public class ActivityStatisticsUtil {
 
@@ -62,9 +65,60 @@ public class ActivityStatisticsUtil {
     public static Integer getAllItemsProcessed(TaskActivityStateType taskActivityState) {
         if (taskActivityState != null) {
             return ActivityItemProcessingStatisticsUtil.getItemsProcessed(
-                    ActivityTreeUtil.getAllLocalStates(taskActivityState));
+                    getAllLocalStates(taskActivityState));
         } else {
             return null;
         }
+    }
+
+    public static List<SynchronizationSituationTransitionType> getSynchronizationTransitions(
+            @NotNull TreeNode<QualifiedActivityState> tree) {
+        List<SynchronizationSituationTransitionType> unmerged = tree.getAllDataDepthFirst().stream()
+                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStatisticsUtil::getSynchronizationTransitionsStream)
+                .collect(Collectors.toList());
+        return ActivitySynchronizationStatisticsUtil.summarize(unmerged);
+    }
+
+    @NotNull
+    private static Stream<SynchronizationSituationTransitionType> getSynchronizationTransitionsStream(
+            @NotNull ActivityStateType state) {
+        return state.getStatistics() != null &&
+                state.getStatistics().getSynchronization() != null ?
+                state.getStatistics().getSynchronization().getTransition().stream() : Stream.empty();
+    }
+
+    public static List<ObjectActionsExecutedEntryType> getResultingActionsExecuted(
+            @NotNull TreeNode<QualifiedActivityState> tree) {
+        List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
+                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStatisticsUtil::getResultingActionsExecuted)
+                .collect(Collectors.toList());
+        return ActionsExecutedInformationUtil.summarize(unmerged);
+    }
+
+    @NotNull
+    private static Stream<ObjectActionsExecutedEntryType> getResultingActionsExecuted(
+            @NotNull ActivityStateType state) {
+        return state.getStatistics() != null &&
+                state.getStatistics().getActionsExecuted() != null ?
+                state.getStatistics().getActionsExecuted().getResultingObjectActionsEntry().stream() : Stream.empty();
+    }
+
+    public static List<ObjectActionsExecutedEntryType> getAllActionsExecuted(
+            @NotNull TreeNode<QualifiedActivityState> tree) {
+        List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
+                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStatisticsUtil::getAllActionsExecuted)
+                .collect(Collectors.toList());
+        return ActionsExecutedInformationUtil.summarize(unmerged);
+    }
+
+    @NotNull
+    private static Stream<ObjectActionsExecutedEntryType> getAllActionsExecuted(
+            @NotNull ActivityStateType state) {
+        return state.getStatistics() != null &&
+                state.getStatistics().getActionsExecuted() != null ?
+                state.getStatistics().getActionsExecuted().getObjectActionsEntry().stream() : Stream.empty();
     }
 }

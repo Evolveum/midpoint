@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
 
-public class TaskInfoBoxType extends InfoBoxType {
+public class ActivityInfoBoxDto extends InfoBoxType {
 
     public static final String F_DURATION = "duration";
     public static final String F_ERROR_MESSAGE = "errorMessage";
@@ -18,7 +18,7 @@ public class TaskInfoBoxType extends InfoBoxType {
     private Long duration;
     private String errorMessage;
 
-    public TaskInfoBoxType(String boxBackgroundColor, String imageId, String message) {
+    ActivityInfoBoxDto(String boxBackgroundColor, String imageId, String message) {
         super(boxBackgroundColor, imageId, message);
     }
 

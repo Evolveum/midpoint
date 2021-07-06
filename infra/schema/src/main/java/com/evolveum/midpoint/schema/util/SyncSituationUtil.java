@@ -9,12 +9,24 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 public class SyncSituationUtil {
 
     public static SynchronizationSituationTransitionType findMatchingTransition(ActivitySynchronizationStatisticsType sum,
             SynchronizationSituationType onProcessingStart, SynchronizationSituationType onSynchronizationStart,
             SynchronizationSituationType onSynchronizationEnd, SynchronizationExclusionReasonType exclusionReason) {
-        for (SynchronizationSituationTransitionType existingTransition : sum.getTransition()) {
+        return findMatchingTransition(sum.getTransition(), onProcessingStart, onSynchronizationStart, onSynchronizationEnd,
+                exclusionReason);
+    }
+
+    public static SynchronizationSituationTransitionType findMatchingTransition(
+            @NotNull List<SynchronizationSituationTransitionType> transitions, SynchronizationSituationType onProcessingStart,
+            SynchronizationSituationType onSynchronizationStart, SynchronizationSituationType onSynchronizationEnd,
+            SynchronizationExclusionReasonType exclusionReason) {
+        for (SynchronizationSituationTransitionType existingTransition : transitions) {
             if (matches(existingTransition, onProcessingStart, onSynchronizationStart, onSynchronizationEnd, exclusionReason)) {
                 return existingTransition;
             }

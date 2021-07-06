@@ -7,11 +7,15 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Objects;
@@ -97,7 +101,7 @@ public class ActivityItemProcessingStatisticsUtil {
                 .collect(Collectors.toList());
     }
 
-    private static ActivityItemProcessingStatisticsType getItemProcessingStatistics(ActivityStateType state) {
+    public static ActivityItemProcessingStatisticsType getItemProcessingStatistics(ActivityStateType state) {
         return state != null && state.getStatistics() != null ?
                 state.getStatistics().getItemProcessing() : null;
     }
@@ -203,5 +207,100 @@ public class ActivityItemProcessingStatisticsUtil {
 
     public static Double toSeconds(Long time) {
         return time != null ? time / 1000.0 : null;
+    }
+
+    /** Like {@link List#add(Object)} but returns the value. */
+    public static <T> T add(List<T> list, T value) {
+        list.add(value);
+        return value;
+    }
+
+    public static List<ActivityItemProcessingStatisticsType> getItemProcessingStatisticsFromStates(
+            @NotNull Collection<ActivityStateType> states) {
+        return states.stream()
+                .map(ActivityItemProcessingStatisticsUtil::getItemProcessingStatistics)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public static ActivityItemProcessingStatisticsType summarize(
+            @NotNull Collection<ActivityItemProcessingStatisticsType> deltas) {
+        ActivityItemProcessingStatisticsType sum = new ActivityItemProcessingStatisticsType(PrismContext.get());
+        deltas.forEach(delta -> addTo(sum, delta));
+        return sum;
+    }
+
+    /** Updates specified summary with given delta. */
+    public static void addTo(@NotNull ActivityItemProcessingStatisticsType sum,
+            @Nullable ActivityItemProcessingStatisticsType delta) {
+        if (delta != null) {
+            addToNotNull(sum, delta);
+        }
+    }
+
+    /** Adds two "part information" */
+    private static void addToNotNull(@NotNull ActivityItemProcessingStatisticsType sum,
+            @NotNull ActivityItemProcessingStatisticsType delta) {
+        addProcessed(sum.getProcessed(), delta.getProcessed());
+        addCurrent(sum.getCurrent(), delta.getCurrent());
+        addExecutionRecords(sum, delta);
+    }
+
+    private static void addExecutionRecords(@NotNull ActivityItemProcessingStatisticsType sum,
+            @NotNull ActivityItemProcessingStatisticsType delta) {
+        List<ActivityExecutionRecordType> nonOverlappingRecords =
+                new WallClockTimeComputer(sum.getExecution(), delta.getExecution())
+                        .getNonOverlappingRecords();
+        sum.getExecution().clear();
+        nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));
+        sum.getExecution().addAll(CloneUtil.cloneCollectionMembersWithoutIds(nonOverlappingRecords));
+    }
+
+    /** Adds `processed` items information */
+    private static void addProcessed(@NotNull List<ProcessedItemSetType> sumSets, @NotNull List<ProcessedItemSetType> deltaSets) {
+        for (ProcessedItemSetType deltaSet : deltaSets) {
+            ProcessedItemSetType matchingSet =
+                    findOrCreateMatchingSet(sumSets, deltaSet.getOutcome());
+            addMatchingProcessedItemSets(matchingSet, deltaSet);
+        }
+    }
+
+    private static ProcessedItemSetType findOrCreateMatchingSet(
+            @NotNull List<ProcessedItemSetType> list, QualifiedItemProcessingOutcomeType outcome) {
+        return list.stream()
+                .filter(item -> Objects.equals(item.getOutcome(), outcome))
+                .findFirst()
+                .orElseGet(
+                        () -> add(list, new ProcessedItemSetType().outcome(outcome)));
+    }
+
+    /** Adds matching processed item sets: adds counters and determines the latest `lastItem`. */
+    private static void addMatchingProcessedItemSets(@NotNull ProcessedItemSetType sum, @NotNull ProcessedItemSetType delta) {
+        sum.setCount(or0(sum.getCount()) + or0(delta.getCount()));
+        sum.setDuration(or0(sum.getDuration()) + or0(delta.getDuration()));
+        if (delta.getLastItem() != null) {
+            if (sum.getLastItem() == null ||
+                    XmlTypeConverter.isAfterNullLast(delta.getLastItem().getEndTimestamp(), sum.getLastItem().getEndTimestamp())) {
+                sum.setLastItem(delta.getLastItem());
+            }
+        }
+    }
+
+    /** Adds `current` items information (simply concatenates the lists). */
+    private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
+        sum.addAll(CloneUtil.cloneCollectionMembersWithoutIds(delta)); // to avoid problems with parent and IDs
+    }
+
+    public static boolean hasItemProcessingInformation(@NotNull QualifiedActivityState qState) {
+        if (qState.getWorkerStates() != null) {
+            return qState.getWorkerStates().stream()
+                    .anyMatch(ActivityItemProcessingStatisticsUtil::hasItemProcessingInformation);
+        } else {
+            return hasItemProcessingInformation(qState.getActivityState());
+        }
+    }
+
+    public static boolean hasItemProcessingInformation(@Nullable ActivityStateType state) {
+        return state != null && state.getStatistics() != null && state.getStatistics().getItemProcessing() != null;
     }
 }

@@ -112,6 +112,14 @@ public class ActivityPerformanceInformation implements DebugDumpable, Serializab
         this.earliestStartTime = null;
     }
 
+    public static @NotNull ActivityPerformanceInformation forRegularActivity(@NotNull ActivityPath path,
+            @Nullable ActivityStateType state) {
+        ActivityItemProcessingStatisticsType itemStats = state != null && state.getStatistics() != null ?
+                state.getStatistics().getItemProcessing() : null;
+        ActivityProgressType progress = state != null ? state.getProgress() : null;
+        return forRegularActivity(path, itemStats, progress);
+    }
+
     @NotNull
     public static ActivityPerformanceInformation forRegularActivity(@NotNull ActivityPath path,
             @Nullable ActivityItemProcessingStatisticsType itemStats, @Nullable ActivityProgressType activityProgress) {

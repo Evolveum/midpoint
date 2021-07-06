@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utility methods for navigating throughout activity trees, potentially distributed throughout a task tree.
@@ -34,12 +35,17 @@ public class ActivityTreeUtil {
      * Transforms activity state objects into custom ones, organized into a tree.
      * Delegation states are ignored. Distribution states are considered, and their workers' states are (currently) ignored.
      */
-    public static <X> TreeNode<X> transformStates(@NotNull TaskType rootTask,
+    public static <X> @NotNull TreeNode<X> transformStates(@NotNull TaskType rootTask,
             @NotNull TaskResolver resolver,
             @NotNull ActivityStateTransformer<X> transformer) {
         TreeNode<X> root = new TreeNode<>();
         transformStates(root, getLocalRootPath(rootTask), getLocalRootState(rootTask), rootTask, resolver, transformer);
         return root;
+    }
+
+    public static @NotNull TreeNode<QualifiedActivityState> toQualifiedActivityStateTree(@NotNull TaskType rootTask,
+            @NotNull TaskResolver resolver) {
+        return ActivityTreeUtil.transformStates(rootTask, resolver, ActivityTreeUtil.QualifiedActivityState::new);
     }
 
     private static ActivityPath getLocalRootPath(TaskType task) {
@@ -132,7 +138,8 @@ public class ActivityTreeUtil {
         /**
          * Worker states are present in the case of distributed coordinator-workers scenario.
          */
-        X transform(ActivityPath path, ActivityStateType state, List<ActivityStateType> workerStates, TaskType task);
+        X transform(@NotNull ActivityPath path, @Nullable ActivityStateType state,
+                @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task);
     }
 
     public static @NotNull List<TaskType> getSubtasksForPath(TaskType task, ActivityPath activityPath,
@@ -154,5 +161,48 @@ public class ActivityTreeUtil {
         }
         allStates.add(state);
         state.getActivity().forEach(child -> collectLocalStates(allStates, child));
+    }
+
+    public static class QualifiedActivityState {
+
+        @NotNull private final ActivityPath activityPath;
+        @Nullable private final ActivityStateType activityState;
+        @Nullable private final List<ActivityStateType> workerStates;
+        @NotNull private final TaskType task;
+
+        QualifiedActivityState(@NotNull ActivityPath activityPath, @Nullable ActivityStateType activityState,
+                @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task) {
+            this.activityPath = activityPath;
+            this.activityState = activityState;
+            this.workerStates = workerStates;
+            this.task = task;
+        }
+
+        public @NotNull ActivityPath getActivityPath() {
+            return activityPath;
+        }
+
+        public @Nullable ActivityStateType getActivityState() {
+            return activityState;
+        }
+
+        public @Nullable List<ActivityStateType> getWorkerStates() {
+            return workerStates;
+        }
+
+        public @NotNull TaskType getTask() {
+            return task;
+        }
+
+        public @NotNull List<ActivityStateType> getAllStates() {
+            return getAllStatesStream()
+                    .collect(Collectors.toList());
+        }
+
+        public @NotNull Stream<ActivityStateType> getAllStatesStream() {
+            return Stream.concat(
+                    Stream.ofNullable(activityState),
+                    workerStates != null ? workerStates.stream() : Stream.empty());
+        }
     }
 }

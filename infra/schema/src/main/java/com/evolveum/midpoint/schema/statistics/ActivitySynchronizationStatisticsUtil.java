@@ -14,6 +14,9 @@ import com.evolveum.midpoint.schema.util.SyncSituationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ActivitySynchronizationStatisticsUtil {
 
     public static void addTo(ActivitySynchronizationStatisticsType sum, @Nullable ActivitySynchronizationStatisticsType delta) {
@@ -22,16 +25,22 @@ public class ActivitySynchronizationStatisticsUtil {
         }
     }
 
-    private static void addTransitions(ActivitySynchronizationStatisticsType sum, @NotNull ActivitySynchronizationStatisticsType delta) {
+    private static void addTransitions(@NotNull ActivitySynchronizationStatisticsType sum,
+            @NotNull ActivitySynchronizationStatisticsType delta) {
         for (SynchronizationSituationTransitionType deltaTransition : delta.getTransition()) {
-            SynchronizationSituationTransitionType existingTransition = SyncSituationUtil.findMatchingTransition(sum,
-                    deltaTransition.getOnProcessingStart(), deltaTransition.getOnSynchronizationStart(),
-                    deltaTransition.getOnSynchronizationEnd(), deltaTransition.getExclusionReason());
-            if (existingTransition != null) {
-                addTo(existingTransition, deltaTransition);
-            } else {
-                sum.getTransition().add(deltaTransition.cloneWithoutId());
-            }
+            addTransition(sum.getTransition(), deltaTransition);
+        }
+    }
+
+    private static void addTransition(@NotNull List<SynchronizationSituationTransitionType> sumTransitions,
+            @NotNull SynchronizationSituationTransitionType deltaTransition) {
+        SynchronizationSituationTransitionType existingTransition = SyncSituationUtil.findMatchingTransition(sumTransitions,
+                deltaTransition.getOnProcessingStart(), deltaTransition.getOnSynchronizationStart(),
+                deltaTransition.getOnSynchronizationEnd(), deltaTransition.getExclusionReason());
+        if (existingTransition != null) {
+            addTo(existingTransition, deltaTransition);
+        } else {
+            sumTransitions.add(deltaTransition.cloneWithoutId());
         }
     }
 
@@ -43,5 +52,14 @@ public class ActivitySynchronizationStatisticsUtil {
     public static String format(@Nullable ActivitySynchronizationStatisticsType source) {
         return new SynchronizationInformationPrinter(source != null ? source : new ActivitySynchronizationStatisticsType(), null)
                 .print();
+    }
+
+    public static @NotNull List<SynchronizationSituationTransitionType> summarize(
+            @NotNull List<SynchronizationSituationTransitionType> raw) {
+        List<SynchronizationSituationTransitionType> summarized = new ArrayList<>();
+        for (SynchronizationSituationTransitionType rawTransition : raw) {
+            addTransition(summarized, rawTransition);
+        }
+        return summarized;
     }
 }

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -260,7 +259,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new TaskOperationStatisticsPanel(panelId, getObjectModel());
+                return new ActivitiesStatisticsPanel(panelId, getObjectModel());
             }
 
         });

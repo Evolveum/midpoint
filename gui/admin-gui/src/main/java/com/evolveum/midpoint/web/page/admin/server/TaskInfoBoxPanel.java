@@ -23,27 +23,26 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskInfoBoxType;
+import com.evolveum.midpoint.web.page.admin.server.dto.ActivityInfoBoxDto;
 
-public class TaskInfoBoxPanel extends InfoBoxPanel<TaskInfoBoxType> {
+public class TaskInfoBoxPanel extends InfoBoxPanel<ActivityInfoBoxDto> {
 
     private static final String ID_DURATION = "duration";
     private static final String ID_ERROR_MESSAGE = "errorMessage";
 
-    public TaskInfoBoxPanel(String id, IModel<TaskInfoBoxType> model) {
+    public TaskInfoBoxPanel(String id, IModel<ActivityInfoBoxDto> model) {
         super(id, model, null);
     }
 
     @Override
-    protected void customInitLayout(WebMarkupContainer parentInfoBox, IModel<TaskInfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
-
+    protected void customInitLayout(WebMarkupContainer parentInfoBox, IModel<ActivityInfoBoxDto> model, Class<? extends IRequestablePage> linkPage) {
 
         Label duration = new Label(ID_DURATION, new ReadOnlyModel<>(() -> WebComponentUtil.formatDurationWordsForLocal(model.getObject().getDuration(), true, true, getPageBase())));
         parentInfoBox.add(duration);
 
-        Label errorMessage = new Label(ID_ERROR_MESSAGE, new PropertyModel<>(model, TaskInfoBoxType.F_ERROR_MESSAGE));
+        Label errorMessage = new Label(ID_ERROR_MESSAGE, new PropertyModel<>(model, ActivityInfoBoxDto.F_ERROR_MESSAGE));
         parentInfoBox.add(errorMessage);
-        errorMessage.add(AttributeAppender.append("title", new PropertyModel<>(model, TaskInfoBoxType.F_ERROR_MESSAGE)));
+        errorMessage.add(AttributeAppender.append("title", new PropertyModel<>(model, ActivityInfoBoxDto.F_ERROR_MESSAGE)));
         errorMessage.add(new TooltipBehavior());
 
 

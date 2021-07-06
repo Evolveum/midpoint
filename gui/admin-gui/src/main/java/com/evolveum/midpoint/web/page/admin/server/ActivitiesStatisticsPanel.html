@@ -18,7 +18,7 @@
 <body>
 <wicket:panel>
 
-    <div wicket:id="processingInfo"></div>
+    <div wicket:id="itemProcessing"></div>
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div wicket:id="synchronizationStatistics">
@@ -26,14 +26,14 @@
             </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
-            <div wicket:id="resultingEntry"></div>
+            <div wicket:id="resultingActionsExecuted"></div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
-            <div wicket:id="actionEntry"></div>
+            <div wicket:id="allActionsExecuted"></div>
         </div>
     </div>
 
-    <wicket:fragment wicket:id="resultingEntryTitle">
+    <wicket:fragment wicket:id="resultingActionsExecutedTitle">
         <h3 class="box-title">
             <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
         </h3>
@@ -41,7 +41,7 @@
     </wicket:fragment>
 
 
-    <wicket:fragment wicket:id="actionEntryTitle">
+    <wicket:fragment wicket:id="allActionsExecutedTitle">
         <h3 class="box-title">
             <wicket:message key="TaskOperationStatisticsPanel.actionEntry"/>
         </h3>
