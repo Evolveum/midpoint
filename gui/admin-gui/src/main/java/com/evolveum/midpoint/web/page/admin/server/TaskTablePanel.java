@@ -201,18 +201,17 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
                     final IModel<SelectableBean<TaskType>> rowModel) {
-                item.add(new Label(componentId,
-                        WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()))));
+                item.add(new Label(componentId, WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel)));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()));
+                return WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel);
             }
         };
 

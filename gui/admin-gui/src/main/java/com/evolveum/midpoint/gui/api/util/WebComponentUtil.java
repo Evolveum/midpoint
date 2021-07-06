@@ -25,6 +25,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.task.*;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -1014,6 +1017,44 @@ public final class WebComponentUtil {
                 Arrays.stream(type.getEnumConstants())
                         .filter(filter)
                         .collect(Collectors.toList()));
+    }
+
+    /**
+     * Simulates task category using task archetype.
+     */
+    @Experimental
+    public static IModel<String> createSimulatedCategoryNameModel(final Component component,
+            final IModel<SelectableBean<TaskType>> taskModel) {
+        return () -> {
+            PageBase pageBase = getPageBase(component);
+            TaskType task = taskModel.getObject().getValue();
+            DisplayType display = getArchetypePolicyDisplayType(task, pageBase);
+            return getTranslatedLabel(display, component);
+        };
+    }
+
+    @Experimental
+    private static String getTranslatedLabel(DisplayType display, Component component) {
+        if (display == null) {
+            return "";
+        }
+        if (display.getLabel() != null) {
+            return getTranslatedPolyString(display.getLabel(), component);
+        } else if (display.getSingularLabel() != null) {
+            return getTranslatedPolyString(display.getSingularLabel(), component);
+        } else if (display.getPluralLabel() != null) {
+            return getTranslatedPolyString(display.getPluralLabel(), component);
+        } else {
+            return "";
+        }
+    }
+
+    private static String getTranslatedPolyString(@NotNull PolyStringType polyString, @NotNull Component component) {
+        if (polyString.getTranslation() != null && polyString.getTranslation().getKey() != null) {
+            return createStringResourceStatic(component, polyString.getTranslation().getKey()).getString();
+        } else {
+            return polyString.getOrig();
+        }
     }
 
     public static IModel<String> createCategoryNameModel(final Component component,
