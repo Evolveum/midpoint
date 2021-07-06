@@ -45,7 +45,7 @@ public class ShadowIntegrityCheckActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                ShadowIntegrityCheckWorkDefinition.class, ShadowIntegrityCheckWorkDefinition::new, this, ARCHETYPE_OID);
+                ShadowIntegrityCheckWorkDefinition.class, ShadowIntegrityCheckWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -64,5 +64,10 @@ public class ShadowIntegrityCheckActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "shadow-integrity-check";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

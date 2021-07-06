@@ -53,7 +53,7 @@ public class ReconciliationActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(ReconciliationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                ReconciliationWorkDefinition.class, ReconciliationWorkDefinition::new, this, ARCHETYPE_OID);
+                ReconciliationWorkDefinition.class, ReconciliationWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -155,5 +155,10 @@ public class ReconciliationActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(ReconciliationWorkStateType.COMPLEX_TYPE);
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

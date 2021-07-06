@@ -68,7 +68,7 @@ public abstract class SimpleActivityHandler<O extends ObjectType, WD extends Wor
     @PostConstruct
     public void register() {
         handlerRegistry.register(getWorkDefinitionTypeName(), getLegacyHandlerUri(), getWorkDefinitionClass(),
-                getWorkDefinitionSupplier(), this, getArchetypeOid());
+                getWorkDefinitionSupplier(), this);
     }
 
     @PreDestroy
@@ -95,8 +95,6 @@ public abstract class SimpleActivityHandler<O extends ObjectType, WD extends Wor
     protected abstract @NotNull WorkDefinitionSupplier getWorkDefinitionSupplier();
 
     protected abstract @NotNull String getLegacyHandlerUri();
-
-    protected abstract @Nullable String getArchetypeOid();
 
     protected abstract @NotNull String getShortName();
 

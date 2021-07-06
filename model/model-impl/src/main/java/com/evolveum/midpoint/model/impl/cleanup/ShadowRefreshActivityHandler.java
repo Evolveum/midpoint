@@ -49,7 +49,7 @@ public class ShadowRefreshActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MyWorkDefinition.class, MyWorkDefinition::new, this, ARCHETYPE_OID);
+                MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -76,6 +76,11 @@ public class ShadowRefreshActivityHandler
                 ScanWorkStateType.COMPLEX_TYPE,
                 ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS // TODO deduplicate with persistentStatistics(false)
         );
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 
     public static class MyActivityExecution

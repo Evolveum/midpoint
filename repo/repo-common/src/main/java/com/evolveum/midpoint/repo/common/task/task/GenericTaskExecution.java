@@ -76,6 +76,7 @@ public class GenericTaskExecution implements TaskExecution {
 
         try {
             if (isRootExecution()) {
+                setupTaskArchetypeIfNeeded(result);
                 updateStateOnRootExecutionStart(result);
             }
 
@@ -95,6 +96,19 @@ public class GenericTaskExecution implements TaskExecution {
         } catch (Throwable t) {
             logException(t);
             throw t;
+        }
+    }
+
+    private void setupTaskArchetypeIfNeeded(OperationResult result) throws ActivityExecutionException {
+        try {
+            RunningTask task = getRunningTask();
+            String defaultArchetypeOid = activityTree.getRootActivity().getHandler().getDefaultArchetypeOid();
+            if (defaultArchetypeOid != null) {
+                task.addArchetypeInformationIfMissing(defaultArchetypeOid);
+                task.flushPendingModifications(result);
+            }
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't setup the task archetype", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 

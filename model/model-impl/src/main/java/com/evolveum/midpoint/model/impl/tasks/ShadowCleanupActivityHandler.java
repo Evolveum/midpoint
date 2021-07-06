@@ -89,7 +89,7 @@ public class ShadowCleanupActivityHandler
     }
 
     @Override // TODO or should the archetype be "cleanup"?
-    public String getArchetypeOid() {
+    public String getDefaultArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 

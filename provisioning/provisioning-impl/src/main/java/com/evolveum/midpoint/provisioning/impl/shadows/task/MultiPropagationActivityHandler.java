@@ -41,7 +41,7 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     @PostConstruct
     public void register() {
         handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this, ARCHETYPE_OID);
+                MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -60,5 +60,10 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     @Override
     public String getIdentifierPrefix() {
         return "multi-propagation";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

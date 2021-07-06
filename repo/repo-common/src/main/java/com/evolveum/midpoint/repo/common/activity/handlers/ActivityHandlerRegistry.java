@@ -57,12 +57,12 @@ public class ActivityHandlerRegistry {
      * Registers both the work definition factory and the activity handler.
      */
     public void register(QName typeName, String legacyHandlerUri, Class<? extends WorkDefinition> definitionClass,
-            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler,
-            @Nullable String archetypeOid) {
+            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
         workDefinitionFactory.registerSupplier(typeName, legacyHandlerUri, supplier);
         registerHandler(definitionClass, activityHandler);
-        if (legacyHandlerUri != null && archetypeOid != null) {
-            registerArchetypeOid(legacyHandlerUri, archetypeOid);
+        String defaultArchetypeOid = activityHandler.getDefaultArchetypeOid();
+        if (legacyHandlerUri != null && defaultArchetypeOid != null) {
+            registerArchetypeOid(legacyHandlerUri, defaultArchetypeOid);
         }
     }
 

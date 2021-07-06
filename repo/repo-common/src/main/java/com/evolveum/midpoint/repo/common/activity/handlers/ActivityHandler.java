@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 import java.util.ArrayList;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
@@ -55,5 +56,13 @@ public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityH
      */
     default @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal();
+    }
+
+    /**
+     * Returns task archetype OID connected to this activity handler. When a generic task starts, it is given an archetype
+     * based on the activity handler for the task's main activity. (If not set before.)
+     */
+    default @Nullable String getDefaultArchetypeOid() {
+        return null;
     }
 }

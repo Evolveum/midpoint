@@ -29,7 +29,7 @@ public class ImportActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(ImportWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                ImportWorkDefinition.class, ImportWorkDefinition::new, this, ARCHETYPE_OID);
+                ImportWorkDefinition.class, ImportWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -48,5 +48,10 @@ public class ImportActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "import";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

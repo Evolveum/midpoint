@@ -38,7 +38,7 @@ public class AsyncUpdateActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(AsyncUpdateWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                AsyncUpdateWorkDefinition.class, AsyncUpdateWorkDefinition::new, this, ARCHETYPE_OID);
+                AsyncUpdateWorkDefinition.class, AsyncUpdateWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -62,5 +62,10 @@ public class AsyncUpdateActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual();
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

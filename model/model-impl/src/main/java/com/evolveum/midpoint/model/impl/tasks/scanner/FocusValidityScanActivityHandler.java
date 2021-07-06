@@ -36,7 +36,7 @@ public class FocusValidityScanActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                FocusValidityScanWorkDefinition.class, FocusValidityScanWorkDefinition::new, this, ARCHETYPE_OID);
+                FocusValidityScanWorkDefinition.class, FocusValidityScanWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -91,5 +91,10 @@ public class FocusValidityScanActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "focus-validity-scan";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

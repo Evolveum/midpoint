@@ -50,7 +50,7 @@ public class CleanupActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(CleanupWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                CleanupWorkDefinition.class, CleanupWorkDefinition::new, this, ARCHETYPE_OID);
+                CleanupWorkDefinition.class, CleanupWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -151,6 +151,11 @@ public class CleanupActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "cleanup";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 
     enum Part {

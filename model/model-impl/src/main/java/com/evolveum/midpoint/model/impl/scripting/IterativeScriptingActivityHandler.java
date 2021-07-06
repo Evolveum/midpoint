@@ -72,7 +72,7 @@ public class IterativeScriptingActivityHandler
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getDefaultArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value();
     }
 

@@ -35,7 +35,7 @@ public class LiveSyncActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(LiveSyncWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this, ARCHETYPE_OID);
+                LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -59,5 +59,10 @@ public class LiveSyncActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual(LiveSyncWorkStateType.COMPLEX_TYPE);
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

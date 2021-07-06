@@ -82,7 +82,7 @@ public class ChangeExecutionActivityHandler
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getDefaultArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 

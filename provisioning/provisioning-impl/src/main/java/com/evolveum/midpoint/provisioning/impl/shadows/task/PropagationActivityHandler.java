@@ -41,7 +41,7 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     @PostConstruct
     public void register() {
         handlerRegistry.register(PropagationWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                PropagationWorkDefinition.class, PropagationWorkDefinition::new, this, ARCHETYPE_OID);
+                PropagationWorkDefinition.class, PropagationWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -60,5 +60,10 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     @Override
     public String getIdentifierPrefix() {
         return "propagation";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

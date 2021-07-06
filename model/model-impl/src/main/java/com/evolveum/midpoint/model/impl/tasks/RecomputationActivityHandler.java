@@ -74,7 +74,7 @@ public class RecomputationActivityHandler
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getDefaultArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value();
     }
 

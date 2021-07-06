@@ -44,7 +44,7 @@ public class TriggerScanActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(TriggerScanWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
-                TriggerScanWorkDefinition.class, TriggerScanWorkDefinition::new, this, ARCHETYPE_OID);
+                TriggerScanWorkDefinition.class, TriggerScanWorkDefinition::new, this);
     }
 
     @PreDestroy
@@ -72,5 +72,10 @@ public class TriggerScanActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual(ScanWorkStateType.COMPLEX_TYPE);
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }
