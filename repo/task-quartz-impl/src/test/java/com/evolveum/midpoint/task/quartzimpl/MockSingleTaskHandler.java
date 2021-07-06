@@ -103,11 +103,6 @@ public class MockSingleTaskHandler implements TaskHandler {
         executions = 0;
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.MOCK;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }

@@ -174,11 +174,6 @@ public class MockParallelTaskHandler implements TaskHandler {
         hasRun = false;
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.MOCK;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }

@@ -158,11 +158,6 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.WORKFLOW;
-    }
-
-    @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value();
     }

@@ -197,11 +197,6 @@ public class ReportTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.REPORT;
-    }
-
-    @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
     }

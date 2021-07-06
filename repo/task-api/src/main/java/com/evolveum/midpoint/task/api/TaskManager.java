@@ -602,18 +602,6 @@ public interface TaskManager {
     Long getNextRunStartTime(String oid, OperationResult result);
 
     /**
-     * Gets a list of all task categories.
-     */
-    @Deprecated // Remove in 4.2
-    List<String> getAllTaskCategories();
-
-    /**
-     * Returns a default handler URI for a given task category.
-     */
-    @Deprecated // Remove in 4.2
-    String getHandlerUriForCategory(String category);
-
-    /**
      * Returns all registered handler URIs.
      *
      * @param nonDeprecatedOnly If true, only non-deprecated handler URIs are returned.

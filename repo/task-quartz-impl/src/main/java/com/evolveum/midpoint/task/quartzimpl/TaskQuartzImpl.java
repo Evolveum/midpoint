@@ -1755,15 +1755,6 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_CATEGORY, value);
     }
 
-    public void setCategoryTransient(String value) {
-        setPropertyTransient(TaskType.F_CATEGORY, value);
-    }
-
-    public String getCategoryFromHandler() {
-        TaskHandler h = getHandler();
-        return h != null ? h.getCategoryName(this) : null;
-    }
-
     public String getChannelFromHandler() {
         TaskHandler h = getHandler();
         return h != null ? h.getDefaultChannel() : null;

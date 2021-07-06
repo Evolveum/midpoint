@@ -70,11 +70,6 @@ public class MockLongTaskHandler implements TaskHandler {
     public void refreshStatus(Task task) {
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.MOCK;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }

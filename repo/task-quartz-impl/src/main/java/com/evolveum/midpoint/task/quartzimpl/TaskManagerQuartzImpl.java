@@ -10,7 +10,6 @@ import static java.util.Collections.emptySet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -671,18 +670,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     public TaskHandler getHandler(String uri) {
         return handlerRegistry.getHandler(uri);
-    }
-
-    @Deprecated
-    @Override
-    public List<String> getAllTaskCategories() {
-        return handlerRegistry.getAllTaskCategories();
-    }
-
-    @Deprecated
-    @Override
-    public String getHandlerUriForCategory(String category) {
-        return handlerRegistry.getHandlerUriForCategory(category);
     }
 
     @Override

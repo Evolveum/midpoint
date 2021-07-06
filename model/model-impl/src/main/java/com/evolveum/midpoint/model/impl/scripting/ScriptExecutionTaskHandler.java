@@ -92,11 +92,6 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.BULK_ACTIONS;
-    }
-
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);

@@ -25,8 +25,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.task.*;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -625,7 +623,7 @@ public final class WebComponentUtil {
     }
 
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
-            ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
+            ObjectDelta delta, ModelExecuteOptions options, String handlerUri, PageBase pageBase) throws SchemaException {
 
         TaskType task = new TaskType(pageBase.getPrismContext());
 
@@ -637,12 +635,11 @@ public final class WebComponentUtil {
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
-        task.setCategory(category);
         task.setExecutionStatus(TaskExecutionStateType.RUNNABLE);
         task.setSchedulingState(TaskSchedulingStateType.READY);
         task.setRecurrence(TaskRecurrenceType.SINGLE);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
-        task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
+        task.setHandlerUri(handlerUri);
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         task.setSchedule(schedule);

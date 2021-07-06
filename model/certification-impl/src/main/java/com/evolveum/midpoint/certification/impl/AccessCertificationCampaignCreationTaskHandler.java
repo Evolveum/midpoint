@@ -104,11 +104,6 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.ACCESS_CERTIFICATION;
-    }
-
-    @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }

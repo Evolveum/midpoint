@@ -143,18 +143,11 @@ class TaskCycleExecutor {
         beans.listenerRegistry.notifyTaskStart(task, result);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
-            setCategoryIfMissing();
             setOrMigrateChannelUri();
             setNewOperationResult();
             task.flushPendingModifications(result);
         } catch (Exception e) {
             throw new SystemException("Cannot process cycle run start: " + e.getMessage(), e);
-        }
-    }
-
-    private void setCategoryIfMissing() {
-        if (task.getCategory() == null) {
-            task.setCategory(task.getCategoryFromHandler());
         }
     }
 

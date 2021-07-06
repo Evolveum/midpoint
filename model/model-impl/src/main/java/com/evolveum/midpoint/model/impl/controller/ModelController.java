@@ -1959,18 +1959,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated // Remove in 4.2
-    @Override
-    public List<String> getAllTaskCategories() {
-        return taskManager.getAllTaskCategories();
-    }
-
-    @Deprecated // Remove in 4.2
-    @Override
-    public String getHandlerUriForCategory(String category) {
-        return taskManager.getHandlerUriForCategory(category);
-    }
-
     private List<PrismObject<TaskType>> preprocessTaskOperation(String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         return preprocessTaskCollectionOperation(singletonList(oid), action, event, task, result);
     }

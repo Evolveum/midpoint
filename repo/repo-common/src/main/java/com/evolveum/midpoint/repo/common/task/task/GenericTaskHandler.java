@@ -113,11 +113,6 @@ public class GenericTaskHandler implements TaskHandler {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return null;
-    }
-
     /** TODO decide what to do with this method. */
     private void registerExecution(RunningTask localCoordinatorTask, GenericTaskExecution execution) {
         currentTaskExecutions.put(localCoordinatorTask.getOid(), execution);

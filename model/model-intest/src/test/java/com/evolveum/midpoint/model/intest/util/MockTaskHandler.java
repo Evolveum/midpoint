@@ -73,11 +73,6 @@ public class MockTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.SYSTEM;
-    }
-
-    @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
     }

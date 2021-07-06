@@ -129,11 +129,6 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.DEMO;
-    }
-
-    @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
