@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.tasks.handlers.AbstractMockActivityHandler;
 
 import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
@@ -47,6 +48,7 @@ public class CompositeMockActivityHandler
     @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired private CommonMockActivityHelper mockHelper;
     @Autowired MockRecorder recorder;
+    @Autowired CommonTaskBeans commonTaskBeans;
 
     @PostConstruct
     public void register() {
@@ -97,11 +99,12 @@ public class CompositeMockActivityHandler
 
     private void runBeforeExecution(EmbeddedActivity<CompositeMockWorkDefinition, CompositeMockActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
-        ActivityState<?> parentActivityState =
-                ActivityState.getActivityState(
+        ActivityState parentActivityState =
+                ActivityState.getActivityStateUpwards(
                         activity.getPath().allExceptLast(),
                         runningTask,
                         AbstractActivityWorkStateType.COMPLEX_TYPE,
+                        commonTaskBeans,
                         result);
         getMockHelper().setLastMessage(
                 parentActivityState,

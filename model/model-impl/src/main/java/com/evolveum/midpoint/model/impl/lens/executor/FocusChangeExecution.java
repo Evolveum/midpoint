@@ -131,12 +131,14 @@ public class FocusChangeExecution<O extends ObjectType> {
     private ObjectDelta<O> applyPendingPolicyStateModifications() throws SchemaException {
         applyPendingObjectPolicyStateModifications();
         applyPendingAssignmentPolicyStateModificationsSwallowable();
-        return applyPendingAssignmentPolicyStateModificationsNotSwallowable();
+        ObjectDelta<O> resultingDelta = applyPendingAssignmentPolicyStateModificationsNotSwallowable();
+
+        focusContext.clearPendingPolicyStateModifications();
+        return resultingDelta;
     }
 
     private void applyPendingObjectPolicyStateModifications() throws SchemaException {
         focusContext.swallowToSecondaryDelta(focusContext.getPendingObjectPolicyStateModifications());
-        focusContext.clearPendingObjectPolicyStateModifications();
     }
 
     private void applyPendingAssignmentPolicyStateModificationsSwallowable() throws SchemaException {
@@ -210,7 +212,6 @@ public class FocusChangeExecution<O extends ObjectType> {
                 }
             }
         }
-        focusContext.clearPendingAssignmentPolicyStateModifications();
         return focusDelta;
     }
 

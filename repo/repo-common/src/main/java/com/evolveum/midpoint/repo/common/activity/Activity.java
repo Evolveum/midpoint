@@ -144,6 +144,14 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         }
     }
 
+    public @NotNull List<Activity<?, ?>> getChildrenCopyExceptSkipped() {
+        synchronized (childrenMap) {
+            return childrenMap.values().stream()
+                    .filter(child -> !child.isSkipped())
+                    .collect(Collectors.toList());
+        }
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -368,10 +376,18 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         definition.applyChangeTailoring(tailoring);
     }
 
+    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+        definition.applySubtaskTailoring(subtaskSpecification);
+    }
+
     public void accept(@NotNull ActivityVisitor visitor) {
         visitor.visit(this);
         childrenMap.values()
                 .forEach(child -> child.accept(visitor));
+    }
+
+    public boolean isSkipped() {
+        return definition.getControlFlowDefinition().isSkip();
     }
 
     private enum ExecutionType {

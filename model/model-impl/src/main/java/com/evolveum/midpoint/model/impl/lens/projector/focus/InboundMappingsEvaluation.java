@@ -84,7 +84,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
     /**
      * Output triples for individual target paths.
      */
-    private final PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
+    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
 
     /**
      * Lazily evaluated.

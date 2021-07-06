@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionRes
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -62,7 +63,7 @@ public abstract class AbstractIterativeActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         WS extends AbstractActivityWorkStateType>
-        extends LocalActivityExecution<WD, AH, WS> {
+        extends LocalActivityExecution<WD, AH, WS> implements ExecutionSupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 
@@ -90,7 +91,7 @@ public abstract class AbstractIterativeActivityExecution<
      * Things like "Import", "Reconciliation (on resource)", and so on. Used e.g. in log messages like:
      * "Import of UserType:jack (Jack Sparrow, c0c010c0-d34d-b33f-f00d-111111111111) from Crew Management has been started"
      */
-    @NotNull protected String activityShortNameCapitalized;
+    @NotNull String activityShortNameCapitalized;
 
     /**
      * Information that augments the process short name. Used e.g. in log messages.
@@ -498,10 +499,6 @@ public abstract class AbstractIterativeActivityExecution<
 
     public boolean isDryRun() {
         return getExecutionMode() == ExecutionModeType.DRY_RUN;
-    }
-
-    public @NotNull ExecutionModeType getExecutionMode() {
-        return activity.getDefinition().getExecutionMode();
     }
 
     public @NotNull String getRootTaskOid() {

@@ -110,10 +110,8 @@ class ItemProcessingGatekeeper<I> {
 
     boolean process(OperationResult parentResult) {
 
-        ExecutionModeType originalExecutionMode = workerTask.getExecutionMode();
         try {
-
-            workerTask.setExecutionMode(activityExecution.getExecutionMode());
+            workerTask.setExecutionSupport(activityExecution);
 
             startTracingAndDynamicProfiling();
             logOperationStart();
@@ -164,7 +162,7 @@ class ItemProcessingGatekeeper<I> {
             return false;
 
         } finally {
-            workerTask.setExecutionMode(originalExecutionMode);
+            workerTask.setExecutionSupport(null);
         }
     }
 
@@ -325,10 +323,12 @@ class ItemProcessingGatekeeper<I> {
     private boolean handleError(OperationResult result) {
         OperationResultStatus status = result.getStatus();
         Throwable exception = processingResult.getExceptionRequired();
-        LOGGER.debug("Starting handling error with status={}, exception={}", status, exception);
+        LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
 
         ErrorHandlingStrategyExecutor.FollowUpAction followUpAction =
                 activityExecution.handleError(status, exception, request, result);
+
+        LOGGER.debug("Follow-up action: {}", followUpAction);
 
         switch (followUpAction) {
             case CONTINUE:

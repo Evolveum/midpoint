@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -80,8 +81,22 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
+                createSimulationDefinition(parentActivity.getDefinition()),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
+                this::beforeResourceObjectsReconciliation, // this is needed even for simulation
+                (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                createSimulationDefinition(parentActivity.getDefinition()),
+                (context, result) -> new RemainingShadowsActivityExecution(context),
+                null,
+                (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ResourceReconciliationActivityExecution(context),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
                 this::beforeResourceObjectsReconciliation,
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
                 ActivityStateDefinition.normal(),
@@ -96,14 +111,23 @@ public class ReconciliationActivityHandler
         return children;
     }
 
+    private ActivityDefinition<ReconciliationWorkDefinition> createSimulationDefinition(
+            @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
+        ActivityDefinition<ReconciliationWorkDefinition> clone = original.clone();
+        clone.getWorkDefinition().setExecutionMode(ExecutionModeType.SIMULATE);
+        clone.getControlFlowDefinition().setSkip();
+        return clone;
+    }
+
     private void beforeResourceObjectsReconciliation(
             EmbeddedActivity<ReconciliationWorkDefinition, ReconciliationActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
-        ActivityState<?> reconState =
-                ActivityState.getActivityState(
+        ActivityState reconState =
+                ActivityState.getActivityStateUpwards(
                         activity.getPath().allExceptLast(),
                         runningTask,
                         ReconciliationWorkStateType.COMPLEX_TYPE,
+                        commonTaskBeans,
                         result);
         if (reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class) == null) {
             XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();

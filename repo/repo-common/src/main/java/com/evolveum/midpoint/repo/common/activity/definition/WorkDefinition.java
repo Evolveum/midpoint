@@ -7,24 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
  * Defines the work that is to be done within an activity.
  */
-public interface WorkDefinition extends DebugDumpable {
+public interface WorkDefinition extends DebugDumpable, Cloneable {
 
     @NotNull ExecutionModeType getExecutionMode();
 
-    ActivityDefinition<?> getOwningActivityDefinition();
-
-    void setOwningActivityDefinition(ActivityDefinition<?> activityDefinition);
-
     // TODO decide on this
     @NotNull ActivityTailoring getActivityTailoring();
+
+    WorkDefinition clone();
 }

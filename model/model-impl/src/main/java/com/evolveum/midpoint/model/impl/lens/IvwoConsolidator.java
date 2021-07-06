@@ -481,7 +481,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", equivalenceClass, itemPath, contextDescription);
-            assert equivalenceClass.getPresenceInExistingItem().isEmpty();
+            assert !existingItemKnown || equivalenceClass.getPresenceInExistingItem().isEmpty();
 
             if (valueMetadataComputer != null) {
                 decideAccordingToMetadata("adding-new (#1)");

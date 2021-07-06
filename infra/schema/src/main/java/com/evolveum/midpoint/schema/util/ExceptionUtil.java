@@ -55,6 +55,8 @@ public class ExceptionUtil {
                 return defaultIfNull(selector.getNetwork(), defaultValue);
             case SECURITY:
                 return defaultIfNull(selector.getSecurity(), defaultValue);
+            case POLICY_THRESHOLD:
+                return defaultIfNull(selector.getPolicyThreshold(), defaultValue);
             case POLICY:
                 return defaultIfNull(selector.getPolicy(), defaultValue);
             case SCHEMA:
@@ -77,6 +79,8 @@ public class ExceptionUtil {
             return ErrorCategoryType.NETWORK;
         } else if (exception instanceof SecurityViolationException) {
             return ErrorCategoryType.SECURITY;
+        } else if (exception instanceof ThresholdPolicyViolationException) {
+            return ErrorCategoryType.POLICY_THRESHOLD;
         } else if (exception instanceof PolicyViolationException) {
             return ErrorCategoryType.POLICY;
         } else if (exception instanceof SchemaException) {

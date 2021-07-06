@@ -86,7 +86,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         clone.construction = this.construction;
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(
+    public static <V extends PrismValue, D extends ItemDefinition<?>> DeltaSetTriple<ItemValueWithOrigin<V, D>> createOutputTriple(
             PrismValueDeltaSetTripleProducer<V, D> mapping, PrismContext prismContext) {
         PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
         if (outputTriple == null) {

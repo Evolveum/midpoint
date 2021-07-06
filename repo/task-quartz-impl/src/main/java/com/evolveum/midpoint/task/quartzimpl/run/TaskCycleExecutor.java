@@ -130,13 +130,7 @@ class TaskCycleExecutor {
 
     @NotNull
     private TaskRunResult executeHandler(OperationResult result) {
-        TaskRunResult runResult;
-        try {
-            runResult = beans.handlerExecutor.executeHandler(task, handler, result);
-        } finally {
-            // TEMPORARY see MID-6343; TODO implement correctly!
-            beans.counterManager.cleanupCounters(task.getOid());
-        }
+        TaskRunResult runResult = beans.handlerExecutor.executeHandler(task, handler, result);
 
         // It is dangerous to start waiting for transient children if they were not told to finish!
         // Make sure you signal them to stop at appropriate place.

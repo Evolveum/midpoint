@@ -55,7 +55,6 @@ public class LiveSyncActivityExecution
     public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 
     private ResourceObjectClassSpecification objectClassSpecification;
-    private SynchronizationResult syncResult;
 
     LiveSyncActivityExecution(
             @NotNull ExecutionInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> context) {
@@ -83,10 +82,11 @@ public class LiveSyncActivityExecution
 
     @Override
     protected void finishExecution(OperationResult opResult) throws SchemaException {
+        int itemsProcessed = executionStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
-                objectClassSpecification.resource, syncResult);
+                objectClassSpecification.resource, itemsProcessed);
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
-                .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + syncResult);
+                .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + itemsProcessed);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class LiveSyncActivityExecution
         ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(this);
 
         ModelImplUtils.clearRequestee(getRunningTask());
-        syncResult = getModelBeans().provisioningService
+        getModelBeans().provisioningService
                 .synchronize(objectClassSpecification.getCoords(), options, tokenStorage, handler, getRunningTask(), opResult);
     }
 

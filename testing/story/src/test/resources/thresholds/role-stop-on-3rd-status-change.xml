@@ -5,22 +5,20 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<role oid="00000000-role-0000-0000-999111111112">
-    <name>Stop on create user (4)</name>
+<role oid="fdd65b29-d892-452a-9260-f26c7f20e507" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Metarole stop on activation change (3)</name>
     <inducement>
         <policyRule>
-            <name>Add user</name>
+            <name>Change activation</name>
             <policyConstraints>
                 <modification>
-                    <operation>add</operation>
+                    <operation>modify</operation>
+                    <item>activation/administrativeStatus</item>
                 </modification>
             </policyConstraints>
             <policyThreshold>
-<!--                 <timeInterval> -->
-<!--                     <interval>PT1H</interval> -->
-<!--                 </timeInterval> -->
                 <lowWaterMark>
-                    <count>5</count>
+                    <count>3</count>
                 </lowWaterMark>
             </policyThreshold>
             <policyActions>

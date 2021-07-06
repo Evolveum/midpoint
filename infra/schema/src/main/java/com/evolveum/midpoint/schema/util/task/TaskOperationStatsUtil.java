@@ -75,18 +75,14 @@ public class TaskOperationStatsUtil {
      * 2. operationsPerformanceInformation,
      * 3. cachingConfiguration.
      */
-    public static OperationStatsType getOperationStatsFromTree(TaskType task, PrismContext prismContext) {
-        if (!ActivityStateUtil.isPartitionedMaster(task) && !ActivityStateUtil.isWorkStateHolder(task)) {
-            return task.getOperationStats();
-        }
-
+    public static OperationStatsType getOperationStatsFromTree(TaskType root, PrismContext prismContext) {
         OperationStatsType aggregate = new OperationStatsType(prismContext)
                 .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
                 .repositoryPerformanceInformation(new RepositoryPerformanceInformationType());
 
-        Stream<TaskType> subTasks = TaskTreeUtil.getAllTasksStream(task);
-        subTasks.forEach(subTask -> {
-            OperationStatsType operationStatsBean = subTask.getOperationStats();
+        Stream<TaskType> tasks = TaskTreeUtil.getAllTasksStream(root);
+        tasks.forEach(task -> {
+            OperationStatsType operationStatsBean = task.getOperationStats();
             if (operationStatsBean != null) {
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
                 RepositoryPerformanceInformationUtil.addTo(aggregate.getRepositoryPerformanceInformation(), operationStatsBean.getRepositoryPerformanceInformation());

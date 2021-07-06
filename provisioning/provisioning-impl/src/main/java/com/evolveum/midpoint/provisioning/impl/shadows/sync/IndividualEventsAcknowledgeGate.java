@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * The final wait is cancelled after specified time. All remaining events are negatively acknowledged then.
  *
- * This class can tolerate double acknowledgement of events (unlike {@link CountingEventsAcknowledgeGate}.
+ * This class can tolerate double acknowledgement of events (unlike {@link CountingEventsAcknowledgeGate}).
  */
 class IndividualEventsAcknowledgeGate<E extends AcknowledgementSink> {
 

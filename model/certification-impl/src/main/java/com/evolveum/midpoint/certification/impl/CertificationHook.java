@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -14,7 +13,6 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,7 +30,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,7 +76,7 @@ public class CertificationHook implements ChangeHook {
     }
 
     private Collection<CertificationPolicyActionType> getFocusCertificationActions(ModelContext<?> context) {
-        return getCertificationActions(context.getFocusContext().getPolicyRules());
+        return getCertificationActions(context.getFocusContext().getObjectPolicyRules());
     }
 
     private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {

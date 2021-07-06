@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,7 +94,7 @@ class RemainingShadowsActivityExecution
 
     private @NotNull XMLGregorianCalendar getReconciliationStartTimestamp(OperationResult opResult)
             throws SchemaException, ObjectNotFoundException {
-        ActivityState<?> reconState = getActivityState().
+        ActivityState reconState = getActivityState().
                 getParentActivityState(ReconciliationWorkStateType.COMPLEX_TYPE, opResult);
         XMLGregorianCalendar started =
                 reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class);

@@ -30,6 +30,9 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
         <tailoring>
             <change>
                 <reference>resourceObjects</reference>
@@ -55,13 +58,6 @@
                         </workersPerNode>
                     </workers>
                     <workerThreads>2</workerThreads>
-                    <tailoringMode>overwriteSpecified</tailoringMode>
-                </distribution>
-            </change>
-            <change>
-                <distribution>
-                    <subtask/>
-                    <tailoringMode>overwriteSpecified</tailoringMode>
                 </distribution>
             </change>
         </tailoring>

@@ -87,7 +87,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
     }
 
     @Override
-    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
         fillCommonContent(rv);

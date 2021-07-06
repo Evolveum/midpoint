@@ -67,6 +67,11 @@ public class GenericTaskExecution implements TaskExecution {
             throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
+        if (localRootActivity.isSkipped()) {
+            LOGGER.trace("Local root activity is skipped, exiting");
+            return TaskRunResult.createNotApplicableTaskRunResult();
+        }
+
         logStart();
 
         try {
@@ -160,6 +165,7 @@ public class GenericTaskExecution implements TaskExecution {
         return genericTaskHandler.getBeans();
     }
 
+    @SuppressWarnings("unused")
     public ActivityTree getActivityTree() {
         return activityTree;
     }

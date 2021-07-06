@@ -105,10 +105,13 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      * This is a little hack to avoid the need of passing this information throughout the whole call tree.
      * (Originally this was implemented in task extension.)
      */
-    @NotNull ExecutionModeType getExecutionMode();
+    @Experimental
+    default @NotNull ExecutionModeType getExecutionMode() {
+        ExecutionSupport executionSupport = getExecutionSupport();
+        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.EXECUTE;
+    }
 
-    /**
-     * Sets the execution mode for the current task.
-     */
-    void setExecutionMode(@NotNull ExecutionModeType mode);
+    ExecutionSupport getExecutionSupport();
+
+    void setExecutionSupport(ExecutionSupport executionContext);
 }

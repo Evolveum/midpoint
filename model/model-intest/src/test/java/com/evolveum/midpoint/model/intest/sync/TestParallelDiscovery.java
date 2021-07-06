@@ -50,6 +50,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * ------------------------------------------------------------------------------
  *
  * Setup:
+ *
  *  - synchronizing accounts from SteelBlue to SteelGrey (using user template that assigns a role for SteelGrey)
  *  - starting with N user accounts on SteelBlue and SteelGrey; M groups on SteelGrey
  *  - during SteelGrey account creation, account+groups are discovered there

@@ -6,20 +6,14 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- Resource definition for an embedded OpenDJ instance. -->
-
 <resource oid="10000000-0000-0000-0000-000000000003"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -43,8 +37,8 @@
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -107,22 +101,10 @@
                 </inbound>
             </attribute>
 
-<!--             <association> -->
-<!--                 <ref>ri:group</ref> -->
-<!--                 <displayName>LDAP Group Membership</displayName> -->
-<!--                 <kind>entitlement</kind> -->
-<!--                 <intent>ldapGroup</intent> -->
-<!--                 <direction>objectToSubject</direction> -->
-<!--                 <associationAttribute>ri:uniqueMember</associationAttribute> -->
-<!--                 <valueAttribute>ri:dn</valueAttribute> -->
-<!--                 <shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute> -->
-<!--                 <shortcutValueAttribute>ri:dn</shortcutValueAttribute> -->
-<!--             </association> -->
-
             <protected>
-                   <filter>
-                       <q:equal>
-                           <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
                         <q:path>attributes/ri:dn</q:path>
                         <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
                     </q:equal>
@@ -148,7 +130,7 @@
 
         </objectType>
 
-     </schemaHandling>
+    </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
         <configured>

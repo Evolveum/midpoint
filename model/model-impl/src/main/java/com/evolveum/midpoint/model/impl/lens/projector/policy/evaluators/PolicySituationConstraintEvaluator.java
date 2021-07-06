@@ -127,7 +127,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
             // all triggered rules.
             rules = evaluatedAssignment.getAllTargetsPolicyRules();
         } else {
-            rules = rctx.focusContext.getPolicyRules();
+            rules = rctx.focusContext.getObjectPolicyRules();
         }
         return rules.stream()
                 .filter(r -> r.isTriggered() && situations.contains(r.getPolicySituation()))

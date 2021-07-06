@@ -69,7 +69,7 @@ public abstract class AbstractCompositeActivityExecution<
 
         boolean allChildrenFinished = true;
 
-        Collection<Activity<?, ?>> children = activity.getChildrenCopy();
+        Collection<Activity<?, ?>> children = activity.getChildrenCopyExceptSkipped();
 
         // We create state before starting the execution in order to allow correct progress information reporting.
         // (It needs to know the total number of activity executions at any open level.)

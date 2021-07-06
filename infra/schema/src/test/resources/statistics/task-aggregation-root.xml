@@ -212,7 +212,6 @@
             </stringSegmentation>
         </buckets>
         <workers>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3#2</handlerUri>
             <workersPerNode id="4">
                 <count>2</count>
             </workersPerNode>

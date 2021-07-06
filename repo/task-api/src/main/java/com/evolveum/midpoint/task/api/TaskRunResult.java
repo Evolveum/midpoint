@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+
 /**
  * Single-purpose class to return task run results.
  *
@@ -181,6 +183,13 @@ public class TaskRunResult implements Serializable {
                 Objects.requireNonNullElseGet(
                         task.getResult(),
                         () -> new OperationResult(TaskConstants.OP_EXECUTE_HANDLER)));
+        return runResult;
+    }
+
+    public static TaskRunResult createNotApplicableTaskRunResult() {
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setRunResultStatus(FINISHED);
+        runResult.setOperationResultStatus(OperationResultStatus.NOT_APPLICABLE);
         return runResult;
     }
 }

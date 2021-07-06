@@ -41,7 +41,7 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
     public String toDiagShortcut() {
         return super.toDiagShortcut()
             + innerTriggers.stream()
-                    .map(trigger -> trigger.toDiagShortcut())
+                    .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
                     .distinct()
                     .collect(Collectors.joining("+", "(", ")"));
     }
@@ -69,12 +69,12 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
         fillCommonContent(rv);
         if (!options.isRespectFinalFlag() || !isFinal()) {
-            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options, prismContext)));
+            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerBean(options, prismContext)));
         }
         return rv;
     }

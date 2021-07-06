@@ -91,7 +91,7 @@ public class PolicyRuleScriptExecutor {
     }
 
     private void collectFromFocus(List<EvaluatedPolicyRuleImpl> rules, LensContext<?> context) {
-        for (EvaluatedPolicyRuleImpl rule : context.getFocusContext().getPolicyRules()) {
+        for (EvaluatedPolicyRuleImpl rule : context.getFocusContext().getObjectPolicyRules()) {
             collectRule(rules, rule);
         }
     }

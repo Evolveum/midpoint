@@ -6,22 +6,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4"
+<task oid="95bd6a35-ab67-46c9-bda6-51f5bfb070da"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-        xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <name>LiveSync Full: Dummy</name>
 
-    <extension>
-        <ext:token xsi:type="xsd:int">4</ext:token>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
+    <recurrence>single</recurrence>
 
     <activity>
         <work>
@@ -36,11 +31,11 @@
         </work>
         <executionMode>execute</executionMode>
     </activity>
-
-    <recurrence>recurring</recurrence>
-    <binding>tight</binding>
-    <schedule>
-        <interval>5</interval>
-    </schedule>
-
+    <activityState>
+        <activity>
+            <workState xsi:type="LiveSyncWorkStateType">
+                <token xsi:type="xsd:int">3</token> <!-- there are 3 events at the beginning: user1, user2, user3 -->
+            </workState>
+        </activity>
+    </activityState>
 </task>

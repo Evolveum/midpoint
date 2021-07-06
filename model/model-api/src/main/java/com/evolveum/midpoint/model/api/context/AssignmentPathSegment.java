@@ -49,6 +49,8 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable, Ser
 
     ObjectType getSource();
 
+    String getSourceOid();
+
     ObjectType getTarget();
 
     QName getRelation();

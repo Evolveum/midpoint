@@ -94,6 +94,9 @@ public class BucketingUtil {
         } else if (bucket.getContent() instanceof StringPrefixWorkBucketContentType) {
             StringPrefixWorkBucketContentType stringPrefix = (StringPrefixWorkBucketContentType) bucket.getContent();
             return !stringPrefix.getPrefix().isEmpty();
+        } else if (bucket.getContent() instanceof StringValueWorkBucketContentType) {
+            StringValueWorkBucketContentType stringValue = (StringValueWorkBucketContentType) bucket.getContent();
+            return !stringValue.getValue().isEmpty();
         } else if (bucket.getContent() instanceof FilterWorkBucketContentType) {
             FilterWorkBucketContentType filtered = (FilterWorkBucketContentType) bucket.getContent();
             return !filtered.getFilter().isEmpty();

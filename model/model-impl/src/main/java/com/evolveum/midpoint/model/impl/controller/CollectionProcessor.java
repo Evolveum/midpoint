@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +76,11 @@ public class CollectionProcessor {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SchemaService schemaService;
 
-    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection,
+            CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass,
+            Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         if (collectionView == null) {
             collectionView = new CompiledObjectCollectionView();
             compileObjectCollectionView(collectionView, null, collection.asObjectable(), targetTypeClass, task, result);
@@ -119,7 +124,11 @@ public class CollectionProcessor {
                 .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null);
+        // Generated proforma - actually not much needed for now.
+        String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentType.getId());
+
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule =
+                new EvaluatedPolicyRuleImpl(policyRuleType.clone(), ruleId, assignmentPath, null);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {

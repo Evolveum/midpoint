@@ -23,7 +23,7 @@ public class EvaluatedCollectionStatsTrigger extends EvaluatedPolicyRuleTrigger<
     }
 
     @Override
-    public EvaluatedCollectionStatsTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options, PrismContext prismContext) {
+    public EvaluatedCollectionStatsTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options, PrismContext prismContext) {
         EvaluatedCollectionStatsTriggerType rv = new EvaluatedCollectionStatsTriggerType();
         fillCommonContent(rv);
         return rv;

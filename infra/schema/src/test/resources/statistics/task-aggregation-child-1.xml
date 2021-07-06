@@ -15,7 +15,6 @@
     <executionStatus>closed</executionStatus>
     <schedulingState>closed</schedulingState>
     <category>Utility</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3#2</handlerUri>
     <resultStatus>success</resultStatus>
     <objectRef oid="10000000-9999-9999-0000-a000ff000001" relation="org:default" type="c:ResourceType"/>
     <lastRunStartTimestamp>2021-04-08T09:15:41.143+02:00</lastRunStartTimestamp>

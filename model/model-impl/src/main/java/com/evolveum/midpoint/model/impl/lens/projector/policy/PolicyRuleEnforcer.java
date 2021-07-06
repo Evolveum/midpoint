@@ -8,8 +8,9 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,16 +27,17 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.MessageKind.NORMAL;
+import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.extractMessages;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * Code used to enforce the policy rules that have the enforce action.
  *
- * Originally this was a regular ChangeHook. However, when invoked among other hooks, it is too late (see MID-4797).
- * So we had to convert it into regular code. Some parts still carry this history, until properly rewritten (MID-4798).
+ * Originally this was a regular {@link ChangeHook}. However, when invoked among other hooks, it is too late (see MID-4797).
+ * So we had to convert it into regular code and run it right after the first {@link Projector} run.
  *
  * @author semancik
- *
  */
 @Component
 public class PolicyRuleEnforcer {
@@ -47,17 +49,21 @@ public class PolicyRuleEnforcer {
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
 
-    // TODO clean this up
     private static class EvaluationContext {
         private final List<LocalizableMessage> messages = new ArrayList<>();
         private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
     }
 
-    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, OperationResult parentResult)
+    public <O extends ObjectType> void execute(@NotNull LensContext<O> context, OperationResult parentResult)
             throws PolicyViolationException {
         OperationResult result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {
             EvaluationContext evalCtx = executeInternal(context);
+            if (evalCtx == null) {
+                result.recordNotApplicable();
+                return;
+            }
+
             if (context.isPreview()) {
                 executePreview(context, evalCtx);
             } else {
@@ -82,37 +88,34 @@ public class PolicyRuleEnforcer {
         }
     }
 
-    private void executePreview(@NotNull ModelContext<? extends ObjectType> context, EvaluationContext evalCtx) {
+    private void executePreview(@NotNull LensContext<? extends ObjectType> context, EvaluationContext evalCtx) {
         PolicyRuleEnforcerPreviewOutputType output = new PolicyRuleEnforcerPreviewOutputType(prismContext);
         output.getRule().addAll(evalCtx.rules);
-        ((LensContext) context).setPolicyRuleEnforcerPreviewOutput(output);
+        context.setPolicyRuleEnforcerPreviewOutput(output);
     }
 
-    @NotNull
-    private <O extends ObjectType> EvaluationContext executeInternal(@NotNull ModelContext<O> context) {
-        EvaluationContext evalCtx = new EvaluationContext();
-        ModelElementContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            return evalCtx;
+    private <O extends ObjectType> EvaluationContext executeInternal(@NotNull LensContext<O> context) {
+        if (!context.hasFocusOfType(FocusType.class)) { // TODO or AssignmentHolderType?
+            return null;
         }
+        EvaluationContext evalCtx = new EvaluationContext();
         //noinspection unchecked
-        ModelContext<? extends FocusType> contextCasted = (ModelContext<? extends FocusType>) context;
+        LensContext<? extends FocusType> contextCasted = (LensContext<? extends FocusType>) context;
         evaluateFocusRules(evalCtx, contextCasted);
         evaluateAssignmentRules(evalCtx, contextCasted);
 
         return evalCtx;
     }
 
-    private <F extends FocusType> void evaluateFocusRules(EvaluationContext evalCtx, ModelContext<F> context) {
-        enforceTriggeredRules(evalCtx, context.getFocusContext().getPolicyRules());
+    private <F extends FocusType> void evaluateFocusRules(EvaluationContext evalCtx, LensContext<F> context) {
+        enforceTriggeredRules(evalCtx, context.getFocusContext().getObjectPolicyRules());
     }
 
-    private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, ModelContext<F> context) {
-        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+    private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, LensContext<F> context) {
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return;
         }
-        //noinspection unchecked
         evaluatedAssignmentTriple.simpleAccept(assignment -> enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules()));
     }
 
@@ -125,24 +128,24 @@ public class PolicyRuleEnforcer {
             }
 
             boolean enforceAll = policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggersFiltered;
+            Collection<EvaluatedPolicyRuleTrigger<?>> enforcingTriggers;
             if (enforceAll) {
-                triggersFiltered = triggers;
+                enforcingTriggers = triggers;
             } else {
-                triggersFiltered = triggers.stream()
+                enforcingTriggers = triggers.stream()
                         .filter(EvaluatedPolicyRuleTrigger::isEnforcementOverride)
                         .collect(Collectors.toList());
-                if (triggersFiltered.isEmpty()) {
+                if (enforcingTriggers.isEmpty()) {
                     continue;
                 }
             }
 
             // TODO really include assignments content?
-            policyRule.addToEvaluatedPolicyRuleTypes(evalCtx.rules,
+            policyRule.addToEvaluatedPolicyRuleBeans(evalCtx.rules,
                     new PolicyRuleExternalizationOptions(FULL, true, true),
                     t -> enforceAll || t.isEnforcementOverride(), prismContext);
 
-            List<TreeNode<LocalizableMessage>> messageTrees = EvaluatedPolicyRuleUtil.extractMessages(triggersFiltered, EvaluatedPolicyRuleUtil.MessageKind.NORMAL);
+            List<TreeNode<LocalizableMessage>> messageTrees = extractMessages(enforcingTriggers, NORMAL);
             for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
                 evalCtx.messages.add(messageTree.getUserObject());
             }

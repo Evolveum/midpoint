@@ -57,17 +57,17 @@ public class StringValueWorkBucketContentHandler extends BaseWorkBucketContentHa
                 ? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)
                 : null;
 
-        List<ObjectFilter> prefixFilters = new ArrayList<>();
-        for (String prefix : content.getValue()) {
-            prefixFilters.add(prismContext.queryFor(type)
-                    .item(discriminator, discriminatorDefinition).eq(prefix).matching(matchingRuleName)
+        List<ObjectFilter> filters = new ArrayList<>();
+        for (String value : content.getValue()) {
+            filters.add(prismContext.queryFor(type)
+                    .item(discriminator, discriminatorDefinition).eq(value).matching(matchingRuleName)
                     .buildFilter());
         }
-        assert !prefixFilters.isEmpty();
-        if (prefixFilters.size() > 1) {
-            return Collections.singletonList(prismContext.queryFactory().createOr(prefixFilters));
+        assert !filters.isEmpty();
+        if (filters.size() > 1) {
+            return Collections.singletonList(prismContext.queryFactory().createOr(filters));
         } else {
-            return prefixFilters;
+            return filters;
         }
     }
 }

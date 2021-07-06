@@ -47,7 +47,7 @@ class TailoringUtil {
 
     private static <T extends Containerable> T overwriteSpecified(T original, T tailoring) {
         //noinspection unchecked
-        PrismContainerValue<T> originalPcvCloned = original.asPrismContainerValue().clone();
+        PrismContainerValue<T> originalPcv = original.asPrismContainerValue();
         //noinspection unchecked
         PrismContainerValue<T> tailoringPcv = tailoring.asPrismContainerValue();
 
@@ -57,11 +57,11 @@ class TailoringUtil {
             }
             try {
                 //noinspection unchecked
-                originalPcvCloned.addReplaceExisting(itemToOverwrite.clone());
+                originalPcv.addReplaceExisting(itemToOverwrite.clone());
             } catch (SchemaException e) {
                 throw new IllegalStateException("Unexpected SchemaException during activity tailoring: " + e.getMessage(), e);
             }
         }
-        return originalPcvCloned.asContainerable();
+        return originalPcv.asContainerable();
     }
 }

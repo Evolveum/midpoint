@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +35,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution of resource objects reconciliation (the main part of reconciliation).
  */
-public class ResourceReconciliationActivityExecution
-        extends PartialReconciliationActivityExecution<ResourceReconciliationActivityExecution> {
+public class ResourceObjectsReconciliationActivityExecution
+        extends PartialReconciliationActivityExecution<ResourceObjectsReconciliationActivityExecution> {
 
     private Synchronizer synchronizer;
 
-    ResourceReconciliationActivityExecution(
+    ResourceObjectsReconciliationActivityExecution(
             @NotNull ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
-        super(context, "Reconciliation (on resource)");
+        super(context, "Reconciliation (on resource)" + modeSuffix(context));
+    }
+
+    // TODO generalize
+    private static String modeSuffix(
+            ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
+        return context.getActivity().getWorkDefinition().getExecutionMode() == ExecutionModeType.SIMULATE ?
+                " (simulated)" : "";
     }
 
     @Override
