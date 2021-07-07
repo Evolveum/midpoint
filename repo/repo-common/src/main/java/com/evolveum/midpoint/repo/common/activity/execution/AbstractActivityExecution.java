@@ -232,21 +232,21 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    private void logStart() { // todo debug
-        LOGGER.info("{}: Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
+    private void logStart() {
+        LOGGER.debug("{}: Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
                         + "prism item path: {}",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 activityState.getItemPath());
     }
 
-    private void logEnd(ActivityExecutionResult executionResult) { // todo debug
-        LOGGER.info("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+    private void logEnd(ActivityExecutionResult executionResult) {
+        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 executionResult);
     }
 
-    private void logComplete() { // todo debug
-        LOGGER.info("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
+    private void logComplete() {
+        LOGGER.debug("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
