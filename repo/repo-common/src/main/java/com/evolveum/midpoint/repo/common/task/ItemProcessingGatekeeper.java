@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
@@ -498,7 +499,19 @@ class ItemProcessingGatekeeper<I> {
 
         // If needed, let us write current statistics into the repository.
         // There is no need to do this for worker task, because it is either the same as the coordinator, or it's a LAT.
-        coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(result);
+        coordinatorTask.storeStatisticsIntoRepositoryIfTimePassed(getActivityStatUpdater(), result);
+    }
+
+    private Runnable getActivityStatUpdater() {
+        return () -> {
+            try {
+                activityExecution.getActivityState().updateProgressAndStatisticsNoCommit();
+            } catch (ActivityExecutionException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update activity statistics in the task {}", e,
+                        coordinatorTask);
+                // Ignoring the exception
+            }
+        };
     }
 
     private PrismContext getPrismContext() {

@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * See {@link #updateStatisticsInTaskPrism(boolean)}.
  *
  * 3. From task.prism to the repository. This takes a lot of time, so it is driven by time interval.
- * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and {@link #storeStatisticsIntoRepositoryIfTimePassed(OperationResult)}
+ * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and {@link #storeStatisticsIntoRepositoryIfTimePassed(Runnable, OperationResult)}
  * methods.
  *
  * Statistics collection is always started by calling {@link #startCollectingStatistics(StatisticsCollectionStrategy)} method.
@@ -70,8 +70,10 @@ public interface RunningTaskStatisticsCollector extends ProgressCollector {
      * Stores statistics from `task.prism` to the repository, if the specified time interval passed.
      *
      * The time interval is there to avoid excessive repository operations. (Writing a large task can take quite a long time.)
+     *
+     * FIXME this hack with additional updater
      */
-    void storeStatisticsIntoRepositoryIfTimePassed(OperationResult result);
+    void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result);
 
     /**
      * Stores statistics from `task.prism` to the repository. Costly operation.

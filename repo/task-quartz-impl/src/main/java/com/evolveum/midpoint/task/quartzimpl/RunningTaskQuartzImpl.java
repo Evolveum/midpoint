@@ -215,9 +215,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     @Override
-    public void storeStatisticsIntoRepositoryIfTimePassed(OperationResult result) {
+    public void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result) {
         if (lastOperationStatsUpdateTimestamp == null ||
                 System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
+            if (additionalUpdater != null) {
+                additionalUpdater.run();
+            }
             storeStatisticsIntoRepository(result);
         }
     }
@@ -226,7 +229,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void storeStatisticsIntoRepository(OperationResult result) {
         try {
             addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
-            // FIXME addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
             flushPendingModifications(result);
@@ -251,7 +253,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void incrementProgressAndStoreStatisticsIfTimePassed(OperationResult result) {
         incrementProgressTransient();
         updateStatisticsInTaskPrism(true);
-        storeStatisticsIntoRepositoryIfTimePassed(result);
+        storeStatisticsIntoRepositoryIfTimePassed(null, result);
     }
 
     /**

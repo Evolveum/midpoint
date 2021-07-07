@@ -83,7 +83,7 @@ public class MockParallelTaskHandler implements TaskHandler {
                     op.succeeded();
                     parentTask.incrementProgressTransient();
                     parentTask.updateStatisticsInTaskPrism(false);
-                    parentTask.storeStatisticsIntoRepositoryIfTimePassed(new OperationResult("store stats"));
+                    parentTask.storeStatisticsIntoRepositoryIfTimePassed(null, new OperationResult("store stats"));
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
                     op.failed(e);
