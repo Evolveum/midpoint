@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
+import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
 import java.util.Objects;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 /**
  * Mapping between {@link QAccessCertificationWorkItem} and {@link AccessCertificationWorkItemType}.
@@ -67,6 +67,23 @@ public class QAccessCertificationWorkItemMapping
     }
 
     @Override
+    public AccessCertificationWorkItemType toSchemaObject(MAccessCertificationWorkItem row) {
+        AccessCertificationWorkItemType acwi = new AccessCertificationWorkItemType(prismContext())
+                .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
+                .iteration(row.campaignIteration)
+                .outputChangeTimestamp(asXMLGregorianCalendar(row.outputChangeTimestamp))
+                .performerRef(objectReference(row.performerRefTargetOid,
+                        row.performerRefTargetType, row.performerRefRelationId))
+                .stageNumber(row.stageNumber);
+
+        if (row.outcome != null) {
+            acwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
+        }
+
+        return acwi;
+    }
+
+    @Override
     protected QAccessCertificationWorkItem newAliasInstance(String alias) {
         return new QAccessCertificationWorkItem(alias);
     }
@@ -85,7 +102,11 @@ public class QAccessCertificationWorkItemMapping
 
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
-    public MAccessCertificationWorkItem insert(AccessCertificationWorkItemType workItem, MAccessCertificationCampaign campaignRow, MAccessCertificationCase caseRow, JdbcSession jdbcSession) {
+    public MAccessCertificationWorkItem insert(
+            AccessCertificationWorkItemType workItem,
+            MAccessCertificationCampaign campaignRow,
+            MAccessCertificationCase caseRow,
+            JdbcSession jdbcSession) {
         MAccessCertificationWorkItem row = initRowObject(workItem, campaignRow);
         row.accessCertCaseCid = caseRow.cid;
 

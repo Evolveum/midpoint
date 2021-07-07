@@ -51,7 +51,8 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     /** Implemented for searchable containers. */
     @Override
     public S toSchemaObject(R row) {
-        throw new UnsupportedOperationException("Implemented in subclasses only");
+        throw new UnsupportedOperationException(
+                "Container search not supported for schema type " + schemaType());
     }
 
     @Override
@@ -84,6 +85,6 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
 
     @Override
     public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
-        throw new UnsupportedOperationException("insert must be implemented in the subclass");
+        throw new UnsupportedOperationException("Missing insert() implementation in " + getClass());
     }
 }

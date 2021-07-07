@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -137,16 +138,21 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     }
 
     /**
-     * Returns {@link ItemRelationResolver} for provided {@link ItemName} or throws.
+     * Returns {@link ItemRelationResolver} for the first component of the provided {@link ItemPath}
+     * or throws if the resolver is not found.
      * Relation resolver helps with traversal over all-but-last components of item paths.
+     * ItemPath is used instead of QName to encapsulate corner cases like parent segment.
      *
      * @param <TQ> type of target entity path
      * @param <TR> row type related to the target entity path {@link TQ}
      * @throws QueryException if the resolver for the item is not found
      */
     public final @NotNull <TQ extends FlexibleRelationalPathBase<TR>, TR>
-    ItemRelationResolver<Q, R, TQ, TR> relationResolver(QName itemName)
+    ItemRelationResolver<Q, R, TQ, TR> relationResolver(ItemPath path)
             throws QueryException {
+        QName itemName = ItemPath.isParent(path.first())
+                ? PrismConstants.T_PARENT
+                : path.firstName();
         ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {
             throw new QueryException("Missing relation resolver for '" + itemName
