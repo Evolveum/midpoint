@@ -831,6 +831,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public void shutdown() {
         LOGGER.info("Shutting down ConnId framework");
         ConnectorFacadeFactory.getInstance().dispose();
+        if (localConnectorInfoManager != null) {
+            localConnectorInfoManager.shutdown();
+        }
     }
 
     @Override

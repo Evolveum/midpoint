@@ -149,6 +149,14 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
         }
     }
 
+    public void shutdown() {
+        try {
+            monitor.stop();
+        } catch (Exception e) {
+            LOGGER.warn("Exception raised during shutdown:_", e);
+        }
+    }
+
     class Listener extends FileAlterationListenerAdaptor {
 
         @Override
