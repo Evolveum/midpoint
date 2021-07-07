@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 
 import org.apache.wicket.Component;
@@ -26,6 +27,7 @@ import java.util.Collections;
 /**
  * @author semancik
  */
+@PanelDescription(identifier = "assignments")
 public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

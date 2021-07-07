@@ -741,6 +741,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="panel" type="tns:SingleValueContainerPanelType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies which panels will be show, in which order, ...
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -864,6 +873,19 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>VirtualContainersSpecificationType.item</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expanded" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines if the contianer is expanded or collapsed by default. Default behavior depends on
+                                    various aspects. E.g. whether the container is multi-value, or container any values, ...
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>VirtualContainersSpecificationType.expanded</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3575,5 +3597,35 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:complexType name="SingleValueContainerPanelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Generic panel usable for single-valued containers. It can be used to declaratively
+                    define custom panel or override current panels.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    List of containers to show on this panel
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 </xsd:schema>
