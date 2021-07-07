@@ -86,7 +86,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     public static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     public static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
     public static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
-    public static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
+    public static final String OPERATION_DELETE_ACTIVITY_STATE_AND_WORKERS = DOT_CLASS + "deleteActivityStateAndWorkers";
     public static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
     public static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
     public static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
@@ -460,7 +460,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private InlineMenuItem createDeleteWorkStateAndWorkersMenuAction() {
         InlineMenuItem deleteWorkStateAndWorkers = createTaskInlineMenuItem("pageTasks.button.deleteWorkersAndWorkState",
-                this::deleteWorkersAndWorkState,
+                this::deleteActivityStateAndWorkers,
                 "pageTasks.message.deleteWorkersAndWorkState",
                 (task) -> true,
                 false);
@@ -687,11 +687,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         clearCache();
     }
 
-    private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
-        Task opTask = createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
+    private void deleteActivityStateAndWorkers(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
+        Task opTask = createSimpleTask(OPERATION_DELETE_ACTIVITY_STATE_AND_WORKERS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getObject().getValue().getOid(), true, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteActivityStateAndWorkers(task.getObject().getValue().getOid(), true, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (Throwable e) {
             result.recordFatalError(createStringResource("pageTasks.message.deleteWorkersAndWorkState.fatalError").getString(),
@@ -715,7 +715,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_DELETE_WORK_STATE);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteActivityStateAndWorkers(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (Throwable e) {
             result.recordFatalError(createStringResource("pageTasks.message.deleteWorkState.fatalError").getString(),

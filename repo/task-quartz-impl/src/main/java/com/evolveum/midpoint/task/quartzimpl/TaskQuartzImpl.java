@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1943,6 +1944,19 @@ public class TaskQuartzImpl implements Task {
         return listSubtasks(false, parentResult);
     }
 
+    @Override
+    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
+        List<ObjectReferenceType> subtasksRefs = listSubtasks(result).stream()
+                .map(Task::getSelfReferenceFull)
+                .collect(Collectors.toList());
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> subtaskRef = taskPrism.asObjectable().getSubtaskRef();
+            subtaskRef.clear();
+            subtaskRef.addAll(subtasksRefs);
+            // We intentionally do not issue pending modification here, as this information should not go into repository.
+        }
+    }
+
     @NotNull
     @Override
     public List<TaskQuartzImpl> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
@@ -2050,6 +2064,17 @@ public class TaskQuartzImpl implements Task {
                     .oid(getOid())
                     .relation(beans.prismContext.getDefaultRelation())
                     .targetName(getName());
+        } else {
+            throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
+        }
+    }
+
+    @Override
+    public @NotNull ObjectReferenceType getSelfReferenceFull() {
+        if (getOid() != null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(
+                    getRawTaskObjectClonedIfNecessary(),
+                    PrismContext.get());
         } else {
             throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
         }

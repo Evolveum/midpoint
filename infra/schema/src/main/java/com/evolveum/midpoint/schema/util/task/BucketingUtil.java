@@ -109,7 +109,8 @@ public class BucketingUtil {
 
     @SuppressWarnings("WeakerAccess")
     public static boolean isCoordinator(ActivityStateType state) {
-        return state.getBucketing() != null &&
+        return state != null &&
+                state.getBucketing() != null &&
                 state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.COORDINATOR;
     }
 

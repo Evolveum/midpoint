@@ -524,6 +524,10 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
+    }
+
+    @Override
     public TaskWaitingReasonType getWaitingReason() {
         throw new UnsupportedOperationException();
     }
@@ -693,6 +697,11 @@ public class NullTaskImpl implements Task {
 
     @Override
     public OperationStatsType getAggregatedLiveOperationStats() {
+        return null;
+    }
+
+    @Override
+    public @NotNull ObjectReferenceType getSelfReferenceFull() {
         return null;
     }
 
