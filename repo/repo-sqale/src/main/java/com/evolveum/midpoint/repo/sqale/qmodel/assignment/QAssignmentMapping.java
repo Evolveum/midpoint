@@ -162,6 +162,8 @@ public class QAssignmentMapping<OR extends MObject>
         //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
         //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
         //  For assignments we can use ownerType, but this is not general for all containers.
+        //  Inspiration: com.evolveum.midpoint.repo.sql.helpers.CertificationCaseHelper.updateLoadedCertificationCase
+        //  (if even possible with abstract type definition)
         assignment.id(row.cid)
                 .lifecycleState(row.lifecycleState)
                 .order(row.orderValue)

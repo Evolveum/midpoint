@@ -9,15 +9,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
+import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-
-import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -26,11 +24,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-
-import java.util.List;
 
 /**
  * Mapping between {@link QAccessCertificationCase} and {@link AccessCertificationCaseType}.
@@ -38,7 +33,7 @@ import java.util.List;
 public class QAccessCertificationCaseMapping
         extends QContainerMapping<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase, MAccessCertificationCampaign> {
 
-    public static final String DEFAULT_ALIAS_NAME = "acca";
+    public static final String DEFAULT_ALIAS_NAME = "accs";
 
     private static QAccessCertificationCaseMapping instance;
 

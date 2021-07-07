@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 import java.util.function.BiFunction;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -20,11 +19,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.ContainerTableUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that knows how to join to the specified target query type (can be JOIN or EXISTS).
+ * Resolver that knows how to traverse to the specified target query type (can be JOIN or EXISTS).
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}, this is the owner of the target table
@@ -35,33 +34,13 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
+        extends TableRelationResolver<Q, R, TS, TQ, TR>
         implements SqaleItemRelationResolver<Q, R, TQ, TR> {
-
-    private final QContainerMapping<TS, TQ, TR, R> targetMapping;
-    private final BiFunction<Q, TQ, Predicate> correlationPredicate;
 
     public ContainerTableRelationResolver(
             @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        this.targetMapping = targetMapping;
-        this.correlationPredicate = correlationPredicate;
-    }
-
-    /**
-     * Creates the JOIN using provided query context.
-     * This does not use the mapping parameter as it is useless for JOIN creation.
-     *
-     * @param context query context used for JOIN creation
-     * @return result with context for JOINed entity path and its mapping
-     */
-    @Override
-    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> subcontext =
-                context.subquery(targetMapping.queryType());
-        SQLQuery<?> subquery = subcontext.sqlQuery();
-        subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
-
-        return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
+        super(targetMapping, correlationPredicate);
     }
 
     @Override
@@ -72,9 +51,11 @@ public class ContainerTableRelationResolver<
                     "Item path provided for container table relation resolver must have two"
                             + " segments with PCV ID as the second");
         }
-        TR row = targetMapping.newRowObject(context.row());
+        QContainerMapping<TS, TQ, TR, R> containerMapping =
+                (QContainerMapping<TS, TQ, TR, R>) this.targetMapping;
+        TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);
-        return new ContainerTableUpdateContext<>(context, targetMapping, row);
+        return new ContainerTableUpdateContext<>(context, containerMapping, row);
     }
 }

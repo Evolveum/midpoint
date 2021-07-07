@@ -10,7 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
@@ -76,7 +78,10 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
 
             return filterProcessor.process(filter);
         } else {
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
+            QName firstName = path.first() instanceof ParentPathSegment
+                    ? PrismConstants.T_PARENT
+                    : path.firstName();
+            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(firstName);
             ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
             ValueFilterProcessor<TQ, TR> nestedProcessor =

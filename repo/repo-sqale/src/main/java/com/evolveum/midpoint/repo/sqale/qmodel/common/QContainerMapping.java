@@ -44,6 +44,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
+        // OWNER_OID does not need to be mapped, it is handled by InOidFilterProcessor
         // CID is not mapped directly, it is used by path resolver elsewhere
     }
 

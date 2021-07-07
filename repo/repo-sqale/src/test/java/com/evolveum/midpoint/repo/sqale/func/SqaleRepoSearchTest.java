@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
@@ -54,7 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
+public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     private final static String CASE_WI1_ASSIGNEE1_OID = "8cd0ddb2-c84d-11eb-a008-9321c31dd5ce";
     private final static String CASE_WI1_ASSIGNEE2_OID = "f29a15f0-c84d-11eb-a080-67fcdff6f07d";
@@ -1539,6 +1540,10 @@ AND(
                 .hasMessageContaining("not indexed");
     }
 
+    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
+    // endregion
+
+    // region container search
     @Test
     public void test600SearchContainersByOwnerId() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
@@ -1558,10 +1563,23 @@ AND(
                 .matches(a -> a.getOrgRef().getType().equals(OrgType.COMPLEX_TYPE))
                 .matches(a -> a.getOrgRef().getRelation().equals(relation1))
                 .matches(a -> a.getMetadata() == null);
-
     }
 
-    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
+    @Test
+    public void test601SearchContainerByParentName() throws SchemaException {
+        ItemDefinition<?> itemDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByType(AssignmentHolderType.COMPLEX_TYPE)
+                .findItemDefinition(ObjectType.F_NAME);
+
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "assignments by parent's name", AssignmentType.class,
+                f -> f.itemWithDef(itemDef, T_PARENT, ObjectType.F_NAME)
+                        .eq("user-1").matchingOrig());
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactlyInAnyOrder("assignment1-1", "assignment1-2", "assignment1-3-ext");
+    }
+
     // endregion
 
     // region special cases
