@@ -13,7 +13,7 @@ import java.util.Locale;
 
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 
 import org.apache.wicket.model.StringResourceModel;
 
@@ -46,20 +46,20 @@ public class ActivityItemProcessingDto implements Serializable {
 
     private final ActivityPerformanceInformation performanceInformation;
 
-    ActivityItemProcessingDto(@NotNull QualifiedActivityState qState) {
-        parseItemProcessing(qState);
+    ActivityItemProcessingDto(@NotNull ActivityStateInContext cState) {
+        parseItemProcessing(cState);
         createChartConfiguration();
-        performanceInformation = createPerformanceInformation(qState);
+        performanceInformation = createPerformanceInformation(cState);
     }
 
-    private void parseItemProcessing(@NotNull QualifiedActivityState qState) {
+    private void parseItemProcessing(@NotNull ActivityStateInContext cState) {
         ActivityItemProcessingStatisticsType itemProcessing;
-        if (qState.getWorkerStates() != null) {
+        if (cState.getWorkerStates() != null) {
             itemProcessing = ActivityItemProcessingStatisticsUtil.summarize(
                     ActivityItemProcessingStatisticsUtil.getItemProcessingStatisticsFromStates(
-                            qState.getWorkerStates()));
+                            cState.getWorkerStates()));
         } else {
-            itemProcessing = ActivityItemProcessingStatisticsUtil.getItemProcessingStatistics(qState.getActivityState());
+            itemProcessing = ActivityItemProcessingStatisticsUtil.getItemProcessingStatistics(cState.getActivityState());
         }
         if (itemProcessing == null) {
             return;
@@ -77,11 +77,11 @@ public class ActivityItemProcessingDto implements Serializable {
         }
     }
 
-    private ActivityPerformanceInformation createPerformanceInformation(QualifiedActivityState qState) {
-        if (qState.getWorkerStates() != null) {
-            return ActivityPerformanceInformation.forCoordinator(qState.getActivityPath(), qState.getWorkerStates());
+    private ActivityPerformanceInformation createPerformanceInformation(ActivityStateInContext cState) {
+        if (cState.getWorkerStates() != null) {
+            return ActivityPerformanceInformation.forCoordinator(cState.getActivityPath(), cState.getWorkerStates());
         } else {
-            return ActivityPerformanceInformation.forRegularActivity(qState.getActivityPath(), qState.getActivityState());
+            return ActivityPerformanceInformation.forRegularActivity(cState.getActivityPath(), cState.getActivityState());
         }
     }
 

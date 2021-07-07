@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -291,12 +291,12 @@ public class ActivityItemProcessingStatisticsUtil {
         sum.addAll(CloneUtil.cloneCollectionMembersWithoutIds(delta)); // to avoid problems with parent and IDs
     }
 
-    public static boolean hasItemProcessingInformation(@NotNull QualifiedActivityState qState) {
-        if (qState.getWorkerStates() != null) {
-            return qState.getWorkerStates().stream()
+    public static boolean hasItemProcessingInformation(@NotNull ActivityStateInContext cState) {
+        if (cState.getWorkerStates() != null) {
+            return cState.getWorkerStates().stream()
                     .anyMatch(ActivityItemProcessingStatisticsUtil::hasItemProcessingInformation);
         } else {
-            return hasItemProcessingInformation(qState.getActivityState());
+            return hasItemProcessingInformation(cState.getActivityState());
         }
     }
 

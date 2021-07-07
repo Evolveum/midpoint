@@ -72,9 +72,9 @@ public class ActivityStatisticsUtil {
     }
 
     public static List<SynchronizationSituationTransitionType> getSynchronizationTransitions(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<SynchronizationSituationTransitionType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getSynchronizationTransitionsStream)
                 .collect(Collectors.toList());
         return ActivitySynchronizationStatisticsUtil.summarize(unmerged);
@@ -89,9 +89,9 @@ public class ActivityStatisticsUtil {
     }
 
     public static List<ObjectActionsExecutedEntryType> getResultingActionsExecuted(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getResultingActionsExecuted)
                 .collect(Collectors.toList());
         return ActionsExecutedInformationUtil.summarize(unmerged);
@@ -106,9 +106,9 @@ public class ActivityStatisticsUtil {
     }
 
     public static List<ObjectActionsExecutedEntryType> getAllActionsExecuted(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getAllActionsExecuted)
                 .collect(Collectors.toList());
         return ActionsExecutedInformationUtil.summarize(unmerged);

@@ -43,9 +43,9 @@ public class ActivityTreeUtil {
         return root;
     }
 
-    public static @NotNull TreeNode<QualifiedActivityState> toQualifiedActivityStateTree(@NotNull TaskType rootTask,
+    public static @NotNull TreeNode<ActivityStateInContext> toStateTree(@NotNull TaskType rootTask,
             @NotNull TaskResolver resolver) {
-        return ActivityTreeUtil.transformStates(rootTask, resolver, ActivityTreeUtil.QualifiedActivityState::new);
+        return ActivityTreeUtil.transformStates(rootTask, resolver, ActivityStateInContext::new);
     }
 
     private static ActivityPath getLocalRootPath(TaskType task) {
@@ -163,14 +163,18 @@ public class ActivityTreeUtil {
         state.getActivity().forEach(child -> collectLocalStates(allStates, child));
     }
 
-    public static class QualifiedActivityState {
+    /**
+     * Activity state with all the necessary context: the path, the task, and the partial states of coordinated workers.
+     * Maybe we should find better name.
+     */
+    public static class ActivityStateInContext {
 
         @NotNull private final ActivityPath activityPath;
         @Nullable private final ActivityStateType activityState;
         @Nullable private final List<ActivityStateType> workerStates;
         @NotNull private final TaskType task;
 
-        QualifiedActivityState(@NotNull ActivityPath activityPath, @Nullable ActivityStateType activityState,
+        ActivityStateInContext(@NotNull ActivityPath activityPath, @Nullable ActivityStateType activityState,
                 @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task) {
             this.activityPath = activityPath;
             this.activityState = activityState;
