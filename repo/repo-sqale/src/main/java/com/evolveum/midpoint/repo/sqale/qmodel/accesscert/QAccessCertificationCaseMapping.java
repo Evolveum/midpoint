@@ -9,9 +9,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -20,6 +23,8 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -100,17 +105,27 @@ public class QAccessCertificationCaseMapping
                 q -> q.tenantRefTargetOid,
                 q -> q.tenantRefTargetType,
                 q -> q.tenantRefRelationId));
+    }
 
-//        addRefMapping(F_ASSIGNEE_REF,
-//                QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
-//        addRefMapping(F_CANDIDATE_REF,
-//                QCaseWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
-
+    @Override
+    public AccessCertificationCaseType toSchemaObject(
+            Tuple row, QAccessCertificationCase entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+        return parseSchemaObject(
+                Objects.requireNonNull(row.get(entityPath.fullObject)),
+                Objects.requireNonNull(row.get(entityPath.ownerOid)) + ","
+                        + Objects.requireNonNull(row.get(entityPath.cid)));
     }
 
     @Override
     protected QAccessCertificationCase newAliasInstance(String alias) {
         return new QAccessCertificationCase(alias);
+    }
+
+    @Override
+    public @NotNull Path<?>[] selectExpressions(QAccessCertificationCase entity,
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        return new Path[] { entity.ownerOid, entity.cid, entity.fullObject };
     }
 
     @Override
@@ -128,7 +143,8 @@ public class QAccessCertificationCaseMapping
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public MAccessCertificationCase insert(AccessCertificationCaseType acase, MAccessCertificationCampaign ownerRow, JdbcSession jdbcSession) throws SchemaException {
+    public MAccessCertificationCase insert(AccessCertificationCaseType acase,
+            MAccessCertificationCampaign ownerRow, JdbcSession jdbcSession) throws SchemaException {
         MAccessCertificationCase row = initRowObject(acase, ownerRow);
 
         // activation
@@ -147,7 +163,7 @@ public class QAccessCertificationCaseMapping
         }
 
         row.currentStageOutcome = acase.getCurrentStageOutcome();
-        row.fullObject = repositoryContext().createFullObject(acase);
+        row.fullObject = createFullObject(acase);
         // TODO
         row.campaignIteration = acase.getIteration();
         setReference(acase.getObjectRef(),
@@ -176,11 +192,6 @@ public class QAccessCertificationCaseMapping
 
         storeWorkItems(ownerRow, row, acase, jdbcSession);
 
-//        storeRefs(row, acase.getAssigneeRef(),
-//                QCaseWorkItemReferenceMapping.getForCaseWorkItemAssignee(), jdbcSession);
-//        storeRefs(row, acase.getCandidateRef(),
-//                QCaseWorkItemReferenceMapping.getForCaseWorkItemCandidate(), jdbcSession);
-
         return row;
     }
 
@@ -189,10 +200,13 @@ public class QAccessCertificationCaseMapping
             SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
             throws SchemaException {
 
-        PrismContainer<AccessCertificationCampaignType> caseContainer = (PrismContainer) updateContext.findItem(AccessCertificationCampaignType.F_CASE);
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        PrismContainer<AccessCertificationCaseType> caseContainer =
+                (PrismContainer) updateContext.findItem(AccessCertificationCampaignType.F_CASE);
         // row in context already knows its CID
-        PrismContainerValue<AccessCertificationCampaignType> caseContainerValue = caseContainer.findValue(updateContext.row().cid);
-        byte[] fullObject = repositoryContext().createFullObject(caseContainerValue.asContainerable());
+        PrismContainerValue<AccessCertificationCaseType> caseContainerValue =
+                caseContainer.findValue(updateContext.row().cid);
+        byte[] fullObject = createFullObject(caseContainerValue.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 

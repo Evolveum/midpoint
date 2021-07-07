@@ -325,6 +325,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Transforms row Tuple containing attributes of {@link R} to schema type {@link S}.
      * Entity path can be used to access tuple elements.
      * This allows loading also dynamically defined columns (like extensions).
+     * This is what is used by default in {@link SqlQueryContext}.
      */
     public abstract S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)

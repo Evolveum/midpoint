@@ -56,6 +56,9 @@ public class ContainerTableRelationResolver<
         TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);
+        // TODO check actual container existence? E.g. run test332ModifiedCertificationCaseStoresIt
+        //  isolated and it ignores the missing container here and later fails with NPE.
+        //  Funny thing is, that modification.applyTo(prism) only logs WARN and doesn't care anymore.
         return new ContainerTableUpdateContext<>(context, containerMapping, row);
     }
 }

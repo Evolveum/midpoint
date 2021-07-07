@@ -304,7 +304,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 new AccessCertificationCampaignType(prismContext).name("acc-1")
                         .stageNumber(0) // mandatory, also for containers
                         .iteration(1) // mandatory with default 1, also for containers
-                        ._case(new AccessCertificationAssignmentCaseType(prismContext)
+                        ._case(new AccessCertificationCaseType(prismContext)
                                 .id(1L)
                                 .stageNumber(1)
                                 .iteration(1)
@@ -314,7 +314,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .workItem(new AccessCertificationWorkItemType(prismContext)
                                         .stageNumber(12)
                                         .iteration(1)))
-                        ._case(new AccessCertificationAssignmentCaseType(prismContext)
+                        ._case(new AccessCertificationCaseType(prismContext)
                                 .id(2L)
                                 .stageNumber(2)
                                 .iteration(2)
@@ -1569,7 +1569,7 @@ AND(
     @Test
     public void test600SearchContainersByOwnerId() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
-                "assignments by owner OID", AssignmentType.class, f -> f.ownerId(user1Oid));
+                "by owner OID", AssignmentType.class, f -> f.ownerId(user1Oid));
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
                 .containsExactlyInAnyOrder("assignment1-1", "assignment1-2", "assignment1-3-ext");
@@ -1594,7 +1594,7 @@ AND(
                 .findItemDefinition(ObjectType.F_NAME);
 
         SearchResultList<AssignmentType> result = searchContainerTest(
-                "assignments by parent's name", AssignmentType.class,
+                "by parent's name", AssignmentType.class,
                 f -> f.itemWithDef(itemDef, T_PARENT, ObjectType.F_NAME)
                         .eq("user-1").matchingOrig());
         assertThat(result)
@@ -1605,7 +1605,7 @@ AND(
     @Test
     public void test602SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
-                "container by parent using exists", AccessCertificationWorkItemType.class,
+                "by parent using exists", AccessCertificationWorkItemType.class,
                 f -> f.exists(T_PARENT)
                         .block()
                         .ownerId(accCertCampaign1Oid)
@@ -1617,6 +1617,18 @@ AND(
         assertThat(result)
                 .extracting(a -> a.getStageNumber())
                 .containsExactlyInAnyOrder(11, 12);
+    }
+
+    @Test
+    public void test603SearchContainerWithExistsParent() throws SchemaException {
+        SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
+                "by owner OID exists", AccessCertificationCaseType.class,
+                f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(2);
     }
 
     // endregion

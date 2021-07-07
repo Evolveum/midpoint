@@ -8,19 +8,15 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -28,10 +24,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -137,30 +131,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-
-        byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
-
-        PrismObject<S> prismObject;
-        String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
-        try {
-            RepositoryObjectParseResult<S> result =
-                    repositoryContext().parsePrismObject(serializedForm);
-            prismObject = result.prismObject;
-            if (result.parsingContext.hasWarnings()) {
-                logger.warn("Object {} parsed with {} warnings",
-                        ObjectTypeUtil.toShortString(prismObject),
-                        result.parsingContext.getWarnings().size());
-            }
-        } catch (SchemaException | RuntimeException | Error e) {
-            // This is a serious thing. We have corrupted XML in the repo. This may happen even
-            // during system init. We want really loud and detailed error here.
-            logger.error("Couldn't parse object {} {}: {}: {}\n{}",
-                    schemaType().getSimpleName(), row.get(entityPath.oid),
-                    e.getClass().getName(), e.getMessage(), serializedForm, e);
-            throw e;
-        }
-
-        return prismObject.asObjectable();
+        return parseSchemaObject(
+                Objects.requireNonNull(row.get(entityPath.fullObject)),
+                Objects.requireNonNull(row.get(entityPath.oid)).toString());
     }
 
     /**
@@ -270,21 +243,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
      * Serializes schema object and sets {@link R#fullObject}.
      */
     public void setFullObject(R row, S schemaObject) throws SchemaException {
-        row.fullObject = createFullObject(schemaObject);
-    }
-
-    public byte[] createFullObject(S schemaObject) throws SchemaException {
         if (schemaObject.getOid() == null || schemaObject.getVersion() == null) {
             throw new IllegalArgumentException(
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        return repositoryContext().createFullObject(schemaObject);
-    }
-
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
-        return Collections.emptyList();
+        row.fullObject = createFullObject(schemaObject);
     }
     // endregion
 }
