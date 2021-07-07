@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -133,5 +135,33 @@ public class ActivityStatisticsUtil {
         return state.getStatistics() != null &&
                 state.getStatistics().getActionsExecuted() != null ?
                 state.getStatistics().getActionsExecuted().getObjectActionsEntry().stream() : Stream.empty();
+    }
+
+    /**
+     * Returns all paths in activity states that point to the statistics.
+     * Local to the current task!
+     */
+    public static List<ItemPath> getAllStatisticsPaths(@NotNull TaskType task) {
+        return getStatePathsStream(task)
+                .map(path -> path.append(ActivityStateType.F_STATISTICS))
+                .collect(Collectors.toList());
+    }
+
+    public static Stream<ItemPath> getStatePathsStream(@NotNull TaskType task) {
+        ItemPath rootPath = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+        ActivityStateType rootActivity = task.getActivityState() != null ? task.getActivityState().getActivity() : null;
+
+        if (rootActivity == null) {
+            return Stream.empty();
+        } else {
+            return Stream.concat(
+                    Stream.of(rootPath),
+                    getStatePathsStream(rootActivity.getActivity(), rootPath.append(ActivityStateType.F_ACTIVITY)));
+        }
+    }
+
+    private static Stream<ItemPath> getStatePathsStream(@NotNull List<ActivityStateType> states, @NotNull ItemPath path) {
+        return states.stream()
+                .map(state -> path.append(state.getId()));
     }
 }
