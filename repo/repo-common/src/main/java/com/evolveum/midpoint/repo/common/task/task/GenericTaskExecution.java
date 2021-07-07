@@ -100,6 +100,9 @@ public class GenericTaskExecution implements TaskExecution {
     }
 
     private void setupTaskArchetypeIfNeeded(OperationResult result) throws ActivityExecutionException {
+        if (genericTaskHandler.isAvoidAutoAssigningArchetypes()) {
+            return;
+        }
         try {
             RunningTask task = getRunningTask();
             String defaultArchetypeOid = activityTree.getRootActivity().getHandler().getDefaultArchetypeOid();

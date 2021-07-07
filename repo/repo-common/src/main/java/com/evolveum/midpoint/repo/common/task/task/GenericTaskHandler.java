@@ -41,6 +41,12 @@ public class GenericTaskHandler implements TaskHandler {
      */
     @NotNull private final Map<String, GenericTaskExecution> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
 
+    /**
+     * Should we avoid auto-assigning task archetypes based on activity handler?
+     * This is useful for restricted environments (like in tests) when there are no archetypes present.
+     */
+    private boolean avoidAutoAssigningArchetypes;
+
     /** Common beans */
     @Autowired private CommonTaskBeans beans;
     @Autowired private TaskManager taskManager;
@@ -129,5 +135,13 @@ public class GenericTaskHandler implements TaskHandler {
 
     public void unregisterLegacyHandlerUri(String handlerUri) {
         beans.taskManager.unregisterHandler(handlerUri);
+    }
+
+    public boolean isAvoidAutoAssigningArchetypes() {
+        return avoidAutoAssigningArchetypes;
+    }
+
+    public void setAvoidAutoAssigningArchetypes(boolean avoidAutoAssigningArchetypes) {
+        this.avoidAutoAssigningArchetypes = avoidAutoAssigningArchetypes;
     }
 }

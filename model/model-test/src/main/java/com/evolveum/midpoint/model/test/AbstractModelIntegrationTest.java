@@ -232,6 +232,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         // This is generally useful in tests, to avoid long waiting for bucketed tasks.
         bucketingManager.setFreeBucketWaitIntervalOverride(100L);
+
+        // We generally do not import all the archetypes for all kinds of tasks (at least not now).
+        genericTaskHandler.setAvoidAutoAssigningArchetypes(true);
     }
 
     @Override
