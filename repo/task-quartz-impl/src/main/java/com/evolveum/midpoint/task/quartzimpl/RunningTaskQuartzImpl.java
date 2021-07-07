@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
-import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -210,21 +208,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
             refreshThreadLocalStatistics();
         }
         updateOperationalStatsInTaskPrism();
-        updateStructuredProgressAndProgressInTaskPrism();
     }
 
     private void updateOperationalStatsInTaskPrism() {
         setOperationStatsTransient(getAggregatedLiveOperationStats());
-    }
-
-    private void updateStructuredProgressAndProgressInTaskPrism() {
-        StructuredTaskProgressType progress = statistics.getStructuredTaskProgress();
-        if (progress != null) {
-            setStructuredProgressTransient(progress);
-            setProgressTransient(TaskProgressUtil.getTotalProgress(progress));
-        } else {
-            // structured progress is not maintained in this task
-        }
     }
 
     @Override
@@ -267,31 +254,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         storeStatisticsIntoRepositoryIfTimePassed(result);
     }
 
-    @Override
-    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
-        statistics.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
-    }
-
-    @Override
-    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
-        statistics.incrementStructuredProgress(partUri, outcome);
-    }
-
-    @Override
-    public void markStructuredProgressAsComplete() {
-        statistics.markStructuredProgressAsComplete();
-    }
-
-    @Override
-    public void changeStructuredProgressOnWorkBucketCompletion() {
-        statistics.changeStructuredProgressOnWorkBucketCompletion();
-    }
-
-    @Override
-    public void markAllStructuredProgressClosed() {
-        statistics.markAllStructuredProgressClosed();
-    }
-
     /**
      * Returns true if the task runs asynchronously.
      */
@@ -321,12 +283,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy) {
         statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
-//
-//        OperationStatsType stored = getStoredOperationStatsOrClone();
-//        if (stored != null) {
-//            String formatted = IterativeTaskInformation.format(stored.getIterativeTaskInformation());
-//            System.out.println("In " + this + " ITI reset to:\n" + formatted);
-//        }
     }
 
     private Statistics getStatistics() {

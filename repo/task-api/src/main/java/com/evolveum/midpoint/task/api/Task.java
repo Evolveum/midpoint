@@ -636,9 +636,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     long getProgress();
 
-    /** Returns task structured progress. */
-    StructuredTaskProgressType getStructuredProgressOrClone();
-
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
      */

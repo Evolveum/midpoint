@@ -691,7 +691,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:experimentaL>true</a:experimentaL>
+                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.4</a:deprecatedSince>
                 <a:since>4.3</a:since>
             </xsd:appinfo>
         </xsd:annotation>

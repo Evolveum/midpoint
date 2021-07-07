@@ -186,7 +186,6 @@ public class TaskRetriever {
         }
         task.setOperationStatsTransient(operationStats);
         task.setProgressTransient(taskInMemory.getProgress());
-        task.setStructuredProgressTransient(taskInMemory.getStructuredProgressOrClone());
 
         // We intentionally do not try to get operation result from the task. OperationResult class is not thread-safe,
         // so it cannot be safely accessed from a different thread. It is not a big problem, because the result should be

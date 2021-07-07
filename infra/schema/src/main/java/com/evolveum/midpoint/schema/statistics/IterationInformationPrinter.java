@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +38,7 @@ public class IterationInformationPrinter extends AbstractStatisticsPrinter<Activ
 
     private void createData() {
         initData();
-        ActivityItemProcessingStatisticsUtil.traverseIterationInformation(information, this::createData);
+        createData(ActivityPath.empty(), information); // TODO correct activity path!!!
     }
 
     private void createData(ActivityPath activityPath, ActivityItemProcessingStatisticsType component) {

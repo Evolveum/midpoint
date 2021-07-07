@@ -3264,12 +3264,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    private int getSuccessClosed(Collection<? extends Task> workers) {
-        return workers.stream()
-                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
-                .sum();
-    }
-
     protected void assertNoWorkBuckets(ActivityStateType ws) {
         assertTrue(ws == null || ws.getBucketing() == null || ws.getBucketing().getBucket().isEmpty());
     }

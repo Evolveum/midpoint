@@ -3824,20 +3824,26 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && BucketingUtil.isCoordinator((TaskType) obj)) {
-            IconType icon = new IconType();
-            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            if (title.length() > 0) {
-                title.append("\n");
-            }
-            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
-        }
+        addMultiNodeTaskInformation(obj, builder);
 
         if (StringUtils.isNotEmpty(title.toString())) {
             builder.setTitle(title.toString());
         }
         return builder.build();
+    }
+
+    private static <O extends ObjectType> void addMultiNodeTaskInformation(O obj, CompositedIconBuilder builder) {
+        if (obj instanceof TaskType && ActivityStateUtil.isManageableTreeRoot((TaskType) obj)) {
+            IconType icon = new IconType();
+            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+            // TODO what to do with this?
+//            if (title.length() > 0) {
+//                title.append("\n");
+//            }
+//            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
+        }
     }
 
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
@@ -5084,6 +5090,9 @@ public final class WebComponentUtil {
     }
 
     public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+
+        // TODO use progress.toLocalizedString after it's implemented
+
         ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(taskType, TaskResolver.empty());
         String partProgressHumanReadable = progress.toHumanReadableString(longForm);
 

@@ -7,8 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 class DetailsOutputFile {
@@ -23,7 +24,7 @@ class DetailsOutputFile {
         return new File(TARGET_DIR, START + "-" + OTHER_PARAMETERS.label + "-details.txt");
     }
 
-    void logTaskFinish(String desc, TaskType taskAfter, TaskPerformanceInformation performanceInformation) {
+    void logTaskFinish(String desc, TaskType taskAfter, TreeNode<ActivityPerformanceInformation> performanceInformation) {
         writer.printf("********** FINISHED: %s **********\n\n", desc);
         writer.println(TaskOperationStatsUtil.format(taskAfter.getOperationStats()));
         writer.println();

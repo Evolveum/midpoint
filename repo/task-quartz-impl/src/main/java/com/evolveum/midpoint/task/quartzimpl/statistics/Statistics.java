@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -49,15 +48,7 @@ public class Statistics {
     private static final Trace LOGGER = TraceManager.getTrace(Statistics.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-    @NotNull private final PrismContext prismContext;
-
-    public Statistics(@NotNull PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
     private volatile EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
-
-    private volatile StructuredTaskProgress structuredProgress = null; // has to be explicitly enabled (by setting non-null value)
 
     /**
      * Most current version of repository and audit performance information. Original (live) form of this information is accessible only
@@ -199,10 +190,6 @@ public class Statistics {
         return rv;
     }
 
-    public StructuredTaskProgressType getStructuredTaskProgress() {
-        return structuredProgress != null ? structuredProgress.getValueCopy() : null;
-    }
-
     private String getAggregateCachingConfiguration(Collection<Statistics> children) {
         if (children.isEmpty()) {
             return cachingConfigurationDump;
@@ -251,41 +238,6 @@ public class Statistics {
         };
     }
 
-    @Deprecated
-    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
-//        iterationInformation.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
-    }
-
-    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
-        if (structuredProgress != null) {
-            structuredProgress.setPartInformation(partUri, partNumber, expectedParts);
-        }
-    }
-
-    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
-        if (structuredProgress != null) {
-            structuredProgress.increment(partUri, outcome);
-        }
-    }
-
-    public void changeStructuredProgressOnWorkBucketCompletion() {
-        if (structuredProgress != null) {
-            structuredProgress.changeOnWorkBucketCompletion();
-        }
-    }
-
-    public void markStructuredProgressAsComplete() {
-        if (structuredProgress != null) {
-            structuredProgress.markAsComplete();
-        }
-    }
-
-    public void markAllStructuredProgressClosed() {
-        if (structuredProgress != null) {
-            structuredProgress.markAsClosed();
-        }
-    }
-
     private void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
         environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
     }
@@ -296,10 +248,8 @@ public class Statistics {
     public void startCollectingStatistics(@NotNull RunningTask task,
             @NotNull StatisticsCollectionStrategy strategy, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         OperationStatsType initialOperationStats = getOrCreateInitialOperationStats(task);
-        startOrRestartCollectingRegularOperationStats(initialOperationStats
-        );
+        startOrRestartCollectingRegularOperationStats(initialOperationStats);
         startOrRestartCollectingThreadLocalStatistics(initialOperationStats, sqlPerformanceMonitors);
-        startCollectingStructuredProgress(task, strategy);
     }
 
     public void restartCollectingStatistics(@NotNull RunningTask task, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
@@ -323,14 +273,6 @@ public class Statistics {
             SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         setInitialValuesForThreadLocalStatistics(initialOperationStats);
         startOrRestartCollectingThreadLocalStatistics(sqlPerformanceMonitors);
-    }
-
-    private void startCollectingStructuredProgress(@NotNull RunningTask task, @NotNull StatisticsCollectionStrategy strategy) {
-        if (strategy.isMaintainStructuredProgress()) {
-            structuredProgress = new StructuredTaskProgress(task.getStructuredProgressOrClone(), PrismContext.get());
-        } else {
-            structuredProgress = null;
-        }
     }
 
     /**

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -196,7 +195,7 @@ public class TaskQuartzImpl implements Task {
         this.taskManager = taskManager;
         this.beans = taskManager.getBeans();
         this.taskPrism = taskPrism;
-        statistics = new Statistics(taskManager.getPrismContext());
+        statistics = new Statistics();
         setDefaults();
         updateTaskResult();
     }
@@ -712,11 +711,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public StructuredTaskProgressType getStructuredProgressOrClone() {
-        return null;// FIXME getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
-    }
-
-    @Override
     public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
@@ -732,16 +726,6 @@ public class TaskQuartzImpl implements Task {
 
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
-    }
-
-    public void setStructuredProgress(StructuredTaskProgressType value) {
-        // FIXME
-        //setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
-    }
-
-    public void setStructuredProgressTransient(StructuredTaskProgressType value) {
-        // FIXME
-//        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
@@ -2158,10 +2142,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         return statistics.recordIterativeOperationStart(operation);
-    }
-
-    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
-        statistics.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
 
     @Override

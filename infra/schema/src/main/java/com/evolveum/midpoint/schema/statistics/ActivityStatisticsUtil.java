@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +66,18 @@ public class ActivityStatisticsUtil {
     public static Integer getAllItemsProcessed(TaskActivityStateType taskActivityState) {
         if (taskActivityState != null) {
             return ActivityItemProcessingStatisticsUtil.getItemsProcessed(
+                    getAllLocalStates(taskActivityState));
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the total number of failures in all activities in this physical task.
+     */
+    public static Integer getAllFailures(@Nullable TaskActivityStateType taskActivityState) {
+        if (taskActivityState != null) {
+            return ActivityItemProcessingStatisticsUtil.getItemsProcessedWithFailure(
                     getAllLocalStates(taskActivityState));
         } else {
             return null;

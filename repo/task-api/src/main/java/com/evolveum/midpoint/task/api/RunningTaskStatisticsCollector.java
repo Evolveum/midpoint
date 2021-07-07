@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.schema.statistics.StructuredProgressCollector;
+import com.evolveum.midpoint.schema.statistics.ProgressCollector;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * Statistics collection is always started by calling {@link #startCollectingStatistics(StatisticsCollectionStrategy)} method.
  */
-public interface RunningTaskStatisticsCollector extends StructuredProgressCollector {
+public interface RunningTaskStatisticsCollector extends ProgressCollector {
 
     /**
      * Initializes the process of collecting statistics in Statistics object embedded in the task.

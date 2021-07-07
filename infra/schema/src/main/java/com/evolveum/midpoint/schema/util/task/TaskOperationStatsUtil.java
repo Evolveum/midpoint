@@ -7,61 +7,23 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Utility methods related to task operation statistics.
  */
 public class TaskOperationStatsUtil {
-
-    /**
-     * Returns the number of item processing failures from this task and its subtasks.
-     * Subtasks must be resolved into to full objects.
-     *
-     * TODO Avoid useless statistics aggregation (avoid "first aggregating, then selecting failures")
-     */
-    @Deprecated
-    public static int getItemsProcessedWithFailureFromTree(TaskType task, PrismContext prismContext) {
-        return 0;
-    }
-
-    @Deprecated
-    public static int getItemsProcessedWithFailure(TaskType task) {
-        return 0;
-    }
-
-    @Deprecated
-    public static int getItemsProcessedWithFailure(OperationStatsType stats) {
-        return 0;
-    }
-
-    @Deprecated
-    public static int getItemsProcessedWithSuccess(OperationStatsType stats) {
-        return 0;
-    }
 
     /**
      * Provides aggregated operation statistics from this task and all its subtasks.
@@ -89,23 +51,6 @@ public class TaskOperationStatsUtil {
             }
         });
         return aggregate;
-    }
-
-    /**
-     * Returns the number of "iterations" i.e. how many times an item was processed by this task.
-     * It is useful e.g. to provide average values for performance indicators.
-     */
-    @Deprecated
-    public static Integer getItemsProcessed(OperationStatsType statistics) {
-        return null;
-    }
-
-    /**
-     * Returns object that was last successfully processed by given task.
-     */
-    @Deprecated
-    public static String getLastSuccessObjectName(TaskType task) {
-        return "N/A";
     }
 
     public static boolean isEmpty(EnvironmentalPerformanceInformationType info) {
@@ -156,18 +101,6 @@ public class TaskOperationStatsUtil {
             }
             EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
         }
-//        if (increment.getSynchronizationInformation() != null) {
-//            if (aggregate.getSynchronizationInformation() == null) {
-//                aggregate.setSynchronizationInformation(new ActivitySynchronizationStatisticsType());
-//            }
-//            SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), increment.getSynchronizationInformation());
-//        }
-//        if (increment.getActionsExecutedInformation() != null) {
-//            if (aggregate.getActionsExecutedInformation() == null) {
-//                aggregate.setActionsExecutedInformation(new ActivityActionsExecutedType());
-//            }
-//            ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), increment.getActionsExecutedInformation());
-//        }
         if (increment.getRepositoryPerformanceInformation() != null) {
             if (aggregate.getRepositoryPerformanceInformation() == null) {
                 aggregate.setRepositoryPerformanceInformation(new RepositoryPerformanceInformationType());
@@ -187,21 +120,6 @@ public class TaskOperationStatsUtil {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-//        if (statistics.getIterationInformation() != null) {
-//            sb.append("Iteration information\n\n")
-//                    .append(IterationInformation.format(statistics.getIterationInformation()))
-//                    .append("\n");
-//        }
-//        if (statistics.getActionsExecutedInformation() != null) {
-//            sb.append("Actions executed\n\n")
-//                    .append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
-//                    .append("\n");
-//        }
-//        if (statistics.getSynchronizationInformation() != null) {
-//            sb.append("Synchronization information:\n")
-//                    .append(SynchronizationInformation.format(statistics.getSynchronizationInformation()))
-//                    .append("\n");
-//        }
         if (statistics.getEnvironmentalPerformanceInformation() != null) {
             sb.append("Environmental performance information\n\n")
                     .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
@@ -217,11 +135,6 @@ public class TaskOperationStatsUtil {
                     .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
                     .append("\n");
         }
-//        if (statistics.getWorkBucketManagementPerformanceInformation() != null) {
-//            sb.append("Work bucket management performance information\n\n")
-//                    .append(ActivityBucketManagementStatisticsUtil.format(statistics.getWorkBucketManagementPerformanceInformation()))
-//                    .append("\n");
-//        }
         if (statistics.getOperationsPerformanceInformation() != null) {
             sb.append("Methods performance information\n\n")
                     .append(OperationsPerformanceInformationUtil.format(statistics.getOperationsPerformanceInformation()))

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 
 import com.evolveum.midpoint.task.api.TaskUtil;
 
@@ -5655,12 +5654,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends ObjectType> PrismObjectAsserter<O, Void> assertObject(PrismObject<O> object, String message) {
         return PrismObjectAsserter.forObject(object, message);
-    }
-
-    protected TaskProgressInformationAsserter<Void> assertTaskProgress(TaskProgressInformation info, String message) {
-        TaskProgressInformationAsserter<Void> asserter = new TaskProgressInformationAsserter<>(info, message);
-        initializeAsserter(asserter);
-        return asserter;
     }
 
     protected RepoOpAsserter createRepoOpAsserter() {
