@@ -12,13 +12,22 @@ import java.util.function.BiFunction;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplate;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.MResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -52,7 +61,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     QObjectReferenceMapping<Q, R> initForArchetype(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceArchetype == null) {
             instanceArchetype = new QObjectReferenceMapping<>(
-                    "m_ref_archetype", "refa", repositoryContext);
+                    "m_ref_archetype", "refa", repositoryContext,
+                    new RefTableTargetResolver<>(QArchetypeMapping::getArchetypeMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForArchetype();
     }
@@ -67,7 +78,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     QObjectReferenceMapping<Q, R> initForDelegated(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceDelegated == null) {
             instanceDelegated = new QObjectReferenceMapping<>(
-                    "m_ref_delegated", "refd", repositoryContext);
+                    "m_ref_delegated", "refd", repositoryContext,
+                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForDelegated();
     }
@@ -82,7 +95,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
             @NotNull SqaleRepoContext repositoryContext) {
         if (instanceInclude == null) {
             instanceInclude = new QObjectReferenceMapping<>(
-                    "m_ref_include", "refi", repositoryContext);
+                    "m_ref_include", "refi", repositoryContext,
+                    new RefTableTargetResolver<>(QObjectTemplateMapping::getObjectTemplateMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return instanceInclude;
     }
@@ -95,7 +110,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForProjection(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceProjection == null) {
             instanceProjection = new QObjectReferenceMapping<>(
-                    "m_ref_projection", "refpj", repositoryContext);
+                    "m_ref_projection", "refpj", repositoryContext,
+                    new RefTableTargetResolver<>(QShadowMapping::getShadowMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForProjection();
     }
@@ -110,7 +127,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceCreateApprover == null) {
             instanceCreateApprover = new QObjectReferenceMapping<>(
-                    "m_ref_object_create_approver", "refca", repositoryContext);
+                    "m_ref_object_create_approver", "refca", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForCreateApprover();
     }
@@ -125,7 +144,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceModifyApprover == null) {
             instanceModifyApprover = new QObjectReferenceMapping<>(
-                    "m_ref_object_modify_approver", "refma", repositoryContext);
+                    "m_ref_object_modify_approver", "refma", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForModifyApprover();
     }
@@ -140,7 +161,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForParentOrg(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceParentOrg == null) {
             instanceParentOrg = new QObjectReferenceMapping<>(
-                    "m_ref_object_parent_org", "refpo", repositoryContext);
+                    "m_ref_object_parent_org", "refpo", repositoryContext,
+                    new RefTableTargetResolver<>(QOrgMapping::getOrgMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForParentOrg();
     }
@@ -155,7 +178,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     QObjectReferenceMapping<Q, R> initForPersona(@NotNull SqaleRepoContext repositoryContext) {
         if (instancePersona == null) {
             instancePersona = new QObjectReferenceMapping<>(
-                    "m_ref_persona", "refp", repositoryContext);
+                    "m_ref_persona", "refp", repositoryContext,
+                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForPersona();
     }
@@ -170,7 +195,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForResourceBusinessConfigurationApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceResourceBusinessConfigurationApprover == null) {
             instanceResourceBusinessConfigurationApprover = new QObjectReferenceMapping<>(
-                    "m_ref_resource_business_configuration_approver", "refrbca", repositoryContext);
+                    "m_ref_resource_business_configuration_approver", "refrbca", repositoryContext,
+                    new RefTableTargetResolver<>(QObjectMapping::getObject,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return instanceResourceBusinessConfigurationApprover;
     }
@@ -184,7 +211,9 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     initForRoleMembership(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceRoleMembership == null) {
             instanceRoleMembership = new QObjectReferenceMapping<>(
-                    "m_ref_role_membership", "refrm", repositoryContext);
+                    "m_ref_role_membership", "refrm", repositoryContext,
+                    new RefTableTargetResolver<>(QAbstractRoleMapping::getAbstractRoleMapping,
+                            (r, o) -> r.targetOid.eq(o.oid)));
         }
         return getForRoleMembership();
     }
@@ -198,10 +227,16 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
 
     // Sad but true, we can't declare Class<QObjectReference<OR>>.class, we declare defeat instead.
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private QObjectReferenceMapping(String tableName,
+    private <TQ extends QObject<TR>, TR extends MObject> QObjectReferenceMapping(
+            String tableName,
             String defaultAliasName,
-            @NotNull SqaleRepoContext repositoryContext) {
+            @NotNull SqaleRepoContext repositoryContext,
+            RefTableTargetResolver<QObjectReference<OR>, MReference, TQ, TR> targetResolver) {
         super(tableName, defaultAliasName, (Class) QObjectReference.class, repositoryContext);
+
+        if (targetResolver != null) {
+            addRelationResolver(PrismConstants.T_OBJECT_REFERENCE, targetResolver);
+        }
     }
 
     @Override

@@ -45,11 +45,22 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     public static final String DEFAULT_ALIAS_NAME = "o";
 
-    public static QObjectMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QObjectMapping<>(
-                QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectType.class, QObject.CLASS,
-                repositoryContext);
+    private static QObjectMapping<?, ?, ?> instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectMapping<?, ?, ?> initObject(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QObjectMapping<>(
+                    QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    ObjectType.class, QObject.CLASS,
+                    repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectMapping<?, ?, ?> getObject() {
+        return instance;
     }
 
     protected QObjectMapping(

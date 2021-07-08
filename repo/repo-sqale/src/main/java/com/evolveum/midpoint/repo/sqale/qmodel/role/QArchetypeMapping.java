@@ -18,9 +18,20 @@ public class QArchetypeMapping
         extends QAbstractRoleMapping<ArchetypeType, QArchetype, MArchetype> {
 
     public static final String DEFAULT_ALIAS_NAME = "arch";
+    private static QArchetypeMapping instance;
 
-    public static QArchetypeMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QArchetypeMapping(repositoryContext);
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QArchetypeMapping initArchetypeMapping(
+            @NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QArchetypeMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QArchetypeMapping getArchetypeMapping() {
+        return instance;
     }
 
     private QArchetypeMapping(@NotNull SqaleRepoContext repositoryContext) {

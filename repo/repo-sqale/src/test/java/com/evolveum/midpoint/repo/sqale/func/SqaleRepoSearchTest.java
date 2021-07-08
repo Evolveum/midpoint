@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
@@ -132,6 +133,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 null, result);
         orgXOid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-X")
+                        .displayOrder(30)
                         .parentOrgRef(org12Oid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
@@ -892,7 +894,27 @@ OR(
                 user1Oid, user3Oid, user4Oid);
     }
 
+    @Test
+    public void test410SearchObjectByParentOrgName() throws SchemaException {
+        // this is multi-value ref in separate table
+        searchUsersTest("having parent org with specified name",
+                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_NAME)
+                        .eq(new PolyString("org-X")),
+                user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test411SearchObjectByParentOrgDisplayOrder() throws SchemaException {
+        // this tests that implicit target type specific items can be queried without Type filter
+        searchUsersTest("having parent org by OrgType specific item",
+                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_DISPLAY_ORDER)
+                        .eq(30),
+                user2Oid, user3Oid);
+    }
+
     // TODO tests with ref/@/...
+    // query for AccessCertificationCaseType container with order by objectRef/@/name
+    // PERHAPS: single refs can be LEFT JOINed to support ordering?
     // endregion
 
     // region extension queries

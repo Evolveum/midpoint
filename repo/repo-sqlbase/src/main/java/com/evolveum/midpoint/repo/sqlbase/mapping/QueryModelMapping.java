@@ -107,7 +107,6 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * This is in contrast with "item mapping" that is used for single (or last) component
      * of the item path and helps with query interpretation.
      */
-    // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public QueryModelMapping<S, Q, R> addRelationResolver(
             @NotNull QName itemName,
             @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver) {
@@ -152,6 +151,8 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
             throws QueryException {
         QName itemName = ItemPath.isParent(path.first())
                 ? PrismConstants.T_PARENT
+                : ItemPath.isObjectReference(path.first())
+                ? PrismConstants.T_OBJECT_REFERENCE
                 : path.firstName();
         ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {

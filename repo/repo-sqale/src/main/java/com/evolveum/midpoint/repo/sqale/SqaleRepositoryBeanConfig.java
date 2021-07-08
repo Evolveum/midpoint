@@ -130,20 +130,20 @@ public class SqaleRepositoryBeanConfig {
                 QAssignmentHolderMapping.init(repositoryContext);
         QCaseMapping caseMapping = QCaseMapping.init(repositoryContext);
         QLookupTableMapping lookupTableMapping = QLookupTableMapping.init(repositoryContext);
-        QObjectMapping<?, ?, ?> objectMapping = QObjectMapping.init(repositoryContext);
+        QObjectMapping<?, ?, ?> objectMapping = QObjectMapping.initObject(repositoryContext);
 
         mappingRegistry
                 .register(AbstractRoleType.COMPLEX_TYPE,
-                        QAbstractRoleMapping.init(repositoryContext))
+                        QAbstractRoleMapping.initAbstractRoleMapping(repositoryContext))
                 .register(AccessCertificationDefinitionType.COMPLEX_TYPE,
                         QAccessCertificationDefinitionMapping.init(repositoryContext))
                 .register(AccessCertificationCampaignType.COMPLEX_TYPE,
                         accessCertificationCampaignMapping)
-                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.init(repositoryContext))
+                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.initArchetypeMapping(repositoryContext))
                 .register(AssignmentHolderType.COMPLEX_TYPE, assignmentHolderMapping)
                 .register(CaseType.COMPLEX_TYPE, caseMapping)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
-                .register(FocusType.COMPLEX_TYPE, QFocusMapping.init(repositoryContext))
+                .register(FocusType.COMPLEX_TYPE, QFocusMapping.initFocusMapping(repositoryContext))
                 .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))
                 .register(FunctionLibraryType.COMPLEX_TYPE,
                         QFunctionLibraryMapping.init(repositoryContext))
@@ -158,8 +158,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(ObjectCollectionType.COMPLEX_TYPE,
                         QObjectCollectionMapping.init(repositoryContext))
                 .register(ObjectTemplateType.COMPLEX_TYPE,
-                        QObjectTemplateMapping.init(repositoryContext))
-                .register(OrgType.COMPLEX_TYPE, QOrgMapping.init(repositoryContext))
+                        QObjectTemplateMapping.initObjectTemplateMapping(repositoryContext))
+                .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
@@ -168,11 +168,11 @@ public class SqaleRepositoryBeanConfig {
                         QSecurityPolicyMapping.init(repositoryContext))
                 .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.init(repositoryContext))
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.init(repositoryContext))
-                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.init(repositoryContext))
+                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.initShadowMapping(repositoryContext))
                 .register(SystemConfigurationType.COMPLEX_TYPE,
                         QSystemConfigurationMapping.init(repositoryContext))
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.init(repositoryContext))
-                .register(UserType.COMPLEX_TYPE, QUserMapping.init(repositoryContext))
+                .register(UserType.COMPLEX_TYPE, QUserMapping.initUserMapping(repositoryContext))
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.init(repositoryContext))
 
                 // registering container mappings with parent table/mapping configuration
