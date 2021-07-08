@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.toUcf;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.createTokenProperty;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.SyncDelta;
@@ -29,11 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,7 +69,7 @@ class SyncDeltaConverter {
         @NotNull SyncDeltaType icfDeltaType = connIdDelta.getDeltaType();
         @NotNull Uid uid = connIdDelta.getUid();
         @NotNull String uidValue = uid.getUidValue();
-        @NotNull PrismProperty<Object> token = createTokenProperty(connIdDelta.getToken(), prismContext);
+        @NotNull UcfSyncToken token = toUcf(connIdDelta.getToken());
 
         Collection<ResourceAttribute<?>> identifiers = new ArrayList<>();
         ObjectClassComplexTypeDefinition actualObjectClass = null;

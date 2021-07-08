@@ -23,7 +23,7 @@ public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<Mul
     }
 
     @Override
-    public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedMultiplicityTriggerType rv = new EvaluatedMultiplicityTriggerType();
         fillCommonContent(rv);

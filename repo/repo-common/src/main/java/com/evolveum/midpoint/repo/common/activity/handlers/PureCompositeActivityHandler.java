@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.StandaloneActivity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefinition;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 public class PureCompositeActivityHandler implements ActivityHandler<CompositeWorkDefinition, PureCompositeActivityHandler> {
 
     @Autowired ActivityHandlerRegistry handlerRegistry;
+    @Autowired WorkDefinitionFactory workDefinitionFactory;
 
     @PostConstruct
     public void register() {
@@ -61,7 +63,7 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     @Override
     public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent) throws SchemaException {
         CompositeWorkDefinition workDefinition = parent.getWorkDefinition();
-        return workDefinition.createChildDefinitions().stream()
+        return workDefinition.createChildDefinitions(workDefinitionFactory).stream()
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

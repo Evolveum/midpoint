@@ -10,12 +10,17 @@ package com.evolveum.midpoint.repo.common.activity.execution;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.*;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityProgress;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,6 +41,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
+import java.util.Collection;
+import java.util.Map;
+
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
@@ -50,7 +58,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 public abstract class AbstractActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
-        WS extends AbstractActivityWorkStateType> implements ActivityExecution {
+        WS extends AbstractActivityWorkStateType> implements ActivityExecution, ExecutionSupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractActivityExecution.class);
 
@@ -70,6 +78,18 @@ public abstract class AbstractActivityExecution<
      * TODO
      */
     @NotNull protected final CurrentActivityState<WS> activityState;
+
+    /**
+     * Activity state object where counters for the current activity reside.
+     * By default it is the activity state for the current standalone activity (e.g. reconciliation).
+     *
+     * Lazily evaluated.
+     *
+     * Guarded by {@link #activityStateForCountersLock}.
+     */
+    private ActivityState activityStateForCounters;
+
+    private final Object activityStateForCountersLock = new Object();
 
     // Temporary
     private long startTimestamp;
@@ -212,21 +232,21 @@ public abstract class AbstractActivityExecution<
         }
     }
 
-    private void logStart() { // todo debug
-        LOGGER.info("{}: Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
+    private void logStart() {
+        LOGGER.debug("{}: Starting execution of activity with identifier '{}' and path '{}' (local: '{}') with work state "
                         + "prism item path: {}",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 activityState.getItemPath());
     }
 
-    private void logEnd(ActivityExecutionResult executionResult) { // todo debug
-        LOGGER.info("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
+    private void logEnd(ActivityExecutionResult executionResult) {
+        LOGGER.debug("{}: Finished execution of activity with identifier '{}' and path '{}' (local: {}) with result: {}",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 executionResult);
     }
 
-    private void logComplete() { // todo debug
-        LOGGER.info("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
+    private void logComplete() {
+        LOGGER.debug("{}: Skipped execution of activity with identifier '{}' and path '{}' (local: {}) as it was already executed",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
@@ -252,6 +272,7 @@ public abstract class AbstractActivityExecution<
     protected void debugDumpExtra(StringBuilder sb, int indent) {
     }
 
+    @SuppressWarnings("unused")
     public @Nullable ActivityPath getActivityLocalPath() {
         return activity.getLocalPath();
     }
@@ -347,5 +368,27 @@ public abstract class AbstractActivityExecution<
 
     public @NotNull ActivityStateDefinition<WS> getActivityStateDefinition() {
         return activityStateDefinition;
+    }
+
+    @Override
+    public Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup,
+            @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        synchronized (activityStateForCountersLock) {
+            if (activityStateForCounters == null) {
+                activityStateForCounters = determineActivityStateForCounters(result);
+            }
+        }
+        return activityStateForCounters.incrementCounters(counterGroup, countersIdentifiers, result);
+    }
+
+    protected ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return activityState;
+    }
+
+    @Override
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return activity.getDefinition().getExecutionMode();
     }
 }

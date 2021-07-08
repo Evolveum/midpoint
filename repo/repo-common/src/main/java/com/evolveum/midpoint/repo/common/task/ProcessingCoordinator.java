@@ -63,11 +63,11 @@ public class ProcessingCoordinator<I> {
      */
     private final AtomicBoolean allItemsSubmitted = new AtomicBoolean(false);
 
-    ProcessingCoordinator(@NotNull RunningTask coordinatorTask, @NotNull TaskManager taskManager) {
+    ProcessingCoordinator(int threadsCount, @NotNull RunningTask coordinatorTask, @NotNull TaskManager taskManager) {
         this.coordinatorTask = coordinatorTask;
         this.taskManager = taskManager;
 
-        threadsCount = getWorkerThreadsCount();
+        this.threadsCount = threadsCount;
         if (threadsCount > 0) {
             multithreaded = true;
             workerSpecificResults = new ArrayList<>(threadsCount);
@@ -263,16 +263,6 @@ public class ProcessingCoordinator<I> {
             // There could be some accesses to the request's subresult from the thread that originated it.
             workerSpecificResult.summarize(false);
             workerSpecificResult.cleanupResult();
-        }
-    }
-
-    private int getWorkerThreadsCount() { // TODO use distribution definition!
-        PrismProperty<Integer> workerThreadsPrismProperty = coordinatorTask
-                .getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-        if (workerThreadsPrismProperty != null && workerThreadsPrismProperty.getRealValue() != null) {
-            return defaultIfNull(workerThreadsPrismProperty.getRealValue(), 0);
-        } else {
-            return 0;
         }
     }
 

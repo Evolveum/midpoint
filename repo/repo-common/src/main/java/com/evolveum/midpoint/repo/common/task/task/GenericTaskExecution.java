@@ -67,10 +67,16 @@ public class GenericTaskExecution implements TaskExecution {
             throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }
 
+        if (localRootActivity.isSkipped()) {
+            LOGGER.trace("Local root activity is skipped, exiting");
+            return TaskRunResult.createNotApplicableTaskRunResult();
+        }
+
         logStart();
 
         try {
             if (isRootExecution()) {
+                setupTaskArchetypeIfNeeded(result);
                 updateStateOnRootExecutionStart(result);
             }
 
@@ -90,6 +96,22 @@ public class GenericTaskExecution implements TaskExecution {
         } catch (Throwable t) {
             logException(t);
             throw t;
+        }
+    }
+
+    private void setupTaskArchetypeIfNeeded(OperationResult result) throws ActivityExecutionException {
+        if (genericTaskHandler.isAvoidAutoAssigningArchetypes()) {
+            return;
+        }
+        try {
+            RunningTask task = getRunningTask();
+            String defaultArchetypeOid = activityTree.getRootActivity().getHandler().getDefaultArchetypeOid();
+            if (defaultArchetypeOid != null) {
+                task.addArchetypeInformationIfMissing(defaultArchetypeOid);
+                task.flushPendingModifications(result);
+            }
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't setup the task archetype", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 
@@ -160,6 +182,7 @@ public class GenericTaskExecution implements TaskExecution {
         return genericTaskHandler.getBeans();
     }
 
+    @SuppressWarnings("unused")
     public ActivityTree getActivityTree() {
         return activityTree;
     }

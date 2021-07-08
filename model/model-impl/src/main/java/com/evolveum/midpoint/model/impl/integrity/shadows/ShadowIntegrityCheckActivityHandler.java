@@ -17,9 +17,8 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityCheckWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * Task handler for "Shadow integrity check" task.
@@ -40,7 +39,8 @@ public class ShadowIntegrityCheckActivityHandler
         extends ModelActivityHandler<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckActivityHandler.class);
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+
 
     @PostConstruct
     public void register() {
@@ -64,5 +64,10 @@ public class ShadowIntegrityCheckActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "shadow-integrity-check";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

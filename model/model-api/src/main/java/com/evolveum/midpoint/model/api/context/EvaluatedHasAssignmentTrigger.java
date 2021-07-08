@@ -26,7 +26,7 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
     }
 
     @Override
-    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
         fillCommonContent(rv);

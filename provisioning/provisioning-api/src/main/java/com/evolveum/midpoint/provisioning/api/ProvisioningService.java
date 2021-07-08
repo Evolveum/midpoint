@@ -165,7 +165,6 @@ public interface ProvisioningService {
      *
      * @param shadowCoordinates
      *            where to attempt synchronization
-     * @param simulate
      * @param parentResult
      *            parent OperationResult (in/out)
      * @return the number of processed changes
@@ -175,16 +174,16 @@ public interface ProvisioningService {
      *             error communicating with the resource
      * @throws SchemaException
      *             error dealing with resource schema
-     * @throws ConfigurationException
      * @throws SecurityViolationException
      *                 Security violation while communicating with the connector or processing provisioning policies
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, boolean simulate,
-            LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, PolicyViolationException;
+    @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+            LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
 
     /**
      * Processes asynchronous updates for a given resource.
@@ -218,8 +217,6 @@ public interface ProvisioningService {
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
      *
-     * @param paging
-     *            paging specification to limit operation result (optional)
      * @param query
      *            search query
      * @param task

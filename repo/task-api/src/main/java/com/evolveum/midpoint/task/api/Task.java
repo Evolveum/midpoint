@@ -17,9 +17,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
-import com.evolveum.midpoint.schema.statistics.TaskActionsExecutedCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -638,9 +636,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     long getProgress();
 
-    /** Returns task structured progress. */
-    StructuredTaskProgressType getStructuredProgressOrClone();
-
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
      */
@@ -709,6 +704,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     default List<? extends Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
     }
+
+    void findAndSetSubtasks(OperationResult result) throws SchemaException;
 
     @NotNull
     List<? extends Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
@@ -784,6 +781,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Precondition: Task must be persistent.
      */
     @NotNull ObjectReferenceType getSelfReference();
+
+    /**
+     * Returns a full (object-bearing) reference to the task prism.
+     *
+     * Precondition: Task must be persistent.
+     */
+    @NotNull ObjectReferenceType getSelfReferenceFull();
 
     /** Returns the version of underlying prism object. */
     String getVersion();
@@ -938,6 +942,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     default boolean isRoot() {
         return getParent() == null;
+    }
+
+    default ExecutionSupport getExecutionSupport() {
+        return null;
     }
 
     //endregion

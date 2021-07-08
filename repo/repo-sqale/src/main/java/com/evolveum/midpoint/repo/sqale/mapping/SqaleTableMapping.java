@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -20,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
@@ -225,6 +229,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
     }
 
+    /**
+     * Implemented for searchable containers that do not use fullObject for their recreation.
+     */
     @Override
     public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
@@ -256,8 +263,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Fails if OID is not null and {@code repoObjectType} is null.
      */
     @Nullable
-    protected ObjectReferenceType objectReferenceType(
-            @Nullable String oid, MObjectType repoObjectType, String targetName) {
+    protected ObjectReferenceType objectReference(
+            @Nullable UUID oid, MObjectType repoObjectType, Integer relationId) {
         if (oid == null) {
             return null;
         }
@@ -267,10 +274,9 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
 
         return new ObjectReferenceType()
-                .oid(oid)
+                .oid(oid.toString())
                 .type(repositoryContext().schemaClassToQName(repoObjectType.getSchemaType()))
-                .description(targetName)
-                .targetName(targetName);
+                .relation(resolveUriIdToQName(relationId));
     }
 
     /**
@@ -319,6 +325,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return uris.stream()
                 .map(uri -> processCacheableUri(uri))
                 .toArray(Integer[]::new);
+    }
+
+    public String resolveIdToUri(Integer uriId) {
+        return repositoryContext().resolveIdToUri(uriId);
+    }
+
+    public QName resolveUriIdToQName(Integer uriId) {
+        return repositoryContext().resolveUriIdToQName(uriId);
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
@@ -392,5 +406,44 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
         return new ExtensionProcessor(repositoryContext())
                 .processExtensions(extContainer, holderType);
+    }
+
+    protected S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
+        String serializedForm = new String(fullObject, StandardCharsets.UTF_8);
+        try {
+            RepositoryObjectParseResult<S> result =
+                    repositoryContext().parsePrismObject(serializedForm, schemaType());
+            S schemaObject = result.prismObject;
+            if (result.parsingContext.hasWarnings()) {
+                logger.warn("Object {} parsed with {} warnings",
+                        schemaObject.toString(),
+                        result.parsingContext.getWarnings().size());
+            }
+            return schemaObject;
+        } catch (SchemaException | RuntimeException | Error e) {
+            // This is a serious thing. We have corrupted XML in the repo. This may happen even
+            // during system init. We want really loud and detailed error here.
+            logger.error("Couldn't parse object {} {}: {}: {}\n{}",
+                    schemaType().getSimpleName(), identifier,
+                    e.getClass().getName(), e.getMessage(), serializedForm, e);
+            throw e;
+        }
+    }
+
+    /** Creates serialized (byte array) form of an object or a container. */
+    public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
+        return repositoryContext().createStringSerializer()
+                .itemsToSkip(fullObjectItemsToSkip())
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(container.asPrismContainerValue())
+                .getBytes(StandardCharsets.UTF_8);
+    }
+
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
+        return Collections.emptyList();
     }
 }

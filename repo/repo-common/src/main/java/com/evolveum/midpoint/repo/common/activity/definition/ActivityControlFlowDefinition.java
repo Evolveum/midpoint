@@ -9,27 +9,27 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityControlFlowSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskErrorHandlingStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
+    /**
+     * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
+     */
     @NotNull private ActivityControlFlowSpecificationType bean;
 
-    private ActivityControlFlowDefinition(ActivityDefinitionType activityDefinitionBean) {
-        this.bean = activityDefinitionBean != null && activityDefinitionBean.getControlFlow() != null ?
-                activityDefinitionBean.getControlFlow() : new ActivityControlFlowSpecificationType(PrismContext.get());
+    private ActivityControlFlowDefinition(@NotNull ActivityControlFlowSpecificationType bean) {
+        this.bean = bean;
     }
 
     @NotNull
     public static ActivityControlFlowDefinition create(ActivityDefinitionType activityDefinitionBean) {
-        return new ActivityControlFlowDefinition(activityDefinitionBean);
+        ActivityControlFlowSpecificationType bean = activityDefinitionBean != null &&
+                activityDefinitionBean.getControlFlow() != null ?
+                activityDefinitionBean.getControlFlow().clone() : new ActivityControlFlowSpecificationType(PrismContext.get());
+        return new ActivityControlFlowDefinition(bean);
     }
 
     @Override
@@ -48,18 +48,23 @@ public class ActivityControlFlowDefinition implements DebugDumpable, Cloneable {
 
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         if (tailoring.getControlFlow() != null) {
-            this.bean = tailoring.getControlFlow();
+            bean = TailoringUtil.getTailoredBean(bean, tailoring.getControlFlow());
         } else {
             // null means we do not want it to change.
         }
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ActivityControlFlowDefinition clone() {
-        try {
-            return (ActivityControlFlowDefinition) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new SystemException(e);
-        }
+        return new ActivityControlFlowDefinition(bean.clone());
+    }
+
+    public void setSkip() {
+        bean.setProcessingOption(PartialProcessingTypeType.SKIP);
+    }
+
+    public boolean isSkip() {
+        return bean.getProcessingOption() == PartialProcessingTypeType.SKIP;
     }
 }

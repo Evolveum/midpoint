@@ -504,7 +504,7 @@ public class Clockwork {
             ExpressionEvaluationException, ConflictDetectedException {
         switch (state) {
             case INITIAL:
-                processInitialToPrimary(context, result);
+                processInitialToPrimary(context, task, result);
                 break;
             case PRIMARY:
                 processPrimaryToSecondary(context, task, result);
@@ -528,17 +528,16 @@ public class Clockwork {
         context.setState(newState);
     }
 
-    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, OperationResult result)
-            throws PolicyViolationException {
+    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result)
+            throws PolicyViolationException, SchemaException, ObjectNotFoundException {
         // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
         policyRuleEnforcer.execute(context, result);
+        policyRuleSuspendTaskExecutor.execute(context, task, result);
 
         switchState(context, ModelState.PRIMARY);
     }
 
     private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, ObjectNotFoundException, SchemaException {
-        policyRuleSuspendTaskExecutor.execute(context, task, result);
-
         switchState(context, ModelState.SECONDARY);
     }
 

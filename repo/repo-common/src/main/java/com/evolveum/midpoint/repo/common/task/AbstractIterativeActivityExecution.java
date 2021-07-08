@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionRes
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -62,7 +62,7 @@ public abstract class AbstractIterativeActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         WS extends AbstractActivityWorkStateType>
-        extends LocalActivityExecution<WD, AH, WS> {
+        extends LocalActivityExecution<WD, AH, WS> implements ExecutionSupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractIterativeActivityExecution.class);
 
@@ -90,7 +90,7 @@ public abstract class AbstractIterativeActivityExecution<
      * Things like "Import", "Reconciliation (on resource)", and so on. Used e.g. in log messages like:
      * "Import of UserType:jack (Jack Sparrow, c0c010c0-d34d-b33f-f00d-111111111111) from Crew Management has been started"
      */
-    @NotNull protected String activityShortNameCapitalized;
+    @NotNull String activityShortNameCapitalized;
 
     /**
      * Information that augments the process short name. Used e.g. in log messages.
@@ -290,7 +290,7 @@ public abstract class AbstractIterativeActivityExecution<
      * Creates the processing coordinator. Usually no customization is needed here.
      */
     private ProcessingCoordinator<I> setupCoordinator() {
-        return new ProcessingCoordinator<>(getRunningTask(), beans.taskManager);
+        return new ProcessingCoordinator<>(getWorkerThreadsCount(), getRunningTask(), beans.taskManager);
     }
 
     /**
@@ -338,26 +338,13 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     private void updateStatisticsOnStart() {
-        setStructuredProgressPartInformation();
         executionStatistics.recordStart();
-    }
-
-    /**
-     * FIXME!!!
-     */
-    private void setStructuredProgressPartInformation() {
-        getRunningTask().setStructuredProgressPartInformation(activityIdentifier, activityNumber, expectedActivities);
-
-        // The task progress can be out of sync with the actual progress e.g. because of open items (that have been zeroed above).
-        StructuredTaskProgressType structuredProgress = getRunningTask().getStructuredProgressOrClone();
-        getRunningTask().setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
     }
 
     private void updateStatisticsOnFinish(OperationResult result) {
         RunningTask task = getRunningTask();
 
         executionStatistics.recordEnd();
-        task.recordPartExecutionEnd(getActivityPath(), getPartStartTimestamp(), executionStatistics.getEndTimeMillis());
         task.updateStatisticsInTaskPrism(true);
 
         // TODO eventually remove
@@ -446,16 +433,15 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     private Integer getWorkerThreadsCount() {
-        // FIXME - take also from distribution definition
-        return getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+        return getActivity().getDistributionDefinition().getWorkerThreads();
     }
 
     public void ensureNoWorkerThreads() {
-        Integer tasks = getWorkerThreadsCount();
-        if (tasks != null && tasks != 0) {
-            throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks +
-                    ". This task cannot be run with worker threads. Please remove workerThreads "
-                    + "extension property or set its value to 0.");
+        int threads = getWorkerThreadsCount();
+        if (threads != 0) {
+            throw new UnsupportedOperationException("Unsupported number of worker threads: " + threads +
+                    ". This task cannot be run with worker threads. Please remove workerThreads task "
+                    + "extension property and/or workerThreads distribution definition item or set its value to 0.");
         }
     }
 
@@ -494,7 +480,11 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     public boolean isSimulate() {
-        return activity.getDefinition().getExecutionMode() == ExecutionModeType.SIMULATE;
+        return getExecutionMode() == ExecutionModeType.SIMULATE;
+    }
+
+    public boolean isDryRun() {
+        return getExecutionMode() == ExecutionModeType.DRY_RUN;
     }
 
     public @NotNull String getRootTaskOid() {
@@ -539,12 +529,6 @@ public abstract class AbstractIterativeActivityExecution<
 
     public void setExpectedActivities(int expectedActivities) {
         this.expectedActivities = expectedActivities;
-    }
-
-    void markStructuredProgressComplete(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException {
-        getRunningTask().markStructuredProgressAsComplete();
-        getRunningTask().flushPendingModifications(result);
     }
 
     /**

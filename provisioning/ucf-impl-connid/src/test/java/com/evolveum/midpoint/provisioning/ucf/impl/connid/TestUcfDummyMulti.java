@@ -8,9 +8,14 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static org.testng.AssertJUnit.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -22,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,9 +44,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.google.common.io.Files;
 
 /**
  * UCF test with dummy resource and several connector instances.
@@ -49,6 +58,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummyMulti extends AbstractUcfDummyTest {
+
+    private static final File CONNECTOR_FAKE = new File("src/test/resources/dummy-connector-fake-4.2.jar");
+    private static final File MIDPOINT_HOME = new File("target/midpoint-home");
+    private static final File MIDPOINT_HOME_ICF = new File(MIDPOINT_HOME, "icf-connectors");
 
     @Test
     public void test000PrismContextSanity() {
@@ -311,6 +324,36 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertNotNull("No attributes in shadow " + shadow, attributes);
         assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
+    }
+
+    @Test
+    public void test600loadFakeConnector() throws CommunicationException, IOException, InterruptedException {
+        OperationResult result = new OperationResult("test");
+        Set<ConnectorType> connectorsBefore = this.connectorFactoryIcfImpl.listConnectors(null, result.createSubresult("before"));
+        assertNotNull(connectorsBefore);
+
+        CountDownLatch detected = new CountDownLatch(1);
+        connectorFactoryIcfImpl.registerDiscoveryListener(new ConnectorDiscoveryListener() {
+
+            @Override
+            public void newConnectorDiscovered(ConnectorHostType host) {
+                // Connector was detected
+                detected.countDown();
+            }
+        });
+
+        File targetFile = new File(MIDPOINT_HOME_ICF, CONNECTOR_FAKE.getName());
+        try {
+            // Then move to
+            Files.copy(CONNECTOR_FAKE, targetFile);
+            detected.await(2, TimeUnit.MINUTES);
+            Set<ConnectorType> connectorsAfter = this.connectorFactoryIcfImpl.listConnectors(null, result.createSubresult("after"));
+
+            assertTrue(connectorsAfter.size() > connectorsBefore.size());
+
+        } finally {
+            targetFile.delete();
+        }
     }
 
 }

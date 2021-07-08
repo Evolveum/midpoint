@@ -33,7 +33,7 @@ public class QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignee == null) {
             instanceAssignee = new QAccessCertificationWorkItemReferenceMapping(
-                    "m_access_cert_wi_assignee", "macwirefa", repositoryContext);
+                    "m_access_cert_wi_assignee", "acwirefa", repositoryContext);
         }
         return getForCaseWorkItemAssignee();
     }
@@ -46,7 +46,7 @@ public class QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceCandidate == null) {
             instanceCandidate = new QAccessCertificationWorkItemReferenceMapping(
-                    "m_access_cert_wi_candidate", "macwirefc", repositoryContext);
+                    "m_access_cert_wi_candidate", "acwirefc", repositoryContext);
         }
         return getForCaseWorkItemCandidate();
     }
@@ -80,7 +80,9 @@ public class QAccessCertificationWorkItemReferenceMapping
     }
 
     @Override
-    public BiFunction<QAccessCertificationWorkItem, QAccessCertificationWorkItemReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.accessCertWorkItemCid)).and(a.accessCertCaseCid.eq(r.accessCertCaseCid));
+    public BiFunction<QAccessCertificationWorkItem, QAccessCertificationWorkItemReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.accessCertWorkItemCid))
+                .and(a.accessCertCaseCid.eq(r.accessCertCaseCid));
     }
 }

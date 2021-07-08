@@ -6,18 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismObject;
 
 /** Result for deserialization of prism object stored in the repository. */
-public class RepositoryObjectParseResult<T extends Objectable> {
+public class RepositoryObjectParseResult<T> {
 
     public final ParsingContext parsingContext;
-    public final PrismObject<T> prismObject;
+    public final T prismObject;
 
-    public RepositoryObjectParseResult(ParsingContext parsingContext, PrismObject<T> prismObject) {
+    public RepositoryObjectParseResult(ParsingContext parsingContext, T schemaObject) {
         this.parsingContext = parsingContext;
-        this.prismObject = prismObject;
+        this.prismObject = schemaObject;
     }
 }

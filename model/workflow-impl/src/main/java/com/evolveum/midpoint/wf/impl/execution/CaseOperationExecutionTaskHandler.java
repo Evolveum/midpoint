@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -157,12 +158,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.WORKFLOW;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value();
     }
 

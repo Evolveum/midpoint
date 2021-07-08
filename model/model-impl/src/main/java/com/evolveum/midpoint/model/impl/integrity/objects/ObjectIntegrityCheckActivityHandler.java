@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -85,6 +87,11 @@ public class ObjectIntegrityCheckActivityHandler
     @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 
     @Override

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -303,11 +302,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public StructuredTaskProgressType getStructuredProgressOrClone() {
-        return null;
-    }
-
-    @Override
     public void setProgress(Long value) {
         throw new UnsupportedOperationException();
     }
@@ -530,6 +524,10 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
+    }
+
+    @Override
     public TaskWaitingReasonType getWaitingReason() {
         throw new UnsupportedOperationException();
     }
@@ -604,10 +602,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
-    }
-
-    @Override
-    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
     }
 
     @Override
@@ -703,6 +697,11 @@ public class NullTaskImpl implements Task {
 
     @Override
     public OperationStatsType getAggregatedLiveOperationStats() {
+        return null;
+    }
+
+    @Override
+    public @NotNull ObjectReferenceType getSelfReferenceFull() {
         return null;
     }
 

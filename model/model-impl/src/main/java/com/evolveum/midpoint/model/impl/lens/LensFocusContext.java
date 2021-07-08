@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -230,23 +229,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
         sb.append(", syncIntent=").append(getSynchronizationIntent());
-
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), objectOld, indent+1);
 
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), objectCurrent, indent+1);
-
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), objectNew, indent+1);
-
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), primaryDelta, indent+1);
-
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), secondaryDelta, indent+1);
-
-        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), objectOld, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), objectCurrent, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), objectNew, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), primaryDelta, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), secondaryDelta, indent+1);
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append(getDebugDumpTitle("older secondary deltas")).append(":");
         if (secondaryDeltas.isEmpty()) {
@@ -255,34 +244,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             sb.append("\n");
             sb.append(secondaryDeltas.debugDump(indent + 2));
         }
-
-        // pending policy state modifications (object + assignments)
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent + 1);
-        sb.append(getDebugDumpTitle("pending object policy state modifications")).append(":");
-        if (getPendingObjectPolicyStateModifications().isEmpty()) {
-            sb.append(" empty");
-        } else {
-            sb.append("\n");
-            sb.append(DebugUtil.debugDump(getPendingObjectPolicyStateModifications(), indent + 2));
-        }
 
-        for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : getPendingAssignmentPolicyStateModifications().entrySet()) {
-            sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent + 1);
-            sb.append(getDebugDumpTitle("pending assignment policy state modifications for ")).append(entry.getKey()).append(":");
-            if (entry.getValue().isEmpty()) {
-                sb.append(" empty");
-            } else {
-                sb.append("\n");
-                sb.append(DebugUtil.debugDump(entry.getValue(), indent + 2));
-            }
-        }
-
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
-
-        LensContext.dumpRules(sb, getDebugDumpTitle("policy rules"), indent+1, getPolicyRules());
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "Policy rules context", policyRulesContext, indent + 1);
         return sb.toString();
     }
 

@@ -78,50 +78,7 @@ public class TaskHandlerRegistry {
         }
     }
 
-    @Deprecated // Remove in 4.2
-    public List<String> getAllTaskCategories() {
-        Set<String> categories = new HashSet<>();
-        for (TaskHandler h : primaryHandlersUris.values()) {
-            List<String> cat = h.getCategoryNames();
-            if (cat != null) {
-                categories.addAll(cat);
-            } else {
-                String catName = h.getCategoryName(null);
-                if (catName != null) {
-                    categories.add(catName);
-                }
-            }
-        }
-        return new ArrayList<>(categories);
-    }
-
-    @Deprecated // Remove in 4.2
-    public String getHandlerUriForCategory(String category) {
-        Set<String> found = new HashSet<>();
-        for (Map.Entry<String, TaskHandler> h : primaryHandlersUris.entrySet()) {
-            List<String> cats = h.getValue().getCategoryNames();
-            if (cats != null) {
-                if (cats.contains(category)) {
-                    found.add(h.getKey());
-                }
-            } else {
-                String cat = h.getValue().getCategoryName(null);
-                if (category.equals(cat)) {
-                    found.add(h.getKey());
-                }
-            }
-        }
-        if (found.isEmpty()) {
-            return null;
-        } else if (found.size() == 1) {
-            return found.iterator().next();
-        } else {
-            LOGGER.warn("More task handlers found for category {}; returning none.", category);
-            return null;
-        }
-    }
-
-    public Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly) {
+    Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly) {
         return Collections.unmodifiableSet(getHandlerUriMap(nonDeprecatedOnly).keySet());
     }
 
@@ -129,9 +86,9 @@ public class TaskHandlerRegistry {
         return nonDeprecatedOnly ? nonDeprecatedHandlersUris : handlers;
     }
 
-    public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
+    Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
         return getHandlerUriMap(nonDeprecatedOnly).entrySet().stream()
-                .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid()))
+                .filter(entry -> archetypeOid.equals(entry.getValue().getArchetypeOid(entry.getKey())))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
     }
@@ -140,7 +97,7 @@ public class TaskHandlerRegistry {
         return defaultHandlerUri;
     }
 
-    public void setDefaultHandlerUri(String defaultHandlerUri) {
+    void setDefaultHandlerUri(String defaultHandlerUri) {
         this.defaultHandlerUri = defaultHandlerUri;
     }
 }

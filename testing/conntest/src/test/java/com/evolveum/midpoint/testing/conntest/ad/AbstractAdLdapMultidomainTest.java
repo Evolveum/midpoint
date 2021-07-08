@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -2339,10 +2343,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             throws ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult("assertStepSyncToken");
         Task task = taskManager.getTaskPlain(syncTaskOid, result);
-        PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        assertNotNull("No sync token", syncTokenProperty);
-        assertNotNull("No sync token value", syncTokenProperty.getRealValue());
-        assertThat(StringUtils.isBlank(syncTokenProperty.getRealValue()))
+        String tokenRealValue =
+                (String) getRootSyncTokenRealValueRequired(task.getRawTaskObjectClonedIfNecessary().asObjectable());
+        assertThat(StringUtils.isBlank(tokenRealValue))
                 .as("Empty sync token value")
                 .isTrue();
         assertSuccess(result);

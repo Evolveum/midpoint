@@ -16,8 +16,10 @@
     <activity>
         <work>
             <reconciliation>
-                <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
-                <objectclass>ri:AccountObjectType</objectclass>
+                <resourceObjects>
+                    <resourceRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce"/>
+                    <objectclass>ri:AccountObjectType</objectclass>
+                </resourceObjects>
             </reconciliation>
         </work>
         <tailoring>

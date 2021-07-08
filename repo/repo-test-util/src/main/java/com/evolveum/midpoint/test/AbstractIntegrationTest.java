@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType.SUCCESS;
 
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -32,7 +33,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,6 +51,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 
 import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 
 import com.evolveum.midpoint.test.asserter.*;
@@ -1338,7 +1339,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        RefinedAttributeDefinition<T> attrDef = Objects.requireNonNull(
+        RefinedAttributeDefinition<T> attrDef = requireNonNull(
                 objectClassDefinition.findAttributeDefinition(attributeName),
                 () -> "No attribute " + attributeName + " in " + objectClassDefinition);
         ResourceAttribute<T> attr = attrDef.instantiate();
@@ -1522,14 +1523,19 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertSyncToken(Task task, Object expectedValue) {
-        PrismProperty<Object> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        if (expectedValue == null && syncTokenProperty == null) {
-            return;
+        assertSyncToken(task.getRawTaskObjectClonedIfNecessary().asObjectable(), expectedValue);
+    }
+
+    protected void assertSyncToken(TaskType task, Object expectedValue) {
+        Object token;
+        try {
+            token = ActivityStateUtil.getRootSyncTokenRealValue(task);
+        } catch (SchemaException e) {
+            throw new SystemException(e);
         }
-        Object syncTokenPropertyValue = syncTokenProperty.getAnyRealValue();
-        if (!MiscUtil.equals(expectedValue, syncTokenPropertyValue)) {
+        if (!MiscUtil.equals(expectedValue, token)) {
             AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue == null ? "" : (", " + expectedValue.getClass().getName())) +
-                    ", was: " + syncTokenPropertyValue + (syncTokenPropertyValue == null ? "" : (", " + syncTokenPropertyValue.getClass().getName())));
+                    ", was: " + token + (token == null ? "" : (", " + token.getClass().getName())));
         }
     }
 
@@ -3018,7 +3024,59 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         taskManager.unsetGlobalTracingOverride();
     }
 
-    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+    protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads, boolean legacy) {
+        if (legacy) {
+            return workerThreadsCustomizerLegacy(threads);
+        } else {
+            return rootActivityWorkerThreadsCustomizer(threads);
+        }
+    }
+
+    protected Consumer<PrismObject<TaskType>> rootActivityWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionUtil.findOrCreateDistribution(
+                        requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition"))
+                        .setWorkerThreads(threads);
+            }
+        };
+    }
+
+    protected Consumer<PrismObject<TaskType>> tailoringWorkerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                ActivityDefinitionType definition = requireNonNull(taskObject.asObjectable().getActivity(), "no activity definition");
+                if (definition.getTailoring() == null) {
+                    definition.setTailoring(new ActivitiesTailoringType(prismContext));
+                }
+                definition.getTailoring().beginChange()
+                        .beginDistribution()
+                            .workerThreads(threads)
+                            .tailoringMode(TailoringModeType.OVERWRITE_SPECIFIED);
+            }
+        };
+    }
+
+    // TODO generalize
+    protected Consumer<PrismObject<TaskType>> roleAssignmentCustomizer(String roleOid) {
+        return object -> {
+            if (roleOid != null) {
+                object.asObjectable().beginAssignment()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE);
+            }
+        };
+    }
+
+    // TODO generalize
+    @SafeVarargs
+    protected final Consumer<PrismObject<TaskType>> aggregateCustomizer(
+            Consumer<PrismObject<TaskType>>... customizers) {
+        return object ->
+                Arrays.stream(customizers)
+                        .forEachOrdered(customizer -> customizer.accept(object));
+    }
+
+    private Consumer<PrismObject<TaskType>> workerThreadsCustomizerLegacy(int threads) {
         return taskObject -> {
             if (threads != 0) {
                 //noinspection unchecked
@@ -3204,12 +3262,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         } catch (InterruptedException e) {
             // nothing to do here
         }
-    }
-
-    private int getSuccessClosed(Collection<? extends Task> workers) {
-        return workers.stream()
-                .mapToInt(w -> TaskProgressUtil.getProgressForOutcome(w.getStructuredProgressOrClone(), SUCCESS, false))
-                .sum();
     }
 
     protected void assertNoWorkBuckets(ActivityStateType ws) {
@@ -3533,7 +3585,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getTaskTree");
         OperationResult result = task.getResult();
-        PrismObject<TaskType> retTask = repositoryService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF), result);
+        PrismObject<TaskType> retTask = taskManager.getObject(
+                TaskType.class,
+                taskOid,
+                retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK_REF),
+                result);
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;

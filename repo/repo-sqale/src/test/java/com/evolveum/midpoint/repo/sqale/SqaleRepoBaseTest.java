@@ -233,12 +233,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
     }
 
-    protected java.util.function.Predicate<? super Referencable> refMatcher(UUID targetOid, QName relation) {
+    protected java.util.function.Predicate<? super Referencable> refMatcher(
+            UUID targetOid, QName relation) {
         return ref -> ref.getOid().equals(targetOid.toString())
                 && ref.getRelation().equals(relation);
     }
 
-    protected java.util.function.Predicate<? super MReference> refRowMatcher(UUID targetOid, QName relation) {
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(
+            UUID targetOid, QName relation) {
         return ref -> ref.targetOid.equals(targetOid)
                 && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }

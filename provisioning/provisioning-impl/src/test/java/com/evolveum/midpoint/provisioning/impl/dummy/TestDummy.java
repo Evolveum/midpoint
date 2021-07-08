@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.*;
 
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -3833,14 +3835,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private static Task syncTokenTask = null;
+    private LiveSyncTokenStorage tokenStorage = new DummyTokenStorageImpl();
 
     @Test
     public void test800LiveSyncInit() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
         dummyResource.clearDeltas();
@@ -3853,7 +3853,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess(result);
@@ -3888,7 +3888,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -3942,7 +3942,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4099,7 +4099,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4162,7 +4162,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         result.computeStatus();
@@ -4218,7 +4218,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4287,7 +4287,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4347,7 +4347,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4393,7 +4393,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, syncTask, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, syncTask, result);
 
         then();
         assertSuccess(result);

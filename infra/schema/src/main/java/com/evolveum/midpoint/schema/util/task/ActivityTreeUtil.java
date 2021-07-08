@@ -19,8 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Utility methods for navigating throughout activity trees, potentially distributed throughout a task tree.
@@ -31,14 +34,34 @@ public class ActivityTreeUtil {
 
     /**
      * Transforms activity state objects into custom ones, organized into a tree.
-     * Delegation states are ignored. Distribution states are considered, and their workers' states are (currently) ignored.
+     * Delegation states are ignored. Distribution states are considered, and their workers' states
+     * are packed along them.
      */
-    public static <X> TreeNode<X> transformStates(@NotNull TaskType rootTask,
+    public static <X> @NotNull TreeNode<X> transformStates(@NotNull TaskType rootTask,
             @NotNull TaskResolver resolver,
             @NotNull ActivityStateTransformer<X> transformer) {
         TreeNode<X> root = new TreeNode<>();
-        transformStates(root, getLocalRootPath(rootTask), getLocalRootState(rootTask), rootTask, resolver, transformer);
+        processStates(rootTask, resolver, new TreeTransformingProcessor<>(transformer, root));
         return root;
+    }
+
+    /**
+     * Processes activity state objects using the same rules as in {@link #transformStates(TaskType, TaskResolver, ActivityStateTransformer)}:
+     * delegation states are ignored, distribution states are considered, along with all their workers' states.
+     */
+    public static void processStates(@NotNull TaskType rootTask,
+            @NotNull TaskResolver resolver,
+            @NotNull ActivityStateProcessor processor) {
+        processStates(getLocalRootPath(rootTask), getLocalRootState(rootTask), rootTask, resolver, processor);
+    }
+
+    /**
+     * Special case of {@link #transformStates(TaskType, TaskResolver, ActivityStateTransformer)}: creates a {@link TreeNode}
+     * of {@link ActivityStateInContext} objects.
+     */
+    public static @NotNull TreeNode<ActivityStateInContext> toStateTree(@NotNull TaskType rootTask,
+            @NotNull TaskResolver resolver) {
+        return ActivityTreeUtil.transformStates(rootTask, resolver, ActivityStateInContext::new);
     }
 
     private static ActivityPath getLocalRootPath(TaskType task) {
@@ -51,28 +74,28 @@ public class ActivityTreeUtil {
                 task.getActivityState().getActivity() : null;
     }
 
-    private static <X> void transformStates(@NotNull TreeNode<X> transformed, @NotNull ActivityPath path,
-            @Nullable ActivityStateType state, @NotNull TaskType task, @NotNull TaskResolver resolver,
-            @NotNull ActivityTreeUtil.ActivityStateTransformer<X> transformer) {
+    private static void processStates(@NotNull ActivityPath path, @Nullable ActivityStateType state,
+            @NotNull TaskType task, @NotNull TaskResolver resolver,
+            @NotNull ActivityStateProcessor processor) {
         if (state != null && ActivityStateUtil.isDelegated(state)) {
-            processDelegatedState(transformed, path, state, task, resolver, transformer);
+            processDelegatedState(path, state, task, resolver, processor);
         } else {
-            processNonDelegatedState(transformed, path, state, task, resolver, transformer);
+            processNonDelegatedState(path, state, task, resolver, processor);
         }
     }
 
-    private static <X> void processNonDelegatedState(@NotNull TreeNode<X> transformed, @NotNull ActivityPath path,
+    private static void processNonDelegatedState(@NotNull ActivityPath path,
             @Nullable ActivityStateType state, @NotNull TaskType task, @NotNull TaskResolver resolver,
-            @NotNull ActivityStateTransformer<X> transformer) {
+            @NotNull ActivityStateProcessor processor) {
 
         List<ActivityStateType> workerStates = collectWorkerStates(path, state, task, resolver);
-        transformed.setUserObject(transformer.transform(path, state, workerStates, task));
+        processor.process(path, state, workerStates, task);
 
         if (state != null) {
             for (ActivityStateType childState : state.getActivity()) {
-                TreeNode<X> child = new TreeNode<>();
-                transformed.add(child);
-                transformStates(child, path.append(childState.getIdentifier()), childState, task, resolver, transformer);
+                processor.toNewChild(childState);
+                processStates(path.append(childState.getIdentifier()), childState, task, resolver, processor);
+                processor.toParent();
             }
         }
     }
@@ -88,15 +111,15 @@ public class ActivityTreeUtil {
         }
     }
 
-    private static <X> void processDelegatedState(@NotNull TreeNode<X> transformed, @NotNull ActivityPath path,
-            @NotNull ActivityStateType state, @NotNull TaskType task, @NotNull TaskResolver resolver,
-            @NotNull ActivityTreeUtil.ActivityStateTransformer<X> transformer) {
+    private static void processDelegatedState(@NotNull ActivityPath path, @NotNull ActivityStateType state,
+            @NotNull TaskType task, @NotNull TaskResolver resolver,
+            @NotNull ActivityTreeUtil.ActivityStateProcessor processor) {
         ObjectReferenceType delegateTaskRef = getDelegatedTaskRef(state);
         TaskType delegateTask = getSubtask(delegateTaskRef, path, task, resolver);
         if (delegateTask != null) {
-            transformStates(transformed, path, getLocalRootState(delegateTask), delegateTask, resolver, transformer);
+            processStates(path, getLocalRootState(delegateTask), delegateTask, resolver, processor);
         } else {
-            // nothing to report
+            // nothing to process
         }
     }
 
@@ -124,6 +147,19 @@ public class ActivityTreeUtil {
         }
     }
 
+    /**
+     * We know this by comparing task OIDs (except for worker ones): all must be the same to be non-delegated.
+     */
+    public static boolean hasDelegatedActivity(TreeNode<ActivityStateInContext> node) {
+        Set<String> oids = new HashSet<>();
+        node.acceptDepthFirst(n ->
+                oids.add(
+                        requireNonNull(n.getUserObject())
+                                .getTask()
+                                .getOid()));
+        return oids.size() > 1;
+    }
+
     @Experimental
     @FunctionalInterface
     public interface ActivityStateTransformer<X> {
@@ -131,7 +167,35 @@ public class ActivityTreeUtil {
         /**
          * Worker states are present in the case of distributed coordinator-workers scenario.
          */
-        X transform(ActivityPath path, ActivityStateType state, List<ActivityStateType> workerStates, TaskType task);
+        X transform(@NotNull ActivityPath path, @Nullable ActivityStateType state,
+                @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task);
+    }
+
+    @Experimental
+    @FunctionalInterface
+    public interface ActivityStateProcessor {
+
+        /**
+         * Called when relevant state is found.
+         *
+         * Worker states are present in the case of distributed coordinator-workers scenario.
+         */
+        void process(@NotNull ActivityPath path, @Nullable ActivityStateType state,
+                @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task);
+
+        /**
+         * Called when new child is entered into.
+         *
+         * @param childState State of the child. Often can be ignored.
+         */
+        default void toNewChild(@NotNull ActivityStateType childState) {
+        }
+
+        /**
+         * Called when new child is processed, and we want to return to the parent.
+         */
+        default void toParent() {
+        }
     }
 
     public static @NotNull List<TaskType> getSubtasksForPath(TaskType task, ActivityPath activityPath,
@@ -139,5 +203,78 @@ public class ActivityTreeUtil {
         return TaskTreeUtil.getResolvedSubtasks(task, taskResolver).stream()
                 .filter(t -> activityPath.equalsBean(ActivityStateUtil.getLocalRootPathBean(t.getActivityState())))
                 .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<ActivityStateType> getAllLocalStates(@NotNull TaskActivityStateType taskActivityState) {
+        List<ActivityStateType> allStates = new ArrayList<>();
+        collectLocalStates(allStates, taskActivityState.getActivity());
+        return allStates;
+    }
+
+    private static void collectLocalStates(@NotNull List<ActivityStateType> allStates, @Nullable ActivityStateType state) {
+        if (state == null) {
+            return;
+        }
+        allStates.add(state);
+        state.getActivity().forEach(child -> collectLocalStates(allStates, child));
+    }
+
+    /**
+     * Activity state with all the necessary context: the path, the task, and the partial states of coordinated workers.
+     * Maybe we should find better name.
+     */
+    public static class ActivityStateInContext {
+
+        @NotNull private final ActivityPath activityPath;
+        @Nullable private final ActivityStateType activityState;
+        @Nullable private final List<ActivityStateType> workerStates;
+        @NotNull private final TaskType task;
+
+        ActivityStateInContext(@NotNull ActivityPath activityPath, @Nullable ActivityStateType activityState,
+                @Nullable List<ActivityStateType> workerStates, @NotNull TaskType task) {
+            this.activityPath = activityPath;
+            this.activityState = activityState;
+            this.workerStates = workerStates;
+            this.task = task;
+        }
+
+        public @NotNull ActivityPath getActivityPath() {
+            return activityPath;
+        }
+
+        public @Nullable ActivityStateType getActivityState() {
+            return activityState;
+        }
+
+        public @Nullable List<ActivityStateType> getWorkerStates() {
+            return workerStates;
+        }
+
+        public @NotNull TaskType getTask() {
+            return task;
+        }
+
+        public @NotNull List<ActivityStateType> getAllStates() {
+            return getAllStatesStream()
+                    .collect(Collectors.toList());
+        }
+
+        public @NotNull Stream<ActivityStateType> getAllStatesStream() {
+            return Stream.concat(
+                    Stream.ofNullable(activityState),
+                    workerStates != null ? workerStates.stream() : Stream.empty());
+        }
+
+        public boolean isCoordinator() {
+            return getWorkerStates() != null;
+        }
+
+        @Override
+        public String toString() {
+            return "ActivityStateInContext{" +
+                    "activityPath=" + activityPath +
+                    ", task=" + task +
+                    '}';
+        }
     }
 }

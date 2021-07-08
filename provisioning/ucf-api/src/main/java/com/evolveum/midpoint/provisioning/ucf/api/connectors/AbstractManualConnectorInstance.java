@@ -271,22 +271,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
-            StateReporter reporter, OperationResult parentResult) {
-        // not supported
-        return null;
-    }
-
-    @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
-        // not supported
-        return null;
-    }
-
-    @Override
-    public PrismProperty<?> deserializeToken(Object serializedToken) {
         // not supported
         return null;
     }

@@ -9,9 +9,10 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +37,20 @@ public class TaskUtil {
         return tasks.stream().filter(t -> identifier.equals(t.getTaskIdentifier())).findFirst().orElse(null);
     }
 
-    public static boolean isDryRun(Task task) throws SchemaException {
-        return findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN, false);
+    public static ExecutionModeType getExecutionMode(Task task) {
+        if (task instanceof RunningTask) {
+            return ((RunningTask) task).getExecutionMode();
+        } else {
+            return ExecutionModeType.EXECUTE;
+        }
+    }
+
+    public static boolean isDryRun(Task task) {
+        return getExecutionMode(task) == ExecutionModeType.DRY_RUN;
+    }
+
+    public static boolean isSimulate(Task task) {
+        return getExecutionMode(task) == ExecutionModeType.SIMULATE;
     }
 
     public static boolean findExtensionItemValueInThisOrParent(Task task, QName path, boolean defaultValue) throws SchemaException {
@@ -69,5 +82,16 @@ public class TaskUtil {
             throw new SchemaException("Unexpected number of values for option '" + path + "'.");
         }
         return item.getValues().iterator().next().getValue();
+    }
+
+    public static List<? extends Task> getLeafTasks(List<? extends Task> allSubtasksInTree) {
+        return allSubtasksInTree.stream()
+                .filter(task -> !hasChildren(task, allSubtasksInTree))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean hasChildren(Task task, List<? extends Task> allTasks) {
+        return allTasks.stream()
+                .anyMatch(t -> task.getTaskIdentifier().equals(t.getParent()));
     }
 }

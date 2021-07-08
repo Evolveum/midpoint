@@ -53,4 +53,12 @@
     <objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
     <recurrence>single</recurrence>
     <!-- No schedule - will execute immediately -->
+
+    <activityState>
+        <activity>
+            <workState xsi:type="LiveSyncWorkStateType">
+                <token xsi:type="xsd:int">1002</token>
+            </workState>
+        </activity>
+    </activityState>
 </task>

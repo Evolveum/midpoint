@@ -691,7 +691,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:experimentaL>true</a:experimentaL>
+                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.4</a:deprecatedSince>
                 <a:since>4.3</a:since>
             </xsd:appinfo>
         </xsd:annotation>
@@ -1786,13 +1788,6 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
-            <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="executionMode" type="tns:ExecutionModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1812,6 +1807,13 @@
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
                         Directly applicable to simple activities. For complex ones it serves as a default value for the children.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2070,10 +2072,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="reference" type="xsd:string" minOccurs="0">
+            <xsd:element name="reference" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of existing activity that is to be tailored.
+                        Identifier of existing activity or activities that are to be tailored.
+                        No value means all activities.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2084,25 +2087,111 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationType" minOccurs="0">
+            <xsd:element name="controlFlow" type="tns:ActivityControlFlowSpecificationTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items like prerequisites, preconditions, error handling strategy, and so on.
-                        TODO partial overriding
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="distribution" type="tns:WorkDistributionType" minOccurs="0">
+            <xsd:element name="distribution" type="tns:WorkDistributionTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Distribution of the work executed as part of this activity.
-                        TODO partial overriding
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="ActivityControlFlowSpecificationTailoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityControlFlowSpecificationType">
+                <xsd:sequence>
+                    <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the tailoring is applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkDistributionTailoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WorkDistributionType">
+                <xsd:sequence>
+                    <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the tailoring is applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TailoringModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the tailoring is applied.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="overwrite">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specified container value overwrites everything that was configured for an activity.
+                            This is the default.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERWRITE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="overwriteSpecified">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Only specified (first-level) items are overwritten.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERWRITE_SPECIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ActivityCompositionType">
         <xsd:annotation>
@@ -2261,44 +2350,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="PartsSubtasksRealizationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How parts are realized via subtasks.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.4</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to derive names for individual subtasks. It is possible to use substitution strings of
-                        {masterTaskName}, {masterTaskHandlerUri} and {index} here.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Subtasks handler URI pattern.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether to copy task extension from the master task.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="ActivitySubtaskSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2316,14 +2367,6 @@
                     <xsd:documentation>
                         How to derive names for the partition task. It is possible to use substitution strings of {masterTaskName},
                         {masterTaskHandlerUri} and {index} here. Overrides the pattern specified for all parts.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Partition task handler URI. The default is {masterTaskHandlerUri}#{index}.
-                        Overrides the handler URI specified for all parts.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2623,6 +2666,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Information about the bucket processing within the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="counters" type="tns:ActivityCounterGroupsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters related to the execution of the activity, grouped into related categories.
+                        One of the categories are counters needed to implement thresholds for policy rules.
+
+                        Note: The counters may be moved to separate repository object later to improve performance.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3153,18 +3206,23 @@
             <xsd:element name="subtask" type="tns:ActivitySubtaskSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How is the activity (or children activities) executed in separate subtask(s).
+                        How is the activity executed in separate subtask(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="subtasks" type="tns:PartsSubtasksRealizationType" minOccurs="0">
+            <xsd:element name="subtasks" type="tns:ActivitySubtaskSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Parameters describing the realization of this complex part via subtasks.
+                        How are the activities executed in separate subtask(s). This is actually a shortcut for tailoring
+                        the sub-activities: it does not apply to the activity itself, but to its children. TODO reconsider.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.4</a:since>
-                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="autoscaling" type="tns:AutoscalingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether and how is this activity work distribution auto-scaled.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -6111,7 +6169,25 @@
                     <xsd:element name="batchSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Batch size for live sync operations: if specified as N > 0, live synchronization fetches
+                                at most N records during each provisioning.synchronize() method execution - i.e. during
+                                any live sync task run. (Currently, it leaves unprocessed changes for the next live sync
+                                task run. This may change in the future.)
+
+                                USE WITH CARE. This feature assumes that the connector provides LiveSync capability
+                                with preciseTokenValue = true, i.e. that it assigns sync tokens to individual changes
+                                "incrementally" so it can resume live sync operation on each individual change. This
+                                can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="updateLiveSyncTokenInDryRun" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates if the LiveSync token should be updated when running in dry run mode.
+                                If false (the default) then LiveSync will not update token to a new value so it
+                                will process objects fetched on the next run (either dry or normal). If true, it
+                                will update the token, and therefore marks objects as processed.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -6599,6 +6675,35 @@
     </xsd:complexType>
     <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType" />
 
+    <xsd:complexType name="LiveSyncWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="token" type="xsd:anyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The token value.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:rawType>true</a:rawType> <!-- TODO ok? -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
+
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6704,4 +6809,103 @@
     </xsd:complexType>
     <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType" />
 
+    <xsd:complexType name="AutoscalingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is autoscaling enabled for this activity? The default is "true" if the autoscaling configuration
+                        exists. (Note that this may change in the future.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterGroupsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Counters related to the execution of the activity, grouped into related categories.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters for policy rules.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterGroupType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A group of related counters.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="counter" type="tns:ActivityCounterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single counter.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityCounterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single counter.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counter identifier (key).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current counter value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO other data, like start timestamp (maybe) -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 </xsd:schema>

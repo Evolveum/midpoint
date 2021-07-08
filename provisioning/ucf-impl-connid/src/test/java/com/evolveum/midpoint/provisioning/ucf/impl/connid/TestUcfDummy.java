@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfSyncToken;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -48,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Simple UCF tests. No real resource, just basic setup and sanity.
  * <p>
- * This is an UCF test. It shold not need repository or other things from the midPoint spring context
+ * This is an UCF test. It should not need repository or other things from the midPoint spring context
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
  *
@@ -151,6 +153,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
         OperationResult result = createOperationResult();
+        //noinspection unchecked
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
@@ -192,6 +195,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
 
+        //noinspection unchecked
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
@@ -229,6 +233,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 "description of dummy test connector instance");
         assertNotNull("Failed to instantiate connector", cc);
 
+        //noinspection unchecked
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
@@ -337,17 +342,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
         // WHEN
-        PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
         assertNotNull("No last sync token", lastToken);
 
-        System.out.println("Property:");
-        System.out.println(lastToken.debugDump());
-
-        PrismPropertyDefinition<Integer> lastTokenDef = lastToken.getDefinition();
-        assertNotNull("No last sync token definition", lastTokenDef);
-        assertEquals("Last sync token definition has wrong type", DOMUtil.XSD_INT, lastTokenDef.getTypeName());
-        assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
+        System.out.println("Token:");
+        System.out.println(lastToken);
 
         // WHEN
         CollectingChangeListener handler = new CollectingChangeListener();
@@ -361,7 +361,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
-        PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
         assertNotNull("No last sync token", lastToken);
 
         // Add account to the resource

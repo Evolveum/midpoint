@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -18,7 +20,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -141,10 +142,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        assertNotNull("No sync token in " + task, syncTokenProperty);
-        String syncToken = syncTokenProperty.getRealValue();
-        assertNotNull("No sync token in " + task, syncToken);
+        String syncToken = (String) getRootSyncTokenRealValueRequired(task.getRawTaskObjectClonedIfNecessary().asObjectable());
         displayValue("Sync token", syncToken);
 
         GeneralizedTime syncTokenGt;

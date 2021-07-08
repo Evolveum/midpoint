@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
- * TODO: split to supertype for m_assignment_type and add QInducement too
  */
 @SuppressWarnings("unused")
 public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR> {

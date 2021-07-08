@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -47,8 +45,8 @@ public class MockFactory {
             }
 
             @Override
-            public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-                    boolean simulate, LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            public @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates, LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler, @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return new SynchronizationResult();
             }
 

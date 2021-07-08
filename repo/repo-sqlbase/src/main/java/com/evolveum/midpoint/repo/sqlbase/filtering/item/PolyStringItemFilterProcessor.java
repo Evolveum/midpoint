@@ -6,14 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
+import java.util.List;
 import java.util.function.Function;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -29,7 +32,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Sorting is always executed by {@code *_orig} column.
  */
 public class PolyStringItemFilterProcessor
-        extends ItemFilterProcessor<PropertyValueFilter<PolyString>> {
+        extends ItemValueFilterProcessor<PropertyValueFilter<PolyString>> {
 
     public static final String STRICT = PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME.getLocalPart();
     public static final String ORIG = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME.getLocalPart();
@@ -62,18 +65,30 @@ public class PolyStringItemFilterProcessor
                 || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
             return ExpressionUtils.and(
                     createBinaryCondition(filter, normPath,
-                            ValueFilterValues.from(filter, p -> p.getNorm())),
+                            convertPolyValuesToString(filter, p -> p.getNorm())),
                     createBinaryCondition(filter, origPath,
-                            ValueFilterValues.from(filter, p -> p.getOrig())));
+                            convertPolyValuesToString(filter, p -> p.getOrig())));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
             return createBinaryCondition(filter, origPath,
-                    ValueFilterValues.from(filter, p -> p.getOrig()));
+                    convertPolyValuesToString(filter, p -> p.getOrig()));
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return createBinaryCondition(filter, normPath,
-                    ValueFilterValues.from(filter, p -> p.getNorm()));
+                    convertPolyValuesToString(filter, p -> p.getNorm()));
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @NotNull
+    private ValueFilterValues<?, String> convertPolyValuesToString(
+            PropertyValueFilter<?> filter, Function<PolyString, String> extractor) {
+        List<? extends PrismPropertyValue<?>> values = filter.getValues();
+        if (values != null && !values.isEmpty() && values.get(0).getRealValue() instanceof String) {
+            return ValueFilterValues.from((PropertyValueFilter<String>) filter, s -> s);
+        }
+
+        return ValueFilterValues.from((PropertyValueFilter<PolyString>) filter, extractor);
     }
 
     @Override

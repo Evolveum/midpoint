@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
-import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -190,7 +191,12 @@ public class FocusValidityScanPartialExecution
             RunningTask workerTask, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         TimeValidityPolicyConstraintType constraint = getValidityConstraint();
-        EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, null);
+
+        // Generated proforma - actually not much needed for now.
+        String ruleId = PolicyRuleTypeUtil.createId(workerTask.getOid());
+
+        EvaluatedPolicyRuleImpl policyRule =
+                new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, null);
         policyRule.computeEnabledActions(null, focus, getModelBeans().expressionFactory, getPrismContext(), workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ?
@@ -200,7 +206,7 @@ public class FocusValidityScanPartialExecution
                 LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
                 LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
         policyRule.getTriggers().add(evaluatedTrigger);
-        lensContext.getFocusContext().addPolicyRule(policyRule);
+        lensContext.getFocusContext().addObjectPolicyRule(policyRule);
     }
 
     public enum ScanScope {

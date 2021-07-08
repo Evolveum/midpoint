@@ -219,7 +219,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         source = builder.source;
         sourceDescription = builder.sourceDescription;
         assignmentIdi = builder.assignmentIdi;
-        if (assignmentIdi.getDefinition() == null) {
+        if (assignmentIdi.getDefinition() == null) { // TODO resolve @NotNull annotation issue on getDefinition
             throw new IllegalArgumentException("Attempt to set segment assignment IDI without a definition");
         }
         evaluateOld = builder.evaluateOld;
@@ -332,7 +332,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     @Override
     public AssignmentHolderType getSource() {
-        return source;
+        return source; // can the source be null?
+    }
+
+    public String getSourceOid() {
+        return source != null ? source.getOid() : null;
     }
 
     String getTargetDescription() {

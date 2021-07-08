@@ -30,13 +30,10 @@
                 </resourceObjects>
             </reconciliation>
         </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
         <tailoring>
-            <change>
-                <reference>operationCompletion</reference>
-                <distribution>
-                    <subtask/>
-                </distribution>
-            </change>
             <change>
                 <reference>resourceObjects</reference>
                 <distribution>
@@ -61,13 +58,6 @@
                         </workersPerNode>
                     </workers>
                     <workerThreads>2</workerThreads>
-                    <subtask/>
-                </distribution>
-            </change>
-            <change>
-                <reference>remainingShadows</reference>
-                <distribution>
-                    <subtask/>
                 </distribution>
             </change>
         </tailoring>

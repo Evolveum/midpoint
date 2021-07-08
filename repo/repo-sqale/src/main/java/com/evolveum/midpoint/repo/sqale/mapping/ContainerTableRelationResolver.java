@@ -19,11 +19,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.ContainerTableUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that knows how to join to the specified target query type (can be JOIN or EXISTS).
+ * Resolver that knows how to traverse to the specified target query type (can be JOIN or EXISTS).
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}, this is the owner of the target table
@@ -34,31 +34,13 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public class ContainerTableRelationResolver<
         Q extends FlexibleRelationalPathBase<R>, R,
         TS extends Containerable, TQ extends QContainer<TR, R> & QOwnedBy<R>, TR extends MContainer>
-        implements SqaleItemRelationResolver<Q, R> {
-
-    private final QContainerMapping<TS, TQ, TR, R> targetMapping;
-    private final BiFunction<Q, TQ, Predicate> joinPredicate;
+        extends TableRelationResolver<Q, R, TS, TQ, TR>
+        implements SqaleItemRelationResolver<Q, R, TQ, TR> {
 
     public ContainerTableRelationResolver(
             @NotNull QContainerMapping<TS, TQ, TR, R> targetMapping,
-            @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
-        this.targetMapping = targetMapping;
-        this.joinPredicate = joinPredicate;
-    }
-
-    /**
-     * Creates the JOIN using provided query context.
-     * This does not use the mapping parameter as it is useless for JOIN creation.
-     *
-     * @param context query context used for JOIN creation
-     * @return result with context for JOINed entity path and its mapping
-     */
-    @Override
-    public ResolutionResult resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> joinContext =
-                context.leftJoin(targetMapping.queryType(), joinPredicate);
-
-        return new ResolutionResult(joinContext, joinContext.mapping());
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+        super(targetMapping, correlationPredicate);
     }
 
     @Override
@@ -69,9 +51,14 @@ public class ContainerTableRelationResolver<
                     "Item path provided for container table relation resolver must have two"
                             + " segments with PCV ID as the second");
         }
-        TR row = targetMapping.newRowObject(context.row());
+        QContainerMapping<TS, TQ, TR, R> containerMapping =
+                (QContainerMapping<TS, TQ, TR, R>) this.targetMapping;
+        TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);
-        return new ContainerTableUpdateContext<>(context, targetMapping, row);
+        // TODO check actual container existence? E.g. run test332ModifiedCertificationCaseStoresIt
+        //  isolated and it ignores the missing container here and later fails with NPE.
+        //  Funny thing is, that modification.applyTo(prism) only logs WARN and doesn't care anymore.
+        return new ContainerTableUpdateContext<>(context, containerMapping, row);
     }
 }

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
 
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
@@ -35,17 +36,11 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ChangeExecutionWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReindexingWorkDefinitionType;
 
 /**
  * Task handler for "reindex" task.
  * It simply executes empty modification delta on each repository object.
- * <p>
+ *
  * TODO implement also for sub-objects, namely certification cases.
  */
 @Component
@@ -53,7 +48,6 @@ public class ReindexActivityHandler
         extends SimpleActivityHandler<ObjectType, ReindexActivityHandler.MyWorkDefinition, ExecutionContext> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
-    private static final Trace LOGGER = TraceManager.getTrace(ReindexActivityHandler.class);
 
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
@@ -76,6 +70,11 @@ public class ReindexActivityHandler
     }
 
     @Override
+    public String getDefaultArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
+
+    @Override
     protected @NotNull String getShortName() {
         return "Reindexing";
     }
@@ -89,7 +88,7 @@ public class ReindexActivityHandler
 
     @Override
     public void beforeExecution(@NotNull SimpleActivityExecution<ObjectType, MyWorkDefinition, ExecutionContext> activityExecution,
-            OperationResult opResult) throws ActivityExecutionException, CommonException {
+            OperationResult opResult) throws CommonException {
         securityEnforcer.authorizeAll(activityExecution.getRunningTask(), opResult);
     }
 

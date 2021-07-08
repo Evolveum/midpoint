@@ -108,8 +108,8 @@ public class ErrorHandlingStrategyExecutor {
      *
      * This method must be thread safe!
      */
-    @NotNull ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status, @NotNull Throwable exception,
-            @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
+    @NotNull ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
+            @NotNull Throwable exception, @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
         ErrorCategoryType errorCategory = ExceptionUtil.getErrorCategory(exception);
         LOGGER.debug("Error category: {} for: {}", errorCategory, lazy(() -> MiscUtil.getClassWithMessage(exception)));
 
@@ -118,6 +118,12 @@ public class ErrorHandlingStrategyExecutor {
                 return executeErrorHandlingReaction(entryInformation, triggerHolderOid, opResult);
             }
         }
+
+        if (errorCategory == ErrorCategoryType.POLICY_THRESHOLD) {
+            LOGGER.trace("Applying hardcoded default follow-up action for thresholds: STOP");
+            return STOP;
+        }
+
         return defaultFollowUpAction;
     }
 

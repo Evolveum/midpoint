@@ -12,17 +12,19 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.Collections;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
 
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class ChangeExecutionActivityHandler
         extends SimpleActivityHandler<ObjectType, ChangeExecutionActivityHandler.ChangeExecutionWorkDefinition, ExecutionContext> {
 
-    private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
+    private static final String LEGACY_HANDLER_URI = ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutionActivityHandler.class);
 
     @Override
@@ -77,6 +79,11 @@ public class ChangeExecutionActivityHandler
     @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 
     @Override

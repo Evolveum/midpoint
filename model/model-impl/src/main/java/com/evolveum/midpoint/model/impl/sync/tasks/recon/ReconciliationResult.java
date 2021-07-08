@@ -45,7 +45,7 @@ public class ReconciliationResult implements DebugDumpable {
         if (operationCompletionExecution != null) {
             result.unOpsCount = operationCompletionExecution.getUnOpsCount();
         }
-        ResourceReconciliationActivityExecution resourceReconciliationExecution = execution.getResourceReconciliationExecution();
+        ResourceObjectsReconciliationActivityExecution resourceReconciliationExecution = execution.getResourceReconciliationExecution();
         if (resourceReconciliationExecution != null) {
             result.resourceReconCount = resourceReconciliationExecution.getResourceReconCount();
             result.resourceReconErrors = resourceReconciliationExecution.getResourceReconErrors();

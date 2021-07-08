@@ -28,7 +28,7 @@ class FailedObjectsFilterCreator {
     @NotNull private final RunningTask task;
     @NotNull private final PrismContext prismContext;
 
-    public FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector, @NotNull RunningTask task,
+    FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector, @NotNull RunningTask task,
             @NotNull PrismContext prismContext) {
         this.selector = selector;
         this.task = task;

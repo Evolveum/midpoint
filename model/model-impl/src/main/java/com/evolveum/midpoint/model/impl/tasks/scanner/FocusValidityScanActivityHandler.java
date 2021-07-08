@@ -13,8 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -26,14 +25,13 @@ import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusValidityScanWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidityScanQueryStyleType;
 
 @Component
 public class FocusValidityScanActivityHandler
         extends ModelActivityHandler<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
 
     @PostConstruct
     public void register() {
@@ -93,5 +91,10 @@ public class FocusValidityScanActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "focus-validity-scan";
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

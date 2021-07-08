@@ -13,6 +13,7 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.sqale.filtering.ExistsFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.TypeFilterProcessor;
@@ -55,8 +56,9 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
-            SqaleQueryContext<?, ?, ?> parentContext) {
-        super(entityPath, mapping, parentContext);
+            SqaleQueryContext<?, ?, ?> parentContext,
+            SQLQuery<?> sqlQuery) {
+        super(entityPath, mapping, parentContext, sqlQuery);
     }
 
     @Override
@@ -70,8 +72,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             // TODO
             throw new QueryException("TODO filter " + filter);
         } else if (filter instanceof ExistsFilter) {
-            // TODO
-            throw new QueryException("TODO filter " + filter);
+            return new ExistsFilterProcessor<>(this).process((ExistsFilter) filter);
         } else if (filter instanceof TypeFilter) {
             return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
         } else {
@@ -96,16 +97,26 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         }
     }
 
-    /**
-     * Returns derived {@link SqaleQueryContext} for join or subquery.
-     */
+    /** Returns derived {@link SqaleQueryContext} for JOIN. */
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
-    deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new SqaleQueryContext<>(
                 newPath,
                 (SqaleTableMapping<TS, TQ, TR>) newMapping,
-                this);
+                this,
+                this.sqlQuery);
+    }
+
+    /** Returns derived {@link SqaleQueryContext} for subquery. */
+    @Override
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
+        return new SqaleQueryContext<>(
+                newPath,
+                (SqaleTableMapping<TS, TQ, TR>) newMapping,
+                this,
+                query);
     }
 
     @Override

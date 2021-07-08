@@ -8,15 +8,17 @@
 package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitiesTailoringType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * IMPLEMENTATION NOTE: The children fields should be immutable!
+ */
 public abstract class AbstractWorkDefinition implements WorkDefinition {
-
-    private ActivityDefinition<?> owningActivityDefinition;
 
     @NotNull private ExecutionModeType executionMode = ExecutionModeType.EXECUTE;
 
@@ -26,20 +28,10 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
      *  for being there is that it modifies non-functional aspects of existing activities,
      *  just like distribution, flow control, etc does.
      */
-    @NotNull private final ActivityTailoring activityTailoring = new ActivityTailoring();
+    @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
 
     @Override
-    public ActivityDefinition<?> getOwningActivityDefinition() {
-        return owningActivityDefinition;
-    }
-
-    public void setOwningActivityDefinition(ActivityDefinition<?> owningActivity) {
-        this.owningActivityDefinition = owningActivity;
-    }
-
-    @NotNull
-    @Override
-    public ExecutionModeType getExecutionMode() {
+    public @NotNull ExecutionModeType getExecutionMode() {
         return executionMode;
     }
 
@@ -52,8 +44,8 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         return activityTailoring;
     }
 
-    void addTailoring(ActivitiesTailoringType tailoring) {
-        activityTailoring.add(tailoring);
+    void addTailoringFrom(ActivityDefinitionType activityDefinitionBean) {
+        activityTailoring.addFrom(activityDefinitionBean);
     }
 
     @Override
@@ -74,4 +66,15 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
     }
 
     protected abstract void debugDumpContent(StringBuilder sb, int indent);
+
+    @Override
+    public WorkDefinition clone() {
+        try {
+            AbstractWorkDefinition clone = (AbstractWorkDefinition) super.clone();
+            clone.activityTailoring = activityTailoring.clone(); // Reconsider if this is really needed.
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new SystemException(e);
+        }
+    }
 }

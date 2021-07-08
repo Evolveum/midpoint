@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.task.api.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +40,12 @@ public class GenericTaskHandler implements TaskHandler {
      * Note: the future of this method is unclear.
      */
     @NotNull private final Map<String, GenericTaskExecution> currentTaskExecutions = Collections.synchronizedMap(new HashMap<>());
+
+    /**
+     * Should we avoid auto-assigning task archetypes based on activity handler?
+     * This is useful for restricted environments (like in tests) when there are no archetypes present.
+     */
+    private boolean avoidAutoAssigningArchetypes;
 
     /** Common beans */
     @Autowired private CommonTaskBeans beans;
@@ -61,8 +68,12 @@ public class GenericTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
-        return null; // TODO
+    public @Nullable String getArchetypeOid(@Nullable String handlerUri) {
+        if (handlerUri == null) {
+            return null;
+        } else {
+            return beans.activityHandlerRegistry.getArchetypeOid(handlerUri);
+        }
     }
 
     /**
@@ -108,11 +119,6 @@ public class GenericTaskHandler implements TaskHandler {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return null;
-    }
-
     /** TODO decide what to do with this method. */
     private void registerExecution(RunningTask localCoordinatorTask, GenericTaskExecution execution) {
         currentTaskExecutions.put(localCoordinatorTask.getOid(), execution);
@@ -129,5 +135,13 @@ public class GenericTaskHandler implements TaskHandler {
 
     public void unregisterLegacyHandlerUri(String handlerUri) {
         beans.taskManager.unregisterHandler(handlerUri);
+    }
+
+    public boolean isAvoidAutoAssigningArchetypes() {
+        return avoidAutoAssigningArchetypes;
+    }
+
+    public void setAvoidAutoAssigningArchetypes(boolean avoidAutoAssigningArchetypes) {
+        this.avoidAutoAssigningArchetypes = avoidAutoAssigningArchetypes;
     }
 }

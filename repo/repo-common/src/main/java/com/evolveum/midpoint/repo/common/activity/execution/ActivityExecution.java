@@ -39,5 +39,4 @@ public interface ActivityExecution extends DebugDumpable {
      * Returns task execution that contains this activity execution.
      */
     @NotNull TaskExecution getTaskExecution();
-
 }

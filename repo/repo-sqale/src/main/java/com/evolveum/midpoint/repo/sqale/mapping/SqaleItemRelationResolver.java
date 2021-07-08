@@ -16,8 +16,10 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * that helps with navigating over complex (non-single) item paths for both query
  * and application of delta modification.
  */
-public interface SqaleItemRelationResolver<Q extends FlexibleRelationalPathBase<R>, R>
-        extends ItemRelationResolver<Q, R> {
+public interface SqaleItemRelationResolver<
+        Q extends FlexibleRelationalPathBase<R>, R,
+        TQ extends FlexibleRelationalPathBase<TR>, TR>
+        extends ItemRelationResolver<Q, R, TQ, TR> {
 
     /**
      * Resolves current query context to a new context (mapping is always part of context).

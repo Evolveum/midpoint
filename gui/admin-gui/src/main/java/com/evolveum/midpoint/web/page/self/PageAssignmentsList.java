@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.web.application.Url;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -353,13 +353,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
             TaskType task = WebComponentUtil.createSingleRecurrenceTask(
                     createStringResource(OPERATION_REQUEST_ASSIGNMENTS).getString(),
                     UserType.COMPLEX_TYPE,
-                    getTaskQuery(), prepareDelta(null, result), createOptions(), TaskCategory.EXECUTE_CHANGES, PageAssignmentsList.this);
+                    getTaskQuery(),
+                    prepareDelta(null, result),
+                    createOptions(),
+                    ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI,
+                    PageAssignmentsList.this);
             executionTaskOid = WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
         } catch (SchemaException e) {
             result.recordFatalError(result.getOperation(), e);
             result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
             LoggingUtils.logUnexpectedException(LOGGER,
-                    "Failed to execute operaton " + result.getOperation(), e);
+                    "Failed to execute operation " + result.getOperation(), e);
             target.add(getFeedbackPanel());
         }
         if (hasBackgroundTaskOperation(result) || StringUtils.isNotEmpty(executionTaskOid)) {

@@ -12,24 +12,21 @@ import static java.util.Objects.requireNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+
 import org.apache.commons.collections.buffer.CircularFifoBuffer; // TODO FIXME
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.IterationInformationPrinter;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -84,7 +81,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
     public void initialize(ActivityItemProcessingStatisticsType initialValue) {
         doInitialize(() -> {
             if (initialValue != null) {
-                addTo(this.value, initialValue);
+                ActivityItemProcessingStatisticsUtil.addTo(this.value, initialValue);
             }
         });
     }
@@ -153,7 +150,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     /** Updates the corresponding `processed` statistics. Creates and stores appropriate `lastItem` record. */
     private void addToProcessedItemSet(ActivityItemProcessingStatisticsType part, OperationImpl operation,
-                                       QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
+            QualifiedItemProcessingOutcomeType outcome, Throwable exception) {
 
         ProcessedItemSetType itemSet = findOrCreateProcessedItemSet(part, outcome);
         itemSet.setCount(or0(itemSet.getCount()) + 1);
@@ -169,18 +166,12 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     /** Finds item set, creating _and adding to the list_ if necessary. */
     private ProcessedItemSetType findOrCreateProcessedItemSet(ActivityItemProcessingStatisticsType part,
-                                                              QualifiedItemProcessingOutcomeType outcome) {
+            QualifiedItemProcessingOutcomeType outcome) {
         return part.getProcessed().stream()
                 .filter(itemSet -> java.util.Objects.equals(itemSet.getOutcome(), outcome))
                 .findFirst()
                 .orElseGet(
-                        () -> add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.cloneWithoutId())));
-    }
-
-    /** Like {@link List#add(Object)} but returns the value. */
-    private static <T> T add(List<T> list, T value) {
-        list.add(value);
-        return value;
+                        () -> ActivityItemProcessingStatisticsUtil.add(part.getProcessed(), new ProcessedItemSetType(prismContext).outcome(outcome.cloneWithoutId())));
     }
 
     /** Removes operation (given by id) from current operations in given task part. */
@@ -193,66 +184,6 @@ public class ActivityItemProcessingStatistics extends Initializable {
 
     private static long getNextOperationId() {
         return ID_COUNTER.getAndIncrement();
-    }
-
-    /** Updates specified summary with given delta. */
-    public static void addTo(@NotNull ActivityItemProcessingStatisticsType sum, @Nullable ActivityItemProcessingStatisticsType delta) {
-        if (delta != null) {
-            addPartInformation(sum, delta);
-        }
-    }
-
-    /** Adds two "part information" */
-    private static void addPartInformation(@NotNull ActivityItemProcessingStatisticsType sum,
-            @NotNull ActivityItemProcessingStatisticsType delta) {
-        addProcessed(sum.getProcessed(), delta.getProcessed());
-        addCurrent(sum.getCurrent(), delta.getCurrent());
-        addExecutionRecords(sum, delta);
-    }
-
-    private static void addExecutionRecords(@NotNull ActivityItemProcessingStatisticsType sum,
-            @NotNull ActivityItemProcessingStatisticsType delta) {
-        List<ActivityExecutionRecordType> nonOverlappingRecords =
-                new WallClockTimeComputer(sum.getExecution(), delta.getExecution())
-                        .getNonOverlappingRecords();
-        sum.getExecution().clear();
-        nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));
-        sum.getExecution().addAll(CloneUtil.cloneCollectionMembersWithoutIds(nonOverlappingRecords));
-    }
-
-    /** Adds `processed` items information */
-    private static void addProcessed(@NotNull List<ProcessedItemSetType> sumSets, @NotNull List<ProcessedItemSetType> deltaSets) {
-        for (ProcessedItemSetType deltaSet : deltaSets) {
-            ProcessedItemSetType matchingSet =
-                    findOrCreateMatchingSet(sumSets, deltaSet.getOutcome());
-            addMatchingProcessedItemSets(matchingSet, deltaSet);
-        }
-    }
-
-    private static ProcessedItemSetType findOrCreateMatchingSet(
-            @NotNull List<ProcessedItemSetType> list, QualifiedItemProcessingOutcomeType outcome) {
-        return list.stream()
-                .filter(item -> Objects.equals(item.getOutcome(), outcome))
-                .findFirst()
-                .orElseGet(
-                        () -> add(list, new ProcessedItemSetType().outcome(outcome)));
-    }
-
-    /** Adds matching processed item sets: adds counters and determines the latest `lastItem`. */
-    private static void addMatchingProcessedItemSets(@NotNull ProcessedItemSetType sum, @NotNull ProcessedItemSetType delta) {
-        sum.setCount(or0(sum.getCount()) + or0(delta.getCount()));
-        sum.setDuration(or0(sum.getDuration()) + or0(delta.getDuration()));
-        if (delta.getLastItem() != null) {
-            if (sum.getLastItem() == null ||
-                    XmlTypeConverter.isAfterNullLast(delta.getLastItem().getEndTimestamp(), sum.getLastItem().getEndTimestamp())) {
-                sum.setLastItem(delta.getLastItem());
-            }
-        }
-    }
-
-    /** Adds `current` items information (simply concatenates the lists). */
-    private static void addCurrent(List<ProcessedItemType> sum, List<ProcessedItemType> delta) {
-        sum.addAll(CloneUtil.cloneCollectionMembersWithoutIds(delta)); // to avoid problems with parent and IDs
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

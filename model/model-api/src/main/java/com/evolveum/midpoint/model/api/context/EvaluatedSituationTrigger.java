@@ -95,12 +95,12 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
         fillCommonContent(rv);
         if (!options.isRespectFinalFlag() || !isFinal()) {
-            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleTypes(rv.getSourceRule(), options, null, prismContext));
+            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null, prismContext));
         }
         return rv;
     }

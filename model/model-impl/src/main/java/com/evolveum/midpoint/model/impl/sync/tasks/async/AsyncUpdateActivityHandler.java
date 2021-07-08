@@ -33,7 +33,7 @@ public class AsyncUpdateActivityHandler
 
     private static final String LEGACY_HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateActivityHandler.class);
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
 
     @PostConstruct
     public void register() {
@@ -62,5 +62,10 @@ public class AsyncUpdateActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual();
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

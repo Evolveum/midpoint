@@ -58,6 +58,8 @@
                             <code>
                                 import com.evolveum.midpoint.model.intest.tasks.DummyInterruptedSyncResource
 
+                                DummyInterruptedSyncResource.onMappingExecution()
+
                                 if (input == DummyInterruptedSyncResource.errorOn) {
                                     throw new IllegalStateException("Got error!")
                                 } else {

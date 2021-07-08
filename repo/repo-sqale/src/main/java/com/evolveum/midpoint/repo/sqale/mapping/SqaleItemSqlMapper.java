@@ -17,7 +17,7 @@ import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -40,7 +40,7 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory;
 
     public <P extends Path<?>> SqaleItemSqlMapper(
-            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemValueFilterProcessor<?>> filterProcessorFactory,
             @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory,
             @Nullable Function<Q, P> primaryItemMapping) {
         super(filterProcessorFactory, primaryItemMapping);
@@ -48,7 +48,7 @@ public class SqaleItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     public SqaleItemSqlMapper(
-            @NotNull Function<SqlQueryContext<S, Q, R>, ItemFilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlQueryContext<S, Q, R>, ItemValueFilterProcessor<?>> filterProcessorFactory,
             @NotNull Function<SqaleUpdateContext<S, Q, R>, ItemDeltaValueProcessor<?>> deltaProcessorFactory) {
         super(filterProcessorFactory);
         this.deltaProcessorFactory = Objects.requireNonNull(deltaProcessorFactory);

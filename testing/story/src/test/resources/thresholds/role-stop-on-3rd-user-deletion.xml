@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="ad3b7db8-15ea-4b47-87bc-3e75ff949a0f" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Stop on delete user (3)</name>
+    <inducement>
+        <policyRule>
+            <name>Delete user</name>
+            <policyConstraints>
+                <modification>
+                    <operation>delete</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>3</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>

@@ -91,10 +91,6 @@ public class TaskPersister {
             task.setName("Task " + task.getTaskIdentifier());
         }
 
-        if (task.getCategory() == null) {
-            task.setCategory(task.getCategoryFromHandler());
-        }
-
         try {
             CryptoUtil.encryptValues(protector, task.getRawTaskObject());
             addTaskToRepositoryAndQuartz(task, null, result);

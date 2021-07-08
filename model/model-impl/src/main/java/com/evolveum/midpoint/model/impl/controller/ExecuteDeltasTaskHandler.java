@@ -116,18 +116,13 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
                 ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean) : null;
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.UTIL;
-    }
-
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI, this);
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(); // todo reconsider
     }
 

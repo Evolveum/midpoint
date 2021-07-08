@@ -321,4 +321,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         private PrismSchema connectorConfigurationSchema;
     }
 
+    @Override
+    public void registerDiscoveryListener(ConnectorDiscoveryListener listener) {
+        // NOOP
+    }
+
 }

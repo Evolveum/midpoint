@@ -6,24 +6,23 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.repo.api.CounterManager;
-import com.evolveum.midpoint.repo.api.CounterSpecification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
 /**
  * @author katka
@@ -34,8 +33,6 @@ public class PolicyRuleSuspendTaskExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleSuspendTaskExecutor.class);
 
-    @Autowired private CounterManager counterManager;
-
     public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result)
             throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
         ModelElementContext<O> focusCtx = context.getFocusContext();
@@ -44,25 +41,17 @@ public class PolicyRuleSuspendTaskExecutor {
             return;
         }
 
-        String id = context.getTaskTreeOid(task, result);
-        if (id == null) {
-            LOGGER.trace("No persistent task context, no counting!");
-            return;
-        }
-
-        for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
+        for (EvaluatedPolicyRule policyRule : focusCtx.getObjectPolicyRules()) {
             // In theory we could count events also for other kinds of actions (not only SuspendTask)
             if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
-                CounterSpecification counterSpec = counterManager.getCounterSpec(id, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
-                LOGGER.trace("Created/found counter specification {} for:\n{}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
-                int countAfter = counterSpec.incrementAndGet();
-                if (isOverThreshold(policyRule.getPolicyThreshold(), countAfter)) {
+                if (isOverThreshold(policyRule.getPolicyThreshold(), policyRule.getCount())) {
                     throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
                 }
             }
         }
     }
 
+    // TODO move to policy rule implementation
     private boolean isOverThreshold(PolicyThresholdType thresholdSettings, int counter) throws SchemaException {
         // TODO: better implementation that takes high water mark into account
         WaterMarkType lowWaterMark = thresholdSettings != null ? thresholdSettings.getLowWaterMark() : null;

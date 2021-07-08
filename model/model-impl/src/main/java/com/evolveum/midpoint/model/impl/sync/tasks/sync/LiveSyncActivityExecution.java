@@ -13,8 +13,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +55,6 @@ public class LiveSyncActivityExecution
     public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 
     private ResourceObjectClassSpecification objectClassSpecification;
-    private SynchronizationResult syncResult;
 
     LiveSyncActivityExecution(
             @NotNull ExecutionInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> context) {
@@ -85,10 +82,11 @@ public class LiveSyncActivityExecution
 
     @Override
     protected void finishExecution(OperationResult opResult) throws SchemaException {
+        int itemsProcessed = executionStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
-                objectClassSpecification.resource, syncResult);
+                objectClassSpecification.resource, itemsProcessed);
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
-                .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + syncResult);
+                .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + itemsProcessed);
     }
 
     @Override
@@ -110,9 +108,18 @@ public class LiveSyncActivityExecution
             }
         };
 
+        LiveSyncOptions options = createLiveSyncOptions();
+        ActivityTokenStorageImpl tokenStorage = new ActivityTokenStorageImpl(this);
+
         ModelImplUtils.clearRequestee(getRunningTask());
-        syncResult = getModelBeans().provisioningService
-                .synchronize(objectClassSpecification.getCoords(), getRunningTask(), isSimulate(), handler, opResult);
+        getModelBeans().provisioningService
+                .synchronize(objectClassSpecification.getCoords(), options, tokenStorage, handler, getRunningTask(), opResult);
+    }
+
+    @NotNull
+    private LiveSyncOptions createLiveSyncOptions() {
+        LiveSyncWorkDefinition def = activity.getWorkDefinition();
+        return new LiveSyncOptions(def.getExecutionMode(), def.getBatchSize(), def.isUpdateLiveSyncTokenInDryRun());
     }
 
     @Override
@@ -161,8 +168,10 @@ public class LiveSyncActivityExecution
     protected @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         // This could be a bit tricky if combined with partially-specified error handling strategy.
         // So, please, do NOT combine these two! If you specify a strategy, do not use retryLiveSyncErrors extension item.
-        boolean retryErrors = isNotFalse(getRunningTask().getExtensionPropertyRealValue(
-                SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS)); // FIXME!!!
+        //
+        // TODO remove in the next schema cleanup
+        boolean retryErrors = isNotFalse(
+                getRunningTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
         return retryErrors ? STOP : CONTINUE;
     }
 }

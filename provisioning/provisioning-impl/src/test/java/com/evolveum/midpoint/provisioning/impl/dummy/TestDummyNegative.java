@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -645,6 +646,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        DummyTokenStorageImpl tokenStorage = new DummyTokenStorageImpl();
+
         cleanupAccounts(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, result);
         RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.setSyncStyle(DummySyncStyle.SMART);
 
@@ -664,7 +667,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 return true;
             }
         };
-        provisioningService.synchronize(coords, task, false, handler, result);
+        provisioningService.synchronize(coords, null, tokenStorage, handler, task, result);
         assertThat(events).isEmpty();
 
         createAccountExternalUid(GOOD_ACCOUNT, 1, null);
@@ -674,7 +677,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         when();
 
-        provisioningService.synchronize(coords, task, false, handler, result);
+        provisioningService.synchronize(coords, null, tokenStorage, handler, task, result);
 
         then();
         display("events", events);

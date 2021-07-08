@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -149,7 +150,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     @NotNull
     private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean) {
-        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ctx.assignmentPath.clone(), ctx.evalAssignment);
+        String ruleId = PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId());
+        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ruleId, ctx.assignmentPath.clone(), ctx.evalAssignment);
     }
 
     private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {

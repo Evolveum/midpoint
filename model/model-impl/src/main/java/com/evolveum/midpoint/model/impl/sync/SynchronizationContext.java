@@ -66,7 +66,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private String channel;
     private ExpressionProfile expressionProfile;
 
-    private Task task;
+    private final Task task;
 
     private ObjectSynchronizationType objectSynchronization;
     private Class<F> focusClass;
@@ -397,10 +397,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public Task getTask() {
         return task;
-    }
-
-    public void setTask(Task task) {
-        this.task = task;
     }
 
     boolean isShadowExistsInRepo() {

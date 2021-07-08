@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -40,7 +41,7 @@ public class ReconciliationActivityHandler
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationActivityHandler.class);
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI;
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(); // TODO
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
 
     /**
      * Just for testability. Used in tests. Injected by explicit call to a
@@ -80,8 +81,22 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
+                createSimulationDefinition(parentActivity.getDefinition()),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
+                this::beforeResourceObjectsReconciliation, // this is needed even for simulation
+                (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                createSimulationDefinition(parentActivity.getDefinition()),
+                (context, result) -> new RemainingShadowsActivityExecution(context),
+                null,
+                (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ResourceReconciliationActivityExecution(context),
+                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
                 this::beforeResourceObjectsReconciliation,
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
                 ActivityStateDefinition.normal(),
@@ -96,14 +111,23 @@ public class ReconciliationActivityHandler
         return children;
     }
 
+    private ActivityDefinition<ReconciliationWorkDefinition> createSimulationDefinition(
+            @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
+        ActivityDefinition<ReconciliationWorkDefinition> clone = original.clone();
+        clone.getWorkDefinition().setExecutionMode(ExecutionModeType.SIMULATE);
+        clone.getControlFlowDefinition().setSkip();
+        return clone;
+    }
+
     private void beforeResourceObjectsReconciliation(
             EmbeddedActivity<ReconciliationWorkDefinition, ReconciliationActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
-        ActivityState<?> reconState =
-                ActivityState.getActivityState(
+        ActivityState reconState =
+                ActivityState.getActivityStateUpwards(
                         activity.getPath().allExceptLast(),
                         runningTask,
                         ReconciliationWorkStateType.COMPLEX_TYPE,
+                        commonTaskBeans,
                         result);
         if (reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class) == null) {
             XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
@@ -131,5 +155,10 @@ public class ReconciliationActivityHandler
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(ReconciliationWorkStateType.COMPLEX_TYPE);
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

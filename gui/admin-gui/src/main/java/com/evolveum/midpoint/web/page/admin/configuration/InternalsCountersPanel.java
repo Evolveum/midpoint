@@ -28,7 +28,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.repo.api.CounterSpecification;
+import com.evolveum.midpoint.repo.common.activity.CounterSpecification;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;

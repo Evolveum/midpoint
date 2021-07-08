@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="fdd65b29-d892-452a-9260-f26c7f20e507" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Metarole stop on activation change (3)</name>
+    <inducement>
+        <policyRule>
+            <name>Change activation</name>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                    <item>activation/administrativeStatus</item>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>3</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>

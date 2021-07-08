@@ -9,23 +9,34 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class ActivityDistributionDefinition implements DebugDumpable, Cloneable {
 
+    /**
+     * This bean is detached copy dedicated for this definition. It is therefore freely modifiable.
+     */
     @NotNull private WorkDistributionType bean;
 
-    private ActivityDistributionDefinition(ActivityDefinitionType activityDefinitionBean) {
-        this.bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
-                activityDefinitionBean.getDistribution() : new WorkDistributionType(PrismContext.get());
+    private ActivityDistributionDefinition(@NotNull WorkDistributionType bean) {
+        this.bean = bean;
     }
 
     @NotNull
-    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean) {
-        return new ActivityDistributionDefinition(activityDefinitionBean);
+    public static ActivityDistributionDefinition create(ActivityDefinitionType activityDefinitionBean,
+            Supplier<Integer> workerThreadsSupplier) {
+        WorkDistributionType bean = activityDefinitionBean != null && activityDefinitionBean.getDistribution() != null ?
+                activityDefinitionBean.getDistribution().clone() : new WorkDistributionType(PrismContext.get());
+        if (bean.getWorkerThreads() == null) {
+            bean.setWorkerThreads(workerThreadsSupplier.get());
+        }
+        return new ActivityDistributionDefinition(bean);
     }
 
     @Override
@@ -58,20 +69,27 @@ public class ActivityDistributionDefinition implements DebugDumpable, Cloneable 
         return bean.getWorkers();
     }
 
+    public int getWorkerThreads() {
+        return or0(bean.getWorkerThreads());
+    }
+
     void applyChangeTailoring(@NotNull ActivityTailoringType tailoring) {
         if (tailoring.getDistribution() != null) {
-            this.bean = tailoring.getDistribution();
+            bean = TailoringUtil.getTailoredBean(bean, tailoring.getDistribution());
         } else {
             // null means we do not want it to change.
         }
     }
 
+    void applySubtaskTailoring(@NotNull ActivitySubtaskSpecificationType subtaskSpecification) {
+        if (bean.getSubtask() == null) {
+            bean.setSubtask(subtaskSpecification.clone());
+        }
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ActivityDistributionDefinition clone() {
-        try {
-            return (ActivityDistributionDefinition) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new SystemException(e);
-        }
+        return new ActivityDistributionDefinition(bean.clone());
     }
 }

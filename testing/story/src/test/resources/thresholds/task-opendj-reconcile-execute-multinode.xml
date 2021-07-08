@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="04c62c99-8b43-4782-bd02-954f709fff98"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Reconciliation Full: Dummy</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <executionMode>execute</executionMode>
+        <distribution>
+            <subtasks/>
+        </distribution>
+        <tailoring>
+            <change>
+                <reference>resourceObjects</reference>
+                <distribution>
+                    <buckets>
+                        <explicitSegmentation>
+                            <discriminator>attributes/dn</discriminator>
+                            <matchingRule>distinguishedName</matchingRule>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=jgibbs,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=hbarbossa,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=jbeckett,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=idm,ou=Administrators,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user1,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user2,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user3,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user4,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user5,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user6,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user7,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user8,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user9,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user10,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user11,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user12,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user13,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user14,ou=People,dc=example,dc=com</value>
+                            </content>
+                            <content xsi:type="StringValueWorkBucketContentType">
+                                <value>uid=user15,ou=People,dc=example,dc=com</value>
+                            </content>
+                        </explicitSegmentation>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>4</count>
+                        </workersPerNode>
+                    </workers>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>

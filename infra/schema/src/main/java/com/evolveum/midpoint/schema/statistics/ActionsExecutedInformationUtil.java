@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.xml.datatype.DatatypeConstants;
@@ -24,6 +25,12 @@ public class ActionsExecutedInformationUtil {
 
     public enum Part {
         ALL, RESULTING
+    }
+
+    public static @NotNull List<ObjectActionsExecutedEntryType> summarize(@NotNull List<ObjectActionsExecutedEntryType> raw) {
+        List<ObjectActionsExecutedEntryType> summarized = new ArrayList<>();
+        addTo(summarized, raw);
+        return summarized;
     }
 
     public static void addTo(ActivityActionsExecutedType sum, @Nullable ActivityActionsExecutedType delta) {

@@ -44,6 +44,7 @@ public class ShadowRefreshActivityHandler
         extends ModelActivityHandler<ShadowRefreshActivityHandler.MyWorkDefinition, ShadowRefreshActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
     @PostConstruct
     public void register() {
@@ -75,6 +76,11 @@ public class ShadowRefreshActivityHandler
                 ScanWorkStateType.COMPLEX_TYPE,
                 ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS // TODO deduplicate with persistentStatistics(false)
         );
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 
     public static class MyActivityExecution

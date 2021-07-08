@@ -374,7 +374,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     private WorkBucketType getWorkBucket(Task workerTask, Task coordinatorTask, int freeBucketWaitTime, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
         ActivityDistributionDefinition distributionDefinition =
-                ActivityDistributionDefinition.create(coordinatorTask.getRootActivityDefinitionOrClone());
+                ActivityDistributionDefinition.create(coordinatorTask.getRootActivityDefinitionOrClone(), () -> null);
         return bucketingManager.getWorkBucket(workerTask.getOid(), distributionDefinition, freeBucketWaitTime, result);
     }
 
@@ -964,7 +964,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
     }
 
     private ActivityDistributionDefinition getDistributionDefinition(Task task) {
-        return ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone());
+        return ActivityDistributionDefinition.create(task.getRootActivityDefinitionOrClone(), () -> null);
     }
 
     private void assertBoundariesAndBucketCount(BucketContentFactory contentFactory,

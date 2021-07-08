@@ -13,6 +13,8 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,7 @@ public abstract class ModelActivityHandler<WD extends WorkDefinition, AH extends
 
     @Autowired protected ActivityHandlerRegistry handlerRegistry;
     @Autowired protected ModelBeans beans;
+    @Autowired protected CommonTaskBeans commonTaskBeans;
 
     public @NotNull ModelBeans getModelBeans() {
         return beans;

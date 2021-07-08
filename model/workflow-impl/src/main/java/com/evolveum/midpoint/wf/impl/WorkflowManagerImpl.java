@@ -18,8 +18,6 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -174,7 +172,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
                         new IterationItemInformation(parentCasePrism));
-                startInfo.setStructuredProgressCollector(executionTask);
+                startInfo.setProgressCollector(executionTask); // TODO
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
                     deleteChildrenCases(parentCasePrism, counters, result);

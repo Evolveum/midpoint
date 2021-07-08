@@ -44,7 +44,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -54,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Filter processor for extension items stored in JSONB.
  * This takes care of any supported type, scalar or array, and handles any operation.
  */
-public class ExtensionItemFilterProcessor extends ItemFilterProcessor<ValueFilter<?, ?>> {
+public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter<?, ?>> {
 
     // QName.toString produces different results, QNameUtil must be used here:
     public static final String STRING_TYPE = QNameUtil.qNameToUri(DOMUtil.XSD_STRING);

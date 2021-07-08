@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <WS>
  */
 public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
-        extends ActivityState<WS> {
+        extends ActivityState {
 
     private static final Trace LOGGER = TraceManager.getTrace(CurrentActivityState.class);
 
@@ -65,6 +65,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityExecution<?, ?, WS> activityExecution) {
+        super(activityExecution.getBeans());
         this.activityExecution = activityExecution;
         this.activityStateDefinition = activityExecution.getActivityStateDefinition();
         this.workStateComplexTypeDefinition = determineWorkStateDefinition(this.activityStateDefinition.getWorkStateTypeName());
@@ -238,7 +239,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(getRealizationStateItemPath()).replace(value)
                 .asItemDelta();
         getTask().modify(itemDelta);
-        LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
+        LOGGER.trace("Setting realization state to {} for {}", value, activityExecution);
     }
     //endregion
 
@@ -253,7 +254,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
                 .asItemDelta();
         getTask().modify(itemDelta);
-        LOGGER.info("Setting result status to {} for {}", resultStatus, activityExecution);
+        LOGGER.trace("Setting result status to {} for {}", resultStatus, activityExecution);
     }
     //endregion
 

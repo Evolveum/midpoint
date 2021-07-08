@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,11 +36,12 @@ public class MockLiveSyncTaskHandler {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SynchronizationServiceMock syncServiceMock;
 
-    public void synchronize(ResourceShadowDiscriminator coords, Task syncTokenTask, Task task, OperationResult result)
+    public void synchronize(ResourceShadowDiscriminator coords, LiveSyncTokenStorage tokenStorage,
+            Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 
-        provisioningService.synchronize(coords, syncTokenTask, false, new LiveSyncEventHandler() {
+        provisioningService.synchronize(coords, null, tokenStorage, new LiveSyncEventHandler() {
             @Override
             public boolean handle(LiveSyncEvent event, OperationResult hResult) {
                 if (event.isComplete()) {
@@ -60,6 +63,6 @@ public class MockLiveSyncTaskHandler {
             @Override
             public void allEventsSubmitted(OperationResult result) {
             }
-        }, result);
+        }, task, result);
     }
 }

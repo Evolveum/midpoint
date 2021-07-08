@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +69,11 @@ public class IterativeScriptingActivityHandler
     @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
+    }
+
+    @Override
+    public String getDefaultArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value();
     }
 
     @Override

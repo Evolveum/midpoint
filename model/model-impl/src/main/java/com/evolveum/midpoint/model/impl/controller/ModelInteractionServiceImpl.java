@@ -1858,8 +1858,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection,
+            @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         return collectionProcessor.evaluateCollectionPolicyRules(collection, collectionView, targetTypeClass, task, result);
     }
 

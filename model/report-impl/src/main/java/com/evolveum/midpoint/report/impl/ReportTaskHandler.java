@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -196,12 +197,7 @@ public class ReportTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.REPORT;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
     }
 

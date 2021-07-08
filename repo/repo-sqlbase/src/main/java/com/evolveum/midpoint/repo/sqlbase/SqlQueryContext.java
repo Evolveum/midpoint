@@ -18,7 +18,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -102,11 +102,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     protected SqlQueryContext(
             Q entityPath,
             QueryTableMapping<S, Q, R> mapping,
-            SqlQueryContext<?, ?, ?> parentContext) {
+            SqlQueryContext<?, ?, ?> parentContext,
+            SQLQuery<?> sqlQuery) {
         this.entityPath = entityPath;
         this.entityPathMapping = mapping;
         this.sqlRepoContext = parentContext.repositoryContext();
-        this.sqlQuery = parentContext.sqlQuery;
+        this.sqlQuery = sqlQuery;
         this.parent = parentContext;
     }
 
@@ -118,10 +119,21 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return path(rootType);
     }
 
-    /** Processes the object filter and sets the WHERE clause. */
+    /**
+     * Processes the object filter and sets the WHERE clause.
+     *
+     * This is different than {@link #process(ObjectFilter)} that just creates a predicate.
+     * That method is used in this one and {@link SQLQuery#where(Predicate)} is called.
+     */
     public void processFilter(ObjectFilter filter) throws RepositoryException {
         if (filter != null) {
-            sqlQuery.where(process(filter));
+            Predicate predicate = process(filter);
+            try {
+                sqlQuery.where(predicate);
+            } catch (IllegalArgumentException e) {
+                throw new RepositoryException("Query construction problem, current query: "
+                        + sqlQuery + "\n  Predicate: " + predicate, e);
+            }
         }
     }
 
@@ -133,8 +145,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * It is used both as an entry point for the root filter of the query, but also when various
      * structural filters need to resolve their components (e.g. AND uses this for its components).
      *
-     * Some subtypes of {@link ObjectFilter} (from Prism API) are not supported here
-     * but in the query context subclass.
+     * *This only returns the created predicate, compare with {@link #processFilter}.*
+     *
+     * Some subtypes of {@link ObjectFilter} from Prism API are not supported here, see subclasses.
      */
     @Override
     public Predicate process(@NotNull ObjectFilter filter) throws RepositoryException {
@@ -147,16 +160,20 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .process((NotFilter) filter);
         } else if (filter instanceof ValueFilter) {
             // here are the values applied (ref/property value filters)
-            return new ValueFilterProcessor(this)
+            return new ValueFilterProcessor<>(this)
                     .process((ValueFilter<?, ?>) filter);
         } else if (filter instanceof AllFilter) {
-            // TODO throws in old repo, do we want to throw here too? (the same for NoneFilter and UndefinedFilter)
-            return Expressions.asBoolean(true).isTrue();
+            return QuerydslUtils.EXPRESSION_TRUE;
         } else if (filter instanceof NoneFilter) {
-            return Expressions.asBoolean(true).isFalse();
+            return QuerydslUtils.EXPRESSION_FALSE;
         } else {
             throw new QueryException("Unsupported filter " + filter);
         }
+    }
+
+    // TODO EXPLAIN
+    public Predicate transform(Predicate predicate) {
+        return predicate;
     }
 
     /**
@@ -260,12 +277,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     /**
-     * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
+     * Adds new LEFT JOIN, see {@link #leftJoin(QueryTableMapping, BiFunction)} for more.
      *
-     * @param <TQ> query type for the JOINed (target) table
-     * @param <TR> row type related to the {@link TQ}
      * @param joinType entity path type for the JOIN
-     * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
     public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> leftJoin(
             @NotNull Class<TQ> joinType,
@@ -275,6 +289,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     /**
      * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
+     * The returned context still uses the same SQL query; any further filter processing will
+     * add WHERE conditions to the original query, but the conditions use the new alias.
      *
      * @param <TQ> query type for the JOINed (target) table
      * @param <TR> row type related to the {@link TQ}
@@ -287,7 +303,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
         TQ joinPath = targetMapping.newAlias(aliasName);
         sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));
-        SqlQueryContext<TS, TQ, TR> newQueryContext = deriveNew(joinPath, targetMapping);
+        SqlQueryContext<TS, TQ, TR> newQueryContext = newSubcontext(joinPath, targetMapping);
 
         // for JOINed context we want to preserve "NOT" status (unlike for subqueries)
         if (notFilterUsed) {
@@ -298,13 +314,54 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     /**
+     * Creates new subquery, see {@link #subquery(QueryTableMapping)} for more.
+     *
+     * @param subqueryType entity path type the subquery
+     */
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> subquery(
+            @NotNull Class<TQ> subqueryType) {
+        return subquery(sqlRepoContext.getMappingByQueryType(subqueryType));
+    }
+
+    /**
+     * Creates new subquery and returns {@link SqlQueryContext} for it, typically for (NOT) EXISTS.
+     * Call to {@link SQLQuery#exists()} can't be here, because it's a predicate creating call
+     * that we may need to execute when returning the predicate inside the filter processor.
+     * See `TypeFilterProcessor` from `repo-sqale` for example.
+     *
+     * @param <TQ> query type for the subquery table
+     * @param <TR> row type related to the {@link TQ}
+     * @param targetMapping mapping for the subquery type
+     */
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> subquery(
+            @NotNull QueryTableMapping<TS, TQ, TR> targetMapping) {
+        // We don't want to collide with other JOIN aliases, but no need to check other subqueries.
+        String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
+        TQ subqueryPath = targetMapping.newAlias(aliasName);
+        SQLQuery<?> subquery = new SQLQuery<Integer>()
+                .select(QuerydslUtils.EXPRESSION_ONE)
+                .from(subqueryPath);
+        return newSubcontext(subqueryPath, targetMapping, subquery);
+    }
+
+    /**
      * Contract to implement to obtain derived (e.g. joined) query context.
      *
-     * @param <TQ> query type for the JOINed (target) table
+     * @param <TQ> query type for the new (target) table
      * @param <TR> row type related to the {@link TQ}
      */
     protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
-    SqlQueryContext<TS, TQ, TR> deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping);
+    SqlQueryContext<TS, TQ, TR> newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping);
+
+    /**
+     * Contract to implement to obtain derived (e.g. subquery) query context.
+     *
+     * @param <TQ> query type for the new (target) table
+     * @param <TR> row type related to the {@link TQ}
+     */
+    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    SqlQueryContext<TS, TQ, TR> newSubcontext(
+            TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =

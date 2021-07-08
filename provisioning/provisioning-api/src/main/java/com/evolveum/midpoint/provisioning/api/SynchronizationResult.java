@@ -18,13 +18,4 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public class SynchronizationResult {
 
-    private final int changesProcessed;
-
-    public SynchronizationResult() {
-        this(0);
-    }
-
-    public SynchronizationResult(int changesProcessed) {
-        this.changesProcessed = changesProcessed;
-    }
 }

@@ -94,6 +94,9 @@ public class BucketingUtil {
         } else if (bucket.getContent() instanceof StringPrefixWorkBucketContentType) {
             StringPrefixWorkBucketContentType stringPrefix = (StringPrefixWorkBucketContentType) bucket.getContent();
             return !stringPrefix.getPrefix().isEmpty();
+        } else if (bucket.getContent() instanceof StringValueWorkBucketContentType) {
+            StringValueWorkBucketContentType stringValue = (StringValueWorkBucketContentType) bucket.getContent();
+            return !stringValue.getValue().isEmpty();
         } else if (bucket.getContent() instanceof FilterWorkBucketContentType) {
             FilterWorkBucketContentType filtered = (FilterWorkBucketContentType) bucket.getContent();
             return !filtered.getFilter().isEmpty();
@@ -104,26 +107,11 @@ public class BucketingUtil {
         }
     }
 
-    /**
-     * @return True if the task is a coordinator (in the bucketing sense).
-     */
-    @Deprecated
-    public static boolean isCoordinator(@SuppressWarnings("unused") TaskType task) {
-        return false;
-    }
-
     @SuppressWarnings("WeakerAccess")
     public static boolean isCoordinator(ActivityStateType state) {
-        return state.getBucketing() != null &&
+        return state != null &&
+                state.getBucketing() != null &&
                 state.getBucketing().getBucketsProcessingRole() == BucketsProcessingRoleType.COORDINATOR;
-    }
-
-    /**
-     * @return Task kind: standalone, coordinator, worker, partitioned master.
-     */
-    @Deprecated
-    public static @NotNull TaskKindType getKind(@SuppressWarnings("unused") TaskType task) {
-        return TaskKindType.STANDALONE; // TODO
     }
 
     public static @NotNull List<WorkBucketType> getBuckets(@NotNull TaskActivityStateType taskState,

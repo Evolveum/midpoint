@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -134,13 +133,13 @@ public class SqlRepoContext {
                 getJdbcRepositoryConfiguration().getFullObjectFormat());
     }
 
-    public <T extends Objectable> RepositoryObjectParseResult<T> parsePrismObject(String serializedForm)
-            throws SchemaException {
+    public <T> RepositoryObjectParseResult<T> parsePrismObject(
+            String serializedForm, Class<T> schemaType) throws SchemaException {
         PrismContext prismContext = schemaService.prismContext();
         // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-        PrismObject<T> prismObject = prismContext.parserFor(serializedForm)
-                .context(parsingContext).parse();
+        T prismObject = prismContext.parserFor(serializedForm)
+                .context(parsingContext).parseRealValue(schemaType);
         return new RepositoryObjectParseResult<>(parsingContext, prismObject);
     }
 
@@ -159,16 +158,5 @@ public class SqlRepoContext {
 
     public void normalizeAllRelations(PrismObject<?> prismObject) {
         ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
-    }
-
-    /** Creates serialized (byte array) form of an object or a container. */
-    public byte[] createFullObject(Containerable container) throws SchemaException {
-        return createStringSerializer()
-                .options(SerializationOptions
-                        .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true)
-                        .skipTransient(true))
-                .serialize(container.asPrismContainerValue())
-                .getBytes(StandardCharsets.UTF_8);
     }
 }

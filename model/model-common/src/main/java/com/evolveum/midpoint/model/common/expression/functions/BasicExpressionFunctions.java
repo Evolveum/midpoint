@@ -1241,6 +1241,9 @@ public class BasicExpressionFunctions {
         return DebugUtil.debugDump(o, indent);
     }
 
+    /**
+     * TODO Prepare also non-legacy version of this method.
+     */
     public void setTaskWorkerThreads(TaskType task, Integer value) throws SchemaException {
         Objects.requireNonNull(task, "task is not specified");
         ObjectTypeUtil.setExtensionPropertyRealValues(prismContext, task.asPrismContainerValue(),

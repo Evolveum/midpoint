@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChange;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 
@@ -24,7 +24,7 @@ public class ShadowedLiveSyncChange extends ShadowedChange<ResourceObjectLiveSyn
         super(resourceObjectChange, beans);
     }
 
-    public PrismProperty<?> getToken() {
+    public LiveSyncToken getToken() {
         return resourceObjectChange.getToken();
     }
 }

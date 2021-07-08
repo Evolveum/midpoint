@@ -109,7 +109,7 @@ public class QAccessCertificationCampaignMapping
         List<AccessCertificationCaseType> cases = schemaObject.getCase();
         if (!cases.isEmpty()) {
             for (AccessCertificationCaseType c : cases) {
-                MAccessCertificationCase cRow = QAccessCertificationCaseMapping.get().insert(c, row, jdbcSession);
+                QAccessCertificationCaseMapping.get().insert(c, row, jdbcSession);
             }
         }
     }

@@ -33,7 +33,7 @@ public class QCaseWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignee == null) {
             instanceAssignee = new QCaseWorkItemReferenceMapping(
-                    "m_case_wi_assignee", "mcwirefa", repositoryContext);
+                    "m_case_wi_assignee", "cwirefa", repositoryContext);
         }
         return getForCaseWorkItemAssignee();
     }
@@ -46,7 +46,7 @@ public class QCaseWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceCandidate == null) {
             instanceCandidate = new QCaseWorkItemReferenceMapping(
-                    "m_case_wi_candidate", "mcwirefc", repositoryContext);
+                    "m_case_wi_candidate", "cwirefc", repositoryContext);
         }
         return getForCaseWorkItemCandidate();
     }
@@ -79,7 +79,8 @@ public class QCaseWorkItemReferenceMapping
     }
 
     @Override
-    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.workItemCid));
+    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.workItemCid));
     }
 }

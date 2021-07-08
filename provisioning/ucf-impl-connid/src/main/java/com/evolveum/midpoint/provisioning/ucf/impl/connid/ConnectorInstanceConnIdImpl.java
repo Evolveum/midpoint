@@ -1481,12 +1481,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public PrismProperty<?> deserializeToken(Object serializedToken) {
-        return TokenUtil.createTokenPropertyFromRealValue(serializedToken, prismContext);
-    }
-
-    @Override
-    public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClassDef, StateReporter reporter,
+    public UcfSyncToken fetchCurrentToken(ObjectClassComplexTypeDefinition objectClassDef, StateReporter reporter,
             OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1531,27 +1526,27 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
         }
 
-        if (syncToken == null) {
-            result.recordWarning("Resource have not provided a current sync token");
+        if (syncToken != null) {
+            result.recordSuccess();
+            return TokenUtil.toUcf(syncToken);
+        } else {
+            result.recordWarning("Resource has not provided a current sync token");
             return null;
         }
-
-        result.recordSuccess();
-        return TokenUtil.createTokenProperty(syncToken, prismContext);
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken initialTokenValue,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
             @NotNull UcfLiveSyncChangeListener changeListener, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
         OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
                 .addArbitraryObjectAsContext("objectClass", objectClass)
-                .addArbitraryObjectAsParam("initialToken", initialTokenProperty)
+                .addArbitraryObjectAsParam("initialToken", initialTokenValue)
                 .build();
         try {
-            SyncToken initialToken = TokenUtil.getSyncToken(initialTokenProperty);
+            SyncToken initialToken = TokenUtil.toConnId(initialTokenValue);
             LOGGER.trace("Initial token: {}", initialToken == null ? null : initialToken.getValue());
 
             // get icf object class
@@ -1688,7 +1683,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
                     // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
                     LOGGER.trace("All changes were fetched; with finalToken = {}", finalToken);
-                    fetchChangesResult = new UcfFetchChangesResult(true, TokenUtil.createTokenProperty(finalToken, prismContext));
+                    fetchChangesResult = new UcfFetchChangesResult(true, TokenUtil.toUcf(finalToken));
                 } else {
                     fetchChangesResult = new UcfFetchChangesResult(false, null);
                 }
