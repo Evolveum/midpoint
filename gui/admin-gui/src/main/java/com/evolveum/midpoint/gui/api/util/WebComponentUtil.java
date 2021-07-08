@@ -3340,18 +3340,23 @@ public final class WebComponentUtil {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new InlineMenuItemAction() {
+                    return new ColumnMenuAction<SelectableBean<ObjectType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             OperationResult result = new OperationResult(operation);
                             try {
-                                Collection<String> oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
-                                        .stream()
-                                        .filter(o -> o.getOid() != null)
-                                        .map(o -> o.getOid())
-                                        .collect(Collectors.toSet());
+                                Collection<String> oids;
+                                if (getRowModel() != null){
+                                    oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
+                                } else {
+                                    oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
+                                            .stream()
+                                            .filter(o -> o.getOid() != null)
+                                            .map(o -> o.getOid())
+                                            .collect(Collectors.toSet());
+                                }
                                 if (!oids.isEmpty()) {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
