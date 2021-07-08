@@ -89,6 +89,13 @@ public class DashboardSearchPanel extends BasePanel<T> {
             searchTypes.put(SearchType.TASKS, createStringResource("PageDashboard.search.tasks"));
         }
 
+        for (SearchType type : SearchType.values()) {
+            if (searchTypes.containsKey(type)) {
+                selectedSearchType = type;
+                break;
+            }
+        }
+
         TextField<String> searchInput = new TextField<>(ID_SEARCH_INPUT, Model.of(""));
         searchInput.add(new VisibleBehaviour(() -> !searchTypes.isEmpty()));
         searchInput.setOutputMarkupId(true);
