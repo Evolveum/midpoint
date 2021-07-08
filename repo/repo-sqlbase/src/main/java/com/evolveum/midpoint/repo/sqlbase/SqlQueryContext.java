@@ -160,10 +160,9 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .process((NotFilter) filter);
         } else if (filter instanceof ValueFilter) {
             // here are the values applied (ref/property value filters)
-            return new ValueFilterProcessor(this)
+            return new ValueFilterProcessor<>(this)
                     .process((ValueFilter<?, ?>) filter);
         } else if (filter instanceof AllFilter) {
-            // TODO throws in old repo, do we want to throw here too? (the same for NoneFilter and UndefinedFilter)
             return QuerydslUtils.EXPRESSION_TRUE;
         } else if (filter instanceof NoneFilter) {
             return QuerydslUtils.EXPRESSION_FALSE;

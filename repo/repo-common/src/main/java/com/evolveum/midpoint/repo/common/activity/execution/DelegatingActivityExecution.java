@@ -160,7 +160,7 @@ public class DelegatingActivityExecution<
                     .localRoot(localRoot.toBean())
                     .localRootActivityExecutionRole(ActivityExecutionRoleType.DELEGATE);
 
-            LOGGER.info("Creating activity subtask {} with local root {}", childToCreate.getName(), localRoot);
+            LOGGER.debug("Creating activity subtask {} with local root {}", childToCreate.getName(), localRoot);
             String childOid = getBeans().taskManager.addTask(childToCreate.asPrismObject(), result);
             LOGGER.debug("Created activity subtask {}: {}", childToCreate.getName(), childOid);
 

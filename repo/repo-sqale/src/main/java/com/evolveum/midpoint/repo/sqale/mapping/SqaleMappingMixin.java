@@ -40,7 +40,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
 
     @SuppressWarnings("UnusedReturnValue")
     QueryModelMapping<S, Q, R> addRelationResolver(
-            @NotNull ItemName itemName,
+            @NotNull QName itemName,
             @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
@@ -53,7 +53,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
      * @param <N> schema type of the nested container
      */
     default <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
-            @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
+            @NotNull QName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));

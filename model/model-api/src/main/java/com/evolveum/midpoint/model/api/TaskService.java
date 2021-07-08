@@ -170,7 +170,7 @@ public interface TaskService {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
-    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+    void deleteActivityStateAndWorkers(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
             OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException;

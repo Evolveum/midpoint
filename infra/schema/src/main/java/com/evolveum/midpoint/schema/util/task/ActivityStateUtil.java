@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -31,26 +32,58 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Does NOT deal with execution across task trees. See {@link ActivityTreeUtil} for that.
  */
+@SuppressWarnings("WeakerAccess")
 public class ActivityStateUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityStateUtil.class);
 
     /**
-     * @return True if the task is a partitioned master.
+     * @return True if the progress of the task can be determined by looking only at the task itself.
+     * Currently this is true for tasks without delegation.
      */
-    @Deprecated
-    public static boolean isPartitionedMaster(TaskType task) {
-        return false; // TODO
+    public static boolean isProgressAvailableLocally(@NotNull TaskType task) {
+        return !hasDelegatedActivity(task);
     }
 
-    @Deprecated
-    public static boolean isManageableTreeRoot(TaskType taskType) {
-        return false; // TODO
+    /**
+     * Is there any local activity that is delegated?
+     */
+    public static boolean hasDelegatedActivity(@NotNull TaskType task) {
+        return hasDelegatedActivity(task.getActivityState());
     }
 
-    @Deprecated
-    public static boolean isWorkStateHolder(TaskType taskType) {
-        return false; // TODO
+    /**
+     * Is there any local activity that is delegated?
+     */
+    public static boolean hasDelegatedActivity(@Nullable TaskActivityStateType taskActivityState) {
+        return taskActivityState != null &&
+                getLocalStatesStream(taskActivityState.getActivity())
+                        .anyMatch(ActivityStateUtil::isDelegated);
+    }
+
+    /**
+     * This is to determine if this task should be managed as a tree root (and not as a plain task).
+     * We would like to see that without looking for subtasks, though. So we have to look at the activity
+     * state and see if there are any delegations or distributions.
+     */
+    public static boolean isManageableTreeRoot(@NotNull TaskType task) {
+        return hasDelegatedActivity(task) || hasLocalDistributedActivity(task);
+    }
+
+    /**
+     * Is there any distributed activity in this task (locally)?
+     */
+    public static boolean hasLocalDistributedActivity(@NotNull TaskType task) {
+        return hasLocalDistributedActivity(task.getActivityState());
+    }
+
+    /**
+     * Is there any distributed activity in this task?
+     */
+    public static boolean hasLocalDistributedActivity(@Nullable TaskActivityStateType taskActivityState) {
+        return taskActivityState != null &&
+                getLocalStatesStream(taskActivityState.getActivity())
+                    .anyMatch(ActivityStateUtil::isDistributed);
     }
 
     /**
@@ -187,6 +220,11 @@ public class ActivityStateUtil {
                 ((DelegationWorkStateType) state.getWorkState()).getTaskRef() != null;
     }
 
+    public static boolean isDistributed(@NotNull ActivityStateType state) {
+        return state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED ||
+                BucketingUtil.isCoordinator(state);
+    }
+
     public static @Nullable Object getSyncTokenRealValue(@NotNull TaskType task, @NotNull ActivityPath path)
             throws SchemaException {
         ActivityStateType activityState = getActivityState(task.getActivityState(), path);
@@ -212,5 +250,15 @@ public class ActivityStateUtil {
         return MiscUtil.requireNonNull(
                 getSyncTokenRealValue(task, ActivityPath.empty()),
                 () -> "No live sync token value in " + task);
+    }
+
+    public static Stream<ActivityStateType> getLocalStatesStream(ActivityStateType root) {
+        if (root == null) {
+            return Stream.empty();
+        } else {
+            return Stream.concat(
+                    Stream.of(root),
+                    root.getActivity().stream());
+        }
     }
 }

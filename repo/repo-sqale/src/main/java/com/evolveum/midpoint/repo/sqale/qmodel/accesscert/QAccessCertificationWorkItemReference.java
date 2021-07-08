@@ -6,16 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.MCaseWorkItem;
-import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.MCaseWorkItemReference;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
+import java.sql.Types;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.PrimaryKey;
 
-import java.sql.Types;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 
 /**
  * Querydsl query type for case work item reference tables.

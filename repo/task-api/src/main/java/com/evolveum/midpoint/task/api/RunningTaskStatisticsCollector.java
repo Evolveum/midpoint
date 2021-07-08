@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.schema.statistics.StructuredProgressCollector;
+import com.evolveum.midpoint.schema.statistics.ProgressCollector;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -41,12 +41,12 @@ import org.jetbrains.annotations.NotNull;
  * See {@link #updateStatisticsInTaskPrism(boolean)}.
  *
  * 3. From task.prism to the repository. This takes a lot of time, so it is driven by time interval.
- * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and {@link #storeStatisticsIntoRepositoryIfTimePassed(OperationResult)}
+ * See {@link #updateAndStoreStatisticsIntoRepository(boolean, OperationResult)} and {@link #storeStatisticsIntoRepositoryIfTimePassed(Runnable, OperationResult)}
  * methods.
  *
  * Statistics collection is always started by calling {@link #startCollectingStatistics(StatisticsCollectionStrategy)} method.
  */
-public interface RunningTaskStatisticsCollector extends StructuredProgressCollector {
+public interface RunningTaskStatisticsCollector extends ProgressCollector {
 
     /**
      * Initializes the process of collecting statistics in Statistics object embedded in the task.
@@ -70,8 +70,10 @@ public interface RunningTaskStatisticsCollector extends StructuredProgressCollec
      * Stores statistics from `task.prism` to the repository, if the specified time interval passed.
      *
      * The time interval is there to avoid excessive repository operations. (Writing a large task can take quite a long time.)
+     *
+     * FIXME this hack with additional updater
      */
-    void storeStatisticsIntoRepositoryIfTimePassed(OperationResult result);
+    void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result);
 
     /**
      * Stores statistics from `task.prism` to the repository. Costly operation.

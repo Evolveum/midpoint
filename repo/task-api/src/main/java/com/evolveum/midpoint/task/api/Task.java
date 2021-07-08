@@ -636,9 +636,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     long getProgress();
 
-    /** Returns task structured progress. */
-    StructuredTaskProgressType getStructuredProgressOrClone();
-
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
      */
@@ -707,6 +704,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     default List<? extends Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
     }
+
+    void findAndSetSubtasks(OperationResult result) throws SchemaException;
 
     @NotNull
     List<? extends Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
@@ -782,6 +781,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Precondition: Task must be persistent.
      */
     @NotNull ObjectReferenceType getSelfReference();
+
+    /**
+     * Returns a full (object-bearing) reference to the task prism.
+     *
+     * Precondition: Task must be persistent.
+     */
+    @NotNull ObjectReferenceType getSelfReferenceFull();
 
     /** Returns the version of underlying prism object. */
     String getVersion();

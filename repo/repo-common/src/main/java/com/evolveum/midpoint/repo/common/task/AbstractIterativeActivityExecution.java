@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -339,26 +338,13 @@ public abstract class AbstractIterativeActivityExecution<
     }
 
     private void updateStatisticsOnStart() {
-        setStructuredProgressPartInformation();
         executionStatistics.recordStart();
-    }
-
-    /**
-     * FIXME!!!
-     */
-    private void setStructuredProgressPartInformation() {
-        getRunningTask().setStructuredProgressPartInformation(activityIdentifier, activityNumber, expectedActivities);
-
-        // The task progress can be out of sync with the actual progress e.g. because of open items (that have been zeroed above).
-        StructuredTaskProgressType structuredProgress = getRunningTask().getStructuredProgressOrClone();
-        getRunningTask().setProgress((long) TaskProgressUtil.getTotalProgressForCurrentPart(structuredProgress));
     }
 
     private void updateStatisticsOnFinish(OperationResult result) {
         RunningTask task = getRunningTask();
 
         executionStatistics.recordEnd();
-        task.recordPartExecutionEnd(getActivityPath(), getPartStartTimestamp(), executionStatistics.getEndTimeMillis());
         task.updateStatisticsInTaskPrism(true);
 
         // TODO eventually remove
@@ -543,12 +529,6 @@ public abstract class AbstractIterativeActivityExecution<
 
     public void setExpectedActivities(int expectedActivities) {
         this.expectedActivities = expectedActivities;
-    }
-
-    void markStructuredProgressComplete(OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException {
-        getRunningTask().markStructuredProgressAsComplete();
-        getRunningTask().flushPendingModifications(result);
     }
 
     /**

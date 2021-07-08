@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -196,7 +196,7 @@ public class TaskQuartzImpl implements Task {
         this.taskManager = taskManager;
         this.beans = taskManager.getBeans();
         this.taskPrism = taskPrism;
-        statistics = new Statistics(taskManager.getPrismContext());
+        statistics = new Statistics();
         setDefaults();
         updateTaskResult();
     }
@@ -712,11 +712,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public StructuredTaskProgressType getStructuredProgressOrClone() {
-        return null;// FIXME getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
-    }
-
-    @Override
     public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
@@ -732,16 +727,6 @@ public class TaskQuartzImpl implements Task {
 
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
-    }
-
-    public void setStructuredProgress(StructuredTaskProgressType value) {
-        // FIXME
-        //setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
-    }
-
-    public void setStructuredProgressTransient(StructuredTaskProgressType value) {
-        // FIXME
-//        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
@@ -1959,6 +1944,19 @@ public class TaskQuartzImpl implements Task {
         return listSubtasks(false, parentResult);
     }
 
+    @Override
+    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
+        List<ObjectReferenceType> subtasksRefs = listSubtasks(result).stream()
+                .map(Task::getSelfReferenceFull)
+                .collect(Collectors.toList());
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> subtaskRef = taskPrism.asObjectable().getSubtaskRef();
+            subtaskRef.clear();
+            subtaskRef.addAll(subtasksRefs);
+            // We intentionally do not issue pending modification here, as this information should not go into repository.
+        }
+    }
+
     @NotNull
     @Override
     public List<TaskQuartzImpl> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
@@ -2071,6 +2069,17 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
+    public @NotNull ObjectReferenceType getSelfReferenceFull() {
+        if (getOid() != null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(
+                    getRawTaskObjectClonedIfNecessary(),
+                    PrismContext.get());
+        } else {
+            throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
+        }
+    }
+
     public void addSubtask(TaskType subtaskBean) {
         synchronized (prismAccess) {
             taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean, beans.prismContext));
@@ -2158,10 +2167,6 @@ public class TaskQuartzImpl implements Task {
     @Override
     public @NotNull Operation recordIterativeOperationStart(IterativeOperationStartInfo operation) {
         return statistics.recordIterativeOperationStart(operation);
-    }
-
-    public void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp) {
-        statistics.recordPartExecutionEnd(activityPath, partStartTimestamp, partEndTimestamp);
     }
 
     @Override

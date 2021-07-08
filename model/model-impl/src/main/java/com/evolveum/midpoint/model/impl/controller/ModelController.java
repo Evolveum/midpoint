@@ -13,6 +13,7 @@ import java.io.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
 
 import org.apache.commons.lang.Validate;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -130,6 +130,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
+    @Autowired private TaskActivityManager activityManager;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     @Autowired private AuditHelper auditHelper;
     @Autowired private SecurityEnforcer securityEnforcer;
@@ -1945,18 +1946,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
-//        taskManager.reconcileWorkers(oid, null, result);
-        throw new UnsupportedOperationException();
+        activityManager.reconcileWorkers(oid, result);
     }
 
     @Override
-    public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+    public void deleteActivityStateAndWorkers(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
             OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-//        taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
-        throw new UnsupportedOperationException();
+        activityManager.deleteActivityStateAndWorkers(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
 
     private List<PrismObject<TaskType>> preprocessTaskOperation(String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {

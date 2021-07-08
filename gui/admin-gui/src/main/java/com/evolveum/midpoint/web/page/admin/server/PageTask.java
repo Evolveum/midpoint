@@ -10,10 +10,14 @@ import static java.util.Collections.singletonList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
@@ -381,7 +385,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
-                            deleteItem(target, TaskType.F_OPERATION_STATS);
+                            deleteStatistics(target);
                         } catch (Exception e) {
                             LOGGER.error("Cannot delete task operation statistics, {}", e.getMessage(), e);
                             getSession().error(PageTask.this.getString("PageTask.cleanup.operationStatistics.failed"));
@@ -396,12 +400,19 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         repeatingView.add(cleanupPerformance);
     }
 
-    private void deleteItem(AjaxRequestTarget target, ItemName... itemName) throws SchemaException {
+    private void deleteStatistics(AjaxRequestTarget target) throws SchemaException {
+        List<ItemPath> statisticsPaths = new ArrayList<>();
+        statisticsPaths.add(TaskType.F_OPERATION_STATS);
+        statisticsPaths.addAll(ActivityStatisticsUtil.getAllStatisticsPaths(getTask()));
+        deleteItem(target, statisticsPaths.toArray(new ItemPath[0]));
+    }
+
+    private void deleteItem(AjaxRequestTarget target, ItemPath... paths) throws SchemaException {
         Collection<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
-        for (ItemName item : itemName) {
-            ItemDelta<?, ?> delta = createDeleteItemDelta(item);
+        for (ItemPath path : paths) {
+            ItemDelta<?, ?> delta = createDeleteItemDelta(path);
             if (delta == null) {
-                LOGGER.trace("Nothing to delete for {}", item);
+                LOGGER.trace("Nothing to delete for {}", path);
                 continue;
             }
             itemDeltas.add(delta);
@@ -446,27 +457,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         repeatingView.add(cleanupResults);
     }
 
-    private ItemDelta<?, ?> createDeleteItemDelta(ItemName itemName) throws SchemaException {
-        ItemWrapper<?, ?> item = getObjectWrapper().findItem(itemName, ItemWrapper.class);
-        if (item == null) {
-            return null;
-        }
-
-        PrismValueWrapper<?> itemValue = item.getValue();
-        if (itemValue == null) {
-            return null;
-        }
-
-        PrismValue newValue = itemValue.getNewValue();
-        if (newValue == null || newValue.isEmpty()) {
-            return null;
-        }
-
+    private ItemDelta<?, ?> createDeleteItemDelta(ItemPath itemPath) throws SchemaException {
+        // Originally here was a code that looked at item wrapper - why?
+        // Removed because it didn't allow to remove values not covered by wrapper, like activityState/activity/statistics.
         return getPrismContext().deltaFor(TaskType.class)
-                .item(itemName)
-                .replace()
+                .item(itemPath).replace()
                 .asItemDelta();
-
     }
 
     private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta) {

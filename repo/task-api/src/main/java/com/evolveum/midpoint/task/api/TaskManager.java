@@ -7,33 +7,24 @@
 package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -283,6 +274,16 @@ public interface TaskManager {
     @NotNull
     Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
+
+    default Task getTaskTree(String rootTaskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        return getTask(
+                rootTaskOid,
+                SchemaService.get().getOperationOptionsBuilder()
+                        .item(TaskType.F_SUBTASK_REF).retrieve()
+                        .build(),
+                parentResult);
+    }
 
     /**
      * Gets the task (as in getTaskPlain) but with its operation result.

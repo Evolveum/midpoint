@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.schema.util.task.TaskResolver;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
@@ -43,7 +43,7 @@ public class ActivitiesStatisticsDto implements Serializable {
         itemProcessing = null;
     }
 
-    private ActivitiesStatisticsDto(@NotNull TreeNode<QualifiedActivityState> tree) {
+    private ActivitiesStatisticsDto(@NotNull TreeNode<ActivityStateInContext> tree) {
         itemProcessing = new ActivitiesItemProcessingDto(tree);
         synchronizationTransitions.addAll(ActivityStatisticsUtil.getSynchronizationTransitions(tree));
         resultingActionsExecuted.addAll(ActivityStatisticsUtil.getResultingActionsExecuted(tree));
@@ -55,7 +55,7 @@ public class ActivitiesStatisticsDto implements Serializable {
             return new ActivitiesStatisticsDto();
         } else {
             return new ActivitiesStatisticsDto(
-                    ActivityTreeUtil.toQualifiedActivityStateTree(rootTask, TaskResolver.empty()));
+                    ActivityTreeUtil.toStateTree(rootTask, TaskResolver.empty()));
         }
     }
 

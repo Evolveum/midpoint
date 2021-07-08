@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 
@@ -157,12 +158,14 @@ public class QAssignmentMapping<OR extends MObject>
 
     @Override
     public AssignmentType toSchemaObject(MAssignment row) {
-        AssignmentType assignment = new AssignmentType();
         // TODO is there any place we can put row.ownerOid reasonably?
         //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
         //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
         //  For assignments we can use ownerType, but this is not general for all containers.
-        assignment.id(row.cid)
+        //  Inspiration: com.evolveum.midpoint.repo.sql.helpers.CertificationCaseHelper.updateLoadedCertificationCase
+        //  (if even possible with abstract type definition)
+        AssignmentType assignment = new AssignmentType()
+                .id(row.cid)
                 .lifecycleState(row.lifecycleState)
                 .order(row.orderValue)
                 .orgRef(objectReference(row.orgRefTargetOid,
@@ -188,30 +191,30 @@ public class QAssignmentMapping<OR extends MObject>
                             row.resourceRefTargetType, row.resourceRefRelationId)));
         }
 
-        ActivationType activation = new ActivationType(prismContext());
-        activation.administrativeStatus(row.administrativeStatus);
-        activation.effectiveStatus(row.effectiveStatus);
-        activation.enableTimestamp(MiscUtil.asXMLGregorianCalendar(row.enableTimestamp));
-        activation.disableTimestamp(MiscUtil.asXMLGregorianCalendar(row.disableTimestamp));
-        activation.disableReason(row.disableReason);
-        activation.validityStatus(row.validityStatus);
-        activation.validFrom(MiscUtil.asXMLGregorianCalendar(row.validFrom));
-        activation.validTo(MiscUtil.asXMLGregorianCalendar(row.validTo));
-        activation.validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(row.validityChangeTimestamp));
-        activation.archiveTimestamp(MiscUtil.asXMLGregorianCalendar(row.archiveTimestamp));
+        ActivationType activation = new ActivationType(prismContext())
+                .administrativeStatus(row.administrativeStatus)
+                .effectiveStatus(row.effectiveStatus)
+                .enableTimestamp(asXMLGregorianCalendar(row.enableTimestamp))
+                .disableTimestamp(asXMLGregorianCalendar(row.disableTimestamp))
+                .disableReason(row.disableReason)
+                .validityStatus(row.validityStatus)
+                .validFrom(asXMLGregorianCalendar(row.validFrom))
+                .validTo(asXMLGregorianCalendar(row.validTo))
+                .validityChangeTimestamp(asXMLGregorianCalendar(row.validityChangeTimestamp))
+                .archiveTimestamp(asXMLGregorianCalendar(row.archiveTimestamp));
         if (!activation.asPrismContainerValue().isEmpty()) {
             assignment.activation(activation);
         }
 
-        MetadataType metadata = new MetadataType(prismContext());
-        metadata.creatorRef(objectReference(row.creatorRefTargetOid,
-                row.creatorRefTargetType, row.creatorRefRelationId));
-        metadata.createChannel(resolveIdToUri(row.createChannelId));
-        metadata.createTimestamp(MiscUtil.asXMLGregorianCalendar(row.createTimestamp));
-        metadata.modifierRef(objectReference(row.modifierRefTargetOid,
-                row.modifierRefTargetType, row.modifierRefRelationId));
-        metadata.modifyChannel(resolveIdToUri(row.modifyChannelId));
-        metadata.modifyTimestamp(MiscUtil.asXMLGregorianCalendar(row.modifyTimestamp));
+        MetadataType metadata = new MetadataType(prismContext())
+                .creatorRef(objectReference(row.creatorRefTargetOid,
+                        row.creatorRefTargetType, row.creatorRefRelationId))
+                .createChannel(resolveIdToUri(row.createChannelId))
+                .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
+                .modifierRef(objectReference(row.modifierRefTargetOid,
+                        row.modifierRefTargetType, row.modifierRefRelationId))
+                .modifyChannel(resolveIdToUri(row.modifyChannelId))
+                .modifyTimestamp(asXMLGregorianCalendar(row.modifyTimestamp));
         if (!metadata.asPrismContainerValue().isEmpty()) {
             assignment.metadata(metadata);
         }

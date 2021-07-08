@@ -11,12 +11,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -85,7 +83,7 @@ public class TaskCleaner {
 
             IterativeOperationStartInfo iterativeOperationStartInfo = new IterativeOperationStartInfo(
                     new IterationItemInformation(rootTaskPrism));
-            iterativeOperationStartInfo.setStructuredProgressCollector(executionTask);
+            iterativeOperationStartInfo.setProgressCollector(executionTask); // TODO
             Operation op = executionTask.recordIterativeOperationStart(iterativeOperationStartInfo);
             try {
                 // get whole tree

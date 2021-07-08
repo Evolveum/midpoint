@@ -152,7 +152,7 @@ public class ActivityTreeStateOverview {
                 ),
                 result);
 
-        LOGGER.info("State tree after purging: {}", lazy(this::getActivityStateTree)); // TODO trace
+        LOGGER.trace("State tree after purging: {}", lazy(this::getActivityStateTree));
     }
 
     private ActivityStateOverviewType purgeStateRecursively(ActivityStateOverviewType state) {

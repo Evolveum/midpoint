@@ -58,7 +58,7 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
                     : null;
         }
 
-        ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
+        ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
         // Instead of cleaner but arguably confusing solution that would follow the code lower
         // we resolve this corner case here and now.
         if (resolver instanceof CountMappingResolver<?, ?, ?>) {

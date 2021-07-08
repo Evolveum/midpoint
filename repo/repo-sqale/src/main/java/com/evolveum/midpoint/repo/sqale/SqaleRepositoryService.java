@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -788,10 +789,9 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, repositoryContext);
-            SearchResultList<T> result =
-                    sqlQueryExecutor.list(queryContext, query, options);
-            return result;
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, repositoryContext);
+            return sqlQueryExecutor.list(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {

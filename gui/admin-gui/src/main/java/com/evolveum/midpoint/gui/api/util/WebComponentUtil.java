@@ -3340,18 +3340,23 @@ public final class WebComponentUtil {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new InlineMenuItemAction() {
+                    return new ColumnMenuAction<SelectableBean<ObjectType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             OperationResult result = new OperationResult(operation);
                             try {
-                                Collection<String> oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
-                                        .stream()
-                                        .filter(o -> o.getOid() != null)
-                                        .map(o -> o.getOid())
-                                        .collect(Collectors.toSet());
+                                Collection<String> oids;
+                                if (getRowModel() != null){
+                                    oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
+                                } else {
+                                    oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
+                                            .stream()
+                                            .filter(o -> o.getOid() != null)
+                                            .map(o -> o.getOid())
+                                            .collect(Collectors.toSet());
+                                }
                                 if (!oids.isEmpty()) {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
@@ -3824,20 +3829,26 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && BucketingUtil.isCoordinator((TaskType) obj)) {
-            IconType icon = new IconType();
-            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            if (title.length() > 0) {
-                title.append("\n");
-            }
-            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
-        }
+        addMultiNodeTaskInformation(obj, builder);
 
         if (StringUtils.isNotEmpty(title.toString())) {
             builder.setTitle(title.toString());
         }
         return builder.build();
+    }
+
+    private static <O extends ObjectType> void addMultiNodeTaskInformation(O obj, CompositedIconBuilder builder) {
+        if (obj instanceof TaskType && ActivityStateUtil.isManageableTreeRoot((TaskType) obj)) {
+            IconType icon = new IconType();
+            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+            // TODO what to do with this?
+//            if (title.length() > 0) {
+//                title.append("\n");
+//            }
+//            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
+        }
     }
 
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
@@ -5084,6 +5095,9 @@ public final class WebComponentUtil {
     }
 
     public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
+
+        // TODO use progress.toLocalizedString after it's implemented
+
         ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(taskType, TaskResolver.empty());
         String partProgressHumanReadable = progress.toHumanReadableString(longForm);
 

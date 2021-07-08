@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -30,52 +30,47 @@ import static java.util.Collections.singleton;
 
 public class ActivityItemProcessingStatisticsUtil {
 
+    @SuppressWarnings("unused")
     public static int getItemsProcessedWithFailure(ActivityItemProcessingStatisticsType info) {
         if (info != null) {
-            return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isFailure);
+            return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isFailure);
         } else {
             return 0;
         }
     }
 
+    @SuppressWarnings("unused")
     public static int getItemsProcessedWithSuccess(ActivityItemProcessingStatisticsType info) {
         if (info != null) {
-            return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isSuccess);
+            return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isSuccess);
         } else {
             return 0;
         }
     }
 
+    @SuppressWarnings("unused")
     public static int getItemsProcessedWithSkip(ActivityItemProcessingStatisticsType info) {
         if (info != null) {
-            return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isSkip);
+            return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isSkip);
         } else {
             return 0;
         }
     }
 
     public static int getItemsProcessedWithFailureShallow(ActivityItemProcessingStatisticsType info) {
-        return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isFailure);
+        return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isFailure);
     }
 
     public static int getItemsProcessedWithSuccessShallow(ActivityItemProcessingStatisticsType info) {
-        return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isSuccess);
+        return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isSuccess);
     }
 
-    static Collection<ActivityItemProcessingStatisticsType> getOne(ActivityItemProcessingStatisticsType info) {
+    static Collection<ActivityItemProcessingStatisticsType> toCollection(ActivityItemProcessingStatisticsType info) {
         return info != null ? singleton(info) : emptySet();
     }
 
-    static Collection<ActivityItemProcessingStatisticsType> getAll(ActivityItemProcessingStatisticsType root) {
-        List<ActivityItemProcessingStatisticsType> all = new ArrayList<>();
-        if (root != null) {
-            traverseIterationInformation(root, (p, info) -> all.add(info));
-        }
-        return all;
-    }
-
     public static int getItemsProcessedWithSkipShallow(ActivityItemProcessingStatisticsType info) {
-        return getCounts(getOne(info), OutcomeKeyedCounterTypeUtil::isSkip);
+        return getCounts(toCollection(info), OutcomeKeyedCounterTypeUtil::isSkip);
     }
 
     public static int getItemsProcessedShallow(ActivityItemProcessingStatisticsType info) {
@@ -90,6 +85,12 @@ public class ActivityItemProcessingStatisticsUtil {
         return getCounts(
                 getItemProcessingStatisticsCollection(states),
                 set -> true);
+    }
+
+    public static int getItemsProcessedWithFailure(@NotNull Collection<ActivityStateType> states) {
+        return getCounts(
+                getItemProcessingStatisticsCollection(states),
+                OutcomeKeyedCounterTypeUtil::isFailure);
     }
 
     @NotNull
@@ -164,7 +165,7 @@ public class ActivityItemProcessingStatisticsUtil {
      */
     public static String getLastProcessedObjectName(ActivityItemProcessingStatisticsType info,
             Predicate<ProcessedItemSetType> itemSetFilter) {
-        ProcessedItemType lastSuccess = getAll(info).stream()
+        ProcessedItemType lastSuccess = toCollection(info).stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(itemSetFilter)
                 .map(ProcessedItemSetType::getLastItem)
@@ -174,32 +175,34 @@ public class ActivityItemProcessingStatisticsUtil {
         return lastSuccess != null ? lastSuccess.getName() : null;
     }
 
-    public static void traverseIterationInformation(@NotNull ActivityItemProcessingStatisticsType root,
-            @NotNull BiConsumer<ActivityPath, ActivityItemProcessingStatisticsType> consumer) {
-        traverseIterationInformationInternal(ActivityPath.empty(), root, consumer);
-    }
-
-    private static void traverseIterationInformationInternal(
-            @NotNull ActivityPath currentPath,
-            @NotNull ActivityItemProcessingStatisticsType currentNode,
-            @NotNull BiConsumer<ActivityPath, ActivityItemProcessingStatisticsType> consumer) {
-        consumer.accept(currentPath, currentNode);
-//        currentNode.getActivity()
-//                .forEach(child -> traverseIterationInformationInternal(
-//                        currentPath.append(child.getIdentifier()),
-//                        child,
-//                        consumer));
-    }
-
     /**
-     * Returns object that was last successfully processed by given task.
+     * Returns object that was last successfully processed by given physical task.
      *
-     * TODO this should operate on a tree!
+     * TODO optimize (avoid full summarization)
      */
+    public static String getLastSuccessObjectName(@NotNull TaskType task) {
+        return getLastSuccessObjectName(
+                getSummarizedStatistics(task.getActivityState()));
+    }
+
+    public static @NotNull ActivityItemProcessingStatisticsType getSummarizedStatistics(
+            @Nullable TaskActivityStateType taskActivityState) {
+        if (taskActivityState != null) {
+            return summarize(
+                    ActivityTreeUtil.getAllLocalStates(taskActivityState).stream()
+                            .map(ActivityItemProcessingStatisticsUtil::getItemProcessingStatistics)
+                            .filter(Objects::nonNull));
+
+        } else {
+            return new ActivityItemProcessingStatisticsType(PrismContext.get());
+        }
+    }
+
     public static String getLastSuccessObjectName(ActivityItemProcessingStatisticsType stats) {
         return getLastProcessedObjectName(stats, OutcomeKeyedCounterTypeUtil::isSuccess);
     }
 
+    @SuppressWarnings("unused")
     public static long getWallClockTime(IterativeTaskPartItemsProcessingInformationType info) {
         return new WallClockTimeComputer(info.getExecution())
                 .getSummaryTime();
@@ -223,8 +226,13 @@ public class ActivityItemProcessingStatisticsUtil {
                 .collect(Collectors.toList());
     }
 
-    public static ActivityItemProcessingStatisticsType summarize(
+    public static @NotNull ActivityItemProcessingStatisticsType summarize(
             @NotNull Collection<ActivityItemProcessingStatisticsType> deltas) {
+        return summarize(deltas.stream());
+    }
+
+    public static @NotNull ActivityItemProcessingStatisticsType summarize(
+            @NotNull Stream<ActivityItemProcessingStatisticsType> deltas) {
         ActivityItemProcessingStatisticsType sum = new ActivityItemProcessingStatisticsType(PrismContext.get());
         deltas.forEach(delta -> addTo(sum, delta));
         return sum;
@@ -291,12 +299,12 @@ public class ActivityItemProcessingStatisticsUtil {
         sum.addAll(CloneUtil.cloneCollectionMembersWithoutIds(delta)); // to avoid problems with parent and IDs
     }
 
-    public static boolean hasItemProcessingInformation(@NotNull QualifiedActivityState qState) {
-        if (qState.getWorkerStates() != null) {
-            return qState.getWorkerStates().stream()
+    public static boolean hasItemProcessingInformation(@NotNull ActivityStateInContext cState) {
+        if (cState.getWorkerStates() != null) {
+            return cState.getWorkerStates().stream()
                     .anyMatch(ActivityItemProcessingStatisticsUtil::hasItemProcessingInformation);
         } else {
-            return hasItemProcessingInformation(qState.getActivityState());
+            return hasItemProcessingInformation(cState.getActivityState());
         }
     }
 

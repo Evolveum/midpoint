@@ -239,6 +239,8 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return sb.toString();
     }
 
+    // TODO create also toLocalizedString method that will provide "stalled since" information as well
+
     public String toHumanReadableString(boolean longForm) {
         if (children.isEmpty()) {
             return toHumanReadableStringForLeaf(longForm);

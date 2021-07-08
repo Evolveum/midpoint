@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
@@ -54,7 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
+public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     private final static String CASE_WI1_ASSIGNEE1_OID = "8cd0ddb2-c84d-11eb-a008-9321c31dd5ce";
     private final static String CASE_WI1_ASSIGNEE2_OID = "f29a15f0-c84d-11eb-a080-67fcdff6f07d";
@@ -75,10 +76,11 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
     private String user3Oid; // another user in org
     private String user4Oid; // another user in org
     private String task1Oid; // task has more attribute type variability
-    private String task2Oid; // task has more attribute type variability
+    private String task2Oid;
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
+    private String accCertCampaign1Oid;
 
     // other info used in queries
     private final String creatorOid = UUID.randomUUID().toString();
@@ -295,6 +297,33 @@ public class SqaleRepoSearchObjectTest extends SqaleRepoBaseTest {
                                 .performerRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .stageNumber(2)
                                 .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME two")))
+                        .asPrismObject(),
+                null, result);
+
+        accCertCampaign1Oid = repositoryService.addObject(
+                new AccessCertificationCampaignType(prismContext).name("acc-1")
+                        .stageNumber(0) // mandatory, also for containers
+                        .iteration(1) // mandatory with default 1, also for containers
+                        ._case(new AccessCertificationCaseType(prismContext)
+                                .id(1L)
+                                .stageNumber(1)
+                                .iteration(1)
+                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                        .stageNumber(11)
+                                        .iteration(1))
+                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                        .stageNumber(12)
+                                        .iteration(1)))
+                        ._case(new AccessCertificationCaseType(prismContext)
+                                .id(2L)
+                                .stageNumber(2)
+                                .iteration(2)
+                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                        .stageNumber(21)
+                                        .iteration(1))
+                                .workItem(new AccessCertificationWorkItemType(prismContext)
+                                        .stageNumber(22)
+                                        .iteration(1)))
                         .asPrismObject(),
                 null, result);
 
@@ -909,12 +938,6 @@ EXISTS(pendingOperation, null)
 
 2. multi-value container stored in table:
 EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
-
-3. container query (AccessCertificationWorkItemType) with EXISTS to the parent container (AccessCertificationCaseType)
-  matching on parent's ownerID (OID of AccessCertificationCampaignType) + its own CID (AccessCertificationCaseType)
-EXISTS({http://prism.evolveum.com/xml/ns/public/types-3}parent, AND(IN OID (for owner): e8c07a7a-1b11-11e8-9b32-1715a2e8273b, IN OID: 1))
-
-parent vs ..?
 
 4. part of AND in container query, used on sub-container (workItem) with nested AND condition
 CertificationTest.test730CurrentUnansweredCases >>> Q{
@@ -1539,10 +1562,14 @@ AND(
                 .hasMessageContaining("not indexed");
     }
 
+    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
+    // endregion
+
+    // region container search
     @Test
     public void test600SearchContainersByOwnerId() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
-                "assignments by owner OID", AssignmentType.class, f -> f.ownerId(user1Oid));
+                "by owner OID", AssignmentType.class, f -> f.ownerId(user1Oid));
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
                 .containsExactlyInAnyOrder("assignment1-1", "assignment1-2", "assignment1-3-ext");
@@ -1558,10 +1585,52 @@ AND(
                 .matches(a -> a.getOrgRef().getType().equals(OrgType.COMPLEX_TYPE))
                 .matches(a -> a.getOrgRef().getRelation().equals(relation1))
                 .matches(a -> a.getMetadata() == null);
-
     }
 
-    // TODO multi-value EQ filter (IN semantics) is not supported YET (except for refs)
+    @Test
+    public void test601SearchContainerByParentName() throws SchemaException {
+        ItemDefinition<?> itemDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByType(AssignmentHolderType.COMPLEX_TYPE)
+                .findItemDefinition(ObjectType.F_NAME);
+
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "by parent's name", AssignmentType.class,
+                f -> f.itemWithDef(itemDef, T_PARENT, ObjectType.F_NAME)
+                        .eq("user-1").matchingOrig());
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactlyInAnyOrder("assignment1-1", "assignment1-2", "assignment1-3-ext");
+    }
+
+    @Test
+    public void test602SearchContainerWithExistsParent() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent using exists", AccessCertificationWorkItemType.class,
+                f -> f.exists(T_PARENT)
+                        .block()
+                        .ownerId(accCertCampaign1Oid)
+                        .and()
+                        .id(1)
+                        .endBlock());
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12);
+    }
+
+    @Test
+    public void test603SearchContainerWithExistsParent() throws SchemaException {
+        SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
+                "by owner OID exists", AccessCertificationCaseType.class,
+                f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(2);
+    }
+
     // endregion
 
     // region special cases

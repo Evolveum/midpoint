@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -21,9 +22,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
@@ -190,9 +188,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
     @Override
     protected IModel<String> getTitle2Model() {
-        return (IModel<String>) () -> {
-            TaskType taskType = getModelObject();
-            String lastSuccess = TaskOperationStatsUtil.getLastSuccessObjectName(taskType);
+        return () -> {
+            TaskType task = getModelObject();
+            String lastSuccess = ActivityItemProcessingStatisticsUtil.getLastSuccessObjectName(task);
             if (lastSuccess != null) {
                 return createStringResource("TaskSummaryPanel.lastProcessed", lastSuccess).getString();
             } else {

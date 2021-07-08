@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
@@ -14,7 +15,9 @@ import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,10 +74,22 @@ public class ActivityStatisticsUtil {
         }
     }
 
+    /**
+     * Returns the total number of failures in all activities in this physical task.
+     */
+    public static Integer getAllFailures(@Nullable TaskActivityStateType taskActivityState) {
+        if (taskActivityState != null) {
+            return ActivityItemProcessingStatisticsUtil.getItemsProcessedWithFailure(
+                    getAllLocalStates(taskActivityState));
+        } else {
+            return null;
+        }
+    }
+
     public static List<SynchronizationSituationTransitionType> getSynchronizationTransitions(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<SynchronizationSituationTransitionType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getSynchronizationTransitionsStream)
                 .collect(Collectors.toList());
         return ActivitySynchronizationStatisticsUtil.summarize(unmerged);
@@ -89,9 +104,9 @@ public class ActivityStatisticsUtil {
     }
 
     public static List<ObjectActionsExecutedEntryType> getResultingActionsExecuted(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getResultingActionsExecuted)
                 .collect(Collectors.toList());
         return ActionsExecutedInformationUtil.summarize(unmerged);
@@ -106,9 +121,9 @@ public class ActivityStatisticsUtil {
     }
 
     public static List<ObjectActionsExecutedEntryType> getAllActionsExecuted(
-            @NotNull TreeNode<QualifiedActivityState> tree) {
+            @NotNull TreeNode<ActivityStateInContext> tree) {
         List<ObjectActionsExecutedEntryType> unmerged = tree.getAllDataDepthFirst().stream()
-                .flatMap(QualifiedActivityState::getAllStatesStream)
+                .flatMap(ActivityStateInContext::getAllStatesStream)
                 .flatMap(ActivityStatisticsUtil::getAllActionsExecuted)
                 .collect(Collectors.toList());
         return ActionsExecutedInformationUtil.summarize(unmerged);
@@ -120,5 +135,33 @@ public class ActivityStatisticsUtil {
         return state.getStatistics() != null &&
                 state.getStatistics().getActionsExecuted() != null ?
                 state.getStatistics().getActionsExecuted().getObjectActionsEntry().stream() : Stream.empty();
+    }
+
+    /**
+     * Returns all paths in activity states that point to the statistics.
+     * Local to the current task!
+     */
+    public static List<ItemPath> getAllStatisticsPaths(@NotNull TaskType task) {
+        return getStatePathsStream(task)
+                .map(path -> path.append(ActivityStateType.F_STATISTICS))
+                .collect(Collectors.toList());
+    }
+
+    public static Stream<ItemPath> getStatePathsStream(@NotNull TaskType task) {
+        ItemPath rootPath = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+        ActivityStateType rootActivity = task.getActivityState() != null ? task.getActivityState().getActivity() : null;
+
+        if (rootActivity == null) {
+            return Stream.empty();
+        } else {
+            return Stream.concat(
+                    Stream.of(rootPath),
+                    getStatePathsStream(rootActivity.getActivity(), rootPath.append(ActivityStateType.F_ACTIVITY)));
+        }
+    }
+
+    private static Stream<ItemPath> getStatePathsStream(@NotNull List<ActivityStateType> states, @NotNull ItemPath path) {
+        return states.stream()
+                .map(state -> path.append(state.getId()));
     }
 }

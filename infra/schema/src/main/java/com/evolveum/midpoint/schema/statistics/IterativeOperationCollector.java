@@ -45,11 +45,6 @@ public interface IterativeOperationCollector {
     @NotNull IterationInformation.Operation recordIterativeOperationStart(IterativeOperationStartInfo operation);
 
     /**
-     * Records end of part execution: updates execution times.
-     */
-    void recordPartExecutionEnd(ActivityPath activityPath, long partStartTimestamp, long partEndTimestamp);
-
-    /**
      * Resets iterative task information collection, starting from a given value.
      */
     void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions);

@@ -239,7 +239,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(getRealizationStateItemPath()).replace(value)
                 .asItemDelta();
         getTask().modify(itemDelta);
-        LOGGER.info("Setting realization state to {} for {}", value, activityExecution);
+        LOGGER.trace("Setting realization state to {} for {}", value, activityExecution);
     }
     //endregion
 
@@ -254,7 +254,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(getResultStatusItemPath()).replace(OperationResultStatus.createStatusType(resultStatus))
                 .asItemDelta();
         getTask().modify(itemDelta);
-        LOGGER.info("Setting result status to {} for {}", resultStatus, activityExecution);
+        LOGGER.trace("Setting result status to {} for {}", resultStatus, activityExecution);
     }
     //endregion
 

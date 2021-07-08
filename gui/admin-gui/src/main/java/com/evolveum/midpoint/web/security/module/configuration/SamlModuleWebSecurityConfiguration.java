@@ -236,8 +236,10 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         KeyStoreKey key = new KeyStoreKey();
         key.setKeyAlias(keyStoreKeyType.getKeyAlias());
         //        Protector protector = ((MidPointApplication) Application.get()).getProtector();
-        String keyPassword = protector.decryptString(keyStoreKeyType.getKeyPassword());
-        key.setKeyPassword(keyPassword);
+        if (keyStoreKeyType.getKeyPassword() != null) {
+            String keyPassword = protector.decryptString(keyStoreKeyType.getKeyPassword());
+            key.setKeyPassword(keyPassword);
+        }
         String keyStorePath = keyStoreKeyType.getKeyStorePath();
         key.setKeyStorePath(keyStorePath);
         String keyStorePassword = protector.decryptString(keyStoreKeyType.getKeyStorePassword());

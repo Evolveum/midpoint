@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -34,6 +35,9 @@ import com.evolveum.midpoint.util.QNameUtil;
  * While `metadata` is resolved on the master mapping (for the query type representing table)
  * the nested `createTimestamp` is resolved by nested mapper implemented by this type.
  * Nested mapping can still contain relations, so {@link #addRelationResolver} is available.
+ *
+ * Supertype {@link QName} type is used instead of {@link ItemName} for registration keys to
+ * support also technical paths like parent (..).
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -69,10 +73,10 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Adds information how item (attribute) from schema type is mapped to query,
      * especially for condition creating purposes.
      * This is not usable for complex item path resolution,
-     * see {@link #addRelationResolver(ItemName, ItemRelationResolver)} for that purpose.
+     * see {@link #addRelationResolver(QName, ItemRelationResolver)} for that purpose.
      *
      * The {@link ItemSqlMapper} works as a factory for {@link FilterProcessor} that can process
-     * {@link ObjectFilter} related to the {@link ItemName} specified as the first parameter.
+     * {@link ObjectFilter} related to the {@link QName} specified as the first parameter.
      * It is not possible to use filter processor directly because at the time of mapping
      * specification we don't have the actual query path representing the entity or the column.
      * These paths are non-static properties of query class instances.
@@ -98,21 +102,21 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     }
 
     /**
-     * Adds information how {@link ItemName} (attribute) from schema type is to be resolved
+     * Adds information how {@link QName} (attribute) from schema type is to be resolved
      * when it appears as a component of a complex (non-single) {@link ItemPath}.
      * This is in contrast with "item mapping" that is used for single (or last) component
      * of the item path and helps with query interpretation.
      */
     // TODO add "to-many" option so the interpreter can use WHERE EXISTS instead of JOIN
     public QueryModelMapping<S, Q, R> addRelationResolver(
-            @NotNull ItemName itemName,
+            @NotNull QName itemName,
             @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver) {
         itemRelationResolvers.put(itemName, itemRelationResolver);
         return this;
     }
 
     /**
-     * Returns {@link ItemSqlMapper} for provided {@link ItemName} or throws.
+     * Returns {@link ItemSqlMapper} for provided {@link QName} or throws.
      * This is later used to create {@link ItemValueFilterProcessor}.
      *
      * @throws QueryException if the mapper for the item is not found
@@ -127,23 +131,28 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     }
 
     /**
-     * Returns {@link ItemSqlMapper} for provided {@link ItemName} or `null`.
+     * Returns {@link ItemSqlMapper} for provided {@link QName} or `null`.
      */
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
         return QNameUtil.getByQName(this.itemMappings, itemName);
     }
 
     /**
-     * Returns {@link ItemRelationResolver} for provided {@link ItemName} or throws.
+     * Returns {@link ItemRelationResolver} for the first component of the provided {@link ItemPath}
+     * or throws if the resolver is not found.
      * Relation resolver helps with traversal over all-but-last components of item paths.
+     * ItemPath is used instead of QName to encapsulate corner cases like parent segment.
      *
      * @param <TQ> type of target entity path
      * @param <TR> row type related to the target entity path {@link TQ}
      * @throws QueryException if the resolver for the item is not found
      */
     public final @NotNull <TQ extends FlexibleRelationalPathBase<TR>, TR>
-    ItemRelationResolver<Q, R, TQ, TR> relationResolver(ItemName itemName)
+    ItemRelationResolver<Q, R, TQ, TR> relationResolver(ItemPath path)
             throws QueryException {
+        QName itemName = ItemPath.isParent(path.first())
+                ? PrismConstants.T_PARENT
+                : path.firstName();
         ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {
             throw new QueryException("Missing relation resolver for '" + itemName
@@ -159,7 +168,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * @param <TR> row type related to the target entity path {@link TQ}
      */
     public final @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
-    ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(ItemName itemName) {
+    ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(QName itemName) {
         //noinspection unchecked
         return (ItemRelationResolver<Q, R, TQ, TR>)
                 QNameUtil.getByQName(itemRelationResolvers, itemName);

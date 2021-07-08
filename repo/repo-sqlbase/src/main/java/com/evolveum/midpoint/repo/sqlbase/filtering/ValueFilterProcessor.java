@@ -76,7 +76,7 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
 
             return filterProcessor.process(filter);
         } else {
-            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path.firstName());
+            ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
             ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
             ValueFilterProcessor<TQ, TR> nestedProcessor =

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.QualifiedActivityState;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 import com.evolveum.midpoint.util.TreeNode;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +30,10 @@ public class ActivitiesItemProcessingDto implements Serializable {
 
     @NotNull private final List<ActivityItemProcessingDto> activities = new ArrayList<>();
 
-    ActivitiesItemProcessingDto(@NotNull TreeNode<QualifiedActivityState> tree) {
-        for (QualifiedActivityState qualifiedState : tree.getAllDataDepthFirst()) {
-            if (hasItemProcessingInformation(qualifiedState)) {
-                activities.add(new ActivityItemProcessingDto(qualifiedState));
+    ActivitiesItemProcessingDto(@NotNull TreeNode<ActivityStateInContext> tree) {
+        for (ActivityStateInContext stateInContext : tree.getAllDataDepthFirst()) {
+            if (hasItemProcessingInformation(stateInContext)) {
+                activities.add(new ActivityItemProcessingDto(stateInContext));
             }
         }
     }

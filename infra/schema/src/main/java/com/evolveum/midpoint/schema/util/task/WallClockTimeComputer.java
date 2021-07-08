@@ -119,11 +119,11 @@ public class WallClockTimeComputer {
                 if (interval.isValid()) {
                     return interval;
                 } else {
-                    LOGGER.warn("Malformed execution record: {} -> {}", record, interval);
+                    LOGGER.debug("Malformed execution record: {} -> {}", record, interval); // FIXME
                     return null;
                 }
             } else {
-                LOGGER.warn("Malformed execution record: {}", record);
+                LOGGER.debug("Malformed execution record: {}", record); // FIXME
                 return null;
             }
         }

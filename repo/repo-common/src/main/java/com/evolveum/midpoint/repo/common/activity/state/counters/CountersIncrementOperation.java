@@ -95,10 +95,9 @@ public class CountersIncrementOperation {
                         .asItemDelta();
             }
             deltas.add(itemDelta);
-            System.out.println("New value for " + counterIdentifier + " is " + newValue); // TODO remove
             updatedValues.put(counterIdentifier, newValue);
         }
-        LOGGER.info("Counter deltas:\n{}", DebugUtil.debugDumpLazily(deltas, 1)); // TODO trace
+        LOGGER.trace("Counter deltas:\n{}", DebugUtil.debugDumpLazily(deltas, 1));
         return deltas;
     }
 
