@@ -64,7 +64,10 @@ Therefore the logging configuration stored in the database cannot be applied.
 MidPoint is using default logging settings during this period, which means that it logs to the `idm.log` file.
 Once the system is initialized to the point that the system configuration object can be retrieved from the database then the logging setting is applied and midPoint starts logging to syslog.
 
-However, even this wiki:Initial+Logging+Setup+HOWTO[early initialization logging can be reconfigured]. To route even the initialization logging to the syslog server create a logback.xml file in wiki:MidPoint+Home+Directory[MidPoint Home Directory]. This file is supposed to be in the native LogBack format.
+However, even this xref:/midpoint/reference/diag/initial-logging/[early initialization logging can be reconfigured].
+To route even the initialization logging to the syslog server create a logback.xml file in
+xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory].
+This file is supposed to be in the native LogBack format.
 For the simple case of syslog logging the file should look roughly like this:
 
 .logback.xml
@@ -98,6 +101,6 @@ In case that you are running midPoint cluster this configuration needs to be app
 
 * wiki:Logging[Logging]
 
-* wiki:Initial+Logging+Setup+HOWTO[Initial Logging Setup HOWTO]
+* xref:/midpoint/reference/diag/initial-logging/[Initial Logging Setup HOWTO]
 
-* wiki:System+Configuration+Object[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object.adoc[System Configuration Object]

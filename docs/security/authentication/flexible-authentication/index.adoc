@@ -14,7 +14,7 @@ Authentication used to be quite simple back in 20th century.
 Username and password was all that was needed.
 But the world is a different place now.
 There are single sign-on (SSO) systems, multi-factor authentication (MFA) mechanisms, authentication sequences, social login, identity federations and many more forms of authentication.
-Simple username and password is just not enough any more.
+Simple username and password is just not enough anymore.
 
 MidPoint 4.1 introduced a concept of _flexible authentication_. MidPoint authentication mechanisms can be configured in a flexible way.
 The usual password-based authentication is still the default authentication mechanism.
@@ -69,7 +69,7 @@ But there are plans to extend that functionality in the future.
 
 == Configuration
 
-Please see wiki:Flexible+Authentication+Configuration[Flexible Authentication Configuration] for configuration details.
+Please see link:configuration/[Flexible Authentication Configuration] for configuration details.
 
 
 == Implementation Notes
@@ -85,6 +85,6 @@ Which also means that the unofficial way to use Spring Security modules with mid
 
 == See Also
 
-* wiki:Flexible+Authentication+Configuration[Flexible Authentication Configuration]
+* link:configuration/[Flexible Authentication Configuration]
 
-* wiki:Flexible+Authentication+Improvements[Flexible Authentication Improvements]
+* link:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements]

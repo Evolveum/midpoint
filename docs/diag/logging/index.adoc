@@ -30,7 +30,11 @@ Therefore logging need some skill and experience to manage it correctly.
 MidPoint is using logging approach that is well established in the industry.
 MidPoint logging principles should be quite familiar to any deployment engineer.
 
-MidPoint is logging diagnostic messages in a systematic way. The messages are set on several xref:log-levels.adoc[log levels]. Log levels `FATAL` to `INFO` are intended to be enabled during normal system operation. Log level `DEBUG` is intended for configuration troubleshooting by system administrator. The `TRACE` level is intended mostly for development-level troubleshooting.
+MidPoint is logging diagnostic messages systematically.
+The messages are set on several xref:log-levels.adoc[log levels].
+Log levels `FATAL` to `INFO` are intended to be enabled during normal system operation.
+Log level `DEBUG` is intended for configuration troubleshooting by system administrator.
+The `TRACE` level is intended mostly for development-level troubleshooting.
 
 === Log Files
 
@@ -62,6 +66,8 @@ Otherwise the log files would fill all available disk space.
 
 // TODO: system config
 
+// TODO mention/reference initial logging somewhere
+
 //=== Logging Implementation
 
 // TODO: LOG4J and logback
@@ -73,7 +79,8 @@ Therefore setting a correct logger in midPoint will result in changed logging se
 The appropriate class name is usually state in the connector documentation.
 
 However, there is one issue.
-If the connector or any of its libraries use obsolete java.util.logging (also known as JUL) then the midPoint logging setting will not not work.
+If the connector or any of its libraries use obsolete `java.util.logging` (also known as JUL)
+then the midPoint logging setting will not work.
 The JUL is not designed to work well with classloaders and dynamic logging configuration.
 ICF is using classloaders and midPoint is usign dynamic logging configuration therefore the JUL fails miserably in this case.
 Yet there is a workaround.
@@ -90,7 +97,6 @@ expect4j.Expect4j.level = ALL
 ----
 
 . Restart midPoint
-
 
 == See Also
 

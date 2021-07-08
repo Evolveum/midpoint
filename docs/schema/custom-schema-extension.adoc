@@ -102,24 +102,20 @@ It extends user with two custom attributes:
 | string
 | Optional, single-value
 
-
 | `favoriteColors`
 | favorite color
 | string
 | Optional, multi-value
-
 
 | `facility`
 | facility
 | string
 | Mandatory, single-value
 
-
 | `officePhone`
 | office telephone number
 | string
 | Mandatory, single-value
-
 
 |===
 
@@ -154,7 +150,6 @@ This is namespace introduced in field targetNamespace from a header of the exten
 
 A more complex schema examples are provided in the git link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/schema[samples/schema directory].
 
-
 == Installing Custom Schema Extension
 
 Currently the custom schema extension has to be available to midPoint at the startup time.
@@ -168,7 +163,6 @@ When MidPoint starts it scans the directory and all subdirectories and loads all
 ====
 After any change in custom schema extension definition(s), you need to restart midPoint.
 ====
-
 
 == Data Types Supported
 
@@ -190,54 +184,41 @@ For indexed items, the following types might be used:
 | Type | In which database table the values are stored
 
 | xsd:string
-| m\_object\_ext\_string
-
+| m_object_ext_string
 
 | xsd:int
-.3+| m\_object\_ext\_long
-
+.3+| m_object_ext_long
 
 | xsd:short
 
-
 | xsd:long
 
-
 | xsd:integer
-.4+| m\_object\_ext\_string - note that these types are really stored as strings, because they don't fit into "long" type range.
+.4+| m_object_ext_string - note that these types are really stored as strings, because they don't fit into "long" type range.
 (E.g. xsd:integer is java BigInteger, xsd:decimal is java BigDecimal).
 This means the support for these types is quite limited: inequality comparators "less than", "more than" don't work at all, and the equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs.
 0.5 vs 0.5000000001).
 
-
 | xsd:decimal
-
 
 | xsd:double
 
-
 | xsd:float
 
-
 | xsd:boolean
-| m\_object\_ext\_boolean
-
+| m_object_ext_boolean
 
 | xsd:dateTime
-| m\_object\_ext\_date
-
+| m_object_ext_date
 
 | t:PolyStringType
-| m\_object\_ext\_poly
-
+| m_object_ext_poly
 
 | c:ObjectReferenceType
-| m\_object\_ext\_reference
-
+| m_object_ext_reference
 
 | enumerations
-| m\_object\_ext\_string
-
+| m_object_ext_string
 
 |===
 
@@ -250,17 +231,13 @@ For midPoint 3.6, all types except for references obey the `indexed` setting.
 References are still always stored as indexed.
 ====
 
-
-
 [WARNING]
 ====
 Until midPoint 3.6, querying references in schema extension was in fact not implemented.
 Starting from 3.6, references in extensions can be queried just any other statically-defined references.
 ====
 
-
-
- Using midPoint types
+=== Using midPoint types
 
 It is possible to define custom attributes using midPoint types.
 For example, if there is a need to specify various activation status types for users in your environment, it is possible to define a custom attribute for activation using ActivationStatusType type.
@@ -274,11 +251,11 @@ To allow using of midPoint types, proper schemas have to be added to the extensi
             xmlns:tns="http://example.com/xml/ns/mySchema"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <xsd:complexType name="UserExtensionType">
         <xsd:annotation>
@@ -287,7 +264,7 @@ To allow using of midPoint types, proper schemas have to be added to the extensi
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-          	<xsd:element name="customAdministrativeStatus" type="c:ActivationStatusType" minOccurs="0">
+            <xsd:element name="customAdministrativeStatus" type="c:ActivationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:indexed>true</a:indexed>
@@ -296,7 +273,7 @@ To allow using of midPoint types, proper schemas have to be added to the extensi
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="secondaryPassword" type="t:ProtectedStringType" minOccurs="0">
+            <xsd:element name="secondaryPassword" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:indexed>false</a:indexed>

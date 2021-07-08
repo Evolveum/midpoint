@@ -10,7 +10,7 @@
 :page-toc: top
 
 
-Basic idea of flexible authentication is described on wiki:Flexible+Authentication[Flexible Authentication] page.
+Basic idea of flexible authentication is described on link:..[Flexible Authentication] page.
 Before we describe configuration of flexible authentication, we have to become acquainted with a few terms.
 
 
@@ -93,7 +93,7 @@ After successful authentication Midpoint sends request to actuator service.
 ==== Second example
 
 Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/auth/emergency/users'.
-Midpoint obtains suffix 'auth' from URL, this suffix define using of specific authentication sequence.
+Midpoint obtains suffix 'auth' from URL, this suffix defines using of specific authentication sequence.
 Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'.
 After successful authentication Midpoint sends request to service, which define channel in sequence configuration.
 Let's say it is GUI for this example, so request is redirect to users page in GUI.
@@ -101,7 +101,7 @@ Let's say it is GUI for this example, so request is redirect to users page in GU
 
 == Basic configuration
 
-Flexible authentication is configured in wiki:Security+Policy+Configuration[Security Policy], which is used as global security policy in System Configuration.
+Flexible authentication is configured in link:/midpoint/reference/security/security-policy[Security Policy], which is used as global security policy in System Configuration.
 Base tag is _<authentication>_.  Configuration consists of modules and sequences.
 Element `module` is basic building block of the configuration.
 Each element has a configuration of a particular authentication module instance such as internal password-based authentication, SAML authentication and so on.
@@ -113,7 +113,8 @@ The purpose of the sequence is to guide user through a complete authentication p
 
 === Module configuration
 
-Only following modules are supported now: `formLogin, saml2, ``httpHeader, httpBasic, httpSecQ, securityQuestionsForm, mailNonce, ldap.` Each element contains common attributes:
+The following modules are supported now: `formLogin`, `saml2`, `httpHeader`, `httpBasic`, `httpSecQ`, `securityQuestionsForm`, `mailNonce`, `ldap.`
+Each element contains common attributes:
 
 [%autowidth]
 |===
@@ -1021,7 +1022,7 @@ However, not all configuration options are currently supported.
 
 * Flexible authentication is currently supported only for midPoint administration GUI.
 Only internal password authentication and SAML2 is officially supported.
-The rest of the functionality is considered to be wiki:Experimental+Functionality[experimental.]
+The rest of the functionality is considered to be link:/midpoint/versioning/experimental/[experimental].
 
 * OpenID Connect protocol is not supported yet.
 
@@ -1041,18 +1042,18 @@ We support only SUFFICIENT modules in 4.1.
 
 * REST service supports HTTP basic authentication only.
 Distributed authentication protocols (OpenID Connect, SAML) are not supported yet.
-REST support for flexible authentication is wiki:Experimental+Functionality[experimental].
+REST support for flexible authentication is xref:/midpoint/versioning/experimental.adoc[experimental].
 
 * Even though the authentication configuration often suggests that there may be more than one instances of credentials (password, nonce), midPoint currently supports only a single password, single nonce and a single set of security questions.
 Multiple credentials are not supported.
 The reason for mentioning credential names the configuration schema is to have ability to extend midPoint functionality in the future.
 
 The implementation can be improved in the future.
-Please see wiki:Flexible+Authentication+Improvements[Flexible Authentication Improvements] for the details.
+Please see link:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for the details.
 
 
 == See Also
 
-* wiki:Flexible+Authentication[Flexible Authentication]
+* link:..[Flexible Authentication]
 
-* wiki:Security+Policy+Configuration[Security Policy Configuration]
+* link:/midpoint/reference/security/security-policy[Security Policy Configuration]

@@ -312,6 +312,21 @@ Try to figure out what is going on.
 . If everything fails then you can wiki:Creating+a+Bug+Report[report the issue]. However at this point it is almost sure that the issue will be very tricky.
 It is unlikely that the midPoint team will have time to address that issue unless you have an active xref:/support/subscription-sponsoring/[subscription].
 
+== Connector Exception Stack Trace
+
+Stack traces from connector exceptions are often needed to diagnose connector bugs and complicated issues.
+However, due to design issues in Java platform that date back more than 20 years, combined with the classloading approach of ConnId framework introduces some difficulties.
+As a consequence, midPoint has to strip all connector stack traces from the exceptions that are passed to upper layers.
+It means that stack traces referencing to connector code are effectively lost.
+
+However, midPoint contains a code that can record connector stack traces before they are lost.
+The logger is not enabled by default, as many system administrators complained about excessive logging of stack traces.
+Logging of connector exception stack traces can be enabled by setting following logger:
+
+[source]
+----
+com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil: DEBUG
+----
 
 == Extra Tips
 

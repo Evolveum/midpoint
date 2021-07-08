@@ -192,9 +192,11 @@ Only constant values may be present there.
 
 .. Equal filter: multivalued left-hand side (LHS) vs.
 single-valued right-hand-side (RHS)
+// TODO sqale: this works, if any left value matches ("exists" semantics)
 
 .. In filter: multivalued LHS vs.
 multivalued RHS ("non-empty set intersection" semantics)
+// TODO sqale: this works in sqale, not old repo, just like in memory it has "any" semantics (which is "non-empty set intersection")
 
 . Interestingly enough, there *is* an InFilter available now.
 It is implemented only when searching in the provisioning module.
@@ -248,7 +250,7 @@ This is useful e.g. to find an assignment with a given tenantRef and orgRef.
 
 ==== Logical filters
 
-And, Or and Not filters are quite self explanatory.
+And, Or and Not filters are quite self-explanatory.
 
 ==== Type filter
 
