@@ -176,7 +176,7 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
-        <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
+        <spring.security.saml2.version>2.0.0.M31</spring.security.saml2.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.4.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -1013,7 +1013,20 @@
                         <groupId>org.opensaml</groupId>
                         <artifactId>opensaml-core</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>:javax.activation-api</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>1.69</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>

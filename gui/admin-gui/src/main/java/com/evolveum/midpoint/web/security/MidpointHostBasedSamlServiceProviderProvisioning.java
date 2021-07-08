@@ -58,7 +58,7 @@ public class MidpointHostBasedSamlServiceProviderProvisioning extends HostBasedS
             SimpleKey activeKey = spConfig.getKeys().getActive();
             if (activeKey != null) {
                 keys.add(activeKey);
-                keys.add(activeKey.clone(activeKey.getName() + "-encryption", KeyType.ENCRYPTION));
+                keys.add(activeKey.clone(activeKey.getName(), KeyType.ENCRYPTION));
             }
             keys.addAll(spConfig.getKeys().getStandBy());
             signingKey = spConfig.isSignMetadata() ? spConfig.getKeys().getActive() : null;
