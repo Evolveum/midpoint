@@ -795,6 +795,10 @@ You can choose from one definition for metadata: _metadataUrl_, _xml _and _pathT
 </saml2>
 ----
 
+===== Generation of service provider metadata
+Midpoint can generate metadata of SP. You can get it via link http://<midpointHost>/midpoint/auth/<authenticationSequenceUrlSuffix>/<saml2ModuleName>/metadata.
+
+Generation of metadata works only if your sequence use only saml2 authentication module or saml2 authentication module is first in chain of your sequence. When you want use chain and saml2 module won't be first authentication module. We recommend create sequence only with saml module, generatate metadata and in next step add other moduls.
 
 === Sequence Configuration
 
