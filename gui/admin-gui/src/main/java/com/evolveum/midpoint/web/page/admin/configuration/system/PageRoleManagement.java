@@ -23,7 +23,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system/adminGuiConfig", matchUrlForSecurity = "/admin/config/system/adminGuiConfig"),
+                @Url(mountUrl = "/admin/config/system/roleManagement", matchUrlForSecurity = "/admin/config/system/roleManagement"),
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.page.admin.configuration.system;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -58,6 +60,8 @@ public class PageAdminGuiConfiguration extends PageAbstractSystemConfiguration {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
+//                return new AdminGuiObjectCollectionViewsPanel(panelId,
+//                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW)));
                 return createContainerPanel(panelId, adminGuiModel, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.COMPLEX_TYPE);
             }
         });
