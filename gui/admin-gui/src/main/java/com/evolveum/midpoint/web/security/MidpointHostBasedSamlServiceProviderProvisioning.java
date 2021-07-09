@@ -25,10 +25,10 @@ import org.springframework.security.saml.provider.service.HostedServiceProviderS
 import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.LocalServiceProviderConfiguration;
 import org.springframework.security.saml.saml2.authentication.AuthenticationRequest;
+import org.springframework.security.saml.saml2.authentication.LogoutRequest;
 import org.springframework.security.saml.saml2.authentication.NameIdPolicy;
-import org.springframework.security.saml.saml2.metadata.IdentityProviderMetadata;
-import org.springframework.security.saml.saml2.metadata.NameId;
-import org.springframework.security.saml.saml2.metadata.ServiceProviderMetadata;
+import org.springframework.security.saml.saml2.authentication.NameIdPrincipal;
+import org.springframework.security.saml.saml2.metadata.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -119,7 +119,29 @@ public class MidpointHostBasedSamlServiceProviderProvisioning extends HostBasedS
                 }
                 return request;
             }
+
+            @Override
+            public LogoutRequest logoutRequest(IdentityProviderMetadata recipient, NameIdPrincipal principal) {
+                List<SsoProvider> ssoProviders = recipient.getSsoProviders();
+                return super.logoutRequest(recipient, principal).setDestination(
+                        getPreferredEndpoint(
+                                ssoProviders.get(0).getSingleLogoutService(),
+                                getPreferredBinding(ssoProviders.get(0).getSingleLogoutService()),
+                                -1
+                        )
+                );
+            }
         };
+    }
+
+    private Binding getPreferredBinding(List<Endpoint> singleLogoutService) {
+        for (Endpoint endpoint : singleLogoutService) {
+            if (endpoint.getBinding().equals(Binding.REDIRECT)
+                    || endpoint.getBinding().equals(Binding.POST)) {
+                return endpoint.getBinding();
+            }
+        }
+        return null;
     }
 
     @Override
