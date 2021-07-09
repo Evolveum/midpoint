@@ -104,7 +104,12 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             protected SceneDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();
-                return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
+                CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
+                if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
+                    return WebComponentUtil.createSceneDtoForManualCase(parentCase, pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
+                } else {
+                    return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
+                }
             }
         };
         evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
@@ -179,10 +184,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(reasonPanel);
 
 
-        if (CaseTypeUtil.isApprovalCase(parentCase)){
+        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)){
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
             scenePanel.setOutputMarkupId(true);
-            scenePanel.add(new VisibleBehaviour(() -> CaseTypeUtil.isApprovalCase(parentCase)));
             add(scenePanel);
         } else {
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
@@ -202,7 +206,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
             public boolean isVisible() {
                 return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
-            };
+            }
         });
 
         if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
@@ -294,7 +298,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                                     getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject()),
                     getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
-            LOGGER.error("Unable to check user authorization for workitem actions, ", ex.getLocalizedMessage());
+            LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
         }
         return false;
     }
