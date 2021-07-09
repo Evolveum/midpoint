@@ -12,9 +12,11 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
@@ -28,6 +30,7 @@ public class QLookupTableRowMapping
 
     private static QLookupTableRowMapping instance;
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableRowMapping init(@NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
             instance = new QLookupTableRowMapping(repositoryContext);
@@ -35,6 +38,7 @@ public class QLookupTableRowMapping
         return instance;
     }
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableRowMapping get() {
         return Objects.requireNonNull(instance);
     }
@@ -42,6 +46,11 @@ public class QLookupTableRowMapping
     private QLookupTableRowMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QLookupTableRow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 LookupTableRowType.class, QLookupTableRow.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(QLookupTableMapping::get,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(F_KEY, stringMapper(q -> q.key));
         addItemMapping(F_LABEL, polyStringMapper(

@@ -14,12 +14,15 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -46,30 +49,34 @@ public class QAssignmentMapping<OR extends MObject>
     /** Inducement mapping instance, this must be used for inserting inducements. */
     private static QAssignmentMapping<?> instanceInducement;
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
-    initAssignment(@NotNull SqaleRepoContext repositoryContext) {
+    initAssignmentMapping(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignment == null) {
             instanceAssignment = new QAssignmentMapping<>(
                     MContainerType.ASSIGNMENT, repositoryContext);
         }
-        return getAssignment();
+        return getAssignmentMapping();
     }
 
-    public static <OR extends MObject> QAssignmentMapping<OR> getAssignment() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static <OR extends MObject> QAssignmentMapping<OR> getAssignmentMapping() {
         //noinspection unchecked
         return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceAssignment);
     }
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
-    initInducement(@NotNull SqaleRepoContext repositoryContext) {
+    initInducementMapping(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceInducement == null) {
             instanceInducement = new QAssignmentMapping<>(
                     MContainerType.INDUCEMENT, repositoryContext);
         }
-        return getInducement();
+        return getInducementMapping();
     }
 
-    public static <OR extends MObject> QAssignmentMapping<OR> getInducement() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static <OR extends MObject> QAssignmentMapping<OR> getInducementMapping() {
         //noinspection unchecked
         return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceInducement);
     }
@@ -84,6 +91,12 @@ public class QAssignmentMapping<OR extends MObject>
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(QAssignmentHolderMapping::getAssignmentHolderMapping,
+                        // Adding and(q.ownerType.eq(p.objectType) doesn't help the planner.
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.

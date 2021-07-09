@@ -9,14 +9,11 @@ package com.evolveum.midpoint.repo.sqlbase.mapping;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiFunction;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Preconditions;
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.core.types.Predicate;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -65,22 +62,6 @@ public class QueryModelMappingRegistry {
 
         mappingBySchemaQName.put(schemaQName, mapping);
         mappingBySchemaType.put(mapping.schemaType(), mapping);
-
-        return this;
-    }
-
-    /**
-     * Register mapper bound to a schema type with known parent type, e.g. container and object.
-     */
-    public <Q extends FlexibleRelationalPathBase<R>, R, TQ extends FlexibleRelationalPathBase<TR>, TR>
-    QueryModelMappingRegistry register(
-            QName schemaQName,
-            QueryTableMapping<?, Q, R> mapping,
-            QueryTableMapping<?, TQ, TR> parentMapping,
-            BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        register(schemaQName, mapping);
-        mapping.addRelationResolver(PrismConstants.T_PARENT,
-                new TableRelationResolver<>(parentMapping, correlationPredicate));
 
         return this;
     }

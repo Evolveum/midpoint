@@ -67,7 +67,7 @@ public class QAbstractRoleMapping<
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
 
         addContainerTableMapping(F_INDUCEMENT,
-                QAssignmentMapping.initInducement(repositoryContext),
+                QAssignmentMapping.initInducementMapping(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
     }
 
@@ -101,7 +101,7 @@ public class QAbstractRoleMapping<
         List<AssignmentType> inducement = schemaObject.getInducement();
         if (!inducement.isEmpty()) {
             inducement.forEach(assignment ->
-                    QAssignmentMapping.getInducement().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getInducementMapping().insert(assignment, row, jdbcSession));
         }
     }
 }

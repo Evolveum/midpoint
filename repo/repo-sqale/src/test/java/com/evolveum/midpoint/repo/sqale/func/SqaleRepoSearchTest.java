@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
 import java.math.BigDecimal;
@@ -58,9 +59,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
-    private final static String CASE_WI1_ASSIGNEE1_OID = "8cd0ddb2-c84d-11eb-a008-9321c31dd5ce";
-    private final static String CASE_WI1_ASSIGNEE2_OID = "f29a15f0-c84d-11eb-a080-67fcdff6f07d";
-    private final static String NONEXIST_OID = "f00f00f0-c84d-11eb-867d-234771aa36c5";
+    private final static String NONEXIST_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -141,6 +140,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // other objects
         UserType user1 = new UserType(prismContext).name("user-1")
+                .fullName("User Name 1")
                 .metadata(new MetadataType()
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
@@ -225,6 +225,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
                 .policySituation("situationA")
                 .assignment(new AssignmentType(prismContext)
+                        .lifecycleState("ls-user3-ass1")
+                        .metadata(new MetadataType(prismContext)
+                                .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType(prismContext)
                                 .validFrom("2021-01-01T00:00:00Z")))
                 .assignment(new AssignmentType(prismContext)
@@ -287,8 +290,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .originalAssigneeRef(user3Oid, UserType.COMPLEX_TYPE)
                                 .performerRef(user3Oid, UserType.COMPLEX_TYPE)
                                 .stageNumber(1)
-                                .assigneeRef(CASE_WI1_ASSIGNEE1_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                                .assigneeRef(CASE_WI1_ASSIGNEE2_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                                .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                 .output(new AbstractWorkItemOutputType(prismContext).outcome("OUTCOME one")))
                         .workItem(new CaseWorkItemType(prismContext)
                                 .id(42L)
@@ -580,8 +583,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
      */
     @Test
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
-        searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE1_OID, case1Oid);
-        searchCaseWorkItemByAssignee(CASE_WI1_ASSIGNEE2_OID, case1Oid);
+        searchCaseWorkItemByAssignee(user1Oid, case1Oid);
+        searchCaseWorkItemByAssignee(user2Oid, case1Oid);
         searchCaseWorkItemByAssignee(NONEXIST_OID);
     }
 
@@ -910,6 +913,15 @@ OR(
                 f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_DISPLAY_ORDER)
                         .eq(30),
                 user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test415SearchObjectByAssignmentApproverName() throws SchemaException {
+        searchUsersTest("having assignment approved by user with specified name",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA,
+                        MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .eq(new PolyString("user-1")),
+                user3Oid);
     }
 
     // TODO tests with ref/@/...
@@ -1519,13 +1531,38 @@ OR(
                 .matches(wi -> wi.getDeadline().equals(asXMLGregorianCalendar(10200L)))
                 .matches(wi -> wi.getOriginalAssigneeRef().getOid().equals(user3Oid))
                 .matches(wi -> wi.getOriginalAssigneeRef().getType().equals(UserType.COMPLEX_TYPE))
-                .matches(wi -> wi.getOriginalAssigneeRef().getRelation().equals(SchemaConstants.ORG_DEFAULT))
+                .matches(wi -> wi.getOriginalAssigneeRef().getRelation().equals(ORG_DEFAULT))
                 .matches(wi -> wi.getPerformerRef().getOid().equals(user3Oid))
                 .matches(wi -> wi.getPerformerRef().getType().equals(UserType.COMPLEX_TYPE))
-                .matches(wi -> wi.getPerformerRef().getRelation().equals(SchemaConstants.ORG_DEFAULT))
+                .matches(wi -> wi.getPerformerRef().getRelation().equals(ORG_DEFAULT))
                 .matches(wi -> wi.getOutput().getOutcome().equals("OUTCOME one"));
         // multi-value refs are not fetched yet
     }
+
+    @Test
+    public void test610SearchCaseWIContainerByAssigneeName() throws SchemaException {
+        SearchResultList<CaseWorkItemType> result = searchContainerTest(
+                "by multi-value reference target's full name", CaseWorkItemType.class,
+                // again trying with user specific attribute
+                f -> f.item(CaseWorkItemType.F_ASSIGNEE_REF, T_OBJECT_REFERENCE, UserType.F_FULL_NAME)
+                        .eq(new PolyString("User Name 1")));
+        assertThat(result)
+                .singleElement()
+                .matches(wi -> wi.getOutput().getOutcome().equals("OUTCOME one"));
+    }
+
+    @Test
+    public void test615SearchAssignmentByApproverName() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "by approver name", AssignmentType.class,
+                f -> f.item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
+                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .eq(new PolyString("user-1")));
+        assertThat(result)
+                .singleElement()
+                .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
+    }
+
     // endregion
 
     // region special cases

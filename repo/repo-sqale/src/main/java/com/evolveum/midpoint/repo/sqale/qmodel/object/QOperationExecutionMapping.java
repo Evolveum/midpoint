@@ -12,9 +12,11 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 
@@ -48,6 +50,11 @@ public class QOperationExecutionMapping<OR extends MObject>
     private QOperationExecutionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QOperationExecution.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 OperationExecutionType.class, (Class) QOperationExecution.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(QObjectMapping::getObjectMapping,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(F_STATUS, enumMapper(q -> q.status));
         addItemMapping(F_RECORD_TYPE, enumMapper(q -> q.recordType));

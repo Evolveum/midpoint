@@ -13,10 +13,13 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
@@ -31,21 +34,29 @@ public class QCaseWorkItemMapping
 
     private static QCaseWorkItemMapping instance;
 
-    public static QCaseWorkItemMapping init(
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseWorkItemMapping initCaseWorkItemMapping(
             @NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
             instance = new QCaseWorkItemMapping(repositoryContext);
         }
-        return get();
+        return instance;
     }
 
-    public static QCaseWorkItemMapping get() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseWorkItemMapping getCaseWorkItemMapping() {
         return Objects.requireNonNull(instance);
     }
 
     private QCaseWorkItemMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QCaseWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 CaseWorkItemType.class, QCaseWorkItem.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(
+                        QCaseMapping::getCaseMapping,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         addItemMapping(F_CREATE_TIMESTAMP, timestampMapper(q -> q.createTimestamp));

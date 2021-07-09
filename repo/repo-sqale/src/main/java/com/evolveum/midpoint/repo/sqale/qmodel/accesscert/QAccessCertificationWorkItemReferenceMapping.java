@@ -13,7 +13,12 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -33,7 +38,8 @@ public class QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignee == null) {
             instanceAssignee = new QAccessCertificationWorkItemReferenceMapping(
-                    "m_access_cert_wi_assignee", "acwirefa", repositoryContext);
+                    "m_access_cert_wi_assignee", "acwirefa", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
         }
         return getForCaseWorkItemAssignee();
     }
@@ -46,7 +52,8 @@ public class QAccessCertificationWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceCandidate == null) {
             instanceCandidate = new QAccessCertificationWorkItemReferenceMapping(
-                    "m_access_cert_wi_candidate", "acwirefc", repositoryContext);
+                    "m_access_cert_wi_candidate", "acwirefc", repositoryContext,
+                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
         }
         return getForCaseWorkItemCandidate();
     }
@@ -55,11 +62,13 @@ public class QAccessCertificationWorkItemReferenceMapping
         return Objects.requireNonNull(instanceCandidate);
     }
 
-    private QAccessCertificationWorkItemReferenceMapping(
+    private <TQ extends QObject<TR>, TR extends MObject> QAccessCertificationWorkItemReferenceMapping(
             String tableName,
             String defaultAliasName,
-            @NotNull SqaleRepoContext repositoryContext) {
-        super(tableName, defaultAliasName, QAccessCertificationWorkItemReference.class, repositoryContext);
+            @NotNull SqaleRepoContext repositoryContext,
+            RefTableTargetResolver<QAccessCertificationWorkItemReference, MAccessCertificationWorkItemReference, TQ, TR> targetResolver) {
+        super(tableName, defaultAliasName, QAccessCertificationWorkItemReference.class,
+                repositoryContext, targetResolver);
 
         // workItemCid probably can't be mapped directly
     }

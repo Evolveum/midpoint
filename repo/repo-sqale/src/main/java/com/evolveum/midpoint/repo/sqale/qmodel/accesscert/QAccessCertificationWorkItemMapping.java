@@ -13,9 +13,11 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -45,6 +47,13 @@ public class QAccessCertificationWorkItemMapping
     private QAccessCertificationWorkItemMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QAccessCertificationWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationWorkItemType.class, QAccessCertificationWorkItem.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(
+                        QAccessCertificationCaseMapping::getAccessCertificationCaseMapping,
+                        (q, p) -> q.ownerOid.eq(p.ownerOid)
+                                .and(q.accessCertCaseCid.eq(p.cid))));
 
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         // TODO: iteration -> campaignIteration
