@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -24,8 +26,19 @@ public class QTaskMapping
 
     public static final String DEFAULT_ALIAS_NAME = "t";
 
+    private static QTaskMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QTaskMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QTaskMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QTaskMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QTaskMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QTaskMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -58,14 +60,16 @@ public class QOperationExecutionMapping<OR extends MObject>
 
         addItemMapping(F_STATUS, enumMapper(q -> q.status));
         addItemMapping(F_RECORD_TYPE, enumMapper(q -> q.recordType));
-        addItemMapping(F_INITIATOR_REF, refMapper(
+        addRefMapping(F_INITIATOR_REF,
                 q -> q.initiatorRefTargetOid,
                 q -> q.initiatorRefTargetType,
-                q -> q.initiatorRefRelationId));
-        addItemMapping(F_TASK_REF, refMapper(
+                q -> q.initiatorRefRelationId,
+                QFocusMapping::getFocusMapping);
+        addRefMapping(F_TASK_REF,
                 q -> q.taskRefTargetOid,
                 q -> q.taskRefTargetType,
-                q -> q.taskRefRelationId));
+                q -> q.taskRefRelationId,
+                QTaskMapping::get);
         addItemMapping(OperationExecutionType.F_TIMESTAMP,
                 timestampMapper(q -> q.timestampValue));
     }

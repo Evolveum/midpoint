@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +47,7 @@ public class QAbstractRoleMapping<
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAbstractRoleMapping<?, ?, ?> getAbstractRoleMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     protected QAbstractRoleMapping(

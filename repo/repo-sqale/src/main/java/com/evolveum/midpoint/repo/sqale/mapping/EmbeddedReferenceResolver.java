@@ -40,6 +40,10 @@ public class EmbeddedReferenceResolver<Q extends FlexibleRelationalPathBase<R>, 
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         mapping = new SqaleNestedMapping<>(Referencable.class, queryType);
         mapping.addRelationResolver(PrismConstants.T_OBJECT_REFERENCE,
+                // TODO TableRelationResolver can be configured/subclassed to use LEFT JOIN
+                //  which will allow order by target/name (or other attribute), which is used
+                //  with old repo and in some existing view objects.
+                //  But also order by multi-name item path must be supported as well.
                 new TableRelationResolver<>(
                         targetMappingSupplier, (q, t) -> rootToOidPath.apply(q).eq(t.oid)));
     }

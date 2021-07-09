@@ -14,6 +14,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -51,19 +52,21 @@ public class QAccessCertificationCampaignMapping
                 AccessCertificationCampaignType.class, QAccessCertificationCampaign.class,
                 repositoryContext);
 
-        addItemMapping(F_DEFINITION_REF, refMapper(
+        addRefMapping(F_DEFINITION_REF,
                 q -> q.definitionRefTargetOid,
                 q -> q.definitionRefTargetType,
-                q -> q.definitionRefRelationId));
+                q -> q.definitionRefRelationId,
+                QAccessCertificationDefinitionMapping::get);
         addItemMapping(F_END_TIMESTAMP,
                 timestampMapper(q -> q.endTimestamp));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
-        // TODO
+        // TODO: iteration -> campaignIteration
         addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
-        addItemMapping(F_OWNER_REF, refMapper(
+        addRefMapping(F_OWNER_REF,
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
-                q -> q.ownerRefRelationId));
+                q -> q.ownerRefRelationId,
+                QUserMapping::getUserMapping);
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
         addItemMapping(F_START_TIMESTAMP,
                 timestampMapper(q -> q.startTimestamp));

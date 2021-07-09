@@ -94,8 +94,11 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
             @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
             @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
-        ItemSqlMapper<Q, R> referenceMapping =
-                refMapper(rootToOidPath, rootToTypePath, rootToRelationIdPath);
+        ItemSqlMapper<Q, R> referenceMapping = new SqaleItemSqlMapper<>(
+                ctx -> new RefItemFilterProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
+                ctx -> new RefItemDeltaProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
         addItemMapping(itemName, referenceMapping);
 
         // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
@@ -103,20 +106,6 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         addRelationResolver(itemName, new EmbeddedReferenceResolver<>(
                 queryType(), rootToOidPath, targetMappingSupplier));
         return this;
-    }
-
-    /**
-     * Returns the mapper creating the reference filter/delta processors from context.
-     */
-    default ItemSqlMapper<Q, R> refMapper(
-            Function<Q, UuidPath> rootToOidPath,
-            Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
-                ctx -> new RefItemDeltaProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 
     /**

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -62,18 +63,20 @@ public class QCaseWorkItemMapping
         addItemMapping(F_CREATE_TIMESTAMP, timestampMapper(q -> q.createTimestamp));
         addItemMapping(F_DEADLINE, timestampMapper(q -> q.deadline));
 
-        addItemMapping(F_ORIGINAL_ASSIGNEE_REF, refMapper(
+        addRefMapping(F_ORIGINAL_ASSIGNEE_REF,
                 q -> q.originalAssigneeRefTargetOid,
                 q -> q.originalAssigneeRefTargetType,
-                q -> q.originalAssigneeRefRelationId));
+                q -> q.originalAssigneeRefRelationId,
+                QUserMapping::getUserMapping);
 
         addNestedMapping(F_OUTPUT, AbstractWorkItemOutputType.class)
                 .addItemMapping(AbstractWorkItemOutputType.F_OUTCOME, stringMapper(q -> q.outcome));
 
-        addItemMapping(F_PERFORMER_REF, refMapper(
+        addRefMapping(F_PERFORMER_REF,
                 q -> q.performerRefTargetOid,
                 q -> q.performerRefTargetType,
-                q -> q.performerRefRelationId));
+                q -> q.performerRefRelationId,
+                QUserMapping::getUserMapping);
 
         addRefMapping(F_ASSIGNEE_REF,
                 QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));

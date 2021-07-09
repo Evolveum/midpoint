@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.org;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.F_DISPLAY_ORDER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.F_TENANT;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -36,7 +38,7 @@ public class QOrgMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QOrgMapping getOrgMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QOrgMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
@@ -94,27 +96,31 @@ public class QAccessCertificationCaseMapping
 
         // TODO: iteration -> campaignIteration
         addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
-        addItemMapping(F_OBJECT_REF, refMapper(
+        addRefMapping(F_OBJECT_REF,
                 q -> q.objectRefTargetOid,
                 q -> q.objectRefTargetType,
-                q -> q.objectRefRelationId));
-        addItemMapping(F_ORG_REF, refMapper(
+                q -> q.objectRefRelationId,
+                QObjectMapping::getObjectMapping);
+        addRefMapping(F_ORG_REF,
                 q -> q.orgRefTargetOid,
                 q -> q.orgRefTargetType,
-                q -> q.orgRefRelationId));
+                q -> q.orgRefRelationId,
+                QOrgMapping::getOrgMapping);
         addItemMapping(F_OUTCOME, stringMapper(q -> q.outcome));
         addItemMapping(F_REMEDIED_TIMESTAMP, timestampMapper(q -> q.remediedTimestamp));
         addItemMapping(F_CURRENT_STAGE_DEADLINE, timestampMapper(q -> q.currentStageCreateTimestamp));
         addItemMapping(F_CURRENT_STAGE_CREATE_TIMESTAMP, timestampMapper(q -> q.currentStageCreateTimestamp));
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
-        addItemMapping(F_TARGET_REF, refMapper(
+        addRefMapping(F_TARGET_REF,
                 q -> q.targetRefTargetOid,
                 q -> q.targetRefTargetType,
-                q -> q.targetRefRelationId));
-        addItemMapping(F_TENANT_REF, refMapper(
+                q -> q.targetRefRelationId,
+                QObjectMapping::getObjectMapping);
+        addRefMapping(F_TENANT_REF,
                 q -> q.tenantRefTargetOid,
                 q -> q.tenantRefTargetType,
-                q -> q.tenantRefRelationId));
+                q -> q.tenantRefRelationId,
+                QOrgMapping::getOrgMapping);
     }
 
     @Override

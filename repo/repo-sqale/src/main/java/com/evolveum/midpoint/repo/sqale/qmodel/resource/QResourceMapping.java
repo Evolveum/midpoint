@@ -13,6 +13,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -59,10 +60,11 @@ public class QResourceMapping
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
                         enumMapper(q -> q.operationalStateLastAvailabilityStatus));
 
-        addItemMapping(F_CONNECTOR_REF, refMapper(
+        addRefMapping(F_CONNECTOR_REF,
                 q -> q.connectorRefTargetOid,
                 q -> q.connectorRefTargetType,
-                q -> q.connectorRefRelationId));
+                q -> q.connectorRefRelationId,
+                QConnectorMapping::get);
     }
 
     @Override
