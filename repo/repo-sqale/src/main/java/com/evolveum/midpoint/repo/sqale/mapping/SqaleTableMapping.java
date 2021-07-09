@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
@@ -182,20 +181,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
                 ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
-    }
-
-    /**
-     * Returns the mapper creating the reference filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> refMapper(
-            Function<Q, UuidPath> rootToOidPath,
-            Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
-                ctx -> new RefItemDeltaProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 
     /**

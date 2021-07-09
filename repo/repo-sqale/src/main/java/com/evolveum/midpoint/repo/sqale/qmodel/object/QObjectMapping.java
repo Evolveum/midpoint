@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -87,10 +88,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
 
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
+                .addRefMapping(MetadataType.F_CREATOR_REF,
                         q -> q.creatorRefTargetOid,
                         q -> q.creatorRefTargetType,
-                        q -> q.creatorRefRelationId))
+                        q -> q.creatorRefRelationId,
+                        QUserMapping::getUserMapping)
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
                         uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,

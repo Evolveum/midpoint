@@ -71,6 +71,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String org21Oid;
     private String orgXOid; // under two orgs
 
+    private String creatorOid, modifierOid; // special users used in refs
     private String user1Oid; // user without org
     private String user2Oid; // different user, this one is in org
     private String user3Oid; // another user in org
@@ -83,8 +84,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String accCertCampaign1Oid;
 
     // other info used in queries
-    private final String creatorOid = UUID.randomUUID().toString();
-    private final String modifierOid = UUID.randomUUID().toString();
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
 
@@ -138,7 +137,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
-        // other objects
+        // users
+        creatorOid = repositoryService.addObject(
+                new UserType(prismContext).name("creator").asPrismObject(),
+                null, result);
+        modifierOid = repositoryService.addObject(
+                new UserType(prismContext).name("modifier").asPrismObject(),
+                null, result);
+
         UserType user1 = new UserType(prismContext).name("user-1")
                 .fullName("User Name 1")
                 .metadata(new MetadataType()
@@ -248,6 +254,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .policySituation("situationB")
                         .asPrismObject(),
                 null, result);
+
+        // other objects
         task1Oid = repositoryService.addObject(
                 new TaskType(prismContext).name("task-1")
                         .executionStatus(TaskExecutionStateType.RUNNABLE)
@@ -620,7 +628,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // First we should fix it on Prism level first, then add type check to OrgFilterProcessor.
         searchObjectTest("searching user with is-root filter", UserType.class,
                 f -> f.isRoot(),
-                user1Oid);
+                creatorOid, modifierOid, user1Oid);
     }
 
     @Test
@@ -847,12 +855,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
 
 /* TODO EXISTS tests
-2. multi-value container stored in table:
-EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
-
 4. part of AND in container query, used on sub-container (workItem) with nested AND condition
 CertificationTest.test730CurrentUnansweredCases >>> Q{
 AND(
+// TODO this requires right-hand path support
   EQUAL: stageNumber, {http://prism.evolveum.com/xml/ns/public/types-3}parent/stageNumber;
   EQUAL: ../state, PPV(AccessCertificationCampaignStateType:IN_REVIEW_STAGE);
   EXISTS(workItem,
@@ -860,22 +866,6 @@ AND(
       EQUAL: closeTimestamp, ;
       EQUAL: output/outcome, )))
 , null paging}
-
-5. EXISTS with .. (another way how to say parent)
-EXISTS(..,
-  OR(
-    IN OID: c0c010c0-d34d-b33f-f00d-111111111111; ,
-    REF: ownerRef,PRV(oid=c0c010c0-d34d-b33f-f00d-111111111111, targetType={.../common/common-3}UserType)))
-
-6. nothing new, nested in OR, EXISTS(workItem) with AND
-
-OR(
-  IN OID: af69e388-88bd-43f9-9259-73676124c196; ,
-  EXISTS(workItem,
-    AND(
-      EQUAL: closeTimestamp,,
-      REF: assigneeRef, PRV(oid=af69e388-88bd-43f9-9259-73676124c196, targetType=null), PRV(oid=c0c010c0-d34d-b33f-f00d-111111111111, targetType=null))))
-
 */
     // endregion
 
@@ -894,7 +884,7 @@ OR(
                 f -> f.not()
                         .item(UserType.F_PARENT_ORG_REF)
                         .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
-                user1Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user1Oid, user3Oid, user4Oid);
     }
 
     @Test
@@ -924,6 +914,15 @@ OR(
                 user3Oid);
     }
 
+    @Test
+    public void test420SearchObjectBySingleValueReferenceTargetAttribute() throws SchemaException {
+        searchUsersTest("with object creator name",
+                f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
+                        T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .eq(new PolyString("creator")),
+                user1Oid);
+    }
+
     // TODO tests with ref/@/...
     // query for AccessCertificationCaseType container with order by objectRef/@/name
     // PERHAPS: single refs can be LEFT JOINed to support ordering?
@@ -942,14 +941,14 @@ OR(
     public void test501SearchObjectNotHavingSpecifiedStringExtension() throws SchemaException {
         searchUsersTest("not having extension string item equal to value (can be null)",
                 f -> f.not().item(UserType.F_EXTENSION, new QName("string")).eq("string-value"),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test
     public void test502SearchObjectWithoutExtensionStringItem() throws SchemaException {
         searchUsersTest("not having extension item (is null)",
                 f -> f.item(UserType.F_EXTENSION, new QName("string")).isNull(),
-                user3Oid, user4Oid);
+                creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
     @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
@@ -1011,14 +1010,14 @@ OR(
     public void test511SearchObjectNotHavingSpecifiedMultivalueStringExtension() throws SchemaException {
         searchUsersTest("not having extension multi-string item equal to value",
                 f -> f.not().item(UserType.F_EXTENSION, new QName("string-mv")).eq("string-value1"),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test
     public void test512SearchObjectWithoutExtensionMultivalueStringItem() throws SchemaException {
         searchUsersTest("not having extension multi-string item (is null)",
                 f -> f.item(UserType.F_EXTENSION, new QName("string-mv")).isNull(),
-                user3Oid, user4Oid);
+                creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
     @Test
@@ -1047,14 +1046,14 @@ OR(
     public void test521SearchObjectNotHavingSpecifiedIntegerExtension() throws SchemaException {
         searchUsersTest("not having extension int item equal to value",
                 f -> f.not().item(UserType.F_EXTENSION, new QName("int")).eq("1"),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test
     public void test522SearchObjectWithoutExtensionIntegerItem() throws SchemaException {
         searchUsersTest("not having extension item (is null)",
                 f -> f.item(UserType.F_EXTENSION, new QName("int")).isNull(),
-                user4Oid);
+                creatorOid, modifierOid, user4Oid);
     }
 
     @Test
@@ -1172,7 +1171,7 @@ OR(
         */
         searchUsersTest("having extension short item greater than or equal to value",
                 f -> f.not().item(UserType.F_EXTENSION, new QName("short")).ge((short) 3),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     // enum tests
@@ -1188,14 +1187,14 @@ OR(
         searchUsersTest("not having extension enum item equal to value (can be null)",
                 f -> f.not()
                         .item(UserType.F_EXTENSION, new QName("enum")).eq(BeforeAfterType.BEFORE),
-                user1Oid, user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user1Oid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test
     public void test542SearchObjectWithoutExtensionEnumItem() throws SchemaException {
         searchUsersTest("not having extension item (is null)",
                 f -> f.item(UserType.F_EXTENSION, new QName("enum")).isNull(),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test
@@ -1343,7 +1342,7 @@ OR(
                         .item(UserType.F_EXTENSION, new QName("poly")).le("pOlY-vAlUe")
                         .matching(new QName(PolyStringItemFilterProcessor.ORIG_IGNORE_CASE))
                         .endBlock(),
-                user2Oid, user3Oid, user4Oid);
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
     @Test

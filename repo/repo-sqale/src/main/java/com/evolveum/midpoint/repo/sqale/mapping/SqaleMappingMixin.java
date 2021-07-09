@@ -2,29 +2,36 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.item.RefItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -80,7 +87,37 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return this;
     }
 
-    // TODO addRefMapping for single-value refs using LEFT JOIN for dereferencing
+    /** Defines single-value reference mapping for both query and modifications. */
+    default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addRefMapping(
+            @NotNull QName itemName,
+            @NotNull Function<Q, UuidPath> rootToOidPath,
+            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
+        ItemSqlMapper<Q, R> referenceMapping =
+                refMapper(rootToOidPath, rootToTypePath, rootToRelationIdPath);
+        addItemMapping(itemName, referenceMapping);
+
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
+        // and inside EmbeddedReferenceResolver is the magic resolving the @ part.
+        addRelationResolver(itemName, new EmbeddedReferenceResolver<>(
+                queryType(), rootToOidPath, targetMappingSupplier));
+        return this;
+    }
+
+    /**
+     * Returns the mapper creating the reference filter/delta processors from context.
+     */
+    default ItemSqlMapper<Q, R> refMapper(
+            Function<Q, UuidPath> rootToOidPath,
+            Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new RefItemFilterProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
+                ctx -> new RefItemDeltaProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
+    }
 
     /**
      * Defines table mapping for multi-value container owned by an object or another container.

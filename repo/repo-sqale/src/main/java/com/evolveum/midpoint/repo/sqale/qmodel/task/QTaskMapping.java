@@ -9,7 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -36,21 +38,22 @@ public class QTaskMapping
         addItemMapping(TaskType.F_COMPLETION_TIMESTAMP,
                 timestampMapper(q -> q.completionTimestamp));
         addItemMapping(TaskType.F_EXECUTION_STATUS, enumMapper(q -> q.executionStatus));
-        // TODO byte[] fullResult mapping - probably does not make sense?
         addItemMapping(TaskType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
                 timestampMapper(q -> q.lastRunFinishTimestamp));
         addItemMapping(TaskType.F_LAST_RUN_START_TIMESTAMP,
                 timestampMapper(q -> q.lastRunStartTimestamp));
         addItemMapping(TaskType.F_NODE, stringMapper(q -> q.node));
-        addItemMapping(TaskType.F_OBJECT_REF, refMapper(
+        addRefMapping(TaskType.F_OBJECT_REF,
                 q -> q.objectRefTargetOid,
                 q -> q.objectRefTargetType,
-                q -> q.objectRefRelationId));
-        addItemMapping(TaskType.F_OWNER_REF, refMapper(
+                q -> q.objectRefRelationId,
+                QObjectMapping::getObjectMapping);
+        addRefMapping(TaskType.F_OWNER_REF,
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
-                q -> q.ownerRefRelationId));
+                q -> q.ownerRefRelationId,
+                QUserMapping::getUserMapping);
         addItemMapping(TaskType.F_PARENT, stringMapper(q -> q.parent));
         addItemMapping(TaskType.F_RECURRENCE, enumMapper(q -> q.recurrence));
         addItemMapping(TaskType.F_RESULT_STATUS, enumMapper(q -> q.resultStatus));

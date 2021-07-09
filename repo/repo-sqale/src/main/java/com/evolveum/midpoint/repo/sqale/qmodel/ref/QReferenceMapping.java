@@ -56,12 +56,10 @@ public class QReferenceMapping<
             String defaultAliasName,
             Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext,
-            RefTableTargetResolver<Q, R, TQ, TR> targetResolver) {
+            @NotNull RefTableTargetResolver<Q, R, TQ, TR> targetResolver) {
         super(tableName, defaultAliasName, Referencable.class, queryType, repositoryContext);
 
-        if (targetResolver != null) {
-            addRelationResolver(PrismConstants.T_OBJECT_REFERENCE, targetResolver);
-        }
+        addRelationResolver(PrismConstants.T_OBJECT_REFERENCE, targetResolver);
     }
 
     @Override
