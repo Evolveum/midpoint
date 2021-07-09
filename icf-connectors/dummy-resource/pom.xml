@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
-            <version>4.4-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
