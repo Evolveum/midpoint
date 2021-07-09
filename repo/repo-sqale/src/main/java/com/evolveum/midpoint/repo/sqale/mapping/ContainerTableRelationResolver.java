@@ -52,7 +52,7 @@ public class ContainerTableRelationResolver<
                             + " segments with PCV ID as the second");
         }
         QContainerMapping<TS, TQ, TR, R> containerMapping =
-                (QContainerMapping<TS, TQ, TR, R>) this.targetMapping;
+                (QContainerMapping<TS, TQ, TR, R>) targetMappingSupplier.get();
         TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);

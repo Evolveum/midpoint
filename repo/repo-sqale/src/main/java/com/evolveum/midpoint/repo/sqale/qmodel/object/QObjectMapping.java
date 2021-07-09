@@ -60,7 +60,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     protected QObjectMapping(

@@ -9,8 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 import java.util.List;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMappi
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -29,9 +29,19 @@ public class QCaseMapping
         extends QAssignmentHolderMapping<CaseType, QCase, MCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
+    private static QCaseMapping instance;
 
-    public static QCaseMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QCaseMapping(repositoryContext);
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseMapping initCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QCaseMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseMapping getCaseMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -58,7 +68,7 @@ public class QCaseMapping
                 q -> q.targetRefRelationId));
 
         addContainerTableMapping(F_WORK_ITEM,
-                QCaseWorkItemMapping.init(repositoryContext),
+                QCaseWorkItemMapping.initCaseWorkItemMapping(repositoryContext),
                 joinOn((o, wi) -> o.oid.eq(wi.ownerOid)));
     }
 
@@ -106,7 +116,7 @@ public class QCaseMapping
 
         List<CaseWorkItemType> workItems = schemaObject.getWorkItem();
         if (!workItems.isEmpty()) {
-            workItems.forEach(t -> QCaseWorkItemMapping.get().insert(t, row, jdbcSession));
+            workItems.forEach(t -> QCaseWorkItemMapping.getCaseWorkItemMapping().insert(t, row, jdbcSession));
         }
     }
 }

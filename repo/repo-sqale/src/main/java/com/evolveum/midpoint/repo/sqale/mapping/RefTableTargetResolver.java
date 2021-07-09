@@ -18,12 +18,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 
 /**
  * Resolver that knows how to traverse from reference table to the reference target.
- * The resolver uses mapping lazily via supplier to avoid call cycles during mapping initialization,
- * otherwise it's functionally equivalent to {@link TableRelationResolver}.
+ * The resolver uses mapping lazily via supplier to avoid call cycles during mapping initialization.
  *
  * Ideal mapping type provided by the supplier is to be found in the schema inside
  * `<a:objectReferenceTargetType>` element for the reference, using more generic type means
@@ -59,8 +57,7 @@ public class RefTableTargetResolver<
         return new ResolutionResult<>(subcontext, subcontext.mapping());
         */
 
-        SqlQueryContext<?, TQ, TR> subcontext = context.subquery(
-                targetMappingSupplier.get());
+        SqlQueryContext<?, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
         SQLQuery<?> subquery = subcontext.sqlQuery();
         subquery.where(context.path().targetOid.eq(subcontext.path().oid));
 

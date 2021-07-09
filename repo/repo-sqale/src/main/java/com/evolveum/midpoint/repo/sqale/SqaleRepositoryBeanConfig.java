@@ -121,27 +121,30 @@ public class SqaleRepositoryBeanConfig {
                 repositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
         // Registered mapping needs repository context which needs registry. Now we can fill it.
-        // Mappings are ordered objects first to have parent mapping for containers initialized,
-        // e.g. assignment holder before assignment, then alphabetically inside the block.
-        // Mappings without schema type are at the end.
-        QAccessCertificationCampaignMapping accessCertificationCampaignMapping =
-                QAccessCertificationCampaignMapping.init(repositoryContext);
-        QAssignmentHolderMapping<?, ?, ?> assignmentHolderMapping =
-                QAssignmentHolderMapping.init(repositoryContext);
-        QCaseMapping caseMapping = QCaseMapping.init(repositoryContext);
-        QLookupTableMapping lookupTableMapping = QLookupTableMapping.init(repositoryContext);
-        QObjectMapping<?, ?, ?> objectMapping = QObjectMapping.initObjectMapping(repositoryContext);
+        // Mappings are ordered alphabetically here, mappings without schema type are at the end.
 
         mappingRegistry
                 .register(AbstractRoleType.COMPLEX_TYPE,
                         QAbstractRoleMapping.initAbstractRoleMapping(repositoryContext))
+                .register(AccessCertificationCampaignType.COMPLEX_TYPE,
+                        QAccessCertificationCampaignMapping
+                                .initAccessCertificationCampaignMapping(repositoryContext))
+                .register(AccessCertificationCaseType.COMPLEX_TYPE,
+                        QAccessCertificationCaseMapping
+                                .initAccessCertificationCaseMapping(repositoryContext))
                 .register(AccessCertificationDefinitionType.COMPLEX_TYPE,
                         QAccessCertificationDefinitionMapping.init(repositoryContext))
-                .register(AccessCertificationCampaignType.COMPLEX_TYPE,
-                        accessCertificationCampaignMapping)
-                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.initArchetypeMapping(repositoryContext))
-                .register(AssignmentHolderType.COMPLEX_TYPE, assignmentHolderMapping)
-                .register(CaseType.COMPLEX_TYPE, caseMapping)
+                .register(AccessCertificationWorkItemType.COMPLEX_TYPE,
+                        QAccessCertificationWorkItemMapping.init(repositoryContext))
+                .register(ArchetypeType.COMPLEX_TYPE,
+                        QArchetypeMapping.initArchetypeMapping(repositoryContext))
+                .register(AssignmentHolderType.COMPLEX_TYPE,
+                        QAssignmentHolderMapping.initAssignmentHolderMapping(repositoryContext))
+                .register(AssignmentType.COMPLEX_TYPE,
+                        QAssignmentMapping.initAssignmentMapping(repositoryContext))
+                .register(CaseType.COMPLEX_TYPE, QCaseMapping.initCaseMapping(repositoryContext))
+                .register(CaseWorkItemType.COMPLEX_TYPE,
+                        QCaseWorkItemMapping.initCaseWorkItemMapping(repositoryContext))
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.initFocusMapping(repositoryContext))
                 .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))
@@ -152,13 +155,18 @@ public class SqaleRepositoryBeanConfig {
                         QConnectorHostMapping.init(repositoryContext))
                 .register(GenericObjectType.COMPLEX_TYPE,
                         QGenericObjectMapping.init(repositoryContext))
-                .register(LookupTableType.COMPLEX_TYPE, lookupTableMapping)
+                .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.init(repositoryContext))
+                .register(LookupTableRowType.COMPLEX_TYPE,
+                        QLookupTableRowMapping.init(repositoryContext))
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.init(repositoryContext))
-                .register(ObjectType.COMPLEX_TYPE, objectMapping)
+                .register(ObjectType.COMPLEX_TYPE,
+                        QObjectMapping.initObjectMapping(repositoryContext))
                 .register(ObjectCollectionType.COMPLEX_TYPE,
                         QObjectCollectionMapping.init(repositoryContext))
                 .register(ObjectTemplateType.COMPLEX_TYPE,
                         QObjectTemplateMapping.initObjectTemplateMapping(repositoryContext))
+                .register(OperationExecutionType.COMPLEX_TYPE,
+                        QOperationExecutionMapping.init(repositoryContext))
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
@@ -168,39 +176,14 @@ public class SqaleRepositoryBeanConfig {
                         QSecurityPolicyMapping.init(repositoryContext))
                 .register(SequenceType.COMPLEX_TYPE, QSequenceMapping.init(repositoryContext))
                 .register(ServiceType.COMPLEX_TYPE, QServiceMapping.init(repositoryContext))
-                .register(ShadowType.COMPLEX_TYPE, QShadowMapping.initShadowMapping(repositoryContext))
+                .register(ShadowType.COMPLEX_TYPE,
+                        QShadowMapping.initShadowMapping(repositoryContext))
                 .register(SystemConfigurationType.COMPLEX_TYPE,
                         QSystemConfigurationMapping.init(repositoryContext))
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.init(repositoryContext))
+                .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.init(repositoryContext))
                 .register(UserType.COMPLEX_TYPE, QUserMapping.initUserMapping(repositoryContext))
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.init(repositoryContext))
-
-                // registering container mappings with parent table/mapping configuration
-                .register(AccessCertificationCaseType.COMPLEX_TYPE,
-                        QAccessCertificationCaseMapping.init(repositoryContext),
-                        accessCertificationCampaignMapping,
-                        (accs, acc) -> accs.ownerOid.eq(acc.oid))
-                .register(AccessCertificationWorkItemType.COMPLEX_TYPE,
-                        QAccessCertificationWorkItemMapping.init(repositoryContext),
-                        QAccessCertificationCaseMapping.get(),
-                        (acwi, accs) -> acwi.ownerOid.eq(accs.ownerOid)
-                                .and(acwi.accessCertCaseCid.eq(accs.cid)))
-                .register(AssignmentType.COMPLEX_TYPE,
-                        QAssignmentMapping.initAssignment(repositoryContext),
-                        // Adding and(a.ownerType.eq(ah.objectType) doesn't help the planner.
-                        assignmentHolderMapping, (a, ah) -> a.ownerOid.eq(ah.oid))
-                .register(CaseWorkItemType.COMPLEX_TYPE,
-                        QCaseWorkItemMapping.init(repositoryContext),
-                        caseMapping, (cswi, cs) -> cswi.ownerOid.eq(cs.oid))
-                .register(LookupTableRowType.COMPLEX_TYPE,
-                        QLookupTableRowMapping.init(repositoryContext),
-                        lookupTableMapping, (ltr, lt) -> ltr.ownerOid.eq(lt.oid))
-                .register(OperationExecutionType.COMPLEX_TYPE,
-                        QOperationExecutionMapping.init(repositoryContext),
-                        objectMapping, (opex, o) -> opex.ownerOid.eq(o.oid))
-                .register(TriggerType.COMPLEX_TYPE, QTriggerMapping.init(repositoryContext),
-                        objectMapping, (trg, o) -> trg.ownerOid.eq(o.oid))
-
                 .register(QContainerMapping.initContainerMapping(repositoryContext))
                 .register(QReferenceMapping.init(repositoryContext))
                 .seal();

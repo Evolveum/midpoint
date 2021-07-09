@@ -1293,7 +1293,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1326,7 +1326,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-3");
 
         and("column with subtypes is updated accordingly");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1359,7 +1359,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder("policy-situation-a", "policy-situation-z");
 
         and("column with subtypes is updated accordingly");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1391,7 +1391,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(userObject.getAssignment().get(0).getPolicySituation()).isNullOrEmpty();
 
         and("column with policy situations is set to null");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations).isNull();
     }
@@ -1918,7 +1918,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
@@ -1933,7 +1933,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("delta replacing single-value item inside assignment for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -2012,7 +2012,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
@@ -2038,7 +2038,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing item inside single assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         long assOrder49Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(49)).cid;
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -2082,7 +2082,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing multiple assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         long assOrder48Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(48)).cid;
         long assOrder50Cid = selectOne(a,
@@ -2169,7 +2169,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(2)
                 .anyMatch(aRow -> aRow.orderValue.equals(47))
@@ -2209,7 +2209,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
@@ -2248,7 +2248,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(2)
                 .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
@@ -2288,7 +2288,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
@@ -2370,7 +2370,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("case row is created");
-        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
         MAccessCertificationCase aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
         assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
@@ -2421,7 +2421,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("case row is created");
-        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
 
         List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
         assertThat(caseRows).hasSize(2);
@@ -2484,7 +2484,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("case row is created");
-        QAccessCertificationCase a = QAccessCertificationCaseMapping.get().defaultAlias();
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
 
         List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
         assertThat(caseRows).hasSize(2);
@@ -2543,7 +2543,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
     // endregion

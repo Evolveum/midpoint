@@ -17,12 +17,14 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -42,21 +44,29 @@ public class QAccessCertificationCaseMapping
 
     private static QAccessCertificationCaseMapping instance;
 
-    public static QAccessCertificationCaseMapping init(
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAccessCertificationCaseMapping initAccessCertificationCaseMapping(
             @NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
             instance = new QAccessCertificationCaseMapping(repositoryContext);
         }
-        return get();
+        return instance;
     }
 
-    public static QAccessCertificationCaseMapping get() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAccessCertificationCaseMapping getAccessCertificationCaseMapping() {
         return Objects.requireNonNull(instance);
     }
 
     private QAccessCertificationCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QAccessCertificationCase.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationCaseType.class, QAccessCertificationCase.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(
+                        QAccessCertificationCampaignMapping::getAccessCertificationCampaignMapping,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
