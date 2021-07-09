@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem;
 
+import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
 
 import java.util.Objects;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
@@ -71,6 +71,25 @@ public class QCaseWorkItemMapping
 
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
 
+    }
+
+    @Override
+    public CaseWorkItemType toSchemaObject(MCaseWorkItem row) {
+        CaseWorkItemType cwi = new CaseWorkItemType(prismContext())
+                .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
+                .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
+                .deadline(asXMLGregorianCalendar(row.deadline))
+                .originalAssigneeRef(objectReference(row.originalAssigneeRefTargetOid,
+                        row.originalAssigneeRefTargetType, row.originalAssigneeRefRelationId))
+                .performerRef(objectReference(row.performerRefTargetOid,
+                        row.performerRefTargetType, row.performerRefRelationId))
+                .stageNumber(row.stageNumber);
+
+        if (row.outcome != null) {
+            cwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
+        }
+
+        return cwi;
     }
 
     @Override

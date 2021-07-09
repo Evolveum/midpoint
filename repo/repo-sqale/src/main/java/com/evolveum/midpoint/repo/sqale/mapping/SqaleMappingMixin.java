@@ -16,11 +16,14 @@ import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -62,17 +65,22 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return nestedMapping;
     }
 
-    /** Defines reference mapping for both query and modifications. */
-    default SqaleMappingMixin<S, Q, R> addRefMapping(
-            @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
+    /** Defines multi-value reference mapping (refs in table) for both query and modifications. */
+    default <TQ extends QReference<TR, R>, TR extends MReference>
+    SqaleMappingMixin<S, Q, R> addRefMapping(
+            @NotNull QName itemName, @NotNull QReferenceMapping<TQ, TR, Q, R> referenceMapping) {
         Objects.requireNonNull(referenceMapping, "referenceMapping");
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
 
-        // TODO add relation mapping too for reaching to the reference target
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @.
+        addRelationResolver(itemName, new TableRelationResolver<>(
+                referenceMapping, referenceMapping.correlationPredicate()));
         return this;
     }
+
+    // TODO addRefMapping for single-value refs using LEFT JOIN for dereferencing
 
     /**
      * Defines table mapping for multi-value container owned by an object or another container.

@@ -22,8 +22,19 @@ public class QUserMapping
 
     public static final String DEFAULT_ALIAS_NAME = "u";
 
-    public static QUserMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QUserMapping(repositoryContext);
+    private static QUserMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QUserMapping initUserMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QUserMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QUserMapping getUserMapping() {
+        return instance;
     }
 
     private QUserMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -94,6 +94,11 @@ public abstract class PageAbstractSystemConfiguration extends PageAdminObjectDet
     }
 
     @Override
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel<SystemConfigurationType> summaryPanel) {
+        summaryPanel.setVisible(true);
+    }
+
+    @Override
     protected AbstractObjectMainPanel<SystemConfigurationType> createMainPanel(String id) {
         return new AbstractObjectMainPanel<>(id, getObjectModel(), this) {
 

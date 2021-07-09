@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system/adminGuiConfig", matchUrlForSecurity = "/admin/config/system/adminGuiConfig"),
+                @Url(mountUrl = "/admin/config/system/basic", matchUrlForSecurity = "/admin/config/system/basic"),
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

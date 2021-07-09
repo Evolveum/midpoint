@@ -26,8 +26,19 @@ public class QShadowMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sh";
 
-    public static QShadowMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QShadowMapping(repositoryContext);
+    private static QShadowMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QShadowMapping initShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QShadowMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QShadowMapping getShadowMapping() {
+        return instance;
     }
 
     private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {

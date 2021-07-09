@@ -16,7 +16,8 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that knows how to traverse to the specified target query type (can be JOIN or EXISTS).
+ * Resolver that knows how to traverse to the specified target query type.
+ * Traversal can be LEFT JOIN or EXISTS which is the default for multi-value table stored items.
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}
@@ -47,7 +48,7 @@ public class TableRelationResolver<
      */
     @Override
     public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMapping.queryType());
+        SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMapping);
         SQLQuery<?> subquery = subcontext.sqlQuery();
         subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 

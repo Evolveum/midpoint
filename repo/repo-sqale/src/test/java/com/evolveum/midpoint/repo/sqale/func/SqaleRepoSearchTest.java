@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
@@ -132,6 +133,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 null, result);
         orgXOid = repositoryService.addObject(
                 new OrgType(prismContext).name("org-X")
+                        .displayOrder(30)
                         .parentOrgRef(org12Oid, OrgType.COMPLEX_TYPE)
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
@@ -598,28 +600,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(expectedCaseOids);
     }
-
-    // TODO: search cert workitems
-    // TODO: setup: cert workitems in two campaigns that have the same value, make sure campaign and case are properly reflected in the query.
-
     // endregion
 
     // region org filter
     @Test
     public void test200QueryForRootOrganizations() throws SchemaException {
-        when("searching orgs with is-root filter");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .isRoot()
-                        .build(),
-                operationResult);
-
-        then("only organizations without any parents are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org1Oid, org2Oid);
+        searchObjectTest("searching orgs with is-root filter", OrgType.class,
+                f -> f.isRoot(),
+                org1Oid, org2Oid);
     }
 
     @Test
@@ -627,139 +615,61 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // Currently this is "undefined", this does not work in old repo, in new repo it
         // checks parent-org refs (not closure). Prism does not complain either.
         // First we should fix it on Prism level first, then add type check to OrgFilterProcessor.
-        when("searching user with is-root filter");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .isRoot()
-                        .build(),
-                operationResult);
-
-        then("only users without any organizations are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid);
+        searchObjectTest("searching user with is-root filter", UserType.class,
+                f -> f.isRoot(),
+                user1Oid);
     }
 
     @Test
     public void test210QueryForDirectChildrenOrgs() throws SchemaException {
-        when("searching orgs just under another org");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .isDirectChildOf(org1Oid)
-                        .build(),
-                operationResult);
-
-        then("only orgs with direct parent-org ref to another org are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org11Oid, org12Oid);
+        searchObjectTest("just under another org", OrgType.class,
+                f -> f.isDirectChildOf(org1Oid),
+                org11Oid, org12Oid);
     }
 
     @Test
     public void test211QueryForDirectChildrenOfAnyType() throws SchemaException {
-        when("searching objects just under an org");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .isDirectChildOf(org11Oid)
-                        .build(),
-                operationResult);
-
-        then("only objects (of any type) with direct parent-org ref to another org are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org111Oid, org112Oid, user2Oid);
+        searchObjectTest("just under an org", ObjectType.class,
+                f -> f.isDirectChildOf(org11Oid),
+                org111Oid, org112Oid, user2Oid);
     }
 
     @Test
     public void test212QueryForDirectChildrenOfAnyTypeWithRelation() throws SchemaException {
-        when("searching objects just under an org with specific relation");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .isDirectChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, relation1))
-                        .build(),
-                operationResult);
-
-        then("only objects with direct parent-org ref with specified relation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org112Oid, user2Oid);
+        searchObjectTest("just under an org with specific relation", ObjectType.class,
+                f -> f.isDirectChildOf(ref(org11Oid, OrgType.COMPLEX_TYPE, relation1)),
+                org112Oid, user2Oid);
     }
 
     @Test
     public void test215QueryForChildrenOfAnyType() throws SchemaException {
-        when("searching objects anywhere under an org");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .isChildOf(org2Oid)
-                        .build(),
-                operationResult);
-
-        then("all objects under the specified organization are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(4)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org21Oid, orgXOid, user2Oid, user3Oid);
+        searchObjectTest("anywhere under an org", ObjectType.class,
+                f -> f.isChildOf(org2Oid),
+                org21Oid, orgXOid, user2Oid, user3Oid);
     }
 
     @Test
     public void test216QueryForChildrenOfAnyTypeWithRelation() throws SchemaException {
-        when("searching objects anywhere under an org with specific relation");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .isChildOf(ref(org2Oid, OrgType.COMPLEX_TYPE, relation1))
-                        .build(),
-                operationResult);
-
-        then("all objects under the specified organization with specified relation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user3Oid);
+        searchObjectTest("anywhere under an org with specific relation",
+                ObjectType.class,
+                f -> f.isChildOf(ref(org2Oid, OrgType.COMPLEX_TYPE, relation1)),
+                user3Oid);
         // user-2 has another parent link with relation1, but not under org-2
     }
 
     @Test
     public void test220QueryForParents() throws SchemaException {
-        when("searching parents of an org");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .isParentOf(org112Oid)
-                        .build(),
-                operationResult);
-
-        then("all ancestors of the specified organization are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org11Oid, org1Oid);
+        searchObjectTest("being parents of an org", OrgType.class,
+                f -> f.isParentOf(org112Oid),
+                org11Oid, org1Oid);
     }
 
     @Test
     public void test221QueryForParentsWithOrgSupertype() throws SchemaException {
-        when("searching parents of an org using more abstract type");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(ObjectType.class)
-                        .isParentOf(org112Oid)
-                        .build(),
-                operationResult);
-
-        then("returns orgs but as supertype  instances");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org11Oid, org1Oid);
+        searchObjectTest("being parents of an org using more abstract type", ObjectType.class,
+                f -> f.isParentOf(org112Oid),
+                org11Oid, org1Oid);
+        // returns orgs but as supertype instances
     }
 
     @Test
@@ -779,37 +689,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test223QueryForParentIgnoresRelation() throws SchemaException {
-        when("searching parents of an org with specified relation");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .isParentOf(ref(org112Oid, OrgType.COMPLEX_TYPE, relation2))
-                        .build(),
-                operationResult);
-
-        then("all ancestors are returned, ignoring provided relation");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org11Oid, org1Oid);
+        searchObjectTest("being parents of an org with specified relation", OrgType.class,
+                f -> f.isParentOf(ref(org112Oid, OrgType.COMPLEX_TYPE, relation2)),
+                org11Oid, org1Oid);
     }
 
     @Test
     public void test230QueryForChildrenOfAnyTypeWithAnotherCondition() throws SchemaException {
-        when("searching objects anywhere under an org");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<FocusType> result = searchObjects(FocusType.class,
-                prismContext.queryFor(FocusType.class)
-                        .isChildOf(org2Oid)
-                        .and().item(FocusType.F_COST_CENTER).startsWith("5")
-                        .build(),
-                operationResult);
-
-        then("all objects under the specified organization matching other conditions are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org21Oid, user3Oid);
+        searchObjectTest("anywhere under an org", FocusType.class,
+                f -> f.isChildOf(org2Oid)
+                        .and().item(FocusType.F_COST_CENTER).startsWith("5"),
+                org21Oid, user3Oid);
     }
     // endregion
 
@@ -925,6 +815,27 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test323ActivationOrAssignmentActivationBeforeDate() throws SchemaException {
+        // this is close to real-life validity query
+        searchUsersTest("having activation/valid* or assignment/activation/valid* before",
+                f -> f.item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
+                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .or()
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
+                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .or()
+                        .exists(UserType.F_ASSIGNMENT)
+                        .block() // block necessary, otherwise the second item goes from User
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM)
+                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .or()
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)
+                        .le(createXMLGregorianCalendar("2022-01-01T00:00:00Z"))
+                        .endBlock(),
+                user1Oid, user2Oid, user3Oid);
+    }
+
+    @Test
     public void test325ExistsFilterWithSizeColumn() throws SchemaException {
         searchObjectTest("having pending operations", ShadowType.class,
                 f -> f.exists(ShadowType.F_PENDING_OPERATION),
@@ -933,9 +844,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
 
 /* TODO EXISTS tests
-1. @Count property => pendingOperationCount > 0; see: ClassDefinitionParser#parseMethod() + getJaxbName()
-EXISTS(pendingOperation, null)
-
 2. multi-value container stored in table:
 EXISTS(operationExecution, AND(REF: taskRef, PRV(oid=task-oid-2, targetType=null); EQUAL: status, PPV(OperationResultStatusType:SUCCESS)))
 
@@ -965,70 +873,48 @@ OR(
       EQUAL: closeTimestamp,,
       REF: assigneeRef, PRV(oid=af69e388-88bd-43f9-9259-73676124c196, targetType=null), PRV(oid=c0c010c0-d34d-b33f-f00d-111111111111, targetType=null))))
 
-OR(
-  NONE,
-  LESS-OR-EQUAL: activation/validFrom,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
-  LESS-OR-EQUAL: activation/validTo,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
-  EXISTS(assignment,
-    OR(
-      LESS-OR-EQUAL: activation/validFrom,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00),
-      LESS-OR-EQUAL: activation/validTo,PPV(XMLGregorianCalendarImpl:2021-05-21T15:44:41.955+02:00))))
-
-8. AND(2x EXISTS with multiple ref values) - why are both exists branches the same?
-main >>> Q{
-AND(
-  EXISTS(assignment,
-    REF: targetRef,
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}default),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}manager),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}approver),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}owner));
-  EXISTS(assignment,
-    REF: targetRef,
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}default),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}manager),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}approver),
-      PRV(oid=4076afcc-4075-4f18-b596-edb71dbf72a9, targetType={.../common/common-3}OrgType, targetName=A-newOrg, relation={.../common/org-3}owner)))
-, null paging}
 */
     // endregion
 
     // region refs and dereferencing
     @Test
     public void test400SearchObjectHavingSpecifiedRef() throws SchemaException {
-        when("searching users by parent org ref (one of multi-value)");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(UserType.F_PARENT_ORG_REF)
-                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY))
-                        .build(),
-                operationResult);
-
-        then("the users having parent org ref with specified OID are returned");
-        assertThat(result).hasSize(1)
-                .anyMatch(o -> o.getOid().equals(user2Oid));
+        searchUsersTest("having parent org ref (one of multi-value)",
+                f -> f.item(UserType.F_PARENT_ORG_REF)
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
+                user2Oid);
     }
 
     @Test
     public void test401SearchObjectNotHavingSpecifiedRef() throws SchemaException {
-        when("searching users not having specified value of parent org ref");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .not()
+        searchUsersTest("not having specified value of parent org ref",
+                f -> f.not()
                         .item(UserType.F_PARENT_ORG_REF)
-                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY))
-                        .build(),
-                operationResult);
+                        .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
+                user1Oid, user3Oid, user4Oid);
+    }
 
-        then("the users having parent org ref with specified OID are returned");
-        assertThat(result).hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
+    @Test
+    public void test410SearchObjectByParentOrgName() throws SchemaException {
+        // this is multi-value ref in separate table
+        searchUsersTest("having parent org with specified name",
+                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_NAME)
+                        .eq(new PolyString("org-X")),
+                user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test411SearchObjectByParentOrgDisplayOrder() throws SchemaException {
+        // this tests that implicit target type specific items can be queried without Type filter
+        searchUsersTest("having parent org by OrgType specific item",
+                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_DISPLAY_ORDER)
+                        .eq(30),
+                user2Oid, user3Oid);
     }
 
     // TODO tests with ref/@/...
+    // query for AccessCertificationCaseType container with order by objectRef/@/name
+    // PERHAPS: single refs can be LEFT JOINed to support ordering?
     // endregion
 
     // region extension queries
@@ -1056,20 +942,11 @@ AND(
 
     @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
     public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
-        when("searching for users with extension string item with any value ordered by that item");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .not()
+        searchUsersTest("with extension string item with any value ordered by that item",
+                f -> f.not()
                         .item(UserType.F_EXTENSION, new QName("string")).isNull()
-                        .asc(UserType.F_EXTENSION, new QName("string"))
-                        .build(),
-                operationResult);
-
-        then("users with extension item are returned, ordered by the item");
-        assertThat(result)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user2Oid, user1Oid);
+                        .asc(UserType.F_EXTENSION, new QName("string")),
+                user2Oid, user1Oid);
     }
 
     @Test
@@ -1624,13 +1501,31 @@ AND(
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
                 "by owner OID exists", AccessCertificationCaseType.class,
                 f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
-        // The resulting query only uses IDs that are available directly in the container table,
-        // but our query uses exists which can be used for anything... we don't optimize this.
         assertThat(result)
                 .extracting(a -> a.getStageNumber())
                 .containsExactlyInAnyOrder(2);
     }
 
+    @Test
+    public void test605SearchCaseWorkItemContainer() throws SchemaException {
+        SearchResultList<CaseWorkItemType> result = searchContainerTest(
+                "by owner OID exists", CaseWorkItemType.class,
+                f -> f.item(CaseWorkItemType.F_STAGE_NUMBER).eq(1));
+        assertThat(result)
+                .singleElement()
+                .matches(wi -> wi.getStageNumber().equals(1))
+                .matches(wi -> wi.getCreateTimestamp().equals(asXMLGregorianCalendar(10000L)))
+                .matches(wi -> wi.getCloseTimestamp().equals(asXMLGregorianCalendar(10100L)))
+                .matches(wi -> wi.getDeadline().equals(asXMLGregorianCalendar(10200L)))
+                .matches(wi -> wi.getOriginalAssigneeRef().getOid().equals(user3Oid))
+                .matches(wi -> wi.getOriginalAssigneeRef().getType().equals(UserType.COMPLEX_TYPE))
+                .matches(wi -> wi.getOriginalAssigneeRef().getRelation().equals(SchemaConstants.ORG_DEFAULT))
+                .matches(wi -> wi.getPerformerRef().getOid().equals(user3Oid))
+                .matches(wi -> wi.getPerformerRef().getType().equals(UserType.COMPLEX_TYPE))
+                .matches(wi -> wi.getPerformerRef().getRelation().equals(SchemaConstants.ORG_DEFAULT))
+                .matches(wi -> wi.getOutput().getOutcome().equals("OUTCOME one"));
+        // multi-value refs are not fetched yet
+    }
     // endregion
 
     // region special cases
