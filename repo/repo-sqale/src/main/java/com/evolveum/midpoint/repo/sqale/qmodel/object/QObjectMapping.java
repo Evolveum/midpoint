@@ -48,7 +48,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     private static QObjectMapping<?, ?, ?> instance;
 
     // Explanation in class Javadoc for SqaleTableMapping
-    public static QObjectMapping<?, ?, ?> initObject(@NotNull SqaleRepoContext repositoryContext) {
+    public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
             instance = new QObjectMapping<>(
                     QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
@@ -59,7 +59,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
     // Explanation in class Javadoc for SqaleTableMapping
-    public static QObjectMapping<?, ?, ?> getObject() {
+    public static QObjectMapping<?, ?, ?> getObjectMapping() {
         return instance;
     }
 

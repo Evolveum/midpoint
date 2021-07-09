@@ -130,7 +130,7 @@ public class SqaleRepositoryBeanConfig {
                 QAssignmentHolderMapping.init(repositoryContext);
         QCaseMapping caseMapping = QCaseMapping.init(repositoryContext);
         QLookupTableMapping lookupTableMapping = QLookupTableMapping.init(repositoryContext);
-        QObjectMapping<?, ?, ?> objectMapping = QObjectMapping.initObject(repositoryContext);
+        QObjectMapping<?, ?, ?> objectMapping = QObjectMapping.initObjectMapping(repositoryContext);
 
         mappingRegistry
                 .register(AbstractRoleType.COMPLEX_TYPE,

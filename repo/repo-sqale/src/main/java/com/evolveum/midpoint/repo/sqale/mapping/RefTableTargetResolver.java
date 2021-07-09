@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,21 +41,28 @@ public class RefTableTargetResolver<
         implements ItemRelationResolver<Q, R, TQ, TR> {
 
     private final Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier;
-    private final BiFunction<Q, TQ, Predicate> correlationPredicate;
 
     public RefTableTargetResolver(
-            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier,
-            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
         this.targetMappingSupplier = targetMappingSupplier;
-        this.correlationPredicate = correlationPredicate;
+        // correlation predicate is always the same, so it's hard-coded in resolve()
     }
 
     @Override
     public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
+        /*
+        Technically JOIN seems nicer as we are already inside EXISTS subquery for the reference
+        table, but the EXPLAIN plan doesn't seem to be any better, so we leave nested EXISTS here.
+        This may be revisited with big volume DB, but this is probably non-critical overall.
+        SqlQueryContext<?, TQ, TR> subcontext = context.leftJoin(
+                targetMappingSupplier.get(), context.path().targetOid.eq(subcontext.path().oid));
+        return new ResolutionResult<>(subcontext, subcontext.mapping());
+        */
+
         SqlQueryContext<?, TQ, TR> subcontext = context.subquery(
                 targetMappingSupplier.get());
         SQLQuery<?> subquery = subcontext.sqlQuery();
-        subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
+        subquery.where(context.path().targetOid.eq(subcontext.path().oid));
 
         return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
     }
