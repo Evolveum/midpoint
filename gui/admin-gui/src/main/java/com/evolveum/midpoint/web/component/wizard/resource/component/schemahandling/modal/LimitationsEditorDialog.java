@@ -272,36 +272,26 @@ public class LimitationsEditorDialog extends ModalWindow {
         body.add(modify);
 
         TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
-                createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+                createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         minOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(minOccurs);
 
         TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
-                createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+                createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         maxOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(maxOccurs);
 
         CheckFormGroup ignore = new CheckFormGroup(ID_IGNORE, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"),
-                createStringResource("LimitationsEditorDialog.label.ignore"), "SchemaHandlingStep.limitations.tooltip.ignore", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+                createStringResource("LimitationsEditorDialog.label.ignore"), "SchemaHandlingStep.limitations.tooltip.ignore", ID_LABEL_SIZE, ID_INPUT_SIZE);
         ignore.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(ignore);
 
         Label layersTooltip = new Label(ID_T_LAYERS);
-        layersTooltip.add(new InfoTooltipBehavior(true) {
-            @Override
-            public String getModalContainer(Component component) {
-                return body.getMarkupId();
-            }
-        });
+        layersTooltip.add(new InfoTooltipBehavior());
         body.add(layersTooltip);
 
         Label propertyTooltip = new Label(ID_T_PROPERTY);
-        propertyTooltip.add(new InfoTooltipBehavior(true) {
-            @Override
-            public String getModalContainer(Component component) {
-                return body.getMarkupId();
-            }
-        });
+        propertyTooltip.add(new InfoTooltipBehavior());
         body.add(propertyTooltip);
     }
 

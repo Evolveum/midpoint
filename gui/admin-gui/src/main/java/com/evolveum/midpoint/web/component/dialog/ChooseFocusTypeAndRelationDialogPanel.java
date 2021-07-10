@@ -69,7 +69,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
         DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
-                "chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", true);
+                "chooseFocusTypeAndRelationDialogPanel.tooltip.type", "col-md-4", "col-md-8", true);
         type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         type.setOutputMarkupId(true);
         type.add(new VisibleBehaviour(() -> isFocusTypeSelectorVisible()));

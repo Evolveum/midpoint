@@ -387,3 +387,19 @@ function showPassword(iconElement) {
         }
     }
 })(jQuery);
+
+jQuery(function ($) {
+    $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e, t) {
+        if (typeof $(this).tooltip === "function") {
+            var wl = $.fn.tooltip.Constructor.DEFAULTS.whiteList;
+            wl['xsd:documentation'] = [];
+            var parent = $(this).closest('.wicket-modal');
+            var container = "body";
+            if (parent.length != 0) {
+                container = '#' + parent.attr('id');
+            }
+            $(this).tooltip({html: true, whiteList: wl, 'container': container});
+            $(this).tooltip("show");
+            };
+    });
+});

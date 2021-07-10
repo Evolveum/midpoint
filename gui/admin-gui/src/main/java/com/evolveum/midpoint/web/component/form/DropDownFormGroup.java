@@ -44,28 +44,28 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
-        this(id, value, choices, renderer, label, Model.of(), false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+        this(id, value, choices, renderer, label, Model.of(), labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, Model.of(), false, labelCssClass, textCssClass, required, false);
+        this(id, value, choices, renderer, label, Model.of(), labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-            IModel<String> label, String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, Model.of(tooltipKey), isTooltipInModal, labelCssClass, textCssClass, required, false);
+            IModel<String> label, String tooltipKey, String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, choices, renderer, label, Model.of(tooltipKey), labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, IModel<String> tooltipModel,
-            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+            String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(choices, renderer, label, tooltipModel, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+        initLayout(choices, renderer, label, tooltipModel, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final IModel<String> tooltipModel,
-            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
+            String labelCssClass, String textCssClass, final boolean required,
             boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.add(new VisibleBehaviour(() -> label != null && StringUtils.isNotEmpty(label.getObject())));
@@ -84,7 +84,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", tooltipModel));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+        tooltipLabel.add(new InfoTooltipBehavior());
         tooltipLabel.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
