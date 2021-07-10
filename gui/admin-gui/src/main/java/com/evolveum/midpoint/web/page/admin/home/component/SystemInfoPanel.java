@@ -42,6 +42,7 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
     private static final String ID_HEAP_MEMORY = "heapMemory";
     private static final String ID_NON_HEAP_MEMORY = "nonHeapMemory";
     private static final String ID_THREADS = "threads";
+    private static final String ID_DB_POOL = "dbPool";
     private static final String ID_START_TIME = "startTime";
     private static final String ID_UPTIME = "uptime";
 
@@ -70,10 +71,15 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
                 } catch (Exception ex) {
                     LOGGER.debug("Couldn't load jmx data", ex);
                 }
+                fillDBPool(dto);
 
                 return dto;
             }
         };
+    }
+
+    private void fillDBPool(SystemInfoDto dto) {
+        dto.dbPool = getPageBase().getTaskManager().getDBPoolStats();
     }
 
     private void fillUptime(SystemInfoDto dto) throws Exception {
@@ -147,6 +153,9 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
 
         Label threads = new Label(ID_THREADS, createThreadModel());
         table.add(threads);
+
+        Label dbPool = new Label(ID_DB_POOL, createDBPoolModel());
+        table.add(dbPool);
 
         DateLabelComponent startTime = new DateLabelComponent(ID_START_TIME, createStartTimeModel(),
                 WebComponentUtil.getLongDateTimeFormat(SystemInfoPanel.this.getPageBase()));
@@ -231,6 +240,28 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
         };
     }
 
+    private IModel<String> createDBPoolModel() {
+        return () -> {
+            SystemInfoDto dto = getModelObject();
+
+            if (dto == null) {
+                return null;
+            }
+
+            if (dto.dbPool == null)
+                return "N/A";
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(dto.dbPool[0]).append(" / ");
+            sb.append(dto.dbPool[1]).append(" / ");
+            sb.append(dto.dbPool[2]).append(" / ");
+            sb.append(dto.dbPool[3]).append(" / ");
+            sb.append(dto.dbPool[4]);
+
+            return sb.toString();
+        };
+    }
+
     static class SystemInfoDto implements Serializable {
 
         static final String F_CPU_USAGE = "cpuUsage";
@@ -244,6 +275,8 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
         Long[] nonHeapMemory = new Long[3];
         //ThreadCount, PeakThreadCount, TotalStartedThreadCount
         Number[] threads = new Number[3];
+        //Hikari pool connections active, idle, waiting, total, max-size"
+        Number[] dbPool = new Number[5];
 
         long starttime = 0;
         long uptime = 0;

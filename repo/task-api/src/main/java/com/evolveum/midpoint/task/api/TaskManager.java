@@ -736,5 +736,11 @@ public interface TaskManager {
      */
     void waitForTransientChildrenAndCloseThem(RunningTask task, OperationResult result);
 
+    /**
+     * Returns hikari pool statistics (active, idle, waiting, total, max number of DB connections)
+     * Return null if pool is unavailable.
+     */
+    Number[] getDBPoolStats();
+
     //endregion
 }
