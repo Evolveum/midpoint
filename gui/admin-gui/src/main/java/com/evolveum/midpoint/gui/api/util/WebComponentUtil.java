@@ -4644,6 +4644,18 @@ public final class WebComponentUtil {
         pageBase.showResult(result);
     }
 
+    public static OperationResultStatusPresentationProperties caseOutcomeUriToIcon(String outcome) {
+        if (outcome == null) {
+            return OperationResultStatusPresentationProperties.IN_PROGRESS;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
+            return OperationResultStatusPresentationProperties.SUCCESS;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
+            return OperationResultStatusPresentationProperties.FATAL_ERROR;
+        } else {
+            return OperationResultStatusPresentationProperties.UNKNOWN;
+        }
+    }
+
     public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext) {
         if (sortParam != null && sortParam.getProperty() != null) {
             OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
