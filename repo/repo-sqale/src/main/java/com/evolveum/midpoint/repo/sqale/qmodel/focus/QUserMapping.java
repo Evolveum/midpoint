@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -34,7 +36,7 @@ public class QUserMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QUserMapping getUserMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QUserMapping(@NotNull SqaleRepoContext repositoryContext) {

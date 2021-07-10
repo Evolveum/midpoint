@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
@@ -17,7 +18,9 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Resolver that knows how to traverse to the specified target query type.
- * Traversal can be LEFT JOIN or EXISTS which is the default for multi-value table stored items.
+ * By default EXISTS subquery is used which is better for multi-value table stored items
+ * to avoid result multiplication.
+ * The resolver supports mapping supplier to avoid call cycles during mapping initialization.
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}
@@ -30,13 +33,20 @@ public class TableRelationResolver<
         TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
         implements ItemRelationResolver<Q, R, TQ, TR> {
 
-    protected final QueryTableMapping<TS, TQ, TR> targetMapping;
+    protected final Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier;
     protected final BiFunction<Q, TQ, Predicate> correlationPredicate;
 
     public TableRelationResolver(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
             @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
-        this.targetMapping = targetMapping;
+        this.targetMappingSupplier = () -> targetMapping;
+        this.correlationPredicate = correlationPredicate;
+    }
+
+    public TableRelationResolver(
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier,
+            @NotNull BiFunction<Q, TQ, Predicate> correlationPredicate) {
+        this.targetMappingSupplier = targetMappingSupplier;
         this.correlationPredicate = correlationPredicate;
     }
 
@@ -48,7 +58,7 @@ public class TableRelationResolver<
      */
     @Override
     public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMapping);
+        SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
         SQLQuery<?> subquery = subcontext.sqlQuery();
         subquery.where(correlationPredicate.apply(context.path(), subcontext.path()));
 

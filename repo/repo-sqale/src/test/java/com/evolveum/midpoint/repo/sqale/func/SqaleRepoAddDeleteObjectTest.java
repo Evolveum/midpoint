@@ -234,7 +234,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(count(QUser.class)).isEqualTo(baseCount + 1);
 
         UUID userOid = UUID.fromString(user1.getOid());
-        QAssignment<?> qa = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> qa = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> assRows = select(qa, qa.ownerOid.eq(userOid));
         assertThat(assRows).hasSize(1)
                 // construction/resourceRef is set
@@ -861,7 +861,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
         assertThat(returnedOid).isEqualTo(object.getOid());
 
-        QAssignment<MUser> a = QAssignmentMapping.<MUser>getAssignment().defaultAlias();
+        QAssignment<MUser> a = QAssignmentMapping.<MUser>getAssignmentMapping().defaultAlias();
         MAssignment row = selectOne(a, a.ownerOid.eq(UUID.fromString(returnedOid)));
         assertThat(row.ext).isNotNull();
         Map<String, Object> extMap = Jsonb.toMap(row.ext);
@@ -1132,7 +1132,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         then("it is stored and rows to child tables are inserted");
         assertThatOperationResult(result).isSuccess();
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(object.getOid())));
         assertThat(aRows).hasSize(2)
                 .allMatch(ar -> ar.orderValue != null);
@@ -1548,7 +1548,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.requestable).isFalse();
         assertThat(row.riskLevel).isEqualTo("extremely-high");
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(archetypeOid))).hasSize(2)
                 .anyMatch(ar -> ar.orderValue.equals(2))
                 .anyMatch(ar -> ar.orderValue.equals(3))

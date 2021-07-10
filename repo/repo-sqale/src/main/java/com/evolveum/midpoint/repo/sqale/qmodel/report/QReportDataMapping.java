@@ -31,10 +31,11 @@ public class QReportDataMapping
         super(QReportData.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ReportDataType.class, QReportData.class, repositoryContext);
 
-        addItemMapping(F_REPORT_REF, refMapper(
+        addRefMapping(F_REPORT_REF,
                 q -> q.reportRefTargetOid,
                 q -> q.reportRefTargetType,
-                q -> q.reportRefRelationId));
+                q -> q.reportRefRelationId,
+                QReportMapping::get);
     }
 
     @Override

@@ -13,9 +13,12 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -46,21 +49,31 @@ public class QAccessCertificationWorkItemMapping
         super(QAccessCertificationWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AccessCertificationWorkItemType.class, QAccessCertificationWorkItem.class, repositoryContext);
 
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(
+                        QAccessCertificationCaseMapping::getAccessCertificationCaseMapping,
+                        (q, p) -> q.ownerOid.eq(p.ownerOid)
+                                .and(q.accessCertCaseCid.eq(p.cid))));
+
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         // TODO: iteration -> campaignIteration
         addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
         addNestedMapping(F_OUTPUT, AbstractWorkItemOutputType.class)
                 .addItemMapping(AbstractWorkItemOutputType.F_OUTCOME, stringMapper(q -> q.outcome));
         addItemMapping(F_OUTPUT_CHANGE_TIMESTAMP, timestampMapper(q -> q.outputChangeTimestamp));
-        addItemMapping(F_PERFORMER_REF, refMapper(
+        addRefMapping(F_PERFORMER_REF,
                 q -> q.performerRefTargetOid,
                 q -> q.performerRefTargetType,
-                q -> q.performerRefRelationId));
+                q -> q.performerRefRelationId,
+                QUserMapping::getUserMapping);
 
         addRefMapping(F_ASSIGNEE_REF,
-                QAccessCertificationWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));
+                QAccessCertificationWorkItemReferenceMapping
+                        .initForCaseWorkItemAssignee(repositoryContext));
         addRefMapping(F_CANDIDATE_REF,
-                QAccessCertificationWorkItemReferenceMapping.initForCaseWorkItemCandidate(repositoryContext));
+                QAccessCertificationWorkItemReferenceMapping
+                        .initForCaseWorkItemCandidate(repositoryContext));
 
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
 

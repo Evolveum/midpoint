@@ -13,10 +13,14 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
+import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
@@ -31,15 +35,17 @@ public class QCaseWorkItemMapping
 
     private static QCaseWorkItemMapping instance;
 
-    public static QCaseWorkItemMapping init(
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseWorkItemMapping initCaseWorkItemMapping(
             @NotNull SqaleRepoContext repositoryContext) {
         if (instance == null) {
             instance = new QCaseWorkItemMapping(repositoryContext);
         }
-        return get();
+        return instance;
     }
 
-    public static QCaseWorkItemMapping get() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseWorkItemMapping getCaseWorkItemMapping() {
         return Objects.requireNonNull(instance);
     }
 
@@ -47,22 +53,30 @@ public class QCaseWorkItemMapping
         super(QCaseWorkItem.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 CaseWorkItemType.class, QCaseWorkItem.class, repositoryContext);
 
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(
+                        QCaseMapping::getCaseMapping,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
+
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
         addItemMapping(F_CREATE_TIMESTAMP, timestampMapper(q -> q.createTimestamp));
         addItemMapping(F_DEADLINE, timestampMapper(q -> q.deadline));
 
-        addItemMapping(F_ORIGINAL_ASSIGNEE_REF, refMapper(
+        addRefMapping(F_ORIGINAL_ASSIGNEE_REF,
                 q -> q.originalAssigneeRefTargetOid,
                 q -> q.originalAssigneeRefTargetType,
-                q -> q.originalAssigneeRefRelationId));
+                q -> q.originalAssigneeRefRelationId,
+                QUserMapping::getUserMapping);
 
         addNestedMapping(F_OUTPUT, AbstractWorkItemOutputType.class)
                 .addItemMapping(AbstractWorkItemOutputType.F_OUTCOME, stringMapper(q -> q.outcome));
 
-        addItemMapping(F_PERFORMER_REF, refMapper(
+        addRefMapping(F_PERFORMER_REF,
                 q -> q.performerRefTargetOid,
                 q -> q.performerRefTargetType,
-                q -> q.performerRefRelationId));
+                q -> q.performerRefRelationId,
+                QUserMapping::getUserMapping);
 
         addRefMapping(F_ASSIGNEE_REF,
                 QCaseWorkItemReferenceMapping.initForCaseWorkItemAssignee(repositoryContext));

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QFocusMapping<?, ?, ?> getFocusMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     protected QFocusMapping(

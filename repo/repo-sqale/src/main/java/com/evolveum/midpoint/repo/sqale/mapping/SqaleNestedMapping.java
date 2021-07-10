@@ -6,15 +6,25 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Sqale implementation for nested mapping with support for sqale specific types.
@@ -27,7 +37,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelationalPathBase<R>, R>
+public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryModelMapping<S, Q, R>
         implements SqaleMappingMixin<S, Q, R> {
 
@@ -39,6 +49,25 @@ public class SqaleNestedMapping<S extends Containerable, Q extends FlexibleRelat
     public SqaleNestedMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName, @NotNull ItemSqlMapper<Q, R> itemMapper) {
         super.addItemMapping(itemName, itemMapper);
+        return this;
+    }
+
+    @Override
+    public <TQ extends QReference<TR, R>, TR extends MReference> SqaleNestedMapping<S, Q, R>
+    addRefMapping(@NotNull QName itemName, @NotNull QReferenceMapping<TQ, TR, Q, R> referenceMapping) {
+        SqaleMappingMixin.super.addRefMapping(itemName, referenceMapping);
+        return this;
+    }
+
+    @Override
+    public <TS, TQ extends QObject<TR>, TR extends MObject> SqaleNestedMapping<S, Q, R> addRefMapping(
+            @NotNull QName itemName,
+            @NotNull Function<Q, UuidPath> rootToOidPath,
+            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
+        SqaleMappingMixin.super.addRefMapping(itemName,
+                rootToOidPath, rootToTypePath, rootToRelationIdPath, targetMappingSupplier);
         return this;
     }
 }

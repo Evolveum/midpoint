@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -31,7 +33,7 @@ public class QArchetypeMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QArchetypeMapping getArchetypeMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QArchetypeMapping(@NotNull SqaleRepoContext repositoryContext) {

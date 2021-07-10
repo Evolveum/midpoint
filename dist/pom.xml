@@ -61,7 +61,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.prism.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>4.4-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>

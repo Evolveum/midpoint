@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -39,7 +41,7 @@ public class QObjectTemplateMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectTemplateMapping getObjectTemplateMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     private QObjectTemplateMapping(@NotNull SqaleRepoContext repositoryContext) {

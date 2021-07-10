@@ -10,9 +10,11 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
@@ -46,6 +48,11 @@ public class QTriggerMapping<OR extends MObject>
     private QTriggerMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QTrigger.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 TriggerType.class, (Class) QTrigger.class, repositoryContext);
+
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(QObjectMapping::getObjectMapping,
+                        (q, p) -> q.ownerOid.eq(p.oid)));
 
         addItemMapping(TriggerType.F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
         addItemMapping(TriggerType.F_TIMESTAMP, timestampMapper(q -> q.timestampValue));

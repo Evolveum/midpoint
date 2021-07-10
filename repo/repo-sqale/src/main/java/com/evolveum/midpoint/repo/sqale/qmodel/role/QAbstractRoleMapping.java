@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +47,7 @@ public class QAbstractRoleMapping<
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAbstractRoleMapping<?, ?, ?> getAbstractRoleMapping() {
-        return instance;
+        return Objects.requireNonNull(instance);
     }
 
     protected QAbstractRoleMapping(
@@ -67,7 +68,7 @@ public class QAbstractRoleMapping<
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
 
         addContainerTableMapping(F_INDUCEMENT,
-                QAssignmentMapping.initInducement(repositoryContext),
+                QAssignmentMapping.initInducementMapping(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
     }
 
@@ -101,7 +102,7 @@ public class QAbstractRoleMapping<
         List<AssignmentType> inducement = schemaObject.getInducement();
         if (!inducement.isEmpty()) {
             inducement.forEach(assignment ->
-                    QAssignmentMapping.getInducement().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getInducementMapping().insert(assignment, row, jdbcSession));
         }
     }
 }
