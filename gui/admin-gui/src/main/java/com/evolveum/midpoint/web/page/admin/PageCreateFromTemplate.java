@@ -121,17 +121,12 @@ public class PageCreateFromTemplate extends PageAdmin {
 
                 if (isGenericNewButtonVisible()) {
                     CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
-                    DisplayType defaultButtonDisplayType = new DisplayType();
-                    defaultButtonDisplayType.setLabel(new PolyStringType("bla"));
-                    IconType icon = new IconType();
-                    icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED);
-                    defaultButtonDisplayType.setIcon(icon);
+                    DisplayType defaultButtonDisplayType = getDefaultButtonDisplayType();
                     defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
 
                     CompositedIconBuilder defaultButtonIconBuilder = new CompositedIconBuilder();
                     defaultButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                             .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
-//                            .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
                     defaultButton.setCompositedIcon(defaultButtonIconBuilder.build());
                     additionalButtons.add(defaultButton);
@@ -152,9 +147,20 @@ public class PageCreateFromTemplate extends PageAdmin {
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
-//                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
+    }
+
+    private DisplayType getDefaultButtonDisplayType() {
+        String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(getType());
+
+        String sb = createStringResource("MainObjectListPanel.newObject").getString()
+                + " "
+                + createStringResource("ObjectTypeLowercase." + getType().getLocalPart()).getString();
+        DisplayType display = WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
+        display.setLabel(WebComponentUtil.createPolyFromOrigString(
+                getType().getLocalPart(), "ObjectType." + getType().getLocalPart()));
+        return display;
     }
 
     protected boolean isGenericNewButtonVisible() {

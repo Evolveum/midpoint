@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_HOSTNAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType.F_PORT;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -24,8 +26,19 @@ public class QConnectorHostMapping
 
     public static final String DEFAULT_ALIAS_NAME = "conh";
 
+    private static QConnectorHostMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QConnectorHostMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QConnectorHostMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QConnectorHostMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QConnectorHostMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QConnectorHostMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -45,11 +47,22 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     public static final String DEFAULT_ALIAS_NAME = "o";
 
-    public static QObjectMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QObjectMapping<>(
-                QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectType.class, QObject.CLASS,
-                repositoryContext);
+    private static QObjectMapping<?, ?, ?> instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QObjectMapping<>(
+                    QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    ObjectType.class, QObject.CLASS,
+                    repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectMapping<?, ?, ?> getObjectMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     protected QObjectMapping(
@@ -63,10 +76,11 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
                 q -> q.nameOrig, q -> q.nameNorm));
-        addItemMapping(F_TENANT_REF, refMapper(
+        addRefMapping(F_TENANT_REF,
                 q -> q.tenantRefTargetOid,
                 q -> q.tenantRefTargetType,
-                q -> q.tenantRefRelationId));
+                q -> q.tenantRefRelationId,
+                QOrgMapping::getOrgMapping);
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         // version/cidSeq is not mapped for queries or deltas, it's managed by repo explicitly
 
@@ -76,18 +90,20 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
 
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
+                .addRefMapping(MetadataType.F_CREATOR_REF,
                         q -> q.creatorRefTargetOid,
                         q -> q.creatorRefTargetType,
-                        q -> q.creatorRefRelationId))
+                        q -> q.creatorRefRelationId,
+                        QUserMapping::getUserMapping)
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
                         uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(q -> q.createTimestamp))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
+                .addRefMapping(MetadataType.F_MODIFIER_REF,
                         q -> q.modifierRefTargetOid,
                         q -> q.modifierRefTargetType,
-                        q -> q.modifierRefRelationId))
+                        q -> q.modifierRefRelationId,
+                        QUserMapping::getUserMapping)
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
                         uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,

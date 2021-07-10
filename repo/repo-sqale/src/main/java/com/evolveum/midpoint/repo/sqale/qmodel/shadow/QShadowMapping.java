@@ -8,12 +8,15 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -26,8 +29,19 @@ public class QShadowMapping
 
     public static final String DEFAULT_ALIAS_NAME = "sh";
 
-    public static QShadowMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QShadowMapping(repositoryContext);
+    private static QShadowMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QShadowMapping initShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QShadowMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QShadowMapping getShadowMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -35,10 +49,11 @@ public class QShadowMapping
                 ShadowType.class, QShadow.class, repositoryContext);
 
         addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
-        addItemMapping(F_RESOURCE_REF, refMapper(
+        addRefMapping(F_RESOURCE_REF,
                 q -> q.resourceRefTargetOid,
                 q -> q.resourceRefTargetType,
-                q -> q.resourceRefRelationId));
+                q -> q.resourceRefRelationId,
+                QResourceMapping::get);
         addItemMapping(F_INTENT, stringMapper(q -> q.intent));
         addItemMapping(F_KIND, enumMapper(q -> q.kind));
         // TODO attemptNumber?

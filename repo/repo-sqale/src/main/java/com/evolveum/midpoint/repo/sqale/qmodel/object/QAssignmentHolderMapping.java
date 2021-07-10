@@ -9,8 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
 import java.util.List;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
@@ -33,11 +33,22 @@ public class QAssignmentHolderMapping<
         extends QObjectMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "ah";
+    private static QAssignmentHolderMapping<AssignmentHolderType, QAssignmentHolder<MObject>, MObject> instance;
 
-    public static QAssignmentHolderMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QAssignmentHolderMapping<>(QAssignmentHolder.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AssignmentHolderType.class, QAssignmentHolder.CLASS,
-                repositoryContext);
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAssignmentHolderMapping<?, ?, ?> initAssignmentHolderMapping(
+            @NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QAssignmentHolderMapping<>(QAssignmentHolder.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    AssignmentHolderType.class, QAssignmentHolder.CLASS,
+                    repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAssignmentHolderMapping<?, ?, ?> getAssignmentHolderMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     protected QAssignmentHolderMapping(
@@ -49,7 +60,7 @@ public class QAssignmentHolderMapping<
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
         addContainerTableMapping(AssignmentHolderType.F_ASSIGNMENT,
-                QAssignmentMapping.initAssignment(repositoryContext),
+                QAssignmentMapping.initAssignmentMapping(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
 
         addRefMapping(F_ARCHETYPE_REF, QObjectReferenceMapping.initForArchetype(repositoryContext));
@@ -72,7 +83,7 @@ public class QAssignmentHolderMapping<
         List<AssignmentType> assignments = schemaObject.getAssignment();
         if (!assignments.isEmpty()) {
             assignments.forEach(assignment ->
-                    QAssignmentMapping.getAssignment().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getAssignmentMapping().insert(assignment, row, jdbcSession));
         }
 
         storeRefs(row, schemaObject.getArchetypeRef(),

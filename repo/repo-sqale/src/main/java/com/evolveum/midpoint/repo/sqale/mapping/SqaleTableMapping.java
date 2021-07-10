@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
@@ -65,14 +65,28 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * suffixes are used for these reasons:
  *
  * * To differentiate various instances for the same mapping type, e.g. various references
- * stored in separate tables;
- * * or to avoid return type clash of the `init` method, even though they are static
- * and technically independent Java meddles too much.
+ * stored in separate tables.
+ * * To avoid return type clash of the `init` methods in the hierarchy.
+ * Even though they are static and technically independent, Java meddles too much.
+ * * And finally, to avoid accidental use of static method from the superclass (this should not
+ * be even a thing!).
  *
  * Some subclasses (typically containers and refs) track their instances and avoid unnecessary
  * instance creation for the same init method; the instance is available via matching `get*()`.
- * Other subclasses (most objects) don't have `get()` methods but can be obtained using
+ * Other subclasses (most objects) don't have `get*()` methods but can be obtained using
  * {@link QueryModelMappingRegistry#getByQueryType(Class)}, or by schema type (e.g. in tests).
+ *
+ * [IMPORTANT]
+ * ====
+ * The mappings are created in the constructors and subtypes depend on their supertypes and objects
+ * depend on their parts (container/ref tables).
+ * This does not create any confusion and `init` methods can be called multiple times from
+ * various objects, whatever comes first initializes the mapping and the rest reuses it.
+ *
+ * *But cross-references can cause recursive initialization and stack overflow* and must be solved
+ * differently, either after all the mappings are initialized or the mappings must be provided
+ * indirectly/lazily, e.g. using {@link Supplier}, etc.
+ * ====
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -167,20 +181,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
                 ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
-    }
-
-    /**
-     * Returns the mapper creating the reference filter/delta processors from context.
-     */
-    protected ItemSqlMapper<Q, R> refMapper(
-            Function<Q, UuidPath> rootToOidPath,
-            Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            Function<Q, NumberPath<Integer>> rootToRelationIdPath) {
-        return new SqaleItemSqlMapper<>(
-                ctx -> new RefItemFilterProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
-                ctx -> new RefItemDeltaProcessor(ctx,
-                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
     }
 
     /**

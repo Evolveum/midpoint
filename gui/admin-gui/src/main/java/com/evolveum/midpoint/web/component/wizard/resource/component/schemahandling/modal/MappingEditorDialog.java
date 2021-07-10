@@ -205,14 +205,14 @@ public class MappingEditorDialog extends ModalWindow {
         CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
                 createStringResource("MappingEditorDialog.label.authoritative"),
-                "SchemaHandlingStep.mapping.tooltip.authoritative", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+                "SchemaHandlingStep.mapping.tooltip.authoritative", ID_LABEL_SIZE, ID_INPUT_SIZE);
         authoritative.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         form.add(authoritative);
 
         CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
                 createStringResource("MappingEditorDialog.label.exclusive"),
-                "SchemaHandlingStep.mapping.tooltip.exclusive", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+                "SchemaHandlingStep.mapping.tooltip.exclusive", ID_LABEL_SIZE, ID_INPUT_SIZE);
         exclusive.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         form.add(exclusive);
 
@@ -221,7 +221,7 @@ public class MappingEditorDialog extends ModalWindow {
                 WebComponentUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
             new EnumChoiceRenderer<>(this),
                 createStringResource("MappingEditorDialog.label.strength"),
-                "SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                "SchemaHandlingStep.mapping.tooltip.strength", ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         strength.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         form.add(strength);
 
@@ -286,7 +286,7 @@ public class MappingEditorDialog extends ModalWindow {
         // TODO - create some nice ItemPathType editor in near future
         TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<>(model, MappingTypeDto.F_TARGET),
                 createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
-                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
+                ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
         target.setOutputMarkupId(true);
         target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         form.add(target);
@@ -297,7 +297,7 @@ public class MappingEditorDialog extends ModalWindow {
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
             new EnumChoiceRenderer<>(this),
                 createStringResource("MappingEditorDialog.label.expressionType"),
-                "SchemaHandlingStep.mapping.tooltip.expressionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+                "SchemaHandlingStep.mapping.tooltip.expressionType", ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
             @Override
             protected DropDownChoice createDropDown(String id,
@@ -324,7 +324,7 @@ public class MappingEditorDialog extends ModalWindow {
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
             new EnumChoiceRenderer<>(this),
                 createStringResource("MappingEditorDialog.label.language"),
-                "SchemaHandlingStep.mapping.tooltip.expressionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                "SchemaHandlingStep.mapping.tooltip.expressionLanguage", ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         expressionLanguage.setOutputMarkupId(true);
         expressionLanguage.setOutputMarkupPlaceholderTag(true);
         expressionLanguage.add(new VisibleEnableBehaviour() {
@@ -357,7 +357,7 @@ public class MappingEditorDialog extends ModalWindow {
                     }
                 }, new ObjectReferenceChoiceRenderer(policyMap),
                 createStringResource("MappingEditorDialog.label.passPolicyRef"),
-                "SchemaHandlingStep.mapping.tooltip.expressionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
+                "SchemaHandlingStep.mapping.tooltip.expressionValuePolicyRef", ID_LABEL_SIZE, ID_INPUT_SIZE,
                 false) {
 
             @Override
@@ -390,7 +390,7 @@ public class MappingEditorDialog extends ModalWindow {
         AceEditorFormGroup expression = new AceEditorFormGroup(ID_EXPRESSION,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION),
                 createStringResource("MappingEditorDialog.label.expression"),
-                "SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
+                "SchemaHandlingStep.mapping.tooltip.expression", ID_LABEL_SIZE, ID_INPUT_SIZE, false,
                 CODE_ROW_COUNT);
         expression.setOutputMarkupId(true);
         expression.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
@@ -402,7 +402,7 @@ public class MappingEditorDialog extends ModalWindow {
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
             new EnumChoiceRenderer<>(this),
                 createStringResource("MappingEditorDialog.label.conditionType"),
-                "SchemaHandlingStep.mapping.tooltip.conditionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+                "SchemaHandlingStep.mapping.tooltip.conditionType", ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
             @Override
             protected DropDownChoice createDropDown(String id,
@@ -429,7 +429,7 @@ public class MappingEditorDialog extends ModalWindow {
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
             new EnumChoiceRenderer<>(this),
                 createStringResource("MappingEditorDialog.label.language"),
-                "SchemaHandlingStep.mapping.tooltip.conditionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                "SchemaHandlingStep.mapping.tooltip.conditionLanguage", ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         conditionLanguage.setOutputMarkupId(true);
         conditionLanguage.setOutputMarkupPlaceholderTag(true);
         conditionLanguage.add(new VisibleEnableBehaviour() {
@@ -464,7 +464,7 @@ public class MappingEditorDialog extends ModalWindow {
                         return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
                     }
                 }, new ObjectReferenceChoiceRenderer(policyMap), createStringResource("MappingEditorDialog.label.passPolicyRef"),
-                "SchemaHandlingStep.mapping.tooltip.conditionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
+                "SchemaHandlingStep.mapping.tooltip.conditionValuePolicyRef", ID_LABEL_SIZE, ID_INPUT_SIZE,
                 false) {
 
             @Override
@@ -500,22 +500,22 @@ public class MappingEditorDialog extends ModalWindow {
         AceEditorFormGroup condition = new AceEditorFormGroup(ID_CONDITION,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION),
                 createStringResource("MappingEditorDialog.label.condition"),
-                "SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
+                "SchemaHandlingStep.mapping.tooltip.condition", ID_LABEL_SIZE, ID_INPUT_SIZE, false,
                 CODE_ROW_COUNT);
         condition.setOutputMarkupId(true);
         condition.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         form.add(condition);
 
         Label channelTooltip = new Label(ID_T_CHANNEL);
-        channelTooltip.add(new InfoTooltipBehavior(true));
+        channelTooltip.add(new InfoTooltipBehavior());
         form.add(channelTooltip);
 
         Label exceptChannelTooltip = new Label(ID_T_EXCEPT_CHANNEL);
-        exceptChannelTooltip.add(new InfoTooltipBehavior(true));
+        exceptChannelTooltip.add(new InfoTooltipBehavior());
         form.add(exceptChannelTooltip);
 
         Label sourceTooltip = new Label(ID_T_SOURCE);
-        sourceTooltip.add(new InfoTooltipBehavior(true));
+        sourceTooltip.add(new InfoTooltipBehavior());
         form.add(sourceTooltip);
 
         AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,

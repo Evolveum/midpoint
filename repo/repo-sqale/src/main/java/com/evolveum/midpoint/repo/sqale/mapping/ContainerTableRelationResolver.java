@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Resolver that knows how to traverse to the specified target query type (can be JOIN or EXISTS).
+ * Resolver that knows how to traverse to the specified container table.
  *
  * @param <Q> type of source entity path (where the mapping is)
  * @param <R> row type for {@link Q}, this is the owner of the target table
@@ -52,7 +52,7 @@ public class ContainerTableRelationResolver<
                             + " segments with PCV ID as the second");
         }
         QContainerMapping<TS, TQ, TR, R> containerMapping =
-                (QContainerMapping<TS, TQ, TR, R>) this.targetMapping;
+                (QContainerMapping<TS, TQ, TR, R>) targetMappingSupplier.get();
         TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);

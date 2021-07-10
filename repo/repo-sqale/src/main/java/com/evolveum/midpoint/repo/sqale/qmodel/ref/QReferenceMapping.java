@@ -12,10 +12,15 @@ import java.util.function.BiFunction;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
+import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -42,25 +47,19 @@ public class QReferenceMapping<
 
     public static QReferenceMapping<?, ?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
         return new QReferenceMapping<>(
-                QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS, repositoryContext);
+                QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS, repositoryContext,
+                new RefTableTargetResolver<>(QObjectMapping::getObjectMapping));
     }
 
-    protected QReferenceMapping(
+    protected <TQ extends QObject<TR>, TR extends MObject> QReferenceMapping(
             String tableName,
             String defaultAliasName,
             Class<Q> queryType,
-            @NotNull SqaleRepoContext repositoryContext) {
+            @NotNull SqaleRepoContext repositoryContext,
+            @NotNull RefTableTargetResolver<Q, R, TQ, TR> targetResolver) {
         super(tableName, defaultAliasName, Referencable.class, queryType, repositoryContext);
 
-        // TODO owner and reference type is not possible to query, probably OK
-        //  not sure about this mapping yet, does it make sense to query ref components?
-        /* REMOVE in 2022 if nothing is missing this
-        addItemMapping(ObjectReferenceType.F_OID, uuidMapper(q -> q.targetOid));
-        addItemMapping(ObjectReferenceType.F_TYPE,
-                EnumItemFilterProcessor.mapper(q -> q.targetType));
-        addItemMapping(ObjectReferenceType.F_RELATION,
-                UriItemFilterProcessor.mapper(q -> q.relationId));
-         */
+        addRelationResolver(PrismConstants.T_OBJECT_REFERENCE, targetResolver);
     }
 
     @Override

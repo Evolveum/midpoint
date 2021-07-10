@@ -9,8 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
 import java.util.List;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
@@ -34,10 +34,20 @@ public class QAbstractRoleMapping<
         extends QFocusMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "ar";
+    private static QAbstractRoleMapping<AbstractRoleType, QAbstractRole<MAbstractRole>, MAbstractRole> instance;
 
-    public static QAbstractRoleMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AbstractRoleType.class, QAbstractRole.CLASS, repositoryContext);
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAbstractRoleMapping<?, ?, ?> initAbstractRoleMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    AbstractRoleType.class, QAbstractRole.CLASS, repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAbstractRoleMapping<?, ?, ?> getAbstractRoleMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     protected QAbstractRoleMapping(
@@ -58,7 +68,7 @@ public class QAbstractRoleMapping<
         addItemMapping(F_RISK_LEVEL, stringMapper(q -> q.riskLevel));
 
         addContainerTableMapping(F_INDUCEMENT,
-                QAssignmentMapping.initInducement(repositoryContext),
+                QAssignmentMapping.initInducementMapping(repositoryContext),
                 joinOn((o, a) -> o.oid.eq(a.ownerOid)));
     }
 
@@ -92,7 +102,7 @@ public class QAbstractRoleMapping<
         List<AssignmentType> inducement = schemaObject.getInducement();
         if (!inducement.isEmpty()) {
             inducement.forEach(assignment ->
-                    QAssignmentMapping.getInducement().insert(assignment, row, jdbcSession));
+                    QAssignmentMapping.getInducementMapping().insert(assignment, row, jdbcSession));
         }
     }
 }

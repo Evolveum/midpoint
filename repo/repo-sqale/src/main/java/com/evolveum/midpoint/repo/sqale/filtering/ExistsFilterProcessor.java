@@ -59,10 +59,10 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         }
 
         ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(path);
-        // Instead of cleaner but arguably confusing solution that would follow the code lower
-        // we resolve this corner case here and now.
-        if (resolver instanceof CountMappingResolver<?, ?, ?>) {
-            return ((CountMappingResolver<?, Q, R>) resolver).createExistsPredicate(context);
+        // Instead of cleaner solution that would follow the code lower we resolve it here and now.
+        // "Clean" solution would require more classes/code and would be more confusing.
+        if (resolver instanceof CountMappingResolver<?, ?>) {
+            return ((CountMappingResolver<Q, R>) resolver).createExistsPredicate(context);
         }
 
         ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);

@@ -127,7 +127,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
             new EnumChoiceRenderer<>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
                 createStringResource("SynchronizationStep.action.tooltip.handlerUri",
                         WebComponentUtil.getMidpointCustomSystemName((PageResourceWizard)getPage(), "midpoint.default.system.name")),
-                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
+                ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<SynchronizationActionTypeDto.HandlerUriActions>> choices,
@@ -145,7 +145,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
                 createStringResource("SynchronizationActionEditorDialog.label.order"),
                 createStringResource("SynchronizationStep.action.tooltip.order",
                         WebComponentUtil.getMidpointCustomSystemName((PageResourceWizard)getPage(), "midpoint.default.system.name")),
-                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
+                ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<BeforeAfterType>> choices, IChoiceRenderer<BeforeAfterType> renderer, boolean required){

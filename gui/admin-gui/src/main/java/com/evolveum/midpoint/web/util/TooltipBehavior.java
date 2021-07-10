@@ -38,46 +38,7 @@ public class TooltipBehavior extends Behavior {
         });
     }
 
-    @Override
-    public void renderHead(Component component, IHeaderResponse response) {
-        super.renderHead(component, response);
-
-        String componentSelector = "$('#" + component.getMarkupId() + "')";
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("if (typeof ");
-        sb.append(componentSelector);
-        sb.append(".tooltip === \"function\") {\n");
-        sb.append("var wl = $.fn.tooltip.Constructor.DEFAULTS.whiteList;\n");
-        sb.append("wl['xsd:documentation'] = [];\n");
-
-        sb.append(componentSelector);
-        sb.append(".tooltip({html: true");
-        sb.append(", whiteList: wl");
-
-        if (!isInsideModal()) {
-            sb.append(", 'container':'body'");
-        } else {
-            sb.append(", 'container':'#");
-            sb.append(getModalContainer(component));
-            sb.append("'");
-        }
-
-        sb.append("});\n");
-        sb.append("}");
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-    }
-
-    public String getModalContainer(Component component) {
-        return component.getMarkupId();
-    }
-
     public String getDataPlacement() {
         return "right";
     }
-
-    public boolean isInsideModal() {
-        return false;
-    }
-
 }

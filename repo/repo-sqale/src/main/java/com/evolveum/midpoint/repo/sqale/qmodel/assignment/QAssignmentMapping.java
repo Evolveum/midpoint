@@ -14,12 +14,18 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -46,30 +52,34 @@ public class QAssignmentMapping<OR extends MObject>
     /** Inducement mapping instance, this must be used for inserting inducements. */
     private static QAssignmentMapping<?> instanceInducement;
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
-    initAssignment(@NotNull SqaleRepoContext repositoryContext) {
+    initAssignmentMapping(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignment == null) {
             instanceAssignment = new QAssignmentMapping<>(
                     MContainerType.ASSIGNMENT, repositoryContext);
         }
-        return getAssignment();
+        return getAssignmentMapping();
     }
 
-    public static <OR extends MObject> QAssignmentMapping<OR> getAssignment() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static <OR extends MObject> QAssignmentMapping<OR> getAssignmentMapping() {
         //noinspection unchecked
         return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceAssignment);
     }
 
+    // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
-    initInducement(@NotNull SqaleRepoContext repositoryContext) {
+    initInducementMapping(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceInducement == null) {
             instanceInducement = new QAssignmentMapping<>(
                     MContainerType.INDUCEMENT, repositoryContext);
         }
-        return getInducement();
+        return getInducementMapping();
     }
 
-    public static <OR extends MObject> QAssignmentMapping<OR> getInducement() {
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static <OR extends MObject> QAssignmentMapping<OR> getInducementMapping() {
         //noinspection unchecked
         return (QAssignmentMapping<OR>) Objects.requireNonNull(instanceInducement);
     }
@@ -85,31 +95,41 @@ public class QAssignmentMapping<OR extends MObject>
                 AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
 
+        addRelationResolver(PrismConstants.T_PARENT,
+                // mapping supplier is used to avoid cycles in the initialization code
+                new TableRelationResolver<>(QAssignmentHolderMapping::getAssignmentHolderMapping,
+                        // Adding and(q.ownerType.eq(p.objectType) doesn't help the planner.
+                        (q, p) -> q.ownerOid.eq(p.oid)));
+
         // TODO OWNER_TYPE is new thing and can help avoid join to concrete object table
         //  But this will likely require special treatment/heuristic.
         addItemMapping(F_LIFECYCLE_STATE, stringMapper(q -> q.lifecycleState));
         addItemMapping(F_ORDER, integerMapper(q -> q.orderValue));
-        addItemMapping(F_ORG_REF, refMapper(
+        addRefMapping(F_ORG_REF,
                 q -> q.orgRefTargetOid,
                 q -> q.orgRefTargetType,
-                q -> q.orgRefRelationId));
-        addItemMapping(F_TARGET_REF, refMapper(
+                q -> q.orgRefRelationId,
+                QOrgMapping::getOrgMapping);
+        addRefMapping(F_TARGET_REF,
                 q -> q.targetRefTargetOid,
                 q -> q.targetRefTargetType,
-                q -> q.targetRefRelationId));
-        addItemMapping(F_TENANT_REF, refMapper(
+                q -> q.targetRefRelationId,
+                QAssignmentHolderMapping::getAssignmentHolderMapping);
+        addRefMapping(F_TENANT_REF,
                 q -> q.tenantRefTargetOid,
                 q -> q.tenantRefTargetType,
-                q -> q.tenantRefRelationId));
+                q -> q.tenantRefRelationId,
+                QOrgMapping::getOrgMapping);
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
 
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
         addNestedMapping(F_CONSTRUCTION, ConstructionType.class)
-                .addItemMapping(ConstructionType.F_RESOURCE_REF, refMapper(
+                .addRefMapping(ConstructionType.F_RESOURCE_REF,
                         q -> q.resourceRefTargetOid,
                         q -> q.resourceRefTargetType,
-                        q -> q.resourceRefRelationId));
+                        q -> q.resourceRefRelationId,
+                        QResourceMapping::get);
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         enumMapper(q -> q.administrativeStatus))
@@ -132,18 +152,20 @@ public class QAssignmentMapping<OR extends MObject>
                 .addItemMapping(ActivationType.F_ARCHIVE_TIMESTAMP,
                         timestampMapper(q -> q.archiveTimestamp));
         addNestedMapping(F_METADATA, MetadataType.class)
-                .addItemMapping(MetadataType.F_CREATOR_REF, refMapper(
+                .addRefMapping(MetadataType.F_CREATOR_REF,
                         q -> q.creatorRefTargetOid,
                         q -> q.creatorRefTargetType,
-                        q -> q.creatorRefRelationId))
+                        q -> q.creatorRefRelationId,
+                        QUserMapping::getUserMapping)
                 .addItemMapping(MetadataType.F_CREATE_CHANNEL,
                         uriMapper(q -> q.createChannelId))
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(q -> q.createTimestamp))
-                .addItemMapping(MetadataType.F_MODIFIER_REF, refMapper(
+                .addRefMapping(MetadataType.F_MODIFIER_REF,
                         q -> q.modifierRefTargetOid,
                         q -> q.modifierRefTargetType,
-                        q -> q.modifierRefRelationId))
+                        q -> q.modifierRefRelationId,
+                        QUserMapping::getUserMapping)
                 .addItemMapping(MetadataType.F_MODIFY_CHANNEL,
                         uriMapper(q -> q.modifyChannelId))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
