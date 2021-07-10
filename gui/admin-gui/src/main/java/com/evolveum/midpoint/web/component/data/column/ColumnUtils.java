@@ -894,7 +894,8 @@ public class ColumnUtils {
                 try {
                     result = OperationResultStatusType.fromValue(caseType.getOutcome());
                 } catch (IllegalArgumentException e) {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    putDisplayTypeToMapWithCount(map, one,
+                            WebComponentUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
                     return;
                 }
                 OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
