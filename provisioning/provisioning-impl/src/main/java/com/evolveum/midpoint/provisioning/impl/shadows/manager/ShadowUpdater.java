@@ -507,12 +507,16 @@ class ShadowUpdater {
                 if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName(), cachingStrategy)) {
                     continue;
                 }
-            } else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getPath())) {        // should not occur, but for completeness...
-                for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
-                    ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
+            } else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getPath())) {// should not occur, but for completeness...
+                if (((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd() != null) {
+                    for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
+                        ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
+                    }
                 }
-                for (PrismContainerValue<ActivationType> valueToReplace : ((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace()) {
-                    ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
+                if (((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace() != null) {
+                    for (PrismContainerValue<ActivationType> valueToReplace : ((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace()) {
+                        ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
+                    }
                 }
             } else if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
                 addPasswordDelta(repoChanges, itemDelta, objectClassDefinition);
