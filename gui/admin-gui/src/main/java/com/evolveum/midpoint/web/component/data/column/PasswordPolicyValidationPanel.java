@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -54,7 +55,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
                     titleKey = "PasswordPolicyValidationPanel.invalid";
                 }
             }
-            return WebComponentUtil.createDisplayType(status, "", getPageBase().createStringResource(titleKey).getString());
+            return WebDisplayTypeUtil.createDisplayType(status, "", getPageBase().createStringResource(titleKey).getString());
         };
         ImagePanel resultIcon = new ImagePanel(ID_RESULT_ICON, displayModel);
         resultIcon.setOutputMarkupId(true);
@@ -62,7 +63,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
 
 
         ImagePanel infoPanel = new ImagePanel(
-                ID_INFO_ICON, Model.of(WebComponentUtil.createDisplayType("fa fa-info-circle")));
+                ID_INFO_ICON, Model.of(WebDisplayTypeUtil.createDisplayType("fa fa-info-circle")));
         add(infoPanel);
 
         PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER, getModel());

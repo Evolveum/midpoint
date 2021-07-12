@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -375,7 +377,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
                     List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
                     relations.forEach(relation -> {
-                        DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
+                        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
                                 "abstractRoleMemberPanel.menu.createMember");
                         CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalButtonDisplayType, relation, createCompositedIcon(relation, additionalButtonDisplayType));
                         additionalButtons.add(buttonDto);
@@ -427,7 +429,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 }
                 List<CompositedIconButtonDto> additionalAssignmentButtons = new ArrayList<>();
                 assignmentObjectRelations.forEach(relation -> {
-                    DisplayType additionalDispayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(),
+                    DisplayType additionalDispayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(),
                             relation,"abstractRoleMemberPanel.menu.assignMember");
                     CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relation,
                             additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
@@ -470,12 +472,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private DisplayType getCreateMemberButtonDisplayType() {
-        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
     }
 
     private DisplayType getAssignMemberButtonDisplayType() {
-        return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
                 AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
     }
 

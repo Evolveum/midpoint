@@ -12,6 +12,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -317,7 +318,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         tooltip = "ActivationStatusType.DISABLED";
                     }
                 }
-                return WebComponentUtil.createDisplayType(cssClass + " fa-fw fa-lg", "", createStringResource(tooltip).getString());
+                return WebDisplayTypeUtil.createDisplayType(cssClass + " fa-fw fa-lg", "", createStringResource(tooltip).getString());
             }
 
             @Override
@@ -417,7 +418,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                     }
                                 });
                                 if (!ref.result && rowModel.getObject().isSelected()) {
-                                    return WebComponentUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
+                                    return WebDisplayTypeUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
                                             createStringResource("ChangePasswordPanel.result.validationError").getString());
                                 }
                             }

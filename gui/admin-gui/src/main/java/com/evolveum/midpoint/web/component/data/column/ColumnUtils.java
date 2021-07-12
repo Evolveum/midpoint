@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -940,12 +941,12 @@ public class ColumnUtils {
                 if (caseType.getCloseTimestamp() != null) {
                     return;
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
                 }
             } else if (result) {
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
             } else {
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
             }
             return;
         }
@@ -953,9 +954,9 @@ public class ColumnUtils {
 
             if (StringUtils.isEmpty(caseType.getOutcome())) {
                 if (caseType.getCloseTimestamp() != null) {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
                 }
             } else {
                 OperationResultStatusType result;
@@ -963,11 +964,11 @@ public class ColumnUtils {
                     result = OperationResultStatusType.fromValue(caseType.getOutcome());
                 } catch (IllegalArgumentException e) {
                     putDisplayTypeToMapWithCount(map, one,
-                            WebComponentUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
+                            WebDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
                     return;
                 }
                 OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(resultStatus));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(resultStatus));
             }
         }
     }

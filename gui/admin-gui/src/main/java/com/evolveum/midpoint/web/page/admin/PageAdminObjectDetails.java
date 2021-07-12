@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
 import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
 
@@ -228,7 +229,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         PrismObject<O> assignmentHolderObj = getObjectWrapper().getObject();
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
+        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
         }

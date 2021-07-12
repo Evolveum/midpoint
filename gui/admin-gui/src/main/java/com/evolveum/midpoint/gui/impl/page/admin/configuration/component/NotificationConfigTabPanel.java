@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -319,7 +321,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             protected DisplayType getIconDisplayType(IModel<MailServerConfiguration> rowModel) {
-                return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+                return WebDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
             }
 
         });
