@@ -62,6 +62,7 @@
         </property>
     </bean>
 
+    <!-- See TODO in TestSqlRepositoryConfigurationFactory about how this can go away. -->
     <bean id="testSqlRepositoryConfigurationFactory"
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryConfigurationFactory">
         <constructor-arg ref="midpointConfiguration"/>
