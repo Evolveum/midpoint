@@ -16,4 +16,10 @@
     <bean id="sqlRepositoryBeanConfig"
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanConfig"/>
 
+    <!--
+    This is not necessary for tests in repo-sql-impl-test (those are only for old repo),
+    but it is used by integration tests that use this config.
+    -->
+    <bean id="sqaleRepositoryBeanConfig"
+            class="com.evolveum.midpoint.repo.sql.testing.TestSqaleRepositoryBeanConfig"/>
 </beans>

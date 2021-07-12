@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<configuration>
+    <midpoint>
+        <global>
+            <extensionDir>./src/test/resources/schema</extensionDir>
+        </global>
+        <repository>
+            <type>sqale</type>
+
+            <!--
+            Use this Vagrantbox to run this:
+            https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-pg-new-repo
+            Then connect to it with the info below and execute pgnew-repo.sql file to initialize the DB.
+            -->
+            <database>postgresql</database>
+            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midtest</jdbcUrl>
+            <jdbcUsername>midtest</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+
+            <performanceStatisticsLevel>10</performanceStatisticsLevel>
+            <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
+        </repository>
+        <workflow>
+            <enabled>true</enabled>
+        </workflow>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <!-- TODO audit not supported for new repo yet
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                &lt;!&ndash; Needed for model-intest where these properties are used. &ndash;&gt;
+                <customColumn>
+                    <columnName>foo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+                <customColumn>
+                    <columnName>ship</columnName>
+                    <eventRecordPropertyName>ship</eventRecordPropertyName>
+                </customColumn>
+            </auditService>
+            -->
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <taskManager>
+            <jdbcJobStore>false</jdbcJobStore>
+            <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
+            <testMode>true</testMode>
+            <useThreadInterrupt>whenNecessary</useThreadInterrupt> <!-- needed for task manager tests -->
+            <threads>50</threads> <!-- some performance tests use this -->
+        </taskManager>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+        <constants>
+            <useless>xUSEless</useless>
+            <drink>rum</drink>
+            <blabla>Bla bla bla</blabla>
+            <baseDn>dc=example,dc=com</baseDn>
+            <passwordClear>secret</passwordClear>
+            <adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
+            <adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
+            <ad2012BaseDn>DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012BaseDn>
+            <ad2012UsersDn>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012UsersDn>
+        </constants>
+    </midpoint>
+</configuration>
