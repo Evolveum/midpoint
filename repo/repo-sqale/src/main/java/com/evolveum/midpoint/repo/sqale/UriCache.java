@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * no DB access by the URI cache itself; TODO: later possible access when not found
  * * `resolve` returns URI/ID for ID/URI or throws exception if not found, this is for situations
  * where the entry for URI is expected to exist already, still no DB access required; TODO: later possible access when not found
- * * finally, {@link #processCacheableUri(String)} accesses the database if the URI is not found
+ * * finally, {@link #processCacheableUri(Object)} accesses the database if the URI is not found
  * in the cache in order to write it there.
  *
  * URIs are stored either as is when provided as a String or using {@link QNameUtil#qNameToUri(QName)}
@@ -111,11 +111,6 @@ public class UriCache {
         return getId(QNameUtil.qNameToUri(qName));
     }
 
-    /** Returns ID for QName, possibly {@link #UNKNOWN_ID} - does not work with underlying database. */
-    public @NotNull Integer searchId(@NotNull QName qName) {
-        return searchId(QNameUtil.qNameToUri(qName));
-    }
-
     /** Returns ID for QName or throws exception - does not work with underlying database. */
     public @NotNull Integer resolveUriToId(@NotNull QName qName) {
         return resolveUriToId(QNameUtil.qNameToUri(qName));
@@ -126,6 +121,15 @@ public class UriCache {
         Integer id = uriToId.get(uri);
         LOGGER.trace("URI cache 'get' returned ID={} for URI={}", id, uri);
         return id;
+    }
+
+    /** Returns ID for provided URI value of `QName/String/Object#toString`. */
+    public @NotNull Integer searchId(@NotNull Object uri) {
+        if (uri instanceof QName) {
+            return searchId(QNameUtil.qNameToUri((QName) uri));
+        } else {
+            return searchId(uri.toString());
+        }
     }
 
     /** Returns ID for string or {@link #UNKNOWN_ID} - does not work with underlying database. */
@@ -160,7 +164,7 @@ public class UriCache {
      * Returns ID for URI creating new cache row in DB as needed.
      * Returns null for null URI parameter.
      */
-    public synchronized @Nullable Integer processCacheableUri(@Nullable String uri) {
+    public synchronized @Nullable Integer processCacheableUri(@Nullable Object uri) {
         if (uri == null) {
             return null;
         }
@@ -168,7 +172,11 @@ public class UriCache {
             throw new IllegalStateException("URI cache was not initialized yet!");
         }
 
-        Integer id = getId(uri);
+        String uriString = uri instanceof QName
+                ? QNameUtil.qNameToUri((QName) uri)
+                : uri.toString();
+
+        Integer id = getId(uriString);
         if (id != null) {
             return id;
         }
@@ -176,11 +184,11 @@ public class UriCache {
         QUri qu = QUri.DEFAULT;
         try (JdbcSession jdbcSession = jdbcSessionSupplier.get().startTransaction()) {
             id = jdbcSession.newInsert(qu)
-                    .set(qu.uri, uri)
+                    .set(qu.uri, uriString)
                     .executeWithKey(qu.id);
             jdbcSession.commit();
 
-            updateMaps(MUri.of(id, uri));
+            updateMaps(MUri.of(id, uriString));
         }
         // TODO query when constraint violation
 
