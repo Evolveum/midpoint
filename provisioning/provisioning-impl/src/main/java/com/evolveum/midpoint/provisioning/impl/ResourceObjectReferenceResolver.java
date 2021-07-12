@@ -224,8 +224,13 @@ public class ResourceObjectReferenceResolver {
 
         try {
 
-            if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)){
-                throw new UnsupportedOperationException("Resource does not support 'read' operation");
+            ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
+            if (readCapability == null) {
+                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
+            }
+
+            if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
+                return ctx.getOriginalShadow();
             }
 
             ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
