@@ -3670,9 +3670,24 @@ public final class WebComponentUtil {
             } else {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
             }
-
         }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
+                && ResourceTypeUtil.isInMaintenance(shadow.getResourceRef().getObject())) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
+            }
+            if (StringUtils.isNotBlank(title)){
+                title = title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+            } else {
+                title = pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+            }
+        }
 
         if (BooleanUtils.isTrue(shadow.isDead())) {
             IconType icon = new IconType();

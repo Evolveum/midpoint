@@ -243,7 +243,11 @@ public class ColumnUtils {
         } else if (type.equals(UserType.class)) {
             String iconClass = object != null ? WebComponentUtil.createUserIcon(object.asPrismContainer()) : null;
             String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
+            String compareStringValueNormal = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
             String titleValue = "";
+            if (iconClass.equals(compareStringValueNormal)) {
+                return "";
+            }
             if (iconClass != null &&
                     iconClass.startsWith(compareStringValue) &&
                     iconClass.length() > compareStringValue.length()) {
