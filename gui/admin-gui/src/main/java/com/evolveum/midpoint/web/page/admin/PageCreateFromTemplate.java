@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -142,7 +143,7 @@ public class PageCreateFromTemplate extends PageAdmin {
 
     //TODO copied from MainObjectListPanel
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageCreateFromTemplate.this);
+        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageCreateFromTemplate.this);
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -157,7 +158,7 @@ public class PageCreateFromTemplate extends PageAdmin {
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getLocalPart()).getString();
-        DisplayType display = WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
+        DisplayType display = WebDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
         display.setLabel(WebComponentUtil.createPolyFromOrigString(
                 getType().getLocalPart(), "ObjectType." + getType().getLocalPart()));
         return display;

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -87,7 +89,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
                             DirectAndIndirectAssignmentPanel.this.getPageBase());
                     if (CollectionUtils.isNotEmpty(targetObjectList) && targetObjectList.size() == 1) {
                         ObjectType targetObject = targetObjectList.get(0);
-                        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
+                        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(targetObject.asPrismObject(), DirectAndIndirectAssignmentPanel.this.getPageBase());
                         if (displayType != null) {
                             String disabledStyle;
                             if (targetObject instanceof FocusType) {
@@ -102,7 +104,7 @@ public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
                         }
                     }
                 }
-                return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                return WebDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
                         AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
             }
 

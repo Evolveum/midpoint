@@ -50,17 +50,24 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 
             @Override
             protected void populateItem(ListItem<CompositedIconButtonDto> item) {
-
-                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, item.getModel()) {
+                CompositedButtonPanel additionalButton = new CompositedButtonPanel(ID_COMPOSITED_BUTTON, item.getModel()) {
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPage());
+                    protected void onButtonClicked(AjaxRequestTarget target, CompositedIconButtonDto buttonDescription) {
+                        buttonClickPerformed(target, buttonDescription.getAssignmentObjectRelation(), buttonDescription.getCollectionView(), buttonDescription.getPage());
                     }
                 };
-                item.add(additionalButton);
 
-                item.add(new Label(ID_BUTTON_DESCRIPTION, getButtonDescription(item.getModelObject())));
+//                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, item.getModel()) {
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        buttonClickPerformed(target, item.getModelObject().getAssignmentObjectRelation(), item.getModelObject().getCollectionView(), item.getModelObject().getPage());
+//                    }
+//                };
+                item.add(additionalButton);
+//
+//                item.add(new Label(ID_BUTTON_DESCRIPTION, getButtonDescription(item.getModelObject())));
             }
         };
         buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));

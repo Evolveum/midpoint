@@ -282,7 +282,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     if (result.isError()) {
                         error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
                     } else {
-                        info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                        success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
                     }
                 }
                 if (!result.isError()) {

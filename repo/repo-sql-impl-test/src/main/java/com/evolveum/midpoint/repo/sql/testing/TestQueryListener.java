@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,12 +14,7 @@ import java.util.stream.Collectors;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
-import org.springframework.stereotype.Component;
 
-/**
- * TODO
- */
-@Component
 public class TestQueryListener implements QueryExecutionListener {
 
     public static class Entry {

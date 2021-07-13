@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -304,7 +305,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                     title = createStringResource(OperationResultStatusType.UNKNOWN).getString();
                 }
 
-                return WebComponentUtil.createDisplayType(icon, "", title);
+                return WebDisplayTypeUtil.createDisplayType(icon, "", title);
             }
         };
     }

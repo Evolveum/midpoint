@@ -16,25 +16,13 @@ It fakes JNDI context with simple H2 file DataSource.
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="sampleJNDIDataSource"
+    <bean id="dataSource"
             class="com.zaxxer.hikari.HikariDataSource"
             destroy-method="close">
-        <property name="driverClassName" value="org.h2.Driver"/>
-        <property name="jdbcUrl" value="jdbc:h2:file:./target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
-        <property name="username" value="sa"/>
-        <property name="password" value=""/>
-
-        <property name="minimumIdle" value="3"/>
-        <property name="maximumPoolSize" value="8"/>
-    </bean>
-
-    <bean id="sampleJNDIDataSourceFromConfig"
-            class="com.zaxxer.hikari.HikariDataSource"
-            destroy-method="close">
-        <property name="driverClassName" value="#{sqlRepositoryConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{sqlRepositoryConfiguration.jdbcUrl}"/>
-        <property name="username" value="#{sqlRepositoryConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{sqlRepositoryConfiguration.jdbcPassword}"/>
+        <property name="driverClassName" value="#{systemProperties['config']!=null ? sqlRepositoryConfiguration.driverClassName : 'org.h2.Driver'}"/>
+        <property name="jdbcUrl" value="#{systemProperties['config']!=null ? sqlRepositoryConfiguration.jdbcUrl : 'jdbc:h2:file:./target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000'}"/>
+        <property name="username" value="#{systemProperties['config']!=null ? sqlRepositoryConfiguration.jdbcUsername : 'sa'}"/>
+        <property name="password" value="#{systemProperties['config']!=null ? sqlRepositoryConfiguration.jdbcPassword : ''}"/>
 
         <property name="minimumIdle" value="3"/>
         <property name="maximumPoolSize" value="8"/>
@@ -43,8 +31,7 @@ It fakes JNDI context with simple H2 file DataSource.
     <bean id="jndiMock" class="com.evolveum.midpoint.repo.sql.util.JNDIMock">
         <property name="objects">
             <map>
-                <entry key="java:comp/env/jdbc/db"
-                        value="#{systemProperties['config']!=null?sampleJNDIDataSourceFromConfig:sampleJNDIDataSource}"/>
+                <entry key="java:comp/env/jdbc/db" value="#{dataSource}"/>
             </map>
         </property>
     </bean>

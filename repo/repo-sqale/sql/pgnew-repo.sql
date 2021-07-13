@@ -829,7 +829,10 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
-ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_shadow_nameNorm_idx ON m_shadow (nameNorm); -- may not be unique for shadows!
+ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_primIdVal_objCls_resRefOid_key
+    UNIQUE (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
+
 CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
@@ -845,8 +848,6 @@ CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
 CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
-ALTER TABLE m_shadow ADD CONSTRAINT iPrimaryIdentifierValueWithOC
-  UNIQUE (primaryIdentifierValue, objectClass, resourceRefTargetOid);
 */
 
 -- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes

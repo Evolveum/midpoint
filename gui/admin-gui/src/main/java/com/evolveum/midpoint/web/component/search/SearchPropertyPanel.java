@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -83,6 +86,14 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                     @Override
                     protected boolean isAllowedNotFoundObjectRef() {
                         return item.getSearch().getTypeClass().equals(AuditEventRecordType.class);
+                    }
+
+                    @Override
+                    protected List<QName> getAllowedRelations() {
+                        if (item.getSearch().getTypeClass().equals(AuditEventRecordType.class)) {
+                            return Collections.emptyList();
+                        }
+                        return super.getAllowedRelations();
                     }
                 };
                 break;

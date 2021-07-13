@@ -270,6 +270,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
@@ -555,6 +556,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         expect("repository throws exception because it is not supported, enum must be used");
         assertThatThrownBy(() -> searchObjects(TaskType.class, query, operationResult))
                 .isInstanceOf(SystemException.class);
+    }
+
+    @Test
+    public void test150SearchShadowByObjectClass() throws SchemaException {
+        // this uses URI mapping with QName instead of String
+        searchObjectTest("having specified object class", ShadowType.class,
+                f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
+                shadow1Oid);
     }
 
     /**

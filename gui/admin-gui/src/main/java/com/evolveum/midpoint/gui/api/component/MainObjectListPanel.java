@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
@@ -97,7 +98,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType additionalButtonDisplayType = WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -232,14 +233,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
             CompiledObjectCollectionView view = getObjectCollectionView();
             if (ObjectCollectionViewUtil.isArchetypedCollectionView(view)) {
-                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
+                return WebDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
             }
         }
 
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 sb);
     }
 
@@ -256,7 +257,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "
                 + createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString();
-        DisplayType display = WebComponentUtil.createDisplayType(iconCssStyle, "", sb);
+        DisplayType display = WebDisplayTypeUtil.createDisplayType(iconCssStyle, "", sb);
         display.setLabel(WebComponentUtil.createPolyFromOrigString(
                 getType().getSimpleName(), "ObjectType." + getType().getSimpleName()));
         return display;
