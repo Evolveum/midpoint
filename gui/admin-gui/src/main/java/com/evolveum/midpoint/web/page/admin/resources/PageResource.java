@@ -465,15 +465,16 @@ public class PageResource extends PageAdmin {
                 };
         testConnectionPanel.setOutputMarkupId(true);
 
-        getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                refreshStatus(target);
-                return true;
-            }
-        });
+        //TODO fix
+//        getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+//                refreshStatus(target);
+//                return true;
+//            }
+//        });
 
         showMainPopup(testConnectionPanel, target);
 
