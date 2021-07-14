@@ -72,13 +72,13 @@ Please see *Schema creation and updating* section later.
 | for H2: `update`otherwise: `validate` (before 3.9), `none` (3.9 and later)
 
 | hibernateDialect
-| SQL dialect based on choosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
+| SQL dialect based on chosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
 | org.hibernate.dialect.H2Dialect
 
 | dataSource
 | Uses JNDI DataSource loading, when this option is defined in configuration, then *jdbcUsername*, *jdbcPassword*, *jdbcUrl* and *driverClassName* don't need to be present.
 E.g. <dataSource>link:http://javacomp[java:comp/env/jdbc/midpoint]</dataSource>
-|  +
+|
 
 | jdbcUsername
 | Username for JDBC connection.
@@ -358,13 +358,13 @@ Some databases offer specialized indexes, e.g. PostgreSQL trigram indexes that c
 with just a few distinct values) alone.
 Leave the column unindexed and let other indexes do the job first.
 Searching only by such a column is not recommended.
-It is however possible to use low-cardinality column in multi-column index and it may be benficial
+It is however possible to use low-cardinality column in multi-column index, and it may be beneficial
 when it is the first column (of course, only selects using the column in `WHERE` use such an index).
 * It is possible to use `where` clause in an index when only specific values are selected often
 , e.g. value indicating active user.
 This is called https://use-the-index-luke.com/sql/where-clause/partial-and-filtered-indexes[partial index].
 This is typical for low variability columns (booleans, enums), using them in where part of the
-index is good and it also makes the index size smaller.
+index is good, and it also makes the index size smaller.
 +
 [NOTE]
 This technique is not possible with midPoint and Oracle, because Oracle emulates partial indexes
