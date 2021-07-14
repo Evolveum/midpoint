@@ -1068,7 +1068,7 @@ CREATE TABLE m_connector (
     connectorHostRefTargetOid UUID,
     connectorHostRefTargetType ObjectType,
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
-    targetSystemTypes TEXT[] -- TODO any strings? cached URIs?
+    targetSystemTypes INTEGER[]
 )
     INHERITS (m_assignment_holder);
 

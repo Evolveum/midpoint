@@ -54,7 +54,7 @@ public class QConnectorMapping
                 q -> q.connectorHostRefRelationId,
                 QConnectorHostMapping::get);
 
-        // TODO mapping for List<String> F_TARGET_SYSTEM_TYPE
+        addItemMapping(F_TARGET_SYSTEM_TYPE, multiUriMapper(q -> q.targetSystemTypes));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class QConnectorMapping
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);
 
-        row.targetSystemTypes = listToArray(schemaObject.getTargetSystemType());
+        row.targetSystemTypes = processCacheableUris(schemaObject.getTargetSystemType());
 
         return row;
     }
