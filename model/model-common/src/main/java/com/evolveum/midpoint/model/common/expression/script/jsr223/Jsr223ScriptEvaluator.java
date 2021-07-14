@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -41,7 +40,10 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
 
         this.engineName = engineName;
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        long initStartMs = System.currentTimeMillis();
         scriptEngine = scriptEngineManager.getEngineByName(engineName);
+        LOGGER.debug("Script engine for '{}' initialized in {} ms.",
+                engineName, System.currentTimeMillis() - initStartMs);
         if (scriptEngine == null) {
             SystemException e = new SystemException("The JSR-223 scripting engine for '" + engineName + "' was not found");
             LOGGER.error(e.getMessage(), e);
