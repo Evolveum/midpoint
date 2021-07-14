@@ -69,6 +69,8 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             ColumnMetadata.named("extOid").ofType(Types.VARCHAR);
     public static final ColumnMetadata POLICY_SITUATIONS =
             ColumnMetadata.named("policySituations").ofType(Types.ARRAY);
+    public static final ColumnMetadata SUBTYPES =
+            ColumnMetadata.named("subtypes").ofType(Types.ARRAY);
     public static final ColumnMetadata EXT = ColumnMetadata.named("ext").ofType(JSONB_TYPE);
     // construction columns
     public static final ColumnMetadata RESOURCE_REF_TARGET_OID =
@@ -148,6 +150,8 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public final StringPath extOid = createString("extOid", EXT_OID);
     public final ArrayPath<Integer[], Integer> policySituations =
             createArray("policySituations", Integer[].class, POLICY_SITUATIONS);
+    public final ArrayPath<String[], String> subtypes =
+            createArray("subtypes", String[].class, SUBTYPES);
     public final JsonbPath ext = addMetadata(add(new JsonbPath(forProperty("ext"))), EXT);
     // construction attributes
     public final UuidPath resourceRefTargetOid =

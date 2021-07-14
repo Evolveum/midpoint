@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 
 import java.util.Objects;
 
@@ -121,6 +120,7 @@ public class QAssignmentMapping<OR extends MObject>
                 q -> q.tenantRefRelationId,
                 QOrgMapping::getOrgMapping);
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
+        addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
 
         // TODO no idea how extId/Oid works, see RAssignment.getExtension
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
@@ -206,6 +206,11 @@ public class QAssignmentMapping<OR extends MObject>
                 assignment.policySituation(resolveIdToUri(policySituationId));
             }
         }
+        if (row.subtypes != null) {
+            for (String subtype : row.subtypes) {
+                assignment.subtype(subtype);
+            }
+        }
 
         if (row.resourceRefTargetOid != null) {
             assignment.construction(new ConstructionType(prismContext())
@@ -289,6 +294,7 @@ public class QAssignmentMapping<OR extends MObject>
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
         row.policySituations = processCacheableUris(assignment.getPolicySituation());
+        row.subtypes = listToArray(assignment.getSubtype());
         row.ext = processExtensions(assignment.getExtension(), MExtItemHolderType.EXTENSION);
 
         ConstructionType construction = assignment.getConstruction();

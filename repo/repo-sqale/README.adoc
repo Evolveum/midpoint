@@ -161,7 +161,7 @@ For example:
 [source,sql]
 ----
 -- with this index
-CREATE INDEX m_user_ext_idx ON m_user USING gin (ext);
+CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
 
 -- the following where does not use it
 select * from m_user
