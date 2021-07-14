@@ -188,13 +188,13 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return fullObjectFormat;
     }
 
-    public String getDefaultEmbeddedJdbcUrlPrefix() {
-        throw new UnsupportedOperationException(
-                "This configuration (repository factory) does not support embedded database.");
+    @Override
+    public boolean isEmbedded() {
+        return false;
     }
 
     @Override
-    public boolean isEmbedded() {
+    public String getDefaultEmbeddedJdbcUrlPrefix() {
         throw new UnsupportedOperationException(
                 "This configuration (repository factory) does not support embedded database.");
     }
@@ -227,21 +227,25 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     @Override
     public Long getMaxLifetime() {
+        // TODO implement
         return null;
     }
 
     @Override
     public Long getIdleTimeout() {
+        // TODO implement
         return null;
     }
 
     @Override
     public long getInitializationFailTimeout() {
+        // TODO implement
         return 0;
     }
 
     @Override
     public boolean isFatalException(Throwable ex) {
+        // TODO implement
         // by default, any exception is fatal, unless specified otherwise (not yet implemented)
         return true;
     }
