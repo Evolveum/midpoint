@@ -112,7 +112,7 @@ public class PageSystemConfigurationNew extends PageBase {
         CompositedIconButtonDto button = new CompositedIconButtonDto();
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setTitle(type);
-        builder.setBasicIcon(icon, IconCssStyle.CENTER_STYLE);
+        builder.setBasicIcon(icon, IconCssStyle.IN_ROW_STYLE);
         button.setCompositedIcon(builder.build());
         DisplayType displayType = new DisplayType();
         displayType.setLabel(new PolyStringType(type));

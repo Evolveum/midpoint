@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -242,7 +243,11 @@ public class ColumnUtils {
         } else if (type.equals(UserType.class)) {
             String iconClass = object != null ? WebComponentUtil.createUserIcon(object.asPrismContainer()) : null;
             String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
+            String compareStringValueNormal = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
             String titleValue = "";
+            if (iconClass.equals(compareStringValueNormal)) {
+                return "";
+            }
             if (iconClass != null &&
                     iconClass.startsWith(compareStringValue) &&
                     iconClass.length() > compareStringValue.length()) {
@@ -407,7 +412,7 @@ public class ColumnUtils {
                             @Override
                             public void onClick() {
                                 PageParameters parameters = new PageParameters();
-                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef);
+                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef.getOid());
                                 pageBase.navigateToNext(PageOrgUnit.class, parameters);
                             }
 
@@ -940,12 +945,12 @@ public class ColumnUtils {
                 if (caseType.getCloseTimestamp() != null) {
                     return;
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
                 }
             } else if (result) {
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
             } else {
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
             }
             return;
         }
@@ -953,20 +958,21 @@ public class ColumnUtils {
 
             if (StringUtils.isEmpty(caseType.getOutcome())) {
                 if (caseType.getCloseTimestamp() != null) {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                    putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
                 }
             } else {
                 OperationResultStatusType result;
                 try {
                     result = OperationResultStatusType.fromValue(caseType.getOutcome());
                 } catch (IllegalArgumentException e) {
-                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    putDisplayTypeToMapWithCount(map, one,
+                            WebDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
                     return;
                 }
                 OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
-                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(resultStatus));
+                putDisplayTypeToMapWithCount(map, one, WebDisplayTypeUtil.createDisplayType(resultStatus));
             }
         }
     }

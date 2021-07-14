@@ -166,23 +166,11 @@ public interface TaskService {
      */
     void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    /**
-     * Gets a list of all task categories.
-     */
-    @Deprecated // Remove in 4.2
-    List<String> getAllTaskCategories();
-
-    /**
-     * Returns a default handler URI for a given task category.
-     */
-    @Deprecated // Remove in 4.2
-    String getHandlerUriForCategory(String category);
-
     void reconcileWorkers(String oid, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
-    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+    void deleteActivityStateAndWorkers(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
             OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException;

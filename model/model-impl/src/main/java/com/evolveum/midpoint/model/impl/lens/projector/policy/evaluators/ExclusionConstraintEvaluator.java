@@ -220,28 +220,28 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
         return Collections.singletonList(new OrderConstraintsType(prismContext).order(1));
     }
 
-    static boolean oidMatches(ObjectReferenceType targetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
+    static boolean oidMatches(ObjectReferenceType constraintTargetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
             PrismContext prismContext, MatchingRuleRegistry matchingRuleRegistry, String context) throws SchemaException {
-        if (targetRef == null) {
+        if (constraintTargetRef == null) {
             return true; // this means we rely on comparing relations
         }
         if (assignmentTarget.getOid() == null) {
-            return false;        // shouldn't occur
+            return false; // shouldn't occur
         }
-        if (targetRef.getOid() != null) {
-            return assignmentTarget.getOid().equals(targetRef.getOid());
+        if (constraintTargetRef.getOid() != null) {
+            return assignmentTarget.getOid().equals(constraintTargetRef.getOid());
         }
-        if (targetRef.getResolutionTime() == EvaluationTimeType.RUN) {
-            SearchFilterType filterType = targetRef.getFilter();
+        if (constraintTargetRef.getResolutionTime() == EvaluationTimeType.RUN) {
+            SearchFilterType filterType = constraintTargetRef.getFilter();
             if (filterType == null) {
                 throw new SchemaException("No filter in " + context);
             }
-            QName typeQName = targetRef.getType();
+            QName typeQName = constraintTargetRef.getType();
             @SuppressWarnings("rawtypes")
             PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
             ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, objDef);
             PrismObject<? extends AssignmentHolderType> target = assignmentTarget.getTarget();
-            return filter.match(target.getValue(), matchingRuleRegistry);
+            return filter.match(target.getValue(), matchingRuleRegistry); // TODO check the type
         } else {
             throw new SchemaException("No OID in " + context);
         }

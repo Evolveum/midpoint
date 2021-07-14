@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
 
 /**
  * @author katka
@@ -62,9 +61,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
             return true;
         }
 
-        if (TaskPartitionsDefinitionType.COMPLEX_TYPE.equals(defName)) {
-            return true;
-        }
+        // TODO
+//        if (TaskPartsDefinitionType.COMPLEX_TYPE.equals(defName)) {
+//            return true;
+//        }
 
         if (!(def instanceof PrismContainerDefinition)) {
             return false;

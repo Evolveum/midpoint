@@ -78,8 +78,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      * Returns all policy rules that apply to this object - even those that were not triggered.
      * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
      */
-    @NotNull
-    Collection<? extends EvaluatedPolicyRule> getPolicyRules();
+    @NotNull Collection<? extends EvaluatedPolicyRule> getObjectPolicyRules();
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the

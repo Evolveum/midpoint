@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -46,7 +44,7 @@ public class Synchronizer {
     @NotNull private final SynchronizationObjectsFilter objectsFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
     @NotNull private final QName sourceChannel;
-    private final TaskPartitionDefinitionType partDefinition;
+    private final boolean simulate;
     private final boolean forceAdd;
 
     public Synchronizer(@NotNull ResourceType resource,
@@ -54,14 +52,14 @@ public class Synchronizer {
             @NotNull SynchronizationObjectsFilter objectsFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
-            TaskPartitionDefinitionType partDefinition,
+            boolean simulate,
             boolean forceAdd) {
         this.resource = resource;
         this.objectClassDef = objectClassDef;
         this.objectsFilter = objectsFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
-        this.partDefinition = partDefinition;
+        this.simulate = simulate;
         this.forceAdd = forceAdd;
     }
 
@@ -109,7 +107,7 @@ public class Synchronizer {
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
         change.setResource(resource.asPrismObject());
-        change.setSimulate(isSimulate());
+        change.setSimulate(simulate);
         change.setItemProcessingIdentifier(itemProcessingIdentifier);
 
         if (forceAdd) {
@@ -140,10 +138,6 @@ public class Synchronizer {
         LOGGER.debug("#### notify change finished");
 
         // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
-    }
-
-    private boolean isSimulate() {
-        return partDefinition != null && partDefinition.getStage() == ExecutionModeType.SIMULATE;
     }
 
     private boolean isShadowUnknown(ShadowType shadowType) {

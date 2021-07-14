@@ -8,12 +8,16 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -26,8 +30,19 @@ public class QResourceMapping
 
     public static final String DEFAULT_ALIAS_NAME = "res";
 
+    private static QResourceMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QResourceMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QResourceMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QResourceMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QResourceMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QResourceMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -45,10 +60,11 @@ public class QResourceMapping
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
                         enumMapper(q -> q.operationalStateLastAvailabilityStatus));
 
-        addItemMapping(F_CONNECTOR_REF, refMapper(
+        addRefMapping(F_CONNECTOR_REF,
                 q -> q.connectorRefTargetOid,
                 q -> q.connectorRefTargetType,
-                q -> q.connectorRefRelationId));
+                q -> q.connectorRefRelationId,
+                QConnectorMapping::get);
     }
 
     @Override
@@ -87,7 +103,7 @@ public class QResourceMapping
 
     @Override
     public void storeRelatedEntities(@NotNull MResource row,
-            @NotNull ResourceType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull ResourceType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         ResourceBusinessConfigurationType business = schemaObject.getBusiness();

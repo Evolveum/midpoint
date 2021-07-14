@@ -310,18 +310,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public PrismProperty<?> deserializeToken(Object serializedToken) {
-        return null;
-    }
-
-    @Override
-    public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter,
-            OperationResult parentResult) {
-        return null;
-    }
-
-    @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         return null;

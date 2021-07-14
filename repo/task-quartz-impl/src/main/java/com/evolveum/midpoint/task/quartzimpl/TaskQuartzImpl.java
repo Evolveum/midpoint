@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static java.util.Collections.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -16,14 +15,18 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedCollector;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationStatisticsCollector;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -115,6 +118,16 @@ public class TaskQuartzImpl implements Task {
     @NotNull protected final Statistics statistics;
 
     /**
+     * An object in activity execution that should collect statistics about synchronization. (If we run in an activity.)
+     */
+    private SynchronizationStatisticsCollector synchronizationStatisticsCollector;
+
+    /**
+     * An object in activity execution that should collect information about actions executed. (If we run in an activity.)
+     */
+    private ActionsExecutedCollector actionsExecutedCollector;
+
+    /**
      * Task result is stored here as well as in task prism.
      *
      * This one is the live value of this task's result. All operations working with this task
@@ -183,7 +196,7 @@ public class TaskQuartzImpl implements Task {
         this.taskManager = taskManager;
         this.beans = taskManager.getBeans();
         this.taskPrism = taskPrism;
-        statistics = new Statistics(taskManager.getPrismContext());
+        statistics = new Statistics();
         setDefaults();
         updateTaskResult();
     }
@@ -337,6 +350,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void modify(ItemDelta<?, ?> delta) throws SchemaException {
+        LOGGER.debug("Applying {} to {}", delta, this);
         if (isPersistent()) {
             addPendingModification(delta);
         }
@@ -391,6 +405,7 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
     public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         if (isPersistent()) {
@@ -404,6 +419,7 @@ public class TaskQuartzImpl implements Task {
         return beans.prismContext.deltaFactory();
     }
 
+    @Override
     public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
         synchronized (prismAccess) {
             ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);
@@ -505,21 +521,43 @@ public class TaskQuartzImpl implements Task {
         return isLiveRunningInstance() ? CloneUtil.clone(value) : value;
     }
 
-    private <X> X getProperty(ItemName name) {
+    private <X> X getProperty(ItemPath name) {
         synchronized (prismAccess) {
             PrismProperty<X> property = taskPrism.findProperty(name);
             return property != null ? property.getRealValue() : null;
         }
     }
 
-    private <X> void setProperty(ItemName name, X value) {
+    protected <X> void setProperty(ItemName name, X value) {
         addPendingModification(setPropertyAndCreateDeltaIfPersistent(name, value));
+    }
+
+    @Override
+    public ActivityStateType getActivityStateOrClone(ItemPath path) {
+        synchronized (prismAccess) {
+            return cloneIfRunning(ActivityStateUtil.getActivityState(taskPrism.asObjectable(), path));
+        }
+    }
+
+    @Override
+    public <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type) {
+        synchronized (prismAccess) {
+            PrismContainer<C> container = taskPrism.findContainer(path);
+            return container != null && !container.hasNoValues() ? cloneIfRunning(container.getRealValue(type)) : null;
+        }
     }
 
     private <C extends Containerable> C getContainerableOrClone(ItemName name) {
         synchronized (prismAccess) {
             PrismContainer<C> container = taskPrism.findContainer(name);
             return container != null && !container.hasNoValues() ? cloneIfRunning(container.getRealValue()) : null;
+        }
+    }
+
+    @Override
+    public boolean doesItemExist(ItemPath path) {
+        synchronized (prismAccess) {
+            return taskPrism.findItem(path) != null;
         }
     }
 
@@ -674,11 +712,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public StructuredTaskProgressType getStructuredProgressOrClone() {
-        return getContainerableOrClone(TaskType.F_STRUCTURED_PROGRESS);
-    }
-
-    @Override
     public void setProgressImmediate(Long value, OperationResult result) throws ObjectNotFoundException, SchemaException {
         setPropertyImmediate(TaskType.F_PROGRESS, value, result);
     }
@@ -694,14 +727,6 @@ public class TaskQuartzImpl implements Task {
 
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
-    }
-
-    public void setStructuredProgress(StructuredTaskProgressType value) {
-        setContainerable(TaskType.F_STRUCTURED_PROGRESS, value);
-    }
-
-    public void setStructuredProgressTransient(StructuredTaskProgressType value) {
-        setContainerableTransient(TaskType.F_STRUCTURED_PROGRESS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
@@ -914,27 +939,6 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    /**
-     * Changes scheduling status to WAITING. Does not change execution state.
-     * Currently use only on transient tasks OR from within task handler.
-     */
-    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
-        setSchedulingState(TaskSchedulingStateType.WAITING);
-        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
-        setUnpauseAction(unpauseAction);
-    }
-
-    /**
-     * Changes scheduling status to WAITING, and execution state to the given value.
-     * Currently use only on transient tasks OR from within task handler.
-     */
-    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
-        setExecutionState(execState);
-        setSchedulingState(TaskSchedulingStateType.WAITING);
-        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
-        setUnpauseAction(unpauseAction);
-    }
-
     @Override
     public TaskWaitingReasonType getWaitingReason() {
         return getProperty(TaskType.F_WAITING_REASON);
@@ -942,10 +946,6 @@ public class TaskQuartzImpl implements Task {
 
     public void setWaitingReason(TaskWaitingReasonType value) {
         setProperty(TaskType.F_WAITING_REASON, value);
-    }
-
-    private void setUnpauseAction(TaskUnpauseActionType value) {
-        setProperty(TaskType.F_UNPAUSE_ACTION, value);
     }
 
     public TaskRecurrenceType getRecurrence() {
@@ -1393,10 +1393,46 @@ public class TaskQuartzImpl implements Task {
 
     // todo should return clone for running task?
     @Override
-    public <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+    public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         synchronized (prismAccess) {
-            PrismProperty<T> property = getExtensionPropertyUnsynchronized(propertyName);
-            return property != null && !property.isEmpty() ? property.getRealValue() : null;
+            PrismProperty<T> property = taskPrism.findProperty(path);
+            return property != null && !property.isEmpty() ? property.getRealValue(expectedType) : null;
+        }
+    }
+
+    @Override
+    public <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            PrismProperty<T> property = taskPrism.findProperty(path);
+            return property != null && !property.isEmpty() ? cloneIfRunning(property.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
+    public <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            Item<?, ?> item = taskPrism.findItem(path);
+            return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
+    public ObjectReferenceType getReferenceRealValue(ItemPath path) {
+        synchronized (prismAccess) {
+            PrismReference reference = taskPrism.findReference(path);
+            return reference != null && !reference.isEmpty() ? ObjectTypeUtil.createObjectRef(reference.getValue()) : null;
+        }
+    }
+
+    @Override
+    public Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path) {
+        synchronized (prismAccess) {
+            PrismReference reference = taskPrism.findReference(path);
+            if (reference != null) {
+                return ObjectTypeUtil.createObjectRefs(reference.getValues());
+            } else {
+                return List.of();
+            }
         }
     }
 
@@ -1468,18 +1504,12 @@ public class TaskQuartzImpl implements Task {
                 PrismValueCollectionsUtil.cloneCollection(container.getValues())));
     }
 
-    // use this method to avoid cloning the value
     @Override
-    public <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
-        //noinspection unchecked
-        PrismPropertyDefinition<T> propertyDef = beans.prismContext.getSchemaRegistry()
-                .findPropertyDefinitionByElementName(propertyName);
-        if (propertyDef == null) {
-            throw new SchemaException("Unknown property " + propertyName);
-        }
-        addPendingModification(
-                setExtensionPropertyAndPrepareDelta(propertyName, propertyDef,
-                        singletonList(beans.prismContext.itemFactory().createPropertyValue(value))));
+    public <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException {
+        modify(
+                taskManager.getPrismContext().deltaFor(TaskType.class)
+                        .item(path).add(value)
+                        .asItemDelta());
     }
 
     // use this method to avoid cloning the value
@@ -1710,15 +1740,6 @@ public class TaskQuartzImpl implements Task {
         setProperty(TaskType.F_CATEGORY, value);
     }
 
-    public void setCategoryTransient(String value) {
-        setPropertyTransient(TaskType.F_CATEGORY, value);
-    }
-
-    public String getCategoryFromHandler() {
-        TaskHandler h = getHandler();
-        return h != null ? h.getCategoryName(this) : null;
-    }
-
     public String getChannelFromHandler() {
         TaskHandler h = getHandler();
         return h != null ? h.getDefaultChannel() : null;
@@ -1753,26 +1774,34 @@ public class TaskQuartzImpl implements Task {
 
     // todo thread safety (creating a clone?)
     @Override
-    public TaskWorkManagementType getWorkManagement() {
+    public WorkDistributionType getWorkManagement() {
         synchronized (prismAccess) {
-            return taskPrism.asObjectable().getWorkManagement();
+            // FIXME
+            return null;
+//            return taskPrism.asObjectable().getWorkManagement();
         }
     }
 
     // todo thread safety (creating a clone?)
     @Override
-    public TaskWorkStateType getWorkState() {
+    public TaskActivityStateType getWorkState() {
         synchronized (prismAccess) {
-            return taskPrism.asObjectable().getWorkState();
+            return taskPrism.asObjectable().getActivityState();
         }
     }
 
     @Override
+    public TaskActivityStateType getActivitiesStateOrClone() {
+        return getContainerableOrClone(TaskType.F_ACTIVITY_STATE);
+    }
+
+    @Override
     public TaskKindType getKind() {
-        synchronized (prismAccess) {
-            TaskWorkManagementType workManagement = getWorkManagement();
-            return workManagement != null ? workManagement.getTaskKind() : null;
-        }
+        throw new UnsupportedOperationException();
+//        synchronized (prismAccess) {
+//            WorkDistributionType workManagement = getWorkManagement();
+//            return workManagement != null ? workManagement.getTaskKind() : null;
+//        }
     }
 
     public TaskUnpauseActionType getUnpauseAction() {
@@ -1834,13 +1863,6 @@ public class TaskQuartzImpl implements Task {
         setContainerable(TaskType.F_EXECUTION_ENVIRONMENT, value);
     }
 
-    @Override
-    public boolean isScavenger() {
-        synchronized (prismAccess) {
-            TaskWorkManagementType workManagement = taskPrism.asObjectable().getWorkManagement();
-            return workManagement != null && Boolean.TRUE.equals(workManagement.isScavenger());
-        }
-    }
     //endregion
 
     //region Tracing
@@ -1920,6 +1942,19 @@ public class TaskQuartzImpl implements Task {
     @NotNull
     public List<TaskQuartzImpl> listSubtasks(OperationResult parentResult) throws SchemaException {
         return listSubtasks(false, parentResult);
+    }
+
+    @Override
+    public void findAndSetSubtasks(OperationResult result) throws SchemaException {
+        List<ObjectReferenceType> subtasksRefs = listSubtasks(result).stream()
+                .map(Task::getSelfReferenceFull)
+                .collect(Collectors.toList());
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> subtaskRef = taskPrism.asObjectable().getSubtaskRef();
+            subtaskRef.clear();
+            subtaskRef.addAll(subtasksRefs);
+            // We intentionally do not issue pending modification here, as this information should not go into repository.
+        }
     }
 
     @NotNull
@@ -2034,6 +2069,17 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+    @Override
+    public @NotNull ObjectReferenceType getSelfReferenceFull() {
+        if (getOid() != null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(
+                    getRawTaskObjectClonedIfNecessary(),
+                    PrismContext.get());
+        } else {
+            throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
+        }
+    }
+
     public void addSubtask(TaskType subtaskBean) {
         synchronized (prismAccess) {
             taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean, beans.prismContext));
@@ -2042,6 +2088,10 @@ public class TaskQuartzImpl implements Task {
     //endregion
 
     //region Trivia: dump, toString, equals, hashCode
+
+    /**
+     * FIXME: Not thread-safe because of taskResult access.
+     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -2119,85 +2169,96 @@ public class TaskQuartzImpl implements Task {
         return statistics.recordIterativeOperationStart(operation);
     }
 
-    public void recordPartExecutionEnd(String partUri, long partStartTimestamp, long partEndTimestamp) {
-        statistics.recordPartExecutionEnd(partUri, partStartTimestamp, partEndTimestamp);
-    }
-
-    @Override
-    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
-        statistics.onSyncItemProcessingStart(processingIdentifier, situationBefore);
-    }
-
     @Override
     public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid,
             @Nullable SynchronizationSituationType situation) {
-        statistics.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+        }
     }
 
     @Override
     public void onSynchronizationExclusion(@Nullable String processingIdentifier,
             @NotNull SynchronizationExclusionReasonType exclusionReason) {
-        statistics.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+        }
     }
 
     @Override
     public void onSynchronizationSituationChange(@Nullable String processingIdentifier,
             @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
-        statistics.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
-    }
-
-    @Override
-    public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
-            @NotNull QualifiedItemProcessingOutcomeType outcome) {
-        statistics.onSyncItemProcessingEnd(processingIdentifier, outcome);
+        if (synchronizationStatisticsCollector != null) {
+            synchronizationStatisticsCollector.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
+        }
     }
 
     @Override
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, objectDisplayName, this);
-        statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(
+                    objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+        }
     }
 
     @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
-        statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(object, null, null, changeType, getChannel(), exception);
+        }
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
         LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
-        statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
+        if (actionsExecutedCollector != null) {
+            actionsExecutedCollector.recordActionExecuted(object, objectTypeClass, defaultOid, changeType,
+                    channel, exception);
+        }
     }
 
     @Override
-    public void markObjectActionExecutedBoundary() {
-        LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
-        statistics.markObjectActionExecutedBoundary();
-    }
-
-    @Override
-    public void resetSynchronizationInformation(SynchronizationInformationType value) {
-        statistics.resetSynchronizationInformation(value);
-    }
-
-    @Override
-    public void resetIterativeTaskInformation(IterativeTaskInformationType value, boolean collectExecutions) {
+    public void resetIterativeTaskInformation(ActivityItemProcessingStatisticsType value, boolean collectExecutions) {
         statistics.resetIterativeTaskInformation(value, collectExecutions);
-    }
-
-    @Override
-    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
-        statistics.resetActionsExecutedInformation(value);
     }
 
     @NotNull
     @Override
     @Deprecated
     public List<String> getLastFailures() {
-        return statistics.getLastFailures();
+        return emptyList();
+    }
+    //endregion
+
+    //region Misc
+    @Override
+    public void startCollectingSynchronizationStatistics(SynchronizationStatisticsCollector collector) {
+        stateCheck(synchronizationStatisticsCollector == null, "Sync statistics collector already set in %s", this);
+        synchronizationStatisticsCollector = collector;
+    }
+
+    @Override
+    public void stopCollectingSynchronizationStatistics(@NotNull QualifiedItemProcessingOutcomeType outcome) {
+        stateCheck(synchronizationStatisticsCollector != null, "Sync statistics collector not set in %s", this);
+        synchronizationStatisticsCollector.stop(outcome);
+        synchronizationStatisticsCollector = null;
+    }
+
+    @Override
+    public void startCollectingActionsExecuted(ActionsExecutedCollector collector) {
+        stateCheck(actionsExecutedCollector == null, "Actions executed collector already set in %s", this);
+        actionsExecutedCollector = collector;
+    }
+
+    @Override
+    public void stopCollectingActionsExecuted() {
+        stateCheck(actionsExecutedCollector != null, "Actions executed collector not set in %s", this);
+        actionsExecutedCollector.stop();
+        actionsExecutedCollector = null;
     }
     //endregion
 }

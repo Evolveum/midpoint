@@ -8,17 +8,20 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.sqale.filtering.ExistsFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.InOidFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.OrgFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.TypeFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -53,23 +56,33 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     private SqaleQueryContext(
             Q entityPath,
             SqaleTableMapping<S, Q, R> mapping,
-            SqaleQueryContext<?, ?, ?> parentContext) {
-        super(entityPath, mapping, parentContext);
+            SqaleQueryContext<?, ?, ?> parentContext,
+            SQLQuery<?> sqlQuery) {
+        super(entityPath, mapping, parentContext, sqlQuery);
+    }
+
+    @Override
+    public Predicate process(@NotNull ObjectFilter filter) throws RepositoryException {
+        // To compare with old repo see: QueryInterpreter.findAndCreateRestrictionInternal
+        if (filter instanceof InOidFilter) {
+            return new InOidFilterProcessor(this).process((InOidFilter) filter);
+        } else if (filter instanceof OrgFilter) {
+            return new OrgFilterProcessor(this).process((OrgFilter) filter);
+        } else if (filter instanceof FullTextFilter) {
+            // TODO
+            throw new QueryException("TODO filter " + filter);
+        } else if (filter instanceof ExistsFilter) {
+            return new ExistsFilterProcessor<>(this).process((ExistsFilter) filter);
+        } else if (filter instanceof TypeFilter) {
+            return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
+        } else {
+            return super.process(filter);
+        }
     }
 
     @Override
     public SqaleRepoContext repositoryContext() {
         return (SqaleRepoContext) super.repositoryContext();
-    }
-
-    @Override
-    public FilterProcessor<InOidFilter> createInOidFilter() {
-        return new InOidFilterProcessor(this);
-    }
-
-    @Override
-    public FilterProcessor<OrgFilter> createOrgFilter() {
-        return new OrgFilterProcessor(this);
     }
 
     public @NotNull Integer searchCachedRelationId(QName qName) {
@@ -84,16 +97,26 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         }
     }
 
-    /**
-     * Returns derived {@link SqaleQueryContext} for join or subquery.
-     */
+    /** Returns derived {@link SqaleQueryContext} for JOIN. */
     @Override
     protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
-    deriveNew(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new SqaleQueryContext<>(
                 newPath,
                 (SqaleTableMapping<TS, TQ, TR>) newMapping,
-                this);
+                this,
+                this.sqlQuery);
+    }
+
+    /** Returns derived {@link SqaleQueryContext} for subquery. */
+    @Override
+    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR>
+    newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping, SQLQuery<?> query) {
+        return new SqaleQueryContext<>(
+                newPath,
+                (SqaleTableMapping<TS, TQ, TR>) newMapping,
+                this,
+                query);
     }
 
     @Override

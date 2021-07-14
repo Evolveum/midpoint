@@ -18,32 +18,22 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class IterativeOperationStartInfo {
 
     private final IterationItemInformation item;
-    private final String partUri;
-    private final Long partStartTimestamp;
 
     private final long startTimeMillis;
     private final long startTimeNanos;
 
     /**
-     * If present, we use this object to increment the structured progress on operation completion.
-     * This is useful because there is a lot of shared information: part uri, and qualified outcome.
+     * If present, we use this object to increment the progress on operation completion.
+     * This is useful because there is a lot of shared information, e.g. qualified outcome.
      *
-     * TODO make this final?
+     * Currently not implemented.
+     *
+     * TODO implement or throw away
      */
-    private StructuredProgressCollector structuredProgressCollector;
+    private ProgressCollector progressCollector;
 
     public IterativeOperationStartInfo(IterationItemInformation item) {
-        this(item, null);
-    }
-
-    public IterativeOperationStartInfo(IterationItemInformation item, String partUri) {
-        this(item, partUri, null);
-    }
-
-    public IterativeOperationStartInfo(IterationItemInformation item, String partUri, Long partStartTimestamp) {
         this.item = item;
-        this.partUri = partUri;
-        this.partStartTimestamp = partStartTimestamp;
 
         this.startTimeMillis = System.currentTimeMillis();
         this.startTimeNanos = System.nanoTime();
@@ -61,20 +51,12 @@ public class IterativeOperationStartInfo {
         return startTimeNanos;
     }
 
-    public Long getPartStartTimestamp() {
-        return partStartTimestamp;
+    public ProgressCollector getProgressCollector() {
+        return progressCollector;
     }
 
-    public String getPartUri() {
-        return partUri;
-    }
-
-    public StructuredProgressCollector getStructuredProgressCollector() {
-        return structuredProgressCollector;
-    }
-
-    public void setStructuredProgressCollector(StructuredProgressCollector structuredProgressCollector) {
-        this.structuredProgressCollector = structuredProgressCollector;
+    public void setProgressCollector(ProgressCollector progressCollector) {
+        this.progressCollector = progressCollector;
     }
 
     @Override
@@ -82,9 +64,7 @@ public class IterativeOperationStartInfo {
         return getClass().getSimpleName() + "{" +
                 "item=" + item +
                 ", startTimeMillis=" + startTimeMillis +
-                ", partStartTimestamp=" + partStartTimestamp +
-                ", partUri=" + partUri +
-                ", structuredProgressCollector=" + structuredProgressCollector +
+                ", progressCollector=" + progressCollector +
                 '}';
     }
 }

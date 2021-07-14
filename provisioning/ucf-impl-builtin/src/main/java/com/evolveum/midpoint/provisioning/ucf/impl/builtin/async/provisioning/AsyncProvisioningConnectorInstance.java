@@ -22,7 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
@@ -372,18 +371,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public PrismProperty<?> deserializeToken(Object serializedToken) {
-        return null;
-    }
-
-    @Override
-    public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter,
-            OperationResult parentResult) {
-        return null;
-    }
-
-    @Override
-    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, UcfSyncToken lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         return null;

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="8899f17e-066b-4ae3-bff4-00245371b563"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-single-mock-part</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <extension>
+                <ext:mock>
+                    <ext:message>1</ext:message>
+                    <ext:delay>100</ext:delay>
+                    <ext:steps>3</ext:steps>
+                </ext:mock>
+            </extension>
+        </work>
+        <distribution>
+            <buckets>
+                <numericSegmentation>
+                    <from>0</from>
+                    <to>10</to>
+                    <bucketSize>1</bucketSize>
+                </numericSegmentation>
+            </buckets>
+        </distribution>
+    </activity>
+</task>

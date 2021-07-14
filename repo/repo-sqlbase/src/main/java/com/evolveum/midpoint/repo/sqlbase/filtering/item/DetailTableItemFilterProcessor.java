@@ -8,11 +8,14 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 
 import java.util.function.BiFunction;
 
+import com.querydsl.core.types.Operation;
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -24,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 /**
  * Filter processor for a an attribute path (Prism item) that is stored in detail table.
  * Mapper using this processor defines how to get to the actual column on the detail table
- * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemFilterProcessor}.
+ * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemValueFilterProcessor}.
  *
  * @param <S> schema type for the owner of the detail table mapping
  * @param <Q> query type (entity path) from which we traverse to the detail table (owner)
@@ -33,7 +36,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  */
 public class DetailTableItemFilterProcessor
         <S, Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
-        extends ItemFilterProcessor<PropertyValueFilter<String>> {
+        extends ItemValueFilterProcessor<PropertyValueFilter<String>> {
 
     /**
      * Creates composition mapper that defines:
@@ -88,15 +91,23 @@ public class DetailTableItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws RepositoryException {
-        SqlQueryContext<?, DQ, DR> joinContext =
-                context.leftJoin(detailQueryType, joinOnPredicate);
+        SqlQueryContext<?, DQ, DR> subcontext = context.subquery(detailQueryType);
+        SQLQuery<?> subquery = subcontext.sqlQuery();
+        subquery.where(joinOnPredicate.apply(context.path(), subcontext.path()));
 
-        FilterProcessor<ObjectFilter> filterProcessor =
-                nestedItemMapper.createFilterProcessor(joinContext);
+        FilterProcessor<ValueFilter<?, ?>> filterProcessor =
+                nestedItemMapper.createFilterProcessor(subcontext);
         if (filterProcessor == null) {
             throw new QueryException("Filtering on " + filter.getPath() + " is not supported.");
             // this should not even happen, we can't even create a Query that would cause this
         }
-        return filterProcessor.process(filter);
+
+        Predicate predicate = filterProcessor.process(filter);
+        if (predicate instanceof Operation
+                && ((Operation<?>) predicate).getOperator().equals(Ops.IS_NULL)) {
+            return subquery.notExists();
+        } else {
+            return subquery.where(predicate).exists();
+        }
     }
 }

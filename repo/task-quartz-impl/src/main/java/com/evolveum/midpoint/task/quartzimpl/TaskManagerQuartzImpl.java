@@ -8,21 +8,10 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import static java.util.Collections.emptySet;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.task.quartzimpl.execution.*;
-
-import com.evolveum.midpoint.task.quartzimpl.nodes.NodeCleaner;
-import com.evolveum.midpoint.task.quartzimpl.nodes.NodeRetriever;
-import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
-import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
-import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
-import com.evolveum.midpoint.task.quartzimpl.tasks.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +25,12 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -51,10 +39,20 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
+import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
+import com.evolveum.midpoint.task.quartzimpl.execution.Schedulers;
+import com.evolveum.midpoint.task.quartzimpl.execution.TaskStopper;
+import com.evolveum.midpoint.task.quartzimpl.execution.TaskThreadsDumper;
+import com.evolveum.midpoint.task.quartzimpl.nodes.NodeCleaner;
+import com.evolveum.midpoint.task.quartzimpl.nodes.NodeRetriever;
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
+import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
+import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
+import com.evolveum.midpoint.task.quartzimpl.tasks.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -80,6 +78,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_SCHEDULE_TASK_NOW = DOT_INTERFACE + "scheduleTaskNow";
     private static final String OP_SUSPEND_AND_DELETE_TASK = DOT_INTERFACE + "suspendAndDeleteTask";
     private static final String OP_SUSPEND_AND_DELETE_TASKS = DOT_INTERFACE + "suspendAndDeleteTasks";
+    private static final String OP_SUSPEND_AND_CLOSE_TASK_NO_EXCEPTION = DOT_INTERFACE + "suspendAndCloseTaskNoException";
     private static final String OP_MODIFY_TASK = DOT_INTERFACE + "modifyTask";
     private static final String OP_ADD_TASK = DOT_INTERFACE + "addTask";
     private static final String OP_RESUME_TASKS = DOT_INTERFACE + "resumeTasks";
@@ -103,7 +102,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_GET_TASK_PLAIN = DOT_IMPL_CLASS + "getTaskPlain";
     public static final String OP_CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
     private static final String OP_CLEANUP_NODES = DOT_INTERFACE + "cleanupNodes";
-    public static final String CONTENTION_LOG_NAME = TaskManagerQuartzImpl.class.getName() + ".contention";
 
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
@@ -130,8 +128,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
-    @Autowired private WorkStateManager workStateManager;
-    @Autowired private WorkersManager workersManager;
     @Autowired private UpAndDown upAndDown;
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
@@ -291,39 +287,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             taskStateManager.resumeTaskTree(rootTaskOid, result);
         } catch (Throwable t) {
             result.recordFatalError("Couldn't resume task tree", t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    @Override
-    public void reconcileWorkers(String coordinatorTaskOid, WorkersReconciliationOptions options, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "reconcileWorkers");
-        result.addParam("coordinatorTaskOid", coordinatorTaskOid);
-        try {
-            workersManager.reconcileWorkers(coordinatorTaskOid, options, result);
-        } catch (Throwable t) {
-            result.recordFatalError("Couldn't reconcile workers", t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    @Override
-    public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime,
-            OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteWorkersAndWorkState");
-        result.addParam("rootTaskOid", rootTaskOid);
-        result.addParam("deleteWorkers", deleteWorkers);
-        result.addParam("subtasksWaitTime", subtasksWaitTime);
-        try {
-            workersManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, result);
-        } catch (Throwable t) {
-            result.recordFatalError("Couldn't delete workers and work state", t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
@@ -498,11 +461,41 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
+    public void suspendAndCloseTaskNoException(Task task, long suspendTimeout, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(OP_SUSPEND_AND_CLOSE_TASK_NO_EXCEPTION);
+        result.addArbitraryObjectAsParam("task", task);
+        result.addParam("suspendTimeout", suspendTimeout);
+        try {
+            taskStateManager.suspendAndCloseTaskNoException((TaskQuartzImpl) task, suspendTimeout, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't suspend and close task {}", t, task);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
     public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTask");
         result.addParam("oid", oid);
         try {
             taskStateManager.deleteTask(oid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public void deleteTaskTree(String rootTaskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteTaskTree");
+        result.addParam("rootTaskOid", rootTaskOid);
+        try {
+            taskStateManager.deleteTaskTree(rootTaskOid, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -568,6 +561,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         }
     }
 
+    @Override
     @NotNull
     public TaskQuartzImpl getTask(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
@@ -655,34 +649,27 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     //region Managing handlers and task categories
     @Override
-    public void registerHandler(String uri, TaskHandler handler) {
+    public void registerHandler(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerHandler(uri, handler);
     }
 
     @Override
-    public void registerAdditionalHandlerUri(String uri, TaskHandler handler) {
+    public void unregisterHandler(String uri) {
+        handlerRegistry.unregisterHandler(uri);
+    }
+
+    @Override
+    public void registerAdditionalHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerAdditionalHandlerUri(uri, handler);
     }
 
     @Override
-    public void registerDeprecatedHandlerUri(String uri, TaskHandler handler) {
+    public void registerDeprecatedHandlerUri(@NotNull String uri, @NotNull TaskHandler handler) {
         handlerRegistry.registerDeprecatedHandlerUri(uri, handler);
     }
 
     public TaskHandler getHandler(String uri) {
         return handlerRegistry.getHandler(uri);
-    }
-
-    @Deprecated
-    @Override
-    public List<String> getAllTaskCategories() {
-        return handlerRegistry.getAllTaskCategories();
-    }
-
-    @Deprecated
-    @Override
-    public String getHandlerUriForCategory(String category) {
-        return handlerRegistry.getHandlerUriForCategory(category);
     }
 
     @Override
@@ -694,6 +681,12 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly) {
         return handlerRegistry.getHandlerUrisForArchetype(archetypeOid, nonDeprecatedOnly);
     }
+
+    @Override
+    public void setDefaultHandlerUri(String uri) {
+        handlerRegistry.setDefaultHandlerUri(uri);
+    }
+
     //endregion
 
     //region Notifications
@@ -950,6 +943,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         }
     }
 
+    @Override
     @VisibleForTesting // TODO
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         taskStateManager.closeTask(task, parentResult);
@@ -1065,33 +1059,16 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         return securityContextManager;
     }
 
-    public WorkStateManager getWorkStateManager() {
-        return workStateManager;
-    }
-
     public HandlerExecutor getHandlerExecutor() {
         return handlerExecutor;
     }
 
-    @Override
-    public ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
-            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
-            WorkBucketType workBucket, OperationResult opResult)
-            throws SchemaException, ObjectNotFoundException {
-        return workStateManager.narrowQueryForWorkBucket(workerTask, query, type, itemDefinitionProvider, workBucket, opResult);
-    }
-
-    @Override
-    public TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy) {
-        PartitioningTaskHandler handler = new PartitioningTaskHandler(this, partitioningStrategy);
-        registerHandler(handlerUri, handler);
-        return handler;
-    }
-
-    @Override
-    public void setFreeBucketWaitInterval(long value) {
-        workStateManager.setFreeBucketWaitIntervalOverride(value);
-    }
+//    @Override
+//    public TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy) {
+//        PartitioningTaskHandler handler = new PartitioningTaskHandler(this, partitioningStrategy);
+//        registerHandler(handlerUri, handler);
+//        return handler;
+//    }
 
     @Override
     public boolean isLocalNodeClusteringEnabled() {
@@ -1137,8 +1114,8 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @VisibleForTesting
     @Override
-    public RunningTaskQuartzImpl createFakeRunningTask(Task task, String rootTaskOid) {
-        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, rootTaskOid);
+    public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
+        RunningTaskQuartzImpl runningTask = taskInstantiator.toRunningTaskInstance(task, task);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }

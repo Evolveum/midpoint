@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -34,10 +36,21 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    public static QFocusMapping<?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                FocusType.class, QFocus.CLASS,
-                repositoryContext);
+    private static QFocusMapping<FocusType, QFocus<MFocus>, MFocus> instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QFocusMapping<?, ?, ?> initFocusMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    FocusType.class, QFocus.CLASS,
+                    repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QFocusMapping<?, ?, ?> getFocusMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     protected QFocusMapping(
@@ -162,7 +175,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     public void storeRelatedEntities(
-            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getLinkRef(),

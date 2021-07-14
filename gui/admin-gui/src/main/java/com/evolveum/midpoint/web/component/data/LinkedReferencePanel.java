@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -86,7 +88,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 return null;
             }
 
-            DisplayType displayType = WebComponentUtil.getDisplayTypeForObject(ref.getObject(), null, getPageBase());
+            DisplayType displayType = WebDisplayTypeUtil.getDisplayTypeForObject(ref.getObject(), null, getPageBase());
             if (displayType == null) {
                 displayType = new DisplayType();
             }

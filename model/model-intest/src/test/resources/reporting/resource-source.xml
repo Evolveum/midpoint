@@ -80,7 +80,7 @@
                 <inbound>
                     <expression>
                         <script>
-                            <code>import com.evolveum.midpoint.model.intest.reporting.TestTaskReporting
+                            <code>import com.evolveum.midpoint.model.intest.tasks.TestTaskReporting
 
                             if (TestTaskReporting.failuresEnabled &amp;&amp; input == TestTaskReporting.PROJECTOR_FATAL_ERROR) {
                                 throw new IllegalStateException("Projector fatal error encountered")

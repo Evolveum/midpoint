@@ -42,9 +42,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author lazyman
- */
 @NamedQueries({
         @NamedQuery(name = "get.focusPhoto", query = "select p.photo from RFocusPhoto p where p.ownerOid = :oid"),
         @NamedQuery(name = "get.taskResult", query = "select t.fullResult from RTask t where t.oid = :oid"),
@@ -96,6 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         @Index(name = "iObjectLifecycleState", columnList = "lifecycleState") })
 @Inheritance(strategy = InheritanceType.JOINED)
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public abstract class RObject implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";

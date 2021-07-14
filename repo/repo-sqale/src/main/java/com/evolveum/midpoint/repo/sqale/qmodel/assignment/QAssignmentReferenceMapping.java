@@ -13,7 +13,10 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -35,7 +38,8 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     initForAssignmentCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignmentCreateApprover == null) {
             instanceAssignmentCreateApprover = new QAssignmentReferenceMapping<>(
-                    "m_assignment_ref_create_approver", "arefca", repositoryContext);
+                    "m_assignment_ref_create_approver", "arefca", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
         }
         return getForAssignmentCreateApprover();
     }
@@ -51,7 +55,8 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     initForAssignmentModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignmentModifyApprover == null) {
             instanceAssignmentModifyApprover = new QAssignmentReferenceMapping<>(
-                    "m_assignment_ref_modify_approver", "arefma", repositoryContext);
+                    "m_assignment_ref_modify_approver", "arefma", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
         }
         return getForAssignmentModifyApprover();
     }
@@ -63,11 +68,13 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
                 Objects.requireNonNull(instanceAssignmentModifyApprover);
     }
 
-    private QAssignmentReferenceMapping(
+    private <TQ extends QObject<TR>, TR extends MObject> QAssignmentReferenceMapping(
             String tableName,
             String defaultAliasName,
-            @NotNull SqaleRepoContext repositoryContext) {
-        super(tableName, defaultAliasName, QAssignmentReference.class, repositoryContext);
+            @NotNull SqaleRepoContext repositoryContext,
+            RefTableTargetResolver<QAssignmentReference, MAssignmentReference, TQ, TR> targetResolver) {
+        super(tableName, defaultAliasName, QAssignmentReference.class,
+                repositoryContext, targetResolver);
 
         // assignmentCid probably can't be mapped directly
     }
@@ -87,7 +94,8 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     }
 
     @Override
-    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.assignmentCid));
+    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.assignmentCid));
     }
 }

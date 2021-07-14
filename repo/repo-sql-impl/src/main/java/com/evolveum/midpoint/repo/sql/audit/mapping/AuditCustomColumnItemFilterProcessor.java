@@ -15,7 +15,8 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCusto
  * with the same item filter processors used for non-extension columns (only the mapping
  * registration would be dynamic, which is not a big deal).
  */
-public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
+public class AuditCustomColumnItemFilterProcessor extends ItemValueFilterProcessor<
         PropertyValueFilter<AuditEventRecordCustomColumnPropertyType>> {
 
     /**
@@ -86,16 +87,16 @@ public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
             PropertyValueFilter<AuditEventRecordCustomColumnPropertyType> filter,
             AuditEventRecordCustomColumnPropertyType customColumnPropertyType)
             throws QueryException {
-        Ops operator = operation(filter);
+        FilterOperation operation = operation(filter);
         Path<?> path = context.path().getPath(customColumnPropertyType.getName());
         if (customColumnPropertyType.getValue() == null) {
-            if (operator == Ops.EQ || operator == Ops.EQ_IGNORE_CASE) {
+            if (operation.isAnyEqualOperation()) {
                 return ExpressionUtils.predicate(Ops.IS_NULL, path);
             } else {
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
         }
 
-        return singleValuePredicate(path, operator, customColumnPropertyType.getValue());
+        return singleValuePredicate(path, operation, customColumnPropertyType.getValue());
     }
 }

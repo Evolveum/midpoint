@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertTrue;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -20,11 +25,18 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
@@ -51,10 +63,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
+    private static final long CAMPAIGN_1_CASE_2_ID = 55L;
+
     private String user1Oid; // typical object
     private String task1Oid; // task has more attribute type variability
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
+    private String accessCertificationCampaign1Oid;
+    private UUID accessCertificationCampaign1Case2ObjectOid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -71,6 +87,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1").asPrismObject(),
+                null, result);
+        // This also indirectly tests ability to create an minimal object (mandatory fields only).
+        accessCertificationCampaign1Oid = repositoryService.addObject(
+                new AccessCertificationCampaignType(prismContext)
+                        .name("campaign-1")
+                        .ownerRef(user1Oid, UserType.COMPLEX_TYPE)
+                        // TODO: campaignIteration
+                        .iteration(1)
+                        .stageNumber(2)
+                        .asPrismObject(),
                 null, result);
 
         assertThatOperationResult(result).isSuccess();
@@ -989,7 +1015,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 .oid(refTargetOid2.toString()).relation(refRelation2),
                         new ObjectReferenceType() // nonexistent anyway
                                 .oid(refTargetOid3.toString()).relation(refRelation2),
-                        new ObjectReferenceType() // like add bellow, will be "narrowed" out
+                        // like add bellow, the deletion will be "narrowed" out and ignored
+                        new ObjectReferenceType()
                                 .oid(refTargetOid3.toString()).relation(refRelation1))
                 .add(new ObjectReferenceType().oid(refTargetOid3.toString())
                                 .type(ShadowType.COMPLEX_TYPE).relation(refRelation1),
@@ -1266,7 +1293,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1299,7 +1326,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-3");
 
         and("column with subtypes is updated accordingly");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1332,7 +1359,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder("policy-situation-a", "policy-situation-z");
 
         and("column with subtypes is updated accordingly");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
                 .extracting(uriId -> cachedUriById(uriId))
@@ -1364,7 +1391,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(userObject.getAssignment().get(0).getPolicySituation()).isNullOrEmpty();
 
         and("column with policy situations is set to null");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations).isNull();
     }
@@ -1648,7 +1675,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata()).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
 
         and("all externalized columns for metadata are cleared");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1666,7 +1694,31 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test207AddingEmptyNestedMetadataContainer()
+    public void test207SettingMetadataContainerToNull()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
+
+        given("delta replacing metadata with nothing for task 1");
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ObjectType.F_METADATA).replace()
+                .asObjectDelta(task1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(TaskType.class, task1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
+                .asObjectable();
+        assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(taskObject.getMetadata()).isNull();
+    }
+
+    @Test
+    public void test208AddingEmptyNestedMetadataContainer()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MTask originalRow = selectObjectByOid(QTask.class, task1Oid);
@@ -1685,24 +1737,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
-        // this one is not narrowed to empty modifications, version is incremented
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        // but empty container is not left in the full object
-        assertThat(taskObject.getMetadata()).isNull();
-
-        and("all externalized columns for metadata are set (or left) null");
-        MTask row = selectObjectByOid(QTask.class, task1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.creatorRefTargetOid).isNull();
-        assertThat(row.creatorRefTargetType).isNull();
-        assertThat(row.creatorRefRelationId).isNull();
-        assertThat(row.createChannelId).isNull();
-        assertThat(row.createTimestamp).isNull();
-        assertThat(row.modifierRefTargetOid).isNull();
-        assertThat(row.modifierRefTargetType).isNull();
-        assertThat(row.modifierRefRelationId).isNull();
-        assertThat(row.modifyChannelId).isNull();
-        assertThat(row.modifyTimestamp).isNull();
+        assertThat(taskObject.getMetadata()).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
     }
 
     @Test
@@ -1881,7 +1918,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ASSIGNMENT);
@@ -1896,7 +1933,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         given("delta replacing single-value item inside assignment for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment origAssignmentRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(origAssignmentRow.orderValue).isNull(); // wasn't previously set
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -1975,7 +2012,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 2);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid < originalRow.containerIdSeq) // previous one
@@ -2001,7 +2038,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing item inside single assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         long assOrder49Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(49)).cid;
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -2045,7 +2082,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta changing multiple assignments for user 1");
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         long assOrder48Cid = selectOne(a,
                 a.ownerOid.eq(UUID.fromString(user1Oid)), a.orderValue.eq(48)).cid;
         long assOrder50Cid = selectOne(a,
@@ -2132,7 +2169,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(2)
                 .anyMatch(aRow -> aRow.orderValue.equals(47))
@@ -2172,7 +2209,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
@@ -2211,7 +2248,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(2)
                 .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
@@ -2251,7 +2288,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(3)
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
@@ -2297,6 +2334,187 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        UUID targetOid = UUID.randomUUID();
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+                .stageNumber(3)
+                .iteration(4)
+                .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_CASE)
+                .add(caseBefore)
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        // next free CID was assigned
+        assertThat(casesAfter.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
+        MAccessCertificationCase aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(aRow.cid).isEqualTo(originalRow.containerIdSeq);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isEqualTo(targetOid);
+        assertThat(aRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
+        assertCachedUri(aRow.targetRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.stageNumber).isEqualTo(3);
+        assertThat(aRow.campaignIteration).isEqualTo(4);
+
+        assertCertificationCaseFullObject(aRow, caseBefore);
+    }
+
+    @Test
+    public void test331AddedCertificationCaseStoresItFixedId()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        accessCertificationCampaign1Case2ObjectOid = UUID.randomUUID();
+        AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
+                .id(CAMPAIGN_1_CASE_2_ID)
+                .stageNumber(5)
+                .iteration(7)
+                .objectRef(accessCertificationCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
+                .outcome("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_CASE)
+                .add(caseBefore)
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        assertThat(casesAfter.get(1).getId()).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
+
+        List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(caseRows).hasSize(2);
+        caseRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationCase aRow = caseRows.get(1);
+        assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isNull();
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        assertThat(aRow.stageNumber).isEqualTo(5);
+        assertThat(aRow.campaignIteration).isEqualTo(7);
+
+        assertCertificationCaseFullObject(aRow, caseBefore);
+    }
+
+    private void assertCertificationCaseFullObject(MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore) throws SchemaException {
+        String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
+        display("Case full object:\n" + fullObjectStr);
+        String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(caseBefore.asPrismContainerValue());
+        assertThat(fullObjectStr).isEqualTo(caseBeforeStr);
+    }
+
+    @Test
+    public void test332ModifiedCertificationCaseStoresIt()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+
+        given("delta adding case for campaign 1");
+        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
+                .item(ItemPath.create(AccessCertificationCampaignType.F_CASE, CAMPAIGN_1_CASE_2_ID, AccessCertificationCaseType.F_OUTCOME))
+                .replace("People are the problem")
+                .asObjectDelta(accessCertificationCampaign1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+                .asObjectable();
+        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
+        assertThat(casesAfter).isNotNull();
+        assertThat(casesAfter.get(1).getId()).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+
+        and("campaign row is created");
+        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("case row is created");
+        QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
+
+        List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
+        assertThat(caseRows).hasSize(2);
+        caseRows.sort(comparing(tr -> tr.cid));
+
+        MAccessCertificationCase aRow = caseRows.get(1);
+        assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
+        assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
+        assertThat(aRow.targetRefTargetOid).isNull();
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
+        assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
+        assertThat(aRow.outcome).isEqualTo("People are the problem");
+        assertThat(aRow.stageNumber).isEqualTo(5);
+        assertThat(aRow.campaignIteration).isEqualTo(7);
+
+        // Check that case (container) fullObject was updated, as opposed to campaign (object) fullObject
+        PrismContainerValue<AccessCertificationCaseType> fullObjectCval = prismContext
+                .parserFor(new String(aRow.fullObject, StandardCharsets.UTF_8))
+                .xml()
+                .parseItemValue();
+
+        // Unchanged
+        assertThat(fullObjectCval.asContainerable().getStageNumber()).isEqualTo(5);
+        assertThat(fullObjectCval.asContainerable().getIteration()).isEqualTo(7);
+        // Changed
+        assertThat(fullObjectCval.asContainerable().getOutcome()).isEqualTo("People are the problem");
+    }
+
+    @Test
     public void test399DeleteAllAssignments()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
@@ -2325,9 +2543,269 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignment().defaultAlias();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         assertThat(select(a, a.ownerOid.eq(UUID.fromString(user1Oid)))).isEmpty();
     }
+    // endregion
+
+    // region extension items
+    @Test
+    public void test500SettingExtensionItemValue() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding string extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("string"))
+                .replace("string-value500")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull()
+                .extracting(e -> e.asPrismContainerValue().findItem(new ItemName("string")))
+                .isNotNull()
+                .extracting(i -> i.getRealValue())
+                .isEqualTo("string-value500");
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500");
+    }
+
+    @Test
+    public void test501AddingAnotherExtensionItem() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int"))
+                .replace(555)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                // old value is still there
+                .containsEntry(extensionKey(extensionContainer, "string"), "string-value500")
+                // and new one is added
+                .containsEntry(extensionKey(extensionContainer, "int"), 555);
+    }
+
+    @Test
+    public void test502AddingAndDeletingMultipleExtensionItems() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION, new QName("int")).replace(47)
+                .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s1", "s2", "s3", "s4")
+                .item(FocusType.F_EXTENSION, new QName("string")).delete("string-value500")
+                .item(FocusType.F_EXTENSION, new QName("poly-mv")).add(
+                        new PolyString("poly-ext1"), new PolyString("poly-ext2"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .doesNotContainKey(extensionKey(extensionContainer, "string")) // deleted
+                .containsEntry(extensionKey(extensionContainer, "int"), 47) // replaced
+                .containsEntry(extensionKey(extensionContainer, "string-mv"), // added
+                        List.of("s1", "s2", "s3", "s4"))
+                .containsEntry(extensionKey(extensionContainer, "poly-mv"),
+                        List.of(Map.of("o", "poly-ext1", "n", "polyext1"),
+                                Map.of("o", "poly-ext2", "n", "polyext2")));
+    }
+
+    @Test
+    public void test503AddingAndDeletingValuesFromSingleExtensionItem() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding and deleting values from a single extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                // Add+delete of s5 will be eliminated during delta creation (asObjectDelta),
+                // because it's not a single modification, but two. Compare with test163.
+                // Deletion of s6 is effectively no-op.
+                .item(FocusType.F_EXTENSION, new QName("string-mv")).delete("s1", "s5", "s6")
+                .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s5", "s7")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extension = user.getExtension();
+        Item<?, ?> item = extension.asPrismContainerValue().findItem(new ItemName("string-mv"));
+        assertThat(item).isNotNull();
+        //noinspection unchecked
+        assertThat((Collection<String>) item.getRealValues())
+                .containsExactlyInAnyOrder("s2", "s3", "s4", "s7");
+
+        and("externalized column is updated");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .containsEntry(extensionKey(extensionContainer, "string-mv"), // changed
+                        List.of("s2", "s3", "s4", "s7"))
+                .containsEntry(extensionKey(extensionContainer, "int"), 47) // preserved
+                .containsEntry(extensionKey(extensionContainer, "poly-mv"),
+                        List.of(Map.of("o", "poly-ext1", "n", "polyext1"),
+                                Map.of("o", "poly-ext2", "n", "polyext2")));
+    }
+
+    @Test
+    public void test505SettingExtensionContainerToEmpty() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta setting extension container to empty");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION).replace(new ExtensionType())
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull()
+                .matches(m -> m.asPrismContainerValue().isEmpty());
+
+        and("ext column is cleared");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNull();
+    }
+
+    @Test
+    public void test506SettingExtensionContainerValue() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding extension container value");
+        ExtensionType extension = new ExtensionType(prismContext);
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION).add(extension)
+                .asObjectDelta(user1Oid);
+        addExtensionValue(extension, "string", "string-value");
+        addExtensionValue(extension, "int-mv", 1, 2);
+        addExtensionValue(extension, "decimal", new BigDecimal("1E300"));
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNotNull()
+                .matches(m -> !m.asPrismContainerValue().isEmpty());
+
+        and("ext column is populated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .containsExactlyInAnyOrderEntriesOf(Map.of(
+                        extensionKey(extensionContainer, "string"), "string-value",
+                        extensionKey(extensionContainer, "int-mv"), List.of(1, 2),
+                        // retrieved number is converted to BigInteger, as it has no decimal places
+                        extensionKey(extensionContainer, "decimal"), new BigDecimal("1E300").toBigInteger()));
+    }
+
+    @Test
+    public void test507SettingExtensionContainerToNull() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding int extension item");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_EXTENSION).replace()
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        ExtensionType extensionContainer = user.getExtension();
+        assertThat(extensionContainer).isNull();
+
+        and("ext column is cleared");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNull();
+    }
+
+    // TODO index only not done
     // endregion
 
     // TODO: photo test, currently it puts it into fullObject and not into column.

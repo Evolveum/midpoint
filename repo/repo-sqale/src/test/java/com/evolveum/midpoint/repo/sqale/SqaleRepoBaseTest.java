@@ -130,7 +130,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> long count(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             SQLQuery<?> query = jdbcSession.newQuery()
                     .from(path)
                     .where(conditions);
@@ -145,7 +145,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> List<R> select(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -163,7 +163,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     protected <R, Q extends FlexibleRelationalPathBase<R>> @Nullable R selectOneNullable(
             Q path, Predicate... conditions) {
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             return jdbcSession.newQuery()
                     .from(path)
                     .where(conditions)
@@ -233,12 +233,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         object.nameNorm = prismContext.getDefaultPolyStringNormalizer().normalize(origName);
     }
 
-    protected java.util.function.Predicate<? super Referencable> refMatcher(UUID targetOid, QName relation) {
+    protected java.util.function.Predicate<? super Referencable> refMatcher(
+            UUID targetOid, QName relation) {
         return ref -> ref.getOid().equals(targetOid.toString())
                 && ref.getRelation().equals(relation);
     }
 
-    protected java.util.function.Predicate<? super MReference> refRowMatcher(UUID targetOid, QName relation) {
+    protected java.util.function.Predicate<? super MReference> refRowMatcher(
+            UUID targetOid, QName relation) {
         return ref -> ref.targetOid.equals(targetOid)
                 && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }
@@ -312,7 +314,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> def = pcv.getDefinition().findItemDefinition(new ItemName(itemName));
         MExtItem.Key key = MExtItem.keyFrom(def, holder);
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             QExtItem ei = QExtItem.DEFAULT;
             return jdbcSession.newQuery()
                     .from(ei)
@@ -375,15 +377,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         @SafeVarargs
         public final <V> ShadowAttributesHelper set(
                 QName attributeName, QName type, V... values) throws SchemaException {
-            attrsDefinition.createPropertyDefinition(attributeName, type, 0,
-                    values.length <= 1 ? 1 : -1);
-            addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
-            return this;
+            return set(attributeName, type, 0, values.length <= 1 ? 1 : -1, values);
         }
 
         /** Returns shadow attributes container likely needed later in the assert section. */
         public ShadowAttributesType attributesContainer() {
             return attributesContainer;
+        }
+
+        /** For tests searching by shadow attribute using {@code item(ItemPath, ItemDefinition}. */
+        public ItemDefinition<?> getDefinition(ItemName attributeName) {
+            return attrsDefinition.findItemDefinition(attributeName);
         }
     }
     // endregion

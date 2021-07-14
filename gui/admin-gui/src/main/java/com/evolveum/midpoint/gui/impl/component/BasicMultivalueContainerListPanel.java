@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
@@ -77,7 +78,7 @@ public abstract class BasicMultivalueContainerListPanel<C extends Containerable>
     @Override
     protected List<CompositedIconButtonDto> createNewButtonDescription() {
         String title = getPageBase().createStringResource("PageAdminObjectDetails.title.new", getContainerNameForNewButton()).getString();
-        DisplayType defaultButtonDisplayType = WebComponentUtil.createDisplayType("fa fa-plus", "green", title);
+        DisplayType defaultButtonDisplayType = WebDisplayTypeUtil.createDisplayType("fa fa-plus", "green", title);
         CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)

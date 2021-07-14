@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.report;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -16,12 +19,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * Mapping between {@link QReport} and {@link ReportType}.
  */
 public class QReportMapping
-        extends QAssignmentHolderMapping<ReportType, QReport, MReport> {
+        extends QAssignmentHolderMapping<ReportType, QReport, MObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "rep";
 
+    private static QReportMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QReportMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QReportMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QReportMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QReportMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QReportMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -32,10 +46,5 @@ public class QReportMapping
     @Override
     protected QReport newAliasInstance(String alias) {
         return new QReport(alias);
-    }
-
-    @Override
-    public MReport newRowObject() {
-        return new MReport();
     }
 }

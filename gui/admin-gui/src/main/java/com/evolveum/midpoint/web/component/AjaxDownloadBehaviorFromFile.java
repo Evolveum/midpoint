@@ -18,7 +18,8 @@ import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
+
+import java.time.Duration;
 
 public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior {
 
@@ -70,7 +71,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
                         }
                     }
                 }.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)
-                        .setCacheDuration(Duration.ONE_SECOND));
+                        .setCacheDuration(Duration.ofSeconds(1)));
     }
 
     public void setContentType(String contentType) {

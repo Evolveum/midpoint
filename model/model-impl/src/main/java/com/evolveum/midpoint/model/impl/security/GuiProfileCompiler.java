@@ -150,10 +150,10 @@ public class GuiProfileCompiler {
 
         CompiledGuiProfile composite = new CompiledGuiProfile();
         if (globalAdminGuiConfig != null) {
-            applyAdminGuiConfiguration(composite, globalAdminGuiConfig, task, result);
+            applyAdminGuiConfiguration(composite, globalAdminGuiConfig.cloneWithoutId(), task, result);
         }
         for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
-            applyAdminGuiConfiguration(composite, adminGuiConfiguration, task, result);
+            applyAdminGuiConfiguration(composite, adminGuiConfiguration.cloneWithoutId(), task, result);
         }
         return composite;
     }

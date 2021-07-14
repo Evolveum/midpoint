@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SinglePathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * These paths are generally not ordered by, which is a relief, otherwise JOIN would be needed.
  */
 public class UriItemFilterProcessor
-        extends SinglePathItemFilterProcessor<String, NumberPath<Integer>> {
+        extends SinglePathItemFilterProcessor<Object, NumberPath<Integer>> {
 
     public <Q extends FlexibleRelationalPathBase<R>, R> UriItemFilterProcessor(
             SqlQueryContext<?, Q, R> context,
@@ -36,16 +37,16 @@ public class UriItemFilterProcessor
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
+    public Predicate process(PropertyValueFilter<Object> filter) throws QueryException {
         return createBinaryCondition(filter, path,
                 ValueFilterValues.from(filter,
-                        u -> ((SqaleRepoContext) context.repositoryContext()).searchCachedUriId(u)));
+                        ((SqaleRepoContext) context.repositoryContext())::searchCachedUriId));
     }
 
     @Override
-    protected Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+    protected FilterOperation operation(ValueFilter<?, ?> filter) throws QueryException {
         if (filter instanceof EqualFilter && filter.getMatchingRule() == null) {
-            return Ops.EQ;
+            return FilterOperation.of(Ops.EQ);
         } else {
             throw new QueryException("Can't translate filter '" + filter + "' to operation."
                     + " URI/QName value supports only equals with no matching rule.");

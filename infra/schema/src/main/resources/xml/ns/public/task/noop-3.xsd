@@ -10,9 +10,12 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <xsd:annotation>
         <xsd:documentation>
@@ -50,4 +53,22 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:complexType name="NoopParametersType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="delay" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="noop" type="tns:NoopParametersType" />
+
 </xsd:schema>

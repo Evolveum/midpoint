@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="c953574d-8b51-4473-8bfb-2705e96204e5"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>task-single-reconciliation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+
+    <preActivity>
+        <work>
+            <scripting>
+                <executeScript>
+                    <s:execute>
+                        <s:script>
+                            <code>log.info('get ready')</code>
+                        </s:script>
+                    </s:execute>
+                </executeScript>
+            </scripting>
+        </work>
+    </preActivity>
+
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceRef oid="9f2bc5b3-61ea-4b59-9ee4-901affe5c8c8"/>
+            </reconciliation>
+        </work>
+    </activity>
+
+    <postActivity>
+        <work>
+            <scripting>
+                <executeScript>
+                    <s:execute>
+                        <s:script>
+                            <code>log.info('done')</code>
+                        </s:script>
+                    </s:execute>
+                </executeScript>
+            </scripting>
+        </work>
+    </postActivity>
+
+</task>

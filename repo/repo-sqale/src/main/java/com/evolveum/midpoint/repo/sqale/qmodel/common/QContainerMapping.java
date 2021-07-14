@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -43,7 +44,15 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
+        // OWNER_OID does not need to be mapped, it is handled by InOidFilterProcessor
         // CID is not mapped directly, it is used by path resolver elsewhere
+    }
+
+    /** Implemented for searchable containers. */
+    @Override
+    public S toSchemaObject(R row) {
+        throw new UnsupportedOperationException(
+                "Container search not supported for schema type " + schemaType());
     }
 
     @Override
@@ -75,7 +84,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     }
 
     @Override
-    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        throw new UnsupportedOperationException("insert must be implemented in the subclass");
+    public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        throw new UnsupportedOperationException("Missing insert() implementation in " + getClass());
     }
 }

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
@@ -477,6 +476,11 @@ public class ModelImplUtils {
         return new SynchronizationObjectsFilterImpl(objectclassDef, kind, intent);
     }
 
+    public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
+            ObjectClassComplexTypeDefinition objectclassDef, ResourceObjectSetType resourceObjectSet) {
+        return new SynchronizationObjectsFilterImpl(objectclassDef, resourceObjectSet.getKind(), resourceObjectSet.getIntent());
+    }
+
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
             throws SchemaException {
         QName objectclass = getTaskExtensionPropertyValue(task, ModelConstants.OBJECTCLASS_PROPERTY_NAME);
@@ -484,6 +488,17 @@ public class ModelImplUtils {
         String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
 
         return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
+    }
+
+    public static ObjectClassComplexTypeDefinition determineObjectClassNew(@NotNull RefinedResourceSchema refinedSchema,
+            @NotNull ResourceObjectSetType resourceObjectSet, Object source)
+            throws SchemaException {
+        return determineObjectClassInternal(
+                refinedSchema,
+                resourceObjectSet.getObjectclass(),
+                resourceObjectSet.getKind(),
+                resourceObjectSet.getIntent(),
+                source);
     }
 
     private static <T> T getTaskExtensionPropertyValue(Task task, ItemName propertyName) {
@@ -571,18 +586,26 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
-        ModelExecuteOptionsType options1 = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS); // legacy
+    public static ModelExecuteOptions getModelExecuteOptions(PrismContainerValue<?> taskExtension) {
+        if (taskExtension == null) {
+            return null;
+        }
+
+        ModelExecuteOptionsType options1 =
+                taskExtension.getItemRealValue(SchemaConstants.C_MODEL_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
         if (options1 != null) {
             return ModelExecuteOptions.fromModelExecutionOptionsType(options1);
         }
 
-        ModelExecuteOptionsType options2 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS);
+        ModelExecuteOptionsType options2 =
+                taskExtension.getItemRealValue(
+                        SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
         if (options2 != null) {
             return ModelExecuteOptions.fromModelExecutionOptionsType(options2);
         }
 
-        ModelExecuteOptionsType options3 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        ModelExecuteOptionsType options3 =
+                taskExtension.getItemRealValue(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
         if (options3 != null) {
             return ModelExecuteOptions.fromModelExecutionOptionsType(options3);
         }
@@ -794,8 +817,9 @@ public class ModelImplUtils {
         }
     }
 
-    public static CriticalityType handleConnectorErrorCriticality(ResourceType resourceType, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+    public static CriticalityType handleConnectorErrorCriticality(ResourceType resourceType, Throwable e, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         CriticalityType criticality;
         if (resourceType == null) {
             RepoCommonUtils.throwException(e, result);

@@ -2,25 +2,37 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.delta.item.RefItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Mix of common mapping support methods that is needed on both {@link SqaleNestedMapping}
@@ -38,8 +50,8 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
 
     @SuppressWarnings("UnusedReturnValue")
     QueryModelMapping<S, Q, R> addRelationResolver(
-            @NotNull ItemName itemName,
-            @NotNull ItemRelationResolver<Q, R> itemRelationResolver);
+            @NotNull QName itemName,
+            @NotNull ItemRelationResolver<Q, R, ?, ?> itemRelationResolver);
 
     QueryModelMapping<S, Q, R> addItemMapping(
             @NotNull QName itemName, @NotNull ItemSqlMapper<Q, R> itemMapper);
@@ -51,7 +63,7 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
      * @param <N> schema type of the nested container
      */
     default <N extends Containerable> SqaleNestedMapping<N, Q, R> addNestedMapping(
-            @NotNull ItemName itemName, @NotNull Class<N> nestedSchemaType) {
+            @NotNull QName itemName, @NotNull Class<N> nestedSchemaType) {
         SqaleNestedMapping<N, Q, R> nestedMapping =
                 new SqaleNestedMapping<>(nestedSchemaType, queryType());
         addRelationResolver(itemName, new NestedMappingResolver<>(nestedMapping));
@@ -60,15 +72,39 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return nestedMapping;
     }
 
-    /** Defines reference mapping for both query and modifications. */
-    default SqaleMappingMixin<S, Q, R> addRefMapping(
-            @NotNull QName itemName, @NotNull QReferenceMapping<?, ?, Q, R> referenceMapping) {
+    /** Defines multi-value reference mapping (refs in table) for both query and modifications. */
+    default <TQ extends QReference<TR, R>, TR extends MReference>
+    SqaleMappingMixin<S, Q, R> addRefMapping(
+            @NotNull QName itemName, @NotNull QReferenceMapping<TQ, TR, Q, R> referenceMapping) {
         Objects.requireNonNull(referenceMapping, "referenceMapping");
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
                 ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
 
-        // TODO add relation mapping too for reaching to the reference target
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @.
+        addRelationResolver(itemName, new TableRelationResolver<>(
+                referenceMapping, referenceMapping.correlationPredicate()));
+        return this;
+    }
+
+    /** Defines single-value reference mapping for both query and modifications. */
+    default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addRefMapping(
+            @NotNull QName itemName,
+            @NotNull Function<Q, UuidPath> rootToOidPath,
+            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
+        ItemSqlMapper<Q, R> referenceMapping = new SqaleItemSqlMapper<>(
+                ctx -> new RefItemFilterProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath),
+                ctx -> new RefItemDeltaProcessor(ctx,
+                        rootToOidPath, rootToTypePath, rootToRelationIdPath));
+        addItemMapping(itemName, referenceMapping);
+
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @
+        // and inside EmbeddedReferenceResolver is the magic resolving the @ part.
+        addRelationResolver(itemName, new EmbeddedReferenceResolver<>(
+                queryType(), rootToOidPath, targetMappingSupplier));
         return this;
     }
 
@@ -95,5 +131,10 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ContainerTableDeltaProcessor<>(ctx, containerMapping)));
         return this;
+    }
+
+    /** Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers. */
+    default void afterModify(SqaleUpdateContext<S, Q, R> updateContext) throws SchemaException {
+        // nothing by default
     }
 }

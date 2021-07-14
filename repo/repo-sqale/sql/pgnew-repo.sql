@@ -75,6 +75,8 @@ CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
+    'ACCESS_CERT_WI_ASSIGNEE',
+    'ACCESS_CERT_WI_CANDIDATE',
     'CASE_WI_ASSIGNEE',
     'CASE_WI_CANDIDATE',
     'DELEGATED',
@@ -96,7 +98,8 @@ CREATE TYPE ExtItemCardinality AS ENUM (
     'ARRAY');
 
 -- Schema based enums have the same name like their enum classes (I like the Type suffix here):
-CREATE TYPE AccessCertificationCampaignStateType AS ENUM ('CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
+CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
+    'CREATED', 'IN_REVIEW_STAGE', 'REVIEW_STAGE_DONE', 'IN_REMEDIATION', 'CLOSED');
 
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
@@ -255,6 +258,17 @@ CREATE TABLE m_object (
     policySituations INTEGER[], -- soft-references m_uri, only EQ filter
     subtypes TEXT[], -- only EQ filter
     textInfo TEXT[], -- TODO not mapped yet, see RObjectTextInfo#createItemsSet, this may not be []
+    /*
+    Extension items are stored as JSON key:value pairs, where key is m_ext_item.id (as string)
+    and values are stored as follows (this is internal and has no effect on how query is written):
+    - string and boolean are stored as-is
+    - any numeric type integral/float/precise is stored as NUMERIC (JSONB can store that)
+    - enum as toString() or name() of the Java enum instance
+    - date-time as Instant.toString() ISO-8601 long date-timeZ (UTC), cut to 3 fraction digits
+    - poly-string is stored as sub-object {"o":"orig-value","n":"norm-value"}
+    - reference is stored as sub-object {"o":"oid","t":"targetType","r":"relationId"}
+    - - where targetType is ObjectType and relationId is from m_uri.id, just like for ref columns
+    */
     ext JSONB,
     -- metadata
     creatorRefTargetOid UUID,
@@ -509,8 +523,8 @@ CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
 
 CREATE INDEX m_user_nameOrig_idx ON m_user (nameOrig);
 ALTER TABLE m_user ADD CONSTRAINT m_user_nameNorm_key UNIQUE (nameNorm);
-CREATE INDEX m_user_policySituation_idx ON m_user USING GIN(policysituations gin__int_ops);
-CREATE INDEX m_user_ext_idx ON m_user USING gin (ext);
+CREATE INDEX m_user_policySituation_idx ON m_user USING gin(policysituations gin__int_ops);
+CREATE INDEX m_user_ext_idx ON m_user USING gin(ext);
 CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
 CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
@@ -815,11 +829,14 @@ CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
-ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_shadow_nameNorm_idx ON m_shadow (nameNorm); -- may not be unique for shadows!
+ALTER TABLE m_shadow ADD CONSTRAINT m_shadow_primIdVal_objCls_resRefOid_key
+    UNIQUE (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
+
 CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
-CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING GIN(policysituations gin__int_ops);
-CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
-CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin (attributes);
+CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations gin__int_ops);
+CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
+CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
  Also consider partitioning by some of the attributes (class/kind/intent?)
@@ -831,8 +848,6 @@ CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
 CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
-ALTER TABLE m_shadow ADD CONSTRAINT iPrimaryIdentifierValueWithOC
-  UNIQUE (primaryIdentifierValue, objectClass, resourceRefTargetOid);
 */
 
 -- Represents NodeType, see https://wiki.evolveum.com/display/midPoint/Managing+cluster+nodes
@@ -893,7 +908,7 @@ CREATE INDEX m_security_policy_nameOrig_idx ON m_security_policy (nameOrig);
 ALTER TABLE m_security_policy ADD CONSTRAINT m_security_policy_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subtypes);
 CREATE INDEX m_security_policy_policySituation_idx
-    ON m_security_policy USING GIN(policysituations gin__int_ops);
+    ON m_security_policy USING gin(policysituations gin__int_ops);
 
 -- Represents ObjectCollectionType, see https://wiki.evolveum.com/display/midPoint/Object+Collections+and+Views+Configuration
 CREATE TABLE m_object_collection (
@@ -914,7 +929,7 @@ CREATE INDEX m_object_collection_nameOrig_idx ON m_object_collection (nameOrig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(subtypes);
 CREATE INDEX m_object_collection_policySituation_idx
-    ON m_object_collection USING GIN(policysituations gin__int_ops);
+    ON m_object_collection USING gin(policysituations gin__int_ops);
 
 -- Represents DashboardType, see https://wiki.evolveum.com/display/midPoint/Dashboard+configuration
 CREATE TABLE m_dashboard (
@@ -935,7 +950,7 @@ CREATE INDEX m_dashboard_nameOrig_idx ON m_dashboard (nameOrig);
 ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_dashboard_subtypes_idx ON m_dashboard USING gin(subtypes);
 CREATE INDEX m_dashboard_policySituation_idx
-    ON m_dashboard USING GIN(policysituations gin__int_ops);
+    ON m_dashboard USING gin(policysituations gin__int_ops);
 
 -- Represents ValuePolicyType
 CREATE TABLE m_value_policy (
@@ -956,15 +971,13 @@ CREATE INDEX m_value_policy_nameOrig_idx ON m_value_policy (nameOrig);
 ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_value_policy_subtypes_idx ON m_value_policy USING gin(subtypes);
 CREATE INDEX m_value_policy_policySituation_idx
-    ON m_value_policy USING GIN(policysituations gin__int_ops);
+    ON m_value_policy USING gin(policysituations gin__int_ops);
 
 -- Represents ReportType, see https://wiki.evolveum.com/display/midPoint/Report+Configuration
 CREATE TABLE m_report (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('REPORT') STORED
-        CHECK (objectType = 'REPORT'),
-    orientation OrientationType,
-    parent BOOLEAN
+        CHECK (objectType = 'REPORT')
 )
     INHERITS (m_assignment_holder);
 
@@ -978,8 +991,7 @@ CREATE TRIGGER m_report_oid_delete_tr AFTER DELETE ON m_report
 CREATE INDEX m_report_nameOrig_idx ON m_report (nameOrig);
 ALTER TABLE m_report ADD CONSTRAINT m_report_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_subtypes_idx ON m_report USING gin(subtypes);
-CREATE INDEX m_report_policySituation_idx ON m_report USING GIN(policysituations gin__int_ops);
--- TODO old repo had index on parent (boolean), does it make sense? if so, which value is sparse?
+CREATE INDEX m_report_policySituation_idx ON m_report USING gin(policysituations gin__int_ops);
 
 -- Represents ReportDataType, see also m_report above
 CREATE TABLE m_report_data (
@@ -1003,7 +1015,7 @@ CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
 ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
 CREATE INDEX m_report_data_policySituation_idx
-    ON m_report_data USING GIN(policysituations gin__int_ops);
+    ON m_report_data USING gin(policysituations gin__int_ops);
 
 -- Represents LookupTableType, see https://wiki.evolveum.com/display/midPoint/Lookup+Tables
 CREATE TABLE m_lookup_table (
@@ -1024,7 +1036,7 @@ CREATE INDEX m_lookup_table_nameOrig_idx ON m_lookup_table (nameOrig);
 ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_lookup_table_subtypes_idx ON m_lookup_table USING gin(subtypes);
 CREATE INDEX m_lookup_table_policySituation_idx
-    ON m_lookup_table USING GIN(policysituations gin__int_ops);
+    ON m_lookup_table USING gin(policysituations gin__int_ops);
 
 -- Represents LookupTableRowType, see also m_lookup_table above
 CREATE TABLE m_lookup_table_row (
@@ -1056,7 +1068,7 @@ CREATE TABLE m_connector (
     connectorHostRefTargetOid UUID,
     connectorHostRefTargetType ObjectType,
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
-    targetSystemTypes TEXT[] -- TODO any strings? cached URIs?
+    targetSystemTypes INTEGER[]
 )
     INHERITS (m_assignment_holder);
 
@@ -1071,7 +1083,7 @@ CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
 ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
-    ON m_connector USING GIN(policysituations gin__int_ops);
+    ON m_connector USING gin(policysituations gin__int_ops);
 
 -- Represents ConnectorHostType, see https://wiki.evolveum.com/display/midPoint/Connector+Server
 CREATE TABLE m_connector_host (
@@ -1094,7 +1106,7 @@ CREATE INDEX m_connector_host_nameOrig_idx ON m_connector_host (nameOrig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_connector_host_subtypes_idx ON m_connector_host USING gin(subtypes);
 CREATE INDEX m_connector_host_policySituation_idx
-    ON m_connector_host USING GIN(policysituations gin__int_ops);
+    ON m_connector_host USING gin(policysituations gin__int_ops);
 
 -- Represents persistent TaskType, see https://wiki.evolveum.com/display/midPoint/Task+Manager
 CREATE TABLE m_task (
@@ -1103,7 +1115,7 @@ CREATE TABLE m_task (
         CHECK (objectType = 'TASK'),
     taskIdentifier TEXT,
     binding TaskBindingType,
-    category TEXT,
+    category TEXT, -- TODO revise, deprecated, probably can go away soon
     completionTimestamp TIMESTAMPTZ,
     executionStatus TaskExecutionStateType,
     fullResult BYTEA,
@@ -1138,9 +1150,9 @@ ALTER TABLE m_task ADD CONSTRAINT m_task_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
-CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING GIN(dependentTaskIdentifiers);
+CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING gin(dependentTaskIdentifiers);
 CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
-CREATE INDEX m_task_policySituation_idx ON m_task USING GIN(policysituations gin__int_ops);
+CREATE INDEX m_task_policySituation_idx ON m_task USING gin(policysituations gin__int_ops);
 -- endregion
 
 -- region cases
@@ -1176,7 +1188,7 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
-CREATE INDEX m_case_policySituation_idx ON m_case USING GIN(policysituations gin__int_ops);
+CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
 
 CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
 CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
@@ -1260,10 +1272,9 @@ ALTER TABLE m_access_cert_definition
     ADD CONSTRAINT m_access_cert_definition_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_access_cert_definition_subtypes_idx ON m_access_cert_definition USING gin(subtypes);
 CREATE INDEX m_access_cert_definition_policySituation_idx
-    ON m_access_cert_definition USING GIN(policysituations gin__int_ops);
-CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin (ext);
+    ON m_access_cert_definition USING gin(policysituations gin__int_ops);
+CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin(ext);
 
--- TODO not mapped yet
 CREATE TABLE m_access_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CAMPAIGN') STORED
@@ -1273,7 +1284,7 @@ CREATE TABLE m_access_cert_campaign (
     definitionRefRelationId INTEGER REFERENCES m_uri(id),
     endTimestamp TIMESTAMPTZ,
     handlerUriId INTEGER REFERENCES m_uri(id),
-    iteration INTEGER NOT NULL,
+    campaignIteration INTEGER NOT NULL,
     ownerRefTargetOid UUID,
     ownerRefTargetType ObjectType,
     ownerRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1295,26 +1306,26 @@ ALTER TABLE m_access_cert_campaign
     ADD CONSTRAINT m_access_cert_campaign_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_access_cert_campaign_subtypes_idx ON m_access_cert_campaign USING gin(subtypes);
 CREATE INDEX m_access_cert_campaign_policySituation_idx
-    ON m_access_cert_campaign USING GIN(policysituations gin__int_ops);
-CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin (ext);
+    ON m_access_cert_campaign USING gin(policysituations gin__int_ops);
+CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin(ext);
 
 CREATE TABLE m_access_cert_case (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_CASE') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_CASE'),
-    administrativeStatus INTEGER,
+    administrativeStatus ActivationStatusType,
     archiveTimestamp TIMESTAMPTZ,
     disableReason TEXT,
     disableTimestamp TIMESTAMPTZ,
-    effectiveStatus INTEGER,
+    effectiveStatus ActivationStatusType,
     enableTimestamp TIMESTAMPTZ,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
-    validityStatus INTEGER,
+    validityStatus TimeIntervalStatusType,
     currentStageOutcome TEXT,
     fullObject BYTEA,
-    iteration INTEGER NOT NULL,
+    campaignIteration INTEGER NOT NULL,
     objectRefTargetOid UUID,
     objectRefTargetType ObjectType,
     objectRefRelationId INTEGER REFERENCES m_uri(id),
@@ -1323,8 +1334,8 @@ CREATE TABLE m_access_cert_case (
     orgRefRelationId INTEGER REFERENCES m_uri(id),
     outcome TEXT,
     remediedTimestamp TIMESTAMPTZ,
-    reviewDeadline TIMESTAMPTZ,
-    reviewRequestedTimestamp TIMESTAMPTZ,
+    currentStageDeadline TIMESTAMPTZ,
+    currentStageCreateTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRefTargetOid UUID,
     targetRefTargetType ObjectType,
@@ -1339,45 +1350,65 @@ CREATE TABLE m_access_cert_case (
 
 CREATE TABLE m_access_cert_wi (
     ownerOid UUID NOT NULL, -- PK+FK
-    accCertCaseCid INTEGER NOT NULL, -- PK+FK
+    accessCertCaseCid INTEGER NOT NULL, -- PK+FK
     containerType ContainerType GENERATED ALWAYS AS ('ACCESS_CERTIFICATION_WORK_ITEM') STORED
         CHECK (containerType = 'ACCESS_CERTIFICATION_WORK_ITEM'),
     closeTimestamp TIMESTAMPTZ,
-    iteration INTEGER NOT NULL,
-    outcome TEXT,
+    campaignIteration INTEGER NOT NULL,
+    outcome TEXT, -- stores output/outcome
     outputChangeTimestamp TIMESTAMPTZ,
     performerRefTargetOid UUID,
     performerRefTargetType ObjectType,
     performerRefRelationId INTEGER REFERENCES m_uri(id),
     stageNumber INTEGER,
 
-    PRIMARY KEY (ownerOid, accCertCaseCid, cid)
+    PRIMARY KEY (ownerOid, accessCertCaseCid, cid)
 )
     INHERITS(m_container);
 
 ALTER TABLE m_access_cert_wi
-    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accCertCaseCid)
+    ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accessCertCaseCid)
         REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
--- TODO rework to inherit from reference tables
-CREATE TABLE m_access_cert_wi_reference (
-    ownerOid UUID NOT NULL, -- PK+FK
-    accCertCaseCid INTEGER NOT NULL, -- PK+FK
-    accCertWiCid INTEGER NOT NULL, -- PK+FK
-    targetOid UUID NOT NULL, -- more PK columns...
-    targetType ObjectType,
-    relationId INTEGER NOT NULL REFERENCES m_uri(id),
+-- stores case/workItem/assigneeRef
+CREATE TABLE m_access_cert_wi_assignee (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    accessCertCaseCid INTEGER NOT NULL,
+    accessCertWorkItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ACCESS_CERT_WI_ASSIGNEE') STORED,
 
-    -- TODO is the order of last two components optimal for index/query?
-    PRIMARY KEY (ownerOid, accCertCaseCid, accCertWiCid, relationId, targetOid)
-);
+    PRIMARY KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
 
-ALTER TABLE m_access_cert_wi_reference
-    ADD CONSTRAINT m_access_cert_wi_reference_id_fk
-        FOREIGN KEY (ownerOid, accCertCaseCid, accCertWiCid)
-            REFERENCES m_access_cert_wi (ownerOid, accCertCaseCid, cid)
-            ON DELETE CASCADE;
+ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+
+ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
+    FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE; -- TODO is the cascade needed?
+
+-- stores case/workItem/candidateRef
+CREATE TABLE m_access_cert_wi_candidate (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    accessCertCaseCid INTEGER NOT NULL,
+    accessCertWorkItemCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ACCESS_CERT_WI_CANDIDATE') STORED,
+
+    PRIMARY KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid, referenceType, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
+    FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid);
+
+ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
+    FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
+        ON DELETE CASCADE; -- TODO is the cascade needed?
+
 /*
 CREATE INDEX iCertCampaignNameOrig ON m_access_cert_campaign (nameOrig);
 ALTER TABLE m_access_cert_campaign ADD CONSTRAINT uc_access_cert_campaign_name UNIQUE (nameNorm);
@@ -1409,7 +1440,8 @@ CREATE TRIGGER m_object_template_oid_delete_tr AFTER DELETE ON m_object_template
 CREATE INDEX m_object_template_nameOrig_idx ON m_object_template (nameOrig);
 ALTER TABLE m_object_template ADD CONSTRAINT m_object_template_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_object_template_subtypes_idx ON m_object_template USING gin(subtypes);
-CREATE INDEX m_object_template_policySituation_idx ON m_object_template USING GIN(policysituations gin__int_ops);
+CREATE INDEX m_object_template_policySituation_idx
+    ON m_object_template USING gin(policysituations gin__int_ops);
 
 -- stores ObjectTemplateType/includeRef
 CREATE TABLE m_ref_include (
@@ -1445,7 +1477,7 @@ CREATE INDEX m_function_library_nameOrig_idx ON m_function_library (nameOrig);
 ALTER TABLE m_function_library ADD CONSTRAINT m_function_library_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_function_library_subtypes_idx ON m_function_library USING gin(subtypes);
 CREATE INDEX m_function_library_policySituation_idx
-    ON m_function_library USING GIN(policysituations gin__int_ops);
+    ON m_function_library USING gin(policysituations gin__int_ops);
 
 -- Represents SequenceType, see https://wiki.evolveum.com/display/midPoint/Sequences
 CREATE TABLE m_sequence (
@@ -1465,7 +1497,7 @@ CREATE TRIGGER m_sequence_oid_delete_tr AFTER DELETE ON m_sequence
 CREATE INDEX m_sequence_nameOrig_idx ON m_sequence (nameOrig);
 ALTER TABLE m_sequence ADD CONSTRAINT m_sequence_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_sequence_subtypes_idx ON m_sequence USING gin(subtypes);
-CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING GIN(policysituations gin__int_ops);
+CREATE INDEX m_sequence_policySituation_idx ON m_sequence USING gin(policysituations gin__int_ops);
 
 -- Represents FormType, see https://wiki.evolveum.com/display/midPoint/Custom+forms
 CREATE TABLE m_form (
@@ -1485,7 +1517,7 @@ CREATE TRIGGER m_form_oid_delete_tr AFTER DELETE ON m_form
 CREATE INDEX m_form_nameOrig_idx ON m_form (nameOrig);
 ALTER TABLE m_form ADD CONSTRAINT m_form_nameNorm_key UNIQUE (nameNorm);
 CREATE INDEX m_form_subtypes_idx ON m_form USING gin(subtypes);
-CREATE INDEX m_form_policySituation_idx ON m_form USING GIN(policysituations gin__int_ops);
+CREATE INDEX m_form_policySituation_idx ON m_form USING gin(policysituations gin__int_ops);
 -- endregion
 
 -- region Assignment/Inducement table
@@ -1515,6 +1547,7 @@ CREATE TABLE m_assignment (
     extId INTEGER,
     extOid TEXT, -- is this UUID too?
     policySituations INTEGER[], -- soft-references m_uri, add index per table
+    subtypes TEXT[], -- only EQ filter
     ext JSONB,
     -- construction
     resourceRefTargetOid UUID,
@@ -1547,8 +1580,10 @@ CREATE TABLE m_assignment (
 )
     INHERITS(m_container);
 
-CREATE INDEX m_assignment_policySituation_idx ON m_assignment USING GIN(policysituations gin__int_ops);
-CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
+CREATE INDEX m_assignment_policySituation_idx
+    ON m_assignment USING gin(policysituations gin__int_ops);
+CREATE INDEX m_assignment_subtypes_idx ON m_assignment USING gin(subtypes);
+CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin(ext);
 -- TODO was: CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 -- administrativeStatus has 3 states (ENABLED/DISABLED/ARCHIVED), not sure it's worth indexing
 -- but it can be used as a condition to index other (e.g. WHERE administrativeStatus='ENABLED')

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -23,8 +25,19 @@ public class QConnectorMapping
 
     public static final String DEFAULT_ALIAS_NAME = "con";
 
+    private static QConnectorMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QConnectorMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QConnectorMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QConnectorMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QConnectorMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QConnectorMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -35,12 +48,13 @@ public class QConnectorMapping
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(q -> q.connectorType));
         addItemMapping(F_CONNECTOR_VERSION, stringMapper(q -> q.connectorVersion));
         addItemMapping(F_FRAMEWORK, uriMapper(q -> q.frameworkId));
-        addItemMapping(F_CONNECTOR_HOST_REF, refMapper(
+        addRefMapping(F_CONNECTOR_HOST_REF,
                 q -> q.connectorHostRefTargetOid,
                 q -> q.connectorHostRefTargetType,
-                q -> q.connectorHostRefRelationId));
+                q -> q.connectorHostRefRelationId,
+                QConnectorHostMapping::get);
 
-        // TODO mapping for List<String> F_TARGET_SYSTEM_TYPE
+        addItemMapping(F_TARGET_SYSTEM_TYPE, multiUriMapper(q -> q.targetSystemTypes));
     }
 
     @Override
@@ -68,7 +82,7 @@ public class QConnectorMapping
                 t -> row.connectorHostRefTargetType = t,
                 r -> row.connectorHostRefRelationId = r);
 
-        row.targetSystemTypes = listToArray(schemaObject.getTargetSystemType());
+        row.targetSystemTypes = processCacheableUris(schemaObject.getTargetSystemType());
 
         return row;
     }

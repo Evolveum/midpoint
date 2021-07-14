@@ -15,9 +15,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
 
 /**
  * Task instance - a logical unit of work.
@@ -265,7 +269,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskRecurrenceType getRecurrence();
 
     /**
-     * Checks whether the task is a cyclic (recurrent) one.
+     * Checks whether the task is a cyclic (recurring) one.
      */
     default boolean isRecurring() {
         return getRecurrence() == TaskRecurrenceType.RECURRING;
@@ -407,7 +411,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void addArchetypeInformationIfMissing(String archetypeOid);
     //endregion
 
-    //region Task extension ("get" operations)
+    //region Task extension "get" operations + also arbitrary "get" operations
     /**
      * Returns task extension.
      *
@@ -440,7 +444,20 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Returns specified single-valued property real value from the extension
      * (null if extension or property does not exist).
      */
-    <T> T getExtensionPropertyRealValue(ItemName propertyName);
+    default <T> T getExtensionPropertyRealValue(ItemName propertyName) {
+        //noinspection unchecked
+        return (T) getPropertyRealValue(ItemPath.create(TaskType.F_EXTENSION, propertyName), Object.class);
+    }
+
+    <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType);
+
+    <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType);
+
+    <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType);
+
+    ObjectReferenceType getReferenceRealValue(ItemPath path);
+
+    Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path);
 
     /**
      * Returns specified single-valued container real value from the extension
@@ -463,7 +480,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName itemName);
     //endregion
 
-    //region Task extension ("set" operations)
+    //region Task extension "set" operations + also arbitrary "set" operations
     /**
      * Sets a property in the extension - replaces existing value(s), if any, by the one(s) provided.
      */
@@ -480,7 +497,23 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @param propertyName name of the property
      * @param value value of the property
      */
-    <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
+    default <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException {
+        setPropertyRealValue(ItemPath.create(TaskType.F_EXTENSION, propertyName), value);
+    }
+
+    <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException;
+
+    default void setItemRealValues(ItemPath path, Object... value) throws SchemaException {
+        setItemRealValuesCollection(path, MiscUtil.asListTreatingNull(value));
+    }
+
+    default void setItemRealValuesCollection(ItemPath path, Collection<?> values) throws SchemaException {
+        modify(
+                PrismContext.get().deltaFor(TaskType.class)
+                        .item(path)
+                        .replaceRealValues(values)
+                        .asItemDelta());
+    }
 
     /**
      * Sets a reference in the extension - replaces existing value(s), if any, by the one(s) provided.
@@ -592,13 +625,16 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void setResult(OperationResult result);
 
+    // TODO
+    void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
+
+    // TODO
+    void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException;
     /**
      * Returns task progress, as reported by task handler.
      */
     long getProgress();
-
-    /** Returns task structured progress. */
-    StructuredTaskProgressType getStructuredProgressOrClone();
 
     /**
      * Records _legacy_ progress of the task, storing it persistently if needed.
@@ -669,6 +705,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
         return listSubtasks(false, parentResult);
     }
 
+    void findAndSetSubtasks(OperationResult result) throws SchemaException;
+
     @NotNull
     List<? extends Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
 
@@ -714,7 +752,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     List<? extends Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;
     //endregion
 
-    //region Task object as a whole
+    //region Task object as a whole, plus generic path-based access
 
     /**
      * Returns backing task prism object without updating with current operation result.
@@ -743,6 +781,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Precondition: Task must be persistent.
      */
     @NotNull ObjectReferenceType getSelfReference();
+
+    /**
+     * Returns a full (object-bearing) reference to the task prism.
+     *
+     * Precondition: Task must be persistent.
+     */
+    @NotNull ObjectReferenceType getSelfReferenceFull();
 
     /** Returns the version of underlying prism object. */
     String getVersion();
@@ -777,20 +822,47 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException;
 
+    /** TODO */
+    <C extends Containerable> C getContainerableOrClone(ItemPath path, Class<C> type);
+
+    /** TODO */
+    boolean doesItemExist(ItemPath path);
+
+    /** TODO */
+    ActivityStateType getActivityStateOrClone(ItemPath path);
     //endregion
 
     //region Work management
     /** Gets work management information. NOT THREAD SAFE! */
-    TaskWorkManagementType getWorkManagement();
+    @Deprecated
+    WorkDistributionType getWorkManagement();
 
-    /** Gets task work state. NOT THREAD SAFE! */
-    TaskWorkStateType getWorkState();
+    /**
+     * Retrieves the definition of task parts.
+     */
+    default ActivityDefinitionType getRootActivityDefinitionOrClone() {
+        return getContainerableOrClone(TaskType.F_ACTIVITY, ActivityDefinitionType.class);
+    }
+
+    /**
+     * Gets task work state. NOT THREAD SAFE!
+     *
+     * TODO throw exception for RunningTask. (After revising of all uses.)
+     */
+    TaskActivityStateType getWorkState();
+
+    /**
+     * Gets task work state or its clone (for running tasks). TODO better name
+     */
+    TaskActivityStateType getActivitiesStateOrClone();
+
+    default ActivityStateOverviewType getActivityTreeStateOverviewOrClone() {
+        return getPropertyRealValueOrClone(ACTIVITY_TREE_STATE_OVERVIEW_PATH, ActivityStateOverviewType.class);
+    }
 
     /** Gets task kind (related to work management) */
+    @Deprecated
     TaskKindType getKind();
-
-    /** Returns true if the task is a scavenger (workManagement/scavenger). */
-    boolean isScavenger();
     //endregion
 
     //region Task tree related methods
@@ -864,5 +936,17 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
+    //endregion
+
+    //region Misc
+
+    default boolean isRoot() {
+        return getParent() == null;
+    }
+
+    default ExecutionSupport getExecutionSupport() {
+        return null;
+    }
+
     //endregion
 }

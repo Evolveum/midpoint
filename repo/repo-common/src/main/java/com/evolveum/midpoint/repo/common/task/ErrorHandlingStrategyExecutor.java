@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.FollowUpAction.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
-import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.*;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,8 +20,10 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * The strategy consists of a set of _entries_, which are evaluated against specific error that has occurred.
  * Each entry contains a description of _situation(s)_ and appropriate _reaction_.
  *
- * The main {@link #determineAction(OperationResultStatus, Throwable, String, OperationResult)} method must be thread safe.
+ * The main {@link #handleError(OperationResultStatus, Throwable, String, OperationResult)} method must be thread safe.
  *
  */
 public class ErrorHandlingStrategyExecutor {
@@ -73,21 +74,21 @@ public class ErrorHandlingStrategyExecutor {
 
     @NotNull private final RepositoryService repositoryService;
 
-    @NotNull private final Action defaultAction;
+    @NotNull private final ErrorHandlingStrategyExecutor.FollowUpAction defaultFollowUpAction;
 
-    public enum Action {
-        CONTINUE, STOP, SUSPEND
+    public enum FollowUpAction {
+        STOP, CONTINUE
     }
 
-    ErrorHandlingStrategyExecutor(@NotNull Task task, @NotNull PrismContext prismContext,
-            @NotNull RepositoryService repositoryService, @NotNull Action defaultAction) {
-        this.prismContext = prismContext;
-        this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(task).stream()
+    ErrorHandlingStrategyExecutor(@NotNull Activity<?, ?> activity, @NotNull RunningTask task,
+            @NotNull ErrorHandlingStrategyExecutor.FollowUpAction defaultFollowUpAction, @NotNull CommonTaskBeans beans) {
+        this.prismContext = beans.prismContext;
+        this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(activity, task).stream()
                 .map(StrategyEntryInformation::new)
                 .collect(Collectors.toList());
         sortIfPossible(strategyEntryInformationList);
-        this.repositoryService = repositoryService;
-        this.defaultAction = defaultAction;
+        this.repositoryService = beans.repositoryService;
+        this.defaultFollowUpAction = defaultFollowUpAction;
     }
 
     private void sortIfPossible(List<StrategyEntryInformation> entries) {
@@ -107,17 +108,23 @@ public class ErrorHandlingStrategyExecutor {
      *
      * This method must be thread safe!
      */
-    @NotNull Action determineAction(@NotNull OperationResultStatus status, @NotNull Throwable exception,
-            @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
+    @NotNull ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
+            @NotNull Throwable exception, @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
         ErrorCategoryType errorCategory = ExceptionUtil.getErrorCategory(exception);
         LOGGER.debug("Error category: {} for: {}", errorCategory, lazy(() -> MiscUtil.getClassWithMessage(exception)));
 
         for (StrategyEntryInformation entryInformation : strategyEntryInformationList) {
             if (matches(entryInformation.entry, status, errorCategory)) {
-                return executeReaction(entryInformation, triggerHolderOid, opResult);
+                return executeErrorHandlingReaction(entryInformation, triggerHolderOid, opResult);
             }
         }
-        return defaultAction;
+
+        if (errorCategory == ErrorCategoryType.POLICY_THRESHOLD) {
+            LOGGER.trace("Applying hardcoded default follow-up action for thresholds: STOP");
+            return STOP;
+        }
+
+        return defaultFollowUpAction;
     }
 
     private boolean matches(@NotNull TaskErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
@@ -135,14 +142,12 @@ public class ErrorHandlingStrategyExecutor {
         return filter.isEmpty() || filter.contains(value);
     }
 
-    /**
-     * @return true if the processing should stop
-     */
-    private @NotNull Action executeReaction(@NotNull ErrorHandlingStrategyExecutor.StrategyEntryInformation entry,
+    private @NotNull ErrorHandlingStrategyExecutor.FollowUpAction executeErrorHandlingReaction(
+            @NotNull ErrorHandlingStrategyExecutor.StrategyEntryInformation entry,
             @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
 
         if (entry.registerMatchAndCheckThreshold()) {
-            return SUSPEND;
+            return STOP;
         }
 
         TaskErrorReactionType reaction = entry.entry.getReaction();
@@ -161,7 +166,7 @@ public class ErrorHandlingStrategyExecutor {
         }
     }
 
-    private Action getDefaultAction(TaskErrorReactionType reaction) {
+    private FollowUpAction getDefaultAction(TaskErrorReactionType reaction) {
         if (reaction.getStopAfter() != null) {
             return CONTINUE;
         } else {
@@ -169,7 +174,7 @@ public class ErrorHandlingStrategyExecutor {
         }
     }
 
-    private Action processRetryLater(TaskErrorReactionType reaction, @Nullable String shadowOid,
+    private FollowUpAction processRetryLater(TaskErrorReactionType reaction, @Nullable String shadowOid,
             @NotNull OperationResult opResult) {
         if (shadowOid == null) {
             LOGGER.warn("'retryLater' reaction was configured but there is no shadow to attach trigger to. Having to stop "
@@ -208,12 +213,20 @@ public class ErrorHandlingStrategyExecutor {
         return XmlTypeConverter.fromNow(defaultIfNull(retryReaction.getInitialInterval(), DEFAULT_INITIAL_RETRY_INTERVAL));
     }
 
-    private List<TaskErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Task task) {
+    private List<TaskErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Activity<?, ?> activity, Task task) {
 
         // The current way
-        TaskErrorHandlingStrategyType strategy = task.getErrorHandlingStrategy();
-        if (strategy != null) {
-            TaskErrorHandlingStrategyType clone = strategy.clone();
+        TaskErrorHandlingStrategyType strategyFromActivity = activity.getErrorHandlingStrategy();
+        if (strategyFromActivity != null) {
+            TaskErrorHandlingStrategyType clone = strategyFromActivity.clone();
+            clone.asPrismContainerValue().freeze();
+            return clone.getEntry();
+        }
+
+        // The 4.3.x way
+        TaskErrorHandlingStrategyType strategyFromTask = task.getErrorHandlingStrategy();
+        if (strategyFromTask != null) {
+            TaskErrorHandlingStrategyType clone = strategyFromTask.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
         }

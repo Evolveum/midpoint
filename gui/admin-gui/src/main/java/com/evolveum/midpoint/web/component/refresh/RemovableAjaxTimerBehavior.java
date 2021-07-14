@@ -13,9 +13,9 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +34,7 @@ public abstract class RemovableAjaxTimerBehavior extends AbstractAjaxTimerBehavi
     private long expires;
 
     public RemovableAjaxTimerBehavior(@NotNull Component parent, long updateInterval) {
-        super(Duration.milliseconds(updateInterval));
+        super(Duration.ofMillis(updateInterval));
         this.updateInterval = updateInterval;
         this.parent = parent;
     }

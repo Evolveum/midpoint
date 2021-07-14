@@ -13,11 +13,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
-import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -51,11 +48,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Long lastOperationStatsUpdateTimestamp;
 
     /**
-     * OID of the root of this task hierarchy.
-     * (Note that each running task must have a persistent root.)
+     * Root of the task hierarchy. It is not guaranteed to be current. It is initialized when the task is started.
+     * Can even point to the this task object.
      */
     @Experimental
-    @NotNull private final String rootTaskOid;
+    @NotNull private final Task rootTask;
 
     /**
      * Lightweight asynchronous subtasks.
@@ -83,10 +80,15 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     /** TODO */
     private Level originalProfilingLevel;
 
+    /**
+     * Execution context. Currently used to store activity execution during item processing in worker tasks.
+     */
+    private ExecutionSupport executionSupport;
+
     public RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
-            @NotNull String rootTaskOid) {
+            @NotNull Task rootTask) {
         super(taskManager, taskPrism);
-        this.rootTaskOid = rootTaskOid;
+        this.rootTask = rootTask;
     }
 
     //region Task execution (canRun, executing thread)
@@ -121,7 +123,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public @NotNull RunningLightweightTask createSubtask(@NotNull LightweightTaskHandler handler) {
         RunningLightweightTaskImpl sub = beans.taskInstantiator
-                .toRunningLightweightTaskInstance(createSubtask(), rootTaskOid, this, handler);
+                .toRunningLightweightTaskInstance(createSubtask(), rootTask, this, handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
             lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
@@ -206,27 +208,19 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
             refreshThreadLocalStatistics();
         }
         updateOperationalStatsInTaskPrism();
-        updateStructuredProgressAndProgressInTaskPrism();
     }
 
     private void updateOperationalStatsInTaskPrism() {
         setOperationStatsTransient(getAggregatedLiveOperationStats());
     }
 
-    private void updateStructuredProgressAndProgressInTaskPrism() {
-        StructuredTaskProgressType progress = statistics.getStructuredTaskProgress();
-        if (progress != null) {
-            setStructuredProgressTransient(progress);
-            setProgressTransient(TaskProgressUtil.getTotalProgress(progress));
-        } else {
-            // structured progress is not maintained in this task
-        }
-    }
-
     @Override
-    public void storeStatisticsIntoRepositoryIfTimePassed(OperationResult result) {
+    public void storeStatisticsIntoRepositoryIfTimePassed(Runnable additionalUpdater, OperationResult result) {
         if (lastOperationStatsUpdateTimestamp == null ||
                 System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
+            if (additionalUpdater != null) {
+                additionalUpdater.run();
+            }
             storeStatisticsIntoRepository(result);
         }
     }
@@ -235,7 +229,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void storeStatisticsIntoRepository(OperationResult result) {
         try {
             addPendingModification(createContainerDeltaIfPersistent(TaskType.F_OPERATION_STATS, getStoredOperationStatsOrClone()));
-            addPendingModification(createContainerDeltaIfPersistent(TaskType.F_STRUCTURED_PROGRESS, getStructuredProgressOrClone()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_PROGRESS, getProgress()));
             addPendingModification(createPropertyDeltaIfPersistent(TaskType.F_EXPECTED_TOTAL, getExpectedTotal()));
             flushPendingModifications(result);
@@ -260,32 +253,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void incrementProgressAndStoreStatisticsIfTimePassed(OperationResult result) {
         incrementProgressTransient();
         updateStatisticsInTaskPrism(true);
-        storeStatisticsIntoRepositoryIfTimePassed(result);
-    }
-
-    @Override
-    public void setStructuredProgressPartInformation(String partUri, Integer partNumber, Integer expectedParts) {
-        statistics.setStructuredProgressPartInformation(partUri, partNumber, expectedParts);
-    }
-
-    @Override
-    public void incrementStructuredProgress(String partUri, QualifiedItemProcessingOutcomeType outcome) {
-        statistics.incrementStructuredProgress(partUri, outcome);
-    }
-
-    @Override
-    public void markStructuredProgressAsComplete() {
-        statistics.markStructuredProgressAsComplete();
-    }
-
-    @Override
-    public void changeStructuredProgressOnWorkBucketCompletion() {
-        statistics.changeStructuredProgressOnWorkBucketCompletion();
-    }
-
-    @Override
-    public void markAllStructuredProgressClosed() {
-        statistics.markAllStructuredProgressClosed();
+        storeStatisticsIntoRepositoryIfTimePassed(null, result);
     }
 
     /**
@@ -317,21 +285,12 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     @Override
     public void startCollectingStatistics(@NotNull StatisticsCollectionStrategy strategy) {
         statistics.startCollectingStatistics(this, strategy, beans.sqlPerformanceMonitorsCollection);
-//
-//        OperationStatsType stored = getStoredOperationStatsOrClone();
-//        if (stored != null) {
-//            String formatted = IterativeTaskInformation.format(stored.getIterativeTaskInformation());
-//            System.out.println("In " + this + " ITI reset to:\n" + formatted);
-//        }
     }
 
     private Statistics getStatistics() {
         return statistics;
     }
 
-    public WorkBucketStatisticsCollector getWorkBucketStatisticsCollector() {
-        return statistics;
-    }
     //endregion
 
     //region Tracing and profiling
@@ -403,10 +362,48 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
     //endregion
 
+    //region Switching to waiting state
+    @Override
+    public void makeWaitingForOtherTasks(TaskUnpauseActionType unpauseAction) {
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    @Override
+    public void makeWaitingForOtherTasks(TaskExecutionStateType execState, TaskUnpauseActionType unpauseAction) {
+        setExecutionState(execState);
+        setSchedulingState(TaskSchedulingStateType.WAITING);
+        setWaitingReason(TaskWaitingReasonType.OTHER_TASKS);
+        setUnpauseAction(unpauseAction);
+    }
+
+    private void setUnpauseAction(TaskUnpauseActionType value) {
+        setProperty(TaskType.F_UNPAUSE_ACTION, value);
+    }
+
+    //endregion
+
     //region Misc
     @Override
     public @NotNull String getRootTaskOid() {
-        return rootTaskOid;
+        return rootTask.getOid();
+    }
+
+    @Override
+    @NotNull
+    public Task getRootTask() {
+        return rootTask;
+    }
+
+    @Override
+    public ExecutionSupport getExecutionSupport() {
+        return executionSupport;
+    }
+
+    @Override
+    public void setExecutionSupport(ExecutionSupport executionSupport) {
+        this.executionSupport = executionSupport;
     }
     //endregion
 }

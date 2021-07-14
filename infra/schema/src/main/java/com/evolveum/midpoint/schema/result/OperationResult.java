@@ -1064,6 +1064,10 @@ public class OperationResult
         recordStatus(OperationResultStatus.NOT_APPLICABLE, (String) null);
     }
 
+    public void recordNotApplicable(String message) {
+        recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+    }
+
     public boolean isMinor() {
         return importance == MINOR;
     }

@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 @Component
 public class JdbcPingTaskHandler implements TaskHandler {
@@ -75,7 +76,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
 
         OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName() + ".run");
 
@@ -194,12 +195,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.UTIL;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

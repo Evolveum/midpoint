@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 @Table(indexes = {
         @Index(name = "iArchetypeNameOrig", columnList = "name_orig"),
         @Index(name = "iArchetypeNameNorm", columnList = "name_norm") })
+@DynamicUpdate
 public class RArchetype extends RAbstractRole {
 
     private RPolyString nameCopy;

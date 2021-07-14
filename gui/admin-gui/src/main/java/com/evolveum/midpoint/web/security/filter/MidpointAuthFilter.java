@@ -396,13 +396,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     LOGGER.debug(UrlUtils.buildRequestUrl((HttpServletRequest) request)
                             + " reached end of additional filter chain; proceeding with original chain, if url is permit all");
                 }
-
-//                MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
-//                //authentication pages (login, select ID for saml ...) during processing of modules
-//                if (AuthUtil.isPermitAll((HttpServletRequest) request) && mpAuthentication != null && mpAuthentication.isProcessing()) {
-//                    originalChain.doFilter(request, response);
-//                    return;
-//                }
+                // If the previous filter has already returned a response, skip the original filter
+                // to prevent duplicate response writes
+                if (response.isCommitted()) {
+                    return;
+                }
                 originalChain.doFilter(request, response);
             } else {
                 currentPosition++;

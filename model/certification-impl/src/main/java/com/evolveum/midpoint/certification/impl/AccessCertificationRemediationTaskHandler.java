@@ -26,10 +26,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -41,8 +41,6 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * The task handler for automatic remediation.
- *
- * @author mederly
  */
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
@@ -74,7 +72,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");
@@ -156,12 +154,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.ACCESS_CERTIFICATION;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 

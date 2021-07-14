@@ -67,12 +67,12 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
     }
 
     @Override
-    public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
         fillCommonContent(rv);
         if (!options.isRespectFinalFlag() || !isFinal()) {
-            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options, prismContext)));
+            innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerBean(options, prismContext)));
         }
         return rv;
     }

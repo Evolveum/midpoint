@@ -23,6 +23,9 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.*;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,9 +116,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.task.TaskPartProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskProgressInformation;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -626,7 +626,7 @@ public final class WebComponentUtil {
     }
 
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
-            ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
+            ObjectDelta delta, ModelExecuteOptions options, String handlerUri, PageBase pageBase) throws SchemaException {
 
         TaskType task = new TaskType(pageBase.getPrismContext());
 
@@ -638,12 +638,11 @@ public final class WebComponentUtil {
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
-        task.setCategory(category);
         task.setExecutionStatus(TaskExecutionStateType.RUNNABLE);
         task.setSchedulingState(TaskSchedulingStateType.READY);
         task.setRecurrence(TaskRecurrenceType.SINGLE);
         task.setThreadStopAction(ThreadStopActionType.RESTART);
-        task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
+        task.setHandlerUri(handlerUri);
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         task.setSchedule(schedule);
@@ -1020,19 +1019,57 @@ public final class WebComponentUtil {
                         .collect(Collectors.toList()));
     }
 
+    /**
+     * Simulates task category using task archetype.
+     */
+    @Experimental
+    public static IModel<String> createSimulatedCategoryNameModel(final Component component,
+            final IModel<SelectableBean<TaskType>> taskModel) {
+        return () -> {
+            PageBase pageBase = getPageBase(component);
+            TaskType task = taskModel.getObject().getValue();
+            DisplayType display = WebDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
+            return getTranslatedLabel(display, component);
+        };
+    }
+
+    @Experimental
+    private static String getTranslatedLabel(DisplayType display, Component component) {
+        if (display == null) {
+            return "";
+        }
+        if (display.getLabel() != null) {
+            return getTranslatedPolyString(display.getLabel(), component);
+        } else if (display.getSingularLabel() != null) {
+            return getTranslatedPolyString(display.getSingularLabel(), component);
+        } else if (display.getPluralLabel() != null) {
+            return getTranslatedPolyString(display.getPluralLabel(), component);
+        } else {
+            return "";
+        }
+    }
+
+    private static String getTranslatedPolyString(@NotNull PolyStringType polyString, @NotNull Component component) {
+        if (polyString.getTranslation() != null && polyString.getTranslation().getKey() != null) {
+            return createStringResourceStatic(component, polyString.getTranslation().getKey()).getString();
+        } else {
+            return polyString.getOrig();
+        }
+    }
+
     public static IModel<String> createCategoryNameModel(final Component component,
             final IModel<String> categorySymbolModel) {
         return (IModel<String>) () -> createStringResourceStatic(component,
                 "pageTasks.category." + categorySymbolModel.getObject()).getString();
     }
 
-    public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+    public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
             final IModel<E> model, final Component component) {
         return createEnumPanel(clazz, id, model, component, true);
 
     }
 
-    public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+    public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
             final IModel<E> model, final Component component, boolean allowNull) {
         return createEnumPanel(clazz, id, WebComponentUtil.createReadonlyModelFromEnum(clazz),
                 model, component, allowNull);
@@ -1277,164 +1314,6 @@ public final class WebComponentUtil {
         }
         return name.getOrig();
     }
-
-//    public static <C extends Containerable> String getDisplayName(PrismContainerValue<C> prismContainerValue) {
-//        if (prismContainerValue == null) {
-//            return "ContainerPanel.containerProperties";
-//        }
-//
-//        String displayName = null;
-//
-//        if (prismContainerValue.canRepresent(LifecycleStateType.class)) {
-//            LifecycleStateType lifecycleStateType = (LifecycleStateType) prismContainerValue.asContainerable();
-//            String name = lifecycleStateType.getDisplayName();
-//            if (name == null || name.isEmpty()) {
-//                Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
-//                name = lifecycleStateType.getName();
-//            }
-//
-//            if (name != null && !name.isEmpty()) {
-//                displayName = name;
-//            }
-//        } else if (prismContainerValue.canRepresent(ItemConstraintType.class)) {
-//            ItemConstraintType propertyConstraintType = (ItemConstraintType) prismContainerValue.asContainerable();
-//            String path = "";
-//            if (propertyConstraintType.getPath() != null) {
-//                path = propertyConstraintType.getPath().getItemPath().toString();
-//            }
-//
-//            if (path != null && !path.isEmpty()) {
-//                displayName = path;
-//            }
-//        } else if (prismContainerValue.canRepresent(AssignmentType.class)) {
-//            AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
-//            displayName = AssignmentsUtil.getName(assignmentType, null);
-//            if (StringUtils.isBlank(displayName)) {
-//                displayName = "AssignmentTypeDetailsPanel.containerTitle";
-//            }
-//        } else if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)) {
-//            ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
-//            String exclusionConstraintName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
-//                    exclusionConstraint.asPrismContainerValue().getParent().getPath().last()) + " - "
-//                    + StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
-//            displayName = StringUtils.isNotEmpty(exclusionConstraintName) && StringUtils.isNotEmpty(getName(exclusionConstraint.getTargetRef())) ? exclusionConstraintName : "ExclusionPolicyConstraintType.details";
-//        } else if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)) {
-//            AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
-//            String constraintName = constraint.getName();
-//            if (StringUtils.isNotEmpty(constraintName)) {
-//                displayName = constraintName;
-//            } else {
-//                displayName = constraint.asPrismContainerValue().getParent().getPath().last().toString() + ".details";
-//            }
-//        } else if (prismContainerValue.canRepresent(RichHyperlinkType.class)) {
-//            RichHyperlinkType richHyperlink = (RichHyperlinkType) prismContainerValue.asContainerable();
-//            String label = richHyperlink.getLabel();
-//            String description = richHyperlink.getDescription();
-//            String targetUrl = richHyperlink.getTargetUrl();
-//            if (StringUtils.isNotEmpty(label)) {
-//                displayName = label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
-//            } else if (StringUtils.isNotEmpty(targetUrl)) {
-//                displayName = targetUrl;
-//            }
-//        } else if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)) {
-//            UserInterfaceFeatureType userInterfaceFeature = (UserInterfaceFeatureType) prismContainerValue.asContainerable();
-//            String identifier = userInterfaceFeature.getIdentifier();
-//
-//            if (StringUtils.isBlank(identifier)) {
-//                DisplayType uifDisplay = userInterfaceFeature.getDisplay();
-//                if (uifDisplay != null) {
-//                    displayName = WebComponentUtil.getOrigStringFromPoly(uifDisplay.getLabel());
-//                }
-//
-//                if (displayName == null) {
-//                    displayName = "UserInterfaceFeatureType.containerTitle";
-//                }
-//            } else {
-//                displayName = identifier;
-//            }
-//        } else if (prismContainerValue.canRepresent(GuiObjectColumnType.class)) {
-//            GuiObjectColumnType guiObjectColumn = (GuiObjectColumnType) prismContainerValue.asContainerable();
-//            String name = guiObjectColumn.getName();
-//            if (StringUtils.isNotEmpty(name)) {
-//                displayName = name;
-//            }
-//        } else if (prismContainerValue.canRepresent(GuiObjectListViewType.class)) {
-//            GuiObjectListViewType guiObjectListView = (GuiObjectListViewType) prismContainerValue.asContainerable();
-//            String name = guiObjectListView.getName();
-//            if (StringUtils.isNotEmpty(name)) {
-//                displayName = name;
-//            }
-//        } else if (prismContainerValue.canRepresent(GenericPcpAspectConfigurationType.class)) {
-//            GenericPcpAspectConfigurationType genericPcpAspectConfiguration = (GenericPcpAspectConfigurationType) prismContainerValue.asContainerable();
-//            String name = genericPcpAspectConfiguration.getName();
-//            if (StringUtils.isNotEmpty(name)) {
-//                displayName = name;
-//            }
-//        } else if (prismContainerValue.canRepresent(RelationDefinitionType.class)) {
-//            RelationDefinitionType relationDefinition = (RelationDefinitionType) prismContainerValue.asContainerable();
-//            if (relationDefinition.getRef() != null) {
-//                String name = (relationDefinition.getRef().getLocalPart());
-//                String description = relationDefinition.getDescription();
-//                if (StringUtils.isNotEmpty(name)) {
-//                    displayName = name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
-//                }
-//            }
-//        } else if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)) {
-//            ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
-//            if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
-//                displayName = resourceItemDefinition.getDisplayName();
-//            } else {
-//                return prismContainerValue.getParent().getPath().last().toString();
-//            }
-//        } else if (prismContainerValue.canRepresent(MappingType.class)) {
-//            MappingType mapping = (MappingType) prismContainerValue.asContainerable();
-//            String mappingName = mapping.getName();
-//            if (StringUtils.isNotBlank(mappingName)) {
-//                String description = mapping.getDescription();
-//                displayName = mappingName + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
-//            } else {
-//                List<VariableBindingDefinitionType> sources = mapping.getSource();
-//                String sourceDescription = "";
-//                if (CollectionUtils.isNotEmpty(sources)) {
-//                    Iterator<VariableBindingDefinitionType> iterator = sources.iterator();
-//                    while (iterator.hasNext()) {
-//                        VariableBindingDefinitionType source = iterator.next();
-//                        if (source == null || source.getPath() == null) {
-//                            continue;
-//                        }
-//                        String sourcePath = source.getPath().toString();
-//                        sourceDescription += sourcePath;
-//                        if (iterator.hasNext()) {
-//                            sourceDescription += ",";
-//                        }
-//                    }
-//                }
-//                VariableBindingDefinitionType target = mapping.getTarget();
-//                String targetDescription = target.getPath() != null ? target.getPath().toString() : null;
-//                if (StringUtils.isBlank(sourceDescription)) {
-//                    sourceDescription = "(no sources)";
-//                }
-//                if (StringUtils.isBlank(targetDescription)) {
-//                    targetDescription = "(no targets)";
-//                }
-//                displayName = sourceDescription + " - " + targetDescription;
-//            }
-//        } else if (prismContainerValue.canRepresent(ProvenanceAcquisitionType.class)) {
-//            ProvenanceAcquisitionType acquisition = (ProvenanceAcquisitionType) prismContainerValue.asContainerable();
-//            displayName = "ProvenanceAcquisitionType.details";
-//
-//        } else {
-//
-//            Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
-//            if (cvalClass != null) {
-//                displayName = cvalClass.getSimpleName() + ".details";
-//            } else {
-//                displayName = "ContainerPanel.containerProperties";
-//            }
-//        }
-//
-//        return StringEscapeUtils.escapeHtml4(displayName);
-//    }
 
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
         if (def == null) {
@@ -2806,21 +2685,6 @@ public final class WebComponentUtil {
         }
     }
 
-    public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase) {
-        DisplayType displayType = view != null ? view.getDisplay() : null;
-        if (displayType == null) {
-            displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
-        }
-        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
-            sb.append(" ");
-            sb.append(displayType.getLabel().getOrig().toLowerCase());
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
-        }
-        return view != null ? view.getDisplay() : null;
-    }
-
     /**
      * Returns name of the collection suitable to be displayed in the menu or other labels.
      * E.g. "All tasks", "Active employees".
@@ -3303,18 +3167,23 @@ public final class WebComponentUtil {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new InlineMenuItemAction() {
+                    return new ColumnMenuAction<SelectableBean<ObjectType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             OperationResult result = new OperationResult(operation);
                             try {
-                                Collection<String> oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
-                                        .stream()
-                                        .filter(o -> o.getOid() != null)
-                                        .map(o -> o.getOid())
-                                        .collect(Collectors.toSet());
+                                Collection<String> oids;
+                                if (getRowModel() != null){
+                                    oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
+                                } else {
+                                    oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
+                                            .stream()
+                                            .filter(o -> o.getOid() != null)
+                                            .map(o -> o.getOid())
+                                            .collect(Collectors.toSet());
+                                }
                                 if (!oids.isEmpty()) {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
@@ -3734,34 +3603,13 @@ public final class WebComponentUtil {
         return displayType.getTooltip().getOrig();
     }
 
-    public static <O extends ObjectType> DisplayType getDisplayTypeForObject(PrismObject<O> obj, OperationResult result, PageBase pageBase) {
-        if (obj == null) {
-            return null;
-        }
-
-        return getDisplayTypeForObject(obj.asObjectable(), result, pageBase);
-    }
-
-    public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase) {
-        if (obj == null) {
-            return null;
-        }
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj.asPrismObject(), pageBase);
-
-        if (displayType == null) {
-            displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
-                    "", ColumnUtils.getIconColumnTitle(obj, result));
-        }
-        return displayType;
-    }
-
     //TODO unify createAccountIcon with createCompositeIconForObject
     public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase) {
         if (obj instanceof ShadowType) {
             return createAccountIcon((ShadowType) obj, pageBase, true);
         }
 
-        DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
+        DisplayType basicIconDisplayType = WebDisplayTypeUtil.getDisplayTypeForObject(obj, result, pageBase);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
         if (basicIconDisplayType == null) {
             return new CompositedIconBuilder().build();
@@ -3787,20 +3635,26 @@ public final class WebComponentUtil {
             appendActivationStatus(title, activationStatusIcon, obj, pageBase);
         }
 
-        if (obj instanceof TaskType && TaskWorkStateUtil.isCoordinator((TaskType) obj)) {
-            IconType icon = new IconType();
-            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-            if (title.length() > 0) {
-                title.append("\n");
-            }
-            title.append(pageBase.createStringResource(TaskWorkStateUtil.getKind((TaskType) obj)).getString());
-        }
+        addMultiNodeTaskInformation(obj, builder);
 
         if (StringUtils.isNotEmpty(title.toString())) {
             builder.setTitle(title.toString());
         }
         return builder.build();
+    }
+
+    private static <O extends ObjectType> void addMultiNodeTaskInformation(O obj, CompositedIconBuilder builder) {
+        if (obj instanceof TaskType && ActivityStateUtil.isManageableTreeRoot((TaskType) obj)) {
+            IconType icon = new IconType();
+            icon.setCssClass(GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+            // TODO what to do with this?
+//            if (title.length() > 0) {
+//                title.append("\n");
+//            }
+//            title.append(pageBase.createStringResource(BucketingUtil.getKind((TaskType) obj)).getString());
+        }
     }
 
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
@@ -3816,9 +3670,24 @@ public final class WebComponentUtil {
             } else {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
             }
-
         }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+
+        if (shadow.getResourceRef() != null && shadow.getResourceRef().getObject() != null
+                && ResourceTypeUtil.isInMaintenance(shadow.getResourceRef().getObject())) {
+            IconType icon = new IconType();
+            icon.setCssClass("fa fa-wrench " + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_STYLE);
+            }
+            if (StringUtils.isNotBlank(title)){
+                title = title + "\n " + pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+            } else {
+                title = pageBase.createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+            }
+        }
 
         if (BooleanUtils.isTrue(shadow.isDead())) {
             IconType icon = new IconType();
@@ -4032,39 +3901,6 @@ public final class WebComponentUtil {
         return icon;
     }
 
-    public static DisplayType createDisplayType(String iconCssClass) {
-        return createDisplayType(iconCssClass, "", "");
-    }
-
-    public static DisplayType createDisplayType(ApprovalOutcomeIcon caseIcon) {
-        return createDisplayType(caseIcon.getIcon(), "", caseIcon.getTitle());
-    }
-
-    public static DisplayType createDisplayType(OperationResultStatusPresentationProperties OperationIcon) {
-        return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
-    }
-
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
-        DisplayType displayType = new DisplayType();
-        IconType icon = new IconType();
-        icon.setCssClass(iconCssClass);
-        icon.setColor(iconColor);
-        displayType.setIcon(icon);
-
-        displayType.setTooltip(createPolyFromOrigString(title));
-        return displayType;
-    }
-
-    public static DisplayType createDisplayType(String iconCssClass, PolyStringType title) {
-        DisplayType displayType = new DisplayType();
-        IconType icon = new IconType();
-        icon.setCssClass(iconCssClass);
-        displayType.setIcon(icon);
-
-        displayType.setTooltip(title);
-        return displayType;
-    }
-
     public static IconType createIconType(String iconStyle) {
         return createIconType(iconStyle, "");
     }
@@ -4122,24 +3958,6 @@ public final class WebComponentUtil {
                     .appendColorHtmlValue(actionButtonIcon.getColor());
         }
         return builder;
-    }
-
-    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
-        if (object == null) {
-            return null;
-        }
-
-        return getArchetypePolicyDisplayType(object.asPrismObject(), pageBase);
-    }
-
-    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageBase pageBase) {
-        if (object != null) {
-            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
-            if (archetypePolicy != null) {
-                return archetypePolicy.getDisplay();
-            }
-        }
-        return null;
     }
 
     public static IModel<String> getIconUrlModel(IconType icon) {
@@ -4278,81 +4096,6 @@ public final class WebComponentUtil {
             }
         });
         return resultList;
-    }
-
-    public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation,
-            String defaultTitleKey) {
-        if (assignmentTargetRelation == null) {
-            return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, "", "").getString());
-        }
-
-        String typeTitle = "";
-        if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getArchetypeRefs())) {
-            OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject");
-            try {
-                ArchetypeType archetype = pageBase.getModelObjectResolver().resolve(assignmentTargetRelation.getArchetypeRefs().get(0), ArchetypeType.class,
-                        null, null, pageBase.createSimpleTask(result.getOperation()), result);
-                if (archetype != null) {
-                    DisplayType archetypeDisplayType = archetype.getArchetypePolicy() != null ? archetype.getArchetypePolicy().getDisplay() : null;
-                    String archetypeTooltip = archetypeDisplayType != null && archetypeDisplayType.getLabel() != null &&
-                            StringUtils.isNotEmpty(archetypeDisplayType.getLabel().getOrig()) ?
-                            archetypeDisplayType.getLabel().getOrig() :
-                            (archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getOrig()) ?
-                                    archetype.getName().getOrig() : null);
-                    typeTitle = StringUtils.isNotEmpty(archetypeTooltip) ?
-                            pageBase.createStringResource("abstractRoleMemberPanel.withType", archetypeTooltip).getString() : "";
-                }
-            } catch (Exception ex) {
-                LOGGER.error("Couldn't load archetype object. " + ex.getLocalizedMessage());
-            }
-        } else if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getObjectTypes())) {
-            QName type = !CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
-                    assignmentTargetRelation.getObjectTypes().get(0) : null;
-            String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
-            typeTitle = StringUtils.isNotEmpty(typeName) ?
-                    pageBase.createStringResource("abstractRoleMemberPanel.withType", typeName).getString() : "";
-        }
-
-        QName relation = !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
-                assignmentTargetRelation.getRelations().get(0) : null;
-
-        String relationValue = "";
-        String relationTitle = "";
-        if (relation != null) {
-            RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
-            if (def != null) {
-                DisplayType displayType = null;
-                if (def.getDisplay() == null) {
-                    displayType = new DisplayType();
-                } else {
-                    displayType = createDisplayType(def.getDisplay().getCssClass());
-                    if (def.getDisplay().getIcon() != null) {
-                        displayType.setIcon(new IconType());
-                        displayType.getIcon().setCssClass(def.getDisplay().getIcon().getCssClass());
-                        displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
-                    }
-                    displayType.setLabel(def.getDisplay().getLabel());
-                }
-                if (displayType.getLabel() != null) {
-                    relationValue = getTranslatedPolyString(displayType.getLabel());
-                } else {
-                    String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
-                    relationValue = pageBase.createStringResource(relationKey).getString();
-                    if (StringUtils.isEmpty(relationValue) || relationKey.equals(relationValue)) {
-                        relationValue = relation.getLocalPart();
-                    }
-                }
-
-                relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
-
-                if (displayType.getIcon() == null || StringUtils.isEmpty(displayType.getIcon().getCssClass())) {
-                    displayType.setIcon(createIconType(""));
-                }
-                displayType.setTooltip(createPolyFromOrigString(pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString()));
-                return displayType;
-            }
-        }
-        return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
     }
 
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
@@ -4599,6 +4342,18 @@ public final class WebComponentUtil {
         }
         result.computeStatusIfUnknown();
         pageBase.showResult(result);
+    }
+
+    public static OperationResultStatusPresentationProperties caseOutcomeUriToIcon(String outcome) {
+        if (outcome == null) {
+            return OperationResultStatusPresentationProperties.IN_PROGRESS;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
+            return OperationResultStatusPresentationProperties.SUCCESS;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
+            return OperationResultStatusPresentationProperties.FATAL_ERROR;
+        } else {
+            return OperationResultStatusPresentationProperties.UNKNOWN;
+        }
     }
 
     public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext) {
@@ -5047,22 +4802,22 @@ public final class WebComponentUtil {
     }
 
     public static String getTaskProgressInformation(TaskType taskType, boolean longForm, PageBase pageBase) {
-        TaskProgressInformation progress = TaskProgressInformation.fromTaskTree(taskType);
-        TaskPartProgressInformation partProgress = progress.getCurrentPartInformation();
-        if (partProgress == null) {
-            return null;
-        }
-        String partProgressHumanReadable = partProgress.toHumanReadableString(longForm);
+
+        // TODO use progress.toLocalizedString after it's implemented
+
+        ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(taskType, TaskResolver.empty());
+        String partProgressHumanReadable = progress.toHumanReadableString(longForm);
 
         if (longForm) {
             partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "of", pageBase.getString("TaskSummaryPanel.progress.of"));
             partProgressHumanReadable = StringUtils.replaceOnce(partProgressHumanReadable, "buckets", pageBase.getString("TaskSummaryPanel.progress.buckets"));
         }
 
-        if (progress.getAllPartsCount() > 1) {
-            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
-            return rv;
-        }
+        // TODO
+//        if (progress.getAllPartsCount() > 1) {
+//            String rv = pageBase.getString("TaskSummaryPanel.progress.info." + (longForm ? "long" : "short"), partProgressHumanReadable, progress.getCurrentPartNumber(), progress.getAllPartsCount());
+//            return rv;
+//        }
 
         return partProgressHumanReadable;
     }

@@ -8,9 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -26,9 +29,20 @@ public class QAccessCertificationDefinitionMapping
 
     public static final String DEFAULT_ALIAS_NAME = "acd";
 
+    private static QAccessCertificationDefinitionMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QAccessCertificationDefinitionMapping init(
             @NotNull SqaleRepoContext repositoryContext) {
-        return new QAccessCertificationDefinitionMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QAccessCertificationDefinitionMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAccessCertificationDefinitionMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QAccessCertificationDefinitionMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -41,10 +55,11 @@ public class QAccessCertificationDefinitionMapping
                 timestampMapper(q -> q.lastCampaignStartedTimestamp));
         addItemMapping(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP,
                 timestampMapper(q -> q.lastCampaignClosedTimestamp));
-        addItemMapping(F_OWNER_REF, refMapper(
+        addRefMapping(F_OWNER_REF,
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
-                q -> q.ownerRefRelationId));
+                q -> q.ownerRefRelationId,
+                QUserMapping::getUserMapping);
     }
 
     @Override

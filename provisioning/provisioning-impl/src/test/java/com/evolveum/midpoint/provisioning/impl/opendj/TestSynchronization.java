@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
 
 import org.opends.server.core.AddOperation;
@@ -32,17 +33,13 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -53,9 +50,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
     private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 
     private static final File RESOURCE_OPENDJ_FILE = AbstractOpenDjTest.RESOURCE_OPENDJ_FILE;
-
-    private static final File SYNC_TASK_FILE = new File(TEST_DIR, "sync-task-example.xml");
-    private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
     private static final File LDIF_WILL_FILE = new File(TEST_DIR, "will.ldif");
     private static final File LDIF_CALYPSO_FILE = new File(TEST_DIR, "calypso.ldif");
@@ -68,6 +62,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
     @Autowired private ResourceObjectChangeListener syncServiceMock;
     @Autowired private MockLiveSyncTaskHandler mockLiveSyncTaskHandler;
 
+    private final DummyTokenStorageImpl tokenStorage = new DummyTokenStorageImpl(0);
+
     @BeforeClass
     public static void startLdap() throws Exception {
         openDJController.startCleanServer();
@@ -78,11 +74,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
         openDJController.stop();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-     */
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -95,8 +86,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         //it is needed to declare the task owner, so we add the user admin to the reposiotry
         repoAddObjectFromFile(ProvisioningTestUtil.USER_ADMIN_FILE, initResult);
-
-        repoAddObjectFromFile(SYNC_TASK_FILE, initResult);
     }
 
     @Test
@@ -118,18 +107,14 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertNotNull("No resource schema", resource.asObjectable().getSchema());
         assertNotNull("No native capabilities", resource.asObjectable().getCapabilities().getNative());
 
-        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
-        AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0);
+        tokenStorage.assertToken(0);
     }
 
     @Test
     public void test100SyncAddWill() throws Exception {
         final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
-        AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0);
+        tokenStorage.assertToken(0);
         ((SynchronizationServiceMock) syncServiceMock).reset();
 
         // create add change in embedded LDAP
@@ -148,7 +133,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
         // WHEN
 
-        mockLiveSyncTaskHandler.synchronize(coords, syncTask, syncTask, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, getTestTask(), result);
 
         // THEN
         SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
@@ -165,30 +150,14 @@ public class TestSynchronization extends AbstractIntegrationTest {
         // TODO why is the value lowercased? Is it because it was taken from the change and not fetched from the resource?
         assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME.toLowerCase(), currentShadow.asObjectable().getName().getOrig());
 
-        assertSyncToken(SYNC_TASK_OID, 1, result);
-
-        // TODO fix this brittle code (depends on internal data representation within repository service)
-        RepositoryQueryDiagRequest valueRequest = new RepositoryQueryDiagRequest();
-        valueRequest.setImplementationLevelQuery("select l.value from ROExtLong l join RExtItem i on l.itemId = i.id where i.name='" + QNameUtil
-                .qNameToUri(SchemaConstants.SYNC_TOKEN) + "'");
-        RepositoryQueryDiagResponse valueResponse = repositoryService.executeQueryDiagnostics(valueRequest, result);
-        System.out.println(valueResponse.getQueryResult());
-        assertTrue("Unexpected repo query result on sync token: " + valueResponse.getQueryResult(), valueResponse.getQueryResult().isEmpty());
-
-        RepositoryQueryDiagRequest dictionaryRequest = new RepositoryQueryDiagRequest();
-        dictionaryRequest.setImplementationLevelQuery("select RExtItem i where i.name='" + QNameUtil.qNameToUri(SchemaConstants.SYNC_TOKEN) + "'");
-        RepositoryQueryDiagResponse dictionaryResponse = repositoryService.executeQueryDiagnostics(valueRequest, result);
-        System.out.println(dictionaryResponse.getQueryResult());
-        assertTrue("Unexpected repo query result on sync token definition: " + dictionaryResponse.getQueryResult(), dictionaryResponse.getQueryResult().isEmpty());
+        tokenStorage.assertToken(1);
     }
 
     @Test
     public void test500SyncAddProtected() throws Exception {
         final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
-        AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 1);
+        tokenStorage.assertToken(1);
         ((SynchronizationServiceMock) syncServiceMock).reset();
 
         // create add change in embedded LDAP
@@ -206,7 +175,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
                 AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
-        mockLiveSyncTaskHandler.synchronize(coords, syncTask, syncTask, result);
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, getTestTask(), result);
 
         // THEN
         SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
@@ -223,8 +192,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 //        assertNotNull("Calypso is not protected", currentShadow.asObjectable().isProtectedObject());
 //        assertTrue("Calypso is not protected", currentShadow.asObjectable().isProtectedObject());
 
-        assertSyncToken(SYNC_TASK_OID, 2, result);
-
+        tokenStorage.assertToken(2);
     }
 
 }

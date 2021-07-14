@@ -97,7 +97,7 @@ public class NotificationHook implements ChangeHook {
 
     private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
         LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
-        for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
+        for (EvaluatedPolicyRule rule : focusContext.getObjectPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
         }
         for (EvaluatedAssignment<?> assignment : context.getNonNegativeEvaluatedAssignments()) {

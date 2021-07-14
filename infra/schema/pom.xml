@@ -24,12 +24,12 @@
         <dependency>
             <groupId>com.evolveum.axiom</groupId>
             <artifactId>axiom</artifactId>
-            <version>4.4-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.4-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <!-- superset jakarta.activation:jakarta.activation comes from other deps -->
                 <exclusion>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.4-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
-            <version>4.4-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -278,19 +278,19 @@
                     <dependency>
                         <groupId>org.jvnet.jaxb2_commons</groupId>
                         <artifactId>jaxb2-basics</artifactId>
-                        <version>0.6.3</version>
+                        <version>0.10.0</version>
                     </dependency>
                     <dependency>
                         <groupId>com.evolveum.prism.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>4.4-SNAPSHOT</version>
+                        <version>${project.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
             <plugin>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>4.4-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>

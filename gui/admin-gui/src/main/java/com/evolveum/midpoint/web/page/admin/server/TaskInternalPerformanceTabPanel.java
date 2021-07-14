@@ -14,7 +14,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format;
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
 
 import org.apache.wicket.model.Model;
 
@@ -42,12 +42,14 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
     private static final String ID_SORT_BY = "sortBy";
     private static final String ID_INFORMATION = "information";
 
+    private static final String LINE = "\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+
     TaskInternalPerformanceTabPanel(String id, IModel<PrismObjectWrapper<TaskType>> taskModel) {
         super(id, taskModel);
     }
 
-    private IModel<AbstractStatisticsPrinter.Format> formatModel = Model.of(AbstractStatisticsPrinter.Format.TEXT);
-    private IModel<AbstractStatisticsPrinter.SortBy> sortByModel = Model.of(AbstractStatisticsPrinter.SortBy.NAME);
+    private final IModel<Format> formatModel = Model.of(Format.TEXT);
+    private final IModel<SortBy> sortByModel = Model.of(SortBy.NAME);
 
     @Override
     protected void onInitialize() {
@@ -58,7 +60,8 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
 
     private void initLayout() {
 
-        DropDownChoicePanel formatPanel = WebComponentUtil.createEnumPanel(AbstractStatisticsPrinter.Format.class, ID_FORMAT, formatModel, this, false);
+        DropDownChoicePanel<Format> formatPanel =
+                WebComponentUtil.createEnumPanel(Format.class, ID_FORMAT, formatModel, this, false);
         formatPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -67,7 +70,8 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
         });
         add(formatPanel);
 
-        DropDownChoicePanel sortByPanel = WebComponentUtil.createEnumPanel(AbstractStatisticsPrinter.SortBy.class, ID_SORT_BY, sortByModel, this, false);
+        DropDownChoicePanel<SortBy> sortByPanel =
+                WebComponentUtil.createEnumPanel(SortBy.class, ID_SORT_BY, sortByModel, this, false);
         sortByPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -88,15 +92,13 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
             }
         };
         informationText.setReadonly(true);
-//        informationText.setHeight(300);
-//        informationText.setResizeToMaxHeight(true);
         informationText.setMode(null);
         add(informationText);
 
     }
 
     private IModel<String> createStringModel() {
-        return new IModel<String>() {
+        return new IModel<>() {
             @Override
             public String getObject() {
                 return getStatistics();
@@ -122,7 +124,7 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
             return "No operation statistics available";
         }
 
-        Integer iterations = TaskOperationStatsUtil.getItemsProcessed(statistics);
+        Integer iterations = ActivityStatisticsUtil.getAllItemsProcessed(task.getActivityState());
         Integer seconds = getSeconds(task);
 
         AbstractStatisticsPrinter.Options options = new AbstractStatisticsPrinter.Options(formatModel.getObject(),
@@ -138,12 +140,6 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
                             options, iterations, seconds))
                     .append("\n");
         }
-        WorkBucketManagementPerformanceInformationType buckets = statistics.getWorkBucketManagementPerformanceInformation();
-        if (buckets != null && !buckets.getOperation().isEmpty()) {
-            sb.append("Work buckets management performance information\n\n")
-                    .append(TaskWorkBucketManagementPerformanceInformationUtil.format(buckets, options, iterations, seconds))
-                    .append("\n");
-        }
         if (statistics.getCachesPerformanceInformation() != null) {
             sb.append("Cache performance information\n\n")
                     .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation(), options))
@@ -155,25 +151,15 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismObjectWrappe
                             options, iterations, seconds))
                     .append("\n");
         }
-        sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        sb.append(LINE);
         sb.append("Other performance-related information that is shown elsewhere (provided here just for completeness):\n\n");
-        if (statistics.getIterativeTaskInformation() != null) {
-            sb.append("Iterative task information\n\n")
-                    .append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation(), options))
-                    .append("\n");
-        }
-        if (statistics.getActionsExecutedInformation() != null) {
-            sb.append("Actions executed:\n")
-                    .append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
-                    .append("\n");
-        }
         if (statistics.getEnvironmentalPerformanceInformation() != null) {
-            sb.append("Environmental performance information:\n")
+            sb.append("Environmental performance information:\n\n")
                     .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
                     .append("\n");
         }
         if (statistics.getCachingConfiguration() != null) {
-            sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+            sb.append(LINE);
             sb.append("Caching configuration:\n\n");
             sb.append(statistics.getCachingConfiguration());
         }

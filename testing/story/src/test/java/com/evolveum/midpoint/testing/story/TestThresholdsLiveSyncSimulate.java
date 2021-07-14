@@ -6,35 +6,27 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-
-import java.io.File;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 /**
  * @author katka
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestThresholdsLiveSyncSimulate extends TestThresholds {
+public class TestThresholdsLiveSyncSimulate extends TestThresholdsLiveSync {
 
-    private static final File TASK_LIVESYNC_OPENDJ_SIMULATE_FILE = new File(TEST_DIR, "task-opendj-livesync-simulate.xml");
-    private static final String TASK_LIVESYNC_OPENDJ_SIMULATE_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
-
-    @Override
-    protected File getTaskFile() {
-        return TASK_LIVESYNC_OPENDJ_SIMULATE_FILE;
-    }
+    static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_SIMULATE = new TestResource<>(TEST_DIR, "task-opendj-livesync-simulate.xml", "02e134e0-a740-4730-be6d-6521e63198e7");
 
     @Override
-    protected String getTaskOid() {
-        return TASK_LIVESYNC_OPENDJ_SIMULATE_OID;
+    protected TestResource<TaskType> getTaskTestResource() {
+        return TASK_LIVESYNC_OPENDJ_SIMULATE;
     }
 
     @Override
@@ -43,51 +35,108 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
     }
 
     @Override
-    protected int getProcessedUsers() {
-        return 0;
+    protected boolean isSimulate() {
+        return true;
     }
 
-    @Override
-    protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        dumpSynchronizationInformation(syncInfo);
-
-        assertSyncToken(taskAfter, 4);
-
-//        // user5, user6, user7, user8, user9 (why not user4? -- because token is preset to 4)
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
-//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
-
-    }
-
-    protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        dumpSynchronizationInformation(syncInfo);
-
-//        // new users: user5, user6, user7, user8, user9, user10, user11, user12, user13, user14, user15 (11 users)
-//        assertEquals((Object) syncInfo.getCountUnmatched(), 11);
-//        assertEquals((Object) syncInfo.getCountDeleted(), 0);
-//        // existing users: user1, user2 (disabled - passes), user3 (disabled - fails) -- these users were created during initial import
-//        assertEquals((Object) syncInfo.getCountLinked(), 3);             // 2 + 1
-//        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
-    }
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
+    /**
+     * We imported user4 to user9.
+     *
+     * LS events received are:
+     *
+     * - add user4 - would create a user (succeeds)
+     * - add user5 - would create a user (succeeds)
+     * - add user6 - would create a user (succeeds)
+     * - add user7 - would create a user (succeeds)
+     * - add user8 - couldn't pretend to create a user because of a threshold of 5 (fails)
+     * - add user9
      */
     @Override
-    protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) {
-        SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStatsOrClone().getSynchronizationInformation();
-        dumpSynchronizationInformation(syncInfo);
+    protected void assertAfterFirstImport(TaskType taskAfter) {
+        assertSyncToken(taskAfter, 3);
 
-        assertSyncToken(taskAfter, 4);
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(4, 1, 0)
+                        .assertLastSuccessObjectName("uid=user7,ou=people,dc=example,dc=com")
+                        .assertLastFailureObjectName("uid=user8,ou=people,dc=example,dc=com")
+                    .end()
+                    .synchronizationStatistics()
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 4, 1, 0)
+                        .assertTransitions(1);
+    }
 
-//        // user5, user6, user7, user8, user9
-//        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
-//        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountLinkedAfter(), 0);
-//        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
+    /**
+     * We imported user10 to user15.
+     *
+     * However, the token is still 3. So LS events received are:
+     *
+     * - add user4 - would create a user (succeeds)
+     * - add user5 - would create a user (succeeds)
+     * - add user6 - would create a user (succeeds)
+     * - add user7 - would create a user (succeeds)
+     * - add user8 - couldn't pretend to create a user because of a threshold of 5 (fails)
+     * - add user9
+     * - add user10
+     * - add user11
+     * - add user12
+     * - add user13
+     * - add user14
+     * - add user15
+     */
+
+    @Override
+    protected void assertAfterSecondImport(TaskType taskAfter) {
+        assertSyncToken(taskAfter, 3);
+
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(4, 1, 0)
+                        .assertLastSuccessObjectName("uid=user7,ou=people,dc=example,dc=com")
+                        .assertLastFailureObjectName("uid=user8,ou=people,dc=example,dc=com")
+                    .end()
+                    .synchronizationStatistics()
+                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 4, 1, 0)
+                        .assertTransitions(1);
+    }
+
+    /**
+     * Now we disabled users 1 to 6. Note that previous changes were additions of user4 to user15.
+     *
+     * We start with token of 3, because the token was not updated during previous runs.
+     *
+     * It looks like OpenDJ provides the following sync events:
+     *
+     * - add user4 - would create a user because the rule is no longer there (succeeds)
+     * - add user5 - would create a user because the rule is no longer there (succeeds)
+     * - add user6 - would create a user because the rule is no longer there (succeeds)
+     * - add user7 - would create a user because the rule is no longer there (succeeds)
+     * - add user8 - would create a user because the rule is no longer there (succeeds)
+     * - add user9 - would create a user because the rule is no longer there (succeeds)
+     * - add user10 - would create a user because the rule is no longer there (succeeds)
+     * - add user11 - would create a user because the rule is no longer there (succeeds)
+     * - add user12 - would create a user because the rule is no longer there (succeeds)
+     * - add user13 - would create a user because the rule is no longer there (succeeds)
+     * - add user14 - would create a user because the rule is no longer there (succeeds)
+     * - add user15 - would create a user because the rule is no longer there (succeeds)
+     * - disable user1 - would update a user (succeeds)
+     * - disable user2 - would update a user (succeeds)
+     * - disable user3 - couldn't pretend to update a user because of a threshold
+     * - disable user4
+     * - disable user5
+     * - disable user6
+     */
+    protected void assertAfterDisablingAccounts(TaskType taskAfter) {
+        assertSyncToken(taskAfter, 3);
+
+        assertTask(taskAfter, "after")
+                .rootActivityState()
+                    .itemProcessingStatistics()
+                    .assertTotalCounts(14, 1) // see above
+                    .assertLastSuccessObjectName("uid=user2,ou=People,dc=example,dc=com")
+                    .assertLastFailureObjectName("uid=user3,ou=People,dc=example,dc=com")
+                .end();
     }
 }

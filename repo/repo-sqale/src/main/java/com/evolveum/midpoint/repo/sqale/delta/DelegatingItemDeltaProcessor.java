@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
-import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.mapping.UpdatableItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
@@ -51,8 +51,8 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
         QueryModelMapping<?, ?, ?> mapping = context.mapping();
         ItemSqlMapper<?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
-        if (itemSqlMapper instanceof SqaleItemSqlMapper) {
-            ((SqaleItemSqlMapper<?, ?, ?>) itemSqlMapper)
+        if (itemSqlMapper instanceof UpdatableItemSqlMapper) {
+            ((UpdatableItemSqlMapper<?, ?>) itemSqlMapper)
                     .createItemDeltaProcessor(context)
                     .process(modification);
         } else if (itemSqlMapper != null) {
@@ -71,7 +71,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             path = path.rest();
 
             QueryModelMapping<?, ?, ?> mapping = context.mapping();
-            ItemRelationResolver<?, ?> relationResolver = mapping.getRelationResolver(firstName);
+            ItemRelationResolver<?, ?, ?, ?> relationResolver = mapping.getRelationResolver(firstName);
             if (relationResolver == null) {
                 return null; // unmapped, not persisted, nothing to do
             }

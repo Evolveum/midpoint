@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES) })
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RShadow extends RObject implements OperationResult {
 
     private RPolyString nameCopy;

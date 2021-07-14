@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * in {@link AbstractConfiguredModelIntegrationTest}.
  *
  * Creates a repo with:
+ *
  *  - empty system configuration
  *  - administrator user (from common dir)
  *  - superuser role (from common dir)

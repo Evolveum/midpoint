@@ -10,7 +10,8 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 
 /**
  * Filter processor is very abstract thing that takes the filter and returns the SQL predicate.
@@ -20,11 +21,11 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
  *
  * * Processors in the context of a query (or subquery).
  * These typically determine what other processor should be used in the next step.
- * The logic starts in {@link ObjectFilterProcessor#process(ObjectFilter)} and determines
+ * The logic starts in {@link SqlQueryContext#process(ObjectFilter)} and determines
  * whether to resolve logical operations or delegate to other specialized filter.
  * *Complex path resolution* (which may add JOINs) belongs here, see {@link ValueFilterProcessor}.
  *
- * * {@link ItemFilterProcessor}s for a single Prism item (not necessarily one SQL column).
+ * * {@link ItemValueFilterProcessor}s for a single Prism item (not necessarily one SQL column).
  * These *process only single/final path component and use the value of the filter*.
  * While JOINs are typically only used here it is possible that multi-value attributes stored
  * in detail tables can generate another JOIN in this step too.

@@ -9,9 +9,7 @@ package com.evolveum.midpoint.task.api;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -19,12 +17,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public interface TaskHandler {
 
-    default TaskRunResult run(RunningTask task) {
-        return run(task, null);
-    }
-
-    @Experimental
-    TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
+    /**
+     * Executes a task handler.
+     *
+     * TODO better description
+     */
+    TaskRunResult run(@NotNull RunningTask task) throws TaskException;
 
     default Long heartbeat(Task task) {
         return null;
@@ -32,25 +30,6 @@ public interface TaskHandler {
 
     // TODO: fix signature
     default void refreshStatus(Task task) {
-    }
-
-    /**
-     * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
-     * @param task a task, whose category is to be determined; if getCategoryNames() returns null, this method
-     *             has to accept null value as this parameter, and return the (one) category name that it gives
-     *             to all tasks
-     * @return a user-understandable name, like "LiveSync" or "Workflow"
-     */
-    @Deprecated // Remove in 4.3
-    String getCategoryName(Task task);
-
-    /**
-     * Returns names of task categories provided by this handler. Usually it will be one-item list.
-     * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
-     */
-    @Deprecated // Remove in 4.3
-    default List<String> getCategoryNames() {
-        return null;
     }
 
     /**
@@ -66,7 +45,11 @@ public interface TaskHandler {
     }
 
     /**
-     * @return Archetype OID for tasks that are powered by this handler.
+     * TODO Decide on the fate of this method.
+     *
+     * @param handlerUri One the handler URIs supported by this handler.
+     *
+     * @return Archetype OID for tasks that are powered by this handler and have the specified handler URI.
      */
-    String getArchetypeOid();
+    @Nullable String getArchetypeOid(@Nullable String handlerUri);
 }

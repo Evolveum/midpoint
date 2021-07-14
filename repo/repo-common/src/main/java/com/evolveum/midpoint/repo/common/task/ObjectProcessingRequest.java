@@ -26,8 +26,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessingRequest<PrismObject<O>> {
 
-    ObjectProcessingRequest(PrismObject<O> item, AbstractIterativeItemProcessor<PrismObject<O>, ?, ?, ?, ?> itemProcessor) {
-        super(item, itemProcessor);
+    ObjectProcessingRequest(PrismObject<O> item,
+            @NotNull AbstractIterativeActivityExecution<PrismObject<O>, ?, ?, ?> activityExecution) {
+        super(item, activityExecution);
     }
 
     @Override

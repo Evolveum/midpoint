@@ -14,10 +14,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleCounterUpdater;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -66,6 +66,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private PolicyRuleCounterUpdater policyRuleCounterUpdater;
     @Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
     @Autowired private ClockworkMedic medic;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -81,8 +82,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
     public <AH extends AssignmentHolderType> void processFocus(LensContext<AH> context, String activityDescription, XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
-            PreconditionViolationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConflictDetectedException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
@@ -136,8 +136,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
                 // ASSIGNMENTS
 
-                focusContext.clearPendingObjectPolicyStateModifications();
-                focusContext.clearPendingAssignmentPolicyStateModifications();
+                focusContext.clearPendingPolicyStateModifications();
 
                 medic.partialExecute(Components.ASSIGNMENTS, assignmentProcessor,
                         assignmentProcessor::processAssignments,
@@ -225,6 +224,11 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         context.recomputeFocus();
         itemLimitationsChecker.checkItemsLimitations(focusContext);
+
+        medic.partialExecute(Components.POLICY_RULE_COUNTERS, policyRuleCounterUpdater,
+                policyRuleCounterUpdater::updateCounters,
+                partialProcessingOptions::getPolicyRuleCounters,
+                Projector.class, context, now, task, result);
 
         context.checkConsistenceIfNeeded();
 

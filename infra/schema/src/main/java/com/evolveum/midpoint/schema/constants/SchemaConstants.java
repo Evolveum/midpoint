@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.constants;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -22,31 +20,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Vilo Repan
  * @author Radovan Semancik
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class SchemaConstants {
 
     public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
     public static final String NS_MIDPOINT_PUBLIC_COMMON = NS_MIDPOINT_PUBLIC + "/common";
     public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-    public static final Map<String, String> PREFIX_NS_MAP = new HashMap<>();
-
     // NAMESPACES
 
     public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
     public static final String PREFIX_NS_ORG = "org";
     public static final String NS_QUERY = PrismConstants.NS_QUERY;
-    public static final String NS_QUERY_PREFIX = "q";
     public static final String NS_TYPES = PrismConstants.NS_TYPES;
-    public static final String NS_TYPES_PREFIX = "t";
-    public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
     public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
     public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-    public static final String NS_C_PREFIX = "c";
     public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
-    public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
-    public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
-    public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
-    public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
     public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
 
     /**
@@ -56,18 +45,14 @@ public abstract class SchemaConstants {
 
     // COMMON NAMESPACE
 
-    public static final ItemName C_FILTER_TYPE_URI = new ItemName(NS_QUERY, "uri");
-    public static final ItemName C_ITEM = new ItemName(NS_C, "item");
     public static final ItemName C_OBJECTS = new ItemName(NS_C, "objects");
     public static final ItemName C_OBJECT = new ItemName(NS_C, "object");
     public static final ItemName C_TARGET = new ItemName(NS_C, "target");
     public static final ItemName C_ABSTRACT_ROLE = new ItemName(NS_C, "abstractRole");
     public static final ItemName C_FOCUS = new ItemName(NS_C, "focus");
     public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
-    public static final ItemName C_OBJECT_REF = new ItemName(NS_C, "objectRef");
     public static final ItemName C_VALUE = new ItemName(NS_C, "value");
     public static final ItemName C_PARAM_VALUE = new ItemName(NS_C, "paramValue");
-    public static final ItemName C_REPORT_PARAM_VALUE = new ItemName(NS_C, "reportParamValue");
     public static final ItemName C_OID_ATTRIBUTE = new ItemName(NS_C, "oid");
     public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
     public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
@@ -76,12 +61,10 @@ public abstract class SchemaConstants {
     public static final ItemName C_RESULT = new ItemName(NS_C, "result");
     public static final ItemName C_USER = new ItemName(NS_C, "user");
     public static final ItemName C_OBJECT_TEMPLATE = new ItemName(NS_C, "objectTemplate");
-    public static final ItemName C_OBJECT_TEMPLATE_REF = new ItemName(NS_C, "objectTemplateRef");
     public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
     public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
     public static final ItemName C_GENERIC_OBJECT = new ItemName(NS_C, "genericObject");
     public static final ItemName C_ACCOUNT = new ItemName(NS_C, "account");
-    public static final QName C_ACCOUNT_SHADOW_TYPE = new QName(NS_C, "AccountShadowType");
     public static final QName C_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
     public static final QName C_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
     public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
@@ -91,10 +74,8 @@ public abstract class SchemaConstants {
     public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
     public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
     public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
-    public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
     public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
     public static final ItemName C_ASSOCIATION = new ItemName(NS_C, "association");
-    public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
     public static final ItemName C_CREDENTIALS = new ItemName(NS_C, "credentials");
     public static final ItemName C_ACTIVATION = new ItemName(NS_C, "activation");
     public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
@@ -103,9 +84,7 @@ public abstract class SchemaConstants {
             "globalAccountSynchronizationSettings");
 
     public static final ItemName C_REPORT = new ItemName(NS_C, "report");
-    public static final ItemName C_REPORT_OUTPUT = new ItemName(NS_C, "reportOutput");
     public static final ItemName C_REPORT_DATA = new ItemName(NS_C, "reportData");
-    public static final ItemName C_ITEM_PATH_FIELD = new ItemName(NS_C, "itemPathField");
     public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
     public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");
     public static final ItemName C_MODEL_EXECUTE_OPTIONS = new ItemName(NS_C, "modelExecuteOptions");
@@ -113,8 +92,6 @@ public abstract class SchemaConstants {
     public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
             "PolyStringType");
     public static final ItemName T_OBJECT_DELTA = new ItemName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
-    public static final QName T_OBJECT_DELTA_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
-            "ObjectDeltaType");
 
     /*
      * Constants for default relations.
@@ -200,14 +177,11 @@ public abstract class SchemaConstants {
             ActivationType.F_DISABLE_REASON);
     public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION,
             ActivationType.F_LOCKOUT_STATUS);
-    public static final ItemPath PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
     public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = ItemPath.create(
             ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
     public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSIGNMENT = ItemPath.create(FocusType.F_ASSIGNMENT);
     public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
             .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
     public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath
@@ -229,7 +203,6 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_LINK_REF = ItemPath.create(FocusType.F_LINK_REF);
     public static final ItemPath PATH_LIFECYCLE_STATE = ItemPath.create(ObjectType.F_LIFECYCLE_STATE);
     public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF);
-    public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = ItemPath.create(ShadowType.F_AUXILIARY_OBJECT_CLASS);
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
     public static final ItemPath PATH_PARENT_ORG_REF = ItemPath.create(ObjectType.F_PARENT_ORG_REF);
@@ -277,7 +250,6 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_CLEANUP_URI = QNameUtil.qNameToUri(CHANNEL_CLEANUP);
 
     public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
-    public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
@@ -295,33 +267,28 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_CHANNEL, "remediation");
     public static final String CHANNEL_REMEDIATION_URI = QNameUtil.qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
-    public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-3";
-
     public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
-    public static final ItemName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new ItemName(
-            NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
-    // removing
+
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
-    public static final ItemName MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE = new ItemName(NS_MODEL_EXTENSION, "simulateBeforeExecute");
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
     public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
-    public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly");
+    public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly"); // TODO
     public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
     public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");
     public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
     public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
             NS_MODEL_EXTENSION, "lastScanTimestamp");
-    public static final ItemName MODEL_EXTENSION_LAST_RECONCILIATION_START_TIMESTAMP_PROPERTY_NAME = new ItemName(
-            NS_MODEL_EXTENSION, "lastReconciliationStartTimestamp");
-    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
-    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
-    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
-    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
-    public static final ItemName MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION = new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
-    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting");
+    public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval"); // TODO
+    public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval"); // TODO
+    public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile"); // TODO
+    public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot"); // TODO
+    public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing"); // TODO
+    public static final ItemName MODEL_EXTENSION_REPORTING_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "reporting"); // TODO
+
+    public static final ItemName LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME =
+            new ItemName(NS_MODEL_EXTENSION, "notUpdatedShadowsDuration");
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
@@ -342,15 +309,15 @@ public abstract class SchemaConstants {
     // should not be used, because it is a transitional constraint
     public static final String MODEL_POLICY_SITUATION_MODIFIED =
             QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
-    public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED;        // TODO
+    public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED; // TODO
     public static final String MODEL_POLICY_SITUATION_HAS_ASSIGNMENT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment"));        // TODO
+            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment")); // TODO
     public static final String MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment"));        // TODO
+            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment")); // TODO
     public static final String MODEL_POLICY_SITUATION_OBJECT_STATE =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState"));           // TODO
+            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState")); // TODO
     public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_STATE =
-            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));      // TODO
+            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState")); // TODO
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
 
@@ -382,17 +349,17 @@ public abstract class SchemaConstants {
     public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
     public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);        // only for aggregated decisions
 
-    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType");
-    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery");
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType"); // TODO DeleteTaskHandler + iterative scripting policy rule
+    public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery"); // TODO DeleteTaskHandler + iter. scripting rule + reconcile affected
     public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
     public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
     public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
-    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector");
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta");
-    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas");
+    public static final ItemName MODEL_EXTENSION_FAILED_OBJECTS_SELECTOR = new ItemName(NS_MODEL_EXTENSION, "failedObjectsSelector"); // TODO!!!
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta"); // TODO ExecuteDeltasTaskHandler
+    public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas"); // TODO ExecuteDeltasTaskHandler
     public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");
-    public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw");
-    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions");
+    public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw"); // TODO DeleteTaskHandler
+    public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions"); // TODO ExecuteDeltasTaskHandler
     public static final ItemName MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "modelExecuteOptions");
 
     public static final ItemName MODEL_EXTENSION_DIAGNOSE = new ItemName(NS_MODEL_EXTENSION, "diagnose");
@@ -424,8 +391,6 @@ public abstract class SchemaConstants {
     public static final ItemName JDBC_PING_JDBC_USERNAME_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcUsername");
     public static final ItemName JDBC_PING_JDBC_PASSWORD_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcPassword");
     public static final ItemName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
-
-    public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 
     // Init channel, used when system is initializing itself
     public static final QName CHANNEL_INIT_QNAME = new QName(NS_CHANNEL, "init");
@@ -469,11 +434,6 @@ public abstract class SchemaConstants {
     public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
     public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
             "configurationProperties");
-    public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
-    public static final ItemName ICF_RESULTS_HANDLER_CONFIGURATION = new ItemName(NS_ICF_CONFIGURATION,
-            "resultsHandlerConfiguration");
-    public static final ItemName ICF_CONNECTOR_POOL_CONFIGURATION = new ItemName(NS_ICF_CONFIGURATION,
-            "connectorPoolConfiguration");
 
     // Note! This is also specified in SchemaConstants (MID-356)
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
@@ -507,12 +467,8 @@ public abstract class SchemaConstants {
 
     public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
 
-    public static final ItemName APIT_ITEM_LIST = new ItemName(SchemaConstants.NS_API_TYPES, "itemList");
-    public static final ItemName C_ASSIGNMENT = new ItemName(SchemaConstants.NS_C, "assignment");
-
     public static final ItemName C_NAME = new ItemName(SchemaConstants.NS_C, "name");
 
-    public static final ItemName FAULT_MESSAGE_ELEMENT_NAME = new ItemName(NS_FAULT, "fault");
     public static final ItemName C_MODEL_CONTEXT = new ItemName(NS_C, "modelContext");
 
     // Lifecycle
@@ -543,7 +499,6 @@ public abstract class SchemaConstants {
     // The case now proceeds by means of automated execution of defined actions (e.g. approved changes);
     // or waiting for the execution to start.
     public static final String CASE_STATE_EXECUTING = "executing";
-    public static final QName CASE_STATE_EXECUTING_QNAME = new QName(NS_CASE, CASE_STATE_EXECUTING);
 
     // The case is closed. No further actions nor changes are expected.
     public static final String CASE_STATE_CLOSED = "closed";
@@ -583,16 +538,10 @@ public abstract class SchemaConstants {
     public static final QName OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "userAssignments");
     public static final String OBJECT_COLLECTION_USER_ASSIGNMENTS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME);
 
-    // Samples
-
-    public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
-    public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
-
     // Misc
 
     public static final String BUNDLE_NAME = "schema";
     public static final String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;     // Do not load this bundle explicitly, see MID-4800
-    public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
     // registration
     public static final String USER_ID = "user";
@@ -610,13 +559,6 @@ public abstract class SchemaConstants {
     public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
     public static final String OBJECT_SPECIFICATION_KEY = "ObjectSpecification";
     public static final String OBJECT_SPECIFICATION_WITH_PATH_KEY = "ObjectSpecificationWithPath";
-    public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
-
-    public static final String RELATION_NAME_KEY_PREFIX = "relation.";
-
-    //    // resetPassword
-//    public static final String RESET_PASSWORD_ID = "user";
-//    public static final String RESET_PASSWORD_TOKEN = "token";
 
     // a bit of hack
     public static final String COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI = SchemaConstants.NS_MODEL + "/completedTaskCleanup/handler-3";
@@ -633,7 +575,6 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_DELTA = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
     public static final ItemPath PATH_MODEL_EXTENSION_EXECUTE_OPTIONS = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
     public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-    public static final ItemPath PATH_CREDENTIALS_PASSWORD_METADATA = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_VALUE_POLICY_REF = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH);
@@ -658,21 +599,12 @@ public abstract class SchemaConstants {
     public static final QName INTERNAL = new QName(NS_C, "internal");
     public static final String INTERNAL_URI = QNameUtil.qNameToUri(INTERNAL);
 
-    //task stages
-    private static final String RECON_HANDLER = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3";
-    public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
-    public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
-    public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
-
-    //enum defs
-    public static final QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
-
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 
-    public static final String AUDIT_RECORDS_CLEANUP_TASK_PART_URI = "auditRecords";
-    public static final String CLOSED_TASKS_CLEANUP_TASK_PART_URI = "closedTasks";
-    public static final String CLOSED_CASES_CLEANUP_TASK_PART_URI = "closedCases";
-    public static final String DEAD_NODES_CLEANUP_TASK_PART_URI = "deadNodes";
-    public static final String OUTPUT_REPORTS_CLEANUP_TASK_PART_URI = "outputReports";
-    public static final String CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP_TASK_PART_URI = "closedCertificationCampaigns";
+    public static final String ID_AUDIT_RECORDS_CLEANUP = "auditRecords";
+    public static final String ID_CLOSED_TASKS_CLEANUP = "closedTasks";
+    public static final String ID_CLOSED_CASES_CLEANUP = "closedCases";
+    public static final String ID_DEAD_NODES_CLEANUP = "deadNodes";
+    public static final String ID_OUTPUT_REPORTS_CLEANUP = "outputReports";
+    public static final String ID_CLOSED_CERTIFICATION_CAMPAIGNS_CLEANUP = "closedCertificationCampaigns";
 }

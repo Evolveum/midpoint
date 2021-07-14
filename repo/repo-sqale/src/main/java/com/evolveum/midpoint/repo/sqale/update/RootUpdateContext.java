@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 import java.util.Collection;
 import java.util.UUID;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +29,9 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -65,12 +66,12 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                         .and(rootPath.version.eq(objectVersion)));
     }
 
-    public Q path() {
+    public Q entityPath() {
         return rootPath;
     }
 
     @Override
-    public QueryModelMapping<S, Q, R> mapping() {
+    public QObjectMapping<S, Q, R> mapping() {
         return mapping;
     }
 
@@ -99,6 +100,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                 processModification(modification);
             } catch (IllegalArgumentException e) {
                 logger.warn("Modification failed/not implemented yet: {}", e.toString());
+                throw new SystemException(e);
             }
         }
 
@@ -169,6 +171,16 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
 
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void set(P path, Expression<T> expression) {
+        update.set(path, expression);
+    }
+
+    @Override
+    public <P extends Path<T>, T> void setNull(P path) {
+        update.setNull(path);
     }
 
     public UUID objectOid() {

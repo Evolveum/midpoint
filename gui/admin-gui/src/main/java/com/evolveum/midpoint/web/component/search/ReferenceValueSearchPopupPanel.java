@@ -50,6 +50,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     private static final String ID_OID = "oid";
     private static final String ID_NAME = "name";
     private static final String ID_TYPE = "type";
+    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
     private static final String ID_SELECT_OBJECT_BUTTON = "selectObject";
     private static final String ID_FEEDBACK = "feedback";
@@ -129,6 +130,9 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         midpointForm.add(type);
 
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+        midpointForm.add(relationContainer);
+        relationContainer.add(new VisibleBehaviour(() -> getAllowedRelations().size() > 0));
         List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
         DropDownChoicePanel<QName> relation = new DropDownChoicePanel<QName>(ID_RELATION,
                 new PropertyModel<>(getModel(), "relation"),
@@ -144,7 +148,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             }
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        midpointForm.add(relation);
+        relationContainer.add(relation);
 
         AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON,
                 createStringResource("ReferenceValueSearchPopupPanel.selectObject")) {

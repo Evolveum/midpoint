@@ -14,7 +14,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.H2Templates;
 import com.querydsl.sql.MySQLTemplates;
@@ -26,9 +29,13 @@ import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-// TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
+// TODO MID-6318, MID-6319 review what needed (let's say in 2022), drop the rest
 public enum QuerydslUtils {
     ;
+
+    public static final BooleanExpression EXPRESSION_TRUE = Expressions.asBoolean(true).isTrue();
+    public static final BooleanExpression EXPRESSION_FALSE = Expressions.asBoolean(true).isFalse();
+    public static final StringTemplate EXPRESSION_ONE = Expressions.stringTemplate("1");
 
     /**
      * Returns configuration for Querydsl based on the used database type.

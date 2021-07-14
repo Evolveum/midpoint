@@ -11,7 +11,6 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 
 /**
  * Tests performance of bucketed tasks.
+ * To be run manually.
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -106,7 +106,8 @@ public class TestBucketsPerformance extends AbstractStoryTest {
         var stats = TaskOperationStatsUtil.getOperationStatsFromTree(tree, prismContext);
         displayValue("Statistics", TaskOperationStatsUtil.format(stats));
 
-        var performanceInformation = TaskPerformanceInformation.fromTaskTree(tree);
+        var performanceInformation =
+                activityManager.getPerformanceInformation(recomputationTask.oid, result);
         displayDumpable("Performance information", performanceInformation);
     }
 }

@@ -115,7 +115,6 @@ public class SqlRepoContext {
         }
     }
 
-    // TODO review from here - this is stuff merged from support service
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {
         return schemaService.typeQNameToSchemaClass(qName);
     }
@@ -134,13 +133,13 @@ public class SqlRepoContext {
                 getJdbcRepositoryConfiguration().getFullObjectFormat());
     }
 
-    public <T extends Objectable> RepositoryObjectParseResult<T> parsePrismObject(String serializedForm)
-            throws SchemaException {
+    public <T> RepositoryObjectParseResult<T> parsePrismObject(
+            String serializedForm, Class<T> schemaType) throws SchemaException {
         PrismContext prismContext = schemaService.prismContext();
         // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-        PrismObject<T> prismObject = prismContext.parserFor(serializedForm)
-                .context(parsingContext).parse();
+        T prismObject = prismContext.parserFor(serializedForm)
+                .context(parsingContext).parseRealValue(schemaType);
         return new RepositoryObjectParseResult<>(parsingContext, prismObject);
     }
 

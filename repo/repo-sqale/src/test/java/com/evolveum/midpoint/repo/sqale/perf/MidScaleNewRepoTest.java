@@ -35,7 +35,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * This tests creates data in the repository and then tries various queries.
  * Data doesn't need to be business-realistic, full object representation can be dummy.
  */
-@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 public class MidScaleNewRepoTest extends SqaleRepoBaseTest
         implements PerformanceTestClassMixin {
 

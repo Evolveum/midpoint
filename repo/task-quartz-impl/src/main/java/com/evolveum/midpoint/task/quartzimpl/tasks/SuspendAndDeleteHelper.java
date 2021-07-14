@@ -257,4 +257,12 @@ class SuspendAndDeleteHelper {
         // TODO Reconsider. What if there are suspended subtasks that are deleted, and their parents should
         //  be then unpaused? Maybe the forceful close of the task should be introduced.
     }
+
+    public void deleteTaskTree(String rootOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        TaskQuartzImpl root = taskRetriever.getTaskPlain(rootOid, result);
+        LOGGER.debug("Deleting task tree {}", root);
+        List<TaskQuartzImpl> allTasks = new ArrayList<>(root.listSubtasksDeeply(true, result));
+        allTasks.add(root);
+        deleteTasks(allTasks, result);
+    }
 }

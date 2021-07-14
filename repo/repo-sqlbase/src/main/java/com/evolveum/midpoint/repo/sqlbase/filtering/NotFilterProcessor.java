@@ -28,8 +28,7 @@ public class NotFilterProcessor implements FilterProcessor<NotFilter> {
         }
 
         context.markNotFilterUsage();
-        return new ObjectFilterProcessor(context)
-                .process(filter.getConditions().get(0))
+        return context.process(filter.getConditions().get(0))
                 .not();
     }
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="47477a1e-2db9-407f-b1db-2113ce4f85e9"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>task-single-recomputation</name>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000502"/> <!-- !!! -->
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+
+    <preActivity>
+        <work>
+            <scripting>
+                <executeScript>
+                    <s:execute>
+                        <s:script>
+                            <code>log.info('get ready')</code>
+                        </s:script>
+                    </s:execute>
+                </executeScript>
+            </scripting>
+        </work>
+    </preActivity>
+
+    <activity>
+        <work>
+            <recomputation> <!-- made visible by the archetype, hiding other items like reconciliation, etc. -->
+                <objectSet>
+                    <objectType>UserType</objectType>
+                </objectSet>
+            </recomputation>
+        </work>
+    </activity>
+
+    <postActivity>
+        <work>
+            <scripting>
+                <executeScript>
+                    <s:execute>
+                        <s:script>
+                            <code>log.info('done')</code>
+                        </s:script>
+                    </s:execute>
+                </executeScript>
+            </scripting>
+        </work>
+    </postActivity>
+
+</task>

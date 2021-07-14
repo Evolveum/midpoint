@@ -9,27 +9,22 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.constants.Channel;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,17 +46,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 @Component
-@TaskExecutionClass(ReconciliationTaskExecution.class)
-public class ReconciliationTaskHandler
-        extends AbstractModelTaskHandler
-        <ReconciliationTaskHandler, ReconciliationTaskExecution> {
+@Deprecated
+public class ReconciliationTaskHandler {
 
-    /**
-     * Just for testability. Used in tests. Injected by explicit call to a
-     * setter.
-     */
-    private ReconciliationTaskResultListener reconciliationTaskResultListener;
-
+    @Autowired PrismContext prismContext;
+    @Autowired TaskManager taskManager;
     @Autowired EventDispatcher eventDispatcher;
     @Autowired AuditHelper auditHelper;
     @Autowired protected ExpressionFactory expressionFactory;
@@ -72,26 +61,12 @@ public class ReconciliationTaskHandler
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
-    protected ReconciliationTaskHandler() {
-        super(LOGGER, "Reconciliation", OperationConstants.RECONCILIATION);
-        globalReportingOptions.setPreserveStatistics(false);
-        globalReportingOptions.setEnableSynchronizationStatistics(true);
-    }
-
-    public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
-        return reconciliationTaskResultListener;
-    }
-
-    public void setReconciliationTaskResultListener(ReconciliationTaskResultListener reconciliationTaskResultListener) {
-        this.reconciliationTaskResultListener = reconciliationTaskResultListener;
-    }
-
     @PostConstruct
     private void initialize() {
-        taskManager.registerHandler(ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI, this);
-        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_1, this);
-        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
-        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
+//        taskManager.registerHandler(ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI, this);
+//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_1, this);
+//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
+//        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
     }
 
     /**
@@ -144,24 +119,5 @@ public class ReconciliationTaskHandler
         result.computeStatus("Reconciliation launch failed");
 
         LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
-    }
-
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.RECONCILIATION;
-    }
-
-    @Override
-    public String getArchetypeOid() {
-        return SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
-    }
-
-    @Override
-    public String getDefaultChannel() {
-        return Channel.RECONCILIATION.getUri();
-    }
-
-    public ResourceObjectChangeListener getObjectChangeListener() {
-        return eventDispatcher;
     }
 }

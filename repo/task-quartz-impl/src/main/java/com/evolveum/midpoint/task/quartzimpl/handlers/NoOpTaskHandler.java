@@ -17,15 +17,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
-/**
- * @author Pavol Mederly
- */
-public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class NoOpTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
 
@@ -47,16 +44,14 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
     }
 
     @Override
-    public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-            TaskPartitionDefinitionType taskPartition, TaskWorkBucketProcessingResult previousRunResult) {
+    public TaskRunResult run(@NotNull RunningTask task) {
 
         String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
         OperationResult opResult = new OperationResult(NoOpTaskHandler.class.getName()+".run");
-        TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
+        TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
-        runResult.setBucketComplete(false);     // overridden later
 
         PrismProperty<Integer> delayProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         PrismProperty<Integer> stepsProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_STEPS_QNAME);
@@ -92,18 +87,10 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
         }
 
         LOGGER.info("NoOpTaskHandler run starting; progress = {}, steps to be executed = {}, delay for one step = {},"
-                + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, workBucket, task);
+                + " partition = '{}', in task {}", task.getProgress(), steps, delay, partition, task);
 
-        int objectFrom;
-        int objectTo;
-        if (workBucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
-            NumericIntervalWorkBucketContentType interval = (NumericIntervalWorkBucketContentType) workBucket.getContent();
-            objectFrom = interval.getFrom() != null ? interval.getFrom().intValue() : 0;
-            objectTo = interval.getTo() != null ? interval.getTo().intValue() - 1 : objectFrom;
-        } else {
-            objectFrom = 0;
-            objectTo = 0;
-        }
+        int objectFrom = 0;
+        int objectTo = 0;
 
 outer:  for (int o = objectFrom; o <= objectTo; o++) {
             for (int i = 0; i < steps; i++) {
@@ -138,17 +125,11 @@ outer:  for (int o = objectFrom; o <= objectTo; o++) {
 
         LOGGER.info("NoOpTaskHandler run finishing; progress = {} in task {}", task.getProgress(), task);
 
-        runResult.setBucketComplete(task.canRun());
         return runResult;
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.DEMO;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

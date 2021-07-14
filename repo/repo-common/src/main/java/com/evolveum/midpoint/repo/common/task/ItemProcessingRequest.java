@@ -37,7 +37,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
     @NotNull protected final I item;
-    @NotNull private final AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor;
+    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
     /**
      * Unique identifier of this request. Not to be confused with requestIdentifier used for auditing purposes!
@@ -47,10 +47,10 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @Experimental // maybe will be removed
     @NotNull protected final String identifier;
 
-    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor) {
+    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution) {
         this.item = item;
-        this.itemProcessor = itemProcessor;
-        this.identifier = itemProcessor.createItemProcessingRequestIdentifier();
+        this.activityExecution = activityExecution;
+        this.identifier = activityExecution.beans.lightweightIdentifierGenerator.generate().toString();
     }
 
     public @NotNull I getItem() {
@@ -76,16 +76,16 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     public abstract @NotNull IterationItemInformation getIterationItemInformation();
 
     public boolean process(RunningTask workerTask, OperationResult result) {
-        ItemProcessingGatekeeper<I> gatekeeper = new ItemProcessingGatekeeper<>(this, itemProcessor, workerTask);
+        ItemProcessingGatekeeper<I> gatekeeper = new ItemProcessingGatekeeper<>(this, activityExecution, workerTask);
         return gatekeeper.process(result);
     }
 
     protected PrismContext getPrismContext() {
-        return itemProcessor.taskExecution.getPrismContext();
+        return activityExecution.beans.prismContext;
     }
 
     protected @NotNull String getRootTaskOid() {
-        return itemProcessor.getTaskExecution().getRootTaskOid();
+        return activityExecution.getRootTaskOid();
     }
 
     protected @NotNull QName getType(PrismObject<?> object) {
@@ -105,7 +105,11 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
      */
     public abstract @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart();
 
-    public String getIdentifier() {
+    public @NotNull String getIdentifier() {
         return identifier;
+    }
+
+    public @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> getActivityExecution() {
+        return activityExecution;
     }
 }

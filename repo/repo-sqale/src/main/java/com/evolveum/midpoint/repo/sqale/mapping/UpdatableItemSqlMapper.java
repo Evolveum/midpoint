@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -30,6 +29,5 @@ public interface UpdatableItemSqlMapper<Q extends FlexibleRelationalPathBase<R>,
      * The type of the returned processor is adapted to the client code needs for convenience.
      * Also the type of the provided context is flexible, but with proper mapping it's all safe.
      */
-    <T> ItemDeltaValueProcessor<T> createItemDeltaProcessor(
-            SqaleUpdateContext<?, ?, ?> sqlUpdateContext);
+    ItemDeltaProcessor createItemDeltaProcessor(SqaleUpdateContext<?, ?, ?> sqlUpdateContext);
 }

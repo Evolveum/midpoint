@@ -1166,7 +1166,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
         StringBuilder sb = new StringBuilder();
         if (focusContext != null) {
-            dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getPolicyRules(), alsoMessages);
+            dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getObjectPolicyRules(), alsoMessages);
         }
         return sb.toString();
     }

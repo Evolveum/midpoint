@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/system/adminGuiConfig", matchUrlForSecurity = "/admin/config/system/adminGuiConfig"),
+                @Url(mountUrl = "/admin/config/system/cleanupPolicy", matchUrlForSecurity = "/admin/config/system/cleanupPolicy"),
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

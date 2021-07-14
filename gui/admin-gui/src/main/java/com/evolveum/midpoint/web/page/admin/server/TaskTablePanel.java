@@ -9,9 +9,9 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
@@ -27,12 +27,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +46,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -65,7 +63,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -90,7 +87,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     public static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     public static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
     public static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
-    public static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
+    public static final String OPERATION_DELETE_ACTIVITY_STATE_AND_WORKERS = DOT_CLASS + "deleteActivityStateAndWorkers";
     public static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
     public static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
     public static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
@@ -200,18 +197,17 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
                     final IModel<SelectableBean<TaskType>> rowModel) {
-                item.add(new Label(componentId,
-                        WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()))));
+                item.add(new Label(componentId, WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel)));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()));
+                return WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel);
             }
         };
 
@@ -252,7 +248,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
-                if (!TaskWorkStateUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
+                if (ActivityStateUtil.isProgressAvailableLocally(rowModel.getObject().getValue())) {
                     cellItem.add(new Label(componentId,
                             (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
@@ -281,7 +277,10 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType task = rowModel.getObject().getValue();
-                cellItem.add(new Label(componentId, new Model<>(TaskOperationStatsUtil.getItemsProcessedWithFailureFromTree(task, getPrismContext()))));
+                cellItem.add(
+                        new Label(
+                                componentId,
+                                new Model<>(ActivityStatisticsUtil.getAllFailures(task.getActivityState()))));
             }
         };
     }
@@ -306,7 +305,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                     title = createStringResource(OperationResultStatusType.UNKNOWN).getString();
                 }
 
-                return WebComponentUtil.createDisplayType(icon, "", title);
+                return WebDisplayTypeUtil.createDisplayType(icon, "", title);
             }
         };
     }
@@ -462,7 +461,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private InlineMenuItem createDeleteWorkStateAndWorkersMenuAction() {
         InlineMenuItem deleteWorkStateAndWorkers = createTaskInlineMenuItem("pageTasks.button.deleteWorkersAndWorkState",
-                this::deleteWorkersAndWorkState,
+                this::deleteActivityStateAndWorkers,
                 "pageTasks.message.deleteWorkersAndWorkState",
                 (task) -> true,
                 false);
@@ -689,11 +688,11 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         clearCache();
     }
 
-    private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
-        Task opTask = createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
+    private void deleteActivityStateAndWorkers(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
+        Task opTask = createSimpleTask(OPERATION_DELETE_ACTIVITY_STATE_AND_WORKERS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getObject().getValue().getOid(), true, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteActivityStateAndWorkers(task.getObject().getValue().getOid(), true, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (Throwable e) {
             result.recordFatalError(createStringResource("pageTasks.message.deleteWorkersAndWorkState.fatalError").getString(),
@@ -717,7 +716,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_DELETE_WORK_STATE);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteActivityStateAndWorkers(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (Throwable e) {
             result.recordFatalError(createStringResource("pageTasks.message.deleteWorkState.fatalError").getString(),
@@ -779,7 +778,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskWorkStateUtil.isCoordinator(task);
+
+        // TODO What if the task has delegated distributed activity?
+        return task != null && ActivityStateUtil.hasLocalDistributedActivity(task);
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
@@ -789,7 +790,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && TaskWorkStateUtil.isManageableTreeRoot(task);
+        return task != null && ActivityStateUtil.isManageableTreeRoot(task);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

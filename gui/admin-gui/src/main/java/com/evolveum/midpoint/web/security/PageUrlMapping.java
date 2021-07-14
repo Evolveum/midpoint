@@ -8,9 +8,11 @@
 package com.evolveum.midpoint.web.security;
 
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
+import static com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration.AUTH_CONFIGURATION_ALL;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.application.AuthorizationActionValue;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
 /**
  * @author lazyman
@@ -38,6 +40,11 @@ public enum PageUrlMapping {
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    ORG_DETAILS("/admin/org/unit/**",
+            new AuthorizationActionValue(AUTZ_UI_ORG_ALL_URL,
+                    "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_ORG_UNIT_URL,
+                    "PageOrgUnit.auth.orgUnit.label", "PageOrgUnit.auth.orgUnit.description")),
     RESOURCE_DETAILS("/admin/resource/**",
             new AuthorizationActionValue(AUTZ_UI_RESOURCE_DETAILS_URL,
                     "PageAdminResources.authUri.resourceDetails.label", "PageAdminResources.authUri.resourceDetails.description"),
@@ -45,11 +52,43 @@ public enum PageUrlMapping {
                     "PageAdminResources.authUri.resourcesAll.label", "PageAdminResources.authUri.resourcesAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
-    CASE_DETAILS("/admin/workItem/**",
+    WORK_ITEM_DETAILS("/admin/workItem/**",
             new AuthorizationActionValue(AUTZ_UI_WORK_ITEM_URL,
                     "PageCaseWorkItem.authUri.workItemDetails.label", "PageCaseWorkItem.authUri.workItemDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_WORK_ITEMS_ALL_URL,
                     "PageCaseWorkItems.authUri.workItemsAll.label", "PageAdminResources.authUri.workItemsAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    CASE_DETAILS("/admin/case/**",
+            new AuthorizationActionValue(AUTZ_UI_CASES_ALL_URL,
+                    "PageAdminCases.auth.casesAll.label", "PageAdminCases.auth.casesAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CASE_URL,
+                    "PageCase.auth.case.label", "PageCase.auth.case.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    OBJECT_COLLECTION_DETAILS("/admin/objectCollection/**",
+            new AuthorizationActionValue(AUTH_CONFIGURATION_ALL,
+                    PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+            new AuthorizationActionValue(AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL,
+                    "PageObjectCollection.auth.objectCollectionsAll.label", "PageObjectCollection.auth.objectCollectionsAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_OBJECT_COLLECTION_URL,
+                    "PageObjectCollection.auth.objectCollection.label", "PageObjectCollection.auth.objectCollection.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    ARCHETYPE_DETAILS("/admin/archetype/**",
+            new AuthorizationActionValue(AUTH_CONFIGURATION_ALL,
+                    PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+            new AuthorizationActionValue(AUTZ_UI_ARCHETYPES_ALL_URL,
+                    "PageArchetypes.auth.archetypesAll.label", "PageArchetypes.auth.archetypesAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_ARCHETYPE_URL,
+                    "PageArchetype.auth.user.label", "PageArchetype.auth.archetype.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    REPORT_DETAILS("/admin/report/**",
+            new AuthorizationActionValue(AUTZ_UI_REPORTS_ALL_URL,
+                    "PageAdminCases.auth.reportsAll.label", "PageAdminCases.auth.reportsAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_REPORT_URL,
+                    "PageReport.auth.report.label", "PageReport.auth.report.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
     ACTUATOR("/actuator/**",

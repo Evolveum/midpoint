@@ -12,7 +12,9 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -37,7 +39,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     private long delay;
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
         OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
@@ -101,11 +103,6 @@ public class MockSingleTaskHandler implements TaskHandler {
         executions = 0;
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.MOCK;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }
@@ -115,7 +112,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 

@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -16,21 +23,17 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 @Entity
 @Table(name = RAccessCertificationDefinition.TABLE_NAME,
-        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}),
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iCertDefinitionNameOrig", columnList = "name_orig"),
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_definition")
+@DynamicUpdate
 public class RAccessCertificationDefinition extends RObject {
 
     public static final String TABLE_NAME = "m_acc_cert_definition";

@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.Jsonb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
@@ -35,6 +35,7 @@ public class MAssignment extends MContainer {
     public Integer extId;
     public String extOid;
     public Integer[] policySituations;
+    public String[] subtypes;
     public Jsonb ext;
     // construction
     public UUID resourceRefTargetOid;

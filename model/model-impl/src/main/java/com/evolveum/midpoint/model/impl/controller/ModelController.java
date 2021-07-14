@@ -13,6 +13,7 @@ import java.io.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
 
 import org.apache.commons.lang.Validate;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -130,6 +130,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
+    @Autowired private TaskActivityManager activityManager;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     @Autowired private AuditHelper auditHelper;
     @Autowired private SecurityEnforcer securityEnforcer;
@@ -451,17 +452,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 | PolicyViolationException | SecurityViolationException | RuntimeException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-
-        } catch (PreconditionViolationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            // TODO: Temporary fix for 3.6.1
-            // We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-            // ... and we do not really need that in 3.6.1
-            // TODO: expose PreconditionViolationException in 3.7
-            throw new SystemException(e);
-
-        } finally {
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -492,8 +482,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditRecordExecution.setTimestamp(System.currentTimeMillis());
             auditRecordExecution.setOutcome(result.getStatus());
             auditHelper.audit(auditRecordExecution, null, task, result);
-
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -713,9 +701,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             PrismObject<T> updatedObject = storedObject.clone();
             ModelImplUtils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
             ObjectDelta<T> delta = storedObject.diff(updatedObject);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
-            }
+            LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDumpLazily());
             if (!delta.isEmpty()) {
                 try {
                     cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
@@ -765,15 +751,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
-
-        } catch (PreconditionViolationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            // TODO: Temporary fix for 3.6.1
-            // We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-            // ... and we do not really need that in 3.6.1
-            // TODO: expose PreconditionViolationException in 3.7
-            throw new SystemException(e);
-
         } finally {
             exitModelMethod();
         }
@@ -1969,28 +1946,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
-        taskManager.reconcileWorkers(oid, null, result);
+        activityManager.reconcileWorkers(oid, result);
     }
 
     @Override
-    public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+    public void deleteActivityStateAndWorkers(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
             OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-        taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
-    }
-
-    @Deprecated // Remove in 4.2
-    @Override
-    public List<String> getAllTaskCategories() {
-        return taskManager.getAllTaskCategories();
-    }
-
-    @Deprecated // Remove in 4.2
-    @Override
-    public String getHandlerUriForCategory(String category) {
-        return taskManager.getHandlerUriForCategory(category);
+        activityManager.deleteActivityStateAndWorkers(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
 
     private List<PrismObject<TaskType>> preprocessTaskOperation(String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {

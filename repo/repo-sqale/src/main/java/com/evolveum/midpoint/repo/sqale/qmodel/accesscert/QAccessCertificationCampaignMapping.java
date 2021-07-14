@@ -8,14 +8,19 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
 /**
  * Mapping between {@link QAccessCertificationCampaign}
@@ -26,10 +31,20 @@ public class QAccessCertificationCampaignMapping
         QAccessCertificationCampaign, MAccessCertificationCampaign> {
 
     public static final String DEFAULT_ALIAS_NAME = "acc";
+    private static QAccessCertificationCampaignMapping instance;
 
-    public static QAccessCertificationCampaignMapping init(
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAccessCertificationCampaignMapping initAccessCertificationCampaignMapping(
             @NotNull SqaleRepoContext repositoryContext) {
-        return new QAccessCertificationCampaignMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QAccessCertificationCampaignMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAccessCertificationCampaignMapping getAccessCertificationCampaignMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QAccessCertificationCampaignMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -37,22 +52,29 @@ public class QAccessCertificationCampaignMapping
                 AccessCertificationCampaignType.class, QAccessCertificationCampaign.class,
                 repositoryContext);
 
-        addItemMapping(F_DEFINITION_REF, refMapper(
+        addRefMapping(F_DEFINITION_REF,
                 q -> q.definitionRefTargetOid,
                 q -> q.definitionRefTargetType,
-                q -> q.definitionRefRelationId));
+                q -> q.definitionRefRelationId,
+                QAccessCertificationDefinitionMapping::get);
         addItemMapping(F_END_TIMESTAMP,
                 timestampMapper(q -> q.endTimestamp));
         addItemMapping(F_HANDLER_URI, uriMapper(q -> q.handlerUriId));
-        addItemMapping(F_ITERATION, integerMapper(q -> q.iteration));
-        addItemMapping(F_OWNER_REF, refMapper(
+        // TODO: iteration -> campaignIteration
+        addItemMapping(F_ITERATION, integerMapper(q -> q.campaignIteration));
+        addRefMapping(F_OWNER_REF,
                 q -> q.ownerRefTargetOid,
                 q -> q.ownerRefTargetType,
-                q -> q.ownerRefRelationId));
+                q -> q.ownerRefRelationId,
+                QUserMapping::getUserMapping);
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
         addItemMapping(F_START_TIMESTAMP,
                 timestampMapper(q -> q.startTimestamp));
         addItemMapping(F_STATE, enumMapper(q -> q.state));
+
+        addContainerTableMapping(F_CASE,
+                QAccessCertificationCaseMapping.initAccessCertificationCaseMapping(repositoryContext),
+                joinOn((o, acase) -> o.oid.eq(acase.ownerOid)));
     }
 
     @Override
@@ -78,7 +100,8 @@ public class QAccessCertificationCampaignMapping
         row.endTimestamp =
                 MiscUtil.asInstant(schemaObject.getEndTimestamp());
         row.handlerUriId = processCacheableUri(schemaObject.getHandlerUri());
-        row.iteration = schemaObject.getIteration();
+        // TODO
+        row.campaignIteration = schemaObject.getIteration();
         setReference(schemaObject.getOwnerRef(),
                 o -> row.ownerRefTargetOid = o,
                 t -> row.ownerRefTargetType = t,
@@ -89,5 +112,19 @@ public class QAccessCertificationCampaignMapping
         row.state = schemaObject.getState();
 
         return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(
+            @NotNull MAccessCertificationCampaign row, @NotNull AccessCertificationCampaignType schemaObject,
+            @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        List<AccessCertificationCaseType> cases = schemaObject.getCase();
+        if (!cases.isEmpty()) {
+            for (AccessCertificationCaseType c : cases) {
+                QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().insert(c, row, jdbcSession);
+            }
+        }
     }
 }

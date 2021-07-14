@@ -50,7 +50,7 @@ public abstract class AbstractGlobalCache {
     long getExpiryTime(Class<?> type) {
         CacheObjectTypeConfiguration configuration = getConfiguration(type);
         if (configuration == null) {
-            return Expiry.NO_CACHE;
+            return Expiry.NOW;
         } else if (configuration.getEffectiveTimeToLive() != null) {
             return System.currentTimeMillis() + configuration.getEffectiveTimeToLive() * 1000L;
         } else {

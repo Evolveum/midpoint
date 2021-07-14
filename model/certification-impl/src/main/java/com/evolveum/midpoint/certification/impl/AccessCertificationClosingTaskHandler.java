@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -47,8 +48,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * The task handler for writing assignment/object metadata.
- *
- * @author mederly
  */
 @Component
 public class AccessCertificationClosingTaskHandler implements TaskHandler {
@@ -80,7 +79,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.debug("Task run starting");
 
         OperationResult opResult = new OperationResult(CLASS_DOT+"run");
@@ -240,12 +239,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.ACCESS_CERTIFICATION;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value();
     }
 

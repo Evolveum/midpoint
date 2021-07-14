@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+
+import com.evolveum.midpoint.provisioning.impl.TokenUtil;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -35,7 +38,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     /**
      * Sync token.
      */
-    @NotNull private final PrismProperty<?> token;
+    @NotNull private final LiveSyncToken token;
 
     /** The context known at creation time. Used for initialization. */
     @NotNull private final InitializationContext ictx;
@@ -44,10 +47,10 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      * @param originalContext Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
      * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
-    public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
+    ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
             ResourceObjectConverter converter, ProvisioningContext originalContext, AttributesToReturn originalAttributesToReturn) {
         super(ucfLiveSyncChange, preInitializationException, originalContext, converter.getLocalBeans());
-        this.token = ucfLiveSyncChange.getToken();
+        this.token = TokenUtil.fromUcf(ucfLiveSyncChange.getToken());
         this.ictx = new InitializationContext(originalAttributesToReturn, originalContext);
     }
 
@@ -100,7 +103,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         }
     }
 
-    public @NotNull PrismProperty<?> getToken() {
+    public @NotNull LiveSyncToken getToken() {
         return token;
     }
 
@@ -111,7 +114,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "token", token, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "token", String.valueOf(token), indent + 1);
     }
 
     @Override

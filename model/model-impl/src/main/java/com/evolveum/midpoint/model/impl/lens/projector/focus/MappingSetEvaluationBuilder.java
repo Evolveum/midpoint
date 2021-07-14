@@ -29,8 +29,8 @@ public final class MappingSetEvaluationBuilder<F extends AssignmentHolderType, T
     ObjectTemplateMappingEvaluationPhaseType phase;
     ObjectDeltaObject<F> focusOdo;
     TargetObjectSpecification<T> targetSpecification;
-    MappingSetEvaluation.TripleCustomizer<PrismValue, ItemDefinition> tripleCustomizer;
-    MappingSetEvaluation.EvaluatedMappingConsumer<PrismValue, ItemDefinition> mappingConsumer;
+    MappingSetEvaluation.TripleCustomizer<?, ?> tripleCustomizer;
+    MappingSetEvaluation.EvaluatedMappingConsumer mappingConsumer;
     int iteration;
     String iterationToken;
     MappingEvaluationEnvironment env;
@@ -69,12 +69,12 @@ public final class MappingSetEvaluationBuilder<F extends AssignmentHolderType, T
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> tripleCustomizer(MappingSetEvaluation.TripleCustomizer<PrismValue, ItemDefinition> val) {
+    MappingSetEvaluationBuilder<F, T> tripleCustomizer(MappingSetEvaluation.TripleCustomizer<?, ?> val) {
         tripleCustomizer = val;
         return this;
     }
 
-    MappingSetEvaluationBuilder<F, T> mappingConsumer(MappingSetEvaluation.EvaluatedMappingConsumer<PrismValue, ItemDefinition> val) {
+    MappingSetEvaluationBuilder<F, T> mappingConsumer(MappingSetEvaluation.EvaluatedMappingConsumer val) {
         mappingConsumer = val;
         return this;
     }

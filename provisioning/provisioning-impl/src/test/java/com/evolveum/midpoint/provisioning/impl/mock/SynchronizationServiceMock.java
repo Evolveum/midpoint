@@ -12,17 +12,16 @@ import static org.testng.AssertJUnit.*;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.task.api.TaskUtil;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -83,7 +82,7 @@ public class SynchronizationServiceMock
         assertTrue("Either current shadow or delta must be present", change.getShadowedResourceObject() != null
                 || change.getObjectDelta() != null);
 
-        if (isDryRun(task) || (change.getShadowedResourceObject() != null && change.getShadowedResourceObject().asObjectable().isProtectedObject() == Boolean.TRUE)) {
+        if (TaskUtil.isDryRun(task) || (change.getShadowedResourceObject() != null && change.getShadowedResourceObject().asObjectable().isProtectedObject() == Boolean.TRUE)) {
             return;
         }
 
@@ -133,24 +132,6 @@ public class SynchronizationServiceMock
         // remember ...
         callCountNotifyChange++;
         lastChange = change;
-    }
-
-    private static boolean isDryRun(Task task) {
-
-        Validate.notNull(task, "Task must not be null.");
-
-        PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-        if (item == null || item.isEmpty()) {
-            return false;
-        }
-
-        if (item.getValues().size() > 1) {
-            return false;
-//                throw new SchemaException("Unexpected number of values for option 'dry run'.");
-        }
-
-        Boolean dryRun = item.getValues().iterator().next().getValue();
-        return dryRun != null && dryRun;
     }
 
     @Override

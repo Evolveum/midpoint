@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="cd36ca66-cd49-44cf-9eb2-36928acbe1fd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-210</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <extension>
+                        <ext:simpleMock>
+                            <ext:message>#1</ext:message>
+                            <ext:initialFailures>2</ext:initialFailures>
+                        </ext:simpleMock>
+                    </extension>
+                </work>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </activity>
+            <activity>
+                <order>2</order>
+                <composition>
+                    <activity>
+                        <order>1</order>
+                        <work>
+                            <extension>
+                                <ext:simpleMock>
+                                    <ext:message>#2.1</ext:message>
+                                </ext:simpleMock>
+                            </extension>
+                        </work>
+                        <distribution>
+                            <subtask/>
+                        </distribution>
+                    </activity>
+                    <activity>
+                        <order>2</order>
+                        <work>
+                            <extension>
+                                <ext:simpleMock>
+                                    <ext:message>#2.2</ext:message>
+                                    <ext:initialFailures>1</ext:initialFailures>
+                                </ext:simpleMock>
+                            </extension>
+                        </work>
+                        <distribution>
+                            <subtask/>
+                        </distribution>
+                    </activity>
+                </composition>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </activity>
+            <activity>
+                <order>3</order>
+                <work>
+                    <extension>
+                        <ext:simpleMock>
+                            <ext:message>#3</ext:message>
+                            <ext:initialFailures>1</ext:initialFailures>
+                        </ext:simpleMock>
+                    </extension>
+                </work>
+                <distribution>
+                    <subtask/>
+                </distribution>
+            </activity>
+        </composition>
+    </activity>
+</task>

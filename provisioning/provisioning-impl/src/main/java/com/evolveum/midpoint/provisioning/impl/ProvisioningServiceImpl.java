@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.PrismObject.cast;
 import static com.evolveum.midpoint.schema.GetOperationOptions.disableReadOnly;
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -304,8 +303,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
-            TaskPartitionDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
+    public @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+            LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -313,22 +313,27 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         String resourceOid = shadowCoordinates.getResourceOid();
         Validate.notNull(resourceOid, "Resource oid must not be null.");
         Validate.notNull(task, "Task must not be null.");
+        Validate.notNull(tokenStorage, "Token storage must not be null.");
+        Validate.notNull(handler, "Handler must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".synchronize");
         result.addParam(OperationResult.PARAM_OID, resourceOid);
         result.addParam(OperationResult.PARAM_TASK, task.toString());
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
 
         SynchronizationOperationResult liveSyncResult;
 
         try {
-            PrismObject<ResourceType> resource = getResource(resourceOid, task, result); // TODO avoid double fetching the resource
+            // TODO avoid double fetching the resource
+            PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, handler, result);
+            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, options, tokenStorage, handler, task, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
+                ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             result.summarize(true);
             throw e;
@@ -344,13 +349,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         }
         // TODO clean up the above exception and operation result processing
 
-        return new SynchronizationResult(liveSyncResult.getChangesProcessed());
-    }
-
-    private PrismObject<ResourceType> getResource(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
-        checkNotInMaintenance(resource);
-        return resource;
+        return new SynchronizationResult(); // TODO
     }
 
     @Override

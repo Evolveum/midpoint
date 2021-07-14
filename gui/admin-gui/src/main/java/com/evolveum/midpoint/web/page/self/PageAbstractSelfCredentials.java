@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -69,9 +70,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
     private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
-    private static final String OPERATION_SAVE_QUESTIONS = DOT_CLASS + "saveSecurityQuestions";
 
     private final IModel<MyCredentialsDto> model;
+    private boolean savedPassword = false;
 
     public PageAbstractSelfCredentials() {
         model = new LoadableModel<MyCredentialsDto>(false) {
@@ -157,6 +158,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 onSavePerformed(target);
             }
         };
+        save.add(new VisibleBehaviour(() -> !this.savedPassword));
         mainForm.setDefaultButton(save);
         mainForm.add(save);
 
@@ -280,8 +282,12 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     if (result.isError()) {
                         error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
                     } else {
-                        info(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                        success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
                     }
+                }
+                if (!result.isError()) {
+                    this.savedPassword = true;
+                    target.add(getSaveButton());
                 }
             }
 
@@ -294,6 +300,10 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     protected Component getActualTabPanel(){
         return get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL, TabbedPanel.TAB_PANEL_ID));
+    }
+
+    protected Component getSaveButton(){
+        return get(createComponentPath(ID_MAIN_FORM, ID_SAVE_BUTTON));
     }
 
     protected void setNullEncryptedPasswordData() {

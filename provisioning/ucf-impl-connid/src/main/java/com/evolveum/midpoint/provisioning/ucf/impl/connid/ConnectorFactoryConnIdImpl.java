@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.security.Key;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.annotation.PostConstruct;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -132,15 +133,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
     }
 
-    private ConnectorInfoManagerFactory connectorInfoManagerFactory;
-    private ConnectorInfoManager localConnectorInfoManager;
+    ConnectorInfoManagerFactory connectorInfoManagerFactory;
+    private DirectoryScanningInfoManager localConnectorInfoManager;
     private Set<URI> bundleURIs;
-    private Set<ConnectorType> localConnectorTypes = null;
-
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private Protector protector;
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
+    private CopyOnWriteArrayList<ConnectorDiscoveryListener> listeners = new CopyOnWriteArrayList<>();
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -152,8 +152,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @PostConstruct
     public void initialize() {
 
-        // OLD
-        // bundleURIs = listBundleJars();
+        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
+        localConnectorInfoManager = new DirectoryScanningInfoManager(this);
+
         bundleURIs = new HashSet<>();
 
         Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
@@ -170,12 +171,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             bundleURIs.addAll(scanDirectory(dir.toString()));
         }
 
+
         for (URI u : bundleURIs) {
             LOGGER.debug("ICF bundle URI : {}", u);
+            localConnectorInfoManager.uriAdded(u);
         }
-
-        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-
+        localConnectorInfoManager.start();
     }
 
     /**
@@ -262,24 +263,20 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     private Set<ConnectorType> listLocalConnectors() {
-        if (localConnectorTypes == null) {
-            // Lazy initialize connector list
-            localConnectorTypes = new HashSet<>();
+        Set<ConnectorType> localConnectorTypes = new HashSet<>();
 
-            // Fetch list of local connectors from ICF
-            List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
+        // Fetch list of local connectors from ICF
+        List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
-            for (ConnectorInfo connectorInfo : connectorInfos) {
-                ConnectorType connectorType;
-                try {
-                    connectorType = convertToConnectorType(connectorInfo, null);
-                    localConnectorTypes.add(connectorType);
-                } catch (SchemaException e) {
-                    LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
-                }
+        for (ConnectorInfo connectorInfo : connectorInfos) {
+            ConnectorType connectorType;
+            try {
+                connectorType = convertToConnectorType(connectorInfo, null);
+                localConnectorTypes.add(connectorType);
+            } catch (SchemaException e) {
+                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
-
         return localConnectorTypes;
     }
 
@@ -292,13 +289,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
                 connectorTypes.add(connectorType);
             } catch (SchemaException e) {
-                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return connectorTypes;
     }
 
-    private String getConnctorDesc(ConnectorInfo connectorInfo) {
+    private String getConnectorDesc(ConnectorInfo connectorInfo) {
         return connectorInfo.getConnectorKey().getConnectorName();
     }
 
@@ -453,10 +450,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      */
 
     private ConnectorInfoManager getLocalConnectorInfoManager() {
-        if (null == localConnectorInfoManager) {
-            URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
-            localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
-        }
         return localConnectorInfoManager;
     }
 
@@ -597,19 +590,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
         }
 
-        // List directory items
-        File[] dirEntries = dir.listFiles();
-        if (null == dirEntries) {
-            LOGGER.warn("No bundles found in directory {}", dir.getAbsolutePath());
-            return bundle;
-        }
-
-        // test all entries for bundle
-        for (File dirEntry : dirEntries) {
-            if (isThisJarFileBundle(dirEntry)) {
-                addBundleIfEligible(bundle, dirEntry);
-            }
-        }
+        // It is directory, so lets watch it
+        localConnectorInfoManager.watchDirectory(dir);
         return bundle;
     }
 
@@ -633,7 +615,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @param bundleUrl tested bundle URL
      * @return true if OK
      */
-    private Boolean isThisBundleCompatible(URL bundleUrl) {
+    Boolean isThisBundleCompatible(URL bundleUrl) {
         if (null == bundleUrl) {
             return false;
         }
@@ -663,7 +645,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @param file tested file
      * @return boolean
      */
-    private Boolean isThisJarFileBundle(File file) {
+    static Boolean isThisJarFileBundle(File file) {
         // Startup tests
         if (null == file) {
             throw new IllegalArgumentException("No file is providied for bundle test.");
@@ -849,5 +831,19 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public void shutdown() {
         LOGGER.info("Shutting down ConnId framework");
         ConnectorFacadeFactory.getInstance().dispose();
+        if (localConnectorInfoManager != null) {
+            localConnectorInfoManager.shutdown();
+        }
+    }
+
+    @Override
+    public void registerDiscoveryListener(ConnectorDiscoveryListener listener) {
+        listeners.add(listener);
+    }
+
+    void notifyConnectorAdded() {
+        for (ConnectorDiscoveryListener listener : listeners) {
+            listener.newConnectorDiscovered(null);
+        }
     }
 }

@@ -11,17 +11,24 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
-import com.evolveum.midpoint.schema.util.task.TaskWorkStateUtil;
+import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getExtensionItemRealValue;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Objects;
+
+import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+
+import static java.util.Objects.requireNonNullElseGet;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -156,7 +163,13 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertToken(Object expected) {
-        assertPropertyEquals(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), expected);
+        Object token;
+        try {
+            token = ActivityStateUtil.getRootSyncTokenRealValue(getObjectable());
+        } catch (SchemaException e) {
+            throw new AssertionError(e);
+        }
+        assertThat(token).as("token").isEqualTo(expected);
         return this;
     }
 
@@ -165,45 +178,71 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return (TaskAsserter<RA>) super.assertPolyStringProperty(propName, expectedOrig);
     }
 
-    public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        SynchronizationInformationType information = operationStats != null ?
-                operationStats.getSynchronizationInformation() : new SynchronizationInformationType();
-        SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(information, this, getDetails());
+    public SynchronizationInfoAsserter<TaskAsserter<RA>> rootSynchronizationInformation() {
+        return synchronizationInformation(ActivityPath.empty());
+    }
+
+    public SynchronizationInfoAsserter<TaskAsserter<RA>> synchronizationInformation(ActivityPath activityPath) {
+        ActivityStatisticsType statistics = getStatisticsOrNew(activityPath);
+        ActivitySynchronizationStatisticsType syncStatistics = requireNonNullElseGet(
+                statistics.getSynchronization(), () -> new ActivitySynchronizationStatisticsType(getPrismContext()));
+
+        SynchronizationInfoAsserter<TaskAsserter<RA>> asserter = new SynchronizationInfoAsserter<>(syncStatistics, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public IterativeTaskInfoAsserter<TaskAsserter<RA>> iterativeTaskInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        IterativeTaskInformationType information = operationStats != null ?
-                operationStats.getIterativeTaskInformation() : new IterativeTaskInformationType();
-        IterativeTaskInfoAsserter<TaskAsserter<RA>> asserter = new IterativeTaskInfoAsserter<>(information, this, getDetails());
+    /** Assumes single primitive activity */
+    public ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> rootItemProcessingInformation() {
+        ActivityStatisticsType statistics = getStatisticsOrNew(ActivityPath.empty());
+        ActivityItemProcessingStatisticsType itemProcessingStatistics = requireNonNullElseGet(
+                statistics.getItemProcessing(), () -> new ActivityItemProcessingStatisticsType(getPrismContext()));
+
+        ActivityItemProcessingStatisticsAsserter<TaskAsserter<RA>> asserter =
+                new ActivityItemProcessingStatisticsAsserter<>(itemProcessingStatistics, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public StructuredTaskProgressAsserter<TaskAsserter<RA>> structuredProgress() {
-        StructuredTaskProgressType progress = getObject().asObjectable().getStructuredProgress();
-        if (progress == null) {
-            progress = new StructuredTaskProgressType(getPrismContext());
-        }
-        StructuredTaskProgressAsserter<TaskAsserter<RA>> asserter = new StructuredTaskProgressAsserter<>(progress, this, getDetails());
+    public TaskActivityStateAsserter<TaskAsserter<RA>> activityState() {
+        TaskActivityStateType activityState = Objects.requireNonNull(
+                getObject().asObjectable().getActivityState(), "no activity state");
+        TaskActivityStateAsserter<TaskAsserter<RA>> asserter = new TaskActivityStateAsserter<>(activityState, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public ActionsExecutedInfoAsserter<TaskAsserter<RA>> actionsExecutedInformation() {
-        OperationStatsType operationStats = getObject().asObjectable().getOperationStats();
-        ActionsExecutedInformationType information = operationStats != null ?
-                operationStats.getActionsExecutedInformation() : new ActionsExecutedInformationType();
-        ActionsExecutedInfoAsserter<TaskAsserter<RA>> asserter = new ActionsExecutedInfoAsserter<>(information, this, getDetails());
+    public ActivityStateAsserter<TaskAsserter<RA>> rootActivityState() {
+        return activityState(ActivityPath.empty());
+    }
+
+    public ActivityStateAsserter<TaskAsserter<RA>> activityState(ActivityPath activityPath) {
+        ActivityStateType state = getActivityStateRequired(activityPath);
+        ActivityStateAsserter<TaskAsserter<RA>> asserter = new ActivityStateAsserter<>(state, this, "activity state for " + activityPath.toDebugName() + " in " + getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @Deprecated
+    public ActivityProgressAsserter<TaskAsserter<RA>> rootStructuredProgress() {
+        ActivityStateType state = getActivityStateRequired(ActivityPath.empty());
+        ActivityProgressType progress = Objects.requireNonNull(state.getProgress(), "no progress information");
+        ActivityProgressAsserter<TaskAsserter<RA>> asserter =
+                new ActivityProgressAsserter<>(progress, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
     public TaskAsserter<RA> assertClosed() {
-        return assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        assertExecutionStatus(TaskExecutionStateType.CLOSED);
+        assertSchedulingState(TaskSchedulingStateType.CLOSED);
+        return this;
+    }
+
+    public TaskAsserter<RA> assertSuspended() {
+        assertExecutionStatus(TaskExecutionStateType.SUSPENDED);
+        assertSchedulingState(TaskSchedulingStateType.SUSPENDED);
+        return this;
     }
 
     public TaskAsserter<RA> assertExecutionStatus(TaskExecutionStateType status) {
@@ -221,22 +260,52 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertSuccess() {
-        TestUtil.assertSuccess(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertSuccess(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isIn(OperationResultStatusType.SUCCESS,
+                            OperationResultStatusType.NOT_APPLICABLE,
+                            OperationResultStatusType.HANDLED_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertHandledError() {
-        TestUtil.assertStatus(getTaskBean().getResult(), OperationResultStatusType.HANDLED_ERROR);
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertStatus(result, OperationResultStatusType.HANDLED_ERROR);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.HANDLED_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertPartialError() {
-        TestUtil.assertPartialError(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertPartialError(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.PARTIAL_ERROR);
+        }
         return this;
     }
 
     public TaskAsserter<RA> assertFatalError() {
-        TestUtil.assertFatalError(getTaskBean().getResult());
+        OperationResultType result = getTaskBean().getResult();
+        if (result != null) {
+            TestUtil.assertFatalError(result);
+        } else {
+            assertThat(getTaskBean().getResultStatus())
+                    .as("result status")
+                    .isEqualTo(OperationResultStatusType.FATAL_ERROR);
+        }
         return this;
     }
 
@@ -264,19 +333,38 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
-        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
-                .filter(t -> Integer.valueOf(number).equals(TaskWorkStateUtil.getPartitionSequentialNumber(t)))
-                .findAny().orElse(null);
-        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
+        throw new UnsupportedOperationException();
+//        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
+//                .filter(t -> Integer.valueOf(number).equals(ActivityStateUtil.getPartitionSequentialNumber(t)))
+//                .findAny().orElse(null);
+//        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
+//
+//        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
+//                number + " in " + getDetails());
+//        copySetupTo(asserter);
+//        return asserter;
+    }
 
-        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
-                number + " in " + getDetails());
+    public TaskAsserter<TaskAsserter<RA>> subtaskForPath(ActivityPath activityPath) {
+        TaskType subtask =
+                MiscUtil.extractSingletonRequired(
+                        ActivityTreeUtil.getSubtasksForPath(getObjectable(), activityPath, empty()),
+                        () -> new AssertionError("More than one subtask for activity path '" + activityPath + "'"),
+                        () -> new AssertionError("No subtask for activity path '" + activityPath + "' found"));
+
+        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for path '" +
+                activityPath + "' in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtask(int index) {
-        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(getObjectable().getSubtaskRef().get(index));
+        List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
+        assertCheck(subtasks.size() > index, "Expected to see at least %s subtask(s), but only %s are present",
+                index + 1, subtasks.size());
+
+        ObjectReferenceType subtaskRef = subtasks.get(index);
+        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(subtaskRef);
         assertThat(subtask).withFailMessage(() -> "No subtask #" + index + " found").isNotNull();
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this,
@@ -285,10 +373,41 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    public TaskAsserter<RA> assertLastScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        XMLGregorianCalendar lastScanTime =
-                getExtensionItemRealValue(getObject(), SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, lastScanTime);
+    public TaskAsserter<RA> assertLastTriggerScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        // Trigger Scan is running as a root activity.
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, getLastScanTimestamp(ActivityPath.empty()));
         return this;
+    }
+
+    public TaskAsserter<RA> assertLastScanTimestamp(ActivityPath activityPath, XMLGregorianCalendar start,
+            XMLGregorianCalendar end) {
+        TestUtil.assertBetween("last scan timestamp in " + desc(), start, end, getLastScanTimestamp(activityPath));
+        return this;
+    }
+
+    public XMLGregorianCalendar getLastScanTimestamp(ActivityPath activityPath) {
+        return getActivityWorkState(activityPath, ScanWorkStateType.class)
+                .getLastScanTimestamp();
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private <T extends AbstractActivityWorkStateType> T getActivityWorkState(ActivityPath activityPath, Class<T> expectedClass) {
+        AbstractActivityWorkStateType workState = getActivityStateRequired(activityPath).getWorkState();
+        assertThat(workState).as("work state").isInstanceOf(expectedClass);
+        //noinspection unchecked
+        return (T) workState;
+    }
+
+    private @NotNull ActivityStateType getActivityStateRequired(ActivityPath activityPath) {
+        ActivityStateType state = ActivityStateUtil.getActivityState(getTaskBean(), activityPath);
+        assertThat(state).withFailMessage("No task activity state").isNotNull();
+        return state;
+    }
+
+    private ActivityStatisticsType getStatisticsOrNew(ActivityPath activityPath) {
+        ActivityStateType state = getActivityStateRequired(activityPath);
+        return requireNonNullElseGet(
+                state.getStatistics(),
+                () -> new ActivityStatisticsType(getPrismContext()));
     }
 }

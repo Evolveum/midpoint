@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="68da9812-45ed-4cd6-86eb-1006b3f7d9ea"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>task-single-recomputation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <composition>
+            <activity>
+                <identifier>recomputation</identifier>
+                <work>
+                    <recomputation>
+                        <objects>
+                            <type>UserType</type>
+                        </objects>
+                    </recomputation>
+                </work>
+            </activity>
+        </composition>
+        <tailoring>
+            <insertBefore>
+                <activity>
+                    <work>
+                        <iterativeScripting>
+                            <scriptExecutionRequest>
+                                <s:execute>
+                                    <s:script>
+                                        <code>log.info('hi')</code>
+                                    </s:script>
+                                </s:execute>
+                            </scriptExecutionRequest>
+                        </iterativeScripting>
+                    </work>
+                </activity>
+            </insertBefore>
+            <insertAfter>
+                <activity>
+                    <work>
+                        <iterativeScripting>
+                            <scriptExecutionRequest>
+                                <s:execute>
+                                    <s:script>
+                                        <code>log.info('done')</code>
+                                    </s:script>
+                                </s:execute>
+                            </scriptExecutionRequest>
+                        </iterativeScripting>
+                    </work>
+                </activity>
+            </insertAfter>
+        </tailoring>
+    </activity>
+</task>

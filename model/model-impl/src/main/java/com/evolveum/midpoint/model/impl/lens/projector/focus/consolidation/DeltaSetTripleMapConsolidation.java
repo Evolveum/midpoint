@@ -50,7 +50,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     /**
      * Item path-keyed map of output delta set triples.
      */
-    private final PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap;
+    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap;
 
     /**
      * Target object, for which deltas are to be produced.
@@ -118,7 +118,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      */
     private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
-    public DeltaSetTripleMapConsolidation(PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
+    public DeltaSetTripleMapConsolidation(PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap,
             PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
             Function<ItemPath, Boolean> itemDeltaExistsProvider,
             Boolean addUnchangedValuesOverride,
@@ -153,16 +153,15 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
             LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
 
-            for (Map.Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
+            for (Map.Entry<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> entry: outputTripleMap.entrySet()) {
                 ItemPath itemPath = entry.getKey();
-                ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
-                DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
+                ItemDelta<?, ?> aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
+                DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
                 ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
                         itemPath, lensContext, beans, env, result);
 
-                //noinspection unchecked
-                DeltaSetTripleConsolidation itemConsolidation =
+                DeltaSetTripleConsolidation<?, ?, ?> itemConsolidation =
                         new DeltaSetTripleConsolidation(itemPath, deltaSetTriple, aprioriItemDelta, valueMetadataComputer);
                 CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
             }
@@ -179,7 +178,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         return itemDeltas;
     }
 
-    private class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> {
+    private class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition<?>, I extends ItemValueWithOrigin<V,D>> {
 
         /**
          * Path to item that is to be consolidated.

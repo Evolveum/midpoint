@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType.F_INCLUDE_REF;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -15,6 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 /**
@@ -25,8 +28,20 @@ public class QObjectTemplateMapping
 
     public static final String DEFAULT_ALIAS_NAME = "ot";
 
-    public static QObjectTemplateMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QObjectTemplateMapping(repositoryContext);
+    private static QObjectTemplateMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectTemplateMapping initObjectTemplateMapping(
+            @NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QObjectTemplateMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QObjectTemplateMapping getObjectTemplateMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QObjectTemplateMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -48,7 +63,7 @@ public class QObjectTemplateMapping
 
     @Override
     public void storeRelatedEntities(@NotNull MObject row,
-            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull ObjectTemplateType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         storeRefs(row, schemaObject.getIncludeRef(),

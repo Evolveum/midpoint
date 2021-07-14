@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslJsonbType;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,9 +80,15 @@ public class SqaleRepoContext extends SqlRepoContext {
         extItemCache.initialize(this::newJdbcSession);
     }
 
-    /** @see UriCache#searchId(String) */
-    public Integer searchCachedUriId(String uri) {
-        return uriCache.searchId(uri);
+    /**
+     * Supports search for URI ID by QName or String or any other type using `toString`.
+     */
+    public @NotNull Integer searchCachedUriId(@NotNull Object uri) {
+        if (uri instanceof QName) {
+            return uriCache.searchId((QName) uri);
+        } else {
+            return uriCache.searchId(uri.toString());
+        }
     }
 
     /**
@@ -95,7 +101,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCacheableUri(String uri) {
+    public Integer processCacheableUri(Object uri) {
         return uriCache.processCacheableUri(uri);
     }
 
@@ -109,7 +115,19 @@ public class SqaleRepoContext extends SqlRepoContext {
                 QNameUtil.qNameToUri(normalizeRelation(qName)));
     }
 
-    public MExtItem resolveExtensionItem(MExtItem.Key extItemKey) {
+    public String resolveIdToUri(Integer uriId) {
+        return uriId != null
+                ? uriCache.resolveToUri(uriId)
+                : null;
+    }
+
+    public QName resolveUriIdToQName(Integer uriId) {
+        return uriId != null
+                ? QNameUtil.uriToQName(uriCache.resolveToUri(uriId))
+                : null;
+    }
+
+    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
         return extItemCache.resolveExtensionItem(extItemKey);
     }
 }

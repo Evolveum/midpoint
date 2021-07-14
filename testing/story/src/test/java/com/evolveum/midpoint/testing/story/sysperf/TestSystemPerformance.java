@@ -24,7 +24,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
+
+import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,7 +46,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskPerformanceInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -298,7 +303,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .display()
                     .getObject();
 
-            logTaskFinish(taskAfter, label);
+            logTaskFinish(taskAfter, label, result);
         }
 
         String accountName = SourceInitializer.getAccountName(0);
@@ -394,7 +399,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, label);
+                logTaskFinish(taskAfter, label, result);
             }
         }
     }
@@ -433,7 +438,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .display()
                         .getObject();
 
-                logTaskFinish(taskAfter, label);
+                logTaskFinish(taskAfter, label, result);
             }
         }
     }
@@ -458,7 +463,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .display()
                 .getObject();
 
-        logTaskFinish(taskAfter, "");
+        logTaskFinish(taskAfter, "", result);
     }
 
     @Test
@@ -482,10 +487,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         return String.format("p-multi-%04d", i);
     }
 
-    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label) {
+    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         String desc = label + taskAfter.getName().getOrig();
 
-        TaskPerformanceInformation performanceInformation = TaskPerformanceInformation.fromTaskTree(taskAfter.asObjectable());
+        TreeNode<ActivityPerformanceInformation> performanceInformation =
+                activityManager.getPerformanceInformation(taskAfter.getOid(), result);
         long executionTime = getExecutionTime(taskAfter);
         int executionTimeSeconds = (int) (executionTime / 1000);
         int numberOfAccounts = SOURCES_CONFIGURATION.getNumberOfAccounts();
@@ -532,8 +539,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         OperationStatsType stats = task.getStoredOperationStatsOrClone();
         logger.info("\n{}", TaskOperationStatsUtil.format(stats));
 
-        TaskPerformanceInformation performanceInformation = TaskPerformanceInformation.fromTaskTree(
-                task.getRawTaskObjectClone().asObjectable());
+        // TODO remove fake result + remove getting the task!
+        OperationResult tempResult = new OperationResult("temp");
+        TreeNode<ActivityPerformanceInformation> performanceInformation;
+        try {
+            performanceInformation = activityManager.getPerformanceInformation(task.getOid(), tempResult);
+        } catch (CommonException e) {
+            throw new SystemException(e);
+        }
         displayDumpable("performance: " + label + task.getName(), performanceInformation);
     }
 }

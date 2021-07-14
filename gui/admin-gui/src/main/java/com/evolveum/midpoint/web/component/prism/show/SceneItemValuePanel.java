@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -75,7 +76,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                 cssClass = guiDescriptor.getBlackIcon();
                 title = createStringResource(guiDescriptor.getLocalizationKey()).getObject();
             }
-            return WebComponentUtil.createDisplayType(cssClass, "", title);
+            return WebDisplayTypeUtil.createDisplayType(cssClass, "", title);
         };
         final ImagePanel icon = new ImagePanel(ID_ICON, displayModel);
         icon.add(visibleIfReference);

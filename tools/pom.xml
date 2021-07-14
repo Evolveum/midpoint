@@ -23,5 +23,6 @@
 
     <modules>
         <module>ninja</module>
+        <module>midpoint-boot-layout</module>
     </modules>
 </project>

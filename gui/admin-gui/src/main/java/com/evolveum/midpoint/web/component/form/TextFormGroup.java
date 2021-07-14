@@ -37,27 +37,27 @@ public class TextFormGroup extends BasePanel<String> {
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
             boolean required, boolean isSimilarAsPropertyPanel) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, required, isSimilarAsPropertyPanel);
+        this(id, value, label, null, labelCssClass, textCssClass, required, required, isSimilarAsPropertyPanel);
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
             boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, required, false);
+        this(id, value, label, null, labelCssClass, textCssClass, required, required, false);
     }
 
-    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
+    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, String labelCssClass,
             String textCssClass, boolean required, boolean markAsRequired) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, markAsRequired, false);
+        this(id, value, label, tooltipKey,  labelCssClass, textCssClass, required, markAsRequired, false);
     }
 
-    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
+    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, String labelCssClass,
             String textCssClass, boolean required, boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModel, labelCssClass, textCssClass, required, markAsRequired, isSimilarAsPropertyPanel);
+        initLayout(label, tooltipKey, labelCssClass, textCssClass, required, markAsRequired, isSimilarAsPropertyPanel);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
+    private void initLayout(IModel<String> label, final String tooltipKey, String labelCssClass, String textCssClass, final boolean required,
             final boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
@@ -81,7 +81,7 @@ public class TextFormGroup extends BasePanel<String> {
                 return getString(tooltipKey);
             }
         }));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+        tooltipLabel.add(new InfoTooltipBehavior());
         tooltipLabel.add(new VisibleEnableBehaviour() {
 
             @Override

@@ -6,30 +6,30 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClassSpecification;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.NullSynchronizationObjectFilterImpl;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
-import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,12 +58,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @see TaskHandler
  * @see ResourceObjectChangeListener
  */
+@Deprecated
 @Component
-@TaskExecutionClass(ImportFromResourceTaskExecution.class)
-@PartExecutionClass(ImportFromResourceTaskPartExecution.class)
-public class ImportFromResourceTaskHandler
-        extends AbstractModelTaskHandler
-        <ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
+public class ImportFromResourceTaskHandler {
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
 
@@ -71,44 +68,31 @@ public class ImportFromResourceTaskHandler
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 
-    public ImportFromResourceTaskHandler() {
-        super(LOGGER, "Import", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
-        globalReportingOptions.setPreserveStatistics(false);
-        globalReportingOptions.setEnableSynchronizationStatistics(true);
-    }
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private SyncTaskHelper syncTaskHelper;
+    @Autowired private EventDispatcher eventDispatcher;
+    @Autowired private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
 
-    @PostConstruct
-    private void initialize() {
-        taskManager.registerHandler(HANDLER_URI, this);
-    }
-
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.IMPORTING_ACCOUNTS;
-    }
-
-    /**
-     * Imports a single shadow. Synchronously. The task is NOT switched to background by default.
-     */
     public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
             ShadowType shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result).asObjectable();
-            SyncTaskHelper.TargetInfo targetInfo = syncTaskHelper.getTargetInfoForShadow(shadow, task, result);
+            ResourceObjectClassSpecification spec = syncTaskHelper.createObjectClassSpecForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
-                    targetInfo.getResource(),
-                    targetInfo.getObjectClassDefinition(),
+                    spec.getResource(),
+                    spec.getObjectClassDefinitionRequired(),
                     new NullSynchronizationObjectFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
-                    null,
+                    false,
                     true);
             synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();
             return !result.isError();
-        } catch (TaskException t) {
-            result.recordFatalError(t);
+        } catch (ActivityExecutionException t) {
+            result.recordStatus(t.getOpResultStatus(), t.getMessage(), t);
             throw new SystemException(t); // FIXME unwrap the exception
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -118,19 +102,11 @@ public class ImportFromResourceTaskHandler
         }
     }
 
-    @Override
-    public String getArchetypeOid() {
-        return SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
-    }
-
-    @Override
-    public String getDefaultChannel() {
-        return Channel.IMPORT.getUri();
-    }
-
     /**
      * Launch an import. Calling this method will start import in a new
      * thread, possibly on a different node.
+     *
+     * TODO change to activity-based import
      */
     public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
 
@@ -176,9 +152,5 @@ public class ImportFromResourceTaskHandler
         result.computeStatus("Import launch failed");
 
         LOGGER.trace("Import from resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
-    }
-
-    public ResourceObjectChangeListener getObjectChangeListener() {
-        return eventDispatcher;
     }
 }

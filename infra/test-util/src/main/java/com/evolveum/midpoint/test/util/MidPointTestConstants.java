@@ -11,7 +11,7 @@ import java.io.File;
 public class MidPointTestConstants {
 
     public static final String TEST_RESOURCES_PATH = "src/test/resources";
-    public static final File TEST_RESOURCES_DIR = new File (TEST_RESOURCES_PATH);
+    public static final File TEST_RESOURCES_DIR = new File(TEST_RESOURCES_PATH);
     public static final File OBJECTS_DIR = new File(TEST_RESOURCES_DIR, "objects");
     public static final String TARGET_DIR_PATH = "target";
 

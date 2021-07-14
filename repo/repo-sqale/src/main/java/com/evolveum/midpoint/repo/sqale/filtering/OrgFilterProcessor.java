@@ -10,7 +10,6 @@ import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor that resolves {@link OrgFilter}.
@@ -42,7 +42,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         FlexibleRelationalPathBase<?> path = context.root();
         if (!(path instanceof QObject)) {
             throw new QueryException("Org filter can only be used for objects,"
-                    + " not for path " + path + " of type " + path.getColumns());
+                    + " not for path " + path + " of type " + path.getClass());
         }
 
         QObject<?> objectPath = (QObject<?>) path;
@@ -70,7 +70,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
 
         if (filter.getScope() == OrgFilter.Scope.ONE_LEVEL) {
             QObjectReference<MObject> ref = getNewRefAlias();
-            SQLQuery<Integer> subQuery = subQuery(ref)
+            SQLQuery<?> subQuery = subQuery(ref)
                     .where(ref.ownerOid.eq(objectPath.oid)
                             .and(ref.targetOid.eq(UUID.fromString(oidParam))));
             if (relationId != null) {
@@ -80,7 +80,7 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         } else if (filter.getScope() == OrgFilter.Scope.SUBTREE) {
             QObjectReference<MObject> ref = getNewRefAlias();
             QOrgClosure oc = getNewClosureAlias();
-            SQLQuery<Integer> subQuery = subQuery(ref)
+            SQLQuery<?> subQuery = subQuery(ref)
                     .join(oc).on(oc.descendantOid.eq(ref.targetOid))
                     .where(ref.ownerOid.eq(objectPath.oid)
                             .and(oc.ancestorOid.eq(UUID.fromString(oidParam))));
@@ -100,8 +100,8 @@ public class OrgFilterProcessor implements FilterProcessor<OrgFilter> {
         }
     }
 
-    private SQLQuery<Integer> subQuery(FlexibleRelationalPathBase<?> entityPath) {
-        return new SQLQuery<>().select(Expressions.constant(1))
+    private SQLQuery<?> subQuery(FlexibleRelationalPathBase<?> entityPath) {
+        return new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
                 .from(entityPath);
     }
 

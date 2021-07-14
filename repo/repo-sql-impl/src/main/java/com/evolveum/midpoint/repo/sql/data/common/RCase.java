@@ -12,6 +12,7 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -28,9 +29,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
-/**
- * @author mederly
- */
 @Entity
 @ForeignKey(name = "fk_case")
 @Table(indexes = {
@@ -42,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
         @Index(name = "iCaseTypeCloseTimestamp", columnList = "closeTimestamp")
 })
 @Persister(impl = MidPointJoinedPersister.class)
+@DynamicUpdate
 public class RCase extends RObject {
 
     private RPolyString nameCopy;

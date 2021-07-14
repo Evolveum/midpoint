@@ -6,17 +6,23 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.cases;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_TARGET_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -27,9 +33,19 @@ public class QCaseMapping
         extends QAssignmentHolderMapping<CaseType, QCase, MCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
+    private static QCaseMapping instance;
 
-    public static QCaseMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QCaseMapping(repositoryContext);
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseMapping initCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QCaseMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QCaseMapping getCaseMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -38,25 +54,29 @@ public class QCaseMapping
 
         addItemMapping(F_STATE, stringMapper(q -> q.state));
         addItemMapping(F_CLOSE_TIMESTAMP, timestampMapper(q -> q.closeTimestamp));
-        addItemMapping(F_OBJECT_REF, refMapper(
+        addRefMapping(F_OBJECT_REF,
                 q -> q.objectRefTargetOid,
                 q -> q.objectRefTargetType,
-                q -> q.objectRefRelationId));
-        addItemMapping(F_PARENT_REF, refMapper(
+                q -> q.objectRefRelationId,
+                QObjectMapping::getObjectMapping);
+        addRefMapping(F_PARENT_REF,
                 q -> q.parentRefTargetOid,
                 q -> q.parentRefTargetType,
-                q -> q.parentRefRelationId));
-        addItemMapping(F_REQUESTOR_REF, refMapper(
+                q -> q.parentRefRelationId,
+                QCaseMapping::getCaseMapping);
+        addRefMapping(F_REQUESTOR_REF,
                 q -> q.requestorRefTargetOid,
                 q -> q.requestorRefTargetType,
-                q -> q.requestorRefRelationId));
-        addItemMapping(F_TARGET_REF, refMapper(
+                q -> q.requestorRefRelationId,
+                QUserMapping::getUserMapping);
+        addRefMapping(F_TARGET_REF,
                 q -> q.targetRefTargetOid,
                 q -> q.targetRefTargetType,
-                q -> q.targetRefRelationId));
+                q -> q.targetRefRelationId,
+                QObjectMapping::getObjectMapping);
 
         addContainerTableMapping(F_WORK_ITEM,
-                QCaseWorkItemMapping.init(repositoryContext),
+                QCaseWorkItemMapping.initCaseWorkItemMapping(repositoryContext),
                 joinOn((o, wi) -> o.oid.eq(wi.ownerOid)));
     }
 
@@ -99,12 +119,12 @@ public class QCaseMapping
 
     @Override
     public void storeRelatedEntities(
-            @NotNull MCase row, @NotNull CaseType schemaObject, @NotNull JdbcSession jdbcSession) {
+            @NotNull MCase row, @NotNull CaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         List<CaseWorkItemType> workItems = schemaObject.getWorkItem();
         if (!workItems.isEmpty()) {
-            workItems.forEach(t -> QCaseWorkItemMapping.get().insert(t, row, jdbcSession));
+            workItems.forEach(t -> QCaseWorkItemMapping.getCaseWorkItemMapping().insert(t, row, jdbcSession));
         }
     }
 }

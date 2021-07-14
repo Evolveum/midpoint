@@ -23,6 +23,7 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
@@ -211,6 +212,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         return repositoryContext;
     }
 
+    public PrismContext prismContext() {
+        return repositoryContext.prismContext();
+    }
+
     /**
      * Creates new alias (entity path instance) with a defined name.
      * You can also use {@link #defaultAlias()} if one alias in a query is enough.
@@ -320,6 +325,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Transforms row Tuple containing attributes of {@link R} to schema type {@link S}.
      * Entity path can be used to access tuple elements.
      * This allows loading also dynamically defined columns (like extensions).
+     * This is what is used by default in {@link SqlQueryContext}.
      */
     public abstract S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)

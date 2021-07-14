@@ -20,15 +20,11 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,7 +75,8 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                 }
 
                 if (!WebComponentUtil.hasAnyArchetypeAssignment(getTask())) {
-                    WebComponentUtil.addNewArchetype(TaskBasicTabPanel.this.getModelObject(), taskHandler.getArchetypeOid(), target, getPageBase());
+                    String archetypeOid = taskHandler.getArchetypeOid(newHandlerUri);
+                    WebComponentUtil.addNewArchetype(TaskBasicTabPanel.this.getModelObject(), archetypeOid, target, getPageBase());
                 }
 
                 PrismObjectWrapperFactory<TaskType> wrapperFactory = TaskBasicTabPanel.this.getPageBase().findObjectWrapperFactory(getTask().asPrismObject().getDefinition());
@@ -175,10 +172,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return ItemVisibility.HIDDEN;
         }
 
-        if (TaskType.F_OTHER_HANDLERS_URI_STACK.equivalent(path)) {
-            return ItemVisibility.HIDDEN;
-        }
-
         //end region unsupported panel for type
 
         String taskHandler = getTask().getHandlerUri();
@@ -226,7 +219,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         } else if (taskHandler.endsWith("task/workers-restart/handler-3")) {
             //no attributes
         } else if (taskHandler.endsWith("model/synchronization/task/delete-not-updated-shadow/handler-3")) {
-            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_NOT_UPDATED_SHADOW_DURATION),
+            pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS),
                     TaskType.F_OBJECT_REF);
         } else if (taskHandler.endsWith("model/shadowRefresh/handler-3")) {
@@ -289,7 +282,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
 
         List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED, TaskType.F_RESULT_STATUS,
                 TaskType.F_RESULT, TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP, TaskType.F_UNPAUSE_ACTION, TaskType.F_TASK_IDENTIFIER,
-                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY, TaskType.F_OTHER_HANDLERS_URI_STACK,
+                TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY,
                 TaskType.F_CHANNEL, TaskType.F_DEPENDENT_TASK_REF, TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_COMPLETION_TIMESTAMP
         );
 

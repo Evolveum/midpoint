@@ -121,15 +121,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
 
-            boolean fullRun = !TaskUtil.isDryRun(syncCtx.getTask());
-            saveSyncMetadata(syncCtx, change, fullRun, result);
+            ExecutionModeType executionMode = TaskUtil.getExecutionMode(task);
+            boolean dryRun = executionMode == ExecutionModeType.DRY_RUN;
 
-            if (fullRun) {
+            saveSyncMetadata(syncCtx, change, !dryRun, result);
+
+            if (!dryRun) {
                 reactToChange(syncCtx, change, result);
             }
 
-            LOGGER.debug("SYNCHRONIZATION: DONE ({}) for {}", fullRun ? "full run" : "dry run",
-                    change.getShadowedResourceObject());
+            LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}", executionMode, change.getShadowedResourceObject());
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
@@ -140,7 +141,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throw new SystemException(ex);
         } finally {
             result.computeStatusIfUnknown();
-            task.markObjectActionExecutedBoundary();
         }
     }
 
@@ -389,8 +389,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, null);
         } catch (Throwable t) {
             task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
-        } finally {
-            task.markObjectActionExecutedBoundary();
         }
     }
 

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
+import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -78,9 +78,9 @@ public class FocusChangeExecution<O extends ObjectType> {
         this.b = modelBeans;
     }
 
-    public void execute(OperationResult parentResult) throws SchemaException, PreconditionViolationException,
+    public void execute(OperationResult parentResult) throws SchemaException,
             ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ConflictDetectedException {
 
         focusDelta = applyPendingPolicyStateModifications();
 
@@ -108,7 +108,7 @@ public class FocusChangeExecution<O extends ObjectType> {
 
             executeDeltaWithConflictResolution(result);
 
-        } catch (PreconditionViolationException e) {
+        } catch (ConflictDetectedException e) {
             LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(), e.getMessage());
             // TODO: fatal error if the conflict resolution is "error" (later)
             result.recordHandledError(e);
@@ -131,12 +131,14 @@ public class FocusChangeExecution<O extends ObjectType> {
     private ObjectDelta<O> applyPendingPolicyStateModifications() throws SchemaException {
         applyPendingObjectPolicyStateModifications();
         applyPendingAssignmentPolicyStateModificationsSwallowable();
-        return applyPendingAssignmentPolicyStateModificationsNotSwallowable();
+        ObjectDelta<O> resultingDelta = applyPendingAssignmentPolicyStateModificationsNotSwallowable();
+
+        focusContext.clearPendingPolicyStateModifications();
+        return resultingDelta;
     }
 
     private void applyPendingObjectPolicyStateModifications() throws SchemaException {
         focusContext.swallowToSecondaryDelta(focusContext.getPendingObjectPolicyStateModifications());
-        focusContext.clearPendingObjectPolicyStateModifications();
     }
 
     private void applyPendingAssignmentPolicyStateModificationsSwallowable() throws SchemaException {
@@ -210,7 +212,6 @@ public class FocusChangeExecution<O extends ObjectType> {
                 }
             }
         }
-        focusContext.clearPendingAssignmentPolicyStateModifications();
         return focusDelta;
     }
 
@@ -264,8 +265,9 @@ public class FocusChangeExecution<O extends ObjectType> {
     }
 
     private void executeDeltaWithConflictResolution(OperationResult result) throws SchemaException,
-            CommunicationException, PreconditionViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ConflictDetectedException {
         ConflictResolutionType conflictResolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
         DeltaExecution<O, O> deltaExecution = new DeltaExecution<>(context, focusContext, focusDelta,
                 conflictResolution, task, b);

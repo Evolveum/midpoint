@@ -92,7 +92,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
             Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
@@ -145,9 +146,11 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             }
             // a bit of hack, but hopefully it will work
             PlusMinusZero mode = evaluatedAssignment.getOrigin().isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+
+            // FIXME: What if the assignments are reevaluated because of pruning? The state changes are already recorded
+            //  into the focus context. See MID-7123.
             policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
         }
-
     }
 
     private boolean checkApplicabilityToAssignment(EvaluatedPolicyRule policyRule) {
@@ -161,64 +164,13 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     private void resolveReferences(Collection<? extends EvaluatedPolicyRule> evaluatedRules,
             Collection<? extends PolicyRuleType> otherRules) {
-        List<PolicyRuleType> rules = evaluatedRules.stream().map(EvaluatedPolicyRule::getPolicyRule).collect(Collectors.toList());
+        List<PolicyRuleType> rules = evaluatedRules.stream()
+                .map(EvaluatedPolicyRule::getPolicyRule)
+                .collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveReferences(rules, otherRules, prismContext);
     }
 
     //endregion
-
-//    //region ------------------------------------------------------------------ Shadow policy rules
-//        public <F extends FocusType> void evaluateShadowPolicyRules(LensContext<F> context, LensProjectionContext projectionCtx, String activityDescription,
-//                Task task, OperationResult result)
-//                throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-//            LensFocusContext<F> focusContext = context.getFocusContext();
-//            if (focusContext == null) {
-//                return;
-//            }
-//
-//            RulesEvaluationContext globalCtx = new RulesEvaluationContext();
-//
-//            List<EvaluatedPolicyRule> rules = new ArrayList<>();
-//            collectFocusRulesFromAssignments(rules, context);
-//
-//            resolveReferences(rules, getAllGlobalRules(context));
-//
-//            List<EvaluatedPolicyRule> situationRules = new ArrayList<>();
-//            List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
-//
-//            LOGGER.trace("Evaluating {} object policy rules", rules.size());
-//            focusContext.clearPolicyRules();
-//            for (EvaluatedPolicyRule rule : rules) {
-//                if (isApplicableToObject(rule)) {
-//                    if (hasSituationConstraint(rule)) {
-//                        situationRules.add(rule);
-//                    } else {
-//                        nonSituationRules.add(rule);
-//                    }
-//                    focusContext.addPolicyRule(rule);
-//                } else {
-//                    LOGGER.trace("Rule {} is not applicable to an object, skipping: {}", rule.getName(), rule);
-//                }
-//            }
-//
-//            for (EvaluatedPolicyRule rule : nonSituationRules) {
-//                evaluateFocusRule(rule, context, globalCtx, task, result);
-//            }
-//            for (EvaluatedPolicyRule rule : situationRules) {
-//                evaluateFocusRule(rule, context, globalCtx, task, result);
-//            }
-//            policyStateRecorder.applyObjectState(context, globalCtx.rulesToRecord);
-//        }
-//
-//        private <F extends FocusType> void collectShadowRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<F> context) {
-//            DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-//            if (evaluatedAssignmentTriple == null) {
-//                return;
-//            }
-//            for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-//                rules.addAll(evaluatedAssignment.getShadowPolicyRules());
-//            }
-//        }
 
     //region ------------------------------------------------------------------ Focus policy rules
     @ProcessorMethod
@@ -238,7 +190,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
         LOGGER.trace("Evaluating {} object policy rules", rules.size());
         LensFocusContext<AH> focusContext = context.getFocusContext();
-        focusContext.clearPolicyRules();
+        focusContext.clearObjectPolicyRules();
         for (EvaluatedPolicyRuleImpl rule : rules) {
             if (isApplicableToObject(rule)) {
                 if (hasSituationConstraint(rule)) {
@@ -246,7 +198,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 } else {
                     nonSituationRules.add(rule);
                 }
-                focusContext.addPolicyRule(rule);
+                focusContext.addObjectPolicyRule(rule);
             } else {
                 LOGGER.trace("Rule {} is not applicable to an object, skipping: {}", rule.getName(), rule);
             }
@@ -302,7 +254,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
             if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
                 if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, null));
+                    String ruleId = PolicyRuleTypeUtil.createId(systemConfiguration.getOid(), globalPolicyRule.getId());
+                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), ruleId, null, null));
                     globalRulesFound++;
                 } else {
                     LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
@@ -345,8 +298,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     /**
      * Evaluates given policy rule in a given context.
      */
-    private <AH extends AssignmentHolderType> void evaluateRule(@NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <AH extends AssignmentHolderType> void evaluateRule(@NotNull PolicyRuleEvaluationContext<AH> ctx,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         String ruleShortString = ctx.policyRule.toShortString();
         String ctxShortDescription = ctx.getShortDescription();
@@ -378,7 +333,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 ((EvaluatedPolicyRuleImpl) ctx.policyRule)
                         .computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
                 if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
-                    ctx.record();
+                    ctx.record(); // TODO postpone this (e.g. because of thresholds and also MID-7123)
                 }
                 result.addArbitraryObjectCollectionAsReturn("enabledActions", ctx.policyRule.getEnabledActions());
             }
@@ -443,7 +398,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         sb.append("\nRule: ").append(ctx.policyRule.toShortString());
         //sb.append("\nResult: ").append(trigger != null ? DebugUtil.debugDump(trigger) : null);  // distinction is here because debugDump(null) returns "  null"
         sb.append("\nResult: ").append(DebugUtil.debugDump(trigger));
-        LOGGER.trace("{}", sb.toString());
+        LOGGER.trace("{}", sb);
     }
 
     private <AH extends AssignmentHolderType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<AH> ctx) {
@@ -460,7 +415,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             sb.append("]---------------------------");
             sb.append("\n");
             sb.append(rule.debugDump());
-            LOGGER.trace("{}", sb.toString());
+            LOGGER.trace("{}", sb);
         }
     }
 
@@ -538,7 +493,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                         LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
                         continue;
                     }
-                    EvaluatedPolicyRuleImpl evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(),
+                    String ruleId = PolicyRuleTypeUtil.createId(systemConfiguration.getOid(), globalPolicyRule.getId());
+                    EvaluatedPolicyRuleImpl evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), ruleId,
                             target.getAssignmentPath().clone(), evaluatedAssignment);
                     boolean direct = target.isDirectlyAssigned();
                     if (direct) {

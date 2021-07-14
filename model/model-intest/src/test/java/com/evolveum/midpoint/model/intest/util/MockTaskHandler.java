@@ -11,6 +11,8 @@ import javax.annotation.PostConstruct;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * This task handler does nothing. Used in the tests.
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 @Component
 public class MockTaskHandler implements TaskHandler {
 
-    public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
+    private static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
     @Autowired private TaskManager taskManager;
 
@@ -44,7 +45,7 @@ public class MockTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.trace("MockTaskHandler.run starting");
 
         OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
@@ -72,12 +73,7 @@ public class MockTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.SYSTEM;
-    }
-
-    @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
     }
 }

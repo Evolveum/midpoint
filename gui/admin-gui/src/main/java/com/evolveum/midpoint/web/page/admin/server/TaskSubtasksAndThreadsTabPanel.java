@@ -32,11 +32,9 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 
 /**
  * @author semancik
@@ -64,7 +62,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
     }
 
     private String createTaskKindExpression() {
-        return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
+        return "none"; // FIXME
+        //return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
     }
     private void initLayout() {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
@@ -80,13 +79,16 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
-                columns.add(2, new EnumPropertyColumn<>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
-                    @Override
-                    protected String translate(Enum<?> en) {
-                        return createStringResource(en).getString();
-                    }
-                });
+                // TODO add "task kind" column
+                
+//                columns.add(2, new EnumPropertyColumn<>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
+//
+//                    @Override
+//                    protected String translate(Enum<?> en) {
+//                        return createStringResource(en).getString();
+//                    }
+//                });
                 return columns;
             }
 

@@ -6,12 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -20,6 +18,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -560,22 +559,29 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
         return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_PIRACY);
     }
 
-    protected void assertLastScanTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        XMLGregorianCalendar lastScanTimestamp = getLastScanTimestamp(taskOid);
-        assertNotNull("null lastScanTimestamp", lastScanTimestamp);
-        TestUtil.assertBetween("lastScanTimestamp", startCal, endCal, lastScanTimestamp);
+    protected void assertLastValidityFullScanTimestamp(String taskOid,
+            XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
+            throws ObjectNotFoundException, SchemaException {
+        assertLastScanTimestamp(taskOid, ActivityPath.fromId(FOCUS_VALIDITY_SCAN_FULL_ID), startCal, endCal);
     }
 
-    protected XMLGregorianCalendar getLastScanTimestamp(String taskOid)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        PrismObject<TaskType> task = getTask(taskOid);
-        display("Task", task);
-        PrismContainer<?> taskExtension = task.getExtension();
-        assertNotNull("No task extension", taskExtension);
-        PrismProperty<XMLGregorianCalendar> lastScanTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-        assertNotNull("no lastScanTimestamp property", lastScanTimestampProp);
-        return lastScanTimestampProp.getRealValue();
+    protected void assertLastTriggerScanTimestamp(String taskOid,
+            XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
+            throws ObjectNotFoundException, SchemaException {
+        assertLastScanTimestamp(taskOid, ActivityPath.empty(), startCal, endCal);
+    }
+
+    protected void assertLastScanTimestamp(String taskOid, ActivityPath activityPath,
+            XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
+            throws ObjectNotFoundException, SchemaException {
+        assertTask(taskOid, "")
+                .assertLastScanTimestamp(activityPath, startCal, endCal);
+    }
+
+    protected XMLGregorianCalendar getLastScanTimestamp(String taskOid, ActivityPath activityPath)
+            throws ObjectNotFoundException, SchemaException {
+        return assertTask(taskOid, "")
+                .getLastScanTimestamp(activityPath);
     }
 
     protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {

@@ -23,7 +23,7 @@ public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<Tim
     }
 
     @Override
-    public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedTimeValidityTriggerType rv = new EvaluatedTimeValidityTriggerType();
         fillCommonContent(rv);

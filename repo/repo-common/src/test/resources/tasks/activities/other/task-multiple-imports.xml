@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Multiple imports</name>
+
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <importFromResource>
+                        <resourceRef oid="5e1b5367-ec67-404c-aff8-b958719b4d5b" />
+                    </importFromResource>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <work>
+                    <importFromResource>
+                        <resourceRef oid="76fb3a9b-07a1-4d23-8fcb-1c273a75778e" />
+                    </importFromResource>
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>

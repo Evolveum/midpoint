@@ -16,7 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,8 +171,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
                 }
 
                 IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
-                        new IterationItemInformation(parentCasePrism), SchemaConstants.CLOSED_CASES_CLEANUP_TASK_PART_URI);
-                startInfo.setStructuredProgressCollector(executionTask);
+                        new IterationItemInformation(parentCasePrism));
+                startInfo.setProgressCollector(executionTask); // TODO
                 Operation op = executionTask.recordIterativeOperationStart(startInfo);
                 try {
                     deleteChildrenCases(parentCasePrism, counters, result);

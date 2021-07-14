@@ -13,7 +13,12 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -33,7 +38,8 @@ public class QCaseWorkItemReferenceMapping
     initForCaseWorkItemAssignee(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceAssignee == null) {
             instanceAssignee = new QCaseWorkItemReferenceMapping(
-                    "m_case_wi_assignee", "mcwirefa", repositoryContext);
+                    "m_case_wi_assignee", "cwirefa", repositoryContext,
+                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
         }
         return getForCaseWorkItemAssignee();
     }
@@ -46,7 +52,8 @@ public class QCaseWorkItemReferenceMapping
     initForCaseWorkItemCandidate(@NotNull SqaleRepoContext repositoryContext) {
         if (instanceCandidate == null) {
             instanceCandidate = new QCaseWorkItemReferenceMapping(
-                    "m_case_wi_candidate", "mcwirefc", repositoryContext);
+                    "m_case_wi_candidate", "cwirefc", repositoryContext,
+                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
         }
         return getForCaseWorkItemCandidate();
     }
@@ -55,11 +62,13 @@ public class QCaseWorkItemReferenceMapping
         return Objects.requireNonNull(instanceCandidate);
     }
 
-    private QCaseWorkItemReferenceMapping(
+    private <TQ extends QObject<TR>, TR extends MObject> QCaseWorkItemReferenceMapping(
             String tableName,
             String defaultAliasName,
-            @NotNull SqaleRepoContext repositoryContext) {
-        super(tableName, defaultAliasName, QCaseWorkItemReference.class, repositoryContext);
+            @NotNull SqaleRepoContext repositoryContext,
+            RefTableTargetResolver<QCaseWorkItemReference, MCaseWorkItemReference, TQ, TR> targetResolver) {
+        super(tableName, defaultAliasName, QCaseWorkItemReference.class,
+                repositoryContext, targetResolver);
 
         // workItemCid probably can't be mapped directly
     }
@@ -79,7 +88,8 @@ public class QCaseWorkItemReferenceMapping
     }
 
     @Override
-    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> joinOnPredicate() {
-        return (a, r) -> a.ownerOid.eq(r.ownerOid).and(a.cid.eq(r.workItemCid));
+    public BiFunction<QCaseWorkItem, QCaseWorkItemReference, Predicate> correlationPredicate() {
+        return (a, r) -> a.ownerOid.eq(r.ownerOid)
+                .and(a.cid.eq(r.workItemCid));
     }
 }

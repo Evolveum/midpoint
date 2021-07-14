@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Filter processor for a reference attribute paths of audit-related types.
  * In audit the references have OID and (mostly, but optionally) type, but never relation.
  */
-public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
+public class AuditRefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> {
 
     /**
      * Returns the mapper function creating the ref-filter processor from context.
@@ -39,7 +39,7 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
                 ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null, null));
     }
 
-    public static <S, Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<Q, R> mapper(
+    public static <Q extends FlexibleRelationalPathBase<R>, R> ItemSqlMapper<Q, R> mapper(
             Function<Q, StringPath> rootToOidPath,
             Function<Q, StringPath> rootToNamePath,
             Function<Q, NumberPath<Integer>> rootToTypePath) {

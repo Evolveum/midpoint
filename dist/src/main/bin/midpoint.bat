@@ -71,9 +71,7 @@ echo.
 echo Starting midPoint.
 start /b "midPoint" "%RUN_JAVA%"^
  %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%"^
- -cp "%LIB_DIR%\midpoint.war"^
- -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,%MIDPOINT_HOME%\lib^
- org.springframework.boot.loader.PropertiesLauncher %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
+ -jar "%LIB_DIR%\midpoint.war" %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop

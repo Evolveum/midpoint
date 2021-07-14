@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.update;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,14 +113,23 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
         return row;
     }
 
-    public abstract Q path();
+    /**
+     * Returns entity path (table) for the context.
+     * This is NOT the path for item column, which can be actually multiple columns (ref, poly)
+     * or just part of the value in the column (JSONB).
+     */
+    public abstract Q entityPath();
 
     public abstract QueryModelMapping<S, Q, R> mapping();
 
     public abstract <P extends Path<T>, T> void set(P path, T value);
 
+    public abstract <P extends Path<T>, T> void set(P path, Expression<T> value);
+
+    public abstract <P extends Path<T>, T> void setNull(P path);
+
     @SuppressWarnings("UnusedReturnValue")
-    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) {
+    public <TS, TR> TR insertOwnedRow(QOwnedByMapping<TS, TR, R> mapping, TS schemaObject) throws SchemaException {
         return mapping.insert(schemaObject, row, jdbcSession);
     }
 
@@ -128,6 +138,9 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     }
 
     public void addSubcontext(ItemPath itemPath, SqaleUpdateContext<?, ?, ?> subcontext) {
+        if (subcontext == null) {
+            throw new IllegalArgumentException("Null update subcontext for item path: " + itemPath);
+        }
         if (subcontexts.containsKey(itemPath)) {
             // This should not happen if code above is written properly, but prevents losing
             // updates when multiple modifications use the same container path segment.

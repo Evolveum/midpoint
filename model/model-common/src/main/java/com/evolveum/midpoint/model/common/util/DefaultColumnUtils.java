@@ -13,9 +13,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
-import com.evolveum.midpoint.schema.util.task.TaskProgressUtil;
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.task.*;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +74,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AbstractRoleType.F_DISPLAY_NAME, true),
                         new ColumnWrapper(AbstractRoleType.F_DESCRIPTION),
                         new ColumnWrapper(AbstractRoleType.F_IDENTIFIER, true),
-                        new ColumnWrapper(AbstractRoleType.F_LINK_REF)))
+                        new ColumnWrapper(AbstractRoleType.F_LINK_REF, "FocusType.linkRef", DisplayValueType.NUMBER)))
                 .put(TaskType.class, Arrays.asList(
                         new ColumnWrapper(TaskType.F_NAME),
                         new ColumnWrapper(TaskType.F_CATEGORY),
@@ -222,7 +220,7 @@ public class DefaultColumnUtils {
         }
     }
 
-    public static  String processSpecialColumn(
+    public static String processSpecialColumn(
             ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
         @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
         if (type == null || itemPath == null) {
@@ -249,14 +247,14 @@ public class DefaultColumnUtils {
                 String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObject);
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
-            } else if (itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                    IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))) { // TODO MID-6850
-                return String.valueOf(TaskOperationStatsUtil.getItemsProcessedWithFailure(task)); // TODO or aggregated?
             } else if (itemPath.equivalent(TaskType.F_PROGRESS)) {
-                List<Object> localizationObject = new ArrayList<>();
-                String key = TaskProgressUtil.getProgressDescription(task, localizationObject);
-                Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
-                return localization.translate(key, params, Locale.getDefault(), key);
+                // TODO revise this; re-add "stalled since" information
+                if (ActivityStateUtil.isProgressAvailableLocally(task)) {
+                    ActivityProgressInformation progress = ActivityProgressInformation.fromRootTask(task, TaskResolver.empty());
+                    return progress.toHumanReadableString(false); // TODO create toLocalizedString method
+                } else {
+                    return "";
+                }
             }
         } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
             for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
@@ -265,6 +263,9 @@ public class DefaultColumnUtils {
                 }
             }
         }
+        // TODO What about total failure count? Originally it resided in
+        //  $task/operationStat/iterativeTaskInformation/totalFailureCount but it is no longer there.
+        //  (It has no fixed item path.) See MID-7130
         return null;
     }
 

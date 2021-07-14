@@ -6,25 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
-import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
-
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,11 +27,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
@@ -59,9 +42,14 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationMainItem;
+import com.evolveum.midpoint.gui.impl.component.DetailsNavigationPanel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,6 +71,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
@@ -182,7 +172,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         super.onConfigure();
         if (saveOnConfigure) {
             saveOnConfigure = false;
-            add(new AbstractAjaxTimerBehavior(Duration.milliseconds(100)) {
+            add(new AbstractAjaxTimerBehavior(Duration.ofMillis(100)) {
                 @Override
                 protected void onTimer(AjaxRequestTarget target) {
                     stop(target);
@@ -228,7 +218,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         PrismObject<O> assignmentHolderObj = getObjectWrapper().getObject();
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
+        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
         if (displayType == null || displayType.getLabel() == null) {
             return null;
         }
@@ -443,7 +433,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         opButtonPanel.setOutputMarkupId(true);
         opButtonPanel.add(new VisibleBehaviour(() -> isOperationalButtonsVisible() && opButtonPanel.buttonsExist()));
 
-        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
             private static final long serialVersionUID = 1L;
 
             @Override

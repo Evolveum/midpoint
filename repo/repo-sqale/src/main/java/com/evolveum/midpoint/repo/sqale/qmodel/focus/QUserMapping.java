@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -22,8 +24,19 @@ public class QUserMapping
 
     public static final String DEFAULT_ALIAS_NAME = "u";
 
-    public static QUserMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QUserMapping(repositoryContext);
+    private static QUserMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QUserMapping initUserMapping(@NotNull SqaleRepoContext repositoryContext) {
+        if (instance == null) {
+            instance = new QUserMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QUserMapping getUserMapping() {
+        return Objects.requireNonNull(instance);
     }
 
     private QUserMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation.Operation;
+import com.evolveum.midpoint.schema.statistics.IterationInformation.Operation;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,8 +20,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,7 +83,7 @@ public class MockParallelTaskHandler implements TaskHandler {
                     op.succeeded();
                     parentTask.incrementProgressTransient();
                     parentTask.updateStatisticsInTaskPrism(false);
-                    parentTask.storeStatisticsIntoRepositoryIfTimePassed(new OperationResult("store stats"));
+                    parentTask.storeStatisticsIntoRepositoryIfTimePassed(null, new OperationResult("store stats"));
                 } catch (InterruptedException e) {
                     LOGGER.trace("Handler for task {} interrupted", task);
                     op.failed(e);
@@ -112,7 +112,7 @@ public class MockParallelTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(@NotNull RunningTask task) {
         LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
 
         OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");
@@ -174,11 +174,6 @@ public class MockParallelTaskHandler implements TaskHandler {
         hasRun = false;
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return TaskCategory.MOCK;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }
@@ -198,7 +193,7 @@ public class MockParallelTaskHandler implements TaskHandler {
     }
 
     @Override
-    public String getArchetypeOid() {
+    public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

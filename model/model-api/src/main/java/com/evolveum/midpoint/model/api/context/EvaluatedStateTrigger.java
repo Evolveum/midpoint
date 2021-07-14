@@ -25,7 +25,7 @@ public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolic
     }
 
     @Override
-    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
             PrismContext prismContext) {
         EvaluatedStateTriggerType rv = new EvaluatedStateTriggerType();
         fillCommonContent(rv);

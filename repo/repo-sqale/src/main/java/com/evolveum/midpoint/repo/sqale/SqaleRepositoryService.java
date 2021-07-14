@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -85,7 +86,6 @@ public class SqaleRepositoryService implements RepositoryService {
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
-    // TODO: see comment in the SystemConfigurationChangeDispatcherImpl for related issues
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -209,8 +209,53 @@ public class SqaleRepositoryService implements RepositoryService {
     public <T extends ObjectType> String getVersion(
             Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-        return null;
-        // TODO
+        Validate.notNull(type, "Object type must not be null.");
+        UUID uuid = checkOid(oid);
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        LOGGER.debug("Getting version for {} with oid '{}'.", type.getSimpleName(), oid);
+
+        OperationResult operationResult = parentResult.subresult(GET_VERSION)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
+
+        try {
+            return executeGetVersion(type, uuid);
+        } catch (RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> String executeGetVersion(Class<T> type, UUID oid)
+            throws ObjectNotFoundException {
+        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
+        try (JdbcSession jdbcSession =
+                repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
+            SqaleTableMapping<T, QObject<MObject>, MObject> rootMapping =
+                    repositoryContext.getMappingBySchemaType(type);
+            QObject<MObject> root = rootMapping.defaultAlias();
+
+            Integer version = jdbcSession.newQuery().select(root.version)
+                    .from(root)
+                    .where(root.oid.eq(oid))
+                    .fetchOne();
+            if (version == null) {
+                throw new ObjectNotFoundException(type, oid.toString());
+            }
+
+            String versionString = version.toString();
+            invokeConflictWatchers((w) -> w.afterGetVersion(oid.toString(), versionString));
+            return versionString;
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+        }
     }
 
     // Add/modify/delete
@@ -322,7 +367,8 @@ public class SqaleRepositoryService implements RepositoryService {
             throws SchemaException, RepositoryException, ObjectAlreadyExistsException {
 
         String oid = newObject.getOid();
-        UUID oidUuid = UUID.fromString(oid);
+        UUID oidUuid = checkOid(oid);
+
         long opHandle = registerOperationStart(OP_ADD_OBJECT_OVERWRITE, newObject);
         // TODO use executeAttempts
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
@@ -743,10 +789,9 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, repositoryContext);
-            SearchResultList<T> result =
-                    sqlQueryExecutor.list(queryContext, query, options);
-            return result;
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, repositoryContext);
+            return sqlQueryExecutor.list(queryContext, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
