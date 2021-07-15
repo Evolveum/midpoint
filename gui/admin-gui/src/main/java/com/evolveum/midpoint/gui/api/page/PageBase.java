@@ -26,7 +26,6 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
@@ -1001,10 +1000,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         feedbackContainer.add(feedbackList);
 
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
-        mainPopup.setOutputMarkupId(true);
-        mainPopup.setOutputMarkupPlaceholderTag(true);
-        mainPopup.showUnloadConfirmation(false);
-        mainPopup.setResizable(false);
+//        mainPopup.showUnloadConfirmation(false);
+//        mainPopup.setResizable(false);
         add(mainPopup);
     }
 
@@ -1035,20 +1032,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public String getMainPopupBodyId() {
-        return getMainPopup().getContentId();
+        return getMainPopup().CONTENT_ID;
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
-        getMainPopup().setTitle(popupable.getTitle());
-        getMainPopup().setInitialHeight(popupable.getHeight());
-        getMainPopup().setInitialWidth(popupable.getWidth());
-        getMainPopup().setHeightUnit(popupable.getHeightUnit());
-        getMainPopup().setWidthUnit(popupable.getWidthUnit());
-        getMainPopup().setContent(popupable.getComponent());
-        getMainPopup().setUseInitialHeight(true);
-        getMainPopup().setResizable(false);
-        getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
-        getMainPopup().show(target);
+//        getMainPopup().setTitle(popupable.getTitle());
+//        getMainPopup().setInitialHeight(popupable.getHeight());
+//        getMainPopup().setInitialWidth(popupable.getWidth());
+//        getMainPopup().setHeightUnit(popupable.getHeightUnit());
+        MainPopupDialog dialog = getMainPopup();
+        dialog.getDialogComponent().add(AttributeModifier.replace("style", dialog.generateWidthHeightParameter("" + popupable.getWidth(),
+                popupable.getWidthUnit(), "" + popupable.getHeight(), popupable.getHeightUnit())));
+        dialog.setContent(popupable.getComponent());
+//        getMainPopup().setUseInitialHeight(true);
+//        getMainPopup().setResizable(false);
+//        getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
+        dialog.open(target);
     }
 
     public void hideMainPopup(AjaxRequestTarget target) {
