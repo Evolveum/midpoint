@@ -156,7 +156,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT variableResolver(VariableProducer<V> variableProducer) {
+    public RT variableResolver(VariableProducer variableProducer) {
         this.variableProducer = variableProducer;
         return typedThis();
     }

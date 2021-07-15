@@ -234,7 +234,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      *
      * Transient. No evaluation will be possible after deserialization.
      */
-    transient private final VariableProducer<?> variableProducer;
+    transient private final VariableProducer variableProducer;
 
     /**
      * This is sometimes used to identify the element that mapping produces

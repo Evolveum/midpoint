@@ -98,10 +98,10 @@ public class ExpressionEvaluationContext {
      * If present, this one is used to produce extra variables for given value.
      *
      * The concept of value producer is a bit imprecise as it is currently called for each value
-     * in value tuple (see CombinatorialEvaluation and TupleEvaluation). So it works well only
-     * if single-source expression are evaluated.
+     * in value tuple (see CombinatorialEvaluation and TupleEvaluation). It has to select relevant sources/values
+     * to act on.
      */
-    private VariableProducer<?> variableProducer;
+    private VariableProducer variableProducer;
 
     /**
      * Optional. If not specified then it will be added at the start of expression evaluation.
@@ -230,11 +230,11 @@ public class ExpressionEvaluationContext {
         this.additionalConvertor = additionalConvertor;
     }
 
-    public VariableProducer<?> getVariableProducer() {
+    public VariableProducer getVariableProducer() {
         return variableProducer;
     }
 
-    public void setVariableProducer(VariableProducer<?> variableProducer) {
+    public void setVariableProducer(VariableProducer variableProducer) {
         this.variableProducer = variableProducer;
     }
 

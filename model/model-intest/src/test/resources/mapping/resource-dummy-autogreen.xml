@@ -141,6 +141,9 @@
                     <name>Assignment from group</name>
                     <authoritative>true</authoritative>
                     <strength>strong</strength>
+                    <source>
+                        <path>$configuration/name</path> <!-- Just to test MID-7141 -->
+                    </source>
                     <expression>
                         <assignmentTargetSearch>
                             <targetType>RoleType</targetType>
@@ -151,6 +154,8 @@
                                         <trace>true</trace>
                                         <script>
                                             <code>
+
+                                                log.info("### dummy 'name' source value: {}", name)
 
                                                 entitlement1 = midpoint.resolveEntitlement(input);
                                                 log.info("### entitlement: " + entitlement)

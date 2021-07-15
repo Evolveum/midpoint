@@ -197,9 +197,8 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
 //                hasMinus = true;
 //            }
             if (context.getVariableProducer() != null) {
-                //noinspection unchecked
-                ((VariableProducer<PrismValue>) context.getVariableProducer())
-                        .produce(value, context.getVariables());
+                context.getVariableProducer()
+                        .processSourceValue(sourceTriple.getSource(), value, context.getVariables());
             }
         }
         return staticVariables;

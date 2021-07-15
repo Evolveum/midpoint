@@ -428,8 +428,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDef = getAssociationContainerDefinition();
                 //noinspection unchecked
                 collectMapping(inboundMappingBean, associationName, (Item<V, D>) filteredAssociations,
-                        associationAPrioriDelta, (D) associationContainerDef,
-                        (VariableProducer<V>) (VariableProducer<PrismContainerValue<ShadowAssociationType>>) this::resolveEntitlementFromMap);
+                        associationAPrioriDelta, (D) associationContainerDef, this::resolveEntitlementFromMap);
             }
         }
 
@@ -498,11 +497,26 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
         }
 
-        private void resolveEntitlementFromMap(PrismContainerValue<ShadowAssociationType> value, VariablesMap variables) {
-            LOGGER.trace("Producing value {} ", value);
-            PrismReference entitlementRef = value.findReference(ShadowAssociationType.F_SHADOW_REF);
+        private void resolveEntitlementFromMap(@NotNull Source<?, ?> source, @Nullable PrismValue value,
+                @NotNull VariablesMap variables) {
+
+            LOGGER.trace("resolveEntitlementFromMap: processing value {} in {}", value, source);
+
+            // We act on the default source that should contain the association value.
+            // So some safety checks first.
+            if (!ExpressionConstants.VAR_INPUT_QNAME.matches(source.getName())) {
+                LOGGER.trace("Source other than 'input', exiting");
+                return;
+            }
+            if (!(value instanceof PrismContainerValue)) {
+                LOGGER.trace("No value or not a PCV, exiting");
+                return;
+            }
+
+            PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
+            PrismReference entitlementRef = pcv.findReference(ShadowAssociationType.F_SHADOW_REF);
             if (entitlementRef == null) {
-                LOGGER.trace("No shadow ref for {}. Skipping resolving entitlement", value);
+                LOGGER.trace("No shadow ref for {}. Skipping resolving entitlement", pcv);
                 return;
             }
             PrismObject<ShadowType> entitlement = projectionContext.getEntitlementMap().get(entitlementRef.getOid());
@@ -744,7 +758,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private <V extends PrismValue, D extends ItemDefinition> void collectMapping(MappingType inboundMappingBean,
                 QName projectionItemName, Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta,
-                D itemDefinition, VariableProducer<V> variableProducer) throws ObjectNotFoundException, SchemaException,
+                D itemDefinition, VariableProducer variableProducer) throws ObjectNotFoundException, SchemaException,
                 ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
             if (currentProjectionItem != null && currentProjectionItem.hasRaw()) {
