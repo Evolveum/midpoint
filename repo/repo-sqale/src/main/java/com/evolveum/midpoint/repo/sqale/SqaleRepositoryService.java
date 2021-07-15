@@ -7,6 +7,10 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
@@ -86,12 +90,14 @@ public class SqaleRepositoryService implements RepositoryService {
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
+    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
+
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
             ThreadLocal.withInitial(ArrayList::new);
 
-    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
+    private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
     public SqaleRepositoryService(
             SqaleRepoContext repositoryContext,
@@ -866,8 +872,88 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public RepositoryDiag getRepositoryDiag() {
-        return null;
-        // TODO - see existing SqlRepositoryServiceImpl.getRepositoryDiag
+        LOGGER.debug("Getting repository diagnostics.");
+
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName("SQaLe");
+        diag.setImplementationDescription(
+                "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
+
+        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
+        diag.setDriverShortName(config.getDriverClassName());
+        diag.setRepositoryUrl(config.getJdbcUrl());
+        diag.setEmbedded(config.isEmbedded());
+
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            if (!driver.getClass().getName().equals(config.getDriverClassName())) {
+                continue;
+            }
+
+            diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
+        }
+
+        List<LabeledString> details = new ArrayList<>();
+        diag.setAdditionalDetails(details);
+        details.add(new LabeledString("dataSource", config.getDataSource()));
+
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            details.add(new LabeledString("transactionIsolation",
+                    getTransactionIsolation(jdbcSession.connection(), config)));
+
+            try {
+                Properties info = jdbcSession.connection().getClientInfo();
+                if (info != null) {
+                    for (String name : info.stringPropertyNames()) {
+                        details.add(new LabeledString("clientInfo." + name, info.getProperty(name)));
+                    }
+                }
+            } catch (SQLException e) {
+                details.add(new LabeledString("clientInfo-error", e.toString()));
+            }
+
+            long startMs = System.currentTimeMillis();
+            jdbcSession.executeStatement("select 1");
+            details.add(new LabeledString("select-1-round-trip-ms",
+                    String.valueOf(System.currentTimeMillis() - startMs)));
+        }
+
+        details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
+
+        return diag;
+    }
+
+    private String getTransactionIsolation(
+            Connection connection, JdbcRepositoryConfiguration config) {
+        String value = config.getTransactionIsolation() != null ?
+                config.getTransactionIsolation().name() + "(read from repo configuration)" : null;
+
+        try {
+            switch (connection.getTransactionIsolation()) {
+                case Connection.TRANSACTION_NONE:
+                    value = "TRANSACTION_NONE (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_COMMITTED:
+                    value = "TRANSACTION_READ_COMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_UNCOMMITTED:
+                    value = "TRANSACTION_READ_UNCOMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_REPEATABLE_READ:
+                    value = "TRANSACTION_REPEATABLE_READ (read from connection)";
+                    break;
+                case Connection.TRANSACTION_SERIALIZABLE:
+                    value = "TRANSACTION_SERIALIZABLE (read from connection)";
+                    break;
+                default:
+                    value = "Unknown value in connection.";
+            }
+        } catch (Exception ex) {
+            //nowhere to report error (no operation result available)
+        }
+
+        return value;
     }
 
     @Override
@@ -906,13 +992,14 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
-        // TODO
+        LOGGER.info("Applying full text search configuration ({} entries)",
+                fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
+        fullTextSearchConfiguration = fullTextSearch;
     }
 
     @Override
     public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
-        return null;
-        // TODO
+        return fullTextSearchConfiguration;
     }
 
     @Override
