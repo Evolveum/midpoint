@@ -469,16 +469,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 return new ModifyObjectResult<>(modifications);
             }
 
-            if (InternalsConfig.encryptionChecks) {
-                CryptoUtil.checkEncrypted(modifications);
-            }
-
-            if (InternalsConfig.consistencyChecks) {
-                ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
-            } else {
-                ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
-            }
-
+            checkModifications(modifications);
             logTraceModifications(modifications);
 
             return executeModifyObject(type, oidUuid, modifications, precondition);
@@ -559,6 +550,34 @@ public class SqaleRepositoryService implements RepositoryService {
         // we don't care about full object in row
 
         return new RootUpdateContext<>(repositoryContext, jdbcSession, object, rootRow);
+    }
+
+    @Override
+    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
+            @NotNull ModificationsSupplier<T> modificationsSupplier,
+            @Nullable RepoModifyOptions modifyOptions,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        // TODO write proper implementation
+        PrismObject<T> object = executeGetObject(type, UUID.fromString(oid), getOptions);
+        Collection<? extends ItemDelta<?, ?>> modifications =
+                modificationsSupplier.get(object.asObjectable());
+        return modifyObject(type, oid, modifications, modifyOptions, parentResult);
+    }
+
+    private void checkModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        if (InternalsConfig.encryptionChecks) {
+            CryptoUtil.checkEncrypted(modifications);
+        }
+
+        if (InternalsConfig.consistencyChecks) {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        } else {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+        }
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
