@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -49,53 +50,12 @@ public class MappingColumnPanel extends BasePanel<PrismContainerWrapper<MappingT
             protected void populateItem(ListItem<PrismContainerValueWrapper<MappingType>> item) {
                 TriStateComboPanel dropDownChoicePanel = new TriStateComboPanel(ID_MAPPING_ENABLED, new PropertyModel<>(new ItemRealValueModel<>(item.getModel()), MappingType.F_ENABLED.getLocalPart()));
                 item.add(dropDownChoicePanel);
-                Label label = new Label(ID_MAPPING, createMappingDescription(item.getModel()));
+                Label label = new Label(ID_MAPPING, WebComponentUtil.createMappingDescription(item.getModel()));
                 item.add(label);
             }
         };
         add(mappings);
-
     }
 
-    private IModel<String> createMappingDescription(IModel<PrismContainerValueWrapper<MappingType>> model) {
-        return new ReadOnlyModel<>(() -> {
 
-            if (getModelObject() == null) {
-                return null;
-            }
-
-            MappingType mappingType = model.getObject().getRealValue();
-            if (mappingType == null) {
-                return null;
-            }
-
-            List<VariableBindingDefinitionType> sources = mappingType.getSource();
-            String sourceString = "";
-            if (!sources.isEmpty()) {
-                sourceString += "From: ";
-            }
-            for (VariableBindingDefinitionType s : sources) {
-                if (s == null) {
-                    continue;
-                }
-                sourceString += s.getPath().toString() + ", ";
-            }
-            String strength = "";
-            if (mappingType.getStrength() != null) {
-                strength = mappingType.getStrength().toString();
-            }
-
-            String target = "";
-            VariableBindingDefinitionType targetv = mappingType.getTarget();
-            if (targetv != null) {
-                target += "To: " + targetv.getPath().toString();
-            }
-
-            if (target.isBlank()) {
-                return sourceString + "(" + strength + ")";
-            }
-
-            return target + "(" + strength + ")";
-        });
-    }
 }

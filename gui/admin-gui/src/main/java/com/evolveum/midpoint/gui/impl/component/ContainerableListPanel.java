@@ -1022,7 +1022,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         table.setCurrentPage(null);
     }
 
-    protected Component getFeedbackPanel() {
+    public Component getFeedbackPanel() {
         return getPageBase().getFeedbackPanel();
     }
 

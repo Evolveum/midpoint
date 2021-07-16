@@ -193,11 +193,17 @@ public class SearchFactory {
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
     }
+
     public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
-
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
+        return createContainerSearch(type, containerDef, defaultSearchItem, defaultAvailableDefs, modelServiceLocator, useObjectCollection);
+    }
+
+    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
+
         List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
         if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
             availableDefs = getAvailableDefinitions(containerDef, null, true, modelServiceLocator);

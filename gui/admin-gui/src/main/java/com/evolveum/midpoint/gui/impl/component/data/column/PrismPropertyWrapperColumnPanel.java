@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -61,8 +62,14 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 
     @Override
     protected Panel createLink(String id, IModel<PrismPropertyValueWrapper<T>> object) {
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id,
-                new ReadOnlyModel(() -> getHumanReadableLinkName(object))) {
+        String humanReadableLinkName = getHumanReadableLinkName(object);
+        IModel labelModel;
+        if (StringUtils.isEmpty(humanReadableLinkName)){
+            labelModel = getPageBase().createStringResource("feedbackMessagePanel.message.undefined");
+        } else {
+            labelModel = new ReadOnlyModel(() -> humanReadableLinkName);
+        }
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, labelModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
