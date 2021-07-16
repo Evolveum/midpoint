@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
@@ -25,12 +24,11 @@ import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
