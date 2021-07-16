@@ -39,7 +39,7 @@ public class MainPopupDialog extends ModalDialog {
     public String generateWidthHeightParameter(String width, String widthUnit, String height, String heightUnit) {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(width)) {
-            sb.append("width: " + width);
+            sb.append("min-width: " + width);
             sb.append(StringUtils.isEmpty(widthUnit) ? "px" : widthUnit);
             sb.append("; ");
         }
