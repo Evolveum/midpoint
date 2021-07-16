@@ -412,7 +412,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
     }
 
     /**
-     * Add a new group. Check that this event is ignored.
+     * Add a new group. Check that this event is ignored (because group is not inetOrgPerson, object class limitation is set in the sync task).
      */
     @Test
     public void test830AddGroupFools() throws Exception {

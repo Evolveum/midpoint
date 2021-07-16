@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -430,10 +431,10 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         LOGGER.trace("Create icon for AssignmentType: " + assignment);
         PrismObject<? extends FocusType> object = loadTargetObject(assignment);
 
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(object, AssignmentPanel.this.getPageBase());
+        DisplayType displayType = WebDisplayTypeUtil.getArchetypePolicyDisplayType(object, AssignmentPanel.this.getPageBase());
 
         if (displayType == null) {
-            displayType = WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+            displayType = WebDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
                     AssignmentsUtil.getTargetType(assignment)));
         }
         String disabledStyle = WebComponentUtil.getIconEnabledDisabled(object);

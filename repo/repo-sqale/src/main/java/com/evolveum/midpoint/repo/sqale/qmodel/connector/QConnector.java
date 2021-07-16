@@ -56,8 +56,8 @@ public class QConnector extends QAssignmentHolder<MConnector> {
                     MObjectType.class, CONNECTOR_HOST_REF_TARGET_TYPE);
     public final NumberPath<Integer> connectorHostRefRelationId =
             createInteger("connectorHostRefRelationId", CONNECTOR_HOST_REF_RELATION_ID);
-    public final ArrayPath<String[], String> targetSystemTypes =
-            createArray("targetSystemTypes", String[].class, TARGET_SYSTEM_TYPES);
+    public final ArrayPath<Integer[], Integer> targetSystemTypes =
+            createArray("targetSystemTypes", Integer[].class, TARGET_SYSTEM_TYPES);
 
     public QConnector(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

@@ -166,7 +166,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
                         .activation(new ActivationType(prismContext)
                                 .validFrom("2021-03-01T00:00:00Z")
-                                .validTo("2022-07-04T00:00:00Z")))
+                                .validTo("2022-07-04T00:00:00Z"))
+                        .subtype("ass-subtype-2"))
                 .assignment(new AssignmentType(prismContext)
                         .lifecycleState("assignment1-2")
                         .order(1))
@@ -235,7 +236,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .metadata(new MetadataType(prismContext)
                                 .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType(prismContext)
-                                .validFrom("2021-01-01T00:00:00Z")))
+                                .validFrom("2021-01-01T00:00:00Z"))
+                        .subtype("ass-subtype-1")
+                        .subtype("ass-subtype-2"))
                 .assignment(new AssignmentType(prismContext)
                         .activation(new ActivationType(prismContext)
                                 .validTo("2022-01-01T00:00:00Z")))
@@ -270,6 +273,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
                 .pendingOperation(new PendingOperationType().attemptNumber(1))
                 .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
@@ -557,6 +561,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .isInstanceOf(SystemException.class);
     }
 
+    @Test
+    public void test150SearchShadowByObjectClass() throws SchemaException {
+        // this uses URI mapping with QName instead of String
+        searchObjectTest("having specified object class", ShadowType.class,
+                f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
+                shadow1Oid);
+    }
+
     /**
      * Searching by outcome in output in workitem in a case.
      * This is a special-case column.
@@ -611,6 +623,22 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(expectedCaseOids);
     }
+
+    @Test
+    public void test190SearchUsersByAssignmentSubtype() throws Exception {
+        searchUsersTest("having assignment with specified subtype",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE).eq("ass-subtype-1"),
+                user3Oid);
+    }
+
+    @Test
+    public void test191SearchUsersByAssignmentSubtypeAnyValue() throws Exception {
+        searchUsersTest("having assignment with any of specified subtypes",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE)
+                        .eq("ass-subtype-1", "ass-subtype-2"),
+                user1Oid, user3Oid);
+    }
+
     // endregion
 
     // region org filter

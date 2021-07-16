@@ -80,9 +80,15 @@ public class SqaleRepoContext extends SqlRepoContext {
         extItemCache.initialize(this::newJdbcSession);
     }
 
-    /** @see UriCache#searchId(String) */
-    public Integer searchCachedUriId(String uri) {
-        return uriCache.searchId(uri);
+    /**
+     * Supports search for URI ID by QName or String or any other type using `toString`.
+     */
+    public @NotNull Integer searchCachedUriId(@NotNull Object uri) {
+        if (uri instanceof QName) {
+            return uriCache.searchId((QName) uri);
+        } else {
+            return uriCache.searchId(uri.toString());
+        }
     }
 
     /**
@@ -95,7 +101,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
-    public Integer processCacheableUri(String uri) {
+    public Integer processCacheableUri(Object uri) {
         return uriCache.processCacheableUri(uri);
     }
 

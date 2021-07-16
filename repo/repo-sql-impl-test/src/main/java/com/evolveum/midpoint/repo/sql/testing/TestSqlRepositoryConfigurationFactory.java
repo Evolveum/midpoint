@@ -26,6 +26,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * TODO: These can go away if StartupConfiguration can also override config properties from file.
+ *  Currently in applyEnvironmentProperties it only knows how to do it from -D options.
+ *  Another difference is that this reads properties like "database" which would have to be
+ *  changed to "midpoint.repository.database".
+ *  Still, it would be cool to get rid off this class and do more with production setup.
+ *
  * This {@link SqlRepositoryConfiguration} factory should be used for testing purposes only.
  * During configuration initialization it checks system properties and overrides loaded
  * in {@link com.evolveum.midpoint.common.configuration.api.MidpointConfiguration} before

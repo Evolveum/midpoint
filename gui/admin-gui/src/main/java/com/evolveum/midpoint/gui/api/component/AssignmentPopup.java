@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -98,7 +100,10 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         relations.forEach(relation -> buttonDtoList.add(createCompositedButtonForAssignmentRelation(relation)));
 
         if (isGenericNewObjectButtonVisible()) {
-            DisplayType defaultButtonDisplayType = WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
+            DisplayType defaultButtonDisplayType = WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON,
+                    "green",
+                    createStringResource("AssignmentPanel.defaultAssignment").getString(),
+                    createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
 //                    AssignmentPanel.this.createStringResource(isInducement() ?
 //                            "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
             CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
@@ -144,7 +149,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         CompositedIconButtonDto buttonDto = new CompositedIconButtonDto();
         buttonDto.setAssignmentObjectRelation(relation);
 
-        DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
+        DisplayType additionalButtonDisplayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation, "AssignmentPanel.newAssignmentTitle");
 //                isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
         buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 

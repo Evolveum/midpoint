@@ -1319,7 +1319,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorHostRefTargetOid).isEqualTo(connectorHostOid);
         assertThat(row.connectorHostRefTargetType).isEqualTo(MObjectType.CONNECTOR_HOST);
         assertCachedUri(row.connectorHostRefRelationId, connectorHostRelation);
-        assertThat(row.targetSystemTypes).containsExactlyInAnyOrder("type1", "type2");
+        assertThat(resolveCachedUriIds(row.targetSystemTypes))
+                .containsExactlyInAnyOrder("type1", "type2");
     }
 
     @Test
@@ -1707,7 +1708,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UUID performer3Oid = UUID.randomUUID();
         QName performer3Relation = QName.valueOf("{https://random.org/ns}wi-performer3-rel");
 
-
         UUID wi1AssigneeRef1Oid = UUID.fromString("7508a482-d8d1-11eb-9435-9b077bcc684b"); // explicit UUID, to ensure ordering
         QName wi1AssigneeRef1Relation = QName.valueOf("{https://random.org/ns}acwi-1-assignee-1-rel");
         UUID wi1AssigneeRef2Oid = UUID.fromString("77267d0c-d8d1-11eb-9ae9-8fb4530e4e64"); // explicit UUID, to ensure ordering
@@ -1794,29 +1794,29 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .candidateRef(wi2CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2CandidateRef1Relation)
                                 .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)
                         ))
-                    ._case(new AccessCertificationCaseType(prismContext)
-                            .id(49L)
-                            .currentStageOutcome(case2CurrentStageOutcome)
-                            // TODO campaignIteration
-                            .iteration(case2Iteration)
-                            .outcome("whatever")
-                            .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(case2CurrentStageCreateTimestamp))
-                            .stageNumber(25)
-                            .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
-                            .workItem(new AccessCertificationWorkItemType(prismContext)
-                                    .id(59L)
-                                    .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3CloseTimestamp))
-                                    // TODO: iteration -> campaignIteration
-                                    .iteration(83)
-                                    .output(new AbstractWorkItemOutputType()
-                                            .outcome("certainly not quite done")
-                                    )
-                                    .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3OutputChangeTimestamp))
-                                    .performerRef(performer3Oid.toString(), UserType.COMPLEX_TYPE, performer3Relation)
-                                    .stageNumber(21)
-                                    .assigneeRef(wi3AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi3AssigneeRef1Relation)
-                                    .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)
-                            ));
+                ._case(new AccessCertificationCaseType(prismContext)
+                        .id(49L)
+                        .currentStageOutcome(case2CurrentStageOutcome)
+                        // TODO campaignIteration
+                        .iteration(case2Iteration)
+                        .outcome("whatever")
+                        .currentStageCreateTimestamp(MiscUtil.asXMLGregorianCalendar(case2CurrentStageCreateTimestamp))
+                        .stageNumber(25)
+                        .targetRef(caseTargetRefOid.toString(), RoleType.COMPLEX_TYPE, caseTargetRefRelationUri)
+                        .workItem(new AccessCertificationWorkItemType(prismContext)
+                                .id(59L)
+                                .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3CloseTimestamp))
+                                // TODO: iteration -> campaignIteration
+                                .iteration(83)
+                                .output(new AbstractWorkItemOutputType()
+                                        .outcome("certainly not quite done")
+                                )
+                                .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3OutputChangeTimestamp))
+                                .performerRef(performer3Oid.toString(), UserType.COMPLEX_TYPE, performer3Relation)
+                                .stageNumber(21)
+                                .assigneeRef(wi3AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi3AssigneeRef1Relation)
+                                .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)
+                        ));
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);

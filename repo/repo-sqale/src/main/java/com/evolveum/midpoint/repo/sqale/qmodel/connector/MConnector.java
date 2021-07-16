@@ -23,5 +23,5 @@ public class MConnector extends MObject {
     public UUID connectorHostRefTargetOid;
     public MObjectType connectorHostRefTargetType;
     public Integer connectorHostRefRelationId;
-    public String[] targetSystemTypes;
+    public Integer[] targetSystemTypes;
 }

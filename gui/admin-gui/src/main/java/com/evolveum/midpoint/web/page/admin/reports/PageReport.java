@@ -56,8 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
         encoder = OnePageParameterEncoder.class,
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
-                description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                label = "PageAdminCases.auth.reportsAll.label",
+                description = "PageAdminCases.auth.reportsAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description") })

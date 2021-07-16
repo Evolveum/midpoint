@@ -10,7 +10,6 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.hibernate.SessionFactory;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -114,7 +113,7 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    @NotNull
+    @ConditionalOnMissingBean
     public LocalSessionFactoryBean sessionFactory(
             DataSource dataSource,
             SqlRepositoryConfiguration configuration,
@@ -170,10 +169,9 @@ public class SqlRepositoryBeanConfig {
             MatchingRuleRegistry matchingRuleRegistry,
             PrismContext prismContext,
             RelationRegistry relationRegistry) {
-        SqlRepositoryServiceImpl repositoryService = new SqlRepositoryServiceImpl(
-                baseHelper, matchingRuleRegistry, prismContext, relationRegistry);
 
-        return repositoryService;
+        return new SqlRepositoryServiceImpl(
+                baseHelper, matchingRuleRegistry, prismContext, relationRegistry);
     }
 
     @Bean

@@ -35,6 +35,7 @@ public class MAssignment extends MContainer {
     public Integer extId;
     public String extOid;
     public Integer[] policySituations;
+    public String[] subtypes;
     public Jsonb ext;
     // construction
     public UUID resourceRefTargetOid;
