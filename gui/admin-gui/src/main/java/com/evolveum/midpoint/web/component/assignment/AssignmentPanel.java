@@ -175,7 +175,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<AssignmentType>> toDeleteList) {
+                    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<AssignmentType>> toDeleteList) {
                         int countAddedAssignments = 0;
                         for (PrismContainerValueWrapper<AssignmentType> assignment : toDeleteList) {
                             if (ValueStatus.ADDED.equals(assignment.getStatus())) {

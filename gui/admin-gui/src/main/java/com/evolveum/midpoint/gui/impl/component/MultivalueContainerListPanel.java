@@ -65,9 +65,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected Search createSearch(Class<C> type) {
-        PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition),
+        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
+        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
                 getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
+    }
+
+    protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
+        return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
     }
 
     private ContainerTypeSearchItem<C> createTypeSearchItem(Class<C> type, PrismContainerDefinition<C> containerDefinition) {
@@ -223,7 +227,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         };
     }
 
-    protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete){
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete){
         if (toDelete == null || toDelete.isEmpty()){
             warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
             target.add(getPageBase().getFeedbackPanel());

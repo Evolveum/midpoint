@@ -74,6 +74,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_COLLECTION_ICON = "fa fa-filter";
 
+    public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-text";
+
     public static final String CLASS_REPORT_ICON = "fa fa-pie-chart";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string

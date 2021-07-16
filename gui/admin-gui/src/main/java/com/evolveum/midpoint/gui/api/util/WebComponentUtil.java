@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -231,6 +233,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ArchetypeType.class, PageArchetype.class);
         OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
     }
 
     static {
@@ -1935,8 +1938,9 @@ public final class WebComponentUtil {
             return createObjectColletionIcon();
         } else if (type == ReportType.class) {
             return createReportIcon();
+        } else if (type == ObjectTemplateType.class) {
+            return createObjectTemplateIcon();
         }
-
         return "";
     }
 
@@ -2319,6 +2323,10 @@ public final class WebComponentUtil {
 
     public static String createObjectColletionIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+    }
+
+    private static String createObjectTemplateIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
     }
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
@@ -5260,5 +5268,47 @@ public final class WebComponentUtil {
     public static boolean isImportReport(ReportType report) {
         ReportBehaviorType behavior = report.getBehavior();
         return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
+    }
+
+    public static IModel<String> createMappingDescription(IModel<PrismContainerValueWrapper<MappingType>> model) {
+        return new ReadOnlyModel<>(() -> {
+
+            if (model == null || model.getObject() == null) {
+                return null;
+            }
+
+            MappingType mappingType = model.getObject().getRealValue();
+            if (mappingType == null) {
+                return null;
+            }
+
+            List<VariableBindingDefinitionType> sources = mappingType.getSource();
+            String sourceString = "";
+            if (!sources.isEmpty()) {
+                sourceString += "From: ";
+            }
+            for (VariableBindingDefinitionType s : sources) {
+                if (s == null) {
+                    continue;
+                }
+                sourceString += s.getPath().toString() + ", ";
+            }
+            String strength = "";
+            if (mappingType.getStrength() != null) {
+                strength = mappingType.getStrength().toString();
+            }
+
+            String target = "";
+            VariableBindingDefinitionType targetv = mappingType.getTarget();
+            if (targetv != null) {
+                target += "To: " + targetv.getPath().toString();
+            }
+
+            if (target.isBlank()) {
+                return sourceString + "(" + strength + ")";
+            }
+
+            return target + "(" + strength + ")";
+        });
     }
 }
