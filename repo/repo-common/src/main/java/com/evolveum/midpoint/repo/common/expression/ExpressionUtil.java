@@ -787,6 +787,26 @@ public class ExpressionUtil {
         return getExpressionOutputValue(outputTriple, shortDesc);
     }
 
+    public static <V extends PrismValue, D extends ItemDefinition> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
+            VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
+                shortDesc, task, parentResult);
+
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
+        context.setExpressionFactory(expressionFactory);
+        context.setExpressionProfile(expressionProfile);
+        PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
+
+        LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
+
+        return outputTriple != null ?
+                outputTriple.getNonNegativeValues() : List.of();
+    }
+
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)

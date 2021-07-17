@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -45,9 +46,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
+ * Legacy code that deals with both exporting (dashboard- and collection-style) and importing reports.
+ * Specialized to HTML files.
+ *
+ * TODO split into smaller, more specific classes
+ *
  * @author skublik
  */
-
 public class HtmlController extends FileFormatController {
 
     private static final Trace LOGGER = TraceManager.getTrace(HtmlController.class);
@@ -170,7 +175,7 @@ public class HtmlController extends FileFormatController {
 
     @Override
     public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig,
-            RunningTask task, OperationResult result) throws Exception {
+            RunningTask task, OperationResult result) throws CommonException, IOException {
         CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
         ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
         ObjectCollectionType collection = null;
@@ -181,7 +186,7 @@ public class HtmlController extends FileFormatController {
                     .asObjectable();
         }
 
-        initializationParameters(collectionConfig.getParameter(), task);
+        initializeParameters(collectionConfig.getParameter(), task);
 
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
@@ -240,8 +245,8 @@ public class HtmlController extends FileFormatController {
     private ContainerTag createTableBox(ContainerTag table, String nameOfTable, int countOfTableRecords,
             String createdTime, DisplayType display) {
         ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(nameOfTable))
-                .with(TagCreator.p(getMessage(REPORT_GENERATED_ON, createdTime)))
-                .with(TagCreator.p(getMessage(NUMBER_OF_RECORDS, countOfTableRecords))).with(table);
+                .with(TagCreator.p(getMessage(localizationService, REPORT_GENERATED_ON, createdTime)))
+                .with(TagCreator.p(getMessage(localizationService, NUMBER_OF_RECORDS, countOfTableRecords))).with(table);
         String style = "";
         String classes = "";
         if (display != null) {
@@ -342,7 +347,7 @@ public class HtmlController extends FileFormatController {
 
     private ContainerTag createTHead(String prefix, Set<String> set) {
         return TagCreator.thead(TagCreator.tr(TagCreator.each(set,
-                header -> TagCreator.th(TagCreator.div(TagCreator.span(getMessage(prefix + header)).withClass("sortableLabel")))))
+                header -> TagCreator.th(TagCreator.div(TagCreator.span(getMessage(localizationService, prefix + header)).withClass("sortableLabel")))))
                 .withStyle("width: 100%;"));
     }
 

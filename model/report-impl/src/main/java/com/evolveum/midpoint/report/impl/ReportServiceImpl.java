@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
 import com.evolveum.midpoint.report.api.ReportConstants;
@@ -72,6 +73,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private SchemaService schemaService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
     @Autowired private FunctionLibrary logFunctionLibrary;
     @Autowired private FunctionLibrary basicFunctionLibrary;
@@ -138,6 +140,45 @@ public class ReportServiceImpl implements ReportService {
                     determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
         }
         return o;
+    }
+
+    @Override
+    public Collection<? extends PrismValue> evaluateToCollection(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        // TODO why do we treat scripting expressions separately here?!
+        if (expression.getExpressionEvaluator().size() == 1
+                && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
+            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            context.setVariables(variables);
+            context.setContextDescription(shortDesc);
+            context.setTask(task);
+            context.setResult(result);
+            setupExpressionProfiles(context, report);
+
+            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType)expression.getExpressionEvaluator().get(0).getValue();
+            if (expressionType.getObjectVariableMode() == null) {
+                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
+                expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
+            }
+            context.setExpressionType(expressionType);
+            context.setFunctions(createFunctionLibraries());
+            context.setObjectResolver(objectResolver);
+
+            ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
+                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
+                    context.getResult());
+
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
+            try {
+                return scriptExpression.evaluate(context);
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        } else {
+            return ExpressionUtil.evaluateExpressionNative(null, variables, null, expression,
+                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
+        }
     }
 
     private Collection<FunctionLibrary> createFunctionLibraries() {
@@ -295,14 +336,14 @@ public class ReportServiceImpl implements ReportService {
 
     public QName resolveTypeQNameForReport(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
         QName type;
-        if (collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
+        if (collectionRef != null && collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
             ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
             if (collection.getAuditSearch() != null) {
                 type = AuditEventRecordType.COMPLEX_TYPE;
             } else {
                 type = collection.getType();
             }
-        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
+        } else if (collectionRef != null && collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
                 && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
             ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
             type = collection.getType();
@@ -317,7 +358,12 @@ public class ReportServiceImpl implements ReportService {
     }
 
     public PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
+        // FIXME - NEVER do this (except maybe in tests)!
         Task task = getTaskManager().createTaskInstance("Get object");
+        return getObjectFromReference(ref, task, task.getResult());
+    }
+
+    public PrismObject<ObjectType> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
         Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
         if (ref.asReferenceValue().getObject() != null) {
@@ -326,7 +372,7 @@ public class ReportServiceImpl implements ReportService {
 
         PrismObject<ObjectType> object = null;
         try {
-            object = getModelService().getObject(type, ref.getOid(), null, task, task.getResult());
+            object = getModelService().getObject(type, ref.getOid(), null, task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't get object from objectRef " + ref, e);
         }
@@ -384,6 +430,10 @@ public class ReportServiceImpl implements ReportService {
 
     public ObjectResolver getObjectResolver() {
         return objectResolver;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
     }
 
     public DashboardService getDashboardService() {

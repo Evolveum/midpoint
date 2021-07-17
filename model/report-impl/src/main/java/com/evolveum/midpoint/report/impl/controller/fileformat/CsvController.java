@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -45,15 +44,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 /**
+ * Legacy code that deals with both exporting (dashboard- and collection-style) and importing reports.
+ * Specialized to CSV files.
+ *
+ * TODO split into smaller, more specific classes
+ *
  * @author skublik
  */
-
 public class CsvController extends FileFormatController {
 
     private static final Trace LOGGER = TraceManager.getTrace(CsvController.class);
 
+    @NotNull private final CommonCsvSupport support;
+
     public CsvController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
         super(fileFormatConfiguration, report, reportService);
+        support = new CommonCsvSupport(fileFormatConfiguration);
     }
 
     @Override
@@ -64,8 +70,8 @@ public class CsvController extends FileFormatController {
                 .getObject(type, ref.getOid(), null, task, result)
                 .asObjectable();
 
-        CSVFormat csvFormat = createCsvFormat();
-        if (Boolean.TRUE.equals(isHeader())) {
+        CSVFormat csvFormat = support.createCsvFormat();
+        if (support.isHeader()) {
             String[] arrayHeader = new String[getHeadsOfWidget().size()];
             arrayHeader = getHeadsOfWidget().toArray(arrayHeader);
             csvFormat = csvFormat.withHeader(arrayHeader)
@@ -76,14 +82,15 @@ public class CsvController extends FileFormatController {
 
         try {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, getEncoding()), csvFormat);
+            CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, support.getEncoding()), csvFormat);
 
             long i = 1;
             task.setExpectedTotal((long) dashboard.getWidget().size());
+            task.flushPendingModifications(result);
 
             for (DashboardWidgetType widget : dashboard.getWidget()) {
                 recordProgress(task, i, result, LOGGER);
-                DashboardWidget widgetData = getReportService().getDashboardService().createWidgetData(widget, task, result);
+                DashboardWidget widgetData = dashboardService.createWidgetData(widget, task, result);
                 printer.printRecord(createTableRow(widgetData));
             }
 
@@ -119,21 +126,24 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, RunningTask task, OperationResult result) throws Exception {
-        initializationParameters(collectionConfig.getParameter(), task);
-        CompiledObjectCollectionView compiledCollection = getReportService().createCompiledView(collectionConfig, true, task, result);
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig,
+            RunningTask task, OperationResult result) throws CommonException {
+        initializeParameters(collectionConfig.getParameter(), task);
+        CompiledObjectCollectionView compiledCollection =
+                reportService.createCompiledView(collectionConfig, true, task, result);
 
         return createTableBox(collectionConfig.getCollection(), compiledCollection,
                     collectionConfig.getCondition(), collectionConfig.getSubreport(), result, task);
     }
 
-    private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition,
-            List<SubreportParameterType> subreports, OperationResult result, RunningTask task)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private byte[] createTableBox(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection,
+            ExpressionType condition, List<SubreportParameterType> subreports, OperationResult result, RunningTask task)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
 
-        Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
-        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
-        PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
+        Class<Containerable> type = reportService.resolveTypeForReport(collection, compiledCollection);
+        Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, schemaService);
+        PrismContainerDefinition<Containerable> def = schemaRegistry.findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
 
         List<String> headers = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();
@@ -177,8 +187,8 @@ public class CsvController extends FileFormatController {
         searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler,
                 options, task, result, true);
 
-        CSVFormat csvFormat = createCsvFormat();
-        if (Boolean.TRUE.equals(isHeader())) {
+        CSVFormat csvFormat = support.createCsvFormat();
+        if (support.isHeader()) {
             String[] arrayHeader = new String[headers.size()];
             arrayHeader = headers.toArray(arrayHeader);
             csvFormat = csvFormat.withHeader(arrayHeader)
@@ -189,7 +199,7 @@ public class CsvController extends FileFormatController {
 
         try {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, getEncoding()), csvFormat);
+            CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, support.getEncoding()), csvFormat);
             for (List<String> record : records) {
                 printer.printRecord(record.toArray());
             }
@@ -376,8 +386,7 @@ public class CsvController extends FileFormatController {
                 if (targetType == null) {
                     targetTypeClass = ObjectType.class;
                 } else {
-                    targetTypeClass = (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
-                            .getCompileTimeClassForObjectType(targetType);
+                    targetTypeClass = (Class<ObjectType>) schemaRegistry.getCompileTimeClassForObjectType(targetType);
                 }
                 ObjectQuery query = getReportService().getPrismContext().queryFor(targetTypeClass).item(ObjectType.F_NAME).eq(stringValue).build();
                 SearchResultList<PrismObject<ObjectType>> list = null;
@@ -484,7 +493,7 @@ public class CsvController extends FileFormatController {
         }
         List<String> headers = new ArrayList<>();
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
-        CSVFormat csvFormat = createCsvFormat();
+        CSVFormat csvFormat = support.createCsvFormat();
         if (compiledCollection != null) {
             List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
             Class<ObjectType> type = compiledCollection.getTargetClass(getReportService().getPrismContext());
@@ -500,7 +509,7 @@ public class CsvController extends FileFormatController {
         } else {
             csvFormat = csvFormat.withFirstRecordAsHeader();
         }
-        if (Boolean.TRUE.equals(isHeader())) {
+        if (support.isHeader()) {
             if (!headers.isEmpty()) {
                 String[] arrayHeader = new String[headers.size()];
                 arrayHeader = headers.toArray(arrayHeader);
@@ -524,7 +533,7 @@ public class CsvController extends FileFormatController {
             VariablesMap variables = new VariablesMap();
             for (String name : headers) {
                 String value;
-                if (isHeader()) {
+                if (support.isHeader()) {
                     value = csvRecord.get(name);
                 } else {
                     value = csvRecord.get(headers.indexOf(name));
@@ -554,56 +563,6 @@ public class CsvController extends FileFormatController {
         return value;
     }
 
-    public CSVFormat createCsvFormat() {
-        return CSVFormat.newFormat(toCharacter(getFieldDelimiter()))
-                .withAllowDuplicateHeaderNames(true)
-                .withAllowMissingColumnNames(false)
-                .withEscape(toCharacter(getEscape()))
-                .withIgnoreEmptyLines(true)
-                .withIgnoreHeaderCase(false)
-                .withIgnoreSurroundingSpaces(true)
-                .withQuote(toCharacter(getQuote()))
-                .withQuoteMode(QuoteMode.valueOf(getQuoteMode().name()))
-                .withRecordSeparator(getRecordSeparator())
-                .withTrailingDelimiter(isTrailingDelimiter())
-                .withTrim(isTrim());
-    }
-
-    private String getEncoding() {
-        return getCsvConfiguration().getEncoding() == null ? "utf-8" : getCsvConfiguration().getEncoding();
-    }
-
-    private boolean isHeader() {
-        return getCsvConfiguration().isHeader() == null ? true : getCsvConfiguration().isHeader();
-    }
-
-    private boolean isTrim() {
-        return getCsvConfiguration().isTrim() == null ? false : getCsvConfiguration().isTrim();
-    }
-
-    private boolean isTrailingDelimiter() {
-        return getCsvConfiguration().isTrailingDelimiter() == null ? false : getCsvConfiguration().isTrailingDelimiter();
-    }
-
-    private String getRecordSeparator() {
-        return getCsvConfiguration().getRecordSeparator() == null ? "\r\n" : getCsvConfiguration().getRecordSeparator();
-    }
-
-    private QuoteModeType getQuoteMode() {
-        return getCsvConfiguration().getQuoteMode() == null ? QuoteModeType.NON_NUMERIC : getCsvConfiguration().getQuoteMode();
-    }
-
-    private String getQuote() {
-        return getCsvConfiguration().getQuote() == null ? "\"" : getCsvConfiguration().getQuote();
-    }
-
-    private String getEscape() {
-        return getCsvConfiguration().getEscape() == null ? "\\" : getCsvConfiguration().getEscape();
-    }
-
-    private String getFieldDelimiter() {
-        return getCsvConfiguration().getFieldDelimiter() == null ? ";" : getCsvConfiguration().getFieldDelimiter();
-    }
 
     private CsvFileFormatType getCsvConfiguration() {
         if (getFileFormatConfiguration().getCsv() == null) {

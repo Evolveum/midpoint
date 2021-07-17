@@ -1876,7 +1876,25 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="report" type="tns:ReportDefinitionType" minOccurs="0">
+
+                <!-- Temporarily disabled because of inability to map from legacy handler URI (report/handler-3) to
+                     both export and import activities -->
+
+                <!--<xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">-->
+                <!--    <xsd:annotation>-->
+                <!--        <xsd:documentation>-->
+                <!--            TODO-->
+                <!--        </xsd:documentation>-->
+                <!--    </xsd:annotation>-->
+                <!--</xsd:element>-->
+                <!--<xsd:element name="reportImport" type="tns:ClassicReportImportWorkDefinitionType" minOccurs="0">-->
+                <!--    <xsd:annotation>-->
+                <!--        <xsd:documentation>-->
+                <!--            TODO-->
+                <!--        </xsd:documentation>-->
+                <!--    </xsd:annotation>-->
+                <!--</xsd:element>-->
+                <xsd:element name="distributedReportExport" type="tns:DistributedReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -3655,7 +3673,7 @@
             <xsd:element name="sequentialNumber" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Sequential number of give work bucket. Starting at 1.
+                        Sequential number of given work bucket. Starting at 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6224,7 +6242,7 @@
     </xsd:complexType>
     <xsd:element name="cleanupDefinition" type="tns:CleanupWorkDefinitionType"/>
 
-    <xsd:complexType name="ReportDefinitionType">
+    <xsd:complexType name="AbstractReportWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -6238,12 +6256,92 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <!-- TODO -->
+                    <xsd:element name="reportRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of the report: for either import or export direction.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO parameters? -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reportDefinition" type="tns:ReportDefinitionType"/>
+
+    <!-- currently unused -->
+    <xsd:complexType name="ClassicReportExportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType" />
+
+    <xsd:complexType name="DistributedReportExportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType" />
+
+    <!-- currently unused -->
+    <xsd:complexType name="ClassicReportImportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="reportDataRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report data to be imported.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType" />
 
     <xsd:complexType name="GenericParametersContainerType">
         <xsd:annotation>
@@ -6703,6 +6801,35 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
+
+    <xsd:complexType name="ReportExportWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="reportDataRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report data that have been exported
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType" />
 
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>

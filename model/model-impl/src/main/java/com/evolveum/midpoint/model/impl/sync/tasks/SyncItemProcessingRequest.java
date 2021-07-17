@@ -35,7 +35,7 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
     public SyncItemProcessingRequest(SE item, AbstractIterativeActivityExecution<SE, ?, ?, ?> activityExecution) {
-        super(item, activityExecution);
+        super(item.getSequentialNumber(), item, activityExecution);
     }
 
     @Override

@@ -36,6 +36,12 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  */
 public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
+    /**
+     * Number of this request within given context (e.g. a search operation/operations, or a synchronization operation).
+     * TODO deduplicate with SynchronizationEvent.sequentialNumber
+     */
+    private final int sequentialNumber;
+
     @NotNull protected final I item;
     @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution;
 
@@ -47,10 +53,16 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @Experimental // maybe will be removed
     @NotNull protected final String identifier;
 
-    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution) {
+    public ItemProcessingRequest(int sequentialNumber, @NotNull I item,
+            @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution) {
+        this.sequentialNumber = sequentialNumber;
         this.item = item;
         this.activityExecution = activityExecution;
         this.identifier = activityExecution.beans.lightweightIdentifierGenerator.generate().toString();
+    }
+
+    public int getSequentialNumber() {
+        return sequentialNumber;
     }
 
     public @NotNull I getItem() {

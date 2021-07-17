@@ -38,7 +38,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getReconciliation());
         addTypedParameters(values, definitions.getLiveSynchronization());
         addTypedParameters(values, definitions.getCleanup());
-        addTypedParameters(values, definitions.getReport());
+        addTypedParameters(values, definitions.getDistributedReportExport());
         addTypedParameters(values, definitions.getIterativeScripting());
         addTypedParameters(values, definitions.getFocusValidityScan());
         addTypedParameters(values, definitions.getTriggerScan());

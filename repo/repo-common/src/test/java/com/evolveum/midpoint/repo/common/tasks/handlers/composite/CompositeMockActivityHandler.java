@@ -78,7 +78,7 @@ public class CompositeMockActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         if (workDefinition.isOpeningEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition(),
+                    parentActivity.getDefinition().clone(),
                     (context, result) -> new MockOpeningActivityExecution(context),
                     this::runBeforeExecution,
                     (i) -> "opening",
@@ -87,7 +87,7 @@ public class CompositeMockActivityHandler
         }
         if (workDefinition.isClosingEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition(),
+                    parentActivity.getDefinition().clone(),
                     (context, result) -> new MockClosingActivityExecution(context),
                     this::runBeforeExecution,
                     (i) -> "closing",

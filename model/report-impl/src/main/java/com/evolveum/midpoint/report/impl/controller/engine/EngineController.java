@@ -28,9 +28,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * TODO documentation e.g. responsibilities of this class
+ *
  * @author skublik
  */
-
 public abstract class EngineController {
 
     private static final Trace LOGGER = TraceManager.getTrace(EngineController.class);
@@ -45,7 +46,7 @@ public abstract class EngineController {
 
     public abstract FileFormatTypeType getDefaultFileFormat();
 
-    String getDestinationFileName(ReportType reportType, FileFormatController fileFormatController) {
+    public String getDestinationFileName(ReportType reportType, FileFormatController fileFormatController) {
         File exportDir = getExportDir();
         if (!exportDir.exists() || !exportDir.isDirectory()) {
             if (!exportDir.mkdir()) {

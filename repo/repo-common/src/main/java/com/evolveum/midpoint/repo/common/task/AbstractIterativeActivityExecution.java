@@ -201,9 +201,10 @@ public abstract class AbstractIterativeActivityExecution<
      *
      * TODO better name, independent of the bucketing
      */
-    protected void executeSingleBucket(OperationResult opResult) throws ActivityExecutionException, CommonException {
+    void executeSingleBucket(OperationResult opResult) throws ActivityExecutionException, CommonException {
         prepareItemSource(opResult);
-        onPreparedItemSource(opResult);
+
+        beforeBucketExecution(opResult);
 
         setExpectedTotal(opResult);
 
@@ -220,6 +221,8 @@ public abstract class AbstractIterativeActivityExecution<
             // But overall, it is necessary to do this here in order to avoid endless waiting if any exception occurs.
             coordinator.finishProcessing(opResult);
         }
+
+        afterBucketExecution(opResult);
 
         updateOperationResultStatus(opResult);
 
@@ -253,8 +256,12 @@ public abstract class AbstractIterativeActivityExecution<
     protected void prepareItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
     }
 
-    /** TODO */
-    protected void onPreparedItemSource(OperationResult opResult) throws ActivityExecutionException, CommonException {
+    /** Called before bucket is executed. Item source is now prepared. */
+    protected void beforeBucketExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
+    }
+
+    /** Called after bucket is executed. Item source is now prepared. */
+    protected void afterBucketExecution(OperationResult opResult) throws ActivityExecutionException, CommonException {
     }
 
     /**

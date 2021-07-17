@@ -64,7 +64,7 @@ public class WorkDefinitionFactory {
         }
     }
 
-    private WorkDefinition getWorkFromBean(WorkDefinitionWrapper definitionWrapper) {
+    private WorkDefinition getWorkFromBean(WorkDefinitionWrapper definitionWrapper) throws SchemaException {
         QName typeName = definitionWrapper.getBeanTypeName();
         WorkDefinitionSupplier supplier = MiscUtil.requireNonNull(
                 byTypeName.get(typeName),
@@ -72,7 +72,7 @@ public class WorkDefinitionFactory {
         return supplier.provide(definitionWrapper);
     }
 
-    WorkDefinition getWorkFromTaskLegacy(Task task) {
+    WorkDefinition getWorkFromTaskLegacy(Task task) throws SchemaException {
         String handlerUri = task.getHandlerUri();
         if (handlerUri == null) {
             return null;
@@ -90,6 +90,6 @@ public class WorkDefinitionFactory {
 
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionSource source);
+        WorkDefinition provide(@NotNull WorkDefinitionSource source) throws SchemaException;
     }
 }

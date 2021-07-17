@@ -28,15 +28,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.report.impl.controller.fileformat.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,7 +56,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -920,5 +918,46 @@ public class ReportUtils {
 
     private static File getExportDir() {
         return new File(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), EXPORT_DIR_NAME);
+    }
+
+    public static @NotNull DirectionTypeType getDirection(@NotNull ReportType report) {
+        return report.getBehavior() != null && report.getBehavior().getDirection() != null ?
+                report.getBehavior().getDirection() : DirectionTypeType.EXPORT;
+    }
+
+    public static FileFormatController createExportController(ReportType report, FileFormatTypeType defaultType,
+            ReportServiceImpl reportService) {
+        FileFormatConfigurationType fileFormat;
+        if (report.getFileFormat() == null || report.getFileFormat().getType() == null) {
+            fileFormat = new FileFormatConfigurationType(PrismContext.get());
+            fileFormat.setType(defaultType);
+        } else {
+            fileFormat = report.getFileFormat();
+        }
+        switch (fileFormat.getType()) {
+            case HTML:
+                return new HtmlController(fileFormat, report, reportService);
+            case CSV:
+                return new CsvController(fileFormat, report, reportService);
+            default:
+                throw new IllegalArgumentException("Unsupported ExportType " + fileFormat);
+        }
+    }
+
+    public static ReportDataWriter createDataWriter(@NotNull ReportType report, @NotNull FileFormatTypeType defaultType) {
+        FileFormatTypeType formatType;
+        if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
+            formatType = report.getFileFormat().getType();
+        } else {
+            formatType = defaultType;
+        }
+        switch (formatType) {
+            case HTML:
+                return new HtmlReportDataWriter();
+            case CSV:
+                return new CsvReportDataWriter(report.getFileFormat());
+            default:
+                throw new AssertionError(formatType);
+        }
     }
 }

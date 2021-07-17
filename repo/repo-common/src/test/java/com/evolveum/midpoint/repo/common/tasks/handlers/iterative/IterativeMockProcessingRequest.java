@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 class IterativeMockProcessingRequest extends ItemProcessingRequest<Integer> {
 
     IterativeMockProcessingRequest(@NotNull Integer item, @NotNull IterativeMockActivityExecution activityExecution) {
-        super(item, activityExecution);
+        super(item, item, activityExecution);
     }
 
     @Override

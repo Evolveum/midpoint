@@ -16,6 +16,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The "real" execution of an activity - i.e. not a delegation nor a distribution.
+ */
 public abstract class LocalActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,

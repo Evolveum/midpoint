@@ -17,10 +17,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -44,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
@@ -108,6 +106,8 @@ public abstract class AbstractSearchIterativeActivityExecution<
      * It is used to narrow the search query.
      */
     protected WorkBucketType bucket;
+
+    @NotNull private final AtomicInteger sequentialNumberCounter = new AtomicInteger(0);
 
     public AbstractSearchIterativeActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
             @NotNull String shortNameCapitalized) {
@@ -513,7 +513,8 @@ public abstract class AbstractSearchIterativeActivityExecution<
      */
     protected final ResultHandler<O> createSearchResultHandler() {
         return (object, parentResult) -> {
-            ObjectProcessingRequest<O> request = new ObjectProcessingRequest<>(object, this);
+            ObjectProcessingRequest<O> request =
+                    new ObjectProcessingRequest<>(sequentialNumberCounter.getAndIncrement(), object, this);
             return coordinator.submit(request, parentResult);
         };
     }

@@ -1952,6 +1952,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
     }
 
+    // TODO deduplicate with getSearchSpecificationFromCollection
     @Override
     public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
@@ -1988,15 +1989,60 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private void checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
+    @Override
+    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CollectionRefSpecificationType collectionConfig,
+            QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
+            Task task, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        SearchSpec<C> searchSpec = new SearchSpec<>();
+
+        if (collectionConfig != null && collectionConfig.getCollectionRef() != null &&
+                collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+
+        Class<C> type;
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        } else {
+            type = null;
+        }
+
+        if (collectionConfig != null) {
+            CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, result);
+            //noinspection unchecked
+            searchSpec.type = (Class<C>) determineTypeForSearch(compiledCollection, typeForFilter);
+            searchSpec.query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
+            searchSpec.options = determineOptionsForSearch(compiledCollection, defaultOptions);
+        } else {
+            searchSpec.type = type;
+            searchSpec.query = null;
+            searchSpec.options = defaultOptions;
+        }
+
+        if (AuditEventRecordType.class.equals(type)) {
+            searchSpec.query = checkOrdering(searchSpec.query, AuditEventRecordType.F_TIMESTAMP);
+        } else if (type != null && ObjectType.class.isAssignableFrom(type)) {
+            searchSpec.query = checkOrdering(searchSpec.query, ObjectType.F_NAME);
+        }
+        return searchSpec;
+    }
+
+    private ObjectQuery checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
         if (query != null) {
             if (query.getPaging() == null) {
                 ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
-            } else if (query.getPaging().getOrderBy() == null){
+            } else if (query.getPaging().getOrderBy() == null) {
                 query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
             }
+            return query;
+        } else {
+            return prismContext.queryFactory().createQuery(
+                    prismContext.queryFactory().createPaging(defaultOrderBy, OrderDirection.ASCENDING));
         }
     }
 
@@ -2092,7 +2138,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     }
 
-    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables, ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+    private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables,
+            ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
         if (filter == null) {

@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,9 +29,7 @@ import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.DashboardEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.EngineController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.CsvController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.HtmlController;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -80,10 +80,7 @@ public class ReportTaskHandler implements TaskHandler {
                     "resolving report", task, result);
 
             ReportBehaviorType behaviour = report.getBehavior();
-            DirectionTypeType direction = null;
-            if (behaviour != null) {
-                direction = behaviour.getDirection();
-            }
+            DirectionTypeType direction = ReportUtils.getDirection(report);
 
             String reportDataFilePath;
             if (DirectionTypeType.IMPORT.equals(direction)) {
@@ -148,6 +145,10 @@ public class ReportTaskHandler implements TaskHandler {
         return runResult;
     }
 
+    private FileFormatController resolveExport(ReportType report, FileFormatTypeType defaultFileFormat) {
+        return ReportUtils.createExportController(report, defaultFileFormat, reportService);
+    }
+
     private void importScriptProcessing(ReportType report, ReportDataType reportData, ExecuteScriptType script,
             FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
         List<VariablesMap> listOfVariables = fileFormatController.createVariablesFromFile(report, reportData, true, task, result);
@@ -177,32 +178,14 @@ public class ReportTaskHandler implements TaskHandler {
         throw new IllegalArgumentException("Report don't contains engine");
     }
 
-    private FileFormatController resolveExport(ReportType parentReport, FileFormatTypeType defaultType) {
-        FileFormatConfigurationType fileFormat;
-        if (parentReport.getFileFormat() == null || parentReport.getFileFormat().getType() == null) {
-            fileFormat = new FileFormatConfigurationType();
-            fileFormat.setType(defaultType);
-        } else {
-            fileFormat = parentReport.getFileFormat();
-        }
-        switch (fileFormat.getType()) {
-            case HTML:
-                return new HtmlController(fileFormat, parentReport, reportService);
-            case CSV:
-                return new CsvController(fileFormat, parentReport, reportService);
-            default:
-                LOGGER.error("Unsupported ExportType " + fileFormat);
-                throw new IllegalArgumentException("Unsupported ExportType " + fileFormat);
-        }
-    }
-
     @Override
     public String getArchetypeOid(@Nullable String handlerUri) {
         return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
     }
 
-    private void saveReportDataType(String filePath, ReportType reportType, FileFormatController fileFormatController, Task task,
-            OperationResult parentResult) throws Exception {
+    // Temporarily reused from ReportDataAggregationActivityExecution
+    public void saveReportDataType(String filePath, ReportType reportType, FileFormatController fileFormatController, Task task,
+            OperationResult parentResult) throws CommonException {
 
         String fileName = FilenameUtils.getBaseName(filePath);
         String reportDataName = fileName + " - " + fileFormatController.getType();
