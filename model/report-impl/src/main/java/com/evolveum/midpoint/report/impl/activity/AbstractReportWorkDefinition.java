@@ -19,6 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Work definition for report export and imports.
+ *
+ * TODO add support for report parameters here
+ */
 public class AbstractReportWorkDefinition extends AbstractWorkDefinition {
 
     @NotNull private final ObjectReferenceType reportRef;

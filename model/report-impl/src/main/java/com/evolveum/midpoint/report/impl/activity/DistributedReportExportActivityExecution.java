@@ -14,16 +14,16 @@ import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
 /**
- * There's nothing special to do here.
+ * There's nothing special to do here. This is a simple composite activity.
  */
 class DistributedReportExportActivityExecution
         extends AbstractCompositeActivityExecution
-        <DistributedReportWorkDefinition,
+        <DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler,
                 ReportExportWorkStateType> {
 
     DistributedReportExportActivityExecution(
-            @NotNull ExecutionInstantiationContext<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context);
     }
 }

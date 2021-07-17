@@ -1880,24 +1880,25 @@
                 <!-- Temporarily disabled because of inability to map from legacy handler URI (report/handler-3) to
                      both export and import activities -->
 
-                <!--<xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">-->
-                <!--    <xsd:annotation>-->
-                <!--        <xsd:documentation>-->
-                <!--            TODO-->
-                <!--        </xsd:documentation>-->
-                <!--    </xsd:annotation>-->
-                <!--</xsd:element>-->
-                <!--<xsd:element name="reportImport" type="tns:ClassicReportImportWorkDefinitionType" minOccurs="0">-->
-                <!--    <xsd:annotation>-->
-                <!--        <xsd:documentation>-->
-                <!--            TODO-->
-                <!--        </xsd:documentation>-->
-                <!--    </xsd:annotation>-->
-                <!--</xsd:element>-->
+                <xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Exports report of any containerable (either from audit or from the repository).
+                            Supports multithreading but not bucketing (multi-node mode).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="reportImport" type="tns:ClassicReportImportWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Imports a report. Supports multithreading.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="distributedReportExport" type="tns:DistributedReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Exports report of repository objects. Supports bucketing (multi-node mode) and multithreading.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -6304,15 +6305,11 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractReportWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="objects" type="tns:ObjectSetType" minOccurs="0"/>
-                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType" />
 
-    <!-- currently unused -->
     <xsd:complexType name="ClassicReportImportWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>

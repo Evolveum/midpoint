@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStat
 class ReportDataAggregationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ReportDataType,
-                DistributedReportWorkDefinition,
+                DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler,
                 ReportDataAggregationActivityExecution,
                 ReportExportWorkStateType> {
@@ -66,7 +66,7 @@ class ReportDataAggregationActivityExecution
     private FileFormatController fileFormatController;
 
     ReportDataAggregationActivityExecution(
-            @NotNull ExecutionInstantiationContext<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
         support = new ActivityExecutionSupport(context);
     }

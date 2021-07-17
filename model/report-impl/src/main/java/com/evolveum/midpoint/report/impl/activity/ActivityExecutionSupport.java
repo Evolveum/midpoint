@@ -40,7 +40,7 @@ import static java.util.Objects.requireNonNull;
 class ActivityExecutionSupport {
 
     @NotNull private final RunningTask runningTask;
-    @NotNull private final Activity<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> activity;
+    @NotNull private final Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity;
     @NotNull private final CommonTaskBeans beans;
 
     /**
@@ -54,7 +54,7 @@ class ActivityExecutionSupport {
     private ObjectReferenceType globalReportDataRef;
 
     ActivityExecutionSupport(
-            ExecutionInstantiationContext<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         runningTask = context.getTaskExecution().getRunningTask();
         activity = context.getActivity();
         beans = context.getTaskExecution().getBeans();
@@ -83,7 +83,7 @@ class ActivityExecutionSupport {
     }
 
     private void setupReportObject(OperationResult result) throws CommonException {
-        DistributedReportWorkDefinition workDefinition = activity.getWorkDefinition();
+        DistributedReportExportWorkDefinition workDefinition = activity.getWorkDefinition();
         report = activity.getHandler().objectResolver.resolve(workDefinition.getReportRef(), ReportType.class,
                 null, "resolving report", runningTask, result);
     }

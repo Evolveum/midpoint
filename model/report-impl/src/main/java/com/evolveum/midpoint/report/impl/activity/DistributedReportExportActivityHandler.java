@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStat
  */
 @Component
 public class DistributedReportExportActivityHandler
-        implements ActivityHandler<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> {
+        implements ActivityHandler<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DistributedReportExportActivityHandler.class);
 
@@ -68,19 +68,19 @@ public class DistributedReportExportActivityHandler
     @PostConstruct
     public void register() {
         registry.register(DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
-                DistributedReportWorkDefinition.class, DistributedReportWorkDefinition::new, this);
+                DistributedReportExportWorkDefinition.class, DistributedReportExportWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         registry.unregister(DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, null,
-                DistributedReportWorkDefinition.class);
+                DistributedReportExportWorkDefinition.class);
     }
 
     @NotNull
     @Override
     public DistributedReportExportActivityExecution createExecution(
-            @NotNull ExecutionInstantiationContext<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> context,
+            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context,
             @NotNull OperationResult result) {
         return new DistributedReportExportActivityExecution(context);
     }
@@ -92,7 +92,7 @@ public class DistributedReportExportActivityHandler
 
     @Override
     public ArrayList<Activity<?, ?>> createChildActivities(
-            Activity<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> parentActivity) {
+            Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
@@ -112,7 +112,7 @@ public class DistributedReportExportActivityHandler
     }
 
     private void createEmptyAggregatedDataObject(
-            EmbeddedActivity<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> activity,
+            EmbeddedActivity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
         ActivityState activityState =
                 ActivityState.getActivityStateUpwards(

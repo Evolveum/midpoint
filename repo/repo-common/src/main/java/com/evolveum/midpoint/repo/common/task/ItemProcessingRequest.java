@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
@@ -100,9 +101,14 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
         return activityExecution.getRootTaskOid();
     }
 
-    protected @NotNull QName getType(PrismObject<?> object) {
+    protected @NotNull QName getType(@NotNull PrismObject<?> object) {
         return Objects.requireNonNull(
                 getPrismContext().getSchemaRegistry().determineTypeForClass(object.getCompileTimeClass()));
+    }
+
+    protected @NotNull QName getType(@NotNull Containerable value) {
+        return Objects.requireNonNull(
+                getPrismContext().getSchemaRegistry().determineTypeForClass(value.getClass()));
     }
 
     /**

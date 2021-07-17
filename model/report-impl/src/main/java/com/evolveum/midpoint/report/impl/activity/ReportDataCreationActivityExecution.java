@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 public class ReportDataCreationActivityExecution
         extends AbstractSearchIterativeActivityExecution
         <ObjectType,
-                DistributedReportWorkDefinition,
+                DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler,
                 ReportDataCreationActivityExecution,
                 ReportExportWorkStateType> {
@@ -77,7 +77,7 @@ public class ReportDataCreationActivityExecution
     @NotNull private final ReportServiceImpl reportService;
 
     ReportDataCreationActivityExecution(
-            @NotNull ExecutionInstantiationContext<DistributedReportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Data creation");
         reportService = context.getActivity().getHandler().reportService;
         support = new ActivityExecutionSupport(context);
