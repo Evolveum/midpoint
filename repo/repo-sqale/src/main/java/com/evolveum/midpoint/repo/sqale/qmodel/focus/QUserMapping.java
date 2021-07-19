@@ -60,7 +60,8 @@ public class QUserMapping
                 q -> q.nickNameOrig, q -> q.nickNameNorm));
         addItemMapping(F_TITLE, polyStringMapper(
                 q -> q.titleOrig, q -> q.titleNorm));
-        // TODO poly arrays
+        addItemMapping(F_ORGANIZATION, multiPolyStringMapper(q -> q.organizations));
+        addItemMapping(F_ORGANIZATIONAL_UNIT, multiPolyStringMapper(q -> q.organizationUnits));
     }
 
     @Override

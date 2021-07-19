@@ -255,6 +255,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
                         .policySituation("situationB")
+                        .organization("org-1") // orgs and ous are polys stored in JSONB arrays
+                        .organization("org-2")
+                        .organizationalUnit("ou-1")
+                        .organizationalUnit("ou-2")
                         .asPrismObject(),
                 null, result);
 
@@ -507,7 +511,21 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test150SearchShadowByObjectClass() throws SchemaException {
+    public void test150SearchUserByOrganizations() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATION).eq("org-1").matchingOrig(),
+                user4Oid);
+    }
+
+    @Test
+    public void test151SearchUserByOrganizationUnits() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).eq(new PolyString("ou-1")),
+                user4Oid);
+    }
+
+    @Test
+    public void test160SearchShadowByObjectClass() throws SchemaException {
         // this uses URI mapping with QName instead of String
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
