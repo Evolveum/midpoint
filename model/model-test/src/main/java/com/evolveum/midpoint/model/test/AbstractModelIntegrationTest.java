@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,13 +26,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
-import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
-import com.evolveum.midpoint.schema.statistics.*;
-
-import com.evolveum.midpoint.task.api.TaskUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -100,16 +92,20 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.repo.common.task.task.GenericTaskHandler;
+import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -118,9 +114,9 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
@@ -1565,7 +1561,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(
             String userOid, Long id, ConstructionType newValue) {
-        PrismContainerDefinition pcd = getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
+        PrismContainerDefinition<ConstructionType> pcd =
+                getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
         ContainerDelta<ConstructionType> acDelta = prismContext.deltaFactory().container().create(
                 ItemPath.create(UserType.F_ASSIGNMENT, id, AssignmentType.F_CONSTRUCTION), pcd);
         acDelta.setValueToReplace(newValue.asPrismContainerValue());
@@ -2611,7 +2608,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             }
         }
-        AssertJUnit.fail(user.toString() + " does not have account assignment for resource " + resourceOid);
+        AssertJUnit.fail(user + " does not have account assignment for resource " + resourceOid);
         return null; // not reached
     }
 
@@ -2624,7 +2621,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     continue;
                 }
                 if (resourceOid.equals(construction.getResourceRef().getOid())) {
-                    AssertJUnit.fail(user.toString() + " has account assignment for resource " + resourceOid + " while expecting no such assignment");
+                    AssertJUnit.fail(user + " has account assignment for resource " + resourceOid + " while expecting no such assignment");
                 }
             }
         }
@@ -4099,7 +4096,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException, InterruptedException {
+    protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName)
+            throws SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account = getDummyAccount(dummyInstanceName, username);
         assertNotNull("No dummy " + dummyInstanceName + " account for username " + username, account);
         Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -4110,7 +4108,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 ". Values found: " + values);
     }
 
-    protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
+    protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username)
+            throws SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account = getDummyAccount(dummyInstanceName, username);
         assertNotNull("No dummy account for username " + username, account);
         Integer generated = account.getAttributeValue(DummyAccount.ATTR_INTERNAL_ID, Integer.class);
@@ -4119,7 +4118,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected DummyGroup getDummyGroup(String dummyInstanceName, String name) throws SchemaViolationException, ConflictException, InterruptedException {
+    protected DummyGroup getDummyGroup(String dummyInstanceName, String name)
+            throws SchemaViolationException, ConflictException, InterruptedException {
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getGroupByName(name);
@@ -4128,41 +4128,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertDummyGroup(String username, String description) throws SchemaViolationException, ConflictException, InterruptedException {
+    protected void assertDummyGroup(String username, String description)
+            throws SchemaViolationException, ConflictException, InterruptedException {
         assertDummyGroup(null, username, description, null);
     }
 
-    protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
-        DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
-        assertNotNull("No dummy(" + dummyInstanceName + ") group for name " + groupname, group);
-        assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupname, description,
+    protected void assertDummyGroup(String dummyInstanceName, String groupName, String description, Boolean active)
+            throws SchemaViolationException, ConflictException, InterruptedException {
+        DummyGroup group = getDummyGroup(dummyInstanceName, groupName);
+        assertNotNull("No dummy(" + dummyInstanceName + ") group for name " + groupName, group);
+        assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupName, description,
                 group.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         if (active != null) {
-            assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") group " + groupname, active, group.isEnabled());
+            assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") group " + groupName, active, group.isEnabled());
         }
     }
 
-    protected void assertNoDummyGroup(String groupname) throws SchemaViolationException, ConflictException, InterruptedException {
-        assertNoDummyGroup(null, groupname);
+    protected void assertNoDummyGroup(String groupName) throws SchemaViolationException, ConflictException, InterruptedException {
+        assertNoDummyGroup(null, groupName);
     }
 
-    protected void assertNoDummyGroup(String dummyInstanceName, String groupname) throws SchemaViolationException, ConflictException, InterruptedException {
-        DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
-        assertNull("Dummy group '" + groupname + "' exists while not expecting it (" + dummyInstanceName + ")", group);
+    protected void assertNoDummyGroup(String dummyInstanceName, String groupName)
+            throws SchemaViolationException, ConflictException, InterruptedException {
+        DummyGroup group = getDummyGroup(dummyInstanceName, groupName);
+        assertNull("Dummy group '" + groupName + "' exists while not expecting it (" + dummyInstanceName + ")", group);
     }
 
-    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException, InterruptedException {
-        DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
-        assertNotNull("No dummy group for groupname " + groupname, group);
+    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupName, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException, InterruptedException {
+        DummyGroup group = getDummyGroup(dummyInstanceName, groupName);
+        assertNotNull("No dummy group for group name " + groupName, group);
         Set<Object> values = group.getAttributeValues(attributeName, Object.class);
         if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
             return;
         }
-        assertNotNull("No values for attribute " + attributeName + " of " + dummyInstanceName + " dummy group " + groupname, values);
-        assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy group " + groupname + ": " + values, expectedAttributeValues.length, values.size());
+        assertNotNull("No values for attribute " + attributeName + " of " + dummyInstanceName + " dummy group " + groupName, values);
+        assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy group " + groupName + ": " + values, expectedAttributeValues.length, values.size());
         for (Object expectedValue : expectedAttributeValues) {
             if (!values.contains(expectedValue)) {
-                AssertJUnit.fail("Value '" + expectedValue + "' expected in attribute " + attributeName + " of dummy group " + groupname +
+                AssertJUnit.fail("Value '" + expectedValue + "' expected in attribute " + attributeName + " of dummy group " + groupName +
                         " but not found. Values found: " + values);
             }
         }
@@ -4185,7 +4188,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         IntegrationTestTools.assertNoGroupMember(group, accountId);
     }
 
-    protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         assertNoDummyGroupMember(null, dummyGroupName, accountId);
     }
 
@@ -5047,7 +5051,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
     }
 
-    protected <O extends ObjectType> void assertCreateMetadata(
+    protected void assertCreateMetadata(
             AssignmentType assignmentType, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         MetadataType metadataType = assignmentType.getMetadata();
         PrismObject<UserType> defaultActor = getDefaultActor();
@@ -5208,13 +5212,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected PrismObject<UserType> getUserFromRepo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return repositoryService.getObject(UserType.class, oid, null, result);
-    }
-
-    // just guessing (good enough for testing)
-    protected boolean isH2() {
-        Task task = createTask("isH2");
-        RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, task.getResult());
-        return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
     }
 
     protected void assertNoPostponedOperation(PrismObject<ShadowType> shadow) {
@@ -5915,8 +5912,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @NotNull
     private Collection<SelectorOptions<GetOperationOptions>> createReadOnly() {
         return schemaService.getOperationOptionsBuilder()
-                    .readOnly()
-                    .build();
+                .readOnly()
+                .build();
     }
 
     protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {

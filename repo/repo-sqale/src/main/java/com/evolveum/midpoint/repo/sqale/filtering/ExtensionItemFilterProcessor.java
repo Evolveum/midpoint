@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 import static com.querydsl.core.types.dsl.Expressions.booleanTemplate;
 import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.EXT_POLY_NORM_KEY;
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.EXT_POLY_ORIG_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_NORM_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
@@ -99,7 +99,6 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
         PropertyValueFilter<?> propertyValueFilter = (PropertyValueFilter<?>) filter;
         ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
-        // TODO where do we want tu support eq with multiple values?
         FilterOperation operation = operation(filter);
 
         List<?> filterValues = filter.getValues();
@@ -109,6 +108,11 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             } else {
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
+        }
+        if (filterValues.size() > 1) {
+            // TODO where do we want to support eq with multiple values?
+            throw new QueryException(
+                    "Multiple values in filter are not supported for extension items: " + filter);
         }
 
         if (extItem.valueType.equals(STRING_TYPE)) {
@@ -294,21 +298,15 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
                 || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
             // The value here should be poly-string, otherwise it never matches both orig and norm.
-            return ExpressionUtils.and(
-                    processPolyString(
-                            extItem, convertPolyValuesToString(values, filter, p -> p.getOrig()),
-                            EXT_POLY_ORIG_KEY, operation),
-                    processPolyString(
-                            extItem, convertPolyValuesToString(values, filter, p -> p.getNorm()),
-                            EXT_POLY_NORM_KEY, operation));
+            return processPolyStringBoth(extItem, values, operation);
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
-            return processPolyString(
+            return processPolyStringComponent(
                     extItem, convertPolyValuesToString(values, filter, p -> p.getOrig()),
-                    EXT_POLY_ORIG_KEY, operation);
+                    JSONB_POLY_ORIG_KEY, operation);
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
-            return processPolyString(
+            return processPolyStringComponent(
                     extItem, convertPolyValuesToString(values, filter, p -> p.getNorm()),
-                    EXT_POLY_NORM_KEY, operation);
+                    JSONB_POLY_NORM_KEY, operation);
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
@@ -326,10 +324,40 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         return ValueFilterValues.from((PropertyValueFilter<PolyString>) filter, extractor);
     }
 
-    // Here the values are Strings already
-    private Predicate processPolyString(
-            MExtItem extItem, ValueFilterValues<?, ?> values, String subKey, FilterOperation operation)
+    private Predicate processPolyStringBoth(
+            MExtItem extItem, ValueFilterValues<?, ?> values, FilterOperation operation) {
+        PolyString poly = (PolyString) values.singleValueRaw(); // must be Poly here
+        assert poly != null; // empty values treated in main process()
+
+        if (extItem.cardinality == SCALAR) {
+            if (operation.isEqualOperation()) {
+                return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
+                        String.format("{\"%d\":{\"" + JSONB_POLY_ORIG_KEY + "\":\"%s\",\""
+                                        + JSONB_POLY_NORM_KEY + "\":\"%s\"}}",
+                                extItem.id, poly.getOrig(), poly.getNorm())));
+            } else {
+                return ExpressionUtils.and(
+                        singleValuePredicate(
+                                stringTemplate("{0}->'{1s}'->>'{2s}'",
+                                        path, extItem.id, JSONB_POLY_ORIG_KEY),
+                                operation, poly.getOrig()),
+                        singleValuePredicate(
+                                stringTemplate("{0}->'{1s}'->>'{2s}'",
+                                        path, extItem.id, JSONB_POLY_NORM_KEY),
+                                operation, poly.getNorm()));
+            }
+        } else { // multi-value ext item, only EQ operation can get here
+            return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
+                    String.format("{\"%d\":[{\"" + JSONB_POLY_ORIG_KEY + "\":\"%s\",\""
+                                    + JSONB_POLY_NORM_KEY + "\":\"%s\"}]}",
+                            extItem.id, poly.getOrig(), poly.getNorm())));
+        }
+    }
+
+    private Predicate processPolyStringComponent(MExtItem extItem,
+            ValueFilterValues<?, ?> values, String subKey, FilterOperation operation)
             throws QueryException {
+        // Here the values are converted to Strings already
         if (extItem.cardinality == SCALAR) {
             if (operation.isEqualOperation()) {
                 return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,

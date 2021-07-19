@@ -60,6 +60,8 @@ public class QUserMapping
                 q -> q.nickNameOrig, q -> q.nickNameNorm));
         addItemMapping(F_TITLE, polyStringMapper(
                 q -> q.titleOrig, q -> q.titleNorm));
+        addItemMapping(F_ORGANIZATION, multiPolyStringMapper(q -> q.organizations));
+        addItemMapping(F_ORGANIZATIONAL_UNIT, multiPolyStringMapper(q -> q.organizationUnits));
     }
 
     @Override
@@ -90,10 +92,8 @@ public class QUserMapping
                 o -> row.honorificSuffixOrig = o, n -> row.honorificSuffixNorm = n);
         setPolyString(user.getNickName(), o -> row.nickNameOrig = o, n -> row.nickNameNorm = n);
         setPolyString(user.getTitle(), o -> row.titleOrig = o, n -> row.titleNorm = n);
-
-        // TODO:
-        // user.getOrganizationalUnit() -> m_user_organizational_unit
-        // user.getOrganization() -> m_user_organization
+        row.organizations = polyStringsToJsonb(user.getOrganization());
+        row.organizationUnits = polyStringsToJsonb(user.getOrganizationalUnit());
 
         return row;
     }

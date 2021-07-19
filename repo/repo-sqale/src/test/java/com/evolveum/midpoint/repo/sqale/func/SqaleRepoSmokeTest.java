@@ -62,6 +62,20 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test010TestRepositorySelfTest() {
+        OperationResult result = createOperationResult();
+
+        when("repository self test is called");
+        repositoryService.repositorySelfTest(result);
+
+        expect("operation is successful and contains info about round-trip time to DB");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(result.getReturn("database-round-trip-ms"))
+                .isNotNull()
+                .hasSize(1);
+    }
+
+    @Test
     public void test100AddObject() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 

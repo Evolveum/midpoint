@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -67,7 +67,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     private static final String USER_GIVEN_NAME = "Fëľïx";
     private static final String USER_FAMILY_NAME = "Ţæĺêké";
     private static final String[] USER_ORGANIZATION = { "COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła" };
-    private static final String[] USER_EMPLOYEE_TYPE = { "Ģŗąfųŀą", "CANTATOR" };
+    private static final String[] USER_SUBTYPE = { "Ģŗąfųŀą", "CANTATOR" };
 
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
@@ -116,10 +116,14 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     @Override
-    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
+    public void repositoryTestOrgClosureConsistency(
+            Task task, boolean repairIfNecessary, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.createSubresult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);    // only admin can do this
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
+                    AuthorizationParameters.EMPTY, null, task, result); // only admin can do this
             repositoryService.testOrgClosureConsistency(repairIfNecessary, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -130,7 +134,10 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     @Override
-    public RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
+    public RepositoryQueryDiagResponse executeRepositoryQuery(
+            RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
         try {
             boolean isAdmin;
@@ -139,7 +146,8 @@ public class ModelDiagController implements ModelDiagnosticService {
                 isAdmin = false;
             } else {
                 // otherwise admin authorization is required
-                securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+                securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
+                        AuthorizationParameters.EMPTY, null, task, result);
                 isAdmin = true;
             }
             RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
@@ -164,7 +172,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 
         OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
         try {
-            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null,
+                    AuthorizationParameters.EMPTY, null, task, result);
             return mappingDiagEvaluator.evaluateMapping(request, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -210,8 +219,8 @@ public class ModelDiagController implements ModelDiagnosticService {
         userType.setGivenName(toPolyStringType(USER_GIVEN_NAME));
         userType.setFamilyName(toPolyStringType(USER_FAMILY_NAME));
         userType.setTitle(toPolyStringType(INSANE_NATIONAL_STRING));
-        userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[0]);
-        userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[1]);
+        userType.subtype(USER_SUBTYPE[0]);
+        userType.subtype(USER_SUBTYPE[1]);
         userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[0]));
         userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[1]));
 
@@ -234,7 +243,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             }
 
             // MID-1116
-            if (repositorySelfTestUserSearch(name, UserType.F_EMPLOYEE_TYPE, USER_EMPLOYEE_TYPE[1], result)) {
+            if (repositorySelfTestUserSearch(name, UserType.F_SUBTYPE, USER_SUBTYPE[0], result)) {
                 return;
             }
 
@@ -257,8 +266,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     }
 
-    private boolean repositorySelfTestUserSearch(String userName, ItemName itemName, Object itemValue, OperationResult result) {
-        OperationResult subresult = result.createSubresult(result.getOperation() + ".searchObjects" + itemName.getLocalPart());
+    private boolean repositorySelfTestUserSearch(
+            String userName, ItemName itemName, Object itemValue, OperationResult result) {
+        OperationResult subresult = result.createSubresult(
+                result.getOperation() + ".searchObjects" + itemName.getLocalPart());
         try {
 
             ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -310,7 +321,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         checkObjectPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
         checkObjectPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
         checkObjectPropertyPolyString(userRetrieved, UserType.F_TITLE, subresult, INSANE_NATIONAL_STRING);
-        checkObjectProperty(userRetrieved, UserType.F_EMPLOYEE_TYPE, subresult, USER_EMPLOYEE_TYPE);
+        checkObjectProperty(userRetrieved, UserType.F_SUBTYPE, subresult, USER_SUBTYPE);
         checkObjectPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
     }
 
@@ -492,13 +503,6 @@ public class ModelDiagController implements ModelDiagnosticService {
                 return;
             }
         }
-    }
-
-    // TODO: is it used occasionally? If not let it go
-    private void assertPolyString(String message,
-            String expectedOrig, PolyString actualPolyString, OperationResult result) {
-        assertEquals(message + ", orig", expectedOrig, actualPolyString.getOrig(), result);
-        assertEquals(message + ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
     }
 
     private void assertPolyStringType(String message,

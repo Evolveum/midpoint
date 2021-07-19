@@ -393,9 +393,12 @@ public class SqaleRepositoryService implements RepositoryService {
                 LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}",
                         oid, modifications);
 
-                updateContext.execute(modifications);
+                Collection<? extends ItemDelta<?, ?>> executedModifications =
+                        updateContext.execute(modifications);
 
-                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                if (!executedModifications.isEmpty()) {
+                    invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                }
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all
@@ -516,7 +519,9 @@ public class SqaleRepositoryService implements RepositoryService {
 
             LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
-            invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            if (!modifications.isEmpty()) {
+                invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            }
             return new ModifyObjectResult<>(originalObject, prismObject, modifications);
         } finally {
             registerOperationFinish(opHandle, 1); // TODO attempt
@@ -788,8 +793,8 @@ public class SqaleRepositoryService implements RepositoryService {
             Class<T> type, ObjectQuery query, ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult) throws SchemaException {
-        return null;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -830,22 +835,22 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
             throws SchemaException {
-        return false;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
             throws SchemaException {
-        return false;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
             throws SchemaException {
-        return false;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -858,16 +863,16 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public long advanceSequence(String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-        return 0;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void returnUnusedValuesToSequence(
             String oid, Collection<Long> unusedValues, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -958,7 +963,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-        // TODO - SELECT 1 + latency info if we can put it in the result?
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            long startMs = System.currentTimeMillis();
+            jdbcSession.executeStatement("select 1");
+            parentResult.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+        } catch (Exception e) {
+            parentResult.recordFatalError(e);
+        }
     }
 
     @Override
@@ -972,12 +983,15 @@ public class SqaleRepositoryService implements RepositoryService {
             RepositoryQueryDiagRequest request, OperationResult result) {
 
         // TODO search like containers + dry run?
+        throw new UnsupportedOperationException();
 
+        /*
         RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(
                 null, null, Map.of());
 //                objects, implementationLevelQuery, implementationLevelQueryParameters);
 
         return response;
+        */
     }
 
     @Override
@@ -986,8 +1000,8 @@ public class SqaleRepositoryService implements RepositoryService {
             ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        return false;
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -1075,6 +1089,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
         // TODO
+        throw new UnsupportedOperationException();
     }
 
     @Override

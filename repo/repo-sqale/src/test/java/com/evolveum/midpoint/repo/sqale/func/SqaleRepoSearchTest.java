@@ -255,6 +255,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
                         .policySituation("situationB")
+                        .organization("org-1") // orgs and ous are polys stored in JSONB arrays
+                        .organization("org-2")
+                        .organizationalUnit("ou-1")
+                        .organizationalUnit("ou-2")
                         .asPrismObject(),
                 null, result);
 
@@ -431,56 +435,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test130SearchObjectsByPolicySituation() throws Exception {
-        when("searching objects with policy situation equal to value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
-                        .build(),
-                operationResult);
-
-        then("only objects having the specified policy situation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, org21Oid);
+        searchObjectTest("with policy situation equal to value", ObjectType.class,
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationC"),
+                user1Oid, org21Oid);
     }
 
     @Test
     public void test131SearchOrgsByPolicySituation() throws Exception {
-        when("searching orgs with policy situation equal to value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
-                        .build(),
-                operationResult);
-
-        then("only orgs having the specified policy situation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org21Oid);
+        searchObjectTest("with policy situation equal to value", OrgType.class,
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationC"),
+                org21Oid);
     }
 
     @Test
     public void test132SearchObjectsByPolicySituationWithMultipleValues() throws Exception {
-        when("searching objects with any policy situation equal to any of the provided values");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationA", "situationB")
-                        .build(),
-                operationResult);
-
-        then("objects with any of the policy situations are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
+        searchUsersTest("with any policy situation equal to any of the provided values",
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationA", "situationB"),
+                user1Oid, user3Oid, user4Oid);
     }
 
     @Test
@@ -499,39 +470,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test140SearchTaskByEnumValue() throws Exception {
-        when("searching task with execution status equal to one value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<TaskType> result = searchObjects(TaskType.class,
-                prismContext.queryFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE)
-                        .build(),
-                operationResult);
-
-        then("tasks with the execution status with the provided value are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(task1Oid);
+        searchObjectTest("with execution status equal to one value", TaskType.class,
+                f -> f.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE),
+                task1Oid);
     }
 
     @Test
     public void test141SearchTaskByEnumWithMultipleValues() throws Exception {
-        when("searching task with execution status equal to any of provided value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<TaskType> result = searchObjects(TaskType.class,
-                prismContext.queryFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).eq(
-                        TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED)
-                        .build(),
-                operationResult);
-
-        then("tasks with execution status equal to any of the provided values are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(task1Oid, task2Oid);
+        searchObjectTest("with execution status equal to any of provided value", TaskType.class,
+                f -> f.item(TaskType.F_EXECUTION_STATUS)
+                        .eq(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED),
+                task1Oid, task2Oid);
     }
 
     @Test
@@ -562,7 +511,21 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test150SearchShadowByObjectClass() throws SchemaException {
+    public void test150SearchUserByOrganizations() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATION).eq("org-1").matchingOrig(),
+                user4Oid);
+    }
+
+    @Test
+    public void test151SearchUserByOrganizationUnits() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).eq(new PolyString("ou-1")),
+                user4Oid);
+    }
+
+    @Test
+    public void test160SearchShadowByObjectClass() throws SchemaException {
         // this uses URI mapping with QName instead of String
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),

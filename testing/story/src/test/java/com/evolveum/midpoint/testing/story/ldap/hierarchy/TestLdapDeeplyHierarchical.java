@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2016-2019 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story.ldap.hierarchy;
-
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -23,19 +21,9 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Deeply hierarchical LDAP structure. The accounts are distributed around the tree in OUs.
@@ -45,9 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * groups.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
 
@@ -65,15 +52,17 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
     }
 
     @Override
-    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
-        Entry accountEntry = openDJController.searchSingle("uid="+username);
+    protected PrismObject<UserType> getAndAssertUser(
+            String username, String directOrgGroupName, String... indirectGroupNames)
+            throws CommonException, DirectoryException {
+        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupName, indirectGroupNames);
+        Entry accountEntry = openDJController.searchSingle("uid=" + username);
 
         String expectedDn = getAccountDn(user);
         assertEquals("Wrong account DN", expectedDn, accountEntry.getDN().toString().toLowerCase());
 
-        Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
-        assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
+        Entry groupEntry = openDJController.searchSingle("cn=" + directOrgGroupName);
+        assertNotNull("No group LDAP entry for " + directOrgGroupName, groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 
         return user;
@@ -83,22 +72,22 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
     protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
         PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
         if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
-            Entry groupEntry = openDJController.searchSingle("cn="+orgName);
+            Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
             PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
-            Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
-            assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
+            Entry parentGroupEntry = openDJController.searchSingle("cn=" + parentOrg.getName());
+            assertNotNull("No group LDAP entry for " + parentOrg.getName(), parentGroupEntry);
             displayValue("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
             openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
         }
 
         String ouOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
         PrismObject<ShadowType> ouShadow = getShadowModel(ouOid);
-        display("Org "+orgName+" ou shadow", ouShadow);
+        display("Org " + orgName + " ou shadow", ouShadow);
 
-        Entry groupEntry = openDJController.searchSingle("ou="+orgName);
-        assertNotNull("No UO LDAP entry for "+orgName, groupEntry);
+        Entry groupEntry = openDJController.searchSingle("ou=" + orgName);
+        assertNotNull("No UO LDAP entry for " + orgName, groupEntry);
         displayValue("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
-        openDJController.assertObjectClass(groupEntry, "organizationalUnit");
+        OpenDJController.assertObjectClass(groupEntry, "organizationalUnit");
 
         String expectedDn = getOuDn(org);
         assertEquals("Wrong OU DN", expectedDn, groupEntry.getDN().toString().toLowerCase());
@@ -126,10 +115,13 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
         return sb.toString();
     }
 
-    private String getAccountDn(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private String getAccountDn(PrismObject<UserType> user)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         StringBuilder sb = new StringBuilder();
         sb.append("uid=").append(user.getName().getOrig()).append(",");
-        PrismObject<FocusType> org = (PrismObject)user;
+        PrismObject<FocusType> org = (PrismObject) user;
         while (true) {
             List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
             if (parentOrgRefs.isEmpty()) {
@@ -139,7 +131,7 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
             if (ORG_TOP_OID.equals(parentOid)) {
                 break;
             }
-            org = (PrismObject)getObject(OrgType.class, parentOid);
+            org = (PrismObject) getObject(OrgType.class, parentOid);
             sb.append("ou=");
             sb.append(org.getName().getOrig().toLowerCase());
             sb.append(",");
@@ -149,7 +141,8 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
     }
 
     @Override
-    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void recomputeIfNeeded(String changedOrgOid)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         reconcileAllOrgs();
         reconcileAllUsers();
     }
