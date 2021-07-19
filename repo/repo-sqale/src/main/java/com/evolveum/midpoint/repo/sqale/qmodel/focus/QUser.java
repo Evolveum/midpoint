@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
+
 import java.sql.Types;
 
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -55,6 +59,10 @@ public class QUser extends QFocus<MUser> {
             ColumnMetadata.named("titleOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata TITLE_NORM =
             ColumnMetadata.named("titleNorm").ofType(Types.VARCHAR);
+    public static final ColumnMetadata ORGANIZATIONS =
+            ColumnMetadata.named("organizations").ofType(JSONB_TYPE);
+    public static final ColumnMetadata ORGANIZATION_UNITS =
+            ColumnMetadata.named("organizationUnits").ofType(JSONB_TYPE);
 
     public final StringPath additionalNameOrig = createString("additionalNameOrig", ADDITIONAL_NAME_ORIG);
     public final StringPath additionalNameNorm = createString("additionalNameNorm", ADDITIONAL_NAME_NORM);
@@ -73,6 +81,10 @@ public class QUser extends QFocus<MUser> {
     public final StringPath nickNameNorm = createString("nickNameNorm", NICK_NAME_NORM);
     public final StringPath titleOrig = createString("titleOrig", TITLE_ORIG);
     public final StringPath titleNorm = createString("titleNorm", TITLE_NORM);
+    public final JsonbPath organizations =
+            addMetadata(add(new JsonbPath(forProperty("organizations"))), ORGANIZATIONS);
+    public final JsonbPath organizationUnits =
+            addMetadata(add(new JsonbPath(forProperty("organizationUnits"))), ORGANIZATION_UNITS);
 
     public QUser(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

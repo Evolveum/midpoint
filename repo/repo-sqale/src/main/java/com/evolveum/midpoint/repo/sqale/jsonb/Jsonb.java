@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.jsonb;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -17,11 +18,21 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Type representing JSONB columns in PostgreSQL database as a wrapped string.
  */
 public class Jsonb {
+
+    // I'm not happy about this here, but I'm not going to create utils just for this (yet).
+    public static final String JSONB_POLY_ORIG_KEY = "o";
+    public static final String JSONB_POLY_NORM_KEY = "n";
+
+    public static final String JSONB_REF_TARGET_OID_KEY = "o";
+    public static final String JSONB_REF_TARGET_TYPE_KEY = "t";
+    public static final String JSONB_REF_RELATION_KEY = "r";
+
     public final String value;
 
     public Jsonb(String value) {
@@ -52,13 +63,29 @@ public class Jsonb {
         MAPPER.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
     }
 
-    public static Jsonb from(Map<String, Object> map) {
+    /** Returns JSONB object from map or null if map is null or empty. */
+    public static Jsonb fromMap(Map<String, Object> map) {
         if (map == null || map.isEmpty()) {
             return null;
         }
 
+        return fromObject(map);
+    }
+
+    /** Returns JSONB array from list or null if map is null or empty. */
+    public static Jsonb fromList(List<Object> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+
+        return fromObject(list);
+    }
+
+    /** Returns JSONB object for provided parameter, even if null. */
+    @NotNull
+    private static Jsonb fromObject(Object object) {
         try {
-            return new Jsonb(MAPPER.writeValueAsString(map));
+            return new Jsonb(MAPPER.writeValueAsString(object));
         } catch (JsonProcessingException e) {
             throw new JsonbException("Unexpected error while writing JSONB value", e);
         }
@@ -68,6 +95,15 @@ public class Jsonb {
         try {
             //noinspection unchecked
             return MAPPER.readValue(jsonb.value, Map.class);
+        } catch (JsonProcessingException e) {
+            throw new JsonbException("Unexpected error while reading JSONB value", e);
+        }
+    }
+
+    public static List<Object> toList(Jsonb jsonb) {
+        try {
+            //noinspection unchecked
+            return MAPPER.readValue(jsonb.value, List.class);
         } catch (JsonProcessingException e) {
             throw new JsonbException("Unexpected error while reading JSONB value", e);
         }

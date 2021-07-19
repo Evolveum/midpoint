@@ -510,7 +510,9 @@ CREATE TABLE m_user (
     nickNameOrig TEXT,
     nickNameNorm TEXT,
     titleOrig TEXT,
-    titleNorm TEXT
+    titleNorm TEXT,
+    organizations JSONB, -- array of {o,n} objects
+    organizationUnits JSONB -- array of {o,n} objects
 )
     INHERITS (m_focus);
 
@@ -530,19 +532,8 @@ CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
-
-/* TODO JSON of polystrings?
-CREATE TABLE m_user_organization (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
-CREATE TABLE m_user_organizational_unit (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
- */
+CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
+CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
 -- endregion
 
 -- region ROLE related tables

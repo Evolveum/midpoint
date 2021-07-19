@@ -7,13 +7,11 @@
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -370,11 +368,21 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] listToArray(List<String> strings) {
+    protected String[] stringsToArray(List<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }
         return strings.toArray(String[]::new);
+    }
+
+    protected Jsonb polyStringsToJsonb(List<PolyStringType> polys) {
+        if (polys == null || polys.isEmpty()) {
+            return null;
+        }
+        return Jsonb.fromList(polys.stream()
+                .map(p -> Map.of(Jsonb.JSONB_POLY_ORIG_KEY, p.getOrig(),
+                        Jsonb.JSONB_POLY_NORM_KEY, p.getNorm()))
+                .collect(Collectors.toList()));
     }
 
     /** Convenient insert shortcut when the row is fully populated. */

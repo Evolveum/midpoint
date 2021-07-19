@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 import static com.querydsl.core.types.dsl.Expressions.booleanTemplate;
 import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.EXT_POLY_NORM_KEY;
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.EXT_POLY_ORIG_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_NORM_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
@@ -297,18 +297,18 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             return ExpressionUtils.and(
                     processPolyString(
                             extItem, convertPolyValuesToString(values, filter, p -> p.getOrig()),
-                            EXT_POLY_ORIG_KEY, operation),
+                            JSONB_POLY_ORIG_KEY, operation),
                     processPolyString(
                             extItem, convertPolyValuesToString(values, filter, p -> p.getNorm()),
-                            EXT_POLY_NORM_KEY, operation));
+                            JSONB_POLY_NORM_KEY, operation));
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
             return processPolyString(
                     extItem, convertPolyValuesToString(values, filter, p -> p.getOrig()),
-                    EXT_POLY_ORIG_KEY, operation);
+                    JSONB_POLY_ORIG_KEY, operation);
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return processPolyString(
                     extItem, convertPolyValuesToString(values, filter, p -> p.getNorm()),
-                    EXT_POLY_NORM_KEY, operation);
+                    JSONB_POLY_NORM_KEY, operation);
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import static com.evolveum.midpoint.repo.sqale.ExtUtils.*;
-
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -53,7 +51,7 @@ public class ExtensionProcessor {
             }
         }
 
-        return Jsonb.from(extMap);
+        return Jsonb.fromMap(extMap);
     }
 
     /** Returns ext item definition or null if the item is not indexed and should be skipped. */
@@ -99,8 +97,8 @@ public class ExtensionProcessor {
 
         if (realValue instanceof PolyString) {
             PolyString poly = (PolyString) realValue;
-            return Map.of(EXT_POLY_ORIG_KEY, poly.getOrig(),
-                    EXT_POLY_NORM_KEY, poly.getNorm());
+            return Map.of(Jsonb.JSONB_POLY_ORIG_KEY, poly.getOrig(),
+                    Jsonb.JSONB_POLY_NORM_KEY, poly.getNorm());
         }
 
         if (realValue instanceof Referencable) {
@@ -114,9 +112,9 @@ public class ExtensionProcessor {
                 throw new IllegalArgumentException(
                         "Reference without target type can't be stored: " + ref);
             }
-            return Map.of(EXT_REF_TARGET_OID_KEY, ref.getOid(),
-                    EXT_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType),
-                    EXT_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
+            return Map.of(Jsonb.JSONB_REF_TARGET_OID_KEY, ref.getOid(),
+                    Jsonb.JSONB_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType),
+                    Jsonb.JSONB_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
         }
 
         if (realValue instanceof Enum) {
