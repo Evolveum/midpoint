@@ -21,6 +21,7 @@ public class SecurityQuestionFormModuleAuthentication extends CredentialModuleAu
 
     public ModuleAuthentication clone() {
         SecurityQuestionFormModuleAuthentication module = new SecurityQuestionFormModuleAuthentication();
+        module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;
     }
