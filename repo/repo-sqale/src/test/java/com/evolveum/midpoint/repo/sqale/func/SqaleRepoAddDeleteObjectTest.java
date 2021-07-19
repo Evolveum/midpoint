@@ -1402,6 +1402,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .resourceRef(resourceRefOid.toString(),
                         ResourceType.COMPLEX_TYPE, resourceRefRelation)
                 .intent("intent")
+                .tag("tag")
                 .kind(ShadowKindType.ACCOUNT)
                 // TODO attemptNumber used at all?
                 .dead(false)
@@ -1425,6 +1426,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
         assertCachedUri(row.resourceRefRelationId, resourceRefRelation);
         assertThat(row.intent).isEqualTo("intent");
+        assertThat(row.tag).isEqualTo("tag");
         assertThat(row.kind).isEqualTo(ShadowKindType.ACCOUNT);
         assertThat(row.dead).isEqualTo(false);
         assertThat(row.exist).isEqualTo(true);

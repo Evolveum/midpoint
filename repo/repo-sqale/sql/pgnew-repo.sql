@@ -805,6 +805,7 @@ CREATE TABLE m_shadow (
     resourceRefTargetType ObjectType,
     resourceRefRelationId INTEGER REFERENCES m_uri(id),
     intent TEXT,
+    tag TEXT,
     kind ShadowKindType,
     attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
@@ -839,7 +840,6 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
- Also consider partitioning by some of the attributes (class/kind/intent?)
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRefTargetOid);
 CREATE INDEX iShadowDead ON m_shadow (dead);
 CREATE INDEX iShadowKind ON m_shadow (kind);

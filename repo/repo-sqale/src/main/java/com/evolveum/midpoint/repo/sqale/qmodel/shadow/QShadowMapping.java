@@ -55,6 +55,7 @@ public class QShadowMapping
                 q -> q.resourceRefRelationId,
                 QResourceMapping::get);
         addItemMapping(F_INTENT, stringMapper(q -> q.intent));
+        addItemMapping(F_TAG, stringMapper(q -> q.tag));
         addItemMapping(F_KIND, enumMapper(q -> q.kind));
         // TODO attemptNumber?
         addItemMapping(F_DEAD, booleanMapper(q -> q.dead));
@@ -92,6 +93,7 @@ public class QShadowMapping
                 t -> row.resourceRefTargetType = t,
                 r -> row.resourceRefRelationId = r);
         row.intent = shadow.getIntent();
+        row.tag = shadow.getTag();
         row.kind = shadow.getKind();
 //        row.attemptNumber = shadow.att; TODO not set in RShadow, probably just with deltas? Where does it come from?
         row.dead = shadow.isDead();
