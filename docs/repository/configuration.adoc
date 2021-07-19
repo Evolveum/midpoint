@@ -69,7 +69,7 @@ E.g. `validate` \| `update` \| `create` \| `create-drop` \| `none`.
 With `create-drop` the database schema will be dropped when the SessionFactory is closed explicitly.
 For production environments, `validate` should be used (before midPoint 3.9) or `none` (3.9 and later).
 Please see *Schema creation and updating* section later.
-| for H2: `update`otherwise: `validate` (before 3.9), `none` (3.9 and later)
+| for H2 `update`, otherwise `none` (was `validate` before 3.9)
 
 | hibernateDialect
 | SQL dialect based on chosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
@@ -111,8 +111,8 @@ the scenes or even in addition to this setting which is likely undesired.
 
 | useZipAudit
 | (Since 4.0.3, 4.1.1, 4.2.1, 4.3.) Property controlling whether serialized delta and its operation result in audit is compressed (*m_audit_delta.delta*/*fullResult*). +
-*Important:* Because this was on by default since 3.8 and the option was introduced much later, its default (*true*) reflects the situation in 3.8 and later. +
-If wiki:Audit+configuration#Auditconfiguration-Audittoseparaterepository[separate audit repository] is used, this option must be used there.
+*Important:* Because this was on by default since 3.8 and the option was introduced much later, its default (`true`) reflects the situation in 3.8 and later. +
+If link:/midpoint/reference/security/audit/configuration/#audit-to-separate-repository[separate audit repository] is used, this option must be used there.
 If single repository is used (by default), it must be used in main repository configuration.
 
 Please, consult also your RDBMS documentation to see if this is necessary and not useless or harmful.
@@ -246,7 +246,7 @@ So be sure to avoid applying e.g. `mysql-upgrade-3.8-3.9-utf8mb4.sql` if the dat
 | (none)
 
 | createMissingCustomColumns
-a| (Since 4.2) If true, midPoint tries to alter tables with custom columns (currently wiki:Auditing[only in audit]) if the column is missing.
+a| (Since 4.2) If true, midPoint tries to alter tables with custom columns (currently link:/midpoint/reference/security/audit/[only in audit]) if the column is missing.
 Intended for test, not for production usage.
 | `false` (no columns are created)
 
