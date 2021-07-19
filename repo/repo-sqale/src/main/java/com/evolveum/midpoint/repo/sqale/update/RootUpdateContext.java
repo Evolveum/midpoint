@@ -75,7 +75,10 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         return mapping;
     }
 
-    /** Applies modifications, executes necessary updates and returns narrowed modifications. */
+    /**
+     * Applies modifications, executes necessary updates and returns narrowed modifications.
+     * If returned narrowed modifications are empty, no update was made and version stays the same!
+     */
     public Collection<? extends ItemDelta<?, ?>> execute(
             Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException, RepositoryException {

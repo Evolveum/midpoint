@@ -393,9 +393,12 @@ public class SqaleRepositoryService implements RepositoryService {
                 LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}",
                         oid, modifications);
 
-                updateContext.execute(modifications);
+                Collection<? extends ItemDelta<?, ?>> executedModifications =
+                        updateContext.execute(modifications);
 
-                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                if (!executedModifications.isEmpty()) {
+                    invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                }
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all
@@ -516,7 +519,9 @@ public class SqaleRepositoryService implements RepositoryService {
 
             LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 
-            invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            if (!modifications.isEmpty()) {
+                invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
+            }
             return new ModifyObjectResult<>(originalObject, prismObject, modifications);
         } finally {
             registerOperationFinish(opHandle, 1); // TODO attempt
