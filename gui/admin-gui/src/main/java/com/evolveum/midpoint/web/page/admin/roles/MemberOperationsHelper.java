@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -62,7 +64,10 @@ public class MemberOperationsHelper {
 
     public static <R extends AbstractRoleType> void unassignMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope,
             ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
-        Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
+        String taskNameBuilder = getTaskName("Remove", scope, targetObject);
+        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
+        String taskName = pageBase.createStringResource(taskNameBuilder,
+                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
 
         ExecuteScriptType script = new ExecuteScriptType();
         ActionExpressionType expression = new ActionExpressionType();
@@ -86,7 +91,8 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-        createAndExecuteScriptingMemberOperationTask(pageBase, operationalTask, type, query, script, target);
+        createAndExecuteScriptingMemberOperationTask(pageBase, operationalTask, type, query, script,
+                WebComponentUtil.createPolyFromOrigString(taskName), target);
     }
 
     public static void assignMembersPerformed(AbstractRoleType targetObject, ObjectQuery query,
@@ -107,37 +113,48 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-        createAndExecuteScriptingMemberOperationTask(pageBase, operationalTask, type, query, script, target);
+        String taskName = pageBase.createStringResource(getTaskName("Add", null, targetObject),
+                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
+        createAndExecuteScriptingMemberOperationTask(pageBase, operationalTask, type, query, script,
+                WebComponentUtil.createPolyFromOrigString(taskName), target);
     }
 
-    public static void deleteMembersPerformed(
+    public static <R extends AbstractRoleType> void deleteMembersPerformed(R targetObject,
             PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
-        Task task = createDeleteMembersTask(pageBase, scope, query, target);
+        Task task = createDeleteMembersTask(targetObject, pageBase, scope, query, target);
         if (task != null) {
             executeMemberOperationTask(pageBase, task, target);
         }
     }
 
-    public static void recomputeMembersPerformed(
+    public static <R extends AbstractRoleType> void recomputeMembersPerformed(R targetObject,
             PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
-        Task task = createRecomputeMembersTask(pageBase, scope, query, target);
+        Task task = createRecomputeMembersTask(targetObject, pageBase, scope, query, target);
         if (task != null) {
             executeMemberOperationTask(pageBase, task, target);
         }
     }
 
-    public static Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
+    public static <R extends AbstractRoleType> Task createRecomputeMembersTask(R targetObject, PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        Task operationalTask = pageBase.createSimpleTask(getTaskName("Recompute", scope));
+        String taskNameBuilder = getTaskName("Recompute", scope, targetObject);
+        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
+        String taskName = pageBase.createStringResource(taskNameBuilder,
+                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
+
         OperationResult parentResult = operationalTask.getResult();
         return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
-                null, parentResult, pageBase, target);
+                null, parentResult, pageBase, WebComponentUtil.createPolyFromOrigString(taskName), target);
     }
 
-    private static Task createDeleteMembersTask(PageBase pageBase, QueryScope scope,
+    private static <R extends AbstractRoleType> Task createDeleteMembersTask(R targetObject, PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
-        Task operationalTask = pageBase.createSimpleTask(getTaskName(DELETE_OPERATION, scope));
+
+        String taskNameBuilder = getTaskName(DELETE_OPERATION, scope, targetObject);
+        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
+        String taskName = pageBase.createStringResource(taskNameBuilder,
+                WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
 
         ExecuteScriptType script = new ExecuteScriptType();
         ActionExpressionType expression = new ActionExpressionType();
@@ -147,7 +164,8 @@ public class MemberOperationsHelper {
                 ActionExpressionType.class, expression));
 
         return createScriptingMemberOperationTask(pageBase, operationalTask, defaultType, query, script,
-                SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
+                SelectorOptions.createCollection(GetOperationOptions.createDistinct()),
+                WebComponentUtil.createPolyFromOrigString(taskName), target);
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
@@ -304,13 +322,16 @@ public class MemberOperationsHelper {
         return oids;
     }
 
-    private static String getTaskName(String operation, QueryScope scope) {
+    private static <R extends AbstractRoleType> String getTaskName(String operation, QueryScope scope, R targetObject) {
         StringBuilder nameBuilder = new StringBuilder("operation.");
         nameBuilder.append(operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
             nameBuilder.append(".");
+        }
+        if (targetObject != null) {
+            nameBuilder.append(targetObject.getClass().getSimpleName()).append(".");
         }
         nameBuilder.append("members");
         return nameBuilder.toString();
@@ -321,17 +342,19 @@ public class MemberOperationsHelper {
     }
 
     protected static Task createScriptingMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
-            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
+            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, PolyStringType taskName, AjaxRequestTarget target) {
 
         OperationResult parentResult = operationalTask.getResult();
-        return createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator, target);
+        return createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult,
+                modelServiceLocator, taskName, target);
     }
 
     protected static void createAndExecuteScriptingMemberOperationTask(PageBase modelServiceLocator, Task operationalTask,
-            QName type, ObjectQuery memberQuery, ExecuteScriptType script, AjaxRequestTarget target) {
+            QName type, ObjectQuery memberQuery, ExecuteScriptType script, PolyStringType taskName, AjaxRequestTarget target) {
 
         OperationResult parentResult = operationalTask.getResult();
-        Task executableTask = createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, null, parentResult, modelServiceLocator, target);
+        Task executableTask = createScriptingMemberOperationTask(operationalTask, type, memberQuery, script, null, parentResult,
+                modelServiceLocator, taskName, target);
         if (executableTask != null) {
             executeMemberOperationTask(executableTask, parentResult, modelServiceLocator);
         }
@@ -345,10 +368,11 @@ public class MemberOperationsHelper {
     }
 
     public static Task createScriptingMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase, AjaxRequestTarget target) {
+            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult,
+            PageBase pageBase, PolyStringType taskName, AjaxRequestTarget target) {
 
         try {
-            createTask(operationalTask, type, memberQuery, option, parentResult, pageBase);
+            createTask(operationalTask, type, memberQuery, option, taskName, pageBase);
             pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
                     null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
             operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
@@ -364,9 +388,10 @@ public class MemberOperationsHelper {
     }
 
     public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
-            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase, AjaxRequestTarget target) {
+            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult,
+            PageBase pageBase, PolyStringType taskName, AjaxRequestTarget target) {
         try {
-            createTask(operationalTask, type, memberQuery, option, parentResult, pageBase);
+            createTask(operationalTask, type, memberQuery, option, taskName, pageBase);
             pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
                     null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
             operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
@@ -381,7 +406,7 @@ public class MemberOperationsHelper {
     }
 
     private static void createTask(Task operationalTask, QName type, ObjectQuery memberQuery, Collection<SelectorOptions<GetOperationOptions>> option,
-            OperationResult parentResult, PageBase pageBase) throws SchemaException {
+            PolyStringType taskName, PageBase pageBase) throws SchemaException {
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
         operationalTask.setOwner(owner.getFocus().asPrismObject());
 
@@ -390,9 +415,10 @@ public class MemberOperationsHelper {
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         operationalTask.makeSingle(schedule);
-        String key = parentResult.getOperation();
-        String name = pageBase.createStringResource(key).getString();
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(name, key));
+//        String key = parentResult.getOperation();
+//        String name = pageBase.createStringResource(key).getString();
+//        WebComponentUtil.createPolyFromOrigString(name, key)
+        operationalTask.setName(taskName);
 
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
         operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);

@@ -843,7 +843,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         if (!checkRelationSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
-        MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), target);
+        MemberOperationsHelper.deleteMembersPerformed(getModelObject(), getPageBase(), scope, getActionQuery(scope, relations), target);
     }
 
     private boolean checkRelationSelected(Collection<QName> relations, String message, AjaxRequestTarget target) {
@@ -919,7 +919,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(getModelObject(), getPageBase(), getQueryScope(),
                         getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
                 if (task == null) {
                     return null;
@@ -937,7 +937,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
+                MemberOperationsHelper.recomputeMembersPerformed(getModelObject(), getPageBase(), getQueryScope(),
                         getActionQuery(getQueryScope(), getRelationsForRecomputeTask()), target);
             }
         };
