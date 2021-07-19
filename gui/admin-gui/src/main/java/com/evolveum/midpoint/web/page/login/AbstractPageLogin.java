@@ -132,7 +132,10 @@ public abstract class AbstractPageLogin extends PageBase {
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
+        confirmUserPrincipal();
+    }
 
+    protected void confirmUserPrincipal() {
         if (SecurityUtils.getPrincipalUser() != null) {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());

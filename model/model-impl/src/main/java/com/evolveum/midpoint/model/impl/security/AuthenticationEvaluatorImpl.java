@@ -255,7 +255,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @NotNull
-    private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, Class<? extends FocusType> clazz,
+    protected MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, Class<? extends FocusType> clazz,
             boolean supportsActivationCheck) {
 
         if (StringUtils.isBlank(enteredUsername)) {
@@ -299,7 +299,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return principal;
     }
 
-    private boolean hasAnyAuthorization(MidPointPrincipal principal) {
+    protected boolean hasAnyAuthorization(MidPointPrincipal principal) {
         Collection<Authorization> authorizations = principal.getAuthorities();
         if (authorizations == null || authorizations.isEmpty()){
             return false;
