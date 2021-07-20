@@ -151,7 +151,7 @@ public class MemberOperationsHelper {
             ObjectQuery query, AjaxRequestTarget target) {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
 
-        String taskNameBuilder = getTaskName(DELETE_OPERATION, scope, targetObject, "from");
+        String taskNameBuilder = getTaskName(DELETE_OPERATION, scope, targetObject, "of");
         Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
         String taskName = pageBase.createStringResource(taskNameBuilder,
                 WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
