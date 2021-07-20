@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -78,7 +79,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String user4Oid; // another user in org
     private String task1Oid; // task has more attribute type variability
     private String task2Oid;
-    private String shadow1Oid; // ditto
+    private String shadow1Oid; // shadow with owner
     private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
@@ -136,6 +137,22 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
                 null, result);
+
+        // shadow, owned by user-3
+        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
+                .pendingOperation(new PendingOperationType().attemptNumber(1))
+                .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .extension(new ExtensionType(prismContext));
+        addExtensionValue(shadow1.getExtension(), "string", "string-value");
+        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
+                .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
+        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
+        shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
+        // another shadow just to be check we don't select it accidentally
+        repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
         // users
         creatorOid = repositoryService.addObject(
@@ -239,6 +256,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .validFrom("2021-01-01T00:00:00Z"))
                         .subtype("ass-subtype-1")
                         .subtype("ass-subtype-2"))
+                .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType(prismContext)
                         .activation(new ActivationType(prismContext)
                                 .validTo("2022-01-01T00:00:00Z")))
@@ -273,21 +291,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .executionStatus(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
-
-        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
-                .pendingOperation(new PendingOperationType().attemptNumber(1))
-                .pendingOperation(new PendingOperationType().attemptNumber(2))
-                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
-                .extension(new ExtensionType(prismContext));
-        addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
-        ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
-                .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
-        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
-        shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
-        // another shadow just to be check we don't select it accidentally
-        repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1")
@@ -530,6 +533,36 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
                 shadow1Oid);
+    }
+
+    @Test
+    public void test170SearchShadowOwner() {
+        when("searching for shadow owner by shadow OID");
+        OperationResult operationResult = createOperationResult();
+        PrismObject<UserType> result =
+                repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
+
+        then("focus object owning the shadow is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.asObjectable())
+                .isInstanceOf(UserType.class)
+                .matches(u -> u.getOid().equals(user3Oid));
+    }
+
+    @Test
+    public void test171SearchShadowOwnerByNonexistentOid() {
+        when("searching for shadow owner by shadow OID");
+        OperationResult operationResult = createOperationResult();
+        PrismObject<UserType> result =
+                repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
+
+        then("focus object owning the shadow is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.asObjectable())
+                .isInstanceOf(UserType.class)
+                .matches(u -> u.getOid().equals(user3Oid));
     }
 
     /**
@@ -1711,7 +1744,8 @@ AND(
         return repositoryService.searchObjects(
                 type,
                 query,
-                Arrays.asList(selectorOptions),
+                selectorOptions != null && selectorOptions.length != 0
+                        ? Arrays.asList(selectorOptions) : null,
                 operationResult)
                 .map(p -> p.asObjectable());
     }
