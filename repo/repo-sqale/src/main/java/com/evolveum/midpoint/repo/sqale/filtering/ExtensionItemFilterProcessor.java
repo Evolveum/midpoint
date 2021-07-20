@@ -9,8 +9,8 @@ package com.evolveum.midpoint.repo.sqale.filtering;
 import static com.querydsl.core.types.dsl.Expressions.booleanTemplate;
 import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
 
-import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_NORM_KEY;
-import static com.evolveum.midpoint.repo.sqale.jsonb.Jsonb.JSONB_POLY_ORIG_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_NORM_KEY;
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;

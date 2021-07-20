@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -97,8 +98,7 @@ public class ExtensionProcessor {
 
         if (realValue instanceof PolyString) {
             PolyString poly = (PolyString) realValue;
-            return Map.of(Jsonb.JSONB_POLY_ORIG_KEY, poly.getOrig(),
-                    Jsonb.JSONB_POLY_NORM_KEY, poly.getNorm());
+            return JsonbUtils.polyStringToMap(poly);
         }
 
         if (realValue instanceof Referencable) {
@@ -112,9 +112,9 @@ public class ExtensionProcessor {
                 throw new IllegalArgumentException(
                         "Reference without target type can't be stored: " + ref);
             }
-            return Map.of(Jsonb.JSONB_REF_TARGET_OID_KEY, ref.getOid(),
-                    Jsonb.JSONB_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType),
-                    Jsonb.JSONB_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
+            return Map.of(JsonbUtils.JSONB_REF_TARGET_OID_KEY, ref.getOid(),
+                    JsonbUtils.JSONB_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType),
+                    JsonbUtils.JSONB_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
         }
 
         if (realValue instanceof Enum) {
