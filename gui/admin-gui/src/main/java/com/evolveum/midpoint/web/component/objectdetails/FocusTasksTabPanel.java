@@ -32,8 +32,7 @@ public class FocusTasksTabPanel<F extends FocusType>
         extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
 
-    protected static final String ID_TASK_TABLE = "taskTable";
-    protected static final String ID_LABEL = "label";
+    private static final String ID_TASK_TABLE = "taskTable";
 
     public FocusTasksTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
         super(id, mainForm, focusModel);
