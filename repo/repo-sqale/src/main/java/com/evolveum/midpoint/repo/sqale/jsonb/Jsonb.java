@@ -25,14 +25,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Jsonb {
 
-    // I'm not happy about this here, but I'm not going to create utils just for this (yet).
-    public static final String JSONB_POLY_ORIG_KEY = "o";
-    public static final String JSONB_POLY_NORM_KEY = "n";
-
-    public static final String JSONB_REF_TARGET_OID_KEY = "o";
-    public static final String JSONB_REF_TARGET_TYPE_KEY = "t";
-    public static final String JSONB_REF_RELATION_KEY = "r";
-
     public final String value;
 
     public Jsonb(String value) {

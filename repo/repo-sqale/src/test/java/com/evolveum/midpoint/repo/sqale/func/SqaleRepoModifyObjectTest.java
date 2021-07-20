@@ -1395,6 +1395,101 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations).isNull();
     }
+
+    @Test
+    public void test190ReplacingOrganizationValuesSetsJsonbColumn() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta to replace organizations with a couple of values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION).replace(
+                        new PolyString("orgmod-1"), new PolyString("orgmod-2"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has provided subtypes");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getOrganization())
+                .extracting(p -> p.getOrig())
+                .containsExactlyInAnyOrder("orgmod-1", "orgmod-2");
+
+        and("column with subtypes is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.organizations).isNotNull();
+        assertThat(Jsonb.toList(row.organizations)).containsExactlyInAnyOrder(
+                Map.of("o", "orgmod-1", "n", "orgmod1"),
+                Map.of("o", "orgmod-2", "n", "orgmod2"));
+    }
+
+    @Test
+    public void test191AddingAndDeletingOrganizationValuesSetsArrayColumn() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta for subtypes with both delete and add values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION)
+                .delete(new PolyString("orgmod-2"), new PolyString("wrong"))
+                .add(new PolyString("orgmod-3"), new PolyString("orgmod-4"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has expected subtypes");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getOrganization())
+                .extracting(p -> p.getOrig())
+                .containsExactlyInAnyOrder("orgmod-1", "orgmod-3", "orgmod-4");
+
+        and("column with subtypes is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(Jsonb.toList(row.organizations)).containsExactlyInAnyOrder(
+                Map.of("o", "orgmod-1", "n", "orgmod1"),
+                Map.of("o", "orgmod-3", "n", "orgmod3"),
+                Map.of("o", "orgmod-4", "n", "orgmod4"));
+    }
+
+    @Test
+    public void test192DeletingAllSubtypesByValuesSetsColumnToNull() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta deleting all subtype values");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION).delete(new PolyString("orgmod-1"),
+                        new PolyString("orgmod-3"), new PolyString("orgmod-4"))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated and has no subtypes now");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getOrganization()).isNullOrEmpty();
+
+        and("column with subtypes is set to null");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.organizations).isNull();
+    }
     // endregion
 
     // region nested (embedded) single-value containers (e.g. metadata)
