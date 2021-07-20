@@ -193,6 +193,6 @@ public class PageLogin extends AbstractPageLogin {
             }
         }
 
-        return "/midpoint/spring_security_login";
+        return "./spring_security_login";
     }
 }

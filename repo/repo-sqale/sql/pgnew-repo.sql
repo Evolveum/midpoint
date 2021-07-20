@@ -510,7 +510,9 @@ CREATE TABLE m_user (
     nickNameOrig TEXT,
     nickNameNorm TEXT,
     titleOrig TEXT,
-    titleNorm TEXT
+    titleNorm TEXT,
+    organizations JSONB, -- array of {o,n} objects
+    organizationUnits JSONB -- array of {o,n} objects
 )
     INHERITS (m_focus);
 
@@ -530,19 +532,8 @@ CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
-
-/* TODO JSON of polystrings?
-CREATE TABLE m_user_organization (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
-CREATE TABLE m_user_organizational_unit (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
- */
+CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
+CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
 -- endregion
 
 -- region ROLE related tables
@@ -805,6 +796,7 @@ CREATE TABLE m_shadow (
     resourceRefTargetType ObjectType,
     resourceRefRelationId INTEGER REFERENCES m_uri(id),
     intent TEXT,
+    tag TEXT,
     kind ShadowKindType,
     attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
@@ -839,7 +831,6 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
- Also consider partitioning by some of the attributes (class/kind/intent?)
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRefTargetOid);
 CREATE INDEX iShadowDead ON m_shadow (dead);
 CREATE INDEX iShadowKind ON m_shadow (kind);

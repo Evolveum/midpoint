@@ -100,7 +100,6 @@ public class ModuleAuthentication {
 
     protected void clone (ModuleAuthentication module) {
         module.setState(this.getState());
-        module.setAuthentication(this.getAuthentication());
         module.setNameOfModule(this.nameOfModule);
         module.setType(this.getType());
         module.setPrefix(this.getPrefix());

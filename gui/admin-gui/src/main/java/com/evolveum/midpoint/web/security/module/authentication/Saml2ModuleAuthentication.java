@@ -6,12 +6,14 @@
  */
 package com.evolveum.midpoint.web.security.module.authentication;
 
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.web.security.util.RequestState;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.saml.SamlAuthentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,18 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
         Saml2ModuleAuthentication module = new Saml2ModuleAuthentication();
         module.setNamesOfUsernameAttributes(this.getNamesOfUsernameAttributes());
         module.setProviders(this.getProviders());
+        Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication newAuthentication = this.getAuthentication();
+        if (actualAuth instanceof MidpointAuthentication
+                && ((MidpointAuthentication) actualAuth).getAuthentications() != null
+                && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
+            ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
+            if (actualModule instanceof Saml2ModuleAuthentication
+                    && actualModule.getAuthentication() instanceof SamlAuthentication) {
+                newAuthentication = actualModule.getAuthentication();
+            }
+        }
+        module.setAuthentication(newAuthentication);
         super.clone(module);
         return module;
     }
