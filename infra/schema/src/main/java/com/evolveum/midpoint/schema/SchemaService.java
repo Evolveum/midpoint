@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -28,6 +29,7 @@ public class SchemaService {
 
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
     private static SchemaService instance;
 
@@ -46,6 +48,10 @@ public class SchemaService {
 
     public RelationRegistry relationRegistry() {
         return relationRegistry;
+    }
+
+    public MatchingRuleRegistry matchingRuleRegistry() {
+        return matchingRuleRegistry;
     }
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {

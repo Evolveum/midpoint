@@ -21,10 +21,12 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -154,6 +156,14 @@ public class SqlRepoContext {
      */
     public PrismContext prismContext() {
         return schemaService.prismContext();
+    }
+
+    public MatchingRuleRegistry matchingRuleRegistry() {
+        return schemaService.matchingRuleRegistry();
+    }
+
+    public RelationRegistry relationRegistry() {
+        return schemaService.relationRegistry();
     }
 
     public void normalizeAllRelations(PrismObject<?> prismObject) {

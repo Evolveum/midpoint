@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
@@ -24,16 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
@@ -53,10 +52,15 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
@@ -708,7 +712,7 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
             @NotNull Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult)
             throws SchemaException {
         Objects.requireNonNull(type, "Object type must not be null.");
@@ -718,10 +722,11 @@ public class SqaleRepositoryService implements RepositoryService {
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("query", query)
+                .addParam("options", String.valueOf(options))
                 .build();
 
         try {
-            return executeSearchObject(type, query, options);
+            return executeSearchObject(type, query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -735,10 +740,11 @@ public class SqaleRepositoryService implements RepositoryService {
     private <T extends ObjectType> SearchResultList<PrismObject<T>> executeSearchObject(
             @NotNull Class<T> type,
             ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options)
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            String operationKind)
             throws RepositoryException, SchemaException {
 
-        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS, type);
+        long opHandle = registerOperationStart(operationKind, type);
         try {
             SearchResultList<T> result = sqlQueryExecutor.list(
                     SqaleQueryContext.from(type, repositoryContext),
@@ -856,8 +862,40 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        return null;
-        // TODO
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_SEARCH_SHADOW_OWNER)
+                        .addParam("shadowOid", shadowOid)
+                        .addParam("options", String.valueOf(options))
+                        .build();
+
+        try {
+            // select o.oid, o.fullObject, 0, 0, 0, 0, 0, 0 from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid
+            ObjectQuery query = repositoryContext.prismContext()
+                    .queryFor(FocusType.class)
+                    .item(FocusType.F_LINK_REF).ref(shadowOid)
+                    .build();
+            SearchResultList<PrismObject<FocusType>> result =
+                    executeSearchObject(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
+
+            if (result == null || result.isEmpty()) {
+                // account shadow owner was not found
+                return null;
+            } else if (result.size() > 1) {
+                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.",
+                        result.size(), shadowOid);
+            }
+            //noinspection unchecked
+            return (PrismObject<F>) result.get(0);
+        } catch (RepositoryException | RuntimeException | SchemaException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -984,14 +1022,6 @@ public class SqaleRepositoryService implements RepositoryService {
 
         // TODO search like containers + dry run?
         throw new UnsupportedOperationException();
-
-        /*
-        RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(
-                null, null, Map.of());
-//                objects, implementationLevelQuery, implementationLevelQueryParameters);
-
-        return response;
-        */
     }
 
     @Override
@@ -1000,8 +1030,100 @@ public class SqaleRepositoryService implements RepositoryService {
             ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        // TODO
-        throw new UnsupportedOperationException();
+        // this code is taken from old repo virtually as-was
+        if (objectSelector == null) {
+            logger.trace("{} null object specification", logMessagePrefix);
+            return false;
+        }
+
+        if (object == null) {
+            logger.trace("{} null object", logMessagePrefix);
+            return false;
+        }
+
+        SearchFilterType specFilterType = objectSelector.getFilter();
+        ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
+        QName specTypeQName = objectSelector.getType(); // now it does not matter if it's unqualified
+        PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+
+        // Type
+        if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("{} type mismatch, expected {}, was {}",
+                        logMessagePrefix,
+                        PrettyPrinter.prettyPrint(specTypeQName),
+                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
+            }
+            return false;
+        }
+
+        // Subtype
+        String specSubtype = objectSelector.getSubtype();
+        if (specSubtype != null) {
+            Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
+            if (!actualSubtypeValues.contains(specSubtype)) {
+                logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+                return false;
+            }
+        }
+
+        // Archetype
+        List<ObjectReferenceType> specArchetypeRefs = objectSelector.getArchetypeRef();
+        if (!specArchetypeRefs.isEmpty()) {
+            if (object.canRepresent(AssignmentHolderType.class)) {
+                boolean match = false;
+                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
+                for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
+                    for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
+                        if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!match) {
+                    logger.trace("{} archetype mismatch, expected {}, was {}", logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
+                    return false;
+                }
+            } else {
+                logger.trace("{} archetype mismatch, expected {} but object has none (it is not of AssignmentHolderType)",
+                        logMessagePrefix, specArchetypeRefs);
+                return false;
+            }
+        }
+
+        // Filter
+        if (specFilterType != null) {
+            ObjectFilter specFilter = object.getPrismContext().getQueryConverter()
+                    .createObjectFilter(object.getCompileTimeClass(), specFilterType);
+            if (filterEvaluator != null) {
+                specFilter = filterEvaluator.evaluate(specFilter);
+            }
+            ObjectTypeUtil.normalizeFilter(specFilter, repositoryContext.relationRegistry()); // we assume object is already normalized
+            if (specFilter != null) {
+                ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
+            }
+            try {
+                if (!ObjectQuery.match(object, specFilter, repositoryContext.matchingRuleRegistry())) {
+                    logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
+                    return false;
+                }
+            } catch (SchemaException ex) {
+                throw new SchemaException(logMessagePrefix + "could not apply for " + object + ": "
+                        + ex.getMessage(), ex);
+            }
+        }
+
+        // Org
+        if (specOrgRef != null) {
+            if (!isDescendant(object, specOrgRef.getOid())) {
+                logger.trace("{} object OID {} (org={})",
+                        logMessagePrefix, object.getOid(), specOrgRef.getOid());
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -1067,8 +1189,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 rv = true;
             } else {
                 try {
-                    getVersion(ObjectType.class, watcher.getOid(), result);
-                } catch (ObjectNotFoundException | SchemaException e) {
+                    executeGetVersion(ObjectType.class, UUID.fromString(watcher.getOid()));
+                } catch (ObjectNotFoundException e) {
                     // just ignore this
                 }
                 rv = watcher.hasConflict();
