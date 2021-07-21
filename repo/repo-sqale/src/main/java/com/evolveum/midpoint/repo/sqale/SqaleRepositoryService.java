@@ -248,7 +248,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private <T extends ObjectType> String executeGetVersion(Class<T> type, UUID oid)
             throws ObjectNotFoundException {
-        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
+        long opHandle = registerOperationStart(OP_GET_VERSION, type);
         try (JdbcSession jdbcSession =
                 repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
             SqaleTableMapping<T, QObject<MObject>, MObject> rootMapping =

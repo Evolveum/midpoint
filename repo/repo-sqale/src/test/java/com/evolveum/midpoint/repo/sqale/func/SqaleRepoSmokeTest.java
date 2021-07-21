@@ -42,10 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Contains a few tests doing stuff all over the repository including a few lower level
  * (sub-repo-API) tests around Querydsl and our adaptation of it.
+ * Each test method is completely self contained.
  */
 public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
-
-    private String sanityUserOid;
 
     @Test
     public void test000Sanity() {
@@ -84,30 +83,62 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     public void test100AddObject() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
-        when("correct object is added to the repository");
-        UserType user = new UserType(prismContext)
-                .name("sanity-user");
-        sanityUserOid = repositoryService.addObject(user.asPrismObject(), null, result);
-
-        then("added object is assigned OID and operation is success");
-        assertThat(sanityUserOid).isNotNull();
-        assertThat(user.getOid()).isEqualTo(sanityUserOid);
-        assertThat(selectObjectByOid(QUser.class, sanityUserOid)).isNotNull();
-        assertThatOperationResult(result).isSuccess();
-    }
-
-    @Test
-    public void test200GetObject() throws SchemaException, ObjectNotFoundException {
-        OperationResult result = createOperationResult();
-
         given("cleared performance information");
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
         pm.clearGlobalPerformanceInformation();
         assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
 
+        when("correct object is added to the repository");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("added object is assigned OID and operation is success");
+        assertThat(userOid).isNotNull();
+        assertThat(user.getOid()).isEqualTo(userOid);
+        assertThat(selectObjectByOid(QUser.class, userOid)).isNotNull();
+        assertThatOperationResult(result).isSuccess();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
+    }
+
+    @Test
+    public void test110DeleteObject() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("existing user");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        and("cleared performance information");
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        when("user is deleted from the repository");
+        DeleteObjectResult deleteResult =
+                repositoryService.deleteObject(UserType.class, userOid, result);
+
+        then("added object is assigned OID and operation is success");
+        assertThat(deleteResult).isNotNull();
+        assertThatOperationResult(result).isSuccess();
+        assertThat(selectNullableObjectByOid(QUser.class, userOid)).isNull();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_DELETE_OBJECT);
+    }
+
+    @Test
+    public void test200GetObject() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("existing user and cleared performance information");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
         when("getObject is called for known OID");
         PrismObject<UserType> object =
-                repositoryService.getObject(UserType.class, sanityUserOid, null, result);
+                repositoryService.getObject(UserType.class, userOid, null, result);
 
         then("object is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
@@ -116,15 +147,23 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test210GetVersion() throws SchemaException, ObjectNotFoundException {
+    public void test210GetVersion() throws Exception {
         OperationResult result = createOperationResult();
 
-        when("getVersion is called for known OID");
-        String version = repositoryService.getVersion(UserType.class, sanityUserOid, result);
+        given("existing user and cleared performance information");
+        UserType user = new UserType(prismContext)
+                .name("user" + getTestNumber());
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
 
-        then("non-null version string is obtained");
+        when("getVersion is called for known OID");
+        String version = repositoryService.getVersion(UserType.class, userOid, result);
+
+        then("non-null version string is obtained and performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
         assertThat(version).isNotNull();
+        assertSingleOperationRecorded(pm, RepositoryService.OP_GET_VERSION);
     }
 
     @Test
@@ -172,18 +211,6 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(taskFromDb.asObjectable().getDiagnosticInformation())
                 .isNotEmpty()
                 .anyMatch(d -> d.getType().equals(SchemaConstants.TASK_THREAD_DUMP_URI));
-    }
-
-    @Test
-    public void test800DeleteObject() throws ObjectNotFoundException {
-        OperationResult result = createOperationResult();
-
-        DeleteObjectResult deleteResult =
-                repositoryService.deleteObject(UserType.class, sanityUserOid, result);
-
-        assertThat(deleteResult).isNotNull();
-        assertThatOperationResult(result).isSuccess();
-        assertThat(selectNullableObjectByOid(QUser.class, sanityUserOid)).isNull();
     }
 
     // region low-level tests
