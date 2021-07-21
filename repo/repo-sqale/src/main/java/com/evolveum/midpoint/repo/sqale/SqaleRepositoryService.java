@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1210,8 +1213,69 @@ public class SqaleRepositoryService implements RepositoryService {
             DiagnosticInformationType information, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        // TODO
-        throw new UnsupportedOperationException();
+        OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type)
+                .addParam("oid", oid)
+                .build();
+        try {
+            PrismObject<T> object = getObject(type, oid, null, result);
+            // TODO when on limit this calls modify twice, wouldn't single modify be better?
+            boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
+                    object.asObjectable().getDiagnosticInformation(), result);
+            if (canStoreInfo) {
+                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                        .deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    // TODO replace by something in system configuration (postponing until this feature is used more)
+    private static final Map<String, Integer> DIAG_INFO_CLEANUP_POLICY = Map.of(
+            SchemaConstants.TASK_THREAD_DUMP_URI, 5);
+
+    /** Nullable for unlimited, 0 means that no info is possible. */
+    private static final Integer DIAG_INFO_DEFAULT_LIMIT = 2;
+
+    // returns true if the new information can be stored
+    private <T extends ObjectType> boolean pruneDiagnosticInformation(
+            Class<T> type, String oid, DiagnosticInformationType newInformation,
+            List<DiagnosticInformationType> oldInformationList, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        String infoType = newInformation.getType();
+        if (infoType == null) {
+            throw new IllegalArgumentException("Diagnostic information type is not specified");
+        }
+        Integer limit = DIAG_INFO_CLEANUP_POLICY.getOrDefault(infoType, DIAG_INFO_DEFAULT_LIMIT);
+        LOGGER.trace("Limit for diagnostic information of type '{}': {}", infoType, limit);
+        if (limit != null) {
+            List<DiagnosticInformationType> oldToPrune = oldInformationList.stream()
+                    .filter(i -> infoType.equals(i.getType()))
+                    .collect(Collectors.toList());
+            int pruneToSize = limit > 0 ? limit - 1 : 0;
+            if (oldToPrune.size() > pruneToSize) {
+                oldToPrune.sort(Comparator.nullsFirst(
+                        Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
+                List<DiagnosticInformationType> toDelete =
+                        oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
+                LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
+                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                        .deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            return limit > 0;
+        } else {
+            return true;
+        }
     }
 
     @Override

@@ -11,11 +11,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -28,10 +30,13 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -80,13 +85,14 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when("correct object is added to the repository");
-        UserType userType = new UserType(prismContext)
+        UserType user = new UserType(prismContext)
                 .name("sanity-user");
-        sanityUserOid = repositoryService.addObject(userType.asPrismObject(), null, result);
+        sanityUserOid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         then("added object is assigned OID and operation is success");
         assertThat(sanityUserOid).isNotNull();
-        assertThat(userType.getOid()).isEqualTo(sanityUserOid);
+        assertThat(user.getOid()).isEqualTo(sanityUserOid);
+        assertThat(selectObjectByOid(QUser.class, sanityUserOid)).isNotNull();
         assertThatOperationResult(result).isSuccess();
     }
 
@@ -139,6 +145,36 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     //  - ObjectOperationOptions(/:resolveNames)
 
     @Test
+    public void test300AddDiagnosticInformation() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("a task (or any object actually) without diag info");
+        TaskType task = new TaskType(prismContext)
+                .name("task" + getTestNumber());
+        String taskOid = repositoryService.addObject(task.asPrismObject(), null, result);
+        PrismObject<TaskType> taskFromDb =
+                repositoryService.getObject(TaskType.class, taskOid, null, result);
+        assertThat(taskFromDb.asObjectable().getDiagnosticInformation()).isNullOrEmpty();
+
+        when("adding diagnostic info");
+        DiagnosticInformationType event = new DiagnosticInformationType()
+                .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+                .type(SchemaConstants.TASK_THREAD_DUMP_URI)
+                .cause("cause")
+                .nodeIdentifier("node-id")
+                .content("dump");
+        repositoryService.addDiagnosticInformation(TaskType.class, taskOid, event, result);
+
+        then("operation is success and the info is there");
+        assertThatOperationResult(result).isSuccess();
+        taskFromDb = repositoryService.getObject(TaskType.class, taskOid, null, result);
+        assertThat(taskFromDb).isNotNull();
+        assertThat(taskFromDb.asObjectable().getDiagnosticInformation())
+                .isNotEmpty()
+                .anyMatch(d -> d.getType().equals(SchemaConstants.TASK_THREAD_DUMP_URI));
+    }
+
+    @Test
     public void test800DeleteObject() throws ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
@@ -151,6 +187,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     // region low-level tests
+
+    /** This tests our type mapper/converter classes and related column mapping. */
     @Test
     public void test900WorkingWithPgArraysJsonbAndBytea() {
         QUser u = aliasFor(QUser.class);
