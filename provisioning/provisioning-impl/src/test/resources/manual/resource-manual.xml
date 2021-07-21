@@ -76,8 +76,9 @@
     </consistency>
 
     <business>
-        <operatorRef oid="operator1-oid" type="UserType"/>
-        <operatorRef oid="operator2-oid" type="UserType"/>
+        <operatorRef oid="operators-organization" type="OrgType"/>
+        <operatorRef oid="operators-role" type="RoleType"/>
+        <operatorRef oid="operator-user" type="UserType"/>
     </business>
 
 </resource>
