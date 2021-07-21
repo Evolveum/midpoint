@@ -285,7 +285,6 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         OperationResult completeWorkItemResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
         selectedWorkItems.forEach(workItemToReject -> {
             WebComponentUtil.workItemApproveActionPerformed(target, workItemToReject.getRealValue(),
-                    new AbstractWorkItemOutputType(getPrismContext()).outcome(ApprovalUtils.toUri(approved)),
                     null, powerDonor, approved, completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
         });
 

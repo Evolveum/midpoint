@@ -4240,26 +4240,26 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
+    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem,
             Component formPanel, PrismObject<UserType> powerDonor, boolean approved, OperationResult result, PageBase pageBase) {
         if (workItem == null) {
             return;
         }
         CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+        AbstractWorkItemOutputType output = workItem.getOutput();
+        if (output == null) {
+            output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+        }
+        output.setOutcome(ApprovalUtils.toUri(approved));
+        if (WorkItemTypeUtil.getComment(workItem) != null) {
+            output.setComment(WorkItemTypeUtil.getComment(workItem));
+        }
+        if (WorkItemTypeUtil.getEvidence(workItem) != null) {
+            output.setEvidence(WorkItemTypeUtil.getEvidence(workItem));
+        }
         if (CaseTypeUtil.isManualProvisioningCase(parentCase)) {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
-                AbstractWorkItemOutputType output = workItem.getOutput();
-                if (output == null) {
-                    output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
-                }
-                output.setOutcome(ApprovalUtils.toUri(approved));
-                if (workItemOutput != null && workItemOutput.getComment() != null) {
-                    output.setComment(workItemOutput.getComment());
-                }
-                if (workItemOutput != null && workItemOutput.getEvidence() != null) {
-                    output.setEvidence(workItemOutput.getEvidence());
-                }
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
                 pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
@@ -4287,8 +4287,7 @@ public final class WebComponentUtil {
                     }
                     assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                     pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
-                            workItemOutput,
-                            additionalDelta, task, result);
+                            output, additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                 }
