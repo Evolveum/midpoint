@@ -26,16 +26,19 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -66,7 +69,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test010TestRepositorySelfTest() {
+    public void test010RepositorySelfTest() {
         OperationResult result = createOperationResult();
 
         when("repository self test is called");
@@ -74,9 +77,83 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
 
         expect("operation is successful and contains info about round-trip time to DB");
         assertThatOperationResult(result).isSuccess();
-        assertThat(result.getReturn("database-round-trip-ms"))
+        assertThat(result.getLastSubresult().getReturn("database-round-trip-ms"))
                 .isNotNull()
                 .hasSize(1);
+    }
+
+    @Test
+    public void test020TestOrgClosureConsistency() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("reset closure");
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+        long baseCount = count(new QOrgClosure());
+
+        and("user belonging to org hierarchy");
+        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
+        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+                .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
+        String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
+        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+                .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("testOrgClosureConsistency() is called with rebuild flag");
+        repositoryService.testOrgClosureConsistency(true, result);
+
+        expect("operation is successful and contains info about closure");
+        assertThatOperationResult(result).isSuccess();
+        OperationResult subresult = result.getLastSubresult();
+        assertThat(subresult.getReturnSingle("closure-count")).isEqualTo(String.valueOf(baseCount));
+        assertThat(subresult.getReturnSingle("expected-count"))
+                // two equality rows for each org + 1 for parent reference
+                .isEqualTo(String.valueOf(baseCount + 3));
+        assertThat(subresult.getReturnSingle("rebuild-done")).isEqualTo("true");
+
+        and("closure is rebuilt");
+        assertThat(count(new QOrgClosure())).isEqualTo(baseCount + 3); // as explained above
+    }
+
+    @Test
+    public void test021OrgClosureIsRefreshedBeforeOrgFilterQuery() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("reset closure");
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+            jdbcSession.commit();
+        }
+        long baseCount = count(new QOrgClosure());
+
+        given("user belonging to org hierarchy");
+        OrgType orgRoot = new OrgType(prismContext).name("orgRoot" + getTestNumber());
+        String rootOid = repositoryService.addObject(orgRoot.asPrismObject(), null, result);
+        OrgType org = new OrgType(prismContext).name("org" + getTestNumber())
+                .parentOrgRef(rootOid, OrgType.COMPLEX_TYPE);
+        String orgOid = repositoryService.addObject(org.asPrismObject(), null, result);
+        UserType user = new UserType(prismContext).name("user" + getTestNumber())
+                .parentOrgRef(orgOid, OrgType.COMPLEX_TYPE);
+        String userOid = repositoryService.addObject(user.asPrismObject(), null, result);
+        assertThat(count(new QOrgClosure())).isEqualTo(baseCount); // not refreshed yet
+
+        when("query with org filter is used");
+        SearchResultList<PrismObject<UserType>> users = repositoryService.searchObjects(
+                UserType.class, prismContext.queryFor(UserType.class).isChildOf(rootOid).build(),
+                null, result);
+
+        expect("operation is successful and returns proper results");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users).hasSize(1)
+                .extracting(p -> p.asObjectable().getOid())
+                .containsExactlyInAnyOrder(userOid);
+
+        and("closure is rebuilt");
+        assertThat(count(new QOrgClosure())).isEqualTo(baseCount + 3); // see previous test
     }
 
     @Test

@@ -20,6 +20,8 @@ import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +45,11 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -181,6 +188,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         // TODO both update and get need this? I believe not.
         //  ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
+        //  If this passes model-intest, just delete it.
         return object;
     }
 
@@ -676,7 +684,6 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         // object delete cascades to all owned related rows
-        // TODO org closure
         jdbcSession.newDelete(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .execute();
@@ -845,6 +852,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -852,6 +860,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -859,6 +868,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -1004,19 +1014,75 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(REPOSITORY_SELF_TEST);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             long startMs = System.currentTimeMillis();
             jdbcSession.executeStatement("select 1");
-            parentResult.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+            result.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+            result.recordSuccess();
         } catch (Exception e) {
             parentResult.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
     @Override
-    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(TEST_ORG_CLOSURE_CONSISTENCY)
+                .addParam("repairIfNecessary", repairIfNecessary)
+                .build();
 
-        // TODO
+        try {
+            long closureCount, expectedCount;
+            try (JdbcSession jdbcSession =
+                    repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
+                QOrgClosure oc = new QOrgClosure();
+                closureCount = jdbcSession.newQuery().from(oc).fetchCount();
+                // this is CTE used also for m_org_closure materialized view (here with count)
+                QOrg o = QOrgMapping.getOrgMapping().defaultAlias();
+                QObjectReference<?> ref = QObjectReferenceMapping.getForParentOrg().newAlias("ref");
+                QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().newAlias("par");
+                //noinspection unchecked
+                expectedCount = jdbcSession.newQuery()
+                        .withRecursive(oc, oc.ancestorOid, oc.descendantOid)
+                        .as(new SQLQuery<>().union(
+                                // non-recursive term: initial select
+                                new SQLQuery<>().select(o.oid, o.oid)
+                                        .from(o)
+                                        .where(new SQLQuery<>().select(Expressions.ONE)
+                                                .from(ref)
+                                                .where(ref.targetOid.eq(o.oid)
+                                                        .or(ref.ownerOid.eq(o.oid)))
+                                                .exists()),
+                                new SQLQuery<>().select(par.targetOid, oc.descendantOid)
+                                        .from(par, oc)
+                                        .where(par.ownerOid.eq(oc.ancestorOid))))
+                        .from(oc)
+                        .fetchCount();
+                LOGGER.info("Org closure consistency checked - closure count {}, expected count {}",
+                        closureCount, expectedCount);
+            }
+            result.addReturn("closure-count", closureCount);
+            result.addReturn("expected-count", expectedCount);
+
+            if (repairIfNecessary && closureCount != expectedCount) {
+                try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+                    jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+                    jdbcSession.commit();
+                }
+                LOGGER.info("Org closure rebuild was requested and executed");
+                result.addReturn("rebuild-done", true);
+            } else {
+                result.addReturn("rebuild-done", false);
+            }
+
+            result.recordSuccess();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -1147,7 +1213,6 @@ public class SqaleRepositoryService implements RepositoryService {
         systemConfigurationChangeDispatcher.dispatch(true, true, result);
     }
 
-    // TODO use internally in various operations (see old repo)
     private void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
         conflictWatchersThreadLocal.get().forEach(consumer);
     }

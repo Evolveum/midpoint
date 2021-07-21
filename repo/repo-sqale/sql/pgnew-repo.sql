@@ -657,8 +657,7 @@ CREATE INDEX m_ref_object_parent_orgTargetOidRelationId_idx
 
 -- region org-closure
 /*
-Trigger on m_ref_object_parent_org refreshes this view.
-This is not most performant, but it is *correct* and it's still WIP.
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
 * It's easier to do optimized matrix-multiplication based refresh with them later.
 * It actually makes some query easier and requires AND instead of OR conditions.
