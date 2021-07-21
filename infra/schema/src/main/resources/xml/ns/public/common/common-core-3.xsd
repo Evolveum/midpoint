@@ -77,6 +77,9 @@
                 user to edit it.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -195,6 +198,8 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.subtype</a:displayName>
                         <a:displayOrder>15</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -679,6 +684,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4925,6 +4931,7 @@
                                 <a:displayOrder>410</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6246,6 +6253,11 @@
                                 instance-specific resource schema or for other
                                 purposes. If not set a default namespace is assumed.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element ref="tns:schema" minOccurs="0">
@@ -7003,11 +7015,25 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
             <xsd:element name="reshreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
+                <!-- MIGRATION: 4.4: Name change -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        WARNING: There is a this property. Use the correct form "refreshOnRead" instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.3</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="refreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
                         If set to true then midPoint will always refresh shadow when it is retrieved.
-                        Refreshing a shadow means that the status of asynchronous (e.g. manual) opearions
+                        Refreshing a shadow means that the status of asynchronous (e.g. manual) operations
                         is checked, unfinished operations may be retried and so on. In this case shadow
                         will always be as fresh as it can be. But read may be slower and there may be
                         strange errors (e.g. reading a shadow may cause "already exists" error because
@@ -7017,7 +7043,7 @@
                         (e.g. during reconciliation).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>3.9</a:since>
+                        <a:since>4.3</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7958,6 +7984,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14073,6 +14100,7 @@
                                 <a:displayName>RoleType.roleType</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14527,6 +14555,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14640,6 +14669,7 @@
                                 <a:displayOrder>120</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14757,10 +14787,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15379,6 +15412,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16640,9 +16674,9 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                         <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-                          <xsd:annotation>
-                              <xsd:documentation>
+                    <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
                                   Specification of an explicit or implicit object collection that will be used as data source for the view.
 
                                   EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
@@ -16653,13 +16687,15 @@
                                   Therefore this is a good temporary choice.
                                   However, if you ever rely on this element the karma will get you, eventually.
                                   If that happens, don't come to us crying. You have been warned.
-                              </xsd:documentation>
-                              <xsd:appinfo>
+                            </xsd:documentation>
+                            <xsd:appinfo>
                                 <a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
-                              </xsd:appinfo>
-                          </xsd:annotation>
-                      </xsd:element>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -16714,6 +16750,7 @@
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
+
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -16808,6 +16845,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <!-- MIGRATION: 4.4 Deleted? -->
     <xsd:simpleType name="CollectionSpecificationInterpretationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -16864,6 +16902,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- MIGRATION: 4.4 Deleted? --
     <xsd:simpleType name="CollectionSpecificationDepthType">
         <xsd:annotation>
             <xsd:documentation>
@@ -17025,6 +17064,8 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.4</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -17111,6 +17152,7 @@
                         <a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.0</a:deprecatedSince>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -18093,6 +18135,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- MIGRATION: 4.4: Deleted? -->
     <xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -19278,6 +19321,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- MIGRATION: 4.4 Renamed to ItemConstraintType? -->
     <xsd:complexType name="PropertyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -19714,7 +19758,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
 
     <xsd:simpleType name="LoggingLevelType">
         <xsd:annotation>
@@ -20960,6 +21003,7 @@
        </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- MIGRATION: 4.4 Moved or removed? -->
     <xsd:complexType name="SecurityPolicyType">
         <xsd:annotation>
             <xsd:documentation>
@@ -21930,6 +21974,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <!-- MIGRATION: 4.4 END Section -->
 
     <xsd:simpleType name="SystemObjectsType">
         <xsd:annotation>
@@ -22614,9 +22659,7 @@
                             chosen but a custom paging exists, provided that the paging contains maxSize clause with a number
                             not greater than a specified limit (maxObjectsForImplicitFetchAllIterationMethod).
                         </xsd:documentation>
-                        <xsd:annotation>
-                            <a:since>3.9</a:since>
-                        </xsd:annotation>
+                        <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23418,6 +23461,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:displayName>ReportType.reportEngine</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23432,8 +23478,9 @@
                                 This item is specific to JasperRepors.
                             </xsd:documentation>
                             <xsd:appinfo>
+                                <a:since>4.0</a:since>
                                 <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.2</a:plannedRemoval>
+                                <a:plannedRemoval>4.4</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

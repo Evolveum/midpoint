@@ -325,6 +325,7 @@
         </xsd:annotation>
     </xsd:element>
 
+    <!-- MIGRATION: 4.4: Deleted? -->
     <xsd:element name="endpoint" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -336,6 +337,7 @@
         </xsd:annotation>
     </xsd:element>
 
+    <!-- MIGRATION: 4.4: Deleted? -->
     <xsd:element name="route" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -427,6 +429,7 @@
                 <a:displayName>Task-specific cleanup policies</a:displayName>
                 <a:displayOrder>100</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -438,6 +441,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -448,6 +452,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -468,6 +473,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -484,6 +490,7 @@
                 <a:displayOrder>850</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -499,6 +506,7 @@
                 <a:displayOrder>851</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -514,6 +522,8 @@
                 <a:displayOrder>852</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -529,6 +539,8 @@
                 <a:displayOrder>853</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>unbounded</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
