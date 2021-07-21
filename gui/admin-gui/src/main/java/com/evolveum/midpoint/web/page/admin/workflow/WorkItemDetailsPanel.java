@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
@@ -49,6 +50,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -118,6 +120,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
+        approverCommentValue = WorkItemTypeUtil.getComment(getModelObject());
     }
 
     private void initLayout(){
@@ -290,19 +293,21 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
         add(commentContainer);
 
-        TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setObject(String newValue) {
-                approverCommentValue = newValue;
-            }
-
-            @Override
-            public String getObject() {
-                return approverCommentValue;
-            }
-        });
+        TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
+//                new IModel<String>() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void setObject(String newValue) {
+//                approverCommentValue = newValue;
+//            }
+//
+//            @Override
+//            public String getObject() {
+//                return approverCommentValue;
+//            }
+//        });
+        approverComment.add(new EnableBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState())));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
