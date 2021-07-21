@@ -1189,8 +1189,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 rv = true;
             } else {
                 try {
-                    getVersion(ObjectType.class, watcher.getOid(), result);
-                } catch (ObjectNotFoundException | SchemaException e) {
+                    executeGetVersion(ObjectType.class, UUID.fromString(watcher.getOid()));
+                } catch (ObjectNotFoundException e) {
                     // just ignore this
                 }
                 rv = watcher.hasConflict();
