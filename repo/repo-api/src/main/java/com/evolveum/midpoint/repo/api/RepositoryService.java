@@ -131,6 +131,8 @@ public interface RepositoryService {
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
     String OP_HAS_CONFLICT = "hasConflict";
+    String OP_REPOSITORY_SELF_TEST = "repositorySelfTest";
+    String OP_TEST_ORG_CLOSURE_CONSISTENCY = "testOrgClosureConsistency";
 
     String GET_OBJECT = CLASS_NAME_WITH_DOT + OP_GET_OBJECT;
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + OP_ADD_OBJECT;
@@ -149,6 +151,8 @@ public interface RepositoryService {
     String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
     String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + OP_ADD_DIAGNOSTIC_INFORMATION;
     String HAS_CONFLICT = CLASS_NAME_WITH_DOT + OP_HAS_CONFLICT;
+    String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + OP_REPOSITORY_SELF_TEST;
+    String TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + OP_TEST_ORG_CLOSURE_CONSISTENCY;
 
     String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
     String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";

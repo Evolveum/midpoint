@@ -14,11 +14,14 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +37,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
@@ -41,6 +45,11 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrg;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgClosure;
+import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.update.AddObjectContext;
 import com.evolveum.midpoint.repo.sqale.update.RootUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.*;
@@ -48,6 +57,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -70,7 +80,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * - arg checks
  * - debug log
  * - create op-result, immediately followed by try/catch/finally (see addObject for example)
- * - more arg checks :-) (here ore before op result depending on the needs)
+ * - more arg checks :-) (here or before op result depending on the needs)
  * - call to executeMethodName(...) where perf monitor is initialized followed by try/catch/finally
  * - finally in main method:
  *
@@ -178,6 +188,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         // TODO both update and get need this? I believe not.
         //  ObjectTypeUtil.normalizeAllRelations(object, schemaService.relationRegistry());
+        //  If this passes model-intest, just delete it.
         return object;
     }
 
@@ -245,7 +256,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private <T extends ObjectType> String executeGetVersion(Class<T> type, UUID oid)
             throws ObjectNotFoundException {
-        long opHandle = registerOperationStart(OP_GET_OBJECT, type);
+        long opHandle = registerOperationStart(OP_GET_VERSION, type);
         try (JdbcSession jdbcSession =
                 repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
             SqaleTableMapping<T, QObject<MObject>, MObject> rootMapping =
@@ -673,7 +684,6 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         // object delete cascades to all owned related rows
-        // TODO org closure
         jdbcSession.newDelete(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .execute();
@@ -697,8 +707,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, repositoryContext);
-            return sqlQueryExecutor.count(queryContext, query, options);
+            return executeCountObject(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -706,6 +715,22 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> int executeCountObject(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+
+        long opHandle = registerOperationStart(OP_COUNT_OBJECTS, type);
+        try {
+            return sqlQueryExecutor.count(
+                    SqaleQueryContext.from(type, repositoryContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
         }
     }
 
@@ -806,7 +831,41 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        return 0;
+        Objects.requireNonNull(type, "Container type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_CONTAINERS)
+                        .addQualifier(type.getSimpleName())
+                        .addParam("type", type.getName())
+                        .addParam("query", query)
+                        .build();
+        try {
+            return executeCountContainers(type, query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends Containerable> int executeCountContainers(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+
+        long opHandle = registerOperationStart(OP_COUNT_CONTAINERS, type);
+        try {
+            return sqlQueryExecutor.count(
+                    SqaleQueryContext.from(type, repositoryContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+        }
     }
 
     @Override
@@ -842,6 +901,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -849,6 +909,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -856,6 +917,7 @@ public class SqaleRepositoryService implements RepositoryService {
     public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
             throws SchemaException {
         // TODO
+        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
         throw new UnsupportedOperationException();
     }
 
@@ -1001,19 +1063,75 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(REPOSITORY_SELF_TEST);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             long startMs = System.currentTimeMillis();
             jdbcSession.executeStatement("select 1");
-            parentResult.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+            result.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+            result.recordSuccess();
         } catch (Exception e) {
             parentResult.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
     @Override
-    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(TEST_ORG_CLOSURE_CONSISTENCY)
+                .addParam("repairIfNecessary", repairIfNecessary)
+                .build();
 
-        // TODO
+        try {
+            long closureCount, expectedCount;
+            try (JdbcSession jdbcSession =
+                    repositoryContext.newJdbcSession().startReadOnlyTransaction()) {
+                QOrgClosure oc = new QOrgClosure();
+                closureCount = jdbcSession.newQuery().from(oc).fetchCount();
+                // this is CTE used also for m_org_closure materialized view (here with count)
+                QOrg o = QOrgMapping.getOrgMapping().defaultAlias();
+                QObjectReference<?> ref = QObjectReferenceMapping.getForParentOrg().newAlias("ref");
+                QObjectReference<?> par = QObjectReferenceMapping.getForParentOrg().newAlias("par");
+                //noinspection unchecked
+                expectedCount = jdbcSession.newQuery()
+                        .withRecursive(oc, oc.ancestorOid, oc.descendantOid)
+                        .as(new SQLQuery<>().union(
+                                // non-recursive term: initial select
+                                new SQLQuery<>().select(o.oid, o.oid)
+                                        .from(o)
+                                        .where(new SQLQuery<>().select(Expressions.ONE)
+                                                .from(ref)
+                                                .where(ref.targetOid.eq(o.oid)
+                                                        .or(ref.ownerOid.eq(o.oid)))
+                                                .exists()),
+                                new SQLQuery<>().select(par.targetOid, oc.descendantOid)
+                                        .from(par, oc)
+                                        .where(par.ownerOid.eq(oc.ancestorOid))))
+                        .from(oc)
+                        .fetchCount();
+                LOGGER.info("Org closure consistency checked - closure count {}, expected count {}",
+                        closureCount, expectedCount);
+            }
+            result.addReturn("closure-count", closureCount);
+            result.addReturn("expected-count", expectedCount);
+
+            if (repairIfNecessary && closureCount != expectedCount) {
+                try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+                    jdbcSession.executeStatement("CALL m_refresh_org_closure(true)");
+                    jdbcSession.commit();
+                }
+                LOGGER.info("Org closure rebuild was requested and executed");
+                result.addReturn("rebuild-done", true);
+            } else {
+                result.addReturn("rebuild-done", false);
+            }
+
+            result.recordSuccess();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -1144,7 +1262,6 @@ public class SqaleRepositoryService implements RepositoryService {
         systemConfigurationChangeDispatcher.dispatch(true, true, result);
     }
 
-    // TODO use internally in various operations (see old repo)
     private void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
         conflictWatchersThreadLocal.get().forEach(consumer);
     }
@@ -1210,8 +1327,69 @@ public class SqaleRepositoryService implements RepositoryService {
             DiagnosticInformationType information, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        // TODO
-        throw new UnsupportedOperationException();
+        OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type)
+                .addParam("oid", oid)
+                .build();
+        try {
+            PrismObject<T> object = getObject(type, oid, null, result);
+            // TODO when on limit this calls modify twice, wouldn't single modify be better?
+            boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
+                    object.asObjectable().getDiagnosticInformation(), result);
+            if (canStoreInfo) {
+                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                        .deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    // TODO replace by something in system configuration (postponing until this feature is used more)
+    private static final Map<String, Integer> DIAG_INFO_CLEANUP_POLICY = Map.of(
+            SchemaConstants.TASK_THREAD_DUMP_URI, 5);
+
+    /** Nullable for unlimited, 0 means that no info is possible. */
+    private static final Integer DIAG_INFO_DEFAULT_LIMIT = 2;
+
+    // returns true if the new information can be stored
+    private <T extends ObjectType> boolean pruneDiagnosticInformation(
+            Class<T> type, String oid, DiagnosticInformationType newInformation,
+            List<DiagnosticInformationType> oldInformationList, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        String infoType = newInformation.getType();
+        if (infoType == null) {
+            throw new IllegalArgumentException("Diagnostic information type is not specified");
+        }
+        Integer limit = DIAG_INFO_CLEANUP_POLICY.getOrDefault(infoType, DIAG_INFO_DEFAULT_LIMIT);
+        LOGGER.trace("Limit for diagnostic information of type '{}': {}", infoType, limit);
+        if (limit != null) {
+            List<DiagnosticInformationType> oldToPrune = oldInformationList.stream()
+                    .filter(i -> infoType.equals(i.getType()))
+                    .collect(Collectors.toList());
+            int pruneToSize = limit > 0 ? limit - 1 : 0;
+            if (oldToPrune.size() > pruneToSize) {
+                oldToPrune.sort(Comparator.nullsFirst(
+                        Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
+                List<DiagnosticInformationType> toDelete =
+                        oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
+                LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
+                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                        .deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            return limit > 0;
+        } else {
+            return true;
+        }
     }
 
     @Override
@@ -1255,11 +1433,12 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> long registerOperationStart(String kind, PrismObject<T> object) {
+    private <T extends Containerable> long registerOperationStart(
+            String kind, PrismContainer<T> object) {
         return performanceMonitor.registerOperationStart(kind, object.getCompileTimeClass());
     }
 
-    private <T extends ObjectType> long registerOperationStart(String kind, Class<T> type) {
+    private <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
         return performanceMonitor.registerOperationStart(kind, type);
     }
 

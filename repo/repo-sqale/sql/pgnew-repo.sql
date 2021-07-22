@@ -657,8 +657,7 @@ CREATE INDEX m_ref_object_parent_orgTargetOidRelationId_idx
 
 -- region org-closure
 /*
-Trigger on m_ref_object_parent_org refreshes this view.
-This is not most performant, but it is *correct* and it's still WIP.
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
 * It's easier to do optimized matrix-multiplication based refresh with them later.
 * It actually makes some query easier and requires AND instead of OR conditions.
@@ -802,7 +801,7 @@ CREATE TABLE m_shadow (
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER,
+    pendingOperationCount INTEGER NOT NULL,
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
@@ -810,8 +809,6 @@ CREATE TABLE m_shadow (
     attributes JSONB
 )
     INHERITS (m_object);
-
--- TODO not partitioned yet, discriminator columns probably can't be NULL
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
