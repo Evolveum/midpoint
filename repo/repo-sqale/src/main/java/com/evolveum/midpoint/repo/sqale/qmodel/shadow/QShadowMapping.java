@@ -13,7 +13,9 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
@@ -68,6 +70,9 @@ public class QShadowMapping
                 timestampMapper(q -> q.synchronizationTimestamp));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
 
+        // Item mapping to update the count, relation resolver for query with EXISTS filter.
+        addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
+                ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
         addRelationResolver(F_PENDING_OPERATION,
                 new CountMappingResolver<>(q -> q.pendingOperationCount));
     }

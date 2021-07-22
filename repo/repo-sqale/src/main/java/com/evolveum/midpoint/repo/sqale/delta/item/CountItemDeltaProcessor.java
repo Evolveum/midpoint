@@ -9,38 +9,38 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
-import com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils;
+import com.querydsl.core.types.dsl.NumberPath;
+
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Delta processor for multi-value poly-strings represented as array in JSONB column.
+ * Delta processor for columns storing size of multi-value item.
+ *
+ * @param <T> expected type of the real value, but we don't care in this class
  */
-public class JsonbPolysItemDeltaProcessor extends FinalValueDeltaProcessor<PolyString> {
+public class CountItemDeltaProcessor<T> extends FinalValueDeltaProcessor<T> {
 
-    private final JsonbPath path;
+    private final NumberPath<Integer> path;
 
     /**
      * @param <Q> entity query type from which the attribute is resolved
      * @param <R> row type related to {@link Q}
      */
-    public <Q extends FlexibleRelationalPathBase<R>, R> JsonbPolysItemDeltaProcessor(
+    public <Q extends FlexibleRelationalPathBase<R>, R> CountItemDeltaProcessor(
             SqaleUpdateContext<?, Q, R> context,
-            Function<Q, JsonbPath> rootToQueryItem) {
+            Function<Q, NumberPath<Integer>> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.entityPath());
     }
 
     @Override
     public void setRealValues(Collection<?> values) {
-        //noinspection unchecked
-        context.set(path, JsonbUtils.polyStringsToJsonb((Collection<PolyString>) values));
+        context.set(path, values.size());
     }
 
     @Override
     public void delete() {
-        context.setNull(path);
+        context.set(path, 0);
     }
 }

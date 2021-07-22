@@ -849,12 +849,78 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.executionStatus).isNull();
     }
+
+    @Test
+    public void test150PendingOperationCountColumn() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta adding a pending operation for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext)
+                        .requestTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having zero count of pending operations");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.pendingOperationCount).isZero();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.getPendingOperation()).hasSize(1);
+
+        and("externalized column is updated");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.pendingOperationCount).isEqualTo(1);
+    }
+
+    @Test
+    public void test151PendingOperationCountStoresZeroForEmptyContainer() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta clearing the pending operation container for shadow 1");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .item(ShadowType.F_PENDING_OPERATION).replace()
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having non-zero count of pending operations");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(originalRow.pendingOperationCount).isNotZero();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.getPendingOperation()).isNullOrEmpty();
+
+        and("externalized column is updated to zero, not null");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.pendingOperationCount).isZero();
+    }
     // endregion
 
     // region multi-value refs
     @Test
-    public void test160AddingProjectionRefInsertsRowsToTable()
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public void test160AddingProjectionRefInsertsRowsToTable() throws Exception {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
@@ -1177,7 +1243,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         r = QObjectReferenceMapping.getForModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
+    // endregion
 
+    // region array/jsonb stored multi-values
     @Test
     public void test180ReplacingSubtypeValuesSetsArrayColumn() throws Exception {
         OperationResult result = createOperationResult();

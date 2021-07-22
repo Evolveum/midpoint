@@ -801,7 +801,7 @@ CREATE TABLE m_shadow (
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER,
+    pendingOperationCount INTEGER NOT NULL,
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
@@ -809,8 +809,6 @@ CREATE TABLE m_shadow (
     attributes JSONB
 )
     INHERITS (m_object);
-
--- TODO not partitioned yet, discriminator columns probably can't be NULL
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();

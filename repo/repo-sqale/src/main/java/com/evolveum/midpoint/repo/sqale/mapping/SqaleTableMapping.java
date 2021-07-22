@@ -120,7 +120,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, StringPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -132,7 +132,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, NumberPath<Integer>> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -144,7 +144,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, BooleanPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -155,7 +155,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected ItemSqlMapper<Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 

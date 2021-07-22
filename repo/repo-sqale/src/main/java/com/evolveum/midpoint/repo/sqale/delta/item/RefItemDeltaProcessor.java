@@ -43,8 +43,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
      * @param <Q> entity query type from which the attribute is resolved
      * @param <R> row type related to {@link Q}
      */
-    // exposed mainly for RefTableItemFilterProcessor
-    <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
+    private <Q extends FlexibleRelationalPathBase<R>, R> RefItemDeltaProcessor(
             SqaleUpdateContext<?, Q, R> context,
             UuidPath oidPath, EnumPath<MObjectType> typePath, NumberPath<Integer> relationIdPath) {
         super(context);
