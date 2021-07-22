@@ -293,7 +293,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
             String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-            return page.getString(resourceKey, null, resourceKey);
+            return page.getString(resourceKey, null, result.getOperation());
         });
 
         message.setOutputMarkupId(true);
@@ -340,7 +340,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 OpResult result = getModelObject();
 
                 String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-                return getPage().getString(resourceKey, null, resourceKey);
+                return getPage().getString(resourceKey, null, result.getOperation());
             }
         });
         operation.setOutputMarkupId(true);

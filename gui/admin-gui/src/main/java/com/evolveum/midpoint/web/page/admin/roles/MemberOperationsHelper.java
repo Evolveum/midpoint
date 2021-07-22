@@ -65,9 +65,9 @@ public class MemberOperationsHelper {
     public static <R extends AbstractRoleType> void unassignMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope,
             ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
         String taskNameBuilder = getTaskName("Remove", scope, targetObject, "from");
-        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
         String taskName = pageBase.createStringResource(taskNameBuilder,
                 WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
+        Task operationalTask = pageBase.createSimpleTask(taskName);
 
         ExecuteScriptType script = new ExecuteScriptType();
         ActionExpressionType expression = new ActionExpressionType();
@@ -97,7 +97,8 @@ public class MemberOperationsHelper {
 
     public static void assignMembersPerformed(AbstractRoleType targetObject, ObjectQuery query,
             QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-        String taskName = pageBase.createStringResource(getTaskName("Add", null, targetObject, "to"),
+        String taskNameBuilder = getTaskName("Add", null, targetObject, "to");
+        String taskName = pageBase.createStringResource(taskNameBuilder,
                 WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
         Task operationalTask = pageBase.createSimpleTask(taskName);
 
@@ -138,9 +139,9 @@ public class MemberOperationsHelper {
     public static <R extends AbstractRoleType> Task createRecomputeMembersTask(R targetObject, PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
         String taskNameBuilder = getTaskName("Recompute", scope, targetObject, "of");
-        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
         String taskName = pageBase.createStringResource(taskNameBuilder,
                 WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
+        Task operationalTask = pageBase.createSimpleTask(taskName);
 
         OperationResult parentResult = operationalTask.getResult();
         return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
@@ -152,9 +153,9 @@ public class MemberOperationsHelper {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
 
         String taskNameBuilder = getTaskName(DELETE_OPERATION, scope, targetObject, "of");
-        Task operationalTask = pageBase.createSimpleTask(taskNameBuilder);
         String taskName = pageBase.createStringResource(taskNameBuilder,
                 WebComponentUtil.getDisplayNameOrName(targetObject.asPrismObject())).getString();
+        Task operationalTask = pageBase.createSimpleTask(taskName);
 
         ExecuteScriptType script = new ExecuteScriptType();
         ActionExpressionType expression = new ActionExpressionType();
@@ -323,7 +324,7 @@ public class MemberOperationsHelper {
     }
 
     private static <R extends AbstractRoleType> String getTaskName(String operation, QueryScope scope, R targetObject, String preposition) {
-        StringBuilder nameBuilder = new StringBuilder(operation);
+        StringBuilder nameBuilder = new StringBuilder("operation." + operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
@@ -419,7 +420,7 @@ public class MemberOperationsHelper {
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         operationalTask.makeSingle(schedule);
-        operationalTask.setName("operation." + taskName);
+        operationalTask.setName(taskName);
 
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
         operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);
