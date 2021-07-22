@@ -80,7 +80,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * - arg checks
  * - debug log
  * - create op-result, immediately followed by try/catch/finally (see addObject for example)
- * - more arg checks :-) (here ore before op result depending on the needs)
+ * - more arg checks :-) (here or before op result depending on the needs)
  * - call to executeMethodName(...) where perf monitor is initialized followed by try/catch/finally
  * - finally in main method:
  *
@@ -707,8 +707,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            var queryContext = SqaleQueryContext.from(type, repositoryContext);
-            return sqlQueryExecutor.count(queryContext, query, options);
+            return executeCountObject(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -716,6 +715,22 @@ public class SqaleRepositoryService implements RepositoryService {
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> int executeCountObject(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+
+        long opHandle = registerOperationStart(OP_COUNT_OBJECTS, type);
+        try {
+            return sqlQueryExecutor.count(
+                    SqaleQueryContext.from(type, repositoryContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
         }
     }
 
@@ -816,7 +831,41 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        return 0;
+        Objects.requireNonNull(type, "Container type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult =
+                parentResult.subresult(OP_NAME_PREFIX + OP_COUNT_CONTAINERS)
+                        .addQualifier(type.getSimpleName())
+                        .addParam("type", type.getName())
+                        .addParam("query", query)
+                        .build();
+        try {
+            return executeCountContainers(type, query, options);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends Containerable> int executeCountContainers(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws RepositoryException {
+
+        long opHandle = registerOperationStart(OP_COUNT_CONTAINERS, type);
+        try {
+            return sqlQueryExecutor.count(
+                    SqaleQueryContext.from(type, repositoryContext),
+                    query, options);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt (separate try from JDBC session)
+        }
     }
 
     @Override
@@ -1384,11 +1433,12 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private <T extends ObjectType> long registerOperationStart(String kind, PrismObject<T> object) {
+    private <T extends Containerable> long registerOperationStart(
+            String kind, PrismContainer<T> object) {
         return performanceMonitor.registerOperationStart(kind, object.getCompileTimeClass());
     }
 
-    private <T extends ObjectType> long registerOperationStart(String kind, Class<T> type) {
+    private <T extends Containerable> long registerOperationStart(String kind, Class<T> type) {
         return performanceMonitor.registerOperationStart(kind, type);
     }
 
