@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -90,8 +88,8 @@ public class DecisionDto extends Selectable {
 
         // we want to show user decisions, automatic decisions and delegations
         DecisionDto rv = new DecisionDto();
-        rv.user = WebModelServiceUtils.resolveReferenceName(e.getInitiatorRef(), pageBase);
-        rv.attorney = WebModelServiceUtils.resolveReferenceName(e.getAttorneyRef(), pageBase);
+        rv.user = WebComponentUtil.getReferencedObjectDisplayNameAndName(e.getInitiatorRef(), true, pageBase);
+        rv.attorney = WebComponentUtil.getReferencedObjectDisplayNameAndName(e.getAttorneyRef(), true, pageBase);
         rv.stage = ApprovalContextUtil.getStageInfoTODO(e.getStageNumber());
         rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
@@ -116,9 +114,9 @@ public class DecisionDto extends Selectable {
                 }
             }
             rv.escalationLevelNumber = ApprovalContextUtil.getEscalationLevelNumber(completionEvent);
-            if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
+            if (completionEvent.getOriginalAssigneeRef() != null) {
                 // TODO optimize repo access
-                rv.originalAssignee = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
+                rv.attorney = WebComponentUtil.getReferencedObjectDisplayNameAndName(completionEvent.getOriginalAssigneeRef(), true, pageBase);
             }
             return rv;
         } else if (e instanceof WorkItemDelegationEventType){

@@ -334,6 +334,31 @@ public final class WebComponentUtil {
         return s != null ? s : "";
     }
 
+    public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
+        if (ref == null || ref.getOid() == null) {
+            return "";
+        }
+        if (!loadObject) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        PrismObject<ObjectType> prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+        if (prismObject == null) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        ObjectType object = prismObject.asObjectable();
+        if (object == null) {
+             return "";
+        }
+        String displayName = null;
+        if (object instanceof UserType) {
+            displayName = getTranslatedPolyString(((UserType) object).getFullName());
+        } else if (object instanceof AbstractRoleType) {
+            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
+        }
+        String name = getTranslatedPolyString(object.getName());
+        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
+    }
+
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
         return refs.stream()
                 .map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
