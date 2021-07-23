@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.other;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -20,8 +22,19 @@ public class QSequenceMapping extends QAssignmentHolderMapping<SequenceType, QSe
 
     public static final String DEFAULT_ALIAS_NAME = "seq";
 
+    private static QSequenceMapping instance;
+
+    // Explanation in class Javadoc for SqaleTableMapping
     public static QSequenceMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QSequenceMapping(repositoryContext);
+        if (instance == null) {
+            instance = new QSequenceMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QSequenceMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QSequenceMapping(@NotNull SqaleRepoContext repositoryContext) {

@@ -73,7 +73,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
                 // this also handles overwrite after ObjectNotFoundException
                 return addObjectWithOid();
             }
-        } catch (QueryException e) {
+        } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
             if (cause instanceof PSQLException) {
                 handlePostgresException((PSQLException) cause);
