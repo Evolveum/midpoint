@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.org;
 
 import com.querydsl.sql.ColumnMetadata;
 
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -15,6 +17,13 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for org closure table.
  * Can also be used for common table expression (CTE) representing org hierarchy on the fly.
  * This does not have to be under {@link FlexibleRelationalPathBase}, but is for convenience.
+ *
+ * [IMPORTANT]
+ * *Be aware that the materialized view is refreshed only on demand!*
+ * This is executed when {@link com.evolveum.midpoint.prism.query.OrgFilter} is used in
+ * {@link SqaleQueryContext#beforeQuery()} or when executing
+ * {@link SqaleRepositoryService#isAnySubordinate(java.lang.String, java.util.Collection)}.
+ * If any access via other paths is done, use statement `CALL m_refresh_org_closure()` before.
  */
 @SuppressWarnings("unused")
 public class QOrgClosure extends FlexibleRelationalPathBase<MOrgClosure> {

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -1674,14 +1677,97 @@ AND(
         assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test960SearchByAxiomQueryLanguage() throws SchemaException {
         OperationResult operationResult = createOperationResult();
-        SearchResultList<FocusType> focusTypes = searchObjects(FocusType.class,
-                ". type UserType and employeeNumber startsWith \"5\"",
+
+        given("query for not-indexed extension");
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                ". type UserType and costCenter startsWith \"5\"",
                 operationResult);
-        System.out.println("focusTypes = " + focusTypes);
+
+        expect("searchObjects throws exception because of not-indexed item");
+        assertThat(result)
+                .extracting(f -> f.getOid())
+                .containsExactlyInAnyOrder(user3Oid, user4Oid);
     }
+
+    @Test
+    public void test970IsAncestor() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        expect("isAncestor returns true for parent-child orgs");
+        PrismObject<OrgType> rootOrg =
+                repositoryService.getObject(OrgType.class, org1Oid, null, operationResult);
+        assertTrue(repositoryService.isAncestor(rootOrg, org11Oid));
+
+        expect("isAncestor returns true for parent-descendant (deep child) orgs");
+        assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
+
+        expect("isAncestor returns true for the same org");
+        assertTrue(repositoryService.isAncestor(rootOrg, org1Oid));
+
+        expect("isAncestor returns false for unrelated orgs");
+        assertFalse(repositoryService.isAncestor(rootOrg, org21Oid));
+
+        expect("isAncestor returns false for reverse relationship");
+        assertFalse(repositoryService.isAncestor(
+                repositoryService.getObject(OrgType.class, org11Oid, null, operationResult),
+                org1Oid));
+    }
+
+    @Test
+    public void test971IsDescendant() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        expect("isDescendant returns true for child-parent orgs");
+        PrismObject<OrgType> org11 =
+                repositoryService.getObject(OrgType.class, org11Oid, null, operationResult);
+        assertTrue(repositoryService.isDescendant(org11, org1Oid));
+
+        expect("isDescendant returns true for org-grandparent orgs");
+        assertTrue(repositoryService.isDescendant(
+                repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
+                org1Oid));
+
+        // TODO this one is strange, as it is not symmetric with isAncestor.
+        //  This works fine for non-orgs, but not for org itself - which by one look is ancestor
+        //  of itself, but then by another one is NOT descendant of itself.
+        expect("isDescendant returns false for the same org");
+        assertFalse(repositoryService.isDescendant(org11, org11Oid));
+
+        expect("isDescendant returns false for unrelated orgs");
+        assertFalse(repositoryService.isDescendant(org11, org21Oid));
+
+        expect("isDescendant returns false for reverse relationship");
+        assertFalse(repositoryService.isDescendant(org11, org112Oid));
+    }
+
+    @Test
+    public void test972IsAnySubordinate() {
+        expect("isAnySubordinate returns true for parent-child orgs");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org11Oid)));
+
+        expect("isAnySubordinate returns true for parent-descendant (deep child) orgs");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid)));
+
+        expect("isAnySubordinate returns true for the same org");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org1Oid)));
+
+        expect("isAnySubordinate returns true when the list contains only descendants");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid,
+                List.of(org1Oid, org111Oid, org112Oid)));
+
+        expect("isAnySubordinate returns true when the list mixes descendants and non-descendants");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid, org21Oid)));
+
+        expect("isAnySubordinate returns false when list contains only unrelated orgs");
+        assertFalse(repositoryService.isAnySubordinate(org1Oid, List.of(org21Oid)));
+
+        expect("isAnySubordinate returns false when list contains only ancestors");
+        assertFalse(repositoryService.isAnySubordinate(org11Oid, List.of(org1Oid)));
+    }
+
     // endregion
 
     // support methods

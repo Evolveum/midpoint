@@ -898,28 +898,71 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
+    // This operation does not use parent OperationResult, so the exception handling is simpler.
     @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
-            throws SchemaException {
-        // TODO
-        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
-        throw new UnsupportedOperationException();
+    public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
+        Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
+        Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
+
+        LOGGER.trace("Querying for subordination upper {}, lower {}",
+                ancestorOrgOid, descendantOrgOids);
+
+        if (descendantOrgOids.isEmpty()) {
+            // trivial case
+            return false;
+        }
+
+        long opHandle = registerOperationStart(OP_IS_ANY_SUBORDINATE, OrgType.class);
+        try {
+            return isAnySubordinateAttempt(UUID.fromString(ancestorOrgOid),
+                    descendantOrgOids.stream()
+                            .map(s -> UUID.fromString(s))
+                            .collect(Collectors.toList()));
+        } catch (Exception e) {
+            throw new SystemException(
+                    "isAnySubordinateAttempt failed somehow, this really should not happen.", e);
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
+        }
+    }
+
+    private boolean isAnySubordinateAttempt(UUID ancestorOrgOid, Collection<UUID> lowerObjectOids) {
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+
+            QOrgClosure oc = new QOrgClosure();
+            long count = jdbcSession.newQuery()
+                    .from(oc)
+                    .where(oc.ancestorOid.eq(ancestorOrgOid)
+                            .and(oc.descendantOid.in(lowerObjectOids)))
+                    .fetchCount();
+
+            return count != 0L;
+        }
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
+    public <O extends ObjectType> boolean isDescendant(
+            PrismObject<O> descendant, String ancestorOrgOid)
             throws SchemaException {
-        // TODO
-        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
-        throw new UnsupportedOperationException();
+        List<ObjectReferenceType> objParentOrgRefs = descendant.asObjectable().getParentOrgRef();
+        List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+        for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
+            objParentOrgOids.add(objParentOrgRef.getOid());
+        }
+        return isAnySubordinate(ancestorOrgOid, objParentOrgOids);
     }
 
     @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
+    public <O extends ObjectType> boolean isAncestor(
+            PrismObject<O> ancestorOrg, String descendantOid)
             throws SchemaException {
-        // TODO
-        // TODO is SqaleQueryContext.beforeQuery call included if necessary?
-        throw new UnsupportedOperationException();
+        if (ancestorOrg.getOid() == null) {
+            return false;
+        }
+        Collection<String> oidList = new ArrayList<>(1);
+        oidList.add(descendantOid);
+        return isAnySubordinate(ancestorOrg.getOid(), oidList);
     }
 
     @Override
@@ -1052,7 +1095,7 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public void returnUnusedValuesToSequence(
             String oid, Collection<Long> unusedValues, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException {
         UUID oidUuid = checkOid(oid);
         Validate.notNull(parentResult, "Operation result must not be null.");
 
