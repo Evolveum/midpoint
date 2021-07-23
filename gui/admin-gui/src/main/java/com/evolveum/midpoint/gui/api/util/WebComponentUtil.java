@@ -338,17 +338,17 @@ public final class WebComponentUtil {
         if (ref == null || ref.getOid() == null) {
             return "";
         }
-        if (!loadObject) {
+        if (ref.asReferenceValue().getObject() == null && !loadObject) {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
         }
-        PrismObject<ObjectType> prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+        PrismObject<ObjectType> prismObject = ref.asReferenceValue().getObject();
+        if (prismObject == null) {
+            prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+        }
         if (prismObject == null) {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
         }
         ObjectType object = prismObject.asObjectable();
-        if (object == null) {
-             return "";
-        }
         String displayName = null;
         if (object instanceof UserType) {
             displayName = getTranslatedPolyString(((UserType) object).getFullName());
