@@ -258,7 +258,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     private boolean isPermitAll(FilterInvocation filterInvocation) {
-        if (filterInvocation.getResponse().isCommitted()
+        if (filterInvocation.getResponse() != null && filterInvocation.getResponse().isCommitted()
                 && new AntPathRequestMatcher(authUrl).matches(filterInvocation.getRequest())) {
             return true;
         }

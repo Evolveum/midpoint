@@ -38,26 +38,22 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
     private static final String ID_ROW = "row";
 
     public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+        this(id, value, label, null, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
-    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, false);
-    }
-
-    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, false);
+    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label,
+            String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, label, null, labelCssClass, textCssClass, required, false);
     }
 
     public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+            String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+        initLayout(label, tooltipKey, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass,
+    private void initLayout(IModel<String> label, final String tooltipKey, String labelCssClass, String textCssClass,
             boolean required, boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
@@ -76,7 +72,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title",
                 (IModel<String>) () -> getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+        tooltipLabel.add(new InfoTooltipBehavior());
         tooltipLabel.add(new VisibleEnableBehaviour() {
 
             @Override
