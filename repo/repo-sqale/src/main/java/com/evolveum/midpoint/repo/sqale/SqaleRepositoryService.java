@@ -263,7 +263,8 @@ public class SqaleRepositoryService implements RepositoryService {
                     repositoryContext.getMappingBySchemaType(type);
             QObject<MObject> root = rootMapping.defaultAlias();
 
-            Integer version = jdbcSession.newQuery().select(root.version)
+            Integer version = jdbcSession.newQuery()
+                    .select(root.version)
                     .from(root)
                     .where(root.oid.eq(oid))
                     .fetchOne();
@@ -553,24 +554,24 @@ public class SqaleRepositoryService implements RepositoryService {
 
         SqaleTableMapping<S, QObject<R>, R> rootMapping =
                 repositoryContext.getMappingBySchemaType(schemaType);
-        QObject<R> root = rootMapping.defaultAlias();
+        QObject<R> entityPath = rootMapping.defaultAlias();
 
         Tuple result = repositoryContext.newQuery(jdbcSession.connection())
-                .select(root.oid, root.fullObject, root.containerIdSeq)
-                .from(root)
-                .where(root.oid.eq(oid))
+                .select(entityPath.oid, entityPath.fullObject, entityPath.containerIdSeq)
+                .from(entityPath)
+                .where(entityPath.oid.eq(oid))
                 .forUpdate()
                 .fetchOne();
 
-        if (result == null || result.get(root.fullObject) == null) {
+        if (result == null || result.get(entityPath.fullObject) == null) {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.toSchemaObject(result, root, Collections.emptyList());
+        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList());
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;
-        rootRow.containerIdSeq = result.get(root.containerIdSeq);
+        rootRow.containerIdSeq = result.get(entityPath.containerIdSeq);
         // This column is generated, some sub-entities need it, but we can't push it to DB.
         rootRow.objectType = MObjectType.fromSchemaType(object.getClass());
         // we don't care about full object in row
@@ -933,7 +934,6 @@ public class SqaleRepositoryService implements RepositoryService {
                         .build();
 
         try {
-            // select o.oid, o.fullObject, 0, 0, 0, 0, 0, 0 from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid
             ObjectQuery query = repositoryContext.prismContext()
                     .queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadowOid)
@@ -963,16 +963,164 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     public long advanceSequence(String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-        // TODO
-        throw new UnsupportedOperationException();
+        UUID oidUuid = checkOid(oid);
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        LOGGER.debug("Advancing sequence {}", oid);
+
+        OperationResult operationResult = parentResult.subresult(ADVANCE_SEQUENCE)
+                .addParam("oid", oid)
+                .build();
+
+        try {
+            return executeAdvanceSequence(oidUuid, operationResult);
+        } catch (RepositoryException | RuntimeException | SchemaException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private long executeAdvanceSequence(UUID oid, OperationResult operationResult)
+            throws ObjectNotFoundException, SchemaException, RepositoryException {
+        // TODO executeAttempts
+        long opHandle = registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
+
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<SequenceType, QObject<MObject>, MObject> updateContext =
+                    prepareUpdateContext(jdbcSession, SequenceType.class, oid);
+            SequenceType sequence = updateContext.getPrismObject().asObjectable();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT before:\n{}", sequence.debugDump());
+            }
+
+            long returnValue;
+            if (!sequence.getUnusedValues().isEmpty()) {
+                returnValue = sequence.getUnusedValues().remove(0);
+            } else {
+                returnValue = advanceSequence(sequence, oid);
+            }
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Return value = {}, OBJECT after:\n{}",
+                        returnValue, sequence.debugDump());
+            }
+
+            updateContext.finishExecutionOwn();
+            jdbcSession.commit();
+            return returnValue;
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
+        }
+    }
+
+    private long advanceSequence(SequenceType sequence, UUID oid) {
+        long returnValue;
+        long counter = sequence.getCounter() != null ? sequence.getCounter() : 0L;
+        long maxCounter = sequence.getMaxCounter() != null
+                ? sequence.getMaxCounter() : Long.MAX_VALUE;
+        boolean allowRewind = Boolean.TRUE.equals(sequence.isAllowRewind());
+
+        if (counter < maxCounter) {
+            returnValue = counter;
+            sequence.setCounter(counter + 1);
+        } else if (counter == maxCounter) {
+            returnValue = counter;
+            if (allowRewind) {
+                sequence.setCounter(0L);
+            } else {
+                sequence.setCounter(counter + 1); // will produce exception during next run
+            }
+        } else { // i.e. counter > maxCounter
+            if (allowRewind) { // shouldn't occur but...
+                LOGGER.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", oid);
+                returnValue = 0;
+                sequence.setCounter(1L);
+            } else {
+                throw new SystemException("No (next) value available from sequence " + oid
+                        + ". Current counter = " + sequence.getCounter()
+                        + ", max value = " + sequence.getMaxCounter());
+            }
+        }
+        return returnValue;
     }
 
     @Override
     public void returnUnusedValuesToSequence(
             String oid, Collection<Long> unusedValues, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-        // TODO
-        throw new UnsupportedOperationException();
+        UUID oidUuid = checkOid(oid);
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        LOGGER.debug("Returning unused values of {} to sequence {}", unusedValues, oid);
+
+        OperationResult operationResult = parentResult.subresult(RETURN_UNUSED_VALUES_TO_SEQUENCE)
+                .addParam("oid", oid)
+                .build();
+
+        if (unusedValues == null || unusedValues.isEmpty()) {
+            operationResult.recordSuccess();
+            return;
+        }
+
+        try {
+            executeReturnUnusedValuesToSequence(oidUuid, unusedValues, operationResult);
+        } catch (RepositoryException | RuntimeException | SchemaException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private void executeReturnUnusedValuesToSequence(
+            UUID oid, Collection<Long> unusedValues, OperationResult operationResult)
+            throws SchemaException, ObjectNotFoundException, RepositoryException {
+        // TODO executeAttempts
+        long opHandle = registerOperationStart(
+                OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, SequenceType.class);
+
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<SequenceType, QObject<MObject>, MObject> updateContext =
+                    prepareUpdateContext(jdbcSession, SequenceType.class, oid);
+            SequenceType sequence = updateContext.getPrismObject().asObjectable();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
+            }
+
+            int maxUnusedValues = sequence.getMaxUnusedValues() != null
+                    ? sequence.getMaxUnusedValues() : 0;
+            Iterator<Long> valuesToReturnIterator = unusedValues.iterator();
+            while (valuesToReturnIterator.hasNext()
+                    && sequence.getUnusedValues().size() < maxUnusedValues) {
+                Long valueToReturn = valuesToReturnIterator.next();
+                if (valueToReturn == null) { // sanity check
+                    continue;
+                }
+                if (!sequence.getUnusedValues().contains(valueToReturn)) {
+                    sequence.getUnusedValues().add(valueToReturn);
+                } else {
+                    LOGGER.warn("UnusedValues in sequence {} already contains value of {}"
+                            + " - ignoring the return request", oid, valueToReturn);
+                }
+            }
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("OBJECT after:\n{}", sequence.debugDump());
+            }
+
+            updateContext.finishExecutionOwn();
+            jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle, 1); // TODO attempt
+        }
     }
 
     @Override
@@ -1063,22 +1211,22 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(REPOSITORY_SELF_TEST);
+        OperationResult operationResult = parentResult.createSubresult(REPOSITORY_SELF_TEST);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             long startMs = System.currentTimeMillis();
             jdbcSession.executeStatement("select 1");
-            result.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
-            result.recordSuccess();
+            operationResult.addReturn("database-round-trip-ms", System.currentTimeMillis() - startMs);
+            operationResult.recordSuccess();
         } catch (Exception e) {
-            parentResult.recordFatalError(e);
+            operationResult.recordFatalError(e);
         } finally {
-            result.computeStatusIfUnknown();
+            operationResult.computeStatusIfUnknown();
         }
     }
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(TEST_ORG_CLOSURE_CONSISTENCY)
+        OperationResult operationResult = parentResult.subresult(TEST_ORG_CLOSURE_CONSISTENCY)
                 .addParam("repairIfNecessary", repairIfNecessary)
                 .build();
 
@@ -1112,8 +1260,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 LOGGER.info("Org closure consistency checked - closure count {}, expected count {}",
                         closureCount, expectedCount);
             }
-            result.addReturn("closure-count", closureCount);
-            result.addReturn("expected-count", expectedCount);
+            operationResult.addReturn("closure-count", closureCount);
+            operationResult.addReturn("expected-count", expectedCount);
 
             if (repairIfNecessary && closureCount != expectedCount) {
                 try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
@@ -1121,22 +1269,22 @@ public class SqaleRepositoryService implements RepositoryService {
                     jdbcSession.commit();
                 }
                 LOGGER.info("Org closure rebuild was requested and executed");
-                result.addReturn("rebuild-done", true);
+                operationResult.addReturn("rebuild-done", true);
             } else {
-                result.addReturn("rebuild-done", false);
+                operationResult.addReturn("rebuild-done", false);
             }
 
-            result.recordSuccess();
+            operationResult.recordSuccess();
         } catch (Exception e) {
-            result.recordFatalError(e);
+            operationResult.recordFatalError(e);
         } finally {
-            result.computeStatusIfUnknown();
+            operationResult.computeStatusIfUnknown();
         }
     }
 
     @Override
     public RepositoryQueryDiagResponse executeQueryDiagnostics(
-            RepositoryQueryDiagRequest request, OperationResult result) {
+            RepositoryQueryDiagRequest request, OperationResult parentResult) {
 
         // TODO search like containers + dry run?
         throw new UnsupportedOperationException();
@@ -1257,9 +1405,9 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     @Override
-    public void postInit(OperationResult result) throws SchemaException {
+    public void postInit(OperationResult parentResult) throws SchemaException {
         LOGGER.debug("Executing repository postInit method");
-        systemConfigurationChangeDispatcher.dispatch(true, true, result);
+        systemConfigurationChangeDispatcher.dispatch(true, true, parentResult);
     }
 
     private void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
@@ -1294,7 +1442,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(OP_NAME_PREFIX + OP_HAS_CONFLICT)
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + OP_HAS_CONFLICT)
                 .setMinor()
                 .addParam("oid", watcher.getOid())
                 .addParam("watcherClass", watcher.getClass().getName())
@@ -1312,13 +1460,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 }
                 rv = watcher.hasConflict();
             }
-            result.addReturn("hasConflict", rv);
+            operationResult.addReturn("hasConflict", rv);
             return rv;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            operationResult.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            operationResult.computeStatusIfUnknown();
         }
     }
 
@@ -1327,26 +1475,26 @@ public class SqaleRepositoryService implements RepositoryService {
             DiagnosticInformationType information, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
+        OperationResult operationResult = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("oid", oid)
                 .build();
         try {
-            PrismObject<T> object = getObject(type, oid, null, result);
+            PrismObject<T> object = getObject(type, oid, null, operationResult);
             // TODO when on limit this calls modify twice, wouldn't single modify be better?
             boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
-                    object.asObjectable().getDiagnosticInformation(), result);
+                    object.asObjectable().getDiagnosticInformation(), operationResult);
             if (canStoreInfo) {
                 List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
                         .asItemDeltas();
-                modifyObject(type, oid, modifications, result);
+                modifyObject(type, oid, modifications, operationResult);
             }
-            result.computeStatus();
+            operationResult.computeStatus();
         } catch (Throwable t) {
-            result.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
+            operationResult.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
             throw t;
         }
     }
@@ -1361,7 +1509,7 @@ public class SqaleRepositoryService implements RepositoryService {
     // returns true if the new information can be stored
     private <T extends ObjectType> boolean pruneDiagnosticInformation(
             Class<T> type, String oid, DiagnosticInformationType newInformation,
-            List<DiagnosticInformationType> oldInformationList, OperationResult result)
+            List<DiagnosticInformationType> oldInformationList, OperationResult operationResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         String infoType = newInformation.getType();
         if (infoType == null) {
@@ -1384,7 +1532,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
                         .asItemDeltas();
-                modifyObject(type, oid, modifications, result);
+                modifyObject(type, oid, modifications, operationResult);
             }
             return limit > 0;
         } else {
@@ -1410,10 +1558,11 @@ public class SqaleRepositoryService implements RepositoryService {
      * Handles exception outside of transaction - this does not handle transactional problems.
      * Returns {@link SystemException}, call with `throw` keyword.
      */
-    private SystemException handledGeneralException(@NotNull Throwable ex, OperationResult result) {
+    private SystemException handledGeneralException(
+            @NotNull Throwable ex, OperationResult operationResult) {
         // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
-        recordException(ex, result,
+        recordException(ex, operationResult,
                 repositoryContext.getJdbcRepositoryConfiguration().isFatalException(ex));
 
         return ex instanceof SystemException
@@ -1421,15 +1570,16 @@ public class SqaleRepositoryService implements RepositoryService {
                 : new SystemException(ex.getMessage(), ex);
     }
 
-    private void recordException(@NotNull Throwable ex, OperationResult result, boolean fatal) {
+    private void recordException(
+            @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
         String message = Strings.isNullOrEmpty(ex.getMessage()) ? ex.getMessage() : "null";
         if (Strings.isNullOrEmpty(message)) {
             message = ex.getMessage();
         }
 
         // non-fatal errors will NOT be put into OperationResult, not to confuse the user
-        if (result != null && fatal) {
-            result.recordFatalError(message, ex);
+        if (operationResult != null && fatal) {
+            operationResult.recordFatalError(message, ex);
         }
     }
 
