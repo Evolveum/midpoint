@@ -177,6 +177,8 @@
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
         <spring.security.saml2.version>2.0.0.M31</spring.security.saml2.version>
+        <spring-security.version>5.6.0-M1</spring-security.version>
+        <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.4.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -844,6 +846,10 @@
                         <groupId>org.apache.geronimo.javamail</groupId>
                         <artifactId>geronimo-javamail_1.4_mail</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>net.shibboleth.utilities</groupId>
+                        <artifactId>java-support</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -855,6 +861,12 @@
                 <groupId>org.apache.wss4j</groupId>
                 <artifactId>wss4j-ws-security-dom</artifactId>
                 <version>${wss4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>net.shibboleth.utilities</groupId>
+                        <artifactId>java-support</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <!-- make this dependency explicit to detect conflicts with older versions -->
@@ -971,6 +983,45 @@
                         <artifactId>spring-jcl</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-saml2-service-provider</artifactId>
+                <version>${spring-security.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-saml-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml-saml-impl</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-core</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+                <version>${opensaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-api</artifactId>
+                <version>4.1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-saml-impl</artifactId>
+                <version>${opensaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security.extensions</groupId>
@@ -1298,7 +1349,7 @@
             <dependency>
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-security-impl</artifactId>
-                <version>3.4.6</version><!-- same version as in wss4j -->
+                <version>${opensaml.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.bouncycastle</groupId>
@@ -1531,6 +1582,16 @@
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
             <url>https://repo.spring.io/milestone</url>
+        </repository>
+
+        <!--
+        We need this for Opensaml, version 4.1.0+ is not in Maven central repository.
+        So we need Shibboleth's repo too.
+        -->
+        <repository>
+            <id>shibboleth</id>
+            <name>Shibboleth Repository</name>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
         </repository>
 
         <!--

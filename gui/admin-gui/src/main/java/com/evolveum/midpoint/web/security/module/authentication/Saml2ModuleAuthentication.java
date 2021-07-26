@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.web.security.util.RequestState;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml.SamlAuthentication;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ import java.util.Map;
 public class Saml2ModuleAuthentication extends ModuleAuthentication {
 
     private List<IdentityProvider> providers = new ArrayList<IdentityProvider>();
-    private Map<String, String> namesOfUsernameAttributes;
+    private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration;
     private RequestState requestState;
 
     public Saml2ModuleAuthentication() {
@@ -51,18 +53,18 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
         return providers;
     }
 
-    public Map<String, String> getNamesOfUsernameAttributes() {
-        return namesOfUsernameAttributes;
+    public Map<String, SamlMidpointAdditionalConfiguration> getAdditionalConfiguration() {
+        return additionalConfiguration;
     }
 
-    public void setNamesOfUsernameAttributes(Map<String, String> namesOfUsernameAttributes) {
-        this.namesOfUsernameAttributes = namesOfUsernameAttributes;
+    public void setAdditionalConfiguration(Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration) {
+        this.additionalConfiguration = additionalConfiguration;
     }
 
     @Override
     public ModuleAuthentication clone() {
         Saml2ModuleAuthentication module = new Saml2ModuleAuthentication();
-        module.setNamesOfUsernameAttributes(this.getNamesOfUsernameAttributes());
+        module.setAdditionalConfiguration(this.getAdditionalConfiguration());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
         Authentication newAuthentication = this.getAuthentication();

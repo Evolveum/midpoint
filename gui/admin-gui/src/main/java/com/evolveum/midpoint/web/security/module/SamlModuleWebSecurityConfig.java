@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.saml2.Saml2LoginConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +32,7 @@ import org.springframework.security.saml.provider.service.ServiceProviderService
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
 import org.springframework.security.saml.spi.SpringSecuritySaml;
 import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -64,6 +66,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     @Autowired
     private ModelAuditRecorder auditProvider;
 
+    private RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
     public SamlModuleWebSecurityConfig(C configuration) {
@@ -82,26 +85,42 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH));
 
-        http.addFilterAfter(
-                getBeanConfiguration().samlConfigurationFilter(),
-                BasicAuthenticationFilter.class
-        )
-                .addFilterBefore(
-                        getBeanConfiguration().spMetadataFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterAt(
-                        getBeanConfiguration().spAuthenticationRequestFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterAfter(
-                        getBeanConfiguration().spAuthenticationResponseFilter(),
-                        RequestCacheAwareFilter.class
-                )
-                .addFilterBefore(
-                        getBeanConfiguration().spSamlLogoutFilter(),
-                        SecurityContextHolderAwareRequestFilter.class
-                );
+        MidpointSaml2LoginConfigurer configurer = new MidpointSaml2LoginConfigurer(auditProvider);
+        configurer.relyingPartyRegistrationRepository(relyingPartyRegistrations())
+                .loginProcessingUrl(getConfiguration().getPrefix() + SamlModuleWebSecurityConfiguration.RESPONSE_PROCESSING_URL_SUFFIX)
+                .successHandler(getObjectPostProcessor().postProcess(
+                        new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())))
+                .failureHandler(new MidpointAuthenticationFailureHandler());
+        try {
+            configurer.authenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
+        } catch (Exception e) {
+            LOGGER.error("Couldn't initialize authentication manager for saml2 module");
+        }
+        getOrApply(http, configurer);
+//        http.addFilterAfter(
+//                getBeanConfiguration().samlConfigurationFilter(),
+//                BasicAuthenticationFilter.class
+//        )
+//                .addFilterBefore(
+//                        getBeanConfiguration().spMetadataFilter(),
+//                        RequestCacheAwareFilter.class
+//                )
+//                .addFilterAt(
+//                        getBeanConfiguration().spAuthenticationRequestFilter(),
+//                        RequestCacheAwareFilter.class
+//                )
+//                .addFilterAfter(
+//                        getBeanConfiguration().spAuthenticationResponseFilter(),
+//                        RequestCacheAwareFilter.class
+//                )
+//                .addFilterBefore(
+//                        getBeanConfiguration().spSamlLogoutFilter(),
+//                        SecurityContextHolderAwareRequestFilter.class
+//                );
+    }
+
+    private RelyingPartyRegistrationRepository relyingPartyRegistrations() {
+        return getConfiguration().getRelyingPartyRegistrationRepository();
     }
 
     public SamlServiceProviderServerBeanConfiguration getBeanConfiguration() {

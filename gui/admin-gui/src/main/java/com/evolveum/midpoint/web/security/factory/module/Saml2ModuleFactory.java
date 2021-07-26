@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
 import com.evolveum.midpoint.web.security.provider.Saml2Provider;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
@@ -27,24 +28,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.saml.provider.config.ExternalProviderConfiguration;
-import org.springframework.security.saml.provider.service.ServiceProviderService;
-import org.springframework.security.saml.provider.service.config.LocalServiceProviderConfiguration;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
-import org.springframework.security.saml.saml2.metadata.IdentityProviderMetadata;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
+import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationRequestFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
+import javax.servlet.Filter;
 import javax.servlet.ServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
  * @author skublik
@@ -92,47 +87,47 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(module.getBeanConfiguration(), configuration);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
+        for (Filter f : filter.getFilters()){
+            if (f instanceof Saml2WebSsoAuthenticationRequestFilter) {
+                ((Saml2WebSsoAuthenticationRequestFilter) f).setRedirectMatcher(new AntPathRequestMatcher(module.getPrefix() + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX));
+                break;
+            }
+        };
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
     public ModuleAuthentication createEmptyModuleAuthentication(SamlServiceProviderServerBeanConfiguration beanConfiguration,
                                                                 SamlModuleWebSecurityConfiguration configuration) {
         Saml2ModuleAuthentication moduleAuthentication = new Saml2ModuleAuthentication();
-
-        ServiceProviderService provider = beanConfiguration.getSamlProvisioning().getHostedProvider();
-        LocalServiceProviderConfiguration samlConfiguration = provider.getConfiguration();
         List<IdentityProvider> providers = new ArrayList<>();
-        samlConfiguration.getProviders().stream().forEach(
+        ((Iterable<RelyingPartyRegistration>)configuration.getRelyingPartyRegistrationRepository()).forEach(
                 p -> {
-                    try {
-                        IdentityProvider mp = new IdentityProvider()
-                                .setLinkText(p.getLinktext())
-                                .setRedirectLink(getDiscoveryRedirect(provider, p));
+                    String authRequestPrefixUrl = "/midpoint" + configuration.getPrefix() + SamlModuleWebSecurityConfiguration.REQUEST_PROCESSING_URL_SUFFIX;
+                    SamlMidpointAdditionalConfiguration config = configuration.getAdditionalConfiguration().get(p.getAssertingPartyDetails().getEntityId());
+                    IdentityProvider mp = new IdentityProvider()
+                                .setLinkText(config.getLinkText())
+                                .setRedirectLink(authRequestPrefixUrl.replace("{registrationId}", p.getRegistrationId()));
                         providers.add(mp);
-                    } catch (Exception x) {
-                        LOGGER.debug("Unable to retrieve metadata for provider:" + p.getMetadata() + " with message:" + x.getMessage());
-                    }
                 }
         );
-
         moduleAuthentication.setProviders(providers);
-        moduleAuthentication.setNamesOfUsernameAttributes(configuration.getNamesOfUsernameAttributes());
+        moduleAuthentication.setAdditionalConfiguration(configuration.getAdditionalConfiguration());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         moduleAuthentication.setPrefix(configuration.getPrefix());
         return moduleAuthentication;
     }
 
-    private String getDiscoveryRedirect(ServiceProviderService provider,
-                                        ExternalProviderConfiguration p) throws UnsupportedEncodingException {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
-                provider.getConfiguration().getBasePath()
-        );
-        builder.pathSegment(stripSlashes(provider.getConfiguration().getPrefix()) + "/discovery");
-//        builder.pathSegment("saml/discovery");
-        IdentityProviderMetadata metadata = provider.getRemoteProvider(p);
-        builder.queryParam("idp", UriUtils.encode(metadata.getEntityId(), UTF_8.toString()));
-        return builder.build().toUriString();
-    }
+//    private String getDiscoveryRedirect(ServiceProviderService provider,
+//                                        ExternalProviderConfiguration p) throws UnsupportedEncodingException {
+//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+//                provider.getConfiguration().getBasePath()
+//        );
+//        builder.pathSegment(stripSlashes(provider.getConfiguration().getPrefix()) + "/discovery");
+////        builder.pathSegment("saml/discovery");
+//        IdentityProviderMetadata metadata = provider.getRemoteProvider(p);
+//        builder.queryParam("idp", UriUtils.encode(metadata.getEntityId(), UTF_8.toString()));
+//        return builder.build().toUriString();
+//    }
 
     private String getPublicUrlPrefix(ServletRequest request) {
         try {
