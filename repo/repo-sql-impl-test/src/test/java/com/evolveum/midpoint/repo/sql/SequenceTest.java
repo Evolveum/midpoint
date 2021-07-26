@@ -1,11 +1,25 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -15,28 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-/**
- * @author Pavol Mederly
- */
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SequenceTest extends BaseSQLRepoTest {
 
@@ -104,9 +98,10 @@ public class SequenceTest extends BaseSQLRepoTest {
         assertEquals(6L, repositoryService.advanceSequence(oid, result));
         repositoryService.returnUnusedValuesToSequence(oid, null, result);
         repositoryService.returnUnusedValuesToSequence(oid, new ArrayList<>(), result);
-        repositoryService.returnUnusedValuesToSequence(oid, Arrays.asList(6L), result);
+        repositoryService.returnUnusedValuesToSequence(oid, Collections.singletonList(6L), result);
         assertEquals(6L, repositoryService.advanceSequence(oid, result));
-        repositoryService.returnUnusedValuesToSequence(oid, Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L), result);     // only 0-4 will be returned
+        repositoryService.returnUnusedValuesToSequence(oid,
+                Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L), result); // only 0-4 will be returned
         assertEquals(0L, repositoryService.advanceSequence(oid, result));
         assertEquals(1L, repositoryService.advanceSequence(oid, result));
         assertEquals(2L, repositoryService.advanceSequence(oid, result));
@@ -185,16 +180,12 @@ public class SequenceTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test033", "sequence-unbound.xml", 10000L, mts, true);
     }
 
-
-    private void concurrencyUniversal(String name, String sequenceFileName, long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
+    private void concurrencyUniversal(String name, String sequenceFileName,
+            long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
 
         Session session = getFactory().openSession();
-        session.doWork(new Work() {
-            @Override
-            public void execute(Connection connection) throws SQLException {
-                System.out.println(">>>>" + connection.getTransactionIsolation());
-            }
-        });
+        session.doWork(connection ->
+                System.out.println(">>>>" + connection.getTransactionIsolation()));
         session.close();
 
         final File file = new File(TEST_DIR + sequenceFileName);
@@ -221,7 +212,7 @@ public class SequenceTest extends BaseSQLRepoTest {
         }
 
         long endTime = System.currentTimeMillis() + STOP_TIMEOUT;
-        for (;;) {
+        for (; ; ) {
             long remaining = endTime - System.currentTimeMillis();
             if (remaining <= 0) {
                 break;
@@ -236,12 +227,15 @@ public class SequenceTest extends BaseSQLRepoTest {
         }
 
         for (WorkerThread t : workerThreads) {
-            logger.info("Worker thread {} finished after {} iterations with result: {}", t.id, t.counter, t.threadResult != null ? t.threadResult : "OK");
+            logger.info("Worker thread {} finished after {} iterations with result: {}",
+                    t.id, t.counter, t.threadResult != null ? t.threadResult : "OK");
         }
 
         for (WorkerThread t : workerThreads) {
             if (t.threadResult != null) {
-                throw new AssertionError("Worker thread " + t.id + " finished with an exception: " + t.threadResult, t.threadResult);
+                throw new AssertionError(
+                        "Worker thread " + t.id + " finished with an exception: " + t.threadResult,
+                        t.threadResult);
             }
         }
 
@@ -283,7 +277,6 @@ public class SequenceTest extends BaseSQLRepoTest {
             this(id, 0);
         }
 
-
         public volatile boolean stop = false;
 
         @Override
@@ -291,6 +284,7 @@ public class SequenceTest extends BaseSQLRepoTest {
             try {
                 while (!stop) {
                     runOnce();
+                    //noinspection NonAtomicOperationOnVolatileField
                     counter++;
                 }
             } catch (Throwable t) {
@@ -311,10 +305,12 @@ public class SequenceTest extends BaseSQLRepoTest {
                     countToReturn = returnEach;
                     int i = (int) (Math.random() * values.size());
                     long v = values.remove(i);
-                    repositoryService.returnUnusedValuesToSequence(oid, Arrays.asList(v), result);
+                    repositoryService.returnUnusedValuesToSequence(
+                            oid, Collections.singletonList(v), result);
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
+                        // ignored
                     }
                     value = repositoryService.advanceSequence(oid, result);
                     logger.debug("Advance sequence returned {} (after return)", value);
@@ -326,6 +322,5 @@ public class SequenceTest extends BaseSQLRepoTest {
         public void setOid(String oid) {
             this.oid = oid;
         }
-   }
-
+    }
 }

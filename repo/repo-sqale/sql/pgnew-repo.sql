@@ -510,7 +510,9 @@ CREATE TABLE m_user (
     nickNameOrig TEXT,
     nickNameNorm TEXT,
     titleOrig TEXT,
-    titleNorm TEXT
+    titleNorm TEXT,
+    organizations JSONB, -- array of {o,n} objects
+    organizationUnits JSONB -- array of {o,n} objects
 )
     INHERITS (m_focus);
 
@@ -530,19 +532,8 @@ CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
-
-/* TODO JSON of polystrings?
-CREATE TABLE m_user_organization (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
-CREATE TABLE m_user_organizational_unit (
-  user_oid UUID NOT NULL,
-  norm     TEXT,
-  orig     TEXT
-);
- */
+CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
+CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
 -- endregion
 
 -- region ROLE related tables
@@ -666,8 +657,7 @@ CREATE INDEX m_ref_object_parent_orgTargetOidRelationId_idx
 
 -- region org-closure
 /*
-Trigger on m_ref_object_parent_org refreshes this view.
-This is not most performant, but it is *correct* and it's still WIP.
+Trigger on m_ref_object_parent_org marks this view for refresh in one m_global_metadata row.
 Closure contains also identity (org = org) entries because:
 * It's easier to do optimized matrix-multiplication based refresh with them later.
 * It actually makes some query easier and requires AND instead of OR conditions.
@@ -805,12 +795,13 @@ CREATE TABLE m_shadow (
     resourceRefTargetType ObjectType,
     resourceRefRelationId INTEGER REFERENCES m_uri(id),
     intent TEXT,
+    tag TEXT,
     kind ShadowKindType,
     attemptNumber INTEGER, -- TODO how is this mapped?
     dead BOOLEAN,
     exist BOOLEAN,
     fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER,
+    pendingOperationCount INTEGER NOT NULL,
     primaryIdentifierValue TEXT,
 --     status INTEGER, TODO how is this mapped? See RUtil.copyResultFromJAXB called from RTask and OperationResultMapper
     synchronizationSituation SynchronizationSituationType,
@@ -818,8 +809,6 @@ CREATE TABLE m_shadow (
     attributes JSONB
 )
     INHERITS (m_object);
-
--- TODO not partitioned yet, discriminator columns probably can't be NULL
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
@@ -839,7 +828,6 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
- Also consider partitioning by some of the attributes (class/kind/intent?)
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRefTargetOid);
 CREATE INDEX iShadowDead ON m_shadow (dead);
 CREATE INDEX iShadowKind ON m_shadow (kind);

@@ -182,7 +182,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         // complex DB fields
         row.policySituations = processCacheableUris(schemaObject.getPolicySituation());
-        row.subtypes = listToArray(schemaObject.getSubtype());
+        row.subtypes = stringsToArray(schemaObject.getSubtype());
         // TODO textInfo (fulltext support)
         //  repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         row.ext = processExtensions(schemaObject.getExtension(), MExtItemHolderType.EXTENSION);

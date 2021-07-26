@@ -95,7 +95,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
 
             private final boolean checkViewAfterInitialize = true;
             @Override
-            protected Component getFeedbackPanel() {
+            public Component getFeedbackPanel() {
                 return feedback;
             }
 

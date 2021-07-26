@@ -21,6 +21,7 @@ public class LoginFormModuleAuthentication extends CredentialModuleAuthenticatio
 
     public ModuleAuthentication clone() {
         LoginFormModuleAuthentication module = new LoginFormModuleAuthentication();
+        module.setAuthentication(this.getAuthentication());
         super.clone(module);
         return module;
     }

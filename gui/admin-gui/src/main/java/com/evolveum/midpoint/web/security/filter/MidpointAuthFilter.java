@@ -243,12 +243,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private void createMpAuthentication(HttpServletRequest httpRequest, AuthenticationSequenceType sequence, List<AuthModule> authModules) {
-        SecurityContextHolder.getContext().setAuthentication(null);
-        SecurityContextHolder.getContext().setAuthentication(new MidpointAuthentication(sequence));
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        MidpointAuthentication mpAuthentication = new MidpointAuthentication(sequence);
         mpAuthentication.setAuthModules(authModules);
         mpAuthentication.setSessionId(httpRequest.getSession(false) != null ? httpRequest.getSession(false).getId() : RandomStringUtils.random(30, true, true).toUpperCase());
         mpAuthentication.addAuthentications(authModules.get(0).getBaseModuleAuthentication());
+        SecurityContextHolder.getContext().setAuthentication(null);
+        SecurityContextHolder.getContext().setAuthentication(mpAuthentication);
     }
 
     private void resolveErrorWithMoreModules(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {

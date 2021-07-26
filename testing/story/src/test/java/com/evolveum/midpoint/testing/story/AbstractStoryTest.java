@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum and contributors
+ * Copyright (C) 2013-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,10 +13,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.TestResource;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +30,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +37,7 @@ import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
@@ -85,10 +82,6 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected MatchingRule<String> caseIgnoreMatchingRule;
 
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
-
-    @Autowired
-    @Qualifier("repositoryService") // we're downcasting here to known subtype
-    protected SqlRepositoryServiceImpl sqlRepositoryService;
 
     protected PrismObject<UserType> userAdministrator;
 

@@ -129,11 +129,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return baseHelper.getConfiguration();
     }
 
-    // public because of testing
-    public OrgClosureManager getClosureManager() {
-        return closureManager;
-    }
-
     @FunctionalInterface
     public interface ResultSupplier<RV> {
         RV get() throws ObjectNotFoundException, SchemaException;
@@ -829,13 +824,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public void repositorySelfTest(OperationResult parentResult) {
-        // TODO add some SQL-specific self-test methods
         // No self-tests for now
     }
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
-        getClosureManager().checkAndOrRebuild(true, repairIfNecessary, false, false, testResult);
+        closureManager.checkAndOrRebuild(true, repairIfNecessary, false, false, testResult);
     }
 
     @Override

@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -583,7 +582,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     // region extension attributes
     @Test
     public void test300AddObjectWithIndexedStringExtension()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException, ObjectNotFoundException {
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
         given("object with string extension item");
@@ -604,8 +603,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, returnedOid);
         assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string"), "string-value");
 
         and("stored object contains the extension item");
@@ -681,7 +679,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test305AddObjectWithExtensionItemsOfVariousSimpleTypes()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("object with extension items of various simple types");
@@ -717,8 +715,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "int"), 1)
                 .containsEntry(extensionKey(extensionContainer, "short"), 2) // returned as Integer
                 .containsEntry(extensionKey(extensionContainer, "long"), 3) // returned as Integer
@@ -753,7 +750,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test307AddObjectWithExtensionReferenceAndPolyString()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("object with extension reference and poly string");
@@ -777,8 +774,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "poly"),
                         Map.of("o", "poly-value", "n", "polyvalue"))
                 .containsEntry(extensionKey(extensionContainer, "ref"),
@@ -789,7 +785,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test308AddObjectWithExtensionMultiValueItems()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("object with extension reference and poly string");
@@ -819,8 +815,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MUser row = selectObjectByOid(QUser.class, returnedOid);
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string-mv"),
                         List.of("string-value1", "string-value2"))
                 .containsEntry(extensionKey(extensionContainer, "poly-mv"), List.of(
@@ -838,7 +833,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test310AddObjectWithAssignmentExtensions()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("object with extension items in assignment");
@@ -864,8 +859,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QAssignment<MUser> a = QAssignmentMapping.<MUser>getAssignmentMapping().defaultAlias();
         MAssignment row = selectOne(a, a.ownerOid.eq(UUID.fromString(returnedOid)));
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string-mv"),
                         List.of("string-value1", "string-value2"))
                 .containsEntry(extensionKey(extensionContainer, "integer"), 1)
@@ -877,7 +871,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
     @Test
     public void test320AddShadowWithAttributes()
-            throws ObjectAlreadyExistsException, SchemaException, JsonProcessingException {
+            throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("shadow with both extensions and custom attributes");
@@ -903,13 +897,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MShadow row = selectObjectByOid(QShadow.class, returnedOid);
         assertThat(row.ext).isNotNull();
-        Map<String, Object> extMap = Jsonb.toMap(row.ext);
-        assertThat(extMap)
+        assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "string"), "string-value");
 
         assertThat(row.attributes).isNotNull();
-        Map<String, Object> attrMap = Jsonb.toMap(row.attributes);
-        assertThat(attrMap)
+        assertThat(Jsonb.toMap(row.attributes))
                 .containsEntry(shadowAttributeKey(attributesContainer, "string-mv"),
                         List.of("string-value1", "string-value2"));
     }
@@ -937,7 +929,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .policySituation("policy-situation-2")
                 .subtype("subtype-1")
                 .subtype("subtype-2")
-                // TODO ext some time later
                 .metadata(new MetadataType()
                         .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
@@ -965,7 +956,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(resolveCachedUriIds(row.policySituations))
                 .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-2");
         assertThat(row.subtypes).containsExactlyInAnyOrder("subtype-1", "subtype-2");
-        // TODO EXT
         // metadata
         assertThat(row.creatorRefTargetOid).isEqualTo(creatorRefOid);
         assertThat(row.creatorRefTargetType).isEqualTo(MObjectType.USER);
@@ -1402,6 +1392,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .resourceRef(resourceRefOid.toString(),
                         ResourceType.COMPLEX_TYPE, resourceRefRelation)
                 .intent("intent")
+                .tag("tag")
                 .kind(ShadowKindType.ACCOUNT)
                 // TODO attemptNumber used at all?
                 .dead(false)
@@ -1425,6 +1416,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
         assertCachedUri(row.resourceRefRelationId, resourceRefRelation);
         assertThat(row.intent).isEqualTo("intent");
+        assertThat(row.tag).isEqualTo("tag");
         assertThat(row.kind).isEqualTo(ShadowKindType.ACCOUNT);
         assertThat(row.dead).isEqualTo(false);
         assertThat(row.exist).isEqualTo(true);
@@ -1555,6 +1547,64 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .anyMatch(ar -> ar.orderValue.equals(3))
                 .allMatch(ar -> ar.targetRefTargetOid != null
                         && ar.targetRefTargetType == MObjectType.ROLE);
+    }
+
+    @Test
+    public void test825User() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("user object");
+        String objectName = "user" + getTestNumber();
+        UserType user = new UserType(prismContext)
+                .name(objectName)
+                .additionalName("additional-name")
+                .employeeNumber("3")
+                .familyName("family-name")
+                .fullName("full-name")
+                .givenName("given-name")
+                .honorificPrefix("honorific-prefix")
+                .honorificSuffix("honorific-suffix")
+                .nickName("nick-name")
+                .title("title")
+                .organization("org-1")
+                .organization("org-2")
+                .organizationalUnit("ou-1")
+                .organizationalUnit("ou-2");
+
+        when("adding it to the repository");
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("it is stored and relevant attributes are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        UUID userOid = UUID.fromString(user.getOid());
+        MUser row = selectObjectByOid(QUser.class, userOid);
+        // all attributes from MUser
+        assertThat(row.additionalNameOrig).isEqualTo("additional-name");
+        assertThat(row.additionalNameNorm).isEqualTo("additionalname");
+        assertThat(row.employeeNumber).isEqualTo("3");
+        assertThat(row.familyNameOrig).isEqualTo("family-name");
+        assertThat(row.familyNameNorm).isEqualTo("familyname");
+        assertThat(row.fullNameOrig).isEqualTo("full-name");
+        assertThat(row.fullNameNorm).isEqualTo("fullname");
+        assertThat(row.givenNameOrig).isEqualTo("given-name");
+        assertThat(row.givenNameNorm).isEqualTo("givenname");
+        assertThat(row.honorificPrefixOrig).isEqualTo("honorific-prefix");
+        assertThat(row.honorificPrefixNorm).isEqualTo("honorificprefix");
+        assertThat(row.honorificSuffixOrig).isEqualTo("honorific-suffix");
+        assertThat(row.honorificSuffixNorm).isEqualTo("honorificsuffix");
+        assertThat(row.nickNameOrig).isEqualTo("nick-name");
+        assertThat(row.nickNameNorm).isEqualTo("nickname");
+        assertThat(row.titleOrig).isEqualTo("title");
+        assertThat(row.titleNorm).isEqualTo("title");
+        assertThat(row.organizations).isNotNull();
+        assertThat(Jsonb.toList(row.organizations)).containsExactlyInAnyOrder(
+                Map.of("o", "org-1", "n", "org1"),
+                Map.of("o", "org-2", "n", "org2"));
+        assertThat(row.organizationUnits).isNotNull();
+        assertThat(Jsonb.toList(row.organizationUnits)).containsExactlyInAnyOrder(
+                Map.of("o", "ou-1", "n", "ou1"),
+                Map.of("o", "ou-2", "n", "ou2"));
     }
 
     // TODO test for focus' related entities?

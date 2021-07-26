@@ -25,13 +25,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class ExtUtils {
 
-    public static final String EXT_POLY_ORIG_KEY = "o";
-    public static final String EXT_POLY_NORM_KEY = "n";
-
-    public static final String EXT_REF_TARGET_OID_KEY = "o";
-    public static final String EXT_REF_TARGET_TYPE_KEY = "t";
-    public static final String EXT_REF_RELATION_KEY = "r";
-
     /**
      * Supported types for extension properties - without references and enums treated differently.
      */

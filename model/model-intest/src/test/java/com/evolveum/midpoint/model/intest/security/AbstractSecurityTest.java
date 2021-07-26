@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -231,7 +231,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final String ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0e";
 
     protected static final File ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-type-shadow.xml");
-    protected static final String ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0h";
+    protected static final String ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa10";
 
     protected static final File ROLE_USER_MODIFY_FILE = new File(TEST_DIR, "role-user-modify.xml");
     protected static final String ROLE_USER_MODIFY_OID = "710395da-ddd9-11e9-9d81-cf471cec8185";
@@ -864,7 +864,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PrismTestUtil.createPolyString("CSc"));
     }
 
-    protected void assertDeleteDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected void assertDeleteDeny() throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         assertDeleteDeny(UserType.class, USER_LARGO_OID);
         assertDeleteDeny(UserType.class, USER_LECHUCK_OID, executeOptions().raw());
     }
