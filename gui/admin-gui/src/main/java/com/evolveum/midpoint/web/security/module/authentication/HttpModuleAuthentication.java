@@ -49,6 +49,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthentication{
             ((HttpModuleAuthentication)module).setProxyUserOid(this.getProxyUserOid());
             ((HttpModuleAuthentication)module).setRealm(this.getRealm());
         }
+        module.setAuthentication(this.getAuthentication());
         super.clone(module);
     }
 }

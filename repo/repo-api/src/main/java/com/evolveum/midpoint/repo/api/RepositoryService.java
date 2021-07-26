@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -131,6 +130,8 @@ public interface RepositoryService {
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
     String OP_HAS_CONFLICT = "hasConflict";
+    String OP_REPOSITORY_SELF_TEST = "repositorySelfTest";
+    String OP_TEST_ORG_CLOSURE_CONSISTENCY = "testOrgClosureConsistency";
 
     String GET_OBJECT = CLASS_NAME_WITH_DOT + OP_GET_OBJECT;
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + OP_ADD_OBJECT;
@@ -149,6 +150,8 @@ public interface RepositoryService {
     String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
     String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + OP_ADD_DIAGNOSTIC_INFORMATION;
     String HAS_CONFLICT = CLASS_NAME_WITH_DOT + OP_HAS_CONFLICT;
+    String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + OP_REPOSITORY_SELF_TEST;
+    String TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + OP_TEST_ORG_CLOSURE_CONSISTENCY;
 
     String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
     String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
@@ -295,7 +298,8 @@ public interface RepositoryService {
      * @param parentResult Operation result into which we put our result
      */
     @Experimental
-    @NotNull default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+    @NotNull
+    default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
@@ -438,11 +442,45 @@ public interface RepositoryService {
             OperationResult parentResult)
             throws SchemaException;
 
-    boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
+    /**
+     * Returns `true` if any of organizations identified with `descendantOrgOids` is under
+     * organization identified by `ancestorOrgOid`.
+     * For this method organization is under itself, that is `isAnySubordinate(oid, List.of(oid))`
+     * returns `true`.
+     * Using of non-organizational OID for `ancestorOrgOid` is sure to result in `false`.
+     * Non-organizational OIDs in `descendantOrgOids` do not help with `true` result either.
+     *
+     * @param ancestorOrgOid identifier of ancestor (upper) organization
+     * @param descendantOrgOids identifiers of potential descendant organizations
+     */
+    boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids)
+            throws SchemaException;
 
-    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
+    /**
+     * Returns `true` if the `object` is under the organization identified with `ancestorOrg`.
+     * For this method *organization is NOT under itself*, that is `isDescendant(org, oidOfThatOrg)`
+     * returns `false` - which is not a symmetric behavior with {@link #isAncestor(PrismObject, String)}.
+     * On the other hand, the `object` here can be non-organization as the actual tested objects
+     * are targets of its `parentOrgRefs`.
+     *
+     * @param object object of any type tested to belong under Org with `ancestorOrgOid`
+     * @param ancestorOrgOid identifier of ancestor organization
+     */
+    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
+            throws SchemaException;
 
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
+    /**
+     * Returns `true` if the organization identified with `descendantOrgOid` is under `ancestorOrg`.
+     * For this method organization is under itself, that is `isAncestor(org, oidOfThatOrg)`
+     * returns `true`.
+     * Despite type parameter, only `PrismObject<OrgType>` can return `true` and `descendantOrgOid`
+     * must belong to the `OrgType` object as well, e.g. user under `ancestorOrg` returns `false`.
+     *
+     * @param ancestorOrg ancestor organization
+     * @param descendantOrgOid identifier of potential descendant organization
+     */
+    <O extends ObjectType> boolean isAncestor(PrismObject<O> ancestorOrg, String descendantOrgOid)
+            throws SchemaException;
 
     /**
      * <p>Returns the object representing owner of specified shadow.</p>

@@ -79,6 +79,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     protected void initConfigurationPanel(WebMarkupContainer configPanel) {
         provider = new SelectableListDataProvider<>(getPageBase(), getSearchFilterItemModel());
 
+        setOutputMarkupId(true);
+
         WebMarkupContainer propertyConfigContainer = new WebMarkupContainer(ID_PROPERTY_CONFIG_CONTAINER);
         propertyConfigContainer.setOutputMarkupId(true);
         configPanel.add(propertyConfigContainer);

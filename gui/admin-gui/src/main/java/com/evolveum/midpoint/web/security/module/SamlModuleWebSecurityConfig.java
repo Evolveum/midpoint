@@ -59,6 +59,7 @@ import org.springframework.security.web.servletapi.SecurityContextHolderAwareReq
 public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
+    public static final String SAML_LOGIN_PATH = "/saml2/select";
 
     @Autowired
     private ModelAuditRecorder auditProvider;
@@ -79,7 +80,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         http.csrf().disable();
 
         getOrApply(http, new MidpointExceptionHandlingConfigurer())
-                .authenticationEntryPoint(new SamlAuthenticationEntryPoint("/saml2/select"));
+                .authenticationEntryPoint(new SamlAuthenticationEntryPoint(SAML_LOGIN_PATH));
 
         http.addFilterAfter(
                 getBeanConfiguration().samlConfigurationFilter(),

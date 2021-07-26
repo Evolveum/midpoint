@@ -13,10 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -78,7 +75,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
                         getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
                 afterActionFinished(ajaxRequestTarget);
 
@@ -94,7 +91,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
                         getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
                 afterActionFinished(ajaxRequestTarget);
             }
@@ -133,11 +130,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
     private CaseWorkItemType getCaseWorkItemModelObject(){
         return getModelObject();
-    }
-
-    protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
-        return new AbstractWorkItemOutputType(getPrismContext())
-                .outcome(ApprovalUtils.toUri(approved));
     }
 
     protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {

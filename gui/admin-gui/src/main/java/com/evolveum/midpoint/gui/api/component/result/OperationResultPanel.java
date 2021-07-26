@@ -196,7 +196,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showHideAll(true, OperationResultPanel.this.getModelObject(), target);
+                showHideAll(true, target);
             }
         };
         showAll.add(new VisibleEnableBehaviour() {
@@ -215,7 +215,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showHideAll(false, OperationResultPanel.this.getModel().getObject(), target);
+                showHideAll(false, target);
             }
         };
         hideAll.add(new VisibleEnableBehaviour() {
@@ -293,7 +293,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
             String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-            return page.getString(resourceKey, null, resourceKey);
+            return page.getString(resourceKey, null, result.getOperation());
         });
 
         message.setOutputMarkupId(true);
@@ -340,7 +340,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 OpResult result = getModelObject();
 
                 String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-                return getPage().getString(resourceKey, null, resourceKey);
+                return getPage().getString(resourceKey, null, result.getOperation());
             }
         });
         operation.setOutputMarkupId(true);
@@ -577,9 +577,9 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
     }
 
-    private void showHideAll(final boolean show, OpResult opresult, AjaxRequestTarget target) {
-        opresult.setShowMoreAll(show);
-        opresult.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
+    private void showHideAll(final boolean show, AjaxRequestTarget target) {
+        getModelObject().setShowMoreAll(show);
+        getModelObject().setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
         target.add(OperationResultPanel.this);
     }
 

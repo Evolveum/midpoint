@@ -48,6 +48,9 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
         try {
 
             if (fromContainerValue) {
+                if (path == null) {
+                    return ((PrismContainerValueWrapper<C>)parent.getObject()).getParent();
+                }
                 return findItemWrapperInContainerValue(type, (PrismContainerValueWrapper<C>)parent.getObject(), path);
             }
 

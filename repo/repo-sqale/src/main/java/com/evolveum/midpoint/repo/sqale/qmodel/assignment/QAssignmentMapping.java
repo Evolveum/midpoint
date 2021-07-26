@@ -294,7 +294,7 @@ public class QAssignmentMapping<OR extends MObject>
 //        row.extId = assignment.getExtension()...id?;
 //        row.extOid =;
         row.policySituations = processCacheableUris(assignment.getPolicySituation());
-        row.subtypes = listToArray(assignment.getSubtype());
+        row.subtypes = stringsToArray(assignment.getSubtype());
         row.ext = processExtensions(assignment.getExtension(), MExtItemHolderType.EXTENSION);
 
         ConstructionType construction = assignment.getConstruction();

@@ -777,6 +777,9 @@
                             <xsd:documentation>
                                 Is this mapping to be used during value transformation, value consolidation, or in both contexts?
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MetadataMappingType.scope</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

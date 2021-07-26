@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2016-2019 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story.ldap.hierarchy;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.ldap.AbstractLdapTest;
 import com.evolveum.midpoint.util.exception.*;
@@ -486,7 +486,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected PrismObject<UserType> getAndAssertUser(
-            String username, String directOrgGroupname, String... indirectGroupNames)
+            String username, String directOrgGroupName, String... indirectGroupNames)
             throws CommonException, DirectoryException {
         PrismObject<UserType> user = findUserByUsername(username);
         display("user", user);
@@ -499,7 +499,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         Entry accountEntry = openDJController.searchSingle("uid=" + username);
         assertNotNull("No account LDAP entry for " + username, accountEntry);
         displayValue("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
-        openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
+        OpenDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 
         return user;
     }
@@ -518,7 +518,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
         assertNotNull("No group LDAP entry for " + orgName, groupEntry);
         displayValue("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
-        openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
+        OpenDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
         assertHasOrg(org, directParentOrgOid);
         assertAssignedOrg(org, directParentOrgOid);
@@ -558,19 +558,16 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
-        ResultHandler<UserType> handler = new ResultHandler<UserType>() {
-            @Override
-            public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
-                try {
-                    display("reconciling " + object);
-                    reconcileUser(object.getOid(), task, parentResult);
-                } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
-                        | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-                        | ConfigurationException | SecurityViolationException e) {
-                    throw new SystemException(e.getMessage(), e);
-                }
-                return true;
+        ResultHandler<UserType> handler = (object, parentResult) -> {
+            try {
+                display("reconciling " + object);
+                reconcileUser(object.getOid(), task, parentResult);
+            } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
+                    | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
+                    | ConfigurationException | SecurityViolationException e) {
+                throw new SystemException(e.getMessage(), e);
             }
+            return true;
         };
         display("Reconciling all users");
         modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
@@ -579,22 +576,18 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
-        ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
-            @Override
-            public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
-                try {
-                    display("reconciling " + object);
-                    reconcileOrg(object.getOid(), task, parentResult);
-                } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
-                        | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-                        | ConfigurationException | SecurityViolationException e) {
-                    throw new SystemException(e.getMessage(), e);
-                }
-                return true;
+        ResultHandler<OrgType> handler = (object, parentResult) -> {
+            try {
+                display("reconciling " + object);
+                reconcileOrg(object.getOid(), task, parentResult);
+            } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
+                    | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
+                    | ConfigurationException | SecurityViolationException e) {
+                throw new SystemException(e.getMessage(), e);
             }
+            return true;
         };
         display("Reconciling all orgs");
         modelService.searchObjectsIterative(OrgType.class, null, handler, null, task, result);
     }
-
 }
