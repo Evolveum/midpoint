@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,18 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.task.quartzimpl.execution.*;
-
-import com.evolveum.midpoint.task.quartzimpl.nodes.NodeCleaner;
-import com.evolveum.midpoint.task.quartzimpl.nodes.NodeRetriever;
-import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
-import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
-import com.evolveum.midpoint.task.quartzimpl.run.HandlerExecutor;
-import com.evolveum.midpoint.task.quartzimpl.tasks.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfigMXBean;
@@ -47,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -142,7 +131,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private SchemaService schemaService;
     @Autowired private UpAndDown upAndDown;
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
@@ -444,7 +432,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
 
     @Override
     public void suspendAndDeleteTasks(Collection<String> taskOids, long suspendTimeout, boolean alsoSubtasks,
-            OperationResult parentResult)  {
+            OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_SUSPEND_AND_DELETE_TASKS);
         result.addArbitraryObjectCollectionAsParam("taskOids", taskOids);
         result.addParam("suspendTimeout", suspendTimeout);
@@ -1202,20 +1190,27 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     // TODO move to more appropriate place
     @Override
     public Number[] getDBPoolStats() {
-
         if (dataSourceFactory != null && dataSourceFactory.getDataSource() instanceof HikariDataSource) {
             HikariDataSource dataSource = (HikariDataSource) dataSourceFactory.getDataSource();
 
-            if (dataSource == null)
+            if (dataSource == null) {
                 return null;
+            }
 
             HikariPoolMXBean pool = dataSource.getHikariPoolMXBean();
             HikariConfigMXBean config = dataSource.getHikariConfigMXBean();
 
-            if (pool == null || config == null)
+            if (pool == null || config == null) {
                 return null;
+            }
 
-            return new Number[]{pool.getActiveConnections(), pool.getIdleConnections(), pool.getThreadsAwaitingConnection(), pool.getTotalConnections(), config.getMaximumPoolSize()};
+            return new Number[] {
+                    pool.getActiveConnections(),
+                    pool.getIdleConnections(),
+                    pool.getThreadsAwaitingConnection(),
+                    pool.getTotalConnections(),
+                    config.getMaximumPoolSize()
+            };
         }
         return null;
     }
