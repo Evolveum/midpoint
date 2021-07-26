@@ -901,8 +901,8 @@ public class SqaleRepositoryService implements RepositoryService {
     // This operation does not use parent OperationResult, so the exception handling is simpler.
     @Override
     public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
-        Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
-        Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
+        Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null.");
+        Validate.notNull(descendantOrgOids, "descendantOrgOids must not be null.");
 
         LOGGER.trace("Querying for subordination upper {}, lower {}",
                 ancestorOrgOid, descendantOrgOids);
@@ -916,7 +916,7 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             return isAnySubordinateAttempt(UUID.fromString(ancestorOrgOid),
                     descendantOrgOids.stream()
-                            .map(s -> UUID.fromString(s))
+                            .map(oid -> UUID.fromString(oid))
                             .collect(Collectors.toList()));
         } catch (Exception e) {
             throw new SystemException(
@@ -943,9 +943,9 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public <O extends ObjectType> boolean isDescendant(
-            PrismObject<O> descendant, String ancestorOrgOid)
+            PrismObject<O> object, String ancestorOrgOid)
             throws SchemaException {
-        List<ObjectReferenceType> objParentOrgRefs = descendant.asObjectable().getParentOrgRef();
+        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
         for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
             objParentOrgOids.add(objParentOrgRef.getOid());
@@ -955,14 +955,12 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public <O extends ObjectType> boolean isAncestor(
-            PrismObject<O> ancestorOrg, String descendantOid)
+            PrismObject<O> ancestorOrg, String descendantOrgOid)
             throws SchemaException {
         if (ancestorOrg.getOid() == null) {
             return false;
         }
-        Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(descendantOid);
-        return isAnySubordinate(ancestorOrg.getOid(), oidList);
+        return isAnySubordinate(ancestorOrg.getOid(), List.of(descendantOrgOid));
     }
 
     @Override

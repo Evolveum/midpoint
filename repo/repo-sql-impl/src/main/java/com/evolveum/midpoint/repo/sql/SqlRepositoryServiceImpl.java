@@ -1006,15 +1006,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) {
-        Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
-        Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
+    public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
+        Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
+        Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Querying for subordination upper {}, lower {}", upperOrgOid, lowerObjectOids);
+            LOGGER.trace("Querying for subordination upper {}, lower {}", ancestorOrgOid, descendantOrgOids);
         }
 
-        if (lowerObjectOids.isEmpty()) {
+        if (descendantOrgOids.isEmpty()) {
             // trivial case
             return false;
         }
@@ -1027,9 +1027,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    return objectRetriever.isAnySubordinateAttempt(upperOrgOid, lowerObjectOids);
+                    return objectRetriever.isAnySubordinateAttempt(ancestorOrgOid, descendantOrgOids);
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(upperOrgOid, OP_IS_ANY_SUBORDINATE, attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(ancestorOrgOid, OP_IS_ANY_SUBORDINATE, attempt, ex, null);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
@@ -1247,23 +1247,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) {
+    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
         for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
             objParentOrgOids.add(objParentOrgRef.getOid());
         }
-        return isAnySubordinate(orgOid, objParentOrgOids);
+        return isAnySubordinate(ancestorOrgOid, objParentOrgOids);
     }
 
     @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) {
-        if (object.getOid() == null) {
+    public <O extends ObjectType> boolean isAncestor(PrismObject<O> ancestorOrg, String descendantOrgOid) {
+        if (ancestorOrg.getOid() == null) {
             return false;
         }
         Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(oid);
-        return isAnySubordinate(object.getOid(), oidList);
+        oidList.add(descendantOrgOid);
+        return isAnySubordinate(ancestorOrg.getOid(), oidList);
     }
 
     @Override
