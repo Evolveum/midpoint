@@ -740,6 +740,8 @@ public interface TaskManager {
     /**
      * Returns hikari pool statistics (active, idle, waiting, total, max number of DB connections)
      * Return null if pool is unavailable.
+     *
+     * TODO move to more appropriate place
      */
     Number[] getDBPoolStats();
 
