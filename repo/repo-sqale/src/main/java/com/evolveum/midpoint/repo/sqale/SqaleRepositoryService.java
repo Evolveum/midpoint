@@ -1035,9 +1035,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     prepareUpdateContext(jdbcSession, SequenceType.class, oid);
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", sequence.debugDump());
-            }
+            LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
             long returnValue;
             if (!sequence.getUnusedValues().isEmpty()) {
@@ -1046,10 +1044,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 returnValue = advanceSequence(sequence, oid);
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Return value = {}, OBJECT after:\n{}",
-                        returnValue, sequence.debugDump());
-            }
+            LOGGER.trace("Return value = {}, OBJECT after:\n{}",
+                    returnValue, sequence.debugDumpLazily());
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
@@ -1132,9 +1128,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     prepareUpdateContext(jdbcSession, SequenceType.class, oid);
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
-            }
+            LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
             int maxUnusedValues = sequence.getMaxUnusedValues() != null
                     ? sequence.getMaxUnusedValues() : 0;
@@ -1153,9 +1147,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 }
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT after:\n{}", sequence.debugDump());
-            }
+            LOGGER.trace("OBJECT after:\n{}", sequence.debugDumpLazily());
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
@@ -1369,7 +1361,8 @@ public class SqaleRepositoryService implements RepositoryService {
         if (specSubtype != null) {
             Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
             if (!actualSubtypeValues.contains(specSubtype)) {
-                logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+                logger.trace("{} subtype mismatch, expected {}, was {}",
+                        logMessagePrefix, specSubtype, actualSubtypeValues);
                 return false;
             }
         }
@@ -1379,7 +1372,8 @@ public class SqaleRepositoryService implements RepositoryService {
         if (!specArchetypeRefs.isEmpty()) {
             if (object.canRepresent(AssignmentHolderType.class)) {
                 boolean match = false;
-                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
+                List<ObjectReferenceType> actualArchetypeRefs =
+                        ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
                 for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
                     for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
                         if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
@@ -1389,7 +1383,8 @@ public class SqaleRepositoryService implements RepositoryService {
                     }
                 }
                 if (!match) {
-                    logger.trace("{} archetype mismatch, expected {}, was {}", logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
+                    logger.trace("{} archetype mismatch, expected {}, was {}",
+                            logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
                     return false;
                 }
             } else {
