@@ -25,8 +25,8 @@ public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends Abstra
     private static final String ID_APPLICABLE_POLICIES_CONTAINER = "applicablePoliciesContainer";
     private static final String ID_APPLICABLE_POLICIES_PANEL = "applicablePolicyPanel";
 
-    public FocusApplicablePoliciesTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
-        super(id, mainForm, focusWrapperModel);
+    public FocusApplicablePoliciesTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, focusWrapperModel);
         initLayout();
     }
 

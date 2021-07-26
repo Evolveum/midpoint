@@ -688,21 +688,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 
-    protected String getObjectOidParameter() {
-        PageParameters parameters = getPageParameters();
-        LOGGER.trace("Page parameters: {}", parameters);
-        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
-        LOGGER.trace("OID parameter: {}", oidValue);
-        if (oidValue == null) {
-            return null;
-        }
-        String oid = oidValue.toString();
-        if (StringUtils.isBlank(oid)) {
-            return null;
-        }
-        return oid;
-    }
-
     @Override
     public void continueEditing(AjaxRequestTarget target) {
         getMainPanel().setVisible(true);
@@ -719,6 +704,21 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public boolean isOidParameterExists() {
         return getObjectOidParameter() != null;
+    }
+
+    protected String getObjectOidParameter() {
+        PageParameters parameters = getPageParameters();
+        LOGGER.trace("Page parameters: {}", parameters);
+        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
+        LOGGER.trace("OID parameter: {}", oidValue);
+        if (oidValue == null) {
+            return null;
+        }
+        String oid = oidValue.toString();
+        if (StringUtils.isBlank(oid)) {
+            return null;
+        }
+        return oid;
     }
 
     protected PrismObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {

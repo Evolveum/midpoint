@@ -42,8 +42,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRulesPanel.class);
 
-    public PolicyRulesPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
-        super(id, assignmentContainerWrapperModel);
+    public PolicyRulesPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config){
+        super(id, assignmentContainerWrapperModel, config);
 
     }
 

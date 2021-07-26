@@ -26,9 +26,8 @@ public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
     private static final String ID_ACCOUNT = "account";
 
 
-    public ShadowDetailsTabPanel(String id, MidpointForm<PrismObjectWrapper<ShadowType>> mainForm,
-                                 LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel) {
-        super(id, mainForm, objectWrapperModel);
+    public ShadowDetailsTabPanel(String id, LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel) {
+        super(id, objectWrapperModel);
     }
 
     @Override

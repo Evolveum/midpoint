@@ -1987,3 +1987,64 @@ th.composited-icon {
   text-align: center;
   font-size: 10px;
 }
+
+@media screen and (min-width: @screen-lg) {
+  .details-menu {
+    height: 100%;
+    width: 100%;
+    //position: fixed;
+    z-index: 1;
+    //top: 0;
+    right: 0;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    padding-top: 16px;
+
+    & > li {
+      list-style: none;
+    }
+
+  }
+}
+
+@media screen and (max-width: @screen-lg-min) {
+  .details-menu {
+    height: 100%;
+    width: 100%;
+    //position: fixed;
+    z-index: 1;
+    right: 0;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    padding-top: 16px;
+
+    & > li {
+      list-style: none;
+    }
+  }
+}
+
+@media screen and (max-width: @screen-lg-min) {
+  .details-menu a >
+  .details-menu-label {
+    display: none;
+  }
+}
+
+
+.details-menu a {
+  padding: 6px 8px 6px 5px;
+  text-decoration: none;
+  font-size: 15px;
+  color: #818181;
+  display: block;
+}
+
+.details-menu a:hover {
+  color: #f1f1f1;
+}
+
+ul.details-menu {
+  padding-inline-start: 13px;
+}
+

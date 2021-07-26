@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -27,15 +28,15 @@ import java.util.Collections;
 /**
  * @author semancik
  */
-@PanelDescription(identifier = "assignments")
+
 public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
     private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 
-    public AssignmentHolderTypeAssignmentsTabPanel(String id, MidpointForm<PrismObjectWrapper<AHT>> mainForm, LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
-        super(id, mainForm, focusWrapperModel);
+    public AssignmentHolderTypeAssignmentsTabPanel(String id, LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
+        super(id, focusWrapperModel);
 
     }
 
@@ -56,7 +57,7 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
     }
 
     protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AHT, AssignmentType> model) {
-        return new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of()){
+        return new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of(), new ContainerPanelConfigurationType()){
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author honchar
  */
+@PanelDescription(identifier = "personas", applicableFor = FocusType.class, label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT)
 public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = FocusPersonasTabPanel.class.getName() + ".";
@@ -47,8 +49,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    public FocusPersonasTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, mainForm, focusModel);
+    public FocusPersonasTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, focusModel);
     }
 
     @Override

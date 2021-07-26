@@ -8,12 +8,9 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
-
-import com.evolveum.midpoint.web.session.PageStorage;
 
 import com.evolveum.midpoint.web.session.SessionStorage;
 
@@ -62,8 +59,8 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
-    public ObjectHistoryTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
-        super(id, mainForm, focusWrapperModel);
+    public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, focusWrapperModel);
 
     }
 

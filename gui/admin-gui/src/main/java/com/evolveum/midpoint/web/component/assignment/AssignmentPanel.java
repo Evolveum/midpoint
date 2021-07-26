@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
 
@@ -103,8 +104,15 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
     protected int assignmentsRequestsLimit = -1;
 
+    private ContainerPanelConfigurationType config;
+
     public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
+    }
+
+    public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel);
+        this.config = config;
     }
 
     @Override
@@ -218,6 +226,34 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
                         super.refreshTable(ajaxRequestTarget);
                         AssignmentPanel.this.refreshTable(ajaxRequestTarget);
+                    }
+
+                    @Override
+                    protected boolean isCollectionViewPanel() {
+                        return config != null && config.getListView() !=null;
+                    }
+
+                    @Override
+                    protected CompiledObjectCollectionView getObjectCollectionView() {
+                        if (config == null) {
+                            return super.getObjectCollectionView();
+                        }
+                        GuiObjectListViewType listView = config.getListView();
+                        if (listView == null) {
+                            return null;
+                        }
+                        CollectionRefSpecificationType collectionRefSpecificationType = listView.getCollection();
+                        if (collectionRefSpecificationType == null) {
+                            return null;
+                        }
+                        Task task = getPageBase().createSimpleTask("Compile collection");
+                        OperationResult result = task.getResult();
+                        try {
+                            return getPageBase().getModelInteractionService().compileObjectCollectionView(collectionRefSpecificationType, AssignmentType.class, task, result);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                        return null;
                     }
                 };
         multivalueContainerListPanel.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));

@@ -741,7 +741,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="panel" type="tns:SingleValueContainerPanelType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -909,6 +909,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>VirtualContainerItemSpecificationType.visibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3598,7 +3605,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="SingleValueContainerPanelType">
+    <xsd:complexType name="ContainerPanelConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
@@ -3621,6 +3628,58 @@
                                     List of containers to show on this panel
                                 </p>
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="panelClass" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="listView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of an explicit or implicit object collection that will be used to select objects in this view.
+                                If no collection is specified then it is assumed that all objects of a particular
+                                type has to be displayed (type element above is mandatory in that case).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>GuiObjectListViewType.collection</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Sub panel
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

@@ -47,8 +47,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
+    private ContainerPanelConfigurationType containerPanelConfigurationType;
+
     public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
+    }
+
+    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, assignmentContainerWrapperModel, config);
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {

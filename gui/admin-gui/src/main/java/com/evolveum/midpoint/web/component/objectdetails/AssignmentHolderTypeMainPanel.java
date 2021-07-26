@@ -50,7 +50,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getMainForm(), getObjectModel());
+                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getObjectModel());
                     }
                 });
 
@@ -63,7 +63,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getMainForm(), getObjectModel());
+                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getObjectModel());
                     }
                 });
 
@@ -75,7 +75,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel()){
+                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getObjectModel()){
                             private static final long serialVersionUID = 1L;
 
                             @Override

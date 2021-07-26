@@ -167,7 +167,8 @@ public class PageUser extends PageAdminFocus<UserType> {
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 addPersonasTabs(tabs, getMainForm(), getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage), parentPage);
                 addDelegationsTab(tabs, getMainForm(), getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage), parentPage);
-                addDelegatedToMeTab(tabs, getMainForm(), getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage), parentPage);
+                addDelegatedToMeTab(tabs, getObject(),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage), parentPage);
             }
 
             @Override
@@ -208,7 +209,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusPersonasTabPanel<>(panelId, mainForm, getObjectModel());
+                        return new FocusPersonasTabPanel<>(panelId, getObjectModel());
                     }
 
                     @Override
@@ -236,7 +237,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, mainForm, getObjectModel(),
+                userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getObjectModel(),
                         delegationsModel, privilegesListModel);
                 return userDelegationsTabPanel;
             }
@@ -248,7 +249,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         });
     }
 
-    private void addDelegatedToMeTab(List<ITab> tabs, MidpointForm<PrismObjectWrapper<UserType>> mainForm, ObjectTabVisibleBehavior<UserType> tabVisibility, PageAdminObjectDetails<UserType> parentPage) {
+    private void addDelegatedToMeTab(List<ITab> tabs, PrismObject<UserType> object, ObjectTabVisibleBehavior<UserType> tabVisibility, PageAdminObjectDetails<UserType> parentPage) {
         tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
                 tabVisibility){
 
@@ -269,7 +270,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public String getExcludeOid() {
-                        return getObject().getOid();
+                        return object.getOid();
                     }
 
                     @Override

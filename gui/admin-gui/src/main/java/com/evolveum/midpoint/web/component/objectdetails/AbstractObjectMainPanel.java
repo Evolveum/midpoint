@@ -116,7 +116,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         mainForm = new MidpointForm<>(ID_MAIN_FORM, true);
         mainForm.setMultiPart(true);
         add(mainForm);
-        initMainLayout();
+//        initMainLayout();
         initLayoutTabs(parentPage);
         initLayoutOptions();
         initLayoutButtons(parentPage);
