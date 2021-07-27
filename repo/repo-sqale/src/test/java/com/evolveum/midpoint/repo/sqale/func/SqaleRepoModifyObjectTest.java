@@ -2990,6 +2990,31 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test905ModifyUsingObjectTypeArgumentIsPossible()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        // This does not say anything about ability to do the same on the model level
+        OperationResult result = createOperationResult();
+
+        given("delta with user specific attribute change");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMAIL_ADDRESS).add("new905@email.com")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(ObjectType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful and everything works fine");
+        assertThatOperationResult(result).isSuccess();
+
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getEmailAddress()).isEqualTo("new905@email.com");
+
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.emailAddress).isEqualTo("new905@email.com");
+    }
+
+    @Test
     public void test910ModificationsOfNonexistentObjectFails() throws SchemaException {
         OperationResult result = createOperationResult();
 
