@@ -1134,7 +1134,7 @@ CREATE TRIGGER m_task_oid_delete_tr AFTER DELETE ON m_task
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_task_nameOrig_idx ON m_task (nameOrig);
-ALTER TABLE m_task ADD CONSTRAINT m_task_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_task_nameNorm_idx ON m_task (nameNorm); -- can have duplicates
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
