@@ -907,9 +907,7 @@ public class ObjectRetriever {
                 remaining -= objects.size();
             }
         } finally {
-            if (result.isUnknown()) {
-                result.computeStatus();
-            }
+            result.computeStatusIfUnknown();
             result.setSummarizeSuccesses(true);
             result.summarize();
         }
@@ -984,9 +982,7 @@ public class ObjectRetriever {
                 }
             }
         } finally {
-            if (result.isUnknown()) {
-                result.computeStatus();
-            }
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -1001,9 +997,7 @@ public class ObjectRetriever {
                 }
             }
         } finally {
-            if (result.isUnknown()) {
-                result.computeStatus();
-            }
+            result.computeStatusIfUnknown();
             result.setSummarizeSuccesses(true);
             result.summarize();
         }
