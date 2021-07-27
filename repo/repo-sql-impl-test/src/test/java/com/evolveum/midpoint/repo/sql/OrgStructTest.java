@@ -209,7 +209,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     private void assertSubordinate(boolean expected, String upperOrgOid, String... lowerObjectOids) throws SchemaException {
         Collection<String> lowerObjectOidCol = Arrays.asList(lowerObjectOids);
         logger.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
-        boolean actual = repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
+        boolean actual = sqlRepositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
         if (expected != actual) {
             logger.error("=======X {}: {}; expected={}, actual={}", upperOrgOid, lowerObjectOidCol, expected, actual);
             assertEquals("Wrong subordinate match: " + upperOrgOid + " to " + lowerObjectOidCol, expected, actual);

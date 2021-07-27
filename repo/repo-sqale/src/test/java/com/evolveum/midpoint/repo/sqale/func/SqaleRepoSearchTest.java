@@ -1704,8 +1704,8 @@ AND(
         expect("isAncestor returns true for parent-descendant (deep child) orgs");
         assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
 
-        expect("isAncestor returns true for the same org");
-        assertTrue(repositoryService.isAncestor(rootOrg, org1Oid));
+        expect("isAncestor returns false for the same org");
+        assertFalse(repositoryService.isAncestor(rootOrg, org1Oid));
 
         expect("isAncestor returns false for unrelated orgs");
         assertFalse(repositoryService.isAncestor(rootOrg, org21Oid));
@@ -1730,9 +1730,6 @@ AND(
                 repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
                 org1Oid));
 
-        // TODO this one is strange, as it is not symmetric with isAncestor.
-        //  This works fine for non-orgs, but not for org itself - which by one look is ancestor
-        //  of itself, but then by another one is NOT descendant of itself.
         expect("isDescendant returns false for the same org");
         assertFalse(repositoryService.isDescendant(org11, org11Oid));
 
@@ -1742,32 +1739,6 @@ AND(
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
     }
-
-    @Test
-    public void test972IsAnySubordinate() {
-        expect("isAnySubordinate returns true for parent-child orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org11Oid)));
-
-        expect("isAnySubordinate returns true for parent-descendant (deep child) orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid)));
-
-        expect("isAnySubordinate returns true for the same org");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org1Oid)));
-
-        expect("isAnySubordinate returns true when the list contains only descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid,
-                List.of(org1Oid, org111Oid, org112Oid)));
-
-        expect("isAnySubordinate returns true when the list mixes descendants and non-descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid, org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only unrelated orgs");
-        assertFalse(repositoryService.isAnySubordinate(org1Oid, List.of(org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only ancestors");
-        assertFalse(repositoryService.isAnySubordinate(org11Oid, List.of(org1Oid)));
-    }
-
     // endregion
 
     // support methods

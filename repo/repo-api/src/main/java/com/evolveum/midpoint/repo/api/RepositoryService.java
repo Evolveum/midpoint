@@ -443,20 +443,6 @@ public interface RepositoryService {
             throws SchemaException;
 
     /**
-     * Returns `true` if any of organizations identified with `descendantOrgOids` is under
-     * organization identified by `ancestorOrgOid`.
-     * For this method organization is under itself, that is `isAnySubordinate(oid, List.of(oid))`
-     * returns `true`.
-     * Using of non-organizational OID for `ancestorOrgOid` is sure to result in `false`.
-     * Non-organizational OIDs in `descendantOrgOids` do not help with `true` result either.
-     *
-     * @param ancestorOrgOid identifier of ancestor (upper) organization
-     * @param descendantOrgOids identifiers of potential descendant organizations
-     */
-    boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids)
-            throws SchemaException;
-
-    /**
      * Returns `true` if the `object` is under the organization identified with `ancestorOrg`.
      * For this method *organization is NOT under itself*, that is `isDescendant(org, oidOfThatOrg)`
      * returns `false` - which is not a symmetric behavior with {@link #isAncestor(PrismObject, String)}.
@@ -470,16 +456,16 @@ public interface RepositoryService {
             throws SchemaException;
 
     /**
-     * Returns `true` if the organization identified with `descendantOrgOid` is under `ancestorOrg`.
+     * Returns `true` if the organization identified with `descendantOrgOid` is under `object`.
+     * TODO reconsider reflexivity!
      * For this method organization is under itself, that is `isAncestor(org, oidOfThatOrg)`
      * returns `true`.
-     * Despite type parameter, only `PrismObject<OrgType>` can return `true` and `descendantOrgOid`
-     * must belong to the `OrgType` object as well, e.g. user under `ancestorOrg` returns `false`.
+     * Despite type parameter, only `PrismObject<OrgType>` can return `true`.
      *
-     * @param ancestorOrg ancestor organization
+     * @param object potential ancestor organization
      * @param descendantOrgOid identifier of potential descendant organization
      */
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> ancestorOrg, String descendantOrgOid)
+    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
             throws SchemaException;
 
     /**

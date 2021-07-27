@@ -222,12 +222,6 @@ public class MockFactory {
             }
 
             @Override
-            public boolean isAnySubordinate(
-                    String ancestorOrgOid, Collection<String> descendantOrgOids) {
-                return false;
-            }
-
-            @Override
             public <O extends ObjectType> boolean isDescendant(
                     PrismObject<O> object, String ancestorOrgOid) {
                 return false;
@@ -235,7 +229,7 @@ public class MockFactory {
 
             @Override
             public <O extends ObjectType> boolean isAncestor(
-                    PrismObject<O> ancestorOrg, String descendantOrgOid) {
+                    PrismObject<O> object, String descendantOrgOid) {
                 return false;
             }
 

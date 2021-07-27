@@ -898,69 +898,64 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    // This operation does not use parent OperationResult, so the exception handling is simpler.
     @Override
-    public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
-        Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null.");
-        Validate.notNull(descendantOrgOids, "descendantOrgOids must not be null.");
+    public <O extends ObjectType> boolean isDescendant(
+            PrismObject<O> object, String ancestorOrgOid) {
+        Validate.notNull(object, "object must not be null");
+        Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null");
 
-        LOGGER.trace("Querying for subordination upper {}, lower {}",
-                ancestorOrgOid, descendantOrgOids);
-
-        if (descendantOrgOids.isEmpty()) {
-            // trivial case
+        LOGGER.trace("Querying if object {} is descendant of {}", object.getOid(), ancestorOrgOid);
+        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+        if (objParentOrgRefs == null || objParentOrgRefs.isEmpty()) {
             return false;
         }
 
-        long opHandle = registerOperationStart(OP_IS_ANY_SUBORDINATE, OrgType.class);
-        try {
-            return isAnySubordinateAttempt(UUID.fromString(ancestorOrgOid),
-                    descendantOrgOids.stream()
-                            .map(oid -> UUID.fromString(oid))
-                            .collect(Collectors.toList()));
-        } catch (Exception e) {
-            throw new SystemException(
-                    "isAnySubordinateAttempt failed somehow, this really should not happen.", e);
-        } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
-        }
-    }
+        List<UUID> objParentOrgOids = objParentOrgRefs.stream()
+                .map(ref -> UUID.fromString(ref.getOid()))
+                .collect(Collectors.toList());
 
-    private boolean isAnySubordinateAttempt(UUID ancestorOrgOid, Collection<UUID> lowerObjectOids) {
+        long opHandle = registerOperationStart(OP_IS_DESCENDANT, OrgType.class);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
             QOrgClosure oc = new QOrgClosure();
             long count = jdbcSession.newQuery()
                     .from(oc)
-                    .where(oc.ancestorOid.eq(ancestorOrgOid)
-                            .and(oc.descendantOid.in(lowerObjectOids)))
+                    .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
+                            .and(oc.descendantOid.in(objParentOrgOids)))
                     .fetchCount();
-
             return count != 0L;
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean isDescendant(
-            PrismObject<O> object, String ancestorOrgOid)
-            throws SchemaException {
-        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
-        List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-        for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
-            objParentOrgOids.add(objParentOrgRef.getOid());
-        }
-        return isAnySubordinate(ancestorOrgOid, objParentOrgOids);
     }
 
     @Override
     public <O extends ObjectType> boolean isAncestor(
-            PrismObject<O> ancestorOrg, String descendantOrgOid)
-            throws SchemaException {
-        if (ancestorOrg.getOid() == null) {
+            PrismObject<O> object, String descendantOrgOid) {
+        Validate.notNull(object, "object must not be null");
+        Validate.notNull(descendantOrgOid, "descendantOrgOid must not be null");
+
+        LOGGER.trace("Querying if object {} is ancestor of {}", object.getOid(), descendantOrgOid);
+        // object is not considered ancestor of itself
+        if (object.getOid() == null || object.getOid().equals(descendantOrgOid)) {
             return false;
         }
-        return isAnySubordinate(ancestorOrg.getOid(), List.of(descendantOrgOid));
+
+        long opHandle = registerOperationStart(OP_IS_ANCESTOR, OrgType.class);
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+
+            QOrgClosure oc = new QOrgClosure();
+            long count = jdbcSession.newQuery()
+                    .from(oc)
+                    .where(oc.ancestorOid.eq(UUID.fromString(object.getOid()))
+                            .and(oc.descendantOid.eq(UUID.fromString(descendantOrgOid))))
+                    .fetchCount();
+            return count != 0L;
+        } finally {
+            registerOperationFinish(opHandle, 1);
+        }
     }
 
     @Override
