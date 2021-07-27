@@ -35,8 +35,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
@@ -692,8 +691,7 @@ public class SqaleRepositoryService implements RepositoryService {
         return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
 
-    // Counting/searching
-
+    // region Counting/searching
     @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
@@ -708,6 +706,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Count objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return 0;
+            }
+
             return executeCountObject(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -752,6 +757,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Search objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
             return executeSearchObject(type, query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -825,8 +837,32 @@ public class SqaleRepositoryService implements RepositoryService {
             Class<T> type, ObjectQuery query, ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult) throws SchemaException {
-        // TODO
-        throw new UnsupportedOperationException();
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(SEARCH_OBJECTS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            logSearchInputParameters(type, query, "Iterative search objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return null;
+            }
+
+            // TODO
+            throw new UnsupportedOperationException();
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -842,6 +878,13 @@ public class SqaleRepositoryService implements RepositoryService {
                         .addParam("query", query)
                         .build();
         try {
+            logSearchInputParameters(type, query, "Count containers");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return 0;
+            }
+
             return executeCountContainers(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -885,6 +928,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Search containers");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
             SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
                     SqaleQueryContext.from(type, repositoryContext);
             return sqlQueryExecutor.list(queryContext, query, options);
@@ -897,6 +947,34 @@ public class SqaleRepositoryService implements RepositoryService {
             operationResult.computeStatusIfUnknown();
         }
     }
+
+    private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, String operation) {
+        ObjectPaging paging = query != null ? query.getPaging() : null;
+        LOGGER.debug(
+                "{} of type '{}', query on trace level, offset {}, limit {}.",
+                operation, type.getSimpleName(),
+                paging != null ? paging.getOffset() : "undefined",
+                paging != null ? paging.getMaxSize() : "undefined");
+
+        LOGGER.trace("Full query\n{}",
+                query == null ? "undefined" : query.debugDumpLazily());
+    }
+
+    private ObjectQuery simplifyQuery(ObjectQuery query) {
+        if (query != null) {
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter, repositoryContext.prismContext());
+            query = query.cloneEmpty();
+            query.setFilter(filter instanceof AllFilter ? null : filter);
+        }
+
+        return query;
+    }
+
+    private boolean isNoneQuery(ObjectQuery query) {
+        return query != null && query.getFilter() instanceof NoneFilter;
+    }
+    // endregion
 
     @Override
     public <O extends ObjectType> boolean isDescendant(
@@ -1009,7 +1087,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            return executeAdvanceSequence(oidUuid, operationResult);
+            return executeAdvanceSequence(oidUuid);
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1020,9 +1098,9 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private long executeAdvanceSequence(UUID oid, OperationResult operationResult)
+    private long executeAdvanceSequence(UUID oid)
             throws ObjectNotFoundException, SchemaException, RepositoryException {
-        // TODO executeAttempts
+        // TODO executeAttempts if any problems with further test, so far it looks good based on SequenceTestConcurrency
         long opHandle = registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
 
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
@@ -1100,7 +1178,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         try {
-            executeReturnUnusedValuesToSequence(oidUuid, unusedValues, operationResult);
+            executeReturnUnusedValuesToSequence(oidUuid, unusedValues);
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1111,8 +1189,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private void executeReturnUnusedValuesToSequence(
-            UUID oid, Collection<Long> unusedValues, OperationResult operationResult)
+    private void executeReturnUnusedValuesToSequence(UUID oid, Collection<Long> unusedValues)
             throws SchemaException, ObjectNotFoundException, RepositoryException {
         // TODO executeAttempts
         long opHandle = registerOperationStart(
