@@ -405,14 +405,6 @@ public interface RepositoryService {
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
      * </p>
-     *
-     * @param query search query
-     * @param handler result handler
-     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
-     * @param parentResult parent OperationResult (in/out)
-     * @return all objects of specified type that match search criteria (subject to paging)
-     * @throws IllegalArgumentException wrong object type
-     * @throws SchemaException unknown property used in search query
      * <p>
      * A note related to iteration method:
      * <p>
@@ -438,6 +430,14 @@ public interface RepositoryService {
      * - ordering is specified
      * - offset is specified
      * (limit is not a problem)
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
+     * @param parentResult parent OperationResult (in/out)
+     * @return all objects of specified type that match search criteria (subject to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,

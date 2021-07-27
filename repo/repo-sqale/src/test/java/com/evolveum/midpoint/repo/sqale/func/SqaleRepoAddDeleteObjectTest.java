@@ -66,7 +66,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -356,16 +355,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         given("object to add and cleared performance information");
         UserType userType = new UserType(prismContext).name("user" + getTestNumber());
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is added to the repository");
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT);
+        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT);
     }
 
     @Test
@@ -377,16 +374,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         UserType userType = new UserType(prismContext).name("user" + getTestNumber());
         repositoryService.addObject(userType.asPrismObject(), null, result);
 
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is added to the repository");
         repositoryService.addObject(userType.asPrismObject(), createOverwrite(), result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_ADD_OBJECT_OVERWRITE);
+        assertSingleOperationRecorded(RepositoryService.OP_ADD_OBJECT_OVERWRITE);
     }
 
     @Test
@@ -2378,16 +2373,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         given("object to delete and cleared performance information");
         UUID userOid = randomExistingOid(QUser.class);
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is deleted from the repository");
         repositoryService.deleteObject(FocusType.class, userOid.toString(), result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_DELETE_OBJECT);
+        assertSingleOperationRecorded(RepositoryService.OP_DELETE_OBJECT);
     }
 
     @Test

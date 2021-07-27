@@ -51,7 +51,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -3044,16 +3043,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).add(getTestNameShort() + "@email.com")
                 .asObjectDelta(user1Oid);
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("object is modified in the repository");
         repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("performance monitor is updated");
         assertThatOperationResult(result).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_MODIFY_OBJECT);
+        assertSingleOperationRecorded(RepositoryService.OP_MODIFY_OBJECT);
     }
 
     @Test

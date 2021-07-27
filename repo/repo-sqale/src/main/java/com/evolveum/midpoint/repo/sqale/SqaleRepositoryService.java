@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -855,13 +857,71 @@ public class SqaleRepositoryService implements RepositoryService {
                 return null;
             }
 
-            // TODO
-            throw new UnsupportedOperationException();
+            return executeSearchObjectsIterative(type, query, handler, options, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult) throws SchemaException {
+
+        try {
+
+            Integer maxSize;
+            ObjectQuery pagedQuery;
+            if (query != null) {
+                maxSize = query.getPaging() != null ? query.getPaging().getMaxSize() : null;
+                pagedQuery = query.clone();
+            } else {
+                maxSize = null;
+                pagedQuery = repositoryContext.prismContext().queryFactory().createQuery();
+            }
+
+            String lastOid = null;
+            int batchSize = 1000; // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
+
+            ObjectPaging paging = repositoryContext.prismContext().queryFactory().createPaging();
+            pagedQuery.setPaging(paging);
+            main:
+            for (; ; ) {
+//                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER); TODO
+                paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
+
+                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, operationResult);
+
+                for (PrismObject<T> object : objects) {
+                    // TODO use again :-)
+                    lastOid = object.getOid();
+                    if (!handler.handle(object, operationResult)) {
+                        break main;
+                    }
+                }
+                if (objects.isEmpty() || objects.size() < paging.getMaxSize()) {
+                    break;
+                }
+                if (maxSize != null) {
+                    maxSize -= objects.size();
+                    if (maxSize <= 0) {
+                        break;
+                    }
+                }
+            }
+
+            // TODO null is returned in old repo for most iteration methods, do we even want this? Isn't parent result enough?
+            return new SearchResultMetadata();
+        } finally {
+            // TODO reconsider, now it gives us no info about timing, only count
+            //  BTW: this seems not to be used for other than single transaction in old repo
+            long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+            registerOperationFinish(opHandle, 1);
         }
     }
 

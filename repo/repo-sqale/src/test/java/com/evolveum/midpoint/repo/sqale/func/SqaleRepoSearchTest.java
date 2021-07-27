@@ -20,7 +20,7 @@ import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -47,7 +47,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -62,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
-    private final static String NONEXIST_OID = UUID.randomUUID().toString();
+    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -597,7 +596,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(user1Oid, case1Oid);
         searchCaseWorkItemByAssignee(user2Oid, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXIST_OID);
+        searchCaseWorkItemByAssignee(NONEXISTENT_OID);
     }
 
     private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
@@ -1656,9 +1655,7 @@ AND(
         OperationResult operationResult = createOperationResult();
 
         given("cleared performance information");
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("search is called on the repository");
         searchObjects(FocusType.class,
@@ -1667,7 +1664,7 @@ AND(
 
         then("performance monitor is updated");
         assertThatOperationResult(operationResult).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
+        assertSingleOperationRecorded(RepositoryService.OP_SEARCH_OBJECTS);
     }
 
     @Test
@@ -1795,7 +1792,7 @@ AND(
                 type,
                 query,
                 selectorOptions != null && selectorOptions.length != 0
-                        ? Arrays.asList(selectorOptions) : null,
+                        ? List.of(selectorOptions) : null,
                 operationResult)
                 .map(p -> p.asObjectable());
     }
@@ -1836,7 +1833,8 @@ AND(
         return repositoryService.searchContainers(
                 type,
                 query,
-                Arrays.asList(selectorOptions),
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null,
                 operationResult);
     }
 }

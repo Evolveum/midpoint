@@ -252,16 +252,21 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                 && cachedUriById(ref.relationId).equals(QNameUtil.qNameToUri(relation));
     }
 
-    protected void assertSingleOperationRecorded(SqlPerformanceMonitorImpl pm, String opKind) {
+    protected void assertSingleOperationRecorded(String opKind) {
+        assertOperationRecordedCount(opKind, 1);
+    }
+
+    protected void assertOperationRecordedCount(String opKind, int count) {
         Map<String, OperationPerformanceInformation> pmAllData =
-                pm.getGlobalPerformanceInformation().getAllData();
-        assertThat(pmAllData).hasSize(1);
-        Map.Entry<String, OperationPerformanceInformation> perfEntry =
-                pmAllData.entrySet().iterator().next();
-        assertThat(perfEntry.getKey()).isEqualTo(opKind);
-        OperationPerformanceInformation operationInfo = perfEntry.getValue();
-        assertThat(operationInfo.getInvocationCount()).isEqualTo(1);
-        assertThat(operationInfo.getExecutionCount()).isEqualTo(1);
+                repositoryService.getPerformanceMonitor()
+                        .getGlobalPerformanceInformation().getAllData();
+        OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
+        if (count != 0) {
+            assertThat(operationInfo.getInvocationCount()).isEqualTo(count);
+            assertThat(operationInfo.getExecutionCount()).isEqualTo(count);
+        } else {
+            assertThat(operationInfo).isNull();
+        }
     }
 
     /** Creates a reference with specified type and default relation. */
@@ -326,6 +331,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                     .fetchFirst()
                     .toString();
         }
+    }
+
+    protected void clearPerformanceMonitor() {
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
     }
 
     /**
