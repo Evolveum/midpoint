@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -83,7 +82,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
-    private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
 
@@ -148,7 +146,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
         shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
@@ -295,11 +293,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
-        service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1")
-                        // TODO integer attribute
-                        .asPrismObject(),
-                null, result);
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
                         .state("closed")
@@ -1458,7 +1451,7 @@ AND(
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
                 f -> f.itemWithDef(shadowAttributeDefinition,
-                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv"))
+                        ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
     }
@@ -1704,7 +1697,7 @@ AND(
         expect("isAncestor returns true for parent-descendant (deep child) orgs");
         assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
 
-        expect("isAncestor returns false for the same org");
+        expect("isAncestor returns false for the same org (not ancestor of itself)");
         assertFalse(repositoryService.isAncestor(rootOrg, org1Oid));
 
         expect("isAncestor returns false for unrelated orgs");
@@ -1730,7 +1723,7 @@ AND(
                 repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
                 org1Oid));
 
-        expect("isDescendant returns false for the same org");
+        expect("isDescendant returns false for the same org (not descendant of itself)");
         assertFalse(repositoryService.isDescendant(org11, org11Oid));
 
         expect("isDescendant returns false for unrelated orgs");

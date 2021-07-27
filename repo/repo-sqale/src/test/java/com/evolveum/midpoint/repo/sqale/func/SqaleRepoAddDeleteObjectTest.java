@@ -884,7 +884,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         addExtensionValue(extensionContainer, "string", "string-value");
 
         ShadowAttributesType attributesContainer = new ShadowAttributesHelper(object)
-                .set(new QName("http://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
+                .set(new QName("https://example.com/p", "string-mv"), DOMUtil.XSD_STRING,
                         "string-value1", "string-value2")
                 .attributesContainer();
 

@@ -1259,12 +1259,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public <O extends ObjectType> boolean isAncestor(
             PrismObject<O> object, String descendantOrgOid) {
-        if (object.getOid() == null) {
+        // object is not considered ancestor of itself
+        if (object.getOid() == null || object.getOid().equals(descendantOrgOid)) {
             return false;
         }
-        Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(descendantOrgOid);
-        return isAnySubordinate(object.getOid(), oidList);
+
+        return isAnySubordinate(object.getOid(), List.of(descendantOrgOid));
     }
 
     @Override
