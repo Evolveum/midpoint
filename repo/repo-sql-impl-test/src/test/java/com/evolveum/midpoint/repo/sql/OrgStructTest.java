@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -35,17 +35,13 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgStructTest extends BaseSQLRepoTest {
 
@@ -59,8 +55,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     private static final String MODIFY_ORG_DELETE_REF_FILENAME = TEST_DIR + "/modify-orgStruct-delete-ref.xml";
     private static final String MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME = TEST_DIR + "/modify-orgStruct-incorrect-delete-ref.xml";
-
-    private static final String MODIFY_ORG_ADD_USER_FILENAME = TEST_DIR + "/modify-orgStruct-add-user.xml";
 
     private static final String ORG_F001_OID = "00000000-8888-6666-0000-100000000001";
     private static final String ORG_F002_OID = "00000000-8888-6666-0000-100000000002";
@@ -152,7 +146,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     /**
      * Tests for repo.matchObject() method
      */
-    private void testMonkeySubordinate() throws SchemaException {
+    private void testMonkeySubordinate() {
         assertSubordinate(false, ORG_F003_OID, ORG_F001_OID);
         assertSubordinate(true, ORG_F003_OID, ORG_F003_OID);
         assertSubordinate(true, ORG_F003_OID, ORG_F005_OID);
@@ -206,7 +200,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         assertSubordinate(true, ORG_F006_OID, ORG_F001_OID, ORG_F005_OID, ORG_F006_OID);
     }
 
-    private void assertSubordinate(boolean expected, String upperOrgOid, String... lowerObjectOids) throws SchemaException {
+    private void assertSubordinate(boolean expected, String upperOrgOid, String... lowerObjectOids) {
         Collection<String> lowerObjectOidCol = Arrays.asList(lowerObjectOids);
         logger.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
         boolean actual = sqlRepositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
@@ -281,7 +275,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
-        Query query;
         List<ROrgClosure> orgClosure;
 
         Session session = open();
