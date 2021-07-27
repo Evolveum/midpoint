@@ -78,7 +78,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     private static Protector protector;
 
     private SamlServerConfiguration samlConfiguration;
-    private RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+    private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
     private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<String, SamlMidpointAdditionalConfiguration>();
 
     private SamlModuleWebSecurityConfiguration() {
@@ -99,92 +99,92 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             ServletRequest request) {
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
-        SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
+//        SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
 
-        Saml2NetworkAuthenticationModuleType networkType = modelType.getNetwork();
-        if (networkType != null) {
-            NetworkConfiguration network = new NetworkConfiguration();
-            if (networkType.getConnectTimeout() != 0) {
-                network.setConnectTimeout(networkType.getConnectTimeout());
-            }
-            if (networkType.getReadTimeout() != 0) {
-                network.setReadTimeout(networkType.getReadTimeout());
-            }
-            samlConfiguration.setNetwork(network);
-        }
+//        Saml2NetworkAuthenticationModuleType networkType = modelType.getNetwork();
+//        if (networkType != null) {
+//            NetworkConfiguration network = new NetworkConfiguration();
+//            if (networkType.getConnectTimeout() != 0) {
+//                network.setConnectTimeout(networkType.getConnectTimeout());
+//            }
+//            if (networkType.getReadTimeout() != 0) {
+//                network.setReadTimeout(networkType.getReadTimeout());
+//            }
+//            samlConfiguration.setNetwork(network);
+//        }
         Saml2ServiceProviderAuthenticationModuleType serviceProviderType = modelType.getServiceProvider();
-        MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
-        serviceProvider.setEntityId(serviceProviderType.getEntityId())
+//        MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
+//        serviceProvider.setEntityId(serviceProviderType.getEntityId())
 //                .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
 //                .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
-                .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
-                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()));
+//                .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
+//                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()));
 //        if (StringUtils.isNotBlank(publicHttpUrlPattern)) {
 //            serviceProvider.setBasePath(publicHttpUrlPattern);
 //        } else {
 //            serviceProvider.setBasePath(getBasePath(((HttpServletRequest) request)));
 //        }
-
-        List<Object> objectList = new ArrayList<Object>();
-        for (Saml2NameIdAuthenticationModuleType nameIdType : serviceProviderType.getNameId()) {
-            objectList.add(nameIdType.value());
-        }
-        serviceProvider.setNameIds(objectList);
-        if (serviceProviderType.getDefaultDigest() != null) {
-            serviceProvider.setDefaultDigest(DigestMethod.fromUrn(serviceProviderType.getDefaultDigest().value()));
-        }
-        if (serviceProviderType.getDefaultSigningAlgorithm() != null) {
-            serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
-        }
+//
+//        List<Object> objectList = new ArrayList<Object>();
+//        for (Saml2NameIdAuthenticationModuleType nameIdType : serviceProviderType.getNameId()) {
+//            objectList.add(nameIdType.value());
+//        }
+//        serviceProvider.setNameIds(objectList);
+//        if (serviceProviderType.getDefaultDigest() != null) {
+//            serviceProvider.setDefaultDigest(DigestMethod.fromUrn(serviceProviderType.getDefaultDigest().value()));
+//        }
+//        if (serviceProviderType.getDefaultSigningAlgorithm() != null) {
+//            serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
+//        }
         Saml2KeyAuthenticationModuleType keysType = serviceProviderType.getKeys();
-        RotatingKeys key = new RotatingKeys();
-        if (keysType != null) {
-            ModuleSaml2SimpleKeyType activeSimpleKey = keysType.getActiveSimpleKey();
-            if (activeSimpleKey != null) {
-                try {
-                    key.setActive(createSimpleKey(activeSimpleKey));
-                } catch (EncryptionException e) {
-                    LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeSimpleKey);
-                }
-            }
-            ModuleSaml2KeyStoreKeyType activeKeyStoreKey = keysType.getActiveKeyStoreKey();
-            if (activeKeyStoreKey != null) {
-                try {
-                    key.setActive(createKeyStoreKey(activeKeyStoreKey));
-                } catch (EncryptionException e) {
-                    LOGGER.error("Couldn't obtain clear string for configuration of KeyStoreKey from " + activeKeyStoreKey);
-                }
-            }
-
-            if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
-                for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
-                    try {
-                        key.getStandBy().add(createSimpleKey(standByKey));
-                    } catch (EncryptionException e) {
-                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
-                    }
-                }
-            }
-            if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
-                for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
-                    try {
-                        key.getStandBy().add(createKeyStoreKey(standByKey));
-                    } catch (EncryptionException e) {
-                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
-                    }
-                }
-            }
-        }
-        serviceProvider.setKeys(key);
-        serviceProvider.setAlias(serviceProviderType.getAlias());
-        serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
+//        RotatingKeys key = new RotatingKeys();
+//        if (keysType != null) {
+//            ModuleSaml2SimpleKeyType activeSimpleKey = keysType.getActiveSimpleKey();
+//            if (activeSimpleKey != null) {
+//                try {
+//                    key.setActive(createSimpleKey(activeSimpleKey));
+//                } catch (EncryptionException e) {
+//                    LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeSimpleKey);
+//                }
+//            }
+//            ModuleSaml2KeyStoreKeyType activeKeyStoreKey = keysType.getActiveKeyStoreKey();
+//            if (activeKeyStoreKey != null) {
+//                try {
+//                    key.setActive(createKeyStoreKey(activeKeyStoreKey));
+//                } catch (EncryptionException e) {
+//                    LOGGER.error("Couldn't obtain clear string for configuration of KeyStoreKey from " + activeKeyStoreKey);
+//                }
+//            }
+//
+//            if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
+//                for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
+//                    try {
+//                        key.getStandBy().add(createSimpleKey(standByKey));
+//                    } catch (EncryptionException e) {
+//                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
+//                    }
+//                }
+//            }
+//            if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
+//                for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
+//                    try {
+//                        key.getStandBy().add(createKeyStoreKey(standByKey));
+//                    } catch (EncryptionException e) {
+//                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
+//                    }
+//                }
+//            }
+//        }
+//        serviceProvider.setKeys(key);
+//        serviceProvider.setAlias(serviceProviderType.getAlias());
+//        serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
         List<RelyingPartyRegistration> registrations = new ArrayList<>();
         for (Saml2ProviderAuthenticationModuleType providerType : providersType) {
-            String registrationId = StringUtils.isNotEmpty(serviceProviderType.getAliasForPath()) ? serviceProviderType.getAliasForPath() :
-                    (StringUtils.isNotEmpty(serviceProviderType.getAlias()) ? serviceProviderType.getAlias() : serviceProviderType.getEntityId());
+            String registrationId = StringUtils.isNotEmpty(providerType.getAliasForPath()) ? providerType.getAliasForPath() :
+                    (StringUtils.isNotEmpty(providerType.getAlias()) ? providerType.getAlias() : providerType.getEntityId());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                     StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
             builder.pathSegment(stripSlashes(configuration.getPrefix()) + RESPONSE_PROCESSING_URL_SUFFIX);
@@ -197,6 +197,24 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                                 .singleSignOnServiceBinding(Saml2MessageBinding.from(providerType.getAuthenticationRequestBinding()));
                         if (serviceProviderType.isSignRequests() != null) {
                             party.wantAuthnRequestsSigned(Boolean.TRUE.equals(serviceProviderType.isSignRequests()));
+                        }
+                        if (providerType.getVerificationKeys() != null && !providerType.getVerificationKeys().isEmpty()) {
+                            party.verificationX509Credentials(c -> {
+                                providerType.getVerificationKeys().forEach(verKey -> {
+                                    byte[] certbytes = new byte[0];
+                                    try {
+                                        certbytes = X509Utilities.getDER(protector.decryptString(verKey));
+                                    } catch (EncryptionException e) {
+                                        LOGGER.error("Couldn't obtain clear string for provider verification key");
+                                    }
+                                    try {
+                                        X509Certificate certificate = X509Utilities.getCertificate(certbytes);
+                                        c.add(new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.VERIFICATION));
+                                    } catch (CertificateException e) {
+                                        LOGGER.error("Couldn't obtain certificate from " + verKey);
+                                    }
+                                });
+                            });
                         }
                     });
             Saml2X509Credential activeCredential = null;
@@ -233,40 +251,48 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
             if (!credentials.isEmpty()) {
                 registrationBuilder.decryptionX509Credentials(c -> {
-                    c.addAll(credentials);
+                    credentials.forEach(cred -> {
+                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
+                            c.add(cred);
+                        }
+                    });
                 });
                 registrationBuilder.signingX509Credentials(c -> {
-                    c.addAll(credentials);
+                    credentials.forEach(cred -> {
+                        if (cred.getCredentialTypes().contains(Saml2X509Credential.Saml2X509CredentialType.SIGNING)) {
+                            c.add(cred);
+                        }
+                    });
                 });
             }
             registrations.add(registrationBuilder.build());
 
-            ExternalIdentityProviderConfiguration provider = new ExternalIdentityProviderConfiguration();
-            provider.setAlias(providerType.getAlias())
-                    .setSkipSslValidation(Boolean.TRUE.equals(providerType.isSkipSslValidation()))
-                    .setMetadataTrustCheck(Boolean.TRUE.equals(providerType.isMetadataTrustCheck()))
-                    .setAuthenticationRequestBinding(URI.create(providerType.getAuthenticationRequestBinding()));
-            if (StringUtils.isNotBlank(providerType.getLinkText())) {
-                provider.setLinktext(providerType.getLinkText());
-            }
-            List<String> verificationKeys = new ArrayList<String>();
-            for (ProtectedStringType verificationKeyProtected : providerType.getVerificationKeys()) {
-                try {
-                    String verificationKey = protector.decryptString(verificationKeyProtected);
-                    verificationKeys.add(verificationKey);
-                } catch (EncryptionException e) {
-                    LOGGER.error("Couldn't obtain clear string for provider verification key");
-                }
-            }
-            if (verificationKeys != null && !verificationKeys.isEmpty()) {
-                provider.setVerificationKeys(verificationKeys);
-            }
-            try {
-                provider.setMetadata(createMetadata(providerType.getMetadata(), true));
-            } catch (Exception e) {
-                LOGGER.error("Couldn't obtain metadata as string from " + providerType.getMetadata());
-            }
-            providers.add(provider);
+//            ExternalIdentityProviderConfiguration provider = new ExternalIdentityProviderConfiguration();
+//            provider.setAlias(providerType.getAlias())
+//                    .setSkipSslValidation(Boolean.TRUE.equals(providerType.isSkipSslValidation()))
+//                    .setMetadataTrustCheck(Boolean.TRUE.equals(providerType.isMetadataTrustCheck()))
+//                    .setAuthenticationRequestBinding(URI.create(providerType.getAuthenticationRequestBinding()));
+//            if (StringUtils.isNotBlank(providerType.getLinkText())) {
+//                provider.setLinktext(providerType.getLinkText());
+//            }
+//            List<String> verificationKeys = new ArrayList<String>();
+//            for (ProtectedStringType verificationKeyProtected : providerType.getVerificationKeys()) {
+//                try {
+//                    String verificationKey = protector.decryptString(verificationKeyProtected);
+//                    verificationKeys.add(verificationKey);
+//                } catch (EncryptionException e) {
+//                    LOGGER.error("Couldn't obtain clear string for provider verification key");
+//                }
+//            }
+//            if (verificationKeys != null && !verificationKeys.isEmpty()) {
+//                provider.setVerificationKeys(verificationKeys);
+//            }
+//            try {
+//                provider.setMetadata(createMetadata(providerType.getMetadata(), true));
+//            } catch (Exception e) {
+//                LOGGER.error("Couldn't obtain metadata as string from " + providerType.getMetadata());
+//            }
+//            providers.add(provider);
             String linkText = providerType.getLinkText() == null ?
                     (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
                     : providerType.getLinkText();
@@ -278,17 +304,17 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             );
         }
 
-        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository = new InMemoryRelyingPartyRegistrationRepository(registrations);
+        InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository = new InMemoryRelyingPartyRegistrationRepository(registrations);
 
-        serviceProvider.setProviders(providers);
-        try {
-            serviceProvider.setMetadata(createMetadata(serviceProviderType.getMetadata(), false));
-        } catch (Exception e) {
-            LOGGER.error("Couldn't obtain metadata as string from " + serviceProviderType.getMetadata());
-        }
-        serviceProvider.setPrefix(configuration.getPrefix());
-        samlConfiguration.setServiceProvider(serviceProvider);
-        configuration.setSamlConfiguration(samlConfiguration);
+//        serviceProvider.setProviders(providers);
+//        try {
+//            serviceProvider.setMetadata(createMetadata(serviceProviderType.getMetadata(), false));
+//        } catch (Exception e) {
+//            LOGGER.error("Couldn't obtain metadata as string from " + serviceProviderType.getMetadata());
+//        }
+//        serviceProvider.setPrefix(configuration.getPrefix());
+//        samlConfiguration.setServiceProvider(serviceProvider);
+//        configuration.setSamlConfiguration(samlConfiguration);
         configuration.setRelyingPartyRegistrationRepository(relyingPartyRegistrationRepository);
         return configuration;
     }
@@ -386,19 +412,19 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 request.getContextPath();
     }
 
-    public SamlServerConfiguration getSamlConfiguration() {
-        return samlConfiguration;
-    }
+//    public SamlServerConfiguration getSamlConfiguration() {
+//        return samlConfiguration;
+//    }
+//
+//    public void setSamlConfiguration(SamlServerConfiguration samlConfiguration) {
+//        this.samlConfiguration = samlConfiguration;
+//    }
 
-    public void setSamlConfiguration(SamlServerConfiguration samlConfiguration) {
-        this.samlConfiguration = samlConfiguration;
-    }
-
-    public RelyingPartyRegistrationRepository getRelyingPartyRegistrationRepository() {
+    public InMemoryRelyingPartyRegistrationRepository getRelyingPartyRegistrationRepository() {
         return relyingPartyRegistrationRepository;
     }
 
-    public void setRelyingPartyRegistrationRepository(RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+    public void setRelyingPartyRegistrationRepository(InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
     }
 
@@ -409,7 +435,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     @Override
     protected void validate() {
         super.validate();
-        if (getSamlConfiguration() == null) {
+        if (getRelyingPartyRegistrationRepository() == null) {
             throw new IllegalArgumentException("Saml configuration is null");
         }
     }
@@ -472,9 +498,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
             return saml2credential;
         } catch (EncryptionException | CertificateException e) {
-            e.printStackTrace();
+            throw new SamlKeyException("Unable get key from " + key);
         }
-        return null;
     }
 
     private static List<Saml2X509Credential.Saml2X509CredentialType> getTypesForKey(boolean isActive, ModuleSaml2KeyTypeType type) {
@@ -487,7 +512,11 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 types.add(Saml2X509Credential.Saml2X509CredentialType.SIGNING);
                 types.add(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION);
             } else {
-                types.add(Saml2X509Credential.Saml2X509CredentialType.valueOf(type.name()));
+                Saml2X509Credential.Saml2X509CredentialType samlType = Saml2X509Credential.Saml2X509CredentialType.valueOf(type.name());
+                if (samlType.equals(Saml2X509Credential.Saml2X509CredentialType.SIGNING)
+                        || samlType.equals(Saml2X509Credential.Saml2X509CredentialType.DECRYPTION)) {
+                    types.add(samlType);
+                }
             }
         } else {
             types.add(Saml2X509Credential.Saml2X509CredentialType.SIGNING);
@@ -516,7 +545,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             List<Saml2X509Credential.Saml2X509CredentialType> types = getTypesForKey(isActive, key.getType());
             return new Saml2X509Credential((PrivateKey) pkey, (X509Certificate) certificate, types.toArray(new Saml2X509Credential.Saml2X509CredentialType[0]));
         } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | EncryptionException | UnrecoverableKeyException e) {
-            throw new SamlKeyException(e);
+            throw new SamlKeyException("Unable get key from " + key);
         }
     }
 }

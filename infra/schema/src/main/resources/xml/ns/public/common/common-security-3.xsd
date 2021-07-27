@@ -535,13 +535,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="aliasForPath" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Alias used for AssertionConsumerServiceURL.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="defaultSigningAlgorithm" type="tns:Saml2SigningAlgorithmAuthenticationModuleType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -902,6 +895,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique alias used to identify the selected local service provider based on used URL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="aliasForPath" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Alias used for AssertionConsumerServiceURL.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

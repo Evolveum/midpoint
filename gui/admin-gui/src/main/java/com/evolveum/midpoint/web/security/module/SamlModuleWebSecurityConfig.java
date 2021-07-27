@@ -32,7 +32,12 @@ import org.springframework.security.saml.provider.service.ServiceProviderService
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
 import org.springframework.security.saml.spi.SpringSecuritySaml;
 import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
+import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
+import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -53,6 +58,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * @author skublik
@@ -97,6 +103,12 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             LOGGER.error("Couldn't initialize authentication manager for saml2 module");
         }
         getOrApply(http, configurer);
+
+        Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
+                new OpenSamlMetadataResolver());
+        filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata"));
+        http.addFilterAfter(filter, Saml2WebSsoAuthenticationFilter.class);
+
 //        http.addFilterAfter(
 //                getBeanConfiguration().samlConfigurationFilter(),
 //                BasicAuthenticationFilter.class
@@ -119,7 +131,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 //                );
     }
 
-    private RelyingPartyRegistrationRepository relyingPartyRegistrations() {
+    private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrations() {
         return getConfiguration().getRelyingPartyRegistrationRepository();
     }
 
@@ -134,11 +146,11 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
         private final SamlModuleWebSecurityConfiguration configuration;
 
-        private final SamlServerConfiguration saml2Config;
+        private final SamlServerConfiguration saml2Config = null;
 
         public MidpointSamlProviderServerBeanConfiguration(SamlModuleWebSecurityConfiguration configuration) {
             this.configuration = configuration;
-            this.saml2Config = configuration.getSamlConfiguration();
+//            this.saml2Config = configuration.getSamlConfiguration();
         }
 
         @Override
