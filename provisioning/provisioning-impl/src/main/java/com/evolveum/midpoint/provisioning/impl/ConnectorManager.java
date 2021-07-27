@@ -704,7 +704,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         try {
             discoverConnectors(host, new OperationResult("connectorDiscovered"));
         } catch (CommunicationException e) {
-            LOGGER.error("Error occured during discovery of connectors");
+            LOGGER.error("Error occurred during discovery of connectors", e);
         }
     }
 }

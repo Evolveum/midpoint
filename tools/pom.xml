@@ -24,6 +24,7 @@
 
     <modules>
         <module>ninja</module>
+        <module>connector-tool</module>
         <module>midpoint-boot-layout</module>
     </modules>
 </project>
