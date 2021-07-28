@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.deleg.AttributeDefinitionDelegator;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>>
     implements PropertyDefinitionDelegator<T>, PartiallyMutableItemDefinition.Property<T> {
@@ -88,7 +89,11 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
 
     @Override
     public @NotNull PrismProperty<T> instantiate(QName name) {
-        return getPrismContext().itemFactory().createProperty(name, this);
+        try {
+            return super.instantiate(name);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Should not happened");
+        }
     }
 
     @SuppressWarnings("unchecked")
