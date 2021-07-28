@@ -5,59 +5,82 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.security;
+package com.evolveum.midpoint.web.security.saml;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.util.UrlUtils;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public final class MidpointRelyingPartyRegistrationResolver
+/**
+ * @author skublik
+ */
+public class MidpointLogoutRelyingPartyRegistrationResolver
 		implements Converter<HttpServletRequest, RelyingPartyRegistration> {
 
 	private static final char PATH_DELIMITER = '/';
 
-	private final InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+	private Saml2ModuleAuthentication moduleAuthentication = null;
 
-	public MidpointRelyingPartyRegistrationResolver(
-            InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
-		Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
-		this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+	public MidpointLogoutRelyingPartyRegistrationResolver() {
 	}
 
-	@Override
+    public void setModuleAuthentication(Saml2ModuleAuthentication moduleAuthentication) {
+        this.moduleAuthentication = moduleAuthentication;
+    }
+
+    @Override
 	public RelyingPartyRegistration convert(HttpServletRequest request) {
-        if (!this.relyingPartyRegistrationRepository.iterator().hasNext()) {
-            return null;
+	    if (this.moduleAuthentication == null) {
+	        return null;
         }
-		RelyingPartyRegistration relyingPartyRegistration = this.relyingPartyRegistrationRepository.iterator().next();
+        RelyingPartyRegistration relyingPartyRegistration = null;
+        Authentication authenticationToken = this.moduleAuthentication.getAuthentication();
+        if (authenticationToken instanceof Saml2AuthenticationToken) {
+            relyingPartyRegistration = ((Saml2AuthenticationToken) authenticationToken).getRelyingPartyRegistration();
+        }
 		if (relyingPartyRegistration == null) {
 			return null;
 		}
+        SamlMidpointAdditionalConfiguration configuration = this.moduleAuthentication.getAdditionalConfiguration().get(relyingPartyRegistration.getAssertingPartyDetails().getEntityId());
+        if (configuration == null) {
+            return null;
+        }
+
+		this.moduleAuthentication = null;
 		String applicationUri = getApplicationUri(request);
 		Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
 		String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
-		String assertionConsumerServiceLocation = templateResolver
-				.apply(relyingPartyRegistration.getAssertionConsumerServiceLocation());
+		String logoutServiceLocation = templateResolver
+				.apply(configuration.getLogoutDestination());
 		return RelyingPartyRegistration.withRelyingPartyRegistration(relyingPartyRegistration)
-				.entityId(relyingPartyEntityId).assertionConsumerServiceLocation(assertionConsumerServiceLocation)
-				.build();
+				.entityId(relyingPartyEntityId).assertionConsumerServiceLocation(logoutServiceLocation)
+				.assertionConsumerServiceBinding(configuration.getLogoutBinding())
+                .assertingPartyDetails(party -> {
+                    party
+                            .singleSignOnServiceBinding(configuration.getLogoutBinding())
+                            .singleSignOnServiceLocation(logoutServiceLocation);
+                })
+                .build();
 	}
 
-	private Function<String, String> templateResolver(String applicationUri, RelyingPartyRegistration relyingParty) {
+	protected Function<String, String> templateResolver(String applicationUri, RelyingPartyRegistration relyingParty) {
 		return (template) -> resolveUrlTemplate(template, applicationUri, relyingParty);
 	}
 
@@ -85,7 +108,7 @@ public final class MidpointRelyingPartyRegistrationResolver
 		return UriComponentsBuilder.fromUriString(template).buildAndExpand(uriVariables).toUriString();
 	}
 
-	private static String getApplicationUri(HttpServletRequest request) {
+	protected static String getApplicationUri(HttpServletRequest request) {
 		UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
 				.replacePath(request.getContextPath()).replaceQuery(null).fragment(null).build();
 		return uriComponents.toUriString();

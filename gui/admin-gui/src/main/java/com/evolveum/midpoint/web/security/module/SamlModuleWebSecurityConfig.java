@@ -15,12 +15,19 @@ import java.util.List;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.web.security.saml.MidpointMetadataRelyingPartyRegistrationResolver;
+
+import com.evolveum.midpoint.web.security.saml.MidpointSaml2LoginConfigurer;
+
+import com.evolveum.midpoint.web.security.saml.MidpointSamlLogoutHandler;
+
+import com.evolveum.midpoint.web.security.saml.SamlLogoutMatcher;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.saml2.Saml2LoginConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,13 +43,11 @@ import org.springframework.security.saml2.provider.service.metadata.OpenSamlMeta
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
-import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
@@ -56,8 +61,6 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
-import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
-import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -104,10 +107,20 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         }
         getOrApply(http, configurer);
 
-        Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
+        Saml2MetadataFilter filter = new Saml2MetadataFilter(new MidpointMetadataRelyingPartyRegistrationResolver(relyingPartyRegistrations()),
                 new OpenSamlMetadataResolver());
         filter.setRequestMatcher(new AntPathRequestMatcher( getConfiguration().getPrefix() + "/metadata"));
         http.addFilterAfter(filter, Saml2WebSsoAuthenticationFilter.class);
+
+        http.logout(logout -> {
+            List<LogoutHandler> handlers = new ArrayList<LogoutHandler>();
+            handlers.add(new SecurityContextLogoutHandler());
+            handlers.add(new CookieClearingLogoutHandler("JSESSIONID"));
+//            handlers.add(new MidpointSamlLogoutHandler());
+            logout.logoutSuccessHandler(createLogoutHandler())
+                    .addLogoutHandler(new CompositeLogoutHandler(handlers));
+//                    .logoutRequestMatcher(new SamlLogoutMatcher(getConfiguration().getPrefix() + "/logout"));
+        });
 
 //        http.addFilterAfter(
 //                getBeanConfiguration().samlConfigurationFilter(),

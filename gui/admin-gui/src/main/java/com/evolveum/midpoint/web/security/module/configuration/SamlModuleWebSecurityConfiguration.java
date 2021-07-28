@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.saml.MidpointAssertingPartyMetadataConverter;
+import com.evolveum.midpoint.web.security.saml.MidpointLogoutRelyingPartyRegistrationResolver;
 import com.evolveum.midpoint.web.security.util.KeyStoreKey;
 import com.evolveum.midpoint.web.security.util.MidpointSamlLocalServiceProviderConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,6 +33,8 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 import org.opensaml.security.x509.X509Support;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.saml.SamlKeyException;
 import org.springframework.security.saml.key.KeyType;
 import org.springframework.security.saml.key.SimpleKey;
@@ -41,16 +46,14 @@ import org.springframework.security.saml.provider.service.config.LocalServicePro
 import org.springframework.security.saml.saml2.signature.AlgorithmMethod;
 import org.springframework.security.saml.saml2.signature.DigestMethod;
 import org.springframework.security.saml.util.X509Utilities;
+import org.springframework.security.saml2.Saml2Exception;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
-import java.io.CharArrayReader;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -76,8 +79,10 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     public static final String REQUEST_PROCESSING_URL_SUFFIX = "/authenticate/{registrationId}";
 
     private static Protector protector;
+    private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
+    private static final MidpointAssertingPartyMetadataConverter assertingPartyMetadataConverter = new MidpointAssertingPartyMetadataConverter();
 
-    private SamlServerConfiguration samlConfiguration;
+//    private SamlServerConfiguration samlConfiguration;
     private InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
     private Map<String, SamlMidpointAdditionalConfiguration> additionalConfiguration = new HashMap<String, SamlMidpointAdditionalConfiguration>();
 
@@ -183,12 +188,19 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
         List<RelyingPartyRegistration> registrations = new ArrayList<>();
         for (Saml2ProviderAuthenticationModuleType providerType : providersType) {
+            String linkText = providerType.getLinkText() == null ?
+                    (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
+                    : providerType.getLinkText();
+            SamlMidpointAdditionalConfiguration.Builder additionalConfigBuilder =
+                    SamlMidpointAdditionalConfiguration.builder()
+                    .nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
+                    .linkText(linkText);
             String registrationId = StringUtils.isNotEmpty(providerType.getAliasForPath()) ? providerType.getAliasForPath() :
                     (StringUtils.isNotEmpty(providerType.getAlias()) ? providerType.getAlias() : providerType.getEntityId());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
                     StringUtils.isNotBlank(publicHttpUrlPattern) ? publicHttpUrlPattern : getBasePath((HttpServletRequest) request));
             builder.pathSegment(stripSlashes(configuration.getPrefix()) + RESPONSE_PROCESSING_URL_SUFFIX);
-            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata())
+            RelyingPartyRegistration.Builder registrationBuilder = getRelyingPartyFromMetadata(providerType.getMetadata(), additionalConfigBuilder)
                     .registrationId(registrationId)
                     .entityId(serviceProviderType.getEntityId())
                     .assertionConsumerServiceLocation(builder.build().toUriString())
@@ -293,15 +305,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 //                LOGGER.error("Couldn't obtain metadata as string from " + providerType.getMetadata());
 //            }
 //            providers.add(provider);
-            String linkText = providerType.getLinkText() == null ?
-                    (providerType.getAlias() == null ? providerType.getEntityId() : providerType.getAlias())
-                    : providerType.getLinkText();
-            configuration.additionalConfiguration.put(providerType.getEntityId(),
-                    SamlMidpointAdditionalConfiguration.builder()
-                            .nameOfUsernameAttribute(providerType.getNameOfUsernameAttribute())
-                            .linkText(linkText)
-                            .build()
-            );
+
+            configuration.additionalConfiguration.put(providerType.getEntityId(), additionalConfigBuilder.build());
         }
 
         InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrationRepository = new InMemoryRelyingPartyRegistrationRepository(registrations);
@@ -319,7 +324,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return configuration;
     }
 
-    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata) {
+    private static RelyingPartyRegistration.Builder getRelyingPartyFromMetadata(
+            Saml2ProviderMetadataAuthenticationModuleType metadata, SamlMidpointAdditionalConfiguration.Builder additionalConfigurationBuilder) {
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId("builder");
         if (metadata != null) {
             if (metadata.getXml() != null || metadata.getPathToFile() != null) {
@@ -329,10 +335,18 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 } catch (IOException e) {
                     LOGGER.error("Couldn't obtain metadata as string from " + metadata);
                 }
-                builder = RelyingPartyRegistrations.fromMetadata(new ByteArrayInputStream(metadataAsString.getBytes()));
+                builder = assertingPartyMetadataConverter.convert(new ByteArrayInputStream(metadataAsString.getBytes()), additionalConfigurationBuilder);
             }
             if (metadata.getMetadataUrl() != null) {
-                builder = RelyingPartyRegistrations.fromMetadataLocation(metadata.getMetadataUrl());
+                try (InputStream source = resourceLoader.getResource(metadata.getMetadataUrl()).getInputStream()) {
+                    builder = assertingPartyMetadataConverter.convert(source, additionalConfigurationBuilder);
+                }
+                catch (IOException ex) {
+                    if (ex.getCause() instanceof Saml2Exception) {
+                        throw (Saml2Exception) ex.getCause();
+                    }
+                    throw new Saml2Exception(ex);
+                }
             }
         }
         return builder;
