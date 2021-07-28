@@ -904,7 +904,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
         if (query != null) {
             ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-            ObjectQuery clone = query.cloneEmpty();
+            ObjectQuery clone = query.cloneWithoutFilter();
             clone.setFilter(filter);
             return clone;
         } else {

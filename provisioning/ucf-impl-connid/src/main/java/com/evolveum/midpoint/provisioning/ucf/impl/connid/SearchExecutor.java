@@ -138,14 +138,14 @@ class SearchExecutor {
         }
         QName orderByAttributeName;
         boolean isAscending;
-        ItemPath orderByPath = paging.getOrderBy();
+        ItemPath orderByPath = paging.getPrimaryOrderingPath();
         String desc;
         if (ItemPath.isNotEmpty(orderByPath)) {
             orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
             if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
                 orderByAttributeName = SchemaConstants.ICFS_NAME; // What a hack...
             }
-            isAscending = paging.getDirection() != OrderDirection.DESCENDING;
+            isAscending = paging.getPrimaryOrderingDirection() != OrderDirection.DESCENDING;
             desc = "(explicitly specified orderBy attribute)";
         } else {
             orderByAttributeName = pagedSearchConfiguration.getDefaultSortField();

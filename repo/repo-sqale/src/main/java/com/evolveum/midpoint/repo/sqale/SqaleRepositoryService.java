@@ -1024,7 +1024,7 @@ public class SqaleRepositoryService implements RepositoryService {
         if (query != null) {
             ObjectFilter filter = query.getFilter();
             filter = ObjectQueryUtil.simplify(filter, repositoryContext.prismContext());
-            query = query.cloneEmpty();
+            query = query.cloneWithoutFilter();
             query.setFilter(filter instanceof AllFilter ? null : filter);
         }
 

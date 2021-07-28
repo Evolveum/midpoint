@@ -298,7 +298,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
-        query = query.cloneEmpty();
+        query = query.cloneWithoutFilter();
         query.setFilter(filter instanceof AllFilter ? null : filter);
         return query;
     }

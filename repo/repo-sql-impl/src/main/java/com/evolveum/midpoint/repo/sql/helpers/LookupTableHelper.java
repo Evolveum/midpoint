@@ -282,8 +282,8 @@ public class LookupTableHelper {
             return session.createQuery(cq);
         }
 
-        ItemPath orderByPath = paging.getOrderBy();
-        OrderDirection direction = paging.getDirection();
+        ItemPath orderByPath = paging.getPrimaryOrderingPath();
+        OrderDirection direction = paging.getPrimaryOrderingDirection();
         if (direction != null && orderByPath != null && !orderByPath.isEmpty()) {
             if (orderByPath.size() > 1 || !orderByPath.startsWithName() && !orderByPath.startsWithIdentifier()) {
                 throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
