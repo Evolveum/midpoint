@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +24,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-@PanelDescription(identifier = "basic", applicableFor = AssignmentHolderType.class, label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL)
+@PanelDescription(identifier = "basic",
+        panelIdentifier = "basic",
+        applicableFor = AssignmentHolderType.class)
+@PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL)
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<PrismObjectWrapper<AH>> {
 
     private static final String ID_MAIN_PANEL = "properties";

@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsNavigationPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -193,6 +194,7 @@ public class PageUser extends PageBase {
 
     }
 
+
     private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig) {
         //TODO load default panel?
         Class<?> panelClass = PanelLoader.findPanel(identifier);
@@ -212,29 +214,8 @@ public class PageUser extends PageBase {
             }
         }
 
-        delta = midpoint.getPrismContext().deltaFor(UserType.class)
-                .item(ItemPath.create(UserType.F_EXTENSION, "uwoActivationTimestamp"))
-                    .replace(new Date(System.currentTimeMillis()))
-                .item(ItemPath.create(UserType.F_EXTENSION, "uwoLifeCycleStage"))
-                    .replace("active")
-                .asObjectDeltas(userOid);
-        midpoint.executeChanges(delta);
-
-        if (constructor == null) {
-            try {
-                constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                Panel panel = (Panel) constructor.newInstance(ID_MAIN_PANEL, model, panelConfig);
-                panel.setOutputMarkupId(true);
-                addOrReplace(panel);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
+        Panel panel = WebComponentUtil.createPanel(identifier, ID_MAIN_PANEL, model, panelConfig);
+        addOrReplace(panel);
 
     }
 
@@ -252,7 +233,7 @@ public class PageUser extends PageBase {
         DetailsNavigationPanel panel = new DetailsNavigationPanel(ID_NAVIGATION, Model.ofList(panels)) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
-                initMainPanel(config.getIdentifier(), config);
+                initMainPanel(config.getPanelIdentifier(), config);
                 target.add(getMainPanel());
             }
         };

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -25,9 +27,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 
-/**
- * Created by honchar.
- */
+@PanelDescription(panelIdentifier = "constructionAssignments", identifier = "constructionAssignments", applicableFor = FocusType.class)
+@PanelDisplay(label = "Resource")
 public class ConstructionAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 

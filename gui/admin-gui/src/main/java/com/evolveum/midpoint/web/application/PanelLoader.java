@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -44,7 +45,11 @@ public class PanelLoader {
                 if (applicableFor.isAssignableFrom(objectType)) {
                     ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
                     config.setIdentifier(desc.identifier());
-                    config.setDisplay(createDisplayType(desc));
+                    config.setPanelIdentifier(desc.panelIdentifier());
+                    PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
+                    if (display != null) {
+                        config.setDisplay(createDisplayType(display));
+                    }
                     panels.add(config);
                 }
             }
@@ -52,10 +57,36 @@ public class PanelLoader {
         return panels;
     }
 
-    private static DisplayType createDisplayType(PanelDescription desc) {
+    private static DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
-        displayType.setLabel(WebComponentUtil.createPolyFromOrigString(desc.label()));
-        displayType.setCssClass(desc.icon());
+        displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display.label()));
+        displayType.setCssClass(display.icon());
         return displayType;
+    }
+
+    private static DisplayType createDisplayType(String display) {
+        DisplayType displayType = new DisplayType();
+        displayType.setLabel(WebComponentUtil.createPolyFromOrigString(display));
+        displayType.setCssClass(GuiStyleConstants.EVO_ASSIGNMENT_ICON);
+        return displayType;
+    }
+
+    public static <O extends ObjectType> List<ContainerPanelConfigurationType> getAssignmentPanelsFor(Class<O> clazz) {
+        List<ContainerPanelConfigurationType> panels = new ArrayList<>();
+        panels.add(createAssignmentPanelConfiguration("allAssignments", "All"));
+        panels.add(createAssignmentPanelConfiguration("roleAssignments", "Role"));
+        panels.add(createAssignmentPanelConfiguration("resourceAssignments", "Resource"));
+        panels.add(createAssignmentPanelConfiguration("orgAssignments", "Organization"));
+        panels.add(createAssignmentPanelConfiguration("serviceAssignments", "Service"));
+        panels.add(createAssignmentPanelConfiguration("indirectAssignments", "Direct + Indirect"));
+        return panels;
+    }
+
+    private static ContainerPanelConfigurationType createAssignmentPanelConfiguration(String identifier, String display) {
+        ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
+        config.setPanelIdentifier(identifier);
+        config.setIdentifier(identifier);
+        config.setDisplay(createDisplayType(display));
+        return config;
     }
 }

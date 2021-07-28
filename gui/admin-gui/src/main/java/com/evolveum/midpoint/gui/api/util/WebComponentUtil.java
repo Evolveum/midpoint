@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.util.task.*;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.application.PanelLoader;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
@@ -54,6 +55,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -5014,5 +5016,29 @@ public final class WebComponentUtil {
 
             return target + "(" + strength + ")";
         });
+    }
+
+    public static <T> Panel createPanel(String panelIdentifier, String markupId, IModel<T> model, ContainerPanelConfigurationType panelConfig) {
+        Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
+
+        try {
+            Constructor constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);
+            Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
+            panel.setOutputMarkupId(true);
+            return panel;
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Constructor constructor = panelClass.getConstructor(String.class, IModel.class, ContainerPanelConfigurationType.class);
+            Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
+            panel.setOutputMarkupId(true);
+            return panel;
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

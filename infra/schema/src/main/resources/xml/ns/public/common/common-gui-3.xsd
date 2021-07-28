@@ -3630,11 +3630,11 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="panelClass" type="xsd:string" minOccurs="0">
+                    <xsd:element name="panelIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Panel class identifying panel to create. E.g. SingelContainerPanel, etc
+                                    Unique identifier used to reference panel to create. E.g. SingelContainerPanel, etc
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>

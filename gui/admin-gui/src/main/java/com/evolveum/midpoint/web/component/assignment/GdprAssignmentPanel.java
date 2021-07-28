@@ -12,6 +12,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.application.PanelDescription;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -27,6 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import javax.xml.namespace.QName;
 
+@Experimental
+@PanelDescription(panelIdentifier = "gdprAssignments", identifier = "gdprAssignments", applicableFor = UserType.class)
+@PanelDisplay(label = "GDPR")
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

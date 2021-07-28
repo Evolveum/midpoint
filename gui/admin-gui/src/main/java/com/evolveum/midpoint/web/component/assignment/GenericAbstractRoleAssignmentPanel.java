@@ -12,6 +12,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.web.application.PanelDescription;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -25,6 +31,9 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+@Experimental
+@PanelDescription(panelIdentifier = "dataProtectionAssignments", identifier = "dataProtectionAssignments", applicableFor = FocusType.class)
+@PanelDisplay(label = "Data protection")
 public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 
-@PanelDescription(identifier = "genericSingleValue")
+@PanelDescription(panelIdentifier = "genericSingleValue")
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<PrismObjectWrapper<O>> {
 
     private static final String ID_DETAILS = "details";

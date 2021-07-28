@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -27,7 +29,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author mederly
  * @author semancik
  */
-@PanelDescription(identifier = "tasks", applicableFor = UserType.class, label = "Cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON)
+@PanelDescription(identifier = "tasks",
+        panelIdentifier = "tasks",
+        status = ItemStatus.NOT_CHANGED,
+        applicableFor = UserType.class)
+@PanelDisplay(label = "Cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON)
 public class FocusTasksTabPanel<F extends FocusType>
         extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;

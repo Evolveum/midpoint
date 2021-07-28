@@ -10,9 +10,17 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelLoader;
+import com.evolveum.midpoint.web.component.assignment.TabbedAssignmentTypePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -23,7 +31,15 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
-@PanelDescription(identifier = "assignments", applicableFor = AssignmentHolderType.class, label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON)
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@PanelDescription(identifier = "assignments",
+        panelIdentifier = "assignments",
+        applicableFor = AssignmentHolderType.class)
+@PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<PrismObjectWrapper<AH>> {
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
@@ -42,9 +58,48 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
         assignments.setOutputMarkupId(true);
         add(assignments);
         PrismContainerWrapperModel<AH, AssignmentType> assignmentModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), AssignmentHolderType.F_ASSIGNMENT);
-        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
+        List<ITab> tabs = createAssignmentTabs(assignmentModel);
+        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, config);
+
+//        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
 
         assignments.add(panel);
+    }
+
+    private List<ITab> createAssignmentTabs(PrismContainerWrapperModel<AH, AssignmentType> assignmentModel) {
+        List<ITab> tabs = new ArrayList<>();
+        for (ContainerPanelConfigurationType panelConfig : getAssignmentPanels()) {
+            tabs.add(new AbstractTab(createStringResource(getLabel(panelConfig))) {
+                @Override
+                public WebMarkupContainer getPanel(String s) {
+
+                    String panelIdentifier =  panelConfig.getPanelIdentifier();
+                    Panel panel = WebComponentUtil.createPanel(panelIdentifier, s, assignmentModel, panelConfig);
+                    return panel;
+                }
+            });
+        }
+        return tabs;
+    }
+
+    private String getLabel(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null) {
+            return "N/A";
+        }
+        if (panelConfig.getDisplay() == null) {
+            return "N/A";
+        }
+        return WebComponentUtil.getOrigStringFromPoly(panelConfig.getDisplay().getLabel());
+    }
+
+    private List<ContainerPanelConfigurationType> getAssignmentPanels() {
+//        List<ContainerPanelConfigurationType> panels = PanelLoader.getAssignmentPanelsFor(UserType.class);
+        List<ContainerPanelConfigurationType> subPanels = config.getPanel();
+        Map<String, ContainerPanelConfigurationType> panelsMap = new HashMap<>();
+        for (ContainerPanelConfigurationType subPanel : subPanels) {
+            panelsMap.put(subPanel.getIdentifier(), subPanel);
+        }
+        return subPanels;
     }
 
     protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AH, AssignmentType> model) {

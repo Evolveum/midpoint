@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.PanelDescription;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -32,10 +36,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * Created by honchar.
- * @author katkav
- */
+@PanelDescription(panelIdentifier = "policyRuleAssignments", identifier = "policyRuleAssignments", applicableFor = AbstractRoleType.class)
+@PanelDisplay(label = "Policy rule")
 public class PolicyRulesPanel extends AssignmentPanel {
 
     private static final long serialVersionUID = 1L;

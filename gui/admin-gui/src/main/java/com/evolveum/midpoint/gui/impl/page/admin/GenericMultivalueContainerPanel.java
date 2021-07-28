@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import java.util.Collections;
 import java.util.List;
 
-@PanelDescription(identifier = "genericMultiValue")
+@PanelDescription(panelIdentifier = "genericMultiValue")
 public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<PrismObjectWrapper<O>> {
 
     private static final String ID_DETAILS = "details";

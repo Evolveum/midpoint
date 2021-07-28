@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
 
@@ -89,6 +91,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
+@PanelDescription(identifier = "allAssignments", panelIdentifier = "allAssignments", applicableFor = AssignmentHolderType.class)
+@PanelDisplay(label = "All")
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
     private static final long serialVersionUID = 1L;

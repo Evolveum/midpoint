@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -93,7 +95,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  * @author skublik
  */
-@PanelDescription(identifier = "projections", applicableFor = FocusType.class, label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT)
+@PanelDescription(identifier = "projections",
+        panelIdentifier = "projections",
+        applicableFor = FocusType.class)
+@PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<PrismObjectWrapper<F>> {
     private static final long serialVersionUID = 1L;
 

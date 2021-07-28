@@ -130,7 +130,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         if (assignment.getTargetRef() == null) {
             return Model.of("");
         }
-
         PrismObject<O> object = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(),
                 getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT), new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT));
         if (object == null || !(object.asObjectable() instanceof AbstractRoleType)) {
