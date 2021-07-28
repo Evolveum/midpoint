@@ -533,6 +533,9 @@
                     <xsd:documentation>
                         Unique alias used to identify the selected local service provider based on used URL.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultSigningAlgorithm" type="tns:Saml2SigningAlgorithmAuthenticationModuleType" minOccurs="0" maxOccurs="1">
@@ -547,6 +550,9 @@
                     <xsd:documentation>
                         Default digest method. Default is SHA256;
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
@@ -561,6 +567,9 @@
                     <xsd:documentation>
                         Flag indicating whether this service requires signed assertions.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="singleLogoutEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
@@ -568,6 +577,9 @@
                     <xsd:documentation>
                         Flag indicating whether this service enable single logout.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="nameId" type="tns:Saml2NameIdAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded">
@@ -578,6 +590,9 @@
                         Order of NameIDs in the property determines order of NameIDs
                         in the generated metadata.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="keys" type="tns:Saml2KeyAuthenticationModuleType" minOccurs="0" maxOccurs="1">
@@ -599,6 +614,9 @@
                     <xsd:documentation>
                         Service provider can use prepared metadata.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -912,12 +930,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="skipSslValidation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+            <xsd:element name="skipSslValidation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="metadataTrustCheck" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
                         Flag indicating disabled signature verification.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="linkText" type="xsd:string" minOccurs="0" maxOccurs="1">
