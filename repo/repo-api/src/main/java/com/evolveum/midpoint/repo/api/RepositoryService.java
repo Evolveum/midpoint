@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -118,7 +117,9 @@ public interface RepositoryService {
     String OP_MODIFY_OBJECT = "modifyObject";
     String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
     String OP_GET_VERSION = "getVersion";
-    String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
+    String OP_IS_ANY_SUBORDINATE = "isAnySubordinate"; // TODO remove with old repo, not public op anymore
+    String OP_IS_DESCENDANT = "isDescendant";
+    String OP_IS_ANCESTOR = "isAncestor";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
@@ -299,7 +300,8 @@ public interface RepositoryService {
      * @param parentResult Operation result into which we put our result
      */
     @Experimental
-    @NotNull default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
+    @NotNull
+    default <T extends ObjectType> ModifyObjectResult<T> modifyObjectDynamically(
             @NotNull Class<T> type,
             @NotNull String oid,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions,
@@ -403,14 +405,6 @@ public interface RepositoryService {
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
      * </p>
-     *
-     * @param query search query
-     * @param handler result handler
-     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
-     * @param parentResult parent OperationResult (in/out)
-     * @return all objects of specified type that match search criteria (subject to paging)
-     * @throws IllegalArgumentException wrong object type
-     * @throws SchemaException unknown property used in search query
      * <p>
      * A note related to iteration method:
      * <p>
@@ -436,17 +430,59 @@ public interface RepositoryService {
      * - ordering is specified
      * - offset is specified
      * (limit is not a problem)
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
+     * @param parentResult parent OperationResult (in/out)
+     * @return all objects of specified type that match search criteria (subject to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult)
             throws SchemaException;
 
-    boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
+    /**
+     * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.
+     * The `object` can either be an Org or any other object in which case all the targets
+     * of its `parentOrgRefs` are tested.
+     *
+     * Examples (from the perspective of the first parameter):
+     *
+     * * User belonging to Org with `ancestorOrgOid` returns true.
+     * * Organization under Org with `ancestorOrgOid` returns true (in any depth).
+     * * User belonging to Org under another Org with `ancestorOrgOid` returns true (any depth).
+     * * Organization with `ancestorOrgOid` returns `false`, as it is not considered
+     * to be its own descendant.
+     *
+     * @param object object of any type tested to belong under Org with `ancestorOrgOid`
+     * @param ancestorOrgOid identifier of ancestor organization
+     */
+    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
+            throws SchemaException;
 
-    <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
-
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
+    /**
+     * Returns `true` if the `object` is above organization identified with `descendantOrgOid`.
+     * Despite type parameter, only `PrismObject<OrgType>` can return `true`.
+     *
+     * Examples (from the perspective of the first parameter):
+     *
+     * * Any other type than `Org` used for `object` returns `false`.
+     * * Organization being a parent of another organization with `descendantOrgOid` returns `true`.
+     * This means that Organization with `descendantOrgOid` has `parentOrgRef` to `object`.
+     * * Organization higher in the organization hierarchy than Org with `descendantOrgOid`
+     * returns `true`, for any number of levels between them as long as it's possible to traverse
+     * from Org identified by `descendantOrgOid` to `object` using any number of `parentOrgRefs`.
+     * * Organization with `descendantOrgOid` returns `false`, as it is not considered
+     * to be its own ancestor.
+     *
+     * @param object potential ancestor organization
+     * @param descendantOrgOid identifier of potential descendant organization
+     */
+    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
+            throws SchemaException;
 
     /**
      * <p>Returns the object representing owner of specified shadow.</p>

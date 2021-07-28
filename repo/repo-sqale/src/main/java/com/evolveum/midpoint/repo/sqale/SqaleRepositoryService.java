@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -35,8 +37,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
@@ -692,8 +693,7 @@ public class SqaleRepositoryService implements RepositoryService {
         return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
 
-    // Counting/searching
-
+    // region Counting/searching
     @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
@@ -708,6 +708,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Count objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return 0;
+            }
+
             return executeCountObject(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -752,6 +759,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Search objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
             return executeSearchObject(type, query, options, OP_SEARCH_OBJECTS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -825,8 +839,90 @@ public class SqaleRepositoryService implements RepositoryService {
             Class<T> type, ObjectQuery query, ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult) throws SchemaException {
-        // TODO
-        throw new UnsupportedOperationException();
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        OperationResult operationResult = parentResult.subresult(SEARCH_OBJECTS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
+
+        try {
+            logSearchInputParameters(type, query, "Iterative search objects");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return null;
+            }
+
+            return executeSearchObjectsIterative(type, query, handler, options, operationResult);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult) throws SchemaException {
+
+        try {
+
+            Integer maxSize;
+            ObjectQuery pagedQuery;
+            if (query != null) {
+                maxSize = query.getPaging() != null ? query.getPaging().getMaxSize() : null;
+                pagedQuery = query.clone();
+            } else {
+                maxSize = null;
+                pagedQuery = repositoryContext.prismContext().queryFactory().createQuery();
+            }
+
+            String lastOid = null;
+            int batchSize = 1000; // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
+
+            ObjectPaging paging = repositoryContext.prismContext().queryFactory().createPaging();
+            pagedQuery.setPaging(paging);
+            main:
+            for (; ; ) {
+//                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER); TODO
+                paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
+
+                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, operationResult);
+
+                for (PrismObject<T> object : objects) {
+                    // TODO use again :-)
+                    lastOid = object.getOid();
+                    if (!handler.handle(object, operationResult)) {
+                        break main;
+                    }
+                }
+                if (objects.isEmpty() || objects.size() < paging.getMaxSize()) {
+                    break;
+                }
+                if (maxSize != null) {
+                    maxSize -= objects.size();
+                    if (maxSize <= 0) {
+                        break;
+                    }
+                }
+            }
+
+            // TODO null is returned in old repo for most iteration methods, do we even want this? Isn't parent result enough?
+            return new SearchResultMetadata();
+        } finally {
+            // TODO reconsider, now it gives us no info about timing, only count
+            //  BTW: this seems not to be used for other than single transaction in old repo
+            long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+            registerOperationFinish(opHandle, 1);
+        }
     }
 
     @Override
@@ -842,6 +938,13 @@ public class SqaleRepositoryService implements RepositoryService {
                         .addParam("query", query)
                         .build();
         try {
+            logSearchInputParameters(type, query, "Count containers");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return 0;
+            }
+
             return executeCountContainers(type, query, options);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
@@ -885,6 +988,13 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            logSearchInputParameters(type, query, "Search containers");
+
+            query = simplifyQuery(query);
+            if (isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
             SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
                     SqaleQueryContext.from(type, repositoryContext);
             return sqlQueryExecutor.list(queryContext, query, options);
@@ -898,71 +1008,92 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    // This operation does not use parent OperationResult, so the exception handling is simpler.
+    private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, String operation) {
+        ObjectPaging paging = query != null ? query.getPaging() : null;
+        LOGGER.debug(
+                "{} of type '{}', query on trace level, offset {}, limit {}.",
+                operation, type.getSimpleName(),
+                paging != null ? paging.getOffset() : "undefined",
+                paging != null ? paging.getMaxSize() : "undefined");
+
+        LOGGER.trace("Full query\n{}",
+                query == null ? "undefined" : query.debugDumpLazily());
+    }
+
+    private ObjectQuery simplifyQuery(ObjectQuery query) {
+        if (query != null) {
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter, repositoryContext.prismContext());
+            query = query.cloneEmpty();
+            query.setFilter(filter instanceof AllFilter ? null : filter);
+        }
+
+        return query;
+    }
+
+    private boolean isNoneQuery(ObjectQuery query) {
+        return query != null && query.getFilter() instanceof NoneFilter;
+    }
+    // endregion
+
     @Override
-    public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
-        Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
-        Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
+    public <O extends ObjectType> boolean isDescendant(
+            PrismObject<O> object, String ancestorOrgOid) {
+        Validate.notNull(object, "object must not be null");
+        Validate.notNull(ancestorOrgOid, "ancestorOrgOid must not be null");
 
-        LOGGER.trace("Querying for subordination upper {}, lower {}",
-                ancestorOrgOid, descendantOrgOids);
-
-        if (descendantOrgOids.isEmpty()) {
-            // trivial case
+        LOGGER.trace("Querying if object {} is descendant of {}", object.getOid(), ancestorOrgOid);
+        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+        if (objParentOrgRefs == null || objParentOrgRefs.isEmpty()) {
             return false;
         }
 
-        long opHandle = registerOperationStart(OP_IS_ANY_SUBORDINATE, OrgType.class);
-        try {
-            return isAnySubordinateAttempt(UUID.fromString(ancestorOrgOid),
-                    descendantOrgOids.stream()
-                            .map(s -> UUID.fromString(s))
-                            .collect(Collectors.toList()));
-        } catch (Exception e) {
-            throw new SystemException(
-                    "isAnySubordinateAttempt failed somehow, this really should not happen.", e);
-        } finally {
-            registerOperationFinish(opHandle, 1); // TODO attempt
-        }
-    }
+        List<UUID> objParentOrgOids = objParentOrgRefs.stream()
+                .map(ref -> UUID.fromString(ref.getOid()))
+                .collect(Collectors.toList());
 
-    private boolean isAnySubordinateAttempt(UUID ancestorOrgOid, Collection<UUID> lowerObjectOids) {
+        long opHandle = registerOperationStart(OP_IS_DESCENDANT, OrgType.class);
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             jdbcSession.executeStatement("CALL m_refresh_org_closure()");
 
             QOrgClosure oc = new QOrgClosure();
             long count = jdbcSession.newQuery()
                     .from(oc)
-                    .where(oc.ancestorOid.eq(ancestorOrgOid)
-                            .and(oc.descendantOid.in(lowerObjectOids)))
+                    .where(oc.ancestorOid.eq(UUID.fromString(ancestorOrgOid))
+                            .and(oc.descendantOid.in(objParentOrgOids)))
                     .fetchCount();
-
             return count != 0L;
+        } finally {
+            registerOperationFinish(opHandle, 1);
         }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean isDescendant(
-            PrismObject<O> descendant, String ancestorOrgOid)
-            throws SchemaException {
-        List<ObjectReferenceType> objParentOrgRefs = descendant.asObjectable().getParentOrgRef();
-        List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-        for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
-            objParentOrgOids.add(objParentOrgRef.getOid());
-        }
-        return isAnySubordinate(ancestorOrgOid, objParentOrgOids);
     }
 
     @Override
     public <O extends ObjectType> boolean isAncestor(
-            PrismObject<O> ancestorOrg, String descendantOid)
-            throws SchemaException {
-        if (ancestorOrg.getOid() == null) {
+            PrismObject<O> object, String descendantOrgOid) {
+        Validate.notNull(object, "object must not be null");
+        Validate.notNull(descendantOrgOid, "descendantOrgOid must not be null");
+
+        LOGGER.trace("Querying if object {} is ancestor of {}", object.getOid(), descendantOrgOid);
+        // object is not considered ancestor of itself
+        if (object.getOid() == null || object.getOid().equals(descendantOrgOid)) {
             return false;
         }
-        Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(descendantOid);
-        return isAnySubordinate(ancestorOrg.getOid(), oidList);
+
+        long opHandle = registerOperationStart(OP_IS_ANCESTOR, OrgType.class);
+        try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("CALL m_refresh_org_closure()");
+
+            QOrgClosure oc = new QOrgClosure();
+            long count = jdbcSession.newQuery()
+                    .from(oc)
+                    .where(oc.ancestorOid.eq(UUID.fromString(object.getOid()))
+                            .and(oc.descendantOid.eq(UUID.fromString(descendantOrgOid))))
+                    .fetchCount();
+            return count != 0L;
+        } finally {
+            registerOperationFinish(opHandle, 1);
+        }
     }
 
     @Override
@@ -1016,7 +1147,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
-            return executeAdvanceSequence(oidUuid, operationResult);
+            return executeAdvanceSequence(oidUuid);
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1027,9 +1158,9 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private long executeAdvanceSequence(UUID oid, OperationResult operationResult)
+    private long executeAdvanceSequence(UUID oid)
             throws ObjectNotFoundException, SchemaException, RepositoryException {
-        // TODO executeAttempts
+        // TODO executeAttempts if any problems with further test, so far it looks good based on SequenceTestConcurrency
         long opHandle = registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
 
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
@@ -1037,9 +1168,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     prepareUpdateContext(jdbcSession, SequenceType.class, oid);
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", sequence.debugDump());
-            }
+            LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
             long returnValue;
             if (!sequence.getUnusedValues().isEmpty()) {
@@ -1048,10 +1177,8 @@ public class SqaleRepositoryService implements RepositoryService {
                 returnValue = advanceSequence(sequence, oid);
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Return value = {}, OBJECT after:\n{}",
-                        returnValue, sequence.debugDump());
-            }
+            LOGGER.trace("Return value = {}, OBJECT after:\n{}",
+                    returnValue, sequence.debugDumpLazily());
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
@@ -1111,7 +1238,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         try {
-            executeReturnUnusedValuesToSequence(oidUuid, unusedValues, operationResult);
+            executeReturnUnusedValuesToSequence(oidUuid, unusedValues);
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1122,8 +1249,7 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
-    private void executeReturnUnusedValuesToSequence(
-            UUID oid, Collection<Long> unusedValues, OperationResult operationResult)
+    private void executeReturnUnusedValuesToSequence(UUID oid, Collection<Long> unusedValues)
             throws SchemaException, ObjectNotFoundException, RepositoryException {
         // TODO executeAttempts
         long opHandle = registerOperationStart(
@@ -1134,9 +1260,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     prepareUpdateContext(jdbcSession, SequenceType.class, oid);
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
-            }
+            LOGGER.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
             int maxUnusedValues = sequence.getMaxUnusedValues() != null
                     ? sequence.getMaxUnusedValues() : 0;
@@ -1155,9 +1279,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 }
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT after:\n{}", sequence.debugDump());
-            }
+            LOGGER.trace("OBJECT after:\n{}", sequence.debugDumpLazily());
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
@@ -1371,7 +1493,8 @@ public class SqaleRepositoryService implements RepositoryService {
         if (specSubtype != null) {
             Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
             if (!actualSubtypeValues.contains(specSubtype)) {
-                logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+                logger.trace("{} subtype mismatch, expected {}, was {}",
+                        logMessagePrefix, specSubtype, actualSubtypeValues);
                 return false;
             }
         }
@@ -1381,7 +1504,8 @@ public class SqaleRepositoryService implements RepositoryService {
         if (!specArchetypeRefs.isEmpty()) {
             if (object.canRepresent(AssignmentHolderType.class)) {
                 boolean match = false;
-                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
+                List<ObjectReferenceType> actualArchetypeRefs =
+                        ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
                 for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
                     for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
                         if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
@@ -1391,7 +1515,8 @@ public class SqaleRepositoryService implements RepositoryService {
                     }
                 }
                 if (!match) {
-                    logger.trace("{} archetype mismatch, expected {}, was {}", logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
+                    logger.trace("{} archetype mismatch, expected {}, was {}",
+                            logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
                     return false;
                 }
             } else {

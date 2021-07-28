@@ -248,33 +248,22 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
+    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid)
             throws SchemaException {
         Long startTime = repoOpStart();
         try {
-            return repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOids);
+            return repositoryService.isDescendant(object, ancestorOrgOid);
         } finally {
             repoOpEnd(startTime);
         }
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
+    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
             throws SchemaException {
         Long startTime = repoOpStart();
         try {
-            return repositoryService.isDescendant(object, orgOid);
-        } finally {
-            repoOpEnd(startTime);
-        }
-    }
-
-    @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
-            throws SchemaException {
-        Long startTime = repoOpStart();
-        try {
-            return repositoryService.isAncestor(object, oid);
+            return repositoryService.isAncestor(object, descendantOrgOid);
         } finally {
             repoOpEnd(startTime);
         }

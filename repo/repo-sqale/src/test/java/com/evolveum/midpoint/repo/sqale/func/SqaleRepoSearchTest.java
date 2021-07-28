@@ -20,7 +20,6 @@ import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -63,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
-    private final static String NONEXIST_OID = UUID.randomUUID().toString();
+    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -83,7 +81,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
-    private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
 
@@ -148,7 +145,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
         shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
@@ -295,11 +292,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
-        service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1")
-                        // TODO integer attribute
-                        .asPrismObject(),
-                null, result);
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
                         .state("closed")
@@ -604,7 +596,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(user1Oid, case1Oid);
         searchCaseWorkItemByAssignee(user2Oid, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXIST_OID);
+        searchCaseWorkItemByAssignee(NONEXISTENT_OID);
     }
 
     private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
@@ -1458,7 +1450,7 @@ AND(
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
                 f -> f.itemWithDef(shadowAttributeDefinition,
-                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv"))
+                        ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
     }
@@ -1663,9 +1655,7 @@ AND(
         OperationResult operationResult = createOperationResult();
 
         given("cleared performance information");
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("search is called on the repository");
         searchObjects(FocusType.class,
@@ -1674,7 +1664,7 @@ AND(
 
         then("performance monitor is updated");
         assertThatOperationResult(operationResult).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
+        assertSingleOperationRecorded(RepositoryService.OP_SEARCH_OBJECTS);
     }
 
     @Test
@@ -1704,8 +1694,8 @@ AND(
         expect("isAncestor returns true for parent-descendant (deep child) orgs");
         assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
 
-        expect("isAncestor returns true for the same org");
-        assertTrue(repositoryService.isAncestor(rootOrg, org1Oid));
+        expect("isAncestor returns false for the same org (not ancestor of itself)");
+        assertFalse(repositoryService.isAncestor(rootOrg, org1Oid));
 
         expect("isAncestor returns false for unrelated orgs");
         assertFalse(repositoryService.isAncestor(rootOrg, org21Oid));
@@ -1730,10 +1720,7 @@ AND(
                 repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
                 org1Oid));
 
-        // TODO this one is strange, as it is not symmetric with isAncestor.
-        //  This works fine for non-orgs, but not for org itself - which by one look is ancestor
-        //  of itself, but then by another one is NOT descendant of itself.
-        expect("isDescendant returns false for the same org");
+        expect("isDescendant returns false for the same org (not descendant of itself)");
         assertFalse(repositoryService.isDescendant(org11, org11Oid));
 
         expect("isDescendant returns false for unrelated orgs");
@@ -1742,32 +1729,6 @@ AND(
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
     }
-
-    @Test
-    public void test972IsAnySubordinate() {
-        expect("isAnySubordinate returns true for parent-child orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org11Oid)));
-
-        expect("isAnySubordinate returns true for parent-descendant (deep child) orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid)));
-
-        expect("isAnySubordinate returns true for the same org");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org1Oid)));
-
-        expect("isAnySubordinate returns true when the list contains only descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid,
-                List.of(org1Oid, org111Oid, org112Oid)));
-
-        expect("isAnySubordinate returns true when the list mixes descendants and non-descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid, org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only unrelated orgs");
-        assertFalse(repositoryService.isAnySubordinate(org1Oid, List.of(org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only ancestors");
-        assertFalse(repositoryService.isAnySubordinate(org11Oid, List.of(org1Oid)));
-    }
-
     // endregion
 
     // support methods
@@ -1831,7 +1792,7 @@ AND(
                 type,
                 query,
                 selectorOptions != null && selectorOptions.length != 0
-                        ? Arrays.asList(selectorOptions) : null,
+                        ? List.of(selectorOptions) : null,
                 operationResult)
                 .map(p -> p.asObjectable());
     }
@@ -1872,7 +1833,8 @@ AND(
         return repositoryService.searchContainers(
                 type,
                 query,
-                Arrays.asList(selectorOptions),
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null,
                 operationResult);
     }
 }

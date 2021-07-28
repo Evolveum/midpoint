@@ -226,9 +226,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * individual paths for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
      */
     public PageOf<Tuple> executeQuery(Connection conn) throws QueryException {
-        SQLQuery<?> query = this.sqlQuery.clone(conn);
+        SQLQuery<?> query = sqlQuery.clone(conn);
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
+            // TODO indicate incomplete result?
         }
 
         // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
