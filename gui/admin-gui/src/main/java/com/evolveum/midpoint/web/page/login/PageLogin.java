@@ -34,8 +34,6 @@ import org.apache.wicket.model.IModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
-
 /**
  * @author mserbak
  * @author lskublik
@@ -189,7 +187,7 @@ public class PageLogin extends AbstractPageLogin {
                     && (moduleAuthentication instanceof LoginFormModuleAuthentication
                     || moduleAuthentication instanceof LdapModuleAuthentication)){
                 String prefix = moduleAuthentication.getPrefix();
-                return stripSlashes(prefix) + "/spring_security_login";
+                return SecurityUtils.stripSlashes(prefix) + "/spring_security_login";
             }
         }
 

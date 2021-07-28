@@ -176,7 +176,6 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3e1</logback.version>
-        <spring.security.saml2.version>2.0.0.M31</spring.security.saml2.version>
         <spring-security.version>5.6.0-M1</spring-security.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
@@ -1022,53 +1021,6 @@
                 <groupId>org.opensaml</groupId>
                 <artifactId>opensaml-saml-impl</artifactId>
                 <version>${opensaml.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security.extensions</groupId>
-                <artifactId>spring-security-saml2-core</artifactId>
-                <version>${spring.security.saml2.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcpkix-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.shibboleth.utilities</groupId>
-                        <artifactId>java-support</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-saml-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-soap-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-saml-impl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.opensaml</groupId>
-                        <artifactId>opensaml-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.xml.bind</groupId>
-                        <artifactId>jaxb-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>

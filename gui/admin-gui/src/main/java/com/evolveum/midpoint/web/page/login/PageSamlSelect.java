@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -31,7 +30,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 
-import org.springframework.security.saml.SamlAuthentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 /**
  * @author skublik
@@ -73,7 +72,7 @@ public class PageSamlSelect extends AbstractPageLogin implements Serializable {
 
     private boolean existSamlAuthentication(ModuleAuthentication actualModule) {
         return actualModule instanceof Saml2ModuleAuthentication
-                && actualModule.getAuthentication() instanceof SamlAuthentication;
+                && actualModule.getAuthentication() instanceof Saml2AuthenticationToken;
     }
 
     private List<IdentityProvider> getProviders() {

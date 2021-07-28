@@ -10,14 +10,12 @@ import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.web.security.module.configuration.SamlMidpointAdditionalConfiguration;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.web.security.util.RequestState;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml.SamlAuthentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +71,7 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
                 && !((MidpointAuthentication) actualAuth).getAuthentications().isEmpty()) {
             ModuleAuthentication actualModule = ((MidpointAuthentication) actualAuth).getAuthentications().get(0);
             if (actualModule instanceof Saml2ModuleAuthentication
-                    && actualModule.getAuthentication() instanceof SamlAuthentication) {
+                    && actualModule.getAuthentication() instanceof Saml2AuthenticationToken) {
                 newAuthentication = actualModule.getAuthentication();
             }
         }

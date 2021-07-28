@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationRequestFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -77,14 +76,13 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((Saml2AuthenticationModuleType)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
         configuration.setPrefixOfSequence(prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
-//        MidpointSamlProviderServerBeanConfiguration beanConfiguration =getObjectObjectPostProcessor().postProcess(new MidpointSamlProviderServerBeanConfiguration(configuration));
 
         SamlModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new SamlModuleWebSecurityConfig(configuration));//, beanConfiguration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(module.getBeanConfiguration(), configuration);
+        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration);
         moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         for (Filter f : filter.getFilters()){
@@ -96,8 +94,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    public ModuleAuthentication createEmptyModuleAuthentication(SamlServiceProviderServerBeanConfiguration beanConfiguration,
-                                                                SamlModuleWebSecurityConfiguration configuration) {
+    public ModuleAuthentication createEmptyModuleAuthentication(SamlModuleWebSecurityConfiguration configuration) {
         Saml2ModuleAuthentication moduleAuthentication = new Saml2ModuleAuthentication();
         List<IdentityProvider> providers = new ArrayList<>();
         ((Iterable<RelyingPartyRegistration>)configuration.getRelyingPartyRegistrationRepository()).forEach(
