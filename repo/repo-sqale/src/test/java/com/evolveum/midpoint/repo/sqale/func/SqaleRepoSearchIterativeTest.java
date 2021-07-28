@@ -9,9 +9,12 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,13 +40,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
-    private TestResultHandler testHandler = new TestResultHandler();
+    private final TestResultHandler testHandler = new TestResultHandler();
 
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
-        repositoryService.addObject(
-                new UserType(prismContext).name("user").asPrismObject(), null, result);
+        for (int i = 1; i <= 100; i++) {
+            UserType user = new UserType(prismContext)
+                    .name(String.format("user-%05d", i));
+            repositoryService.addObject(user.asPrismObject(), null, result);
+        }
+    }
+
+    @BeforeMethod
+    public void resetTestHandler() {
+        testHandler.reset();
     }
 
     @Test
@@ -61,12 +72,13 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         SearchResultMetadata searchResultMetadata =
                 searchObjectsIterative(query, operationResult);
 
-        then("result metadata is null and no operation is performed");
-        assertThat(searchResultMetadata).isNull();
+        then("no operation is performed");
+        assertThat(searchResultMetadata).isNotNull();
+        assertThat(searchResultMetadata.getApproxNumberOfAllResults()).isZero();
         // this is not the main part, just documenting that currently we short circuit the operation
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 0);
         // this is important - no actual search was called
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS, 0);
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 0);
     }
 
     @Test
@@ -76,18 +88,49 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         pm.clearGlobalPerformanceInformation();
 
         when("calling search iterative with null query");
-        SearchResultMetadata searchResultMetadata =
+        SearchResultMetadata metadata =
                 searchObjectsIterative(null, operationResult);
 
-        then("result metadata is not null");
-        assertThat(searchResultMetadata).isNotNull();
+        then("result metadata is not null and reports the handled objects");
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
 
         and("search operations were called");
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 1);
 
         and("all objects of the specified type (here User) were processed");
         assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+    }
+
+    @Test
+    public void test115SearchIterativeWithBreakingConditionCheckingOidOrdering() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        String midOid = "80000000-0000-0000-0000-000000000000";
+        given("condition that breaks iterative based on UUID");
+        testHandler.setStoppingPredicate(u -> u.getOid().compareTo(midOid) >= 0);
+
+        when("calling search iterative with null query");
+        SearchResultMetadata metadata = searchObjectsIterative(null, operationResult);
+
+        then("result metadata is not null and reports partial result (because of the break)");
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isTrue(); // extremely likely with enough items
+
+        and("search operations were called");
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 1);
+
+        and("all objects up to specified UUID were processed");
+        QUser u = aliasFor(QUser.class);
+        assertThat(testHandler.getCounter())
+                // first >= midOid was processed too
+                .isEqualTo(count(u, u.oid.lt(UUID.fromString(midOid))) + 1);
     }
 
     @SafeVarargs
@@ -98,8 +141,6 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
             throws SchemaException {
 
         display("QUERY: " + query);
-        testHandler.reset();
-
         return repositoryService.searchObjectsIterative(
                 UserType.class,
                 query,
@@ -113,20 +154,26 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     private static class TestResultHandler implements ResultHandler<UserType> {
 
         private final AtomicInteger counter = new AtomicInteger();
+        private Predicate<UserType> stoppingPredicate;
 
         public void reset() {
             counter.set(0);
+            stoppingPredicate = o -> false;
         }
 
         public int getCounter() {
             return counter.get();
         }
 
+        public void setStoppingPredicate(Predicate<UserType> stoppingPredicate) {
+            this.stoppingPredicate = stoppingPredicate;
+        }
+
         @Override
         public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
             UserType user = object.asObjectable();
             user.setIteration(counter.getAndIncrement()); // TODO can I use iteration freely?
-            return false;
+            return !stoppingPredicate.test(user); // true means continue, so we need NOT
         }
     }
 }

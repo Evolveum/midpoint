@@ -262,6 +262,9 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
                         .getGlobalPerformanceInformation().getAllData();
         OperationPerformanceInformation operationInfo = pmAllData.get(opKind);
         if (count != 0) {
+            assertThat(operationInfo)
+                    .withFailMessage("OperationPerformanceInformation for opKind '%s'", opKind)
+                    .isNotNull();
             assertThat(operationInfo.getInvocationCount()).isEqualTo(count);
             assertThat(operationInfo.getExecutionCount()).isEqualTo(count);
         } else {

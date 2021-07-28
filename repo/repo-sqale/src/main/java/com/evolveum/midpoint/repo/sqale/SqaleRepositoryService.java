@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -854,10 +855,12 @@ public class SqaleRepositoryService implements RepositoryService {
 
             query = simplifyQuery(query);
             if (isNoneQuery(query)) {
-                return null;
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
             }
 
             return executeSearchObjectsIterative(type, query, handler, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -871,55 +874,69 @@ public class SqaleRepositoryService implements RepositoryService {
             ObjectQuery query,
             ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult operationResult) throws SchemaException {
+            OperationResult operationResult) throws SchemaException, RepositoryException {
 
         try {
-
-            Integer maxSize;
-            ObjectQuery pagedQuery;
+            Integer maxSize; // this is total requested size of the search
+            ObjectPaging originalPaging = query != null ? query.getPaging() : null;
             if (query != null) {
-                maxSize = query.getPaging() != null ? query.getPaging().getMaxSize() : null;
-                pagedQuery = query.clone();
+                maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
             } else {
                 maxSize = null;
-                pagedQuery = repositoryContext.prismContext().queryFactory().createQuery();
             }
 
-            String lastOid = null;
-            int batchSize = 1000; // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
-
-            ObjectPaging paging = repositoryContext.prismContext().queryFactory().createPaging();
+            ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
+            ObjectPaging paging = prismContext().queryFactory().createPaging();
             pagedQuery.setPaging(paging);
-            main:
-            for (; ; ) {
-//                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER); TODO
-                paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
+            // TODO: 1000 should be from configuration, something like MAX_ITERATION_PAGE_SIZE
+            // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
+            int pageSize = Math.min(1000, defaultIfNull(maxSize, Integer.MAX_VALUE));
+            pagedQuery.getPaging().setMaxSize(pageSize);
 
-                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, operationResult);
+            String lastOid = null;
+            int handledObjectsTotal = 0;
+
+            while (true) {
+                ItemPath idPath = ItemPath.create(PrismConstants.T_ID);
+                paging.addOrderingInstruction(idPath, OrderDirection.ASCENDING);
+                // filterAnd() is quite null safe, even for both nulls
+                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
+                        query != null ? query.getFilter() : null,
+                        lastOid != null ? prismContext().queryFor(type)
+                                .item(idPath).gt(lastOid)
+                                .buildFilter()
+                                : null,
+                        prismContext()));
+
+                // we don't call public searchObject to avoid subresults and query simplification
+                logSearchInputParameters(type, pagedQuery, "Search object iterative page ");
+                List<PrismObject<T>> objects = executeSearchObject(
+                        type, pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
 
                 for (PrismObject<T> object : objects) {
-                    // TODO use again :-)
                     lastOid = object.getOid();
                     if (!handler.handle(object, operationResult)) {
-                        break main;
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal + 1)
+                                .partialResults(true);
                     }
-                }
-                if (objects.isEmpty() || objects.size() < paging.getMaxSize()) {
-                    break;
-                }
-                if (maxSize != null) {
-                    maxSize -= objects.size();
-                    if (maxSize <= 0) {
+                    handledObjectsTotal += 1;
+
+                    if (maxSize != null && maxSize <= handledObjectsTotal) {
                         break;
                     }
                 }
+
+                if (objects.isEmpty() || objects.size() < pageSize) {
+                    break;
+                }
             }
 
-            // TODO null is returned in old repo for most iteration methods, do we even want this? Isn't parent result enough?
-            return new SearchResultMetadata();
+            return new SearchResultMetadata()
+                    .approxNumberOfAllResults(handledObjectsTotal);
         } finally {
-            // TODO reconsider, now it gives us no info about timing, only count
-            //  BTW: this seems not to be used for other than single transaction in old repo
+            // This just counts the operation and adds zero/minimal time not to confuse user
+            // with what could be possibly very long duration.
             long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
             registerOperationFinish(opHandle, 1);
         }
@@ -1022,8 +1039,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private ObjectQuery simplifyQuery(ObjectQuery query) {
         if (query != null) {
-            ObjectFilter filter = query.getFilter();
-            filter = ObjectQueryUtil.simplify(filter, repositoryContext.prismContext());
+            // simplify() creates new filter instance which can be modified
+            ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext());
             query = query.cloneWithoutFilter();
             query.setFilter(filter instanceof AllFilter ? null : filter);
         }
@@ -1108,7 +1125,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         .build();
 
         try {
-            ObjectQuery query = repositoryContext.prismContext()
+            ObjectQuery query = prismContext()
                     .queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadowOid)
                     .build();
@@ -1654,7 +1671,7 @@ public class SqaleRepositoryService implements RepositoryService {
             boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
                     object.asObjectable().getDiagnosticInformation(), operationResult);
             if (canStoreInfo) {
-                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                List<ItemDelta<?, ?>> modifications = prismContext()
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
                         .asItemDeltas();
@@ -1696,7 +1713,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 List<DiagnosticInformationType> toDelete =
                         oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
                 LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
-                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                List<ItemDelta<?, ?>> modifications = prismContext()
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
                         .asItemDeltas();
@@ -1720,6 +1737,10 @@ public class SqaleRepositoryService implements RepositoryService {
             sqlPerformanceMonitorsCollection.deregister(performanceMonitor);
             performanceMonitor = null;
         }
+    }
+
+    private PrismContext prismContext() {
+        return repositoryContext.prismContext();
     }
 
     /**
