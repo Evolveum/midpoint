@@ -9,13 +9,12 @@
 
 Random notes about current state of SQL repository implementation and the patch for future evolution.
 
-
 == Problem: long reads with old data
 
 JIRA: bug:MID-4414[]
 
 Long database reads (recompute, recon) can return data that are out of data.
-It seems that the databases using READ\_COMMITTED isolation will return the data as they were at the beginning of a transaction.
+It seems that the databases using `READ_COMMITTED` isolation will return the data as they were at the beginning of a transaction.
 Which is the beginning of a search.
 If the search runs for minutes or even hours, this causes a lot of problems.
 Firstly, there is a very long transaction.
@@ -44,3 +43,31 @@ And we have hoped that midPoint relative model will make locking superfluous.
 But is seems that we still need locking, at least for single-valued properties.
 Yet, this seems to be a systemic solution.
 And we will probably need it anyway (e.g. concurrency problems with shadows).
+
+=== Current solution for iterative search
+
+For new repository the following solution is used:
+
+* Search uses paging based on strict OID ordering (on top of optionally provided business ordering).
+* Page is reasonably small (by default 100, can be configured) which makes the data resonably fresh.
+* Handling is called out of the reading transaction.
+This is good also for edge situation when the search uses last possible connection and then needs
+another one inside the handler.
+Of course this does not prevent handler from "needing" two connections and blocking because of it.
+* Even with handling running inside the search, even if cursor (live result set) was used, the data
+is still current only at the time of the execution, not during the cursor reading.
+There is no benefit from doing the work inside the transaction.
+* The problem with using some internal search for reading the whole page is that it requires more
+memory than executing the handler while reading the cursor.
+But with each page limited to small maximum size (100 by default) this is not an issue.
+* Another issue is that for complex selects the query execution can take prohibitively long to read
+just 100 objects.
+This can be prevented by avoiding complicated conditions and ordering and leaving just ordering
+by OID which is actually pretty fast, even if the table is scanned.
+Full table scan in the order of OID index can be perfectly fine if a lot of data matches
+the condition, in the opposite case usage of indexes is very likely.
+* Technically, cursor like reading is possible in new repository too, `SQLQuery#getResults()`
+returns normal JDBC `ResultSet`.
+To avoid blocking the connection and having long-running read-only transaction (should not be a big
+deal for read-only, but still) we still prefer the solution with handler running outside
+the search for each page when the connection is freed.
