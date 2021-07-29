@@ -56,7 +56,7 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
 
     @Override
     public ConnectorInfo findConnectorInfo(ConnectorKey key) {
-        for (ConnectorInfoManager manager :managers) {
+        for (ConnectorInfoManager manager : managers) {
             ConnectorInfo maybe = manager.findConnectorInfo(key);
             if (maybe != null) {
                 return maybe;
