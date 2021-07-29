@@ -37,6 +37,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
 
+    private static final int DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE = 100;
+
     @NotNull private final Environment env; // for better Spring properties/override integration
     @NotNull private final Configuration configuration;
 
@@ -60,6 +62,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private String performanceStatisticsFile;
     private int performanceStatisticsLevel;
+
+    private int iterativeSearchByPagingBatchSize;
 
     public SqaleRepositoryConfiguration(
             @NotNull Environment env,
@@ -104,6 +108,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         performanceStatisticsFile = getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
         performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
                 SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
+
+        iterativeSearchByPagingBatchSize = configuration.getInt(
+                PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, DEFAULT_ITERATIVE_SEARCH_PAGE_SIZE);
 
         validateConfiguration();
     }
@@ -258,5 +265,15 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public int getPerformanceStatisticsLevel() {
         return performanceStatisticsLevel;
+    }
+
+    @Override
+    public int getIterativeSearchByPagingBatchSize() {
+        return iterativeSearchByPagingBatchSize;
+    }
+
+    // exists because of testing
+    public void setIterativeSearchByPagingBatchSize(int iterativeSearchByPagingBatchSize) {
+        this.iterativeSearchByPagingBatchSize = iterativeSearchByPagingBatchSize;
     }
 }

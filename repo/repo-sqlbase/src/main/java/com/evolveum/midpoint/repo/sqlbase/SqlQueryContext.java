@@ -206,9 +206,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 throw new QueryException(
                         "ORDER BY is not possible for complex paths: " + orderByItemPath);
             }
-            // TODO: bit risky cast, but this is should work for names and ID
-            Path<?> path = entityPathMapping.primarySqlPath(
-                    (QName) orderByItemPath.first(), this);
+            Path<?> path = entityPathMapping.primarySqlPath(orderByItemPath.firstToQName(), this);
             if (!(path instanceof ComparableExpressionBase)) {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);

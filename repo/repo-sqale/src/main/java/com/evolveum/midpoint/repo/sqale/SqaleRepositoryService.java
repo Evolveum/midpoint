@@ -123,9 +123,9 @@ public class SqaleRepositoryService implements RepositoryService {
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
-        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
         performanceMonitor = new SqlPerformanceMonitorImpl(
-                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+                repositoryConfiguration().getPerformanceStatisticsLevel(),
+                repositoryConfiguration().getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
@@ -871,37 +871,34 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
             Class<T> type,
-            ObjectQuery query,
+            ObjectQuery originalQuery,
             ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult operationResult) throws SchemaException, RepositoryException {
 
         try {
-            Integer maxSize; // this is total requested size of the search
-            ObjectPaging originalPaging = query != null ? query.getPaging() : null;
-            if (query != null) {
-                maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
-            } else {
-                maxSize = null;
-            }
+            ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
+            // this is total requested size of the search
+            Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
 
+            ItemPath idPath = ItemPath.create(PrismConstants.T_ID); // Item path for OID
             ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
             ObjectPaging paging = prismContext().queryFactory().createPaging();
+            paging.addOrderingInstruction(idPath, OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
-            // TODO: 1000 should be from configuration, something like MAX_ITERATION_PAGE_SIZE
-            // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
-            int pageSize = Math.min(1000, defaultIfNull(maxSize, Integer.MAX_VALUE));
+
+            int pageSize = Math.min(
+                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
 
             String lastOid = null;
             int handledObjectsTotal = 0;
 
             while (true) {
-                ItemPath idPath = ItemPath.create(PrismConstants.T_ID);
-                paging.addOrderingInstruction(idPath, OrderDirection.ASCENDING);
                 // filterAnd() is quite null safe, even for both nulls
                 pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
-                        query != null ? query.getFilter() : null,
+                        originalQuery != null ? originalQuery.getFilter() : null,
                         lastOid != null ? prismContext().queryFor(type)
                                 .item(idPath).gt(lastOid)
                                 .buildFilter()
@@ -918,6 +915,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     if (!handler.handle(object, operationResult)) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal + 1)
+                                .pagingCookie(lastOid)
                                 .partialResults(true);
                     }
                     handledObjectsTotal += 1;
@@ -933,7 +931,8 @@ public class SqaleRepositoryService implements RepositoryService {
             }
 
             return new SearchResultMetadata()
-                    .approxNumberOfAllResults(handledObjectsTotal);
+                    .approxNumberOfAllResults(handledObjectsTotal)
+                    .pagingCookie(lastOid);
         } finally {
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
@@ -1314,7 +1313,7 @@ public class SqaleRepositoryService implements RepositoryService {
         diag.setImplementationDescription(
                 "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
 
-        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
+        JdbcRepositoryConfiguration config = repositoryConfiguration();
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
         diag.setEmbedded(config.isEmbedded());
@@ -1743,6 +1742,10 @@ public class SqaleRepositoryService implements RepositoryService {
         return repositoryContext.prismContext();
     }
 
+    private JdbcRepositoryConfiguration repositoryConfiguration() {
+        return repositoryContext.getJdbcRepositoryConfiguration();
+    }
+
     /**
      * Handles exception outside of transaction - this does not handle transactional problems.
      * Returns {@link SystemException}, call with `throw` keyword.
@@ -1752,7 +1755,7 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, operationResult,
-                repositoryContext.getJdbcRepositoryConfiguration().isFatalException(ex));
+                repositoryConfiguration().isFatalException(ex));
 
         return ex instanceof SystemException
                 ? (SystemException) ex

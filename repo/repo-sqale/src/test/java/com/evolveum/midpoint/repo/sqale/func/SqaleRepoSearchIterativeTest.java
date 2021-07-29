@@ -95,10 +95,12 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
 
         and("search operations were called");
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 1);
+        assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type (here User) were processed");
         assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
@@ -124,7 +126,6 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         and("search operations were called");
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
-        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE, 1);
 
         and("all objects up to specified UUID were processed");
         QUser u = aliasFor(QUser.class);
@@ -149,6 +150,16 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                         ? List.of(selectorOptions) : null,
                 true, // this boolean is actually ignored (assumed to be true) by new repo
                 operationResult);
+    }
+
+    private void assertTypicalPageOperationCount(SearchResultMetadata metadata) {
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE,
+                metadata.getApproxNumberOfAllResults() / getConfiguredPageSize() + 1);
+    }
+
+    private int getConfiguredPageSize() {
+        return sqlRepoContext.getJdbcRepositoryConfiguration()
+                .getIterativeSearchByPagingBatchSize();
     }
 
     private static class TestResultHandler implements ResultHandler<UserType> {

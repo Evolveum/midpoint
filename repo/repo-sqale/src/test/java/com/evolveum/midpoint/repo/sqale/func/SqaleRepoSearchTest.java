@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -1598,6 +1599,24 @@ AND(
     }
 
     @Test
+    public void test910SearchByOid() throws SchemaException {
+        // This is new repo speciality, but this query can't be format/re-parsed
+        when("searching for user having specified OID");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(PrismConstants.T_ID).eq(user1Oid)
+                        .build(),
+                operationResult);
+
+        then("user with specified OID is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid);
+    }
+
+    @Test
     public void test920SearchObjectTypeFindsAllObjects() throws SchemaException {
         OperationResult operationResult = createOperationResult();
 
@@ -1770,7 +1789,7 @@ AND(
                 .containsExactlyInAnyOrder(expectedOids);
     }
 
-    /** Search objects using {@link ObjectQuery}. */
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
     @SafeVarargs
     @NotNull
     private <T extends ObjectType> SearchResultList<T> searchObjects(
@@ -1788,6 +1807,18 @@ AND(
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
+        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @SafeVarargs
+    @NotNull
+    private <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
         return repositoryService.searchObjects(
                 type,
                 query,

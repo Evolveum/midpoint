@@ -204,7 +204,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     //other
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
-    public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
     public static final String PROPERTY_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = "maxObjectsForImplicitFetchAllIterationMethod";
 
     //closure
