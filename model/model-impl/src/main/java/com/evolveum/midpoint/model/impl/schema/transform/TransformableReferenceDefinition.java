@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ReferenceDefinitionDelegator;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TransformableReferenceDefinition extends TransformableItemDefinition<PrismReference, PrismReferenceDefinition>
         implements ReferenceDefinitionDelegator, PartiallyMutableItemDefinition.Reference {
@@ -46,7 +47,11 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
 
     @Override
     public @NotNull PrismReference instantiate(QName name) {
-        return getPrismContext().itemFactory().createReference(name, this);
+        try {
+            return super.instantiate(name);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Should not happened",e);
+        }
     }
 
     @Override

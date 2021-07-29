@@ -202,12 +202,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             // TODO to support ordering by ext/something we need to implement this.
             //  That may not even require cache for JOIN because it should be allowed only for
             //  single-value containers embedded in the object.
-            if (!(orderByItemPath.isSingleName())) {
+            if (orderByItemPath.size() > 1) {
                 throw new QueryException(
                         "ORDER BY is not possible for complex paths: " + orderByItemPath);
             }
+            // TODO: bit risky cast, but this is should work for names and ID
             Path<?> path = entityPathMapping.primarySqlPath(
-                    orderByItemPath.asSingleNameOrFail(), this);
+                    (QName) orderByItemPath.first(), this);
             if (!(path instanceof ComparableExpressionBase)) {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);

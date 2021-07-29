@@ -195,7 +195,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     public final @Nullable Path<?> primarySqlPath(
-            ItemName itemName, SqlQueryContext<S, Q, R> context)
+            QName itemName, SqlQueryContext<S, Q, R> context)
             throws RepositoryException {
         return itemMapper(itemName).itemPrimaryPath(context.path());
     }

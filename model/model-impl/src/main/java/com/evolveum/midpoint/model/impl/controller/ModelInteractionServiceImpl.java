@@ -1994,7 +1994,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
-            } else if (query.getPaging().getOrderBy() == null){
+            } else if (query.getPaging().getPrimaryOrderingPath() == null){
                 query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
             }
         }
