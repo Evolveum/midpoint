@@ -29,8 +29,14 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 /**
  * Similar to {@link SimpleItemFilterProcessor} but String value can be just UUID prefixes
  * and must be smartly converted based on the actual operation.
+ *
+ * [WARNING]
+ * This currently assumes OID column only and does not treat predicate for nullable columns.
  */
 public class UuidItemFilterProcessor extends SinglePathItemFilterProcessor<String, UuidPath> {
+
+    private static final String OID_MIN = "00000000-0000-0000-0000-000000000000";
+    private static final String OID_MAX = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
     public <Q extends FlexibleRelationalPathBase<R>, R> UuidItemFilterProcessor(
             SqlQueryContext<?, Q, R> context, Function<Q, UuidPath> rootToQueryItem) {
@@ -64,7 +70,37 @@ public class UuidItemFilterProcessor extends SinglePathItemFilterProcessor<Strin
 
         //noinspection ConstantConditions
         String oid = filter.getSingleValue().getValue();
-        // TODO treatment for prefixes based on operation
-        return singleValuePredicate(path, operation, UUID.fromString(oid));
+        if (oid.length() < OID_MIN.length()) {
+            // operator is enough, ignore case doesn't play any role for UUID type
+            return processIncompleteOid(oid, operation.operator, filter);
+        } else {
+            // singleValuePredicate() treatment is not necessary, let's just create the predicate
+            return ExpressionUtils.predicate(operation.operator,
+                    path, ConstantImpl.create(UUID.fromString(oid)));
+        }
+    }
+
+    // we don't need to "treat" predicate, OID can't be null
+    private Predicate processIncompleteOid(
+            String oid, Ops operator, PropertyValueFilter<String> filter) throws QueryException {
+        if (operator == Ops.GT || operator == Ops.GOE) {
+            return path.goe(finishWithZeros(oid));
+        }
+        if (operator == Ops.LT || operator == Ops.LOE) {
+            return path.lt(finishWithZeros(oid));
+        }
+        if (operator == Ops.STARTS_WITH || operator == Ops.STARTS_WITH_IC) {
+            return path.goe(finishWithZeros(oid)).and(path.loe(finishWithEfs(oid)));
+        }
+        throw new QueryException("Unsupported operator " + operator + " for incomplete OID '"
+                + oid + "' in filter: " + filter);
+    }
+
+    private UUID finishWithZeros(String oid) {
+        return UUID.fromString(oid + OID_MIN.substring(oid.length()));
+    }
+
+    private UUID finishWithEfs(String oid) {
+        return UUID.fromString(oid + OID_MAX.substring(oid.length()));
     }
 }
