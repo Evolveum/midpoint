@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -70,8 +70,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
     protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
-    protected static final TestResource USER_TEMPLATE_MID_5892 = new TestResource(TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
-    private static final TestResource USER_TEMPLATE_MID_6045 = new TestResource(TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
+    protected static final TestResource<?> USER_TEMPLATE_MID_5892 = new TestResource<>(
+            TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
+    private static final TestResource<?> USER_TEMPLATE_MID_6045 = new TestResource<>(
+            TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
 
     private static final String ACCOUNT_STAN_USERNAME = "stan";
     private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
@@ -3587,11 +3589,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .givenName("jim")
                 .subtype(SUBTYPE_MID_6045)
                 .beginTrigger()
-                    .timestamp(firstTriggerTime)
-                    .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .timestamp(firstTriggerTime)
+                .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .<UserType>end()
                 .beginAssignment()
-                    .targetRef(SystemObjectsType.ROLE_SUPERUSER.value(), RoleType.COMPLEX_TYPE)
+                .targetRef(SystemObjectsType.ROLE_SUPERUSER.value(), RoleType.COMPLEX_TYPE)
                 .end();
         repositoryService.addObject(user.asPrismObject(), null, result);
 
@@ -3604,8 +3606,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertUser(user.getOid(), "user after")
                 .display()
                 .triggers()
-                    .assertTriggers(3)      // for some reason two new triggers are created
-                    .end()
+                .assertTriggers(3)      // for some reason two new triggers are created
+                .end()
                 .assertAssignments(1);
     }
 }

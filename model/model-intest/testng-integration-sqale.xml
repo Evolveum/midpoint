@@ -35,8 +35,8 @@
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiConnectorResources"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
