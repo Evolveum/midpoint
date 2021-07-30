@@ -314,14 +314,14 @@ public abstract class FileFormatController {
                 variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
             }
         }
-        Object values = null;
+        Collection<? extends PrismValue> values = null;
         try {
             values = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (export)", task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (values == null || (values instanceof Collection && ((Collection) values).isEmpty())) {
-            values = "";
+        if (values == null || values.isEmpty()) {
+            return "";
         }
         return values;
     }
@@ -344,9 +344,6 @@ public abstract class FileFormatController {
             value = getReportService().evaluateScript(report.asPrismObject(), expression, variables, "value for column (import)", task, task.getResult());
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
-        }
-        if (value instanceof PrismValue) {
-            return ((PrismValue) value).getRealValue();
         }
         return value;
     }

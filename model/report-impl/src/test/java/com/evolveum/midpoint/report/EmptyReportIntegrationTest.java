@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -44,24 +45,28 @@ public class EmptyReportIntegrationTest extends AbstractModelIntegrationTest {
     // TODO deduplicate
     void commonInitialization(OperationResult initResult)
             throws CommonException, EncryptionException, IOException {
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
 
         modelService.postInit(initResult);
         try {
-            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         } catch (ObjectAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
 
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         login(userAdministrator);
     }
 
     void createUsers(int users, OperationResult initResult) throws CommonException {
         for (int i = 0; i < users; i++) {
             UserType user = new UserType(prismContext)
-                    .name(String.format("u%06d", i));
+                    .name(String.format("u%06d", i))
+                    .givenName(String.format("GivenNameU%06d", i))
+                    .familyName(String.format("FamilyNameU%06d", i))
+                    .fullName(String.format("FullNameU%06d", i))
+                    .emailAddress(String.format("EmailU%06d@test.com", i));
             repositoryService.addObject(user.asPrismObject(), null, initResult);
         }
         System.out.printf("%d users created", users);

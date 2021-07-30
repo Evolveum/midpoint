@@ -231,6 +231,12 @@ public class ExpressionUtil {
                 // TODO should we attempt to convert Item to a list of PrismValues?
                 return typedValue;
             }
+        } else if (value instanceof Collection && ((Collection)value).iterator().next() instanceof PrismValue) {
+            if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
+                return convertPrismValuesToRealValue(typedValue);
+            } else {
+                return typedValue;
+            }
         } else {
             return typedValue;
         }
@@ -304,27 +310,41 @@ public class ExpressionUtil {
         }
     }
 
+    private static TypedValue<?> convertPrismValuesToRealValue(TypedValue<?> typedValue) {
+        Object collection = typedValue.getValue();
+        if (!(collection instanceof Collection)) {
+            return typedValue;
+        }
+        List realValues = new ArrayList();
+        ((Collection)collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
+        typedValue.setValue(realValues);
+        return typedValue;
+    }
+
     private static TypedValue<?> convertPrismValueToRealValue(TypedValue<?> typedValue) {
-        Object value = typedValue.getValue();
+        typedValue.setValue(convertPrismValueToRealValue(typedValue.getValue()));
+        return typedValue;
+    }
+    private static Object convertPrismValueToRealValue(Object value) {
         if (value instanceof PrismContainerValue<?>) {
             PrismContainerValue<?> cval = ((PrismContainerValue<?>) value);
             Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
-                typedValue.setValue(value);
+                return value;
             } else {
-                typedValue.setValue(cval.asContainerable());
+                return cval.asContainerable();
             }
         } else if (value instanceof PrismPropertyValue<?>) {
-            typedValue.setValue(((PrismPropertyValue<?>) value).getValue());
+            return ((PrismPropertyValue<?>) value).getValue();
         } else if (value instanceof PrismReferenceValue) {
             if (((PrismReferenceValue) value).getDefinition() != null) {
-                typedValue.setValue(((PrismReferenceValue) value).asReferencable());
+                return ((PrismReferenceValue) value).asReferencable();
             }
         } else {
             // Should we throw an exception here?
         }
-        return typedValue;
+        return value;
     }
 
     private static TypedValue<?> resolveReference(TypedValue referenceTypedValue, String variableName,

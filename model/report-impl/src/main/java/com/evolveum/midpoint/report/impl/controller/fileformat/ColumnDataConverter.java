@@ -211,14 +211,13 @@ class ColumnDataConverter<C extends Containerable> {
     private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(ExpressionType expression, Object input) {
         VariablesMap variables = new VariablesMap();
         variables.putAll(parameters);
-        variables.put(ExpressionConstants.VAR_OBJECT, record, record.getClass()); // TODO or do we need the real definition here?
         if (input == null) { // TODO or should we put 'input' here only under specific conditions as it was originally?
             variables.put(ExpressionConstants.VAR_INPUT, null, Object.class);
         } else {
             variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
         }
         try {
-            return reportService.evaluateToCollection(report.asPrismObject(), expression, variables,
+            return reportService.evaluateScript(report.asPrismObject(), expression, variables,
                     "value for column (export)", task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);

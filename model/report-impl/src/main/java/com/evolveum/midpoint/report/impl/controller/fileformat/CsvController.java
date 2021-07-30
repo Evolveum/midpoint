@@ -313,11 +313,7 @@ public class CsvController extends FileFormatController {
     private void processContainerFromImportReport(Object objectFromExpression, Item newItem, ItemPathType path, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
-            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
-                realValues.addAll((Collection) objectFromExpression);
-            } else {
-                realValues.add(objectFromExpression);
-            }
+            exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismContainerValue newValue;
@@ -349,11 +345,7 @@ public class CsvController extends FileFormatController {
     private void processReferenceFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, Class type, Task task, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
-            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
-                realValues.addAll((Collection) objectFromExpression);
-            } else {
-                realValues.add(objectFromExpression);
-            }
+            exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismReferenceValue newValue;
@@ -423,11 +415,7 @@ public class CsvController extends FileFormatController {
     private void processPropertyFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
-            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
-                realValues.addAll((Collection) objectFromExpression);
-            } else {
-                realValues.add(objectFromExpression);
-            }
+            exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismPropertyValue newValue = getReportService().getPrismContext().itemFactory().createPropertyValue(realValue);
@@ -453,6 +441,21 @@ public class CsvController extends FileFormatController {
                 PrismPropertyValue newValue = getReportService().getPrismContext().itemFactory().createPropertyValue(parsedObject);
                 ((PrismProperty) newItem).addValue(newValue);
             }
+        }
+    }
+
+    private void exportRealValuesFromObjectFromExpression(Object objectFromExpression, Collection realValues) {
+        if (Collection.class.isAssignableFrom(objectFromExpression.getClass())
+                && !((Collection)objectFromExpression).isEmpty()) {
+            if (((Collection)objectFromExpression).iterator().next() instanceof PrismValue) {
+                ((Collection<PrismValue>)objectFromExpression).forEach(value -> realValues.add(value.getRealValue()));
+            } else {
+                realValues.addAll((Collection) objectFromExpression);
+            }
+        } else if (objectFromExpression instanceof PrismValue) {
+            realValues.add(((PrismValue) objectFromExpression).getRealValue());
+        } else {
+            realValues.add(objectFromExpression);
         }
     }
 

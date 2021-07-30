@@ -87,8 +87,15 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
             List<V> evalPrismValues = new ArrayList<>();
             if (evalRawResult != null) {
                 //noinspection unchecked
-                V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
-                evalPrismValues.add(evalPrismValue);
+                if (evalRawResult instanceof Collection) {
+                    ((Collection)evalRawResult).forEach(rawResultValue -> {
+                        V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(rawResultValue);
+                        evalPrismValues.add(evalPrismValue);
+                    });
+                } else {
+                    V evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
+                    evalPrismValues.add(evalPrismValue);
+                }
             }
             return evalPrismValues;
         }

@@ -14,9 +14,9 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityExecution;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Validate;
@@ -36,11 +36,10 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSupport.getColumnLabel;
+import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSupport.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -98,7 +97,7 @@ public class CollectionBasedExportController<C extends Containerable> {
     /** Configuration of the report export, taken from the report. */
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
 
-    /** TODO describe (@lukas) */
+    /** Compiled final collection from more collections and archetypes related to object type. */
     private CompiledObjectCollectionView compiledCollection;
 
     /**
@@ -217,11 +216,27 @@ public class CollectionBasedExportController<C extends Containerable> {
      */
     public void handleDataRecord(int sequentialNumber, C record, RunningTask workerTask, OperationResult result) {
 
-        // TODO condition evaluation
-        // TODO sub-report parameters
+        VariablesMap variables = new VariablesMap();
+        variables.putAll(parameters);
+        variables.put(ExpressionConstants.VAR_OBJECT, record, recordDefinition);
+
+        ExpressionType condition = configuration.getCondition();
+        if (condition != null) {
+            try {
+                boolean writeRecord = evaluateCondition(condition, variables, this.reportService.getExpressionFactory(), workerTask, result);
+                if (!writeRecord){
+                    return;
+                }
+            } catch (Exception e) {
+                LOGGER.error("Couldn't evaluate condition for report record " + record);
+                return;
+            }
+        }
+
+        variables.putAll(this.reportService.evaluateSubreportParameters(report.asPrismObject(), variables, workerTask, result));
 
         ColumnDataConverter<C> columnDataConverter =
-                new ColumnDataConverter<>(record, report, parameters, reportService, workerTask, result);
+                new ColumnDataConverter<>(record, report, variables, reportService, workerTask, result);
 
         ExportedReportDataRow dataRow = new ExportedReportDataRow(sequentialNumber);
 

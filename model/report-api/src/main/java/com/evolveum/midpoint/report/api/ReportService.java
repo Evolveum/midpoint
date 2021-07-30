@@ -23,15 +23,7 @@ public interface ReportService {
     PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    Object evaluateScript(PrismObject<ReportType> report, ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
-
-    /**
-     * Result "full information", i.e. a collection of non-negative prism values stemming from the expression evaluation.
-     *
-     * TODO better name
-     */
-    Collection<? extends PrismValue> evaluateToCollection(PrismObject<ReportType> report, ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+    Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result)

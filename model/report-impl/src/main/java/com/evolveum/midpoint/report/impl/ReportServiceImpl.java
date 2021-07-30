@@ -91,59 +91,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private ScriptingService scriptingService;
 
     @Override
-    public Object evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Object o;
-        if (expression.getExpressionEvaluator().size() == 1
-                && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
-            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-            context.setVariables(variables);
-            context.setContextDescription(shortDesc);
-            context.setTask(task);
-            context.setResult(result);
-            setupExpressionProfiles(context, report);
-
-            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType)expression.getExpressionEvaluator().get(0).getValue();
-            if (expressionType.getObjectVariableMode() == null) {
-                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
-                expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
-            }
-            context.setExpressionType(expressionType);
-            context.setFunctions(createFunctionLibraries());
-            context.setObjectResolver(objectResolver);
-
-            ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
-                    context.getResult());
-
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
-            @NotNull List<PrismValue> expressionResult;
-            try {
-                expressionResult = scriptExpression.evaluate(context);
-            } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-            }
-
-            if (expressionResult.isEmpty()) {
-                return null;
-            }
-            if (expressionResult.size() > 1) {
-                throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
-            }
-            if (expressionResult.get(0) == null ) {
-                return null;
-            }
-            return expressionResult.get(0).getRealValue();
-
-        } else {
-            o = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
-        }
-        return o;
-    }
-
-    @Override
-    public Collection<? extends PrismValue> evaluateToCollection(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+    public Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         // TODO why do we treat scripting expressions separately here?!
@@ -400,7 +348,12 @@ public class ReportServiceImpl implements ReportService {
                     if (subreport.getType() != null) {
                         subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
                     } else {
-                        subreportParameterClass = subreportParameter.getClass();
+                        if (subreportParameter instanceof Collection && !((Collection)subreportParameter).isEmpty()
+                                && ((Collection)subreportParameter).iterator().next() instanceof PrismValue) {
+                            subreportParameterClass = ((Collection)subreportParameter).iterator().next().getClass();
+                        } else {
+                            subreportParameterClass = subreportParameter.getClass();
+                        }
                     }
                     subreportVariable.put(subreport.getName(), subreportParameter, subreportParameterClass);
                 } catch (Exception e) {
