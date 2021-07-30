@@ -51,6 +51,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @Autowired protected SqaleRepositoryService repositoryService;
     @Autowired protected SqaleRepoContext sqlRepoContext;
+    @Autowired protected SqaleRepositoryConfiguration repositoryConfiguration;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
 

@@ -187,11 +187,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         processOrdering(paging.getOrderingInstructions());
 
         Integer offset = paging.getOffset();
+        Integer maxSize = paging.getMaxSize();
         // we take null offset as no paging at all
         if (offset != null) {
             sqlQuery.offset(offset.longValue());
-            Integer pageSize = paging.getMaxSize();
-            sqlQuery.limit(pageSize != null ? pageSize.longValue() : DEFAULT_PAGE_SIZE);
+            sqlQuery.limit(maxSize != null ? maxSize.longValue() : DEFAULT_PAGE_SIZE);
+        } else if (maxSize != null) {
+            // we respect limit even without offset, other ways can be used (e.g. WHERE OID > ...)
+            sqlQuery.limit(maxSize);
         }
     }
 

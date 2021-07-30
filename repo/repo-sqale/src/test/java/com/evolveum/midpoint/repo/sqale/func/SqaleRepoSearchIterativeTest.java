@@ -42,10 +42,14 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
     private final TestResultHandler testHandler = new TestResultHandler();
 
+    // default page size for iterative search, reset before each test
+    private static final int ITERATION_PAGE_SIZE = 100;
+
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
-        for (int i = 1; i <= 100; i++) {
+        // we will create two full "pages" of data
+        for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
             UserType user = new UserType(prismContext)
                     .name(String.format("user-%05d", i));
             repositoryService.addObject(user.asPrismObject(), null, result);
@@ -55,6 +59,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
     @BeforeMethod
     public void resetTestHandler() {
         testHandler.reset();
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(ITERATION_PAGE_SIZE);
     }
 
     @Test
