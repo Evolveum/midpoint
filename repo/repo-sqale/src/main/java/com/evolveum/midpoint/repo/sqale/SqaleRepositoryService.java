@@ -896,6 +896,11 @@ public class SqaleRepositoryService implements RepositoryService {
             int handledObjectsTotal = 0;
 
             while (true) {
+                if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
+                    // relevant only for the last page
+                    pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
+                }
+
                 // filterAnd() is quite null safe, even for both nulls
                 pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
                         originalQuery != null ? originalQuery.getFilter() : null,
@@ -920,19 +925,19 @@ public class SqaleRepositoryService implements RepositoryService {
                     }
                     handledObjectsTotal += 1;
 
-                    if (maxSize != null && maxSize <= handledObjectsTotal) {
-                        break;
+                    if (maxSize != null && handledObjectsTotal >= maxSize) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal)
+                                .pagingCookie(lastOid);
                     }
                 }
 
                 if (objects.isEmpty() || objects.size() < pageSize) {
-                    break;
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal)
+                            .pagingCookie(lastOid);
                 }
             }
-
-            return new SearchResultMetadata()
-                    .approxNumberOfAllResults(handledObjectsTotal)
-                    .pagingCookie(lastOid);
         } finally {
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.

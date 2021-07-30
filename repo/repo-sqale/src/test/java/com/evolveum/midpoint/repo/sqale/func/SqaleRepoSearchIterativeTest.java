@@ -51,7 +51,8 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         // we will create two full "pages" of data
         for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
             UserType user = new UserType(prismContext)
-                    .name(String.format("user-%05d", i));
+                    .name(String.format("user-%05d", i))
+                    .costCenter(String.valueOf(i / 80)); // 80 per cost center
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
     }
@@ -78,6 +79,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 searchObjectsIterative(query, operationResult);
 
         then("no operation is performed");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(searchResultMetadata).isNotNull();
         assertThat(searchResultMetadata.getApproxNumberOfAllResults()).isZero();
         // this is not the main part, just documenting that currently we short circuit the operation
@@ -97,6 +99,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 searchObjectsIterative(null, operationResult);
 
         then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
@@ -108,6 +111,34 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertTypicalPageOperationCount(metadata);
 
         and("all objects of the specified type (here User) were processed");
+        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+    }
+
+    @Test
+    public void test111SearchIterativeWithLastPageNotFull() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+        given("total result count not multiple of the page size");
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(47);
+
+        when("calling search iterative with null query");
+        SearchResultMetadata metadata =
+                searchObjectsIterative(null, operationResult);
+
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type were processed");
         assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
     }
 
@@ -131,12 +162,40 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
         and("search operations were called");
         assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
 
         and("all objects up to specified UUID were processed");
         QUser u = aliasFor(QUser.class);
         assertThat(testHandler.getCounter())
                 // first >= midOid was processed too
                 .isEqualTo(count(u, u.oid.lt(UUID.fromString(midOid))) + 1);
+    }
+
+    @Test
+    public void test120SearchIterativeWithMaxSize() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("query with maxSize specified");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .maxSize(101)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and reports partial result (because of the break)");
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("search operations were called");
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("specified amount of objects was processed");
+        assertThat(testHandler.getCounter()).isEqualTo(101);
     }
 
     @SafeVarargs
@@ -188,7 +247,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         @Override
         public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
             UserType user = object.asObjectable();
-            user.setIteration(counter.getAndIncrement()); // TODO can I use iteration freely?
+            user.setEmployeeNumber(String.valueOf(counter.getAndIncrement()));
             return !stoppingPredicate.test(user); // true means continue, so we need NOT
         }
     }
