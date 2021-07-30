@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -52,7 +53,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
             UserType user = new UserType(prismContext)
                     .name(String.format("user-%05d", i))
-                    .costCenter(String.valueOf(i / 80)); // 80 per cost center
+                    .costCenter(String.valueOf(i / 10)); // 10 per cost center
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
     }
@@ -198,6 +199,47 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         assertThat(testHandler.getCounter()).isEqualTo(101);
     }
 
+    @Test
+    public void test125SearchIterativeWithCustomOrdering() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("query with custom ordering");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .asc(UserType.F_COST_CENTER)
+                .maxSize(47) // see the limit below
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and reports partial result (because of the break)");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse(); // everything was processed
+
+        and("search operations were called");
+        assertOperationRecordedCount(RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects were processed in proper order");
+        QUser u = aliasFor(QUser.class);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            List<String> result = jdbcSession.newQuery()
+                    .from(u)
+                    .orderBy(u.costCenter.asc(), u.oid.asc())
+                    .select(u.employeeNumber)
+                    .limit(47) // must match the maxSize above
+                    .fetch();
+
+            for (int i = 1; i < result.size(); i++) {
+                assertThat(result.get(i)).isEqualTo(getTestNumber() + "-" + i); // order matches
+            }
+        }
+    }
+
     @SafeVarargs
     private SearchResultMetadata searchObjectsIterative(
             ObjectQuery query,
@@ -226,7 +268,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 .getIterativeSearchByPagingBatchSize();
     }
 
-    private static class TestResultHandler implements ResultHandler<UserType> {
+    private class TestResultHandler implements ResultHandler<UserType> {
 
         private final AtomicInteger counter = new AtomicInteger();
         private Predicate<UserType> stoppingPredicate;
@@ -247,7 +289,17 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
         @Override
         public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
             UserType user = object.asObjectable();
-            user.setEmployeeNumber(String.valueOf(counter.getAndIncrement()));
+            try {
+                repositoryService.modifyObject(UserType.class, user.getOid(),
+                        prismContext.deltaFor(UserType.class)
+                                .item(UserType.F_EMPLOYEE_NUMBER)
+                                .replace(getTestNumber() + "-" + counter.getAndIncrement())
+                                .asObjectDelta(user.getOid())
+                                .getModifications(),
+                        parentResult);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             return !stoppingPredicate.test(user); // true means continue, so we need NOT
         }
     }
