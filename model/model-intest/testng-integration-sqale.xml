@@ -11,7 +11,6 @@
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
     <!-- TODO were in unit tests - but why?
-    TODO: enable after implementing SqaleRepositoryService.searchObjectsIterative()
     <test name="Security" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
@@ -36,16 +35,20 @@
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiConnectorResources"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
+            <!-- TODO: init failing: ObjectNotFoundException:Object of type 'OrgType' with OID '00000000-8888-6666-0000-100000000002' was not found.
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
+            <!-- TODO java.lang.IllegalArgumentException: Unsupported object type null when setting connector ref without type, but default value should be obvious
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
