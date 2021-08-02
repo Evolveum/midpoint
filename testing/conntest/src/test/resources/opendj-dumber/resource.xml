@@ -42,6 +42,7 @@
             <icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
             <icfcldap:synchronizationStrategy>modifyTimestamp</icfcldap:synchronizationStrategy>
             <icfcldap:useUnbind>true</icfcldap:useUnbind> <!-- MID-6724 -->
+            <icfcldap:timeout>5000</icfcldap:timeout>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
