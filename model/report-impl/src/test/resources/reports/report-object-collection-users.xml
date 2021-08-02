@@ -51,4 +51,7 @@
         </view>
         <useOnlyReportView>true</useOnlyReportView>
     </objectCollection>
+    <fileFormat>
+        <type>html</type>
+    </fileFormat>
 </report>

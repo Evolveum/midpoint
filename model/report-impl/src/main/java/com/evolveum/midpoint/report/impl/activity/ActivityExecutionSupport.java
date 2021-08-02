@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
@@ -53,11 +53,22 @@ class ActivityExecutionSupport {
      */
     private ObjectReferenceType globalReportDataRef;
 
+    /**
+     * Compiled final collection from more collections and archetypes related to object type.
+     */
+    private CompiledObjectCollectionView compiledView;
+
+    /**
+     * Service for reports.
+     */
+    private ReportServiceImpl reportService;
+
     ActivityExecutionSupport(
-            ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context, ReportServiceImpl reportService) {
         runningTask = context.getTaskExecution().getRunningTask();
         activity = context.getActivity();
         beans = context.getTaskExecution().getBeans();
+        this.reportService = reportService;
     }
 
     void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
@@ -100,5 +111,14 @@ class ActivityExecutionSupport {
      */
     public @NotNull ReportType getReport() {
         return requireNonNull(report);
+    }
+
+    @NotNull CompiledObjectCollectionView getCompiledCollectionView(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (compiledView == null) {
+            compiledView = reportService.createCompiledView(report.getObjectCollection(), true, runningTask, result);
+        }
+        return compiledView;
     }
 }

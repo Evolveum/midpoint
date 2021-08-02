@@ -23,59 +23,12 @@ import java.util.stream.Collectors;
 /**
  * Creates and manipulates exported reports in CSV format.
  */
-public class CsvReportDataWriter implements ReportDataWriter {
+public class CsvReportDataWriter extends AbstractReportDataWriter {
 
     @NotNull private final CommonCsvSupport support;
 
-    /**
-     * Header row to be put into resulting CSV file.
-     *
-     * TODO move to some abstract superclass?
-     */
-    private ExportedReportHeaderRow headerRow;
-
-    /**
-     * Data rows to be put into resulting CSV file.
-     *
-     * TODO move to some abstract superclass?
-     */
-    @NotNull private final List<ExportedReportDataRow> dataRows = new ArrayList<>();
-
     public CsvReportDataWriter(FileFormatConfigurationType configuration) {
         this.support = new CommonCsvSupport(configuration);
-    }
-
-    @Override
-    public void setHeaderRow(ExportedReportHeaderRow headerRow) {
-        this.headerRow = headerRow;
-    }
-
-    /**
-     * Thread safety: Guarded by `this`.
-     *
-     * Tries to find a place where new row is to be inserted. It is the first row (from backwards) where the sequential number
-     * is less than the number of row being inserted.
-     *
-     * Note: we are going from the end because we assume that the new object will be placed approximately there.
-     * So the time complexity is more O(n) than O(n^2) as it would be if we would go from the beginning of the list.
-     *
-     * @param row Formatted (string) values for the row.
-     */
-    @Override
-    public synchronized void appendDataRow(ExportedReportDataRow row) {
-        int i;
-        for (i = dataRows.size() - 1; i >= 0; i--) {
-            if (dataRows.get(i).getSequentialNumber() < row.getSequentialNumber()) {
-                break;
-            }
-        }
-        dataRows.add(i + 1, row);
-    }
-
-    @Override
-    public void reset() {
-        headerRow = null;
-        dataRows.clear();
     }
 
     @Override
@@ -85,7 +38,7 @@ public class CsvReportDataWriter implements ReportDataWriter {
             CSVFormat csvFormat = createCsvFormat();
             CSVPrinter printer = new CSVPrinter(stringWriter, csvFormat);
 
-            for (ExportedReportDataRow row : dataRows) {
+            for (ExportedReportDataRow row : getDataRows()) {
                 printer.printRecord(createPhysicalColumnsList(row));
             }
             printer.flush();
@@ -102,9 +55,9 @@ public class CsvReportDataWriter implements ReportDataWriter {
 
     private CSVFormat createCsvFormat() {
         CSVFormat csvFormat = support.createCsvFormat();
-        if (headerRow != null) {
+        if (getHeaderRow() != null) {
             return csvFormat
-                    .withHeader(createPhysicalColumnsList(headerRow).toArray(new String[0]))
+                    .withHeader(createPhysicalColumnsList(getHeaderRow()).toArray(new String[0]))
                     .withSkipHeaderRecord(false);
         } else {
             return csvFormat.withSkipHeaderRecord(true);

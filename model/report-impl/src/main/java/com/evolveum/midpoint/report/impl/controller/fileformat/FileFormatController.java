@@ -117,14 +117,6 @@ public abstract class FileFormatController {
 
     public abstract String getType();
 
-    protected static String getMessage(LocalizationService localizationService, String key) {
-        return getMessage(localizationService, key, null);
-    }
-
-    protected static String getMessage(LocalizationService localizationService, String key, Object... params) {
-        return localizationService.translate(key, params, Locale.getDefault(), key);
-    }
-
     /**
      * TODO migrate to {@link ColumnDataConverter}
      */
@@ -152,8 +144,8 @@ public abstract class FileFormatController {
                 }
                 // FIXME The real value itself must not be a collection. So if it occurs, this problem should be
                 //  resolved elsewhere, not by a code like this.
-                if (value instanceof PrismValue && ((PrismValue)value).getRealValue() instanceof Collection){
-                    return String.valueOf(((Collection<?>) ((PrismValue)value).getRealValue()).size());
+                if (value instanceof Collection){
+                    return String.valueOf(((Collection<?>) value).size());
                 }
                 return "1";
             }
@@ -353,7 +345,7 @@ public abstract class FileFormatController {
     }
 
     protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {
-        return GenericSupport.getColumnLabel(column, objectDefinition, reportService.getLocalizationService());
+        return GenericSupport.getLabels(column, objectDefinition, reportService.getLocalizationService());
     }
 
     protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {

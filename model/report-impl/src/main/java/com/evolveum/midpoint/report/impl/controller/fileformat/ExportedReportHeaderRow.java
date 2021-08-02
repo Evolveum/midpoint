@@ -9,12 +9,13 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Header row for report being exported.
  *
- * TODO generalize to HTML, if needed
  */
 class ExportedReportHeaderRow {
 
@@ -23,15 +24,26 @@ class ExportedReportHeaderRow {
      */
     @NotNull private final List<String> labels;
 
-    private ExportedReportHeaderRow(@NotNull List<String> labels) {
+    /**
+     * Columns for the header row.
+     */
+    @NotNull private final List<ExportedReportHeaderColumn> columns;
+
+    private ExportedReportHeaderRow(@NotNull List<ExportedReportHeaderColumn> columns, @NotNull List<String> labels) {
+        this.columns = columns;
         this.labels = labels;
     }
 
-    static ExportedReportHeaderRow fromLabels(List<String> labels) {
-        return new ExportedReportHeaderRow(labels);
+    static ExportedReportHeaderRow fromColumns(List<ExportedReportHeaderColumn> columns) {
+        List<String> labels = columns.stream().map(ExportedReportHeaderColumn::getLabel).collect(Collectors.toList());
+        return new ExportedReportHeaderRow(columns, labels);
     }
 
     public @NotNull List<String> getLabels() {
         return labels;
+    }
+
+    public @NotNull List<ExportedReportHeaderColumn> getColumns() {
+        return columns;
     }
 }

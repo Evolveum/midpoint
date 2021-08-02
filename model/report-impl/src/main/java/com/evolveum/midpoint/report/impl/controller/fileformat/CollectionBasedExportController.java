@@ -98,7 +98,7 @@ public class CollectionBasedExportController<C extends Containerable> {
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
 
     /** Compiled final collection from more collections and archetypes related to object type. */
-    private CompiledObjectCollectionView compiledCollection;
+    @NotNull private final CompiledObjectCollectionView compiledCollection;
 
     /**
      * Columns for the report.
@@ -125,7 +125,8 @@ public class CollectionBasedExportController<C extends Containerable> {
             @NotNull ReportDataWriter dataWriter,
             @NotNull ReportType report,
             @NotNull ObjectReferenceType globalReportDataRef,
-            @NotNull ReportServiceImpl reportService) {
+            @NotNull ReportServiceImpl reportService,
+            @NotNull CompiledObjectCollectionView compiledCollection) {
 
         this.dataSource = dataSource;
         this.dataWriter = dataWriter;
@@ -139,6 +140,7 @@ public class CollectionBasedExportController<C extends Containerable> {
         this.modelInteractionService = reportService.getModelInteractionService();
         this.repositoryService = reportService.getRepositoryService();
         this.localizationService = reportService.getLocalizationService();
+        this.compiledCollection = compiledCollection;
     }
 
     /**
@@ -148,7 +150,6 @@ public class CollectionBasedExportController<C extends Containerable> {
     public void initialize(@NotNull RunningTask task, @NotNull OperationResult result)
             throws CommonException {
 
-        compiledCollection = reportService.createCompiledView(configuration, true, task, result);
         columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
 
         initializeParameters(configuration.getParameter(), task); // must come before data source initialization
@@ -200,14 +201,14 @@ public class CollectionBasedExportController<C extends Containerable> {
     }
 
     private void setHeaderRow() {
-        List<String> labels = columns.stream()
+        List<ExportedReportHeaderColumn> headerColumns = columns.stream()
                 .map(column -> {
                     Validate.notNull(column.getName(), "Name of column is null");
-                    return getColumnLabel(column, recordDefinition, localizationService);
+                    return getHeaderColumns(column, recordDefinition, localizationService);
                 })
                 .collect(Collectors.toList());
 
-        dataWriter.setHeaderRow(ExportedReportHeaderRow.fromLabels(labels));
+        dataWriter.setHeaderRow(ExportedReportHeaderRow.fromColumns(headerColumns));
     }
 
     /**

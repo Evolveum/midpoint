@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionType
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -80,7 +82,7 @@ public class ReportDataCreationActivityExecution
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Data creation");
         reportService = context.getActivity().getHandler().reportService;
-        support = new ActivityExecutionSupport(context);
+        support = new ActivityExecutionSupport(context, getActivityHandler().reportService);
     }
 
     /**
@@ -107,13 +109,15 @@ public class ReportDataCreationActivityExecution
         stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
 
         SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
-        ReportDataWriter dataWriter = ReportUtils.createDataWriter(report, FileFormatTypeType.CSV);
+        ReportDataWriter dataWriter = ReportUtils.createDataWriter(
+                report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionBasedExportController<>(
                 searchSpecificationHolder,
                 dataWriter,
                 report,
                 support.getGlobalReportDataRef(),
-                reportService);
+                reportService,
+                support.getCompiledCollectionView(result));
 
         controller.initialize(task, result);
 

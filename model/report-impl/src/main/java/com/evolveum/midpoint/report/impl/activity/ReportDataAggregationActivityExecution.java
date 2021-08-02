@@ -9,15 +9,19 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,10 +69,15 @@ class ReportDataAggregationActivityExecution
      */
     private FileFormatController fileFormatController;
 
+    /**
+     * Data writer which completize context of report.
+     */
+    private ReportDataWriter dataWriter;
+
     ReportDataAggregationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
-        support = new ActivityExecutionSupport(context);
+        support = new ActivityExecutionSupport(context, getActivityHandler().reportService);
     }
 
     @Override
@@ -85,6 +94,9 @@ class ReportDataAggregationActivityExecution
         aggregatedFilePath =
                 replaceColons(
                         engineController.getDestinationFileName(support.getReport(), fileFormatController));
+
+        dataWriter = ReportUtils.createDataWriter(
+                support.getReport(), FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
     }
 
     /**
@@ -134,18 +146,15 @@ class ReportDataAggregationActivityExecution
 
     @Override
     protected void finishExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        writeToReportFile();
+        writeToReportFile(dataWriter.completizeReport(aggregatedData.toString()));
         saveReportDataObject(result);
     }
 
-    /**
-     * TODO use correct charset
-     */
-    private void writeToReportFile() {
+    private void writeToReportFile(String contextOfFile) {
         try {
             FileUtils.writeByteArrayToFile(
                     new File(aggregatedFilePath),
-                    aggregatedData.toString().getBytes(StandardCharsets.UTF_8));
+                    contextOfFile.getBytes(Charset.defaultCharset()));
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }

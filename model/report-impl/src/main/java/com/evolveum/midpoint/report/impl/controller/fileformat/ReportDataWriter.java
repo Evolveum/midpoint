@@ -53,4 +53,10 @@ public interface ReportDataWriter {
      * from the format-specific configuration which is handled by the writer).
      */
     boolean shouldWriteHeader();
+
+    /**
+     * Returns the final text output of the report, formatted according to the rules of the file format (CSV/HTML)
+     * and an added prefix and suffix of report.
+     */
+    String completizeReport(String aggregatedData);
 }

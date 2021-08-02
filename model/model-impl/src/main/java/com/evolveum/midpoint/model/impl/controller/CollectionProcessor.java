@@ -455,6 +455,7 @@ public class CollectionProcessor {
             compileSearchBox(existingView, objectListViewType, replaceIfExist);
             compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
             compilePaging(existingView, objectListViewType, replaceIfExist);
+            compileViewIdentifier(existingView, objectListViewType, replaceIfExist);
         }
     }
 
@@ -613,5 +614,36 @@ public class CollectionProcessor {
         } else if (replaceIfExist) {
             MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
         }
+    }
+
+    private void compileViewIdentifier(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        String identifier = determineViewIdentifier(objectListViewType);
+        if (identifier == null) {
+            return;
+        }
+        if (existingView.getViewIdentifier() == null || replaceIfExist) {
+            existingView.setViewIdentifier(identifier);
+        }
+    }
+
+    public String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
+        String viewIdentifier = objectListViewType.getIdentifier();
+        if (viewIdentifier != null) {
+            return viewIdentifier;
+        }
+        String viewName = objectListViewType.getName();
+        if (viewName != null) {
+            // legacy, deprecated
+            return viewName;
+        }
+        CollectionRefSpecificationType collection = objectListViewType.getCollection();
+        if (collection == null) {
+            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
+        }
+        ObjectReferenceType collectionRef = collection.getCollectionRef();
+        if (collectionRef == null) {
+            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
+        }
+        return collectionRef.getOid();
     }
 }

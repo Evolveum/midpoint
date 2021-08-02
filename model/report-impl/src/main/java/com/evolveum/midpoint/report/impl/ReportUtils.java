@@ -9,7 +9,9 @@ package com.evolveum.midpoint.report.impl;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -28,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.report.impl.controller.fileformat.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -944,7 +947,8 @@ public class ReportUtils {
         }
     }
 
-    public static ReportDataWriter createDataWriter(@NotNull ReportType report, @NotNull FileFormatTypeType defaultType) {
+    public static ReportDataWriter createDataWriter(@NotNull ReportType report, @NotNull FileFormatTypeType defaultType,
+            ReportServiceImpl reportService, CompiledObjectCollectionView compiledView) {
         FileFormatTypeType formatType;
         if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
             formatType = report.getFileFormat().getType();
@@ -953,7 +957,7 @@ public class ReportUtils {
         }
         switch (formatType) {
             case HTML:
-                return new HtmlReportDataWriter();
+                return new HtmlReportDataWriter(reportService, compiledView);
             case CSV:
                 return new CsvReportDataWriter(report.getFileFormat());
             default:

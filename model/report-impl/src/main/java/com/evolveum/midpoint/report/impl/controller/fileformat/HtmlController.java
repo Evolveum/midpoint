@@ -57,7 +57,7 @@ public class HtmlController extends FileFormatController {
 
     private static final Trace LOGGER = TraceManager.getTrace(HtmlController.class);
 
-    private static final String REPORT_CSS_STYLE_FILE_NAME = "dashboard-report-style.css";
+    private static final String REPORT_CSS_STYLE_FILE_NAME = "html-report-style.css";
 
     private static final String REPORT_GENERATED_ON = "Widget.generatedOn";
     private static final String NUMBER_OF_RECORDS = "Widget.numberOfRecords";
@@ -245,8 +245,8 @@ public class HtmlController extends FileFormatController {
     private ContainerTag createTableBox(ContainerTag table, String nameOfTable, int countOfTableRecords,
             String createdTime, DisplayType display) {
         ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(nameOfTable))
-                .with(TagCreator.p(getMessage(localizationService, REPORT_GENERATED_ON, createdTime)))
-                .with(TagCreator.p(getMessage(localizationService, NUMBER_OF_RECORDS, countOfTableRecords))).with(table);
+                .with(TagCreator.p(GenericSupport.getMessage(localizationService, REPORT_GENERATED_ON, createdTime)))
+                .with(TagCreator.p(GenericSupport.getMessage(localizationService, NUMBER_OF_RECORDS, countOfTableRecords))).with(table);
         String style = "";
         String classes = "";
         if (display != null) {
@@ -347,7 +347,8 @@ public class HtmlController extends FileFormatController {
 
     private ContainerTag createTHead(String prefix, Set<String> set) {
         return TagCreator.thead(TagCreator.tr(TagCreator.each(set,
-                header -> TagCreator.th(TagCreator.div(TagCreator.span(getMessage(localizationService, prefix + header)).withClass("sortableLabel")))))
+                header -> TagCreator.th(TagCreator.div(TagCreator.span(
+                        GenericSupport.getMessage(localizationService, prefix + header)).withClass("sortableLabel")))))
                 .withStyle("width: 100%;"));
     }
 

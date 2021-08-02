@@ -24,6 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Locale;
+
 /**
  * Generic support methods, useful in all contexts (e.g. both export and import of reports).
  *
@@ -31,14 +33,22 @@ import org.apache.commons.lang3.StringUtils;
  */
 class GenericSupport {
 
-    static String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
+    static ExportedReportHeaderColumn getHeaderColumns(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
+            LocalizationService localizationService) {
+        String label = getLabels(column, objectDefinition, localizationService);
+        String cssClass = column.getDisplay() != null ? column.getDisplay().getCssClass() : null;
+        String cssStyle = column.getDisplay() != null ? column.getDisplay().getCssStyle() : null;
+        return ExportedReportHeaderColumn.fromLabel(label, cssClass, cssStyle);
+    }
+
+    static String getLabels(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
             LocalizationService localizationService) {
         ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
 
         DisplayType columnDisplay = column.getDisplay();
         String label;
         if (columnDisplay != null && columnDisplay.getLabel() != null) {
-            label = FileFormatController.getMessage(localizationService, columnDisplay.getLabel().getOrig());
+            label = getMessage(localizationService, columnDisplay.getLabel().getOrig());
         } else {
 
             String name = column.getName();
@@ -52,7 +62,7 @@ class GenericSupport {
 
             }
             if (StringUtils.isNotEmpty(displayName)) {
-                label = FileFormatController.getMessage(localizationService, displayName);
+                label = getMessage(localizationService, displayName);
             } else {
                 label = name;
             }
@@ -69,5 +79,13 @@ class GenericSupport {
             return false;
         }
         return true;
+    }
+
+    protected static String getMessage(LocalizationService localizationService, String key) {
+        return getMessage(localizationService, key, null);
+    }
+
+    protected static String getMessage(LocalizationService localizationService, String key, Object... params) {
+        return localizationService.translate(key, params, Locale.getDefault(), key);
     }
 }
