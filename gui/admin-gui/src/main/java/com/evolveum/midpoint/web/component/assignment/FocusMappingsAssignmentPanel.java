@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -26,7 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
 
-@PanelDescription(panelIdentifier = "focusMappingsAssignments", identifier = "focusMappingsAssignments", applicableFor = AbstractRoleType.class)
+@PanelDescription(panelIdentifier = "focusMappingsAssignments",
+        identifier = "focusMappingsAssignments",
+        applicableFor = AbstractRoleType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Focus mappings")
 public class FocusMappingsAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;

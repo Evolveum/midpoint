@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -34,7 +35,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import javax.xml.namespace.QName;
 
 @Experimental
-@PanelDescription(panelIdentifier = "gdprAssignments", identifier = "gdprAssignments", applicableFor = UserType.class)
+@PanelDescription(panelIdentifier = "gdprAssignments",
+        identifier = "gdprAssignments",
+        applicableFor = UserType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "GDPR")
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -20,7 +21,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-@PanelDescription(panelIdentifier = "roleAssignments", identifier = "roleAssignments", applicableFor = FocusType.class)
+@PanelDescription(panelIdentifier = "roleAssignments",
+        identifier = "roleAssignments",
+        applicableFor = FocusType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Role")
 public class RoleAssignmentPanel extends AbstractRoleAssignmentPanel {
 

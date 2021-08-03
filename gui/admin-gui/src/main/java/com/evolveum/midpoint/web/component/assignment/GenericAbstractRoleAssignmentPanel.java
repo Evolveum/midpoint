@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
@@ -32,7 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 @Experimental
-@PanelDescription(panelIdentifier = "dataProtectionAssignments", identifier = "dataProtectionAssignments", applicableFor = FocusType.class)
+@PanelDescription(panelIdentifier = "dataProtectionAssignments",
+        identifier = "dataProtectionAssignments",
+        applicableFor = FocusType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Data protection")
 public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPanel {
 

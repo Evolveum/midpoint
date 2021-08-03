@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -36,7 +37,10 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelDescription(panelIdentifier = "policyRuleAssignments", identifier = "policyRuleAssignments", applicableFor = AbstractRoleType.class)
+@PanelDescription(panelIdentifier = "policyRuleAssignments",
+        identifier = "policyRuleAssignments",
+        applicableFor = AbstractRoleType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Policy rule")
 public class PolicyRulesPanel extends AssignmentPanel {
 

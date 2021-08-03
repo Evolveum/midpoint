@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -16,7 +17,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
-@PanelDescription(panelIdentifier = "orgAssignments", identifier = "orgAssignments", applicableFor = FocusType.class)
+@PanelDescription(panelIdentifier = "orgAssignments",
+        identifier = "orgAssignments",
+        applicableFor = FocusType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Org")
 public class OrgAssignmentPanel extends AbstractRoleAssignmentPanel {
 

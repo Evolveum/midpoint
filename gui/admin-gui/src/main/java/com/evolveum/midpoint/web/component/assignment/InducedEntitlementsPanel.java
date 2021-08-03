@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -58,7 +59,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * Created by honchar.
  */
-@PanelDescription(panelIdentifier = "inducedEntitlements", identifier = "inducedEntitlements", applicableFor = AbstractRoleType.class)
+@PanelDescription(panelIdentifier = "inducedEntitlements",
+        identifier = "inducedEntitlements",
+        applicableFor = AbstractRoleType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Induced entitlements")
 //TODO only for indicements
 public class InducedEntitlementsPanel extends InducementsPanel {

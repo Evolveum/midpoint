@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -49,7 +50,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
-@PanelDescription(panelIdentifier = "indirectAssignments", identifier = "indirectAssignments", applicableFor = AssignmentHolderType.class)
+@PanelDescription(panelIdentifier = "indirectAssignments",
+        identifier = "indirectAssignments",
+        applicableFor = AssignmentHolderType.class,
+        childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "With indirect")
 public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;

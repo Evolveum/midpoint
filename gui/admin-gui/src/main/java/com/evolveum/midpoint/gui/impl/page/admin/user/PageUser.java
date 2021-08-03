@@ -209,6 +209,7 @@ public class PageUser extends PageBase {
                 Panel panel = (Panel) constructor.newInstance(ID_MAIN_PANEL, model);
                 panel.setOutputMarkupId(true);
                 addOrReplace(panel);
+                return;
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }

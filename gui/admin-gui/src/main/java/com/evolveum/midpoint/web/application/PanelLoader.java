@@ -7,12 +7,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.markup.html.panel.Panel;
+
 import java.util.*;
 
 public class PanelLoader {
 
     private static final String[] PACKAGES_TO_SCAN = {
-            "com.evolveum.midpoint.web.component.objectdetails",
+            "com.evolveum.midpoint.web.component.objectdetails", //Old panels
+            "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin"
     };
 
@@ -42,6 +45,39 @@ public class PanelLoader {
                     continue;
                 }
                 Class<? extends ObjectType> applicableFor = desc.applicableFor();
+                if (applicableFor.isAssignableFrom(objectType) && desc.childOf().equals(Panel.class)) {
+                    ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
+                    config.setIdentifier(desc.identifier());
+                    config.setPanelIdentifier(desc.panelIdentifier());
+                    PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
+                    if (display != null) {
+                        config.setDisplay(createDisplayType(display));
+                    }
+                    processChildren(objectType, config, clazz);
+                    panels.add(config);
+                }
+            }
+        }
+        return panels;
+    }
+
+    private static void processChildren(Class<? extends ObjectType> objectType, ContainerPanelConfigurationType parent, Class<?> parentClass) {
+        for (String packageToScan : PACKAGES_TO_SCAN) {
+            Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
+            for (Class<?> clazz : classes) {
+                PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
+                if (desc == null || desc.applicableFor() == null) {
+                    continue;
+                }
+                if (Panel.class.equals(desc.childOf())) {
+                    continue;
+                }
+
+                if (!desc.childOf().equals(parentClass)) {
+                    continue;
+                }
+
+                Class<? extends ObjectType> applicableFor = desc.applicableFor();
                 if (applicableFor.isAssignableFrom(objectType)) {
                     ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
                     config.setIdentifier(desc.identifier());
@@ -50,11 +86,11 @@ public class PanelLoader {
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
                     }
-                    panels.add(config);
+                    parent.getPanel().add(config);
                 }
             }
         }
-        return panels;
+
     }
 
     private static DisplayType createDisplayType(PanelDisplay display) {

@@ -6,6 +6,8 @@ import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.markup.html.panel.Panel;
+
 import javax.xml.namespace.QName;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,5 +21,6 @@ public @interface PanelDescription {
     String panelIdentifier() default "";
     Class<? extends ObjectType> applicableFor() default ObjectType.class;
     ItemStatus[] status() default {ItemStatus.ADDED, ItemStatus.NOT_CHANGED};
+    Class<? extends Panel> childOf() default Panel.class;
 
 }

@@ -33,8 +33,11 @@ public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends
     private static final String ID_MAIN_PANEL = "properties";
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderBasicPanel.class);
 
-    public AssignmentHolderBasicPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model) {
+    private ContainerPanelConfigurationType config;
+
+    public AssignmentHolderBasicPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, model);
+        this.config = config;
     }
 
     @Override
