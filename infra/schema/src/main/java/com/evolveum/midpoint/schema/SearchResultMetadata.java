@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Evolveum and contributors
+ * Copyright (C) 2014-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -49,6 +49,11 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
         this.pagingCookie = pagingCookie;
     }
 
+    public SearchResultMetadata pagingCookie(String pagingCookie) {
+        this.pagingCookie = pagingCookie;
+        return this;
+    }
+
     /**
      * Returns the approximate number of all results that would be returned for the
      * filter if there was no paging limitation. This property is optional and it is
@@ -65,6 +70,11 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
         this.approxNumberOfAllResults = approxNumberOfAllResults;
     }
 
+    public SearchResultMetadata approxNumberOfAllResults(Integer approxNumberOfAllResults) {
+        this.approxNumberOfAllResults = approxNumberOfAllResults;
+        return this;
+    }
+
     /**
      * Flag indicating whether the search returned partial results.
      * If set to false then all the results requested by the query were returned.
@@ -78,10 +88,20 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
         this.partialResults = partialResults;
     }
 
+    public SearchResultMetadata partialResults(boolean partialResults) {
+        this.partialResults = partialResults;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         SearchResultMetadata that = (SearchResultMetadata) o;
         return partialResults == that.partialResults && Objects.equals(pagingCookie, that.pagingCookie) && Objects.equals(approxNumberOfAllResults, that.approxNumberOfAllResults);
     }

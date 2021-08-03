@@ -884,7 +884,39 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test151PendingOperationCountStoresZeroForEmptyContainer() throws Exception {
+    public void test151PendingOperationItemModification() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("delta changing property inside existing pending operation container");
+        Long cid = repositoryService.getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable().getPendingOperation().get(0).getId();
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .item(ShadowType.F_PENDING_OPERATION, cid, PendingOperationType.F_COMPLETION_TIMESTAMP)
+                .add(MiscUtil.asXMLGregorianCalendar(2L))
+                .asObjectDelta(shadow1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        ShadowType shadowObject = repositoryService
+                .getObject(ShadowType.class, shadow1Oid, null, result)
+                .asObjectable();
+        assertThat(shadowObject.getPendingOperation()).hasSize(1);
+        assertThat(shadowObject.getPendingOperation().get(0).getCompletionTimestamp())
+                .isEqualTo(MiscUtil.asXMLGregorianCalendar(2L));
+
+        and("externalized column is still having (the same) count");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.pendingOperationCount).isEqualTo(1);
+    }
+
+    @Test
+    public void test152PendingOperationCountStoresZeroForEmptyContainer() throws Exception {
         OperationResult result = createOperationResult();
 
         given("delta clearing the pending operation container for shadow 1");

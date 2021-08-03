@@ -64,8 +64,9 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
                     "Filter with right-hand-side path is not supported YET: " + path);
         }
 
-        if (path.isSingleName()) {
-            QName itemName = path.asSingleName();
+        // isSingleName/asSingleName or firstName don't work for T_ID (OID)
+        if (path.size() == 1) {
+            QName itemName = path.firstToQName();
             ItemValueFilterProcessor<ValueFilter<?, ?>> filterProcessor =
                     mapping.itemMapper(itemName)
                             .createFilterProcessor(context);

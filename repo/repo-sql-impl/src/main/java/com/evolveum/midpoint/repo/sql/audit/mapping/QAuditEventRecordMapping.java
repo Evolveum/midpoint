@@ -13,9 +13,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventReco
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.StringPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.CanonicalItemPathItemFi
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.DetailTableItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumOrdinalItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
@@ -91,10 +94,13 @@ public class QAuditEventRecordMapping
                 joinOn((r, i) -> r.id.eq(i.recordId)),
                 CanonicalItemPathItemFilterProcessor.mapper(ai -> ai.changedItemPath)));
 
+        Function<QAuditResource, StringPath> rootToQueryItem = ai -> ai.resourceOid;
         addItemMapping(F_RESOURCE_OID, DetailTableItemFilterProcessor.mapper(
                 QAuditResource.class,
                 joinOn((r, i) -> r.id.eq(i.recordId)),
-                SimpleItemFilterProcessor.stringMapper(ai -> ai.resourceOid)));
+                new DefaultItemSqlMapper<>(
+                        ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                        rootToQueryItem)));
 
         /*
          * There is also no F_ATTORNEY_TYPE and similar paths - unless these are "extension" columns?

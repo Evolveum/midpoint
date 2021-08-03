@@ -36,8 +36,11 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
@@ -122,9 +125,9 @@ public class SqaleRepositoryService implements RepositoryService {
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
-        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
         performanceMonitor = new SqlPerformanceMonitorImpl(
-                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+                repositoryConfiguration().getPerformanceStatisticsLevel(),
+                repositoryConfiguration().getPerformanceStatisticsFile());
         sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
@@ -854,10 +857,12 @@ public class SqaleRepositoryService implements RepositoryService {
 
             query = simplifyQuery(query);
             if (isNoneQuery(query)) {
-                return null;
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
             }
 
             return executeSearchObjectsIterative(type, query, handler, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
             throw t;
@@ -866,63 +871,185 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
+    private static final ItemPath OID_PATH = ItemPath.create(PrismConstants.T_ID);
+
     private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
             Class<T> type,
-            ObjectQuery query,
+            ObjectQuery originalQuery,
             ResultHandler<T> handler,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult operationResult) throws SchemaException {
+            OperationResult operationResult) throws SchemaException, RepositoryException {
 
         try {
+            ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
+            // this is total requested size of the search
+            Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
 
-            Integer maxSize;
-            ObjectQuery pagedQuery;
-            if (query != null) {
-                maxSize = query.getPaging() != null ? query.getPaging().getMaxSize() : null;
-                pagedQuery = query.clone();
-            } else {
-                maxSize = null;
-                pagedQuery = repositoryContext.prismContext().queryFactory().createQuery();
+            List<? extends ObjectOrdering> providedOrdering = originalPaging != null
+                    ? originalPaging.getOrderingInstructions()
+                    : null;
+            if (providedOrdering != null && providedOrdering.size() > 1) {
+                throw new RepositoryException("searchObjectsIterative() does not support ordering"
+                        + " by multiple paths (yet): " + providedOrdering);
             }
 
-            String lastOid = null;
-            int batchSize = 1000; // TODO configure for new repo too: getConfiguration().getIterativeSearchByPagingBatchSize();
-
-            ObjectPaging paging = repositoryContext.prismContext().queryFactory().createPaging();
+            ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
+            ObjectPaging paging = prismContext().queryFactory().createPaging();
+            if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
+                originalPaging.getOrderingInstructions().forEach(o ->
+                        paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
+            }
+            paging.addOrderingInstruction(OID_PATH, OrderDirection.ASCENDING);
             pagedQuery.setPaging(paging);
-            main:
-            for (; ; ) {
-//                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER); TODO
-                paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
-                List<PrismObject<T>> objects = searchObjects(type, pagedQuery, options, operationResult);
+            int pageSize = Math.min(
+                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    defaultIfNull(maxSize, Integer.MAX_VALUE));
+            pagedQuery.getPaging().setMaxSize(pageSize);
 
+            PrismObject<T> lastProcessedObject = null;
+            int handledObjectsTotal = 0;
+
+            while (true) {
+                if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
+                    // relevant only for the last page
+                    pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
+                }
+
+                // filterAnd() is quite null safe, even for both nulls
+                pagedQuery.setFilter(ObjectQueryUtil.filterAnd(
+                        originalQuery != null ? originalQuery.getFilter() : null,
+                        lastOidCondition(lastProcessedObject, providedOrdering),
+                        prismContext()));
+
+                // we don't call public searchObject to avoid subresults and query simplification
+                logSearchInputParameters(type, pagedQuery, "Search object iterative page ");
+                List<PrismObject<T>> objects = executeSearchObject(
+                        type, pagedQuery, options, OP_SEARCH_OBJECTS_ITERATIVE_PAGE);
+
+                // process page results
                 for (PrismObject<T> object : objects) {
-                    // TODO use again :-)
-                    lastOid = object.getOid();
+                    lastProcessedObject = object;
                     if (!handler.handle(object, operationResult)) {
-                        break main;
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal + 1)
+                                .pagingCookie(lastProcessedObject.getOid())
+                                .partialResults(true);
+                    }
+                    handledObjectsTotal += 1;
+
+                    if (maxSize != null && handledObjectsTotal >= maxSize) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal)
+                                .pagingCookie(lastProcessedObject.getOid());
                     }
                 }
-                if (objects.isEmpty() || objects.size() < paging.getMaxSize()) {
-                    break;
-                }
-                if (maxSize != null) {
-                    maxSize -= objects.size();
-                    if (maxSize <= 0) {
-                        break;
-                    }
+
+                if (objects.isEmpty() || objects.size() < pageSize) {
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal)
+                            .pagingCookie(lastProcessedObject != null
+                                    ? lastProcessedObject.getOid() : null);
                 }
             }
-
-            // TODO null is returned in old repo for most iteration methods, do we even want this? Isn't parent result enough?
-            return new SearchResultMetadata();
         } finally {
-            // TODO reconsider, now it gives us no info about timing, only count
-            //  BTW: this seems not to be used for other than single transaction in old repo
+            // This just counts the operation and adds zero/minimal time not to confuse user
+            // with what could be possibly very long duration.
             long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
             registerOperationFinish(opHandle, 1);
         }
+    }
+
+    /**
+     * Without requested ordering, this is easy: `WHERE oid > lastOid`
+     *
+     * But with outside ordering we need to respect it and for ordering by X, Y, Z use
+     * (`original conditions AND` is taken care of outside of this method):
+     *
+     * ----
+     * ... WHERE original conditions AND (
+     * X > last.X
+     * OR (X = last.X AND Y > last.Y)
+     * OR (X = last.X AND Y = last.Y AND Z > last.Z)
+     * OR (X = last.X AND Y = last.Y ...if all equal AND OID > last.OID)
+     * ----
+     *
+     * This is suddenly much more fun, isn't it?
+     * Of course the condition `>` or `<` depends on `ASC` vs `DESC`.
+     *
+     * TODO: Currently, single path ordering is supported. Finish multi-path too.
+     * TODO: What about nullable columns?
+     */
+    @Nullable
+    private <T extends ObjectType> ObjectFilter lastOidCondition(
+            PrismObject<T> lastProcessedObject, List<? extends ObjectOrdering> providedOrdering) {
+        if (lastProcessedObject == null) {
+            return null;
+        }
+
+        String lastProcessedOid = lastProcessedObject.getOid();
+        if (providedOrdering == null || providedOrdering.isEmpty()) {
+            return prismContext()
+                    .queryFor(lastProcessedObject.getCompileTimeClass())
+                    .item(OID_PATH).gt(lastProcessedOid).buildFilter();
+        }
+
+        if (providedOrdering.size() == 1) {
+            ObjectOrdering objectOrdering = providedOrdering.get(0);
+            ItemPath orderByPath = objectOrdering.getOrderBy();
+            boolean asc = objectOrdering.getDirection() == OrderDirection.ASCENDING;
+            S_ConditionEntry filter = prismContext()
+                    .queryFor(lastProcessedObject.getCompileTimeClass())
+                    .item(orderByPath);
+            //noinspection rawtypes
+            Item<PrismValue, ItemDefinition> item = lastProcessedObject.findItem(orderByPath);
+            if (item.size() > 1) {
+                throw new IllegalArgumentException(
+                        "Multi-value property for ordering is forbidden - item: " + item);
+            } else if (item.isEmpty()) {
+                // TODO what if it's nullable? is it null-first or last?
+                // See: https://www.postgresql.org/docs/13/queries-order.html
+                // "By default, null values sort as if larger than any non-null value; that is,
+                // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
+            } else {
+                S_MatchingRuleEntry matchingRuleEntry =
+                        asc ? filter.gt(item.getRealValue()) : filter.lt(item.getRealValue());
+                filter = matchingRuleEntry.or()
+                        .block()
+                        .item(orderByPath).eq(item.getRealValue())
+                        .and()
+                        .item(OID_PATH);
+                return (asc ? filter.gt(lastProcessedOid) : filter.lt(lastProcessedOid))
+                        .endBlock()
+                        .buildFilter();
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Shouldn't get here with check in executeSearchObjectsIterative()");
+        /*
+        TODO: Unfinished - this is painful with fluent API. Should I call
+         prismContext().queryFor(lastProcessedObject.getCompileTimeClass()) for each component
+         and then use ObjectQueryUtil.filterAnd/Or?
+        // we need to handle the complicated case with externally provided ordering
+        S_FilterEntryOrEmpty orBlock = prismContext()
+                .queryFor(lastProcessedObject.getCompileTimeClass()).block();
+        orLoop:
+        for (ObjectOrdering orMasterOrdering : providedOrdering) {
+            Iterator<? extends ObjectOrdering> iterator = providedOrdering.iterator();
+            while (iterator.hasNext()) {
+                S_FilterEntryOrEmpty andBlock = orBlock.block();
+                ObjectOrdering ordering = iterator.next();
+                if (ordering.equals(orMasterOrdering)) {
+                    // ...
+                    continue orLoop;
+                }
+                orBlock = andBlock.endBlock();
+            }
+
+        }
+        return orBlock.endBlock().buildFilter();
+        */
     }
 
     @Override
@@ -1022,9 +1149,9 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private ObjectQuery simplifyQuery(ObjectQuery query) {
         if (query != null) {
-            ObjectFilter filter = query.getFilter();
-            filter = ObjectQueryUtil.simplify(filter, repositoryContext.prismContext());
-            query = query.cloneEmpty();
+            // simplify() creates new filter instance which can be modified
+            ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext());
+            query = query.cloneWithoutFilter();
             query.setFilter(filter instanceof AllFilter ? null : filter);
         }
 
@@ -1108,7 +1235,7 @@ public class SqaleRepositoryService implements RepositoryService {
                         .build();
 
         try {
-            ObjectQuery query = repositoryContext.prismContext()
+            ObjectQuery query = prismContext()
                     .queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadowOid)
                     .build();
@@ -1297,7 +1424,7 @@ public class SqaleRepositoryService implements RepositoryService {
         diag.setImplementationDescription(
                 "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
 
-        JdbcRepositoryConfiguration config = repositoryContext.getJdbcRepositoryConfiguration();
+        JdbcRepositoryConfiguration config = repositoryConfiguration();
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
         diag.setEmbedded(config.isEmbedded());
@@ -1654,7 +1781,7 @@ public class SqaleRepositoryService implements RepositoryService {
             boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
                     object.asObjectable().getDiagnosticInformation(), operationResult);
             if (canStoreInfo) {
-                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                List<ItemDelta<?, ?>> modifications = prismContext()
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
                         .asItemDeltas();
@@ -1696,7 +1823,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 List<DiagnosticInformationType> toDelete =
                         oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
                 LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
-                List<ItemDelta<?, ?>> modifications = repositoryContext.prismContext()
+                List<ItemDelta<?, ?>> modifications = prismContext()
                         .deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
                         .asItemDeltas();
@@ -1722,6 +1849,14 @@ public class SqaleRepositoryService implements RepositoryService {
         }
     }
 
+    private PrismContext prismContext() {
+        return repositoryContext.prismContext();
+    }
+
+    private JdbcRepositoryConfiguration repositoryConfiguration() {
+        return repositoryContext.getJdbcRepositoryConfiguration();
+    }
+
     /**
      * Handles exception outside of transaction - this does not handle transactional problems.
      * Returns {@link SystemException}, call with `throw` keyword.
@@ -1731,7 +1866,7 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO reconsider this whole mechanism including isFatalException decision
         LOGGER.error("General checked exception occurred.", ex);
         recordException(ex, operationResult,
-                repositoryContext.getJdbcRepositoryConfiguration().isFatalException(ex));
+                repositoryConfiguration().isFatalException(ex));
 
         return ex instanceof SystemException
                 ? (SystemException) ex

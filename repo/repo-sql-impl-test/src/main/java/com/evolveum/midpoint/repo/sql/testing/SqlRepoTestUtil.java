@@ -20,6 +20,14 @@ public class SqlRepoTestUtil {
         }
     }
 
+    /** If modifications are narrowed to none, it's possible that the version stays the same. */
+    public static void assertVersionProgressOptional(String prevVersion, String nextVersion) {
+        String error = checkVersionProgress(prevVersion, nextVersion);
+        if (error != null && !prevVersion.equals(nextVersion)) {
+            AssertJUnit.fail(error);
+        }
+    }
+
     public static String checkVersionProgress(String prevVersion, String nextVersion) {
         String error = checkVersionProgressInternal(prevVersion, nextVersion);
         if (error == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,15 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.*;
-import java.util.function.Predicate;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -41,7 +35,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
@@ -122,7 +118,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             return TIMESTAMP_VALUE_PARAMETER;
         }
 
-        ItemPath orderBy = paging.getOrderBy();
+        ItemPath orderBy = paging.getPrimaryOrderingPath();
         if (orderBy == null) {
             return TIMESTAMP_VALUE_PARAMETER;
         }
@@ -140,7 +136,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             return DEFAULT_SORT_ORDER;
         }
 
-        OrderDirection direction = paging.getDirection();
+        OrderDirection direction = paging.getPrimaryOrderingDirection();
         if (direction == null) {
             return DEFAULT_SORT_ORDER;
         }
@@ -151,7 +147,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     @Override
     public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
-        saveCurrentPage(first, count);
         Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
         OperationResult result = task.getResult();
         List<AuditEventRecordType> recordsList = null;
@@ -442,9 +437,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             return Collections.emptyList();
         }
-    }
-
-    protected void saveCurrentPage(long from, long count) {
     }
 
     private String getQueryOrderByPart() {

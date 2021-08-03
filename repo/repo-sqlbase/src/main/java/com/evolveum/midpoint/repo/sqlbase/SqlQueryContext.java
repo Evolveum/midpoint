@@ -187,11 +187,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         processOrdering(paging.getOrderingInstructions());
 
         Integer offset = paging.getOffset();
+        Integer maxSize = paging.getMaxSize();
         // we take null offset as no paging at all
         if (offset != null) {
             sqlQuery.offset(offset.longValue());
-            Integer pageSize = paging.getMaxSize();
-            sqlQuery.limit(pageSize != null ? pageSize.longValue() : DEFAULT_PAGE_SIZE);
+            sqlQuery.limit(maxSize != null ? maxSize.longValue() : DEFAULT_PAGE_SIZE);
+        } else if (maxSize != null) {
+            // we respect limit even without offset, other ways can be used (e.g. WHERE OID > ...)
+            sqlQuery.limit(maxSize);
         }
     }
 
@@ -202,12 +205,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             // TODO to support ordering by ext/something we need to implement this.
             //  That may not even require cache for JOIN because it should be allowed only for
             //  single-value containers embedded in the object.
-            if (!(orderByItemPath.isSingleName())) {
+            if (orderByItemPath.size() > 1) {
                 throw new QueryException(
                         "ORDER BY is not possible for complex paths: " + orderByItemPath);
             }
-            Path<?> path = entityPathMapping.primarySqlPath(
-                    orderByItemPath.asSingleNameOrFail(), this);
+            Path<?> path = entityPathMapping.primarySqlPath(orderByItemPath.firstToQName(), this);
             if (!(path instanceof ComparableExpressionBase)) {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);

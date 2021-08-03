@@ -323,7 +323,7 @@ public class QueryInterpreter {
 
     private void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPaging paging) {
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
-        if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
+        if (paging.getPrimaryOrderingPath() != null || paging.getPrimaryOrderingDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPaging with cookie");
         }
         if (repoConfiguration.isUsingOracle()) {

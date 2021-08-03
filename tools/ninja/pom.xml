@@ -111,6 +111,12 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sqale</artifactId>
+            <version>${midpoint.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint</groupId>
             <artifactId>midpoint-localization</artifactId>
             <version>${midpoint.version}</version>

@@ -40,13 +40,15 @@
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
-             <icfcldap:useUnsafeNameHint>true</icfcldap:useUnsafeNameHint>
-             <icfcldap:includeObjectClassFilter>true</icfcldap:includeObjectClassFilter>
-             <icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
-             <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+            <icfcldap:useUnsafeNameHint>true</icfcldap:useUnsafeNameHint>
+            <icfcldap:includeObjectClassFilter>true</icfcldap:includeObjectClassFilter>
+            <icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
+            <!-- compatibility, legacy way to set global timeout -->
+            <icfcldap:connectTimeout>1000</icfcldap:connectTimeout>
+            <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>

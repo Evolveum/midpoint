@@ -42,7 +42,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
-        QName itemName = resolvePath(modification.getPath());
+        QName itemName = resolvePath(modification);
         if (itemName == null) {
             // This may indicate forgotten mapping, but normally it means that the item is simply
             // not externalized and there is nothing to, update is only in fullObject.
@@ -65,7 +65,8 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
         // It's a similar case like the fast return after resolving the path.
     }
 
-    private QName resolvePath(ItemPath path) {
+    private QName resolvePath(ItemDelta<?, ?> modification) {
+        ItemPath path = modification.getPath();
         while (!path.isSingleName()) {
             ItemName firstName = path.firstName();
             path = path.rest();
@@ -79,7 +80,8 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
             if (!(relationResolver instanceof SqaleItemRelationResolver)) {
                 // Again, programmers fault.
                 throw new IllegalArgumentException("Relation resolver for " + firstName
-                        + " in mapping " + mapping + " does not support delta modifications!");
+                        + " in mapping " + mapping + " does not support delta modifications. "
+                        + "Used modification: " + modification);
             }
 
             ItemPath subcontextPath = firstName;
@@ -96,6 +98,9 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                 //noinspection unchecked,rawtypes
                 subcontext = ((SqaleItemRelationResolver) relationResolver)
                         .resolve(this.context, subcontextPath);
+                if (subcontext == null) {
+                    return null; // this means "ignore"
+                }
                 context.addSubcontext(subcontextPath, subcontext);
             }
             context = subcontext;

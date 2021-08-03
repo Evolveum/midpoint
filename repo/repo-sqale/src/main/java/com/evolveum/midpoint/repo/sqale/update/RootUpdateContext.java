@@ -102,8 +102,8 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             try {
                 processModification(modification);
             } catch (IllegalArgumentException e) {
-                logger.warn("Modification failed/not implemented yet: {}", e.toString());
-                throw new SystemException(e);
+                logger.warn("Modification failed with '{}': {}", e, modification);
+                throw new SystemException("Modification failed: " + modification, e);
             }
         }
 

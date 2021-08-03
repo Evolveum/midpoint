@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -345,6 +346,31 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                         .iteration(1)))
                         .asPrismObject(),
                 null, result);
+
+        // objects for OID range tests
+        List.of("00000000-1000-0000-0000-000000000000",
+                "00000000-1000-0000-0000-000000000001",
+                "10000000-1000-0000-0000-000000000000",
+                "10000000-1000-0000-0000-100000000000",
+                "10ffffff-ffff-ffff-ffff-ffffffffffff",
+                "11000000-0000-0000-0000-000000000000",
+                "11000000-1000-0000-0000-100000000000",
+                "11000000-1000-0000-0000-100000000001",
+                "11ffffff-ffff-ffff-ffff-fffffffffffe",
+                "11ffffff-ffff-ffff-ffff-ffffffffffff",
+                "20ffffff-ffff-ffff-ffff-ffffffffffff",
+                "ff000000-0000-0000-0000-000000000000",
+                "ffffffff-ffff-ffff-ffff-ffffffffffff").forEach(oid -> {
+            try {
+                repositoryService.addObject(
+                        new ServiceType(prismContext).oid(oid).name(oid)
+                                .costCenter("OIDTEST")
+                                .asPrismObject(),
+                        null, result);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         assertThatOperationResult(result).isSuccess();
     }
@@ -1598,6 +1624,152 @@ AND(
     }
 
     @Test
+    public void test910SearchByOid() throws SchemaException {
+        // This is new repo speciality, but this query can't be format/re-parsed
+        when("searching for user having specified OID");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(PrismConstants.T_ID).eq(user1Oid)
+                        .build(),
+                operationResult);
+
+        then("user with specified OID is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid);
+    }
+
+    // Following OID tests use services in one cost center, only OID conditions are of interest.
+    @Test
+    public void test911SearchByOidLowerThan() throws SchemaException {
+        when("searching for objects with OID lower than");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).lt("00000000-1000-0000-0000-000000000000")
+                        .build(),
+                operationResult);
+
+        then("user with OID lower than specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder();
+    }
+
+    @Test
+    public void test912SearchByOidLoe() throws SchemaException {
+        when("searching for objects with OID lower than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).le("00000000-1000-0000-0000-000000000001")
+                        .build(),
+                operationResult);
+
+        then("user with OID lower than or equal to specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "00000000-1000-0000-0000-000000000000",
+                        "00000000-1000-0000-0000-000000000001");
+    }
+
+    @Test
+    public void test913SearchByOidGoe() throws SchemaException {
+        when("searching for objects with OID greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).ge("ffffffff-ffff-ffff-ffff-ffffffffffff")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test914SearchByOidPrefixGoe() throws SchemaException {
+        when("searching for objects with OID prefix greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).ge("ff")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified prefix are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ff000000-0000-0000-0000-000000000000",
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test915SearchByUpperCaseOidPrefixGoe() throws SchemaException {
+        when("searching for objects with upper-case OID prefix greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        // if this was interpreted as VARCHAR, all lowercase OIDs would be returned
+                        .item(PrismConstants.T_ID).ge("FF")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified prefix ignoring case are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ff000000-0000-0000-0000-000000000000",
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test916SearchByOidPrefixStartsWith() throws SchemaException {
+        when("searching for objects with OID prefix starting with");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).startsWith("11")
+                        .build(),
+                operationResult);
+
+        then("user with OID starting with the specified prefix are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "11000000-0000-0000-0000-000000000000",
+                        "11000000-1000-0000-0000-100000000000",
+                        "11000000-1000-0000-0000-100000000001",
+                        "11ffffff-ffff-ffff-ffff-fffffffffffe",
+                        "11ffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
     public void test920SearchObjectTypeFindsAllObjects() throws SchemaException {
         OperationResult operationResult = createOperationResult();
 
@@ -1770,7 +1942,7 @@ AND(
                 .containsExactlyInAnyOrder(expectedOids);
     }
 
-    /** Search objects using {@link ObjectQuery}. */
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
     @SafeVarargs
     @NotNull
     private <T extends ObjectType> SearchResultList<T> searchObjects(
@@ -1788,6 +1960,18 @@ AND(
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
+        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @SafeVarargs
+    @NotNull
+    private <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
         return repositoryService.searchObjects(
                 type,
                 query,

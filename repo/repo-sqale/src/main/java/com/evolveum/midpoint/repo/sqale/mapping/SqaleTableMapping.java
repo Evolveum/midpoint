@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.JsonbPolysPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.UuidItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -154,7 +155,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     protected ItemSqlMapper<Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
-                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new UuidItemFilterProcessor(ctx, rootToQueryItem),
                 ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }

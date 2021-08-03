@@ -281,7 +281,7 @@ public class TransformableContainerDefinition<C extends Containerable>
     @NotNull
     @Override
     public PrismContainer<C> instantiate(QName elementName) throws SchemaException {
-        return this.getPrismContext().itemFactory().createContainer(elementName, this);
+        return super.instantiate(elementName);
     }
 
     @Override

@@ -481,10 +481,9 @@ CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
 CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
--- TODO unique per genericObjectTypeId?
---  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+-- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 -- endregion
 
@@ -595,7 +594,7 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
-ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_service_nameNorm_idx ON m_service (nameNorm); -- was not unique in old repo either
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
@@ -1000,7 +999,7 @@ CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
-ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_data_nameNorm_idx ON m_report_data (nameNorm); -- not unique
 CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
 CREATE INDEX m_report_data_policySituation_idx
     ON m_report_data USING gin(policysituations gin__int_ops);
@@ -1068,7 +1067,9 @@ CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
-ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
+-- TODO: wasn't unique but duplicates caused problems
+--  Also, perhaps unique constraint on type+version would be handy?
+CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
     ON m_connector USING gin(policysituations gin__int_ops);
@@ -1174,7 +1175,7 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
-ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
 CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
 
