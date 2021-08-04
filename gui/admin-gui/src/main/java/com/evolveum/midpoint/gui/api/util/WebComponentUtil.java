@@ -1970,7 +1970,7 @@ public final class WebComponentUtil {
             return null;
         }
 
-        ObjectReferenceType ref = refValue.getRealValue();
+        Referencable ref = refValue.getRealValue();
         if (ref == null) {
             return null;
         }
