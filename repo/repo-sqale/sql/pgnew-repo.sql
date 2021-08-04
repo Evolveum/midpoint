@@ -594,7 +594,7 @@ CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_service_nameOrig_idx ON m_service (nameOrig);
-CREATE INDEX m_service_nameNorm_idx ON m_service (nameNorm); -- was not unique in old repo either
+ALTER TABLE m_service ADD CONSTRAINT m_service_nameNorm_key UNIQUE (nameNorm);
 
 -- Represents ArchetypeType, see https://wiki.evolveum.com/display/midPoint/Archetypes
 CREATE TABLE m_archetype (
