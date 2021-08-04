@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityExecution;
+import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityExecutionSpecifics;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,7 +48,7 @@ import static java.util.Objects.requireNonNull;
  * Controls the process of exporting collection-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ReportDataCreationActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ReportDataCreationActivityExecutionSpecifics} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *

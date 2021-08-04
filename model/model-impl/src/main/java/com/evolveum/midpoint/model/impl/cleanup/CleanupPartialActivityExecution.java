@@ -28,6 +28,10 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 /**
+ * Activity execution for an elementary cleanup part.
+ *
+ * TODO this class is not finished, e.g. statistics reporting is not complete
+ *
  * @param <CP> Cleanup policy type
  */
 public class CleanupPartialActivityExecution<CP>
@@ -51,22 +55,22 @@ public class CleanupPartialActivityExecution<CP>
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false; // Low-level direct repo operations are not reported in this way
     }
 
     @Override
-    public boolean supportsProgress() {
+    public boolean doesSupportProgress() {
         return part.supportsProgress;
     }
 

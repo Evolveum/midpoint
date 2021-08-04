@@ -7,29 +7,22 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportTaskHandler;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportExportWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistributedReportExportWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,10 +30,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 /**
  * Activity handler for classic report export.
@@ -74,12 +63,11 @@ public class ClassicReportExportActivityHandler
                 ClassicReportExportWorkDefinition.class);
     }
 
-    @NotNull
     @Override
-    public ClassicReportExportActivityExecution createExecution(
+    public AbstractActivityExecution<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ClassicReportExportActivityExecution(context);
+        return new PlainIterativeActivityExecution<>(context, "Report export", ClassicReportExportActivityExecutionSpecifics::new);
     }
 
     @Override

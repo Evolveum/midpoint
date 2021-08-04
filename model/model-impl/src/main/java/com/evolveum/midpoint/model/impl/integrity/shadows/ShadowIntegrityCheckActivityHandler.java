@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
+
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +45,6 @@ public class ShadowIntegrityCheckActivityHandler
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
-
     @PostConstruct
     public void register() {
         handlerRegistry.register(ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, LEGACY_HANDLER_URI,
@@ -55,10 +58,10 @@ public class ShadowIntegrityCheckActivityHandler
     }
 
     @Override
-    public @NotNull ShadowIntegrityCheckActivityExecution createExecution(
+    public AbstractActivityExecution<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ShadowIntegrityCheckWorkDefinition, ShadowIntegrityCheckActivityHandler> context,
             @NotNull OperationResult result) {
-        return new ShadowIntegrityCheckActivityExecution(context);
+        return new ModelSearchBasedActivityExecution<>(context, "Shadow integrity check", ShadowIntegrityCheckActivityExecutionSpecifics::new);
     }
 
     @Override

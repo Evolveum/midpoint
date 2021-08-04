@@ -1810,6 +1810,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="monitoring" type="tns:ActivityMonitoringDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the activity is monitored, e.g. using tracing or dynamic profiling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reporting" type="tns:TaskReportingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the activity is monitored, e.g. using tracing or dynamic profiling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1970,6 +1984,39 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityMonitoringDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the activity is monitored, e.g. using tracing or dynamic profiling.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="tracing" type="tns:ProcessTracingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies when and how should be the activity execution traced. Contains tracing interval
+                        (i.e. how often a trace should be recorded), tracing profile to be used and tracing points
+                        (roots) where the tracing should be done.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="profiling" type="tns:ProcessProfilingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies when and how should be the activity execution dynamically profiled.
+                        This functionality is deprecated. The tracing should be used instead.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5752,6 +5799,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selects objects that were failed to be processed in previous task run(s).
+                        TODO To be decided if this element belongs to the work definition or to a separate
+                         place in the activity definition (something like "error handling").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="objectSet" type="tns:ObjectSetType"/>
@@ -5818,6 +5874,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selects objects that were failed to be processed in previous task run(s).
+                        TODO To be decided if this element belongs to the work definition or to a separate
+                        place in the activity definition (something like "error handling").
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

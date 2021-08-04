@@ -9,6 +9,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
- * TODO
+ * Activity handler for the propagation activity.
  */
 @Component
 public class PropagationActivityHandler implements ActivityHandler<PropagationWorkDefinition, PropagationActivityHandler> {
@@ -51,10 +54,10 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     }
 
     @Override
-    public @NotNull PropagationActivityExecution createExecution(
+    public AbstractActivityExecution<PropagationWorkDefinition, PropagationActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PropagationActivityExecution(context);
+        return new SearchBasedActivityExecution<>(context, "Propagation", PropagationActivityExecutionSpecifics::new);
     }
 
     @Override

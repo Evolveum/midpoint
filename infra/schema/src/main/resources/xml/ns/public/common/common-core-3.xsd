@@ -22565,6 +22565,20 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.3</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activityPath" type="tns:ActivityPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the activity whose execution resulted in this record. Necessary to distinguish between
+                        results of various activities within a task. Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

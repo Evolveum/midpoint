@@ -13,19 +13,22 @@
 
     <name>import from source (retry failures by filtering)</name>
 
-    <extension>
-        <ext:kind>account</ext:kind>
-        <ext:intent>default</ext:intent>
-        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-        <ext:failedObjectsSelector>
-            <selectionMethod>filterAfterRetrieval</selectionMethod>
-        </ext:failedObjectsSelector>
-    </extension>
-
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
-    <objectRef oid="a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f" type="ResourceType"/> <!-- resource-source -->
-    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                    <failedObjectsSelector>
+                        <selectionMethod>filterAfterRetrieval</selectionMethod>
+                    </failedObjectsSelector>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
 </task>

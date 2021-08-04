@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
@@ -75,35 +76,40 @@ public class ReconciliationActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new OperationCompletionActivityExecution(context),
+                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
+                        "Reconciliation (operation completion)", OperationCompletionActivityExecutionSpecifics::new),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
+                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
+                        "Reconciliation (on resource)" + modeSuffix(context), ResourceObjectsReconciliationActivityExecutionSpecifics::new),
                 this::beforeResourceObjectsReconciliation, // this is needed even for simulation
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_SIMULATION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 createSimulationDefinition(parentActivity.getDefinition()),
-                (context, result) -> new RemainingShadowsActivityExecution(context),
+                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
+                        "Reconciliation (remaining shadows)" + modeSuffix(context), RemainingShadowsActivityExecutionSpecifics::new),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_SIMULATION_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ResourceObjectsReconciliationActivityExecution(context),
+                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
+                        "Reconciliation (on resource)" + modeSuffix(context), ResourceObjectsReconciliationActivityExecutionSpecifics::new),
                 this::beforeResourceObjectsReconciliation,
                 (i) -> ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_ID,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new RemainingShadowsActivityExecution(context),
+                (context, result) -> new ModelSearchBasedActivityExecution<>(context,
+                        "Reconciliation (remaining shadows)" + modeSuffix(context), RemainingShadowsActivityExecutionSpecifics::new),
                 null,
                 (i) -> ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_ID,
                 ActivityStateDefinition.normal(),
@@ -160,5 +166,12 @@ public class ReconciliationActivityHandler
     @Override
     public String getDefaultArchetypeOid() {
         return ARCHETYPE_OID;
+    }
+
+    // TODO generalize
+    private String modeSuffix(
+            ExecutionInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> context) {
+        return context.getActivity().getWorkDefinition().getExecutionMode() == ExecutionModeType.SIMULATE ?
+                " (simulated)" : "";
     }
 }

@@ -1351,25 +1351,13 @@ public class ResourceObjectConverter {
                             int objectNumber = objectCounter.getAndIncrement();
 
                             Task task = ctx.getTask();
-                            boolean requestedTracingHere;
-                            requestedTracingHere = task instanceof RunningTask &&
-                                    ((RunningTask) task).requestTracingIfNeeded(
-                                            (RunningTask) task, objectNumber,
-                                            TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
                             try {
-                                OperationResultBuilder resultBuilder = parentResult
+                                OperationResult objResult = parentResult
                                         .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
                                         .setMinor()
                                         .addParam("number", objectNumber)
                                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
-                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState());
-
-                                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
-                                // operations we currently do not trace the "worker" part of the processing.
-                                boolean tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                                        TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING, task, parentResult);
-
-                                OperationResult objResult = resultBuilder.build();
+                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState()).build();
                                 try {
                                     objectFound.initialize(task, objResult);
                                     return resultHandler.handle(objectFound, objResult);
@@ -1378,12 +1366,9 @@ public class ResourceObjectConverter {
                                     throw t;
                                 } finally {
                                     objResult.computeStatusIfUnknown();
-                                    if (tracingRequested) {
-                                        tracer.storeTrace(task, objResult, parentResult);
-                                    }
                                     // FIXME: hack. Hardcoded ugly summarization of successes. something like
                                     //  AbstractSummarizingResultHandler [lazyman]
-                                    if (objResult.isSuccess() && !tracingRequested && !objResult.isTraced()) {
+                                    if (objResult.isSuccess() && !objResult.isTraced()) {
                                         objResult.getSubresults().clear();
                                     }
                                     // TODO Reconsider this. It is quite dubious to touch parentResult from the inside.
@@ -1391,9 +1376,6 @@ public class ResourceObjectConverter {
                                 }
                             } finally {
                                 RepositoryCache.exitLocalCaches();
-                                if (requestedTracingHere && task instanceof RunningTask) {
-                                    ((RunningTask) task).stopTracing();
-                                }
                             }
                         } catch (RuntimeException e) {
                             throw e;
@@ -1445,23 +1427,6 @@ public class ResourceObjectConverter {
         LOGGER.trace("Searching resource objects done: {}", parentResult.getStatus());
 
         return metadata;
-    }
-
-    private boolean setTracingInOperationResultIfRequested(OperationResultBuilder resultBuilder, TracingRootType tracingRoot,
-            Task task, OperationResult parentResult) throws SchemaException {
-        boolean tracingRequested;
-        if (task != null && task.getTracingRequestedFor().contains(tracingRoot)) {
-            tracingRequested = true;
-            try {
-                resultBuilder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
-            } catch (SchemaException | RuntimeException e) {
-                parentResult.recordFatalError(e);
-                throw e;
-            }
-        } else {
-            tracingRequested = false;
-        }
-        return tracingRequested;
     }
 
     public LiveSyncToken fetchCurrentToken(ProvisioningContext ctx, OperationResult parentResult)
@@ -1617,51 +1582,23 @@ public class ResourceObjectConverter {
             int changeNumber = processed.getAndIncrement();
 
             Task task = ctx.getTask();
-            boolean requestedTracingHere;
-            requestedTracingHere = task instanceof RunningTask &&
-                    ((RunningTask) task).requestTracingIfNeeded(
-                            (RunningTask) task, changeNumber,
-                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
+            OperationResult lResult = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
+                    .setMinor()
+                    .addParam("number", changeNumber)
+                    .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
+                    .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
+                    .addArbitraryObjectAsParam("token", ucfChange.getToken()).build();
+
             try {
-                OperationResultBuilder resultBuilder = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
-                        .setMinor()
-                        .addParam("number", changeNumber)
-                        .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
-                        .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
-                        .addArbitraryObjectAsParam("token", ucfChange.getToken());
-
-                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
-                // livesync we currently do not trace the "worker" part of the processing.
-                boolean tracingRequested;
-                Exception preInitializationException = null;
-                try {
-                    tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
-                } catch (Exception e) {
-                    lParentResult.recordFatalError(e);
-                    preInitializationException = e;
-                    tracingRequested = false;
-                }
-
-                OperationResult lResult = resultBuilder.build();
-                try {
-                    ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
-                            preInitializationException, ResourceObjectConverter.this, ctx, attrsToReturn);
-                    change.initialize(task, lResult);
-                    return outerListener.onChange(change, lResult);
-                } catch (Throwable t) {
-                    lResult.recordFatalError(t);
-                    throw t;
-                } finally {
-                    lResult.computeStatusIfUnknown();
-                    if (tracingRequested) {
-                        tracer.storeTrace(task, lResult, lParentResult);
-                    }
-                }
+                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
+                        null, ResourceObjectConverter.this, ctx, attrsToReturn);
+                change.initialize(task, lResult);
+                return outerListener.onChange(change, lResult);
+            } catch (Throwable t) {
+                lResult.recordFatalError(t);
+                throw t;
             } finally {
-                if (requestedTracingHere && task instanceof RunningTask) {
-                    ((RunningTask) task).stopTracing();
-                }
+                lResult.computeStatusIfUnknown();
             }
         };
 

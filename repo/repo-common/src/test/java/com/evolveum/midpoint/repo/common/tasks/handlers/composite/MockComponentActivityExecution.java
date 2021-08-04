@@ -7,24 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
-import com.evolveum.midpoint.repo.common.task.task.GenericTaskExecution;
-
-import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.execution.LocalActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityItemProcessingStatistics.Operation;
+import com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
@@ -106,11 +102,6 @@ public abstract class MockComponentActivityExecution
         }
     }
 
-    @Override
-    public @NotNull GenericTaskExecution getTaskExecution() {
-        return taskExecution;
-    }
-
     abstract String getMockSubActivity();
 
     @Override
@@ -119,17 +110,17 @@ public abstract class MockComponentActivityExecution
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false;
     }
 }

@@ -196,7 +196,7 @@ public class DelegatingActivityExecution<
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return false;
     }
 

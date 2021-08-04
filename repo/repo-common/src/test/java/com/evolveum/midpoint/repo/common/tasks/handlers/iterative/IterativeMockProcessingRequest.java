@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -19,7 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 class IterativeMockProcessingRequest extends ItemProcessingRequest<Integer> {
 
-    IterativeMockProcessingRequest(@NotNull Integer item, @NotNull IterativeMockActivityExecution activityExecution) {
+    IterativeMockProcessingRequest(@NotNull Integer item,
+            @NotNull PlainIterativeActivityExecution<Integer, ?, ?, ?> activityExecution) {
         super(item, item, activityExecution);
     }
 

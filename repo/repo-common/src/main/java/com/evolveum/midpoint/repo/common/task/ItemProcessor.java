@@ -17,7 +17,7 @@ public interface ItemProcessor<I> {
     /**
      * Does the "pure" processing, free of any reporting, error handling, tracing, and similar issues.
      */
-    boolean process(ItemProcessingRequest<I> request, RunningTask workerTask, OperationResult parentResult)
+    boolean processItem(ItemProcessingRequest<I> request, RunningTask workerTask, OperationResult parentResult)
             throws CommonException, ActivityExecutionException;
 
 }
