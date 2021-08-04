@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,26 +22,26 @@ public class InputReportLine {
     private final int lineNumber;
 
     /**
-     * Text on the line.
+     * VariablesMap from the line.
      *
      * TODO - or maybe we can use parsed form here - an advantage would be that we could derive the correlation value more
      *  easily (?)
      */
-    @NotNull private final String text;
+    @NotNull private final VariablesMap variables;
 
     private Object correlationValue;
 
-    InputReportLine(int lineNumber, @NotNull String text) {
+    InputReportLine(int lineNumber, @NotNull VariablesMap variables) {
         this.lineNumber = lineNumber;
-        this.text = text;
+        this.variables = variables;
     }
 
     public int getLineNumber() {
         return lineNumber;
     }
 
-    public @NotNull String getText() {
-        return text;
+    public @NotNull VariablesMap getVariables() {
+        return variables;
     }
 
     public Object getCorrelationValue() {
@@ -54,7 +56,7 @@ public class InputReportLine {
     public String toString() {
         return "InputReportLine{" +
                 "number=" + lineNumber +
-                ", text='" + text + '\'' +
+                ", variables='" + variables + '\'' +
                 ", correlationValue=" + correlationValue +
                 '}';
     }

@@ -82,7 +82,7 @@ public class ReportDataCreationActivityExecution
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Data creation");
         reportService = context.getActivity().getHandler().reportService;
-        support = new ActivityExecutionSupport(context, getActivityHandler().reportService);
+        support = new ActivityExecutionSupport(context);
     }
 
     /**

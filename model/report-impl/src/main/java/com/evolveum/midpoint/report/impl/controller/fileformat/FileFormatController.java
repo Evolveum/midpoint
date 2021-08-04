@@ -345,7 +345,7 @@ public abstract class FileFormatController {
     }
 
     protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {
-        return GenericSupport.getLabels(column, objectDefinition, reportService.getLocalizationService());
+        return GenericSupport.getLabel(column, objectDefinition, reportService.getLocalizationService());
     }
 
     protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {

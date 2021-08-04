@@ -77,7 +77,7 @@ class ReportDataAggregationActivityExecution
     ReportDataAggregationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
-        support = new ActivityExecutionSupport(context, getActivityHandler().reportService);
+        support = new ActivityExecutionSupport(context);
     }
 
     @Override

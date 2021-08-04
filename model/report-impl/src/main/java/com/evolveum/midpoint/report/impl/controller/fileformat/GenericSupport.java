@@ -35,13 +35,13 @@ class GenericSupport {
 
     static ExportedReportHeaderColumn getHeaderColumns(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
             LocalizationService localizationService) {
-        String label = getLabels(column, objectDefinition, localizationService);
+        String label = getLabel(column, objectDefinition, localizationService);
         String cssClass = column.getDisplay() != null ? column.getDisplay().getCssClass() : null;
         String cssStyle = column.getDisplay() != null ? column.getDisplay().getCssStyle() : null;
         return ExportedReportHeaderColumn.fromLabel(label, cssClass, cssStyle);
     }
 
-    static String getLabels(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
+    static String getLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition,
             LocalizationService localizationService) {
         ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
 

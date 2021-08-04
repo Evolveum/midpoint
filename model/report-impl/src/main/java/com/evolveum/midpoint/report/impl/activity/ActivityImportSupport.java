@@ -13,13 +13,13 @@ import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -38,41 +38,31 @@ import static java.util.Objects.requireNonNull;
  *
  * TODO better name
  */
-class ActivityExecutionSupport extends AbstractReportActivitySupport {
+class ActivityImportSupport extends AbstractReportActivitySupport {
 
-    @NotNull private final Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity;
+    @NotNull private final Activity<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> activity;
 
     /**
-     * Global report data - point of aggregation.
+     * Resolved report data object.
      */
-    private ObjectReferenceType globalReportDataRef;
+    private ReportDataType reportData;
 
-    ActivityExecutionSupport(
-            ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
+    ActivityImportSupport(
+            ExecutionInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context) {
         super(context);
         activity = context.getActivity();
     }
 
+    @Override
     void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         super.initializeExecution(result);
-        globalReportDataRef = fetchGlobalReportDataRef(result);
+        setupReportDataObject(result);
     }
 
-    private @NotNull ObjectReferenceType fetchGlobalReportDataRef(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ActivityExecutionException {
-        ActivityState activityState =
-                ActivityState.getActivityStateUpwards(
-                        activity.getPath().allExceptLast(),
-                        runningTask,
-                        ReportExportWorkStateType.COMPLEX_TYPE,
-                        beans,
-                        result);
-        ObjectReferenceType globalReportDataRef = activityState.getWorkStateReferenceRealValue(F_REPORT_DATA_REF);
-        if (globalReportDataRef == null) {
-            throw new ActivityExecutionException("No global report data reference in " + activityState,
-                    FATAL_ERROR, PERMANENT_ERROR);
-        }
-        return globalReportDataRef;
+    private void setupReportDataObject(OperationResult result) throws CommonException {
+        @NotNull ClassicReportImportWorkDefinition workDefinition = activity.getWorkDefinition();
+        reportData = getObjectResolver().resolve(workDefinition.getReportDataRef(), ReportDataType.class,
+                null, "resolving report data", runningTask, result);
     }
 
     @Override
@@ -90,10 +80,15 @@ class ActivityExecutionSupport extends AbstractReportActivitySupport {
         return activity.getHandler().reportService;
     }
 
-    /**
-     * Should be called only after initialization.
-     */
-    @NotNull ObjectReferenceType getGlobalReportDataRef() {
-        return requireNonNull(globalReportDataRef);
+    public ReportDataType getReportData() {
+        return reportData;
+    }
+
+    boolean existImportScript() {
+        return getReport().getBehavior() != null && getReport().getBehavior().getImportScript() != null;
+    }
+
+    boolean existCollectionConfiguration() {
+        return getReport().getObjectCollection() != null;
     }
 }
