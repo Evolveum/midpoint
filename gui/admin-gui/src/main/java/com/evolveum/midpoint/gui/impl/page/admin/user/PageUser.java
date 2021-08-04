@@ -6,29 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.user;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsNavigationPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -167,7 +163,7 @@ public class PageUser extends PageBase {
         initSummaryPanel();
         initButtons();
         initMainPanel("basic", null);
-        initNavigation(getPanelsForUser());
+        initNavigation();
     }
 
     private void initSummaryPanel() {
@@ -197,33 +193,28 @@ public class PageUser extends PageBase {
 
     private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig) {
         //TODO load default panel?
-        Class<?> panelClass = PanelLoader.findPanel(identifier);
-        Constructor constructor = null;
-        try {
-            constructor = panelClass.getConstructor(String.class, LoadableModel.class);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        if (constructor != null) {
-            try {
-                Panel panel = (Panel) constructor.newInstance(ID_MAIN_PANEL, model);
-                panel.setOutputMarkupId(true);
-                addOrReplace(panel);
-                return;
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
+        IModel<?> panelModel = getPanelModel(panelConfig);
 
         Panel panel = WebComponentUtil.createPanel(identifier, ID_MAIN_PANEL, model, panelConfig);
         addOrReplace(panel);
 
     }
 
-    private void initNavigation(List<ContainerPanelConfigurationType> panels) {
-//        List<String> panels = ObjectDetailsMenuRegistry.findPanelsFor(UserType.COMPLEX_TYPE);
+    private IModel<? extends PrismContainerWrapper<? extends Containerable>> getPanelModel(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null) {
+            return model;
+        }
 
+        if (panelConfig.getPath() != null) {
+            return PrismContainerWrapperModel.fromContainerWrapper(model, panelConfig.getPath().getItemPath());
+        }
 
+        return model;
+
+    }
+
+    private void initNavigation() {
+        List<ContainerPanelConfigurationType> panels = getPanelsForUser();
         DetailsNavigationPanel navigationPanel = createNavigationPanel(ID_NAVIGATION, panels);
         add(navigationPanel);
 
@@ -231,7 +222,7 @@ public class PageUser extends PageBase {
 
     private DetailsNavigationPanel createNavigationPanel(String id, List<ContainerPanelConfigurationType> panels) {
 
-        DetailsNavigationPanel panel = new DetailsNavigationPanel(ID_NAVIGATION, Model.ofList(panels)) {
+        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, Model.ofList(panels)) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 initMainPanel(config.getPanelIdentifier(), config);
@@ -242,15 +233,57 @@ public class PageUser extends PageBase {
     }
 
     private List<ContainerPanelConfigurationType> getPanelsForUser() {
-        List<ContainerPanelConfigurationType> panels = PanelLoader.getPanelsFor(UserType.class);
+        List<ContainerPanelConfigurationType> defaultPanels = PanelLoader.getPanelsFor(UserType.class);
+        List<ContainerPanelConfigurationType> configuredPanels = detailsPageConfiguration.getPanel();
+        List<ContainerPanelConfigurationType> mergedPanels = mergeConfigurations(defaultPanels, configuredPanels);
+        return mergedPanels;
 
-        List<ContainerPanelConfigurationType> containerPanels = detailsPageConfiguration.getPanel();
-        for (ContainerPanelConfigurationType panel : containerPanels) {
-            panels.add(panel);
+    }
 
+    private List<ContainerPanelConfigurationType> mergeConfigurations(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
+        List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
+        for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
+            mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
         }
-        return panels;
+        return mergedPanels;
+    }
 
+    private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
+        for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
+            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
+                mergePanels(defaultPanel, configuredPanel);
+                return;
+            }
+        }
+        mergedPanels.add(configuredPanel.cloneWithoutId());
+    }
+
+    private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
+        if (configuredPanel.getPanelIdentifier() != null) {
+            mergedPanel.setPanelIdentifier(configuredPanel.getPanelIdentifier());
+        }
+
+        if (configuredPanel.getPath() != null) {
+            mergedPanel.setPath(configuredPanel.getPath());
+        }
+
+        if (configuredPanel.getListView() != null) {
+            mergedPanel.setListView(configuredPanel.getListView().cloneWithoutId());
+        }
+
+        if (configuredPanel.getContainer() != null) {
+            mergedPanel.setContainer(configuredPanel.getContainer().cloneWithoutId());
+        }
+
+        if (configuredPanel.getType() != null) {
+            mergedPanel.setType(configuredPanel.getType());
+        }
+
+        if (!configuredPanel.getPanel().isEmpty()) {
+            List<ContainerPanelConfigurationType> mergedConfigs = mergeConfigurations(mergedPanel.getPanel(), configuredPanel.getPanel());
+            mergedPanel.getPanel().clear();
+            mergedPanel.getPanel().addAll(mergedConfigs);
+        }
     }
 
     private Component getMainPanel() {

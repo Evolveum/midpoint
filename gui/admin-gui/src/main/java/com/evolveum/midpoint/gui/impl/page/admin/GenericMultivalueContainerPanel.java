@@ -38,15 +38,13 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import java.util.Collections;
 import java.util.List;
 
-@PanelDescription(panelIdentifier = "genericMultiValue")
-public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<PrismObjectWrapper<O>> {
+@PanelDescription(panelIdentifier = "genericMultiValue", generic = true)
+public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
 
     private static final String ID_DETAILS = "details";
-    private ContainerPanelConfigurationType config;
 
     public GenericMultivalueContainerPanel(String id, LoadableModel<PrismObjectWrapper<O>> model, ContainerPanelConfigurationType config) {
-        super(id, model);
-        this.config = config;
+        super(id, model, config);
     }
 
     @Override
@@ -79,12 +77,13 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
 
             @Override
             protected boolean isCollectionViewPanel() {
-                return config.getListView() !=null;
+                return getPanelConfiguration().getListView() !=null;
             }
 
+            //TODO generalize
             @Override
             protected CompiledObjectCollectionView getObjectCollectionView() {
-                GuiObjectListViewType listView = config.getListView();
+                GuiObjectListViewType listView = getPanelConfiguration().getListView();
                 if (listView == null) {
                     return null;
                 }
@@ -107,25 +106,6 @@ public class GenericMultivalueContainerPanel<C extends Containerable, O extends 
 
         AssignmentType a;
 
-    }
-
-    private <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
-        return PrismContainerWrapperModel.fromContainerWrapper(getModel(), getContainerPath());
-    }
-
-    private ItemPath getContainerPath() {
-        if (config.getPath() == null) {
-            return null;
-        }
-        return config.getPath().getItemPath();
-    }
-
-    private Class<C> getTypeClass() {
-        return (Class<C>) WebComponentUtil.qnameToClass(getPrismContext(), getType());
-    }
-
-    private QName getType() {
-        return config.getType();
     }
 
 }

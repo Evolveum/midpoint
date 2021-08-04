@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -33,11 +36,15 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Resource")
-public class ConstructionAssignmentPanel extends AssignmentPanel {
+public class ConstructionAssignmentPanel<AH extends AssignmentHolderType> extends AssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 
     public ConstructionAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config){
         super(id, assignmentContainerWrapperModel, config);
+    }
+
+    public ConstructionAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
     }
 
     @Override

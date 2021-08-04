@@ -99,7 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         panelIdentifier = "projections",
         applicableFor = FocusType.class)
 @PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT)
-public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<PrismObjectWrapper<F>> {
+public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SHADOW_TABLE = "shadowTable";
@@ -114,8 +114,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private final LoadableModel<List<ShadowWrapper>> projectionModel;
 
-    public FocusProjectionsPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-        super(id, focusModel);
+    public FocusProjectionsPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel, config);
+
         this.projectionModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 

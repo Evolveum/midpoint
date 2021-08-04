@@ -2,10 +2,13 @@ package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 
@@ -24,10 +27,10 @@ public class PanelLoader {
             Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
             for (Class<?> clazz : classes) {
                 PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
-                if (desc == null || desc.identifier() == null) {
+                if (desc == null || desc.panelIdentifier() == null) {
                     continue;
                 }
-                if (identifier.equals(desc.identifier())) {
+                if (identifier.equals(desc.panelIdentifier())) {
                     return clazz;
                 }
             }
@@ -41,7 +44,7 @@ public class PanelLoader {
             Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
             for (Class<?> clazz : classes) {
                 PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
-                if (desc == null || desc.applicableFor() == null) {
+                if (desc == null || desc.applicableFor() == null || desc.generic()) {
                     continue;
                 }
                 Class<? extends ObjectType> applicableFor = desc.applicableFor();
@@ -53,8 +56,38 @@ public class PanelLoader {
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
                     }
+//                    if (!desc.path().isBlank()) {
+//                        config.setPath(new ItemPathType(ItemPath.create(desc.path())));
+//                    }
                     processChildren(objectType, config, clazz);
                     panels.add(config);
+                }
+            }
+        }
+        return panels;
+    }
+
+    public static Map<String, ContainerPanelConfigurationType> getPanelMapFor(Class<? extends ObjectType> objectType) {
+        Map<String, ContainerPanelConfigurationType> panels = new HashMap<>();
+        for (String packageToScan : PACKAGES_TO_SCAN) {
+            Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
+            for (Class<?> clazz : classes) {
+                PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
+                if (desc == null || desc.applicableFor() == null) {
+                    continue;
+                }
+                Class<? extends ObjectType> applicableFor = desc.applicableFor();
+                if (applicableFor.isAssignableFrom(objectType) && desc.childOf().equals(Panel.class)) {
+                    ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
+                    config.setIdentifier(desc.identifier());
+                    config.setPanelIdentifier(desc.panelIdentifier());
+
+                    PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
+                    if (display != null) {
+                        config.setDisplay(createDisplayType(display));
+                    }
+                    processChildren(objectType, config, clazz);
+                    panels.put(desc.identifier(), config);
                 }
             }
         }
@@ -66,7 +99,7 @@ public class PanelLoader {
             Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
             for (Class<?> clazz : classes) {
                 PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
-                if (desc == null || desc.applicableFor() == null) {
+                if (desc == null || desc.applicableFor() == null || desc.generic()) {
                     continue;
                 }
                 if (Panel.class.equals(desc.childOf())) {
@@ -82,6 +115,12 @@ public class PanelLoader {
                     ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
                     config.setIdentifier(desc.identifier());
                     config.setPanelIdentifier(desc.panelIdentifier());
+//                    if (parent.getPath() != null) {
+//                        config.setPath(parent.getPath());
+//                    }
+//                    if (!desc.path().isBlank()) {  //TODO append to parent? consider only absolutePaths?
+//                        config.setPath(new ItemPathType(ItemPath.create(desc.path())));
+//                    }
                     PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
@@ -90,7 +129,6 @@ public class PanelLoader {
                 }
             }
         }
-
     }
 
     private static DisplayType createDisplayType(PanelDisplay display) {

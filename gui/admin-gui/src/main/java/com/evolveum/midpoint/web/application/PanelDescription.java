@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -22,5 +23,10 @@ public @interface PanelDescription {
     Class<? extends ObjectType> applicableFor() default ObjectType.class;
     ItemStatus[] status() default {ItemStatus.ADDED, ItemStatus.NOT_CHANGED};
     Class<? extends Panel> childOf() default Panel.class;
+    boolean generic() default false;
+
+
+    //probably not needed
+    String path() default "";
 
 }

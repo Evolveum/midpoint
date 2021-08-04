@@ -28,16 +28,13 @@ import org.apache.wicket.model.IModel;
         panelIdentifier = "basic",
         applicableFor = AssignmentHolderType.class)
 @PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL)
-public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<PrismObjectWrapper<AH>> {
+public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
     private static final String ID_MAIN_PANEL = "properties";
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderBasicPanel.class);
 
-    private ContainerPanelConfigurationType config;
-
     public AssignmentHolderBasicPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
-        super(id, model);
-        this.config = config;
+        super(id, model, config);
     }
 
     @Override

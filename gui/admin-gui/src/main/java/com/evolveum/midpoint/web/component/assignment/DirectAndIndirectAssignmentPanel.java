@@ -10,12 +10,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,13 +58,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "With indirect")
-public class DirectAndIndirectAssignmentPanel extends AssignmentPanel {
+public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> extends AssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 
     private LoadableModel<List<PrismContainerValueWrapper<AssignmentType>>> allAssignmentModel = null;
 
     public DirectAndIndirectAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
+    }
+
+    public DirectAndIndirectAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config){
+        super(id, assignmentContainerWrapperModel, config);
+    }
+
+    public DirectAndIndirectAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
     }
 
     @Override

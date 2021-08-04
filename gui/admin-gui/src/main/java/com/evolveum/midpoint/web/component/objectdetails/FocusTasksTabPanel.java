@@ -20,10 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author mederly
@@ -40,8 +37,15 @@ public class FocusTasksTabPanel<F extends FocusType>
 
     private static final String ID_TASK_TABLE = "taskTable";
 
+    private ContainerPanelConfigurationType config;
+
     public FocusTasksTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
         super(id, focusModel);
+    }
+
+    public FocusTasksTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel);
+        this.config = config;
     }
 
     @Override

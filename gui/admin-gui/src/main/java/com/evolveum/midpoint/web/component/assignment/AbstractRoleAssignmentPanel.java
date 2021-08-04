@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-public class AbstractRoleAssignmentPanel extends AssignmentPanel {
+public class AbstractRoleAssignmentPanel<AR extends FocusType> extends AssignmentPanel<AR> {
 
     private static final long serialVersionUID = 1L;
 

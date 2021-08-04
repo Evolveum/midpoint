@@ -38,18 +38,16 @@ import java.util.Map;
 
 @PanelDescription(identifier = "assignments",
         panelIdentifier = "assignments",
-        applicableFor = AssignmentHolderType.class)
+        applicableFor = AssignmentHolderType.class,
+        path = "assignment")
 @PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON)
-public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<PrismObjectWrapper<AH>> {
+public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
     private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 
-    private ContainerPanelConfigurationType config;
-
     public AssignmentHolderAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
-        super(id, model);
-        this.config = config;
+        super(id, model, config);
     }
 
     @Override
@@ -59,7 +57,7 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
         add(assignments);
         PrismContainerWrapperModel<AH, AssignmentType> assignmentModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), AssignmentHolderType.F_ASSIGNMENT);
         List<ITab> tabs = createAssignmentTabs(assignmentModel);
-        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, config);
+        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, getPanelConfiguration());
 
 //        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
 
@@ -94,7 +92,7 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
 
     private List<ContainerPanelConfigurationType> getAssignmentPanels() {
 //        List<ContainerPanelConfigurationType> panels = PanelLoader.getAssignmentPanelsFor(UserType.class);
-        List<ContainerPanelConfigurationType> subPanels = config.getPanel();
+        List<ContainerPanelConfigurationType> subPanels = getPanelConfiguration().getPanel();
         Map<String, ContainerPanelConfigurationType> panelsMap = new HashMap<>();
         for (ContainerPanelConfigurationType subPanel : subPanels) {
             panelsMap.put(subPanel.getIdentifier(), subPanel);
@@ -103,7 +101,7 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
     }
 
     protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AH, AssignmentType> model) {
-        return new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of(), config){
+        return new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of(), getPanelConfiguration()){
             private static final long serialVersionUID = 1L;
 
             @Override

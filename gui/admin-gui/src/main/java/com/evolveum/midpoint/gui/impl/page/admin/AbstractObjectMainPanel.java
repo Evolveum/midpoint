@@ -10,12 +10,27 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.model.IModel;
 
-public abstract class AbstractObjectMainPanel<T> extends BasePanel<T> {
+import javax.xml.namespace.QName;
 
-    public AbstractObjectMainPanel(String id, LoadableModel<T> model) {
+public abstract class AbstractObjectMainPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
+
+    private ContainerPanelConfigurationType panelConfiguration;
+
+    public AbstractObjectMainPanel(String id, LoadableModel<PrismObjectWrapper<O>> model, ContainerPanelConfigurationType config) {
         super(id, model);
+        this.panelConfiguration = config;
     }
 
     @Override
@@ -26,4 +41,26 @@ public abstract class AbstractObjectMainPanel<T> extends BasePanel<T> {
 
     protected abstract void initLayout();
 
+    public ContainerPanelConfigurationType getPanelConfiguration() {
+        return panelConfiguration;
+    }
+
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
+        return PrismContainerWrapperModel.fromContainerWrapper(getModel(), getContainerPath());
+    }
+
+    private ItemPath getContainerPath() {
+        if (panelConfiguration.getPath() == null) {
+            return null;
+        }
+        return panelConfiguration.getPath().getItemPath();
+    }
+
+    public <C extends Containerable> Class<C> getTypeClass() {
+        return (Class<C>) WebComponentUtil.qnameToClass(getPrismContext(), getType());
+    }
+
+    public QName getType() {
+        return getPanelConfiguration().getType();
+    }
 }

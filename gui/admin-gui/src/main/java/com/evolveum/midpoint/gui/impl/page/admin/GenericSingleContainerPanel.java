@@ -22,15 +22,13 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 
-@PanelDescription(panelIdentifier = "genericSingleValue")
-public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<PrismObjectWrapper<O>> {
+@PanelDescription(panelIdentifier = "genericSingleValue", generic = true)
+public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
 
     private static final String ID_DETAILS = "details";
-    private ContainerPanelConfigurationType config;
 
     public GenericSingleContainerPanel(String id, LoadableModel<PrismObjectWrapper<O>> model, ContainerPanelConfigurationType config) {
-        super(id, model);
-        this.config = config;
+        super(id, model, config);
     }
 
     @Override
@@ -39,20 +37,4 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
         add(panel);
 
     }
-
-    private <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
-        return PrismContainerWrapperModel.fromContainerWrapper(getModel(), getContainerPath());
-    }
-
-    private ItemPath getContainerPath() {
-        if (config.getPath() == null) {
-            return null;
-        }
-        return config.getPath().getItemPath();
-    }
-
-    private QName getType() {
-        return config.getType();
-    }
-
 }

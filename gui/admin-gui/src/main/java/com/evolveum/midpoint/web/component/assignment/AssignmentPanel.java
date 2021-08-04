@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +100,7 @@ import org.jetbrains.annotations.NotNull;
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "All")
-public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
+public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -120,6 +123,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
     public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
         super(id, assignmentContainerWrapperModel);
+        this.config = config;
+    }
+
+    public AssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT));
         this.config = config;
     }
 

@@ -8,7 +8,10 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -22,7 +25,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Org")
-public class OrgAssignmentPanel extends AbstractRoleAssignmentPanel {
+public class OrgAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,6 +40,10 @@ public class OrgAssignmentPanel extends AbstractRoleAssignmentPanel {
 
     public OrgAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
         super(id, assignmentContainerWrapperModel, config);
+    }
+
+    public OrgAssignmentPanel(String id, LoadableModel<PrismObjectWrapper<AH>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
     }
 
 

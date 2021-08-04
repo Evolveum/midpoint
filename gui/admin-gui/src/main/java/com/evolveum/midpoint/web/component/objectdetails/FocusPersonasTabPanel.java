@@ -16,6 +16,8 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -53,8 +55,15 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
+    private ContainerPanelConfigurationType config;
+
     public FocusPersonasTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel) {
         super(id, focusModel);
+    }
+
+    public FocusPersonasTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel);
+        this.config = config;
     }
 
     @Override

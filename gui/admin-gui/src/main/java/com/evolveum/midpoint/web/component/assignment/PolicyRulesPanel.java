@@ -10,10 +10,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.web.application.PanelDescription;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -42,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Policy rule")
-public class PolicyRulesPanel extends AssignmentPanel {
+public class PolicyRulesPanel<AR extends AbstractRoleType> extends AssignmentPanel<AR> {
 
     private static final long serialVersionUID = 1L;
 
@@ -51,6 +55,10 @@ public class PolicyRulesPanel extends AssignmentPanel {
     public PolicyRulesPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config){
         super(id, assignmentContainerWrapperModel, config);
 
+    }
+
+    public PolicyRulesPanel(String id, LoadableModel<PrismObjectWrapper<AR>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
+        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AssignmentHolderType.F_ASSIGNMENT), config);
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {

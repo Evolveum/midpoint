@@ -1972,7 +1972,7 @@ public final class WebComponentUtil {
             return null;
         }
 
-        ObjectReferenceType ref = refValue.getRealValue();
+        Referencable ref = refValue.getRealValue();
         if (ref == null) {
             return null;
         }
@@ -5026,8 +5026,8 @@ public final class WebComponentUtil {
             Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
         }
 
         try {
@@ -5035,8 +5035,8 @@ public final class WebComponentUtil {
             Panel panel = (Panel) constructor.newInstance(markupId, model, panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            LOGGER.trace("No constructor found for (String, Model, ContainerPanelConfigurationType). Panel cannot be created");
         }
 
         return null;

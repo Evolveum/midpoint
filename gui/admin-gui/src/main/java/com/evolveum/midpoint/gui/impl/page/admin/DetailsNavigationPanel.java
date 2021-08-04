@@ -64,6 +64,9 @@ public class DetailsNavigationPanel extends BasePanel<List<ContainerPanelConfigu
 
                     @Override
                     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
+                        if (config.getPath() == null) {
+                            config.setPath(item.getModelObject().getPath());
+                        }
                         DetailsNavigationPanel.this.onClickPerformed(config, target);
                     }
                 };
