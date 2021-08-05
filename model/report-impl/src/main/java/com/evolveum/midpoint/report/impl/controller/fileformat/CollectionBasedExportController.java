@@ -11,9 +11,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.report.impl.activity.ReportDataCreationActivityExecution;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -24,12 +26,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.report.impl.activity.ClassicReportExportActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -47,7 +47,7 @@ import static java.util.Objects.requireNonNull;
  * Controls the process of exporting collection-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ReportDataCreationActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ClassicReportExportActivityExecution} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *
@@ -56,10 +56,9 @@ import static java.util.Objects.requireNonNull;
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
  * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
- * 4. {@link #afterBucketExecution(int, OperationResult)} that wraps up processing of a bucket, storing partial results
- * to be aggregated in the follow-up activity.
+ * to be aggregated.
  *
- * @param <C> Type of records to be processed. TODO reconsider if it's OK to have a parameterized type like this
+ * @param <C> Type of records to be processed.
  */
 @Experimental
 public class CollectionBasedExportController<C extends Containerable> {
@@ -81,18 +80,10 @@ public class CollectionBasedExportController<C extends Containerable> {
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
      */
-    @NotNull private final ReportDataWriter dataWriter;
+    @NotNull protected final ReportDataWriter dataWriter;
 
     /** The report of which an export is being done. */
-    @NotNull private final ReportType report;
-
-    /**
-     * Reference to the global (aggregated) report data object.
-     *
-     * Currently always present. But in the future we may provide simplified version of the process that executes
-     * in a single bucket, not needing aggregated report data object.
-     */
-    @NotNull private final ObjectReferenceType globalReportDataRef;
+    @NotNull protected final ReportType report;
 
     /** Configuration of the report export, taken from the report. */
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
@@ -113,25 +104,23 @@ public class CollectionBasedExportController<C extends Containerable> {
     private VariablesMap parameters;
 
     // Useful Spring beans
-    private final ReportServiceImpl reportService;
-    private final PrismContext prismContext;
-    private final SchemaRegistry schemaRegistry;
-    private final SchemaService schemaService;
-    private final ModelInteractionService modelInteractionService;
-    private final RepositoryService repositoryService;
-    private final LocalizationService localizationService;
+    protected final ReportServiceImpl reportService;
+    protected final PrismContext prismContext;
+    protected final SchemaRegistry schemaRegistry;
+    protected final SchemaService schemaService;
+    protected final ModelInteractionService modelInteractionService;
+    protected final RepositoryService repositoryService;
+    protected final LocalizationService localizationService;
 
     public CollectionBasedExportController(@NotNull ReportDataSource<C> dataSource,
             @NotNull ReportDataWriter dataWriter,
             @NotNull ReportType report,
-            @NotNull ObjectReferenceType globalReportDataRef,
             @NotNull ReportServiceImpl reportService,
             @NotNull CompiledObjectCollectionView compiledCollection) {
 
         this.dataSource = dataSource;
         this.dataWriter = dataWriter;
         this.report = report;
-        this.globalReportDataRef = globalReportDataRef;
         this.configuration = report.getObjectCollection();
         this.reportService = reportService;
         this.prismContext = reportService.getPrismContext();
@@ -246,34 +235,5 @@ public class CollectionBasedExportController<C extends Containerable> {
                         columnDataConverter.convertColumn(column)));
 
         dataWriter.appendDataRow(dataRow);
-    }
-
-    /**
-     * Called after bucket of data is executed, i.e. after all the data from current bucket were passed to
-     * {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} method.
-     *
-     * We have to store the data into partial report data object in the repository, to be aggregated into final
-     * report afterwards.
-     */
-    public void afterBucketExecution(int bucketNumber, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException {
-        String data = dataWriter.getStringData();
-        dataWriter.reset();
-
-        LOGGER.info("Bucket {} is complete ({} chars in report). Let's create the partial report data object:\n{}",
-                bucketNumber, data.length(), data); // todo debug
-
-        // Note that we include [oid] in the object name to allow a poor man searching over the children.
-        // It's until parentRef is properly indexed in the repository.
-        // We also make the name sortable by padding the number with zeros: until we can sort on the sequential number.
-        String name = String.format("Partial report data for [%s] (%08d)", globalReportDataRef.getOid(), bucketNumber);
-
-        ReportDataType partialReportData = new ReportDataType(prismContext)
-                .name(name)
-                .reportRef(ObjectTypeUtil.createObjectRef(report, prismContext))
-                .parentRef(globalReportDataRef.clone())
-                .sequentialNumber(bucketNumber)
-                .data(data);
-        repositoryService.addObject(partialReportData.asPrismObject(), null, result);
     }
 }

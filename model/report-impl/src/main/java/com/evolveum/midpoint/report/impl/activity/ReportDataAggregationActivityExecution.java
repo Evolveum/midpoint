@@ -7,23 +7,15 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,7 +40,7 @@ class ReportDataAggregationActivityExecution
     private static final Trace LOGGER = TraceManager.getTrace(ReportDataAggregationActivityExecution.class);
 
     /** Helper functionality. */
-    @NotNull private final ActivityExecutionSupport support;
+    @NotNull private final ActivityDistributedExportSupport support;
 
     /**
      * Data from all the partial reports.
@@ -58,18 +50,6 @@ class ReportDataAggregationActivityExecution
     private final StringBuilder aggregatedData = new StringBuilder();
 
     /**
-     * File to which the aggregated data are stored.
-     */
-    private String aggregatedFilePath;
-
-    /**
-     * Used to derive the file path and to save report data.
-     *
-     * TODO remove dependency on this class
-     */
-    private FileFormatController fileFormatController;
-
-    /**
      * Data writer which completize context of report.
      */
     private ReportDataWriter dataWriter;
@@ -77,44 +57,15 @@ class ReportDataAggregationActivityExecution
     ReportDataAggregationActivityExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Report data aggregation");
-        support = new ActivityExecutionSupport(context);
+        support = new ActivityDistributedExportSupport(context);
     }
 
     @Override
     protected void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         support.initializeExecution(result);
 
-        CollectionEngineController engineController = new CollectionEngineController(getActivityHandler().reportService);
-
-        fileFormatController = ReportUtils.createExportController(
-                support.getReport(),
-                engineController.getDefaultFileFormat(),
-                getActivityHandler().reportService);
-
-        aggregatedFilePath =
-                replaceColons(
-                        engineController.getDestinationFileName(support.getReport(), fileFormatController));
-
         dataWriter = ReportUtils.createDataWriter(
                 support.getReport(), FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
-    }
-
-    /**
-     * Very strange: colons are no problem for Windows, but Apache file utils complain for them (when running on Windows).
-     * So they will be replaced, at least temporarily.
-     *
-     * TODO research this
-     */
-    private String replaceColons(String path) {
-        if (onWindows()) {
-            return path.replaceAll(":", "_");
-        } else {
-            return path;
-        }
-    }
-
-    private boolean onWindows() {
-        return File.separatorChar == '\\';
     }
 
     @Override
@@ -146,29 +97,7 @@ class ReportDataAggregationActivityExecution
 
     @Override
     protected void finishExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        writeToReportFile(dataWriter.completizeReport(aggregatedData.toString()));
-        saveReportDataObject(result);
-    }
-
-    private void writeToReportFile(String contextOfFile) {
-        try {
-            FileUtils.writeByteArrayToFile(
-                    new File(aggregatedFilePath),
-                    contextOfFile.getBytes(Charset.defaultCharset()));
-        } catch (IOException e) {
-            throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
-        }
-    }
-
-    private void saveReportDataObject(OperationResult result) throws CommonException {
-        getActivityHandler().reportTaskHandler.saveReportDataType(
-                aggregatedFilePath,
-                support.getReport(),
-                fileFormatController,
-                getRunningTask(),
-                result);
-
-        LOGGER.info("Aggregated report was saved - the file is {}", aggregatedFilePath);
+       support.saveReportFile(aggregatedData.toString(), dataWriter, result);
     }
 
     @Override

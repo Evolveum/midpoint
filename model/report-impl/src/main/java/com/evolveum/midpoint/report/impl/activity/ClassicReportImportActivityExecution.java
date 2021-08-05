@@ -73,19 +73,7 @@ class ClassicReportImportActivityExecution
         support.initializeExecution(result);
         report = support.getReport();
 
-        stateCheck(getDirection(report) == IMPORT, "Only report import are supported here");
-        stateCheck(support.existCollectionConfiguration() || support.existImportScript(), "Report of 'import' direction without import script support only object collection engine."
-                + " Please define ObjectCollectionReportEngineConfigurationType in report type.");
-
-        if (!reportService.isAuthorizedToImportReport(report.asPrismContainer(), support.runningTask, result)) {
-            LOGGER.error("User is not authorized to import report {}", report);
-            throw new SecurityViolationException("Not authorized");
-        }
-
-        String pathToFile = support.getReportData().getFilePath();
-        stateCheck(StringUtils.isNotEmpty(pathToFile), "Path to file for import report is empty.");
-        stateCheck(new File(pathToFile).exists(), "File " + pathToFile + " for import report not exist.");
-        stateCheck(new File(pathToFile).isFile(), "Object " + pathToFile + " for import report isn't file.");
+        support.stateCheck(result);
 
         controller = new ImportController(
                 report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);

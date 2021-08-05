@@ -7,22 +7,16 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,12 +27,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportW
 import static java.util.Objects.requireNonNull;
 
 /**
- * Contains common functionality for both activity executions (data creation + data aggregation).
+ * Contains common functionality for export activity executions.
  * This is an experiment - using object composition instead of inheritance.
- *
- * TODO better name
  */
-class ActivityExecutionSupport extends AbstractReportActivitySupport {
+class ActivityDistributedExportSupport extends ActivityExportSupport {
 
     @NotNull private final Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity;
 
@@ -47,9 +39,12 @@ class ActivityExecutionSupport extends AbstractReportActivitySupport {
      */
     private ObjectReferenceType globalReportDataRef;
 
-    ActivityExecutionSupport(
+    ActivityDistributedExportSupport(
             ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
-        super(context);
+        super(context,
+                context.getActivity().getHandler().reportService,
+                context.getActivity().getHandler().objectResolver,
+                context.getActivity().getWorkDefinition());
         activity = context.getActivity();
     }
 
@@ -75,25 +70,16 @@ class ActivityExecutionSupport extends AbstractReportActivitySupport {
         return globalReportDataRef;
     }
 
-    @Override
-    protected ObjectResolver getObjectResolver() {
-        return activity.getHandler().objectResolver;
-    }
-
-    @Override
-    protected AbstractReportWorkDefinition getWorkDefinition() {
-        return activity.getWorkDefinition();
-    }
-
-    @Override
-    protected ReportServiceImpl getReportService() {
-        return activity.getHandler().reportService;
-    }
-
     /**
      * Should be called only after initialization.
      */
     @NotNull ObjectReferenceType getGlobalReportDataRef() {
         return requireNonNull(globalReportDataRef);
+    }
+
+    @Override
+    public void stateCheck(OperationResult result) throws CommonException {
+        MiscUtil.stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
+        super.stateCheck(result);
     }
 }

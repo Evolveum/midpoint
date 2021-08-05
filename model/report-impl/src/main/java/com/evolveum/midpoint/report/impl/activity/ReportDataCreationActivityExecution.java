@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionType
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedDistributedExportController;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +65,7 @@ public class ReportDataCreationActivityExecution
      *
      * TODO decide on the correct name for this class and its instances
      */
-    private CollectionBasedExportController<ObjectType> controller;
+    private CollectionBasedDistributedExportController<ObjectType> controller;
 
     /**
      * This is "master" search specification, derived from the report.
@@ -73,7 +73,7 @@ public class ReportDataCreationActivityExecution
      */
     private SearchSpecification<ObjectType> masterSearchSpecification;
 
-    @NotNull private final ActivityExecutionSupport support;
+    @NotNull private final ActivityDistributedExportSupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
@@ -82,7 +82,7 @@ public class ReportDataCreationActivityExecution
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
         super(context, "Data creation");
         reportService = context.getActivity().getHandler().reportService;
-        support = new ActivityExecutionSupport(context);
+        support = new ActivityDistributedExportSupport(context);
     }
 
     /**
@@ -111,7 +111,7 @@ public class ReportDataCreationActivityExecution
         SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
         ReportDataWriter dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
-        controller = new CollectionBasedExportController<>(
+        controller = new CollectionBasedDistributedExportController<>(
                 searchSpecificationHolder,
                 dataWriter,
                 report,
