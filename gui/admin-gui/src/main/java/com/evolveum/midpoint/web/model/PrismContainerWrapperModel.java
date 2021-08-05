@@ -22,12 +22,23 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
 
     private static final long serialVersionUID = 1L;
 
+    private String identifier;
+
     PrismContainerWrapperModel(IModel<?> parent, ItemPath path, boolean fromContainerValue) {
         super(parent, path, fromContainerValue);
     }
 
+    PrismContainerWrapperModel(IModel<?> parent, String identifier) {
+        super(parent, null, false);
+        this.identifier = identifier;
+    }
+
     public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
         return new PrismContainerWrapperModel<>(parent, path, false);
+    }
+
+    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, String containerIdentfier) {
+        return new PrismContainerWrapperModel<>(parent, containerIdentfier);
     }
 
     public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
@@ -48,6 +59,10 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
 
     @Override
     public PrismContainerWrapper<T> getObject() {
+        if (identifier != null) {
+            PrismContainerWrapper<?> parentObject = (PrismContainerWrapper) getParent().getObject();
+            return parentObject.findContainer(identifier);
+        }
         return getItemWrapper(PrismContainerWrapper.class);
     }
 }

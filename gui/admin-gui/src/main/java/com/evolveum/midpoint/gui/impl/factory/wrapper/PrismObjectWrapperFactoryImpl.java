@@ -153,7 +153,12 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             if (iw == null) {
                 continue;
             }
+
+            if (iw instanceof PrismContainerWrapper) {
+                ((PrismContainerWrapper) iw).setIdentifier(virtualContainer.getIdentifier());
+            }
             iw.setVisibleOverwrite(virtualContainer.getVisibility());
+
             ((List) objectValueWrapper.getItems()).add(iw);
 
         }

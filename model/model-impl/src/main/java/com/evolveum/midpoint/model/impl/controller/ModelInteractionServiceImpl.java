@@ -1888,57 +1888,68 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
         Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
-        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
 
-            try {
-                ArchetypePolicyType archetypePolicyType = determineArchetypePolicy((PrismObject) object, result);
-                if (archetypePolicyType != null) {
-                    ArchetypeAdminGuiConfigurationType archetypeAdminGui = archetypePolicyType.getAdminGuiConfiguration();
-                    if (archetypeAdminGui != null) {
-                        GuiObjectDetailsPageType guiDetails = archetypeAdminGui.getObjectDetails();
-                        if (guiDetails != null && guiDetails.getContainer() != null) {
-                            virtualContainers.addAll(guiDetails.getContainer());
-                        }
-                    }
-                }
-            } catch (SchemaException | ConfigurationException e) {
-                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
-                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
+        addVirtualContainersFromArchetype(object, virtualContainers, result);
+        addAdminGuiConfigurationVirtualContainers(object, virtualContainers, task, result);
+        return virtualContainers;
+    }
+
+    private <O extends ObjectType> void addVirtualContainersFromArchetype(PrismObject<O> object, Collection<VirtualContainersSpecificationType> virtualContainers, @NotNull OperationResult result) {
+        if (!AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+            return;
+        }
+        try {
+            ArchetypePolicyType archetypePolicyType = determineArchetypePolicy((PrismObject) object, result);
+            if (archetypePolicyType == null) {
+                return;
+            }
+            ArchetypeAdminGuiConfigurationType archetypeAdminGui = archetypePolicyType.getAdminGuiConfiguration();
+            if (archetypeAdminGui == null) {
+                return;
             }
 
-        }
+            GuiObjectDetailsPageType guiDetails = archetypeAdminGui.getObjectDetails();
+            if (guiDetails == null) {
+                return;
+            }
 
+            collectVirtualContainers(guiDetails.getPanel(), virtualContainers);
+
+            // deprecated, use only when new configuration not used
+            virtualContainers.addAll(guiDetails.getContainer());
+
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
+            result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
+        }
+    }
+
+    private <O extends ObjectType> void addAdminGuiConfigurationVirtualContainers(PrismObject<O> object, Collection<VirtualContainersSpecificationType> virtualContainers, Task task, @NotNull OperationResult result) {
         QName objectType = object.getDefinition().getTypeName();
         try {
             CompiledGuiProfile userProfile = getCompiledGuiProfile(task, result);
-            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
-            if (objectDetailsSetType == null) {
+            GuiObjectDetailsPageType detailsPage = userProfile.findObjectDetailsConfiguration(objectType);
+            if (detailsPage == null) {
                 result.recordSuccess();
-                return virtualContainers;
+                return;
             }
-            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
-            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
-                if (objectType == null) {
-                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
-                    continue;
-                }
-                if (detailsPage.getType() == null) {
-                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
-                    continue;
-                }
+            collectVirtualContainers(detailsPage.getPanel(), virtualContainers);
 
-                if (QNameUtil.match(objectType, detailsPage.getType()) && detailsPage.getContainer() != null) {
-                    virtualContainers.addAll(detailsPage.getContainer());
-                }
-            }
+            // deprecated, use only when new configuration not used
+            virtualContainers.addAll(detailsPage.getContainer());
+
             result.recordSuccess();
-            return virtualContainers;
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
             result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
-            return virtualContainers;
         }
+    }
 
+    private void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+        for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
+            virtualContainers.addAll(panelConfig.getContainer());
+            collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
+        }
     }
 
     @Override

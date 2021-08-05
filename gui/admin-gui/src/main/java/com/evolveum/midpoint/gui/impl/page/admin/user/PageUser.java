@@ -14,10 +14,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsNavigationPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,8 +75,7 @@ public class PageUser extends PageBase {
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-
-
+    private static final String ID_MAIN_FORM = "mainForm";
 
     private LoadableModel<PrismObjectWrapper<UserType>> model;
     private GuiObjectDetailsPageType detailsPageConfiguration;
@@ -104,7 +105,7 @@ public class PageUser extends PageBase {
                 ctx.setCreateIfEmpty(true);
 
                 try {
-                    return factory.createObjectWrapper(prismUser, ItemStatus.ADDED, ctx);
+                    return factory.createObjectWrapper(prismUser, isEditUser()? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
                     //TODO:
                     return null;
@@ -117,7 +118,7 @@ public class PageUser extends PageBase {
         OperationResult result = task.getResult();
         PrismObject<UserType> prismUser;
             try {
-                if (!isOidParameterExists()) {
+                if (!isEditUser()) {
                     UserType userType = new UserType(getPrismContext());
                     prismUser = userType.asPrismObject();
                 } else {
@@ -140,7 +141,7 @@ public class PageUser extends PageBase {
 
         }
 
-    public boolean isOidParameterExists() {
+    public boolean isEditUser() {
         return getObjectOidParameter() != null;
     }
 
@@ -162,7 +163,9 @@ public class PageUser extends PageBase {
     private void initLayout() {
         initSummaryPanel();
         initButtons();
-        initMainPanel("basic", null);
+        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+        add(form);
+        initMainPanel("basic", null, form);
         initNavigation();
     }
 
@@ -191,12 +194,12 @@ public class PageUser extends PageBase {
     }
 
 
-    private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig) {
+    private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         //TODO load default panel?
         IModel<?> panelModel = getPanelModel(panelConfig);
 
         Panel panel = WebComponentUtil.createPanel(identifier, ID_MAIN_PANEL, model, panelConfig);
-        addOrReplace(panel);
+        form.addOrReplace(panel);
 
     }
 
@@ -225,8 +228,9 @@ public class PageUser extends PageBase {
         DetailsNavigationPanel panel = new DetailsNavigationPanel(id, Model.ofList(panels)) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
-                initMainPanel(config.getPanelIdentifier(), config);
-                target.add(getMainPanel());
+                MidpointForm form = getMainForm();
+                initMainPanel(config.getPanelIdentifier(), config, form);
+                target.add(form);
             }
         };
         return panel;
@@ -271,8 +275,8 @@ public class PageUser extends PageBase {
             mergedPanel.setListView(configuredPanel.getListView().cloneWithoutId());
         }
 
-        if (configuredPanel.getContainer() != null) {
-            mergedPanel.setContainer(configuredPanel.getContainer().cloneWithoutId());
+        if (!configuredPanel.getContainer().isEmpty()) {
+            mergedPanel.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(configuredPanel.getContainer()));
         }
 
         if (configuredPanel.getType() != null) {
@@ -287,7 +291,15 @@ public class PageUser extends PageBase {
     }
 
     private Component getMainPanel() {
-        return get(ID_MAIN_PANEL);
+        return get(createComponentPath(ID_MAIN_FORM, ID_MAIN_PANEL));
+    }
+
+    private MidpointForm getMainForm() {
+        return (MidpointForm) get(ID_MAIN_FORM);
+    }
+
+    public PrismObject<UserType> getPrismObject() {
+        return model.getObject().getObject();
     }
 
 }

@@ -38,35 +38,35 @@ public class CustomContainerPanel<O extends ObjectType> extends BasePanel<PrismO
 
     private void initLayout() {
 
-        VirtualContainersSpecificationType container = panelConfig.getContainer();
-        String identifier = container.getIdentifier();
-
-        List<VirtualContainerItemSpecificationType> items = container.getItem();
-
-
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler(wrapper -> {
-                    for (VirtualContainerItemSpecificationType i : items) {
-                        if (i.getPath().getItemPath().equivalent(wrapper.getPath().namedSegmentsOnly())) {
-                            UserInterfaceElementVisibilityType visibilityType = i.getVisibility();
-                            if (visibilityType == null) {
-                                return ItemVisibility.AUTO;
-                            }
-                            if (UserInterfaceElementVisibilityType.HIDDEN == visibilityType) {
-                                return ItemVisibility.HIDDEN;
-                            }
-                            return ItemVisibility.AUTO;
-                        }
-                    }
-                    return ItemVisibility.AUTO;
-                }).build();
-
-        try {
-            Panel panel = getPageBase().initItemPanel(ID_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), path), settings);
-            add(panel);
-        } catch (SchemaException e) {
-            //TODO:
-            throw new SystemException(e);
-        }
+//        List<VirtualContainersSpecificationType> container = panelConfig.getContainer();
+//        String identifier = container.getIdentifier();
+//
+//        List<VirtualContainerItemSpecificationType> items = container.getItem();
+//
+//
+//        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+//                .visibilityHandler(wrapper -> {
+//                    for (VirtualContainerItemSpecificationType i : items) {
+//                        if (i.getPath().getItemPath().equivalent(wrapper.getPath().namedSegmentsOnly())) {
+//                            UserInterfaceElementVisibilityType visibilityType = i.getVisibility();
+//                            if (visibilityType == null) {
+//                                return ItemVisibility.AUTO;
+//                            }
+//                            if (UserInterfaceElementVisibilityType.HIDDEN == visibilityType) {
+//                                return ItemVisibility.HIDDEN;
+//                            }
+//                            return ItemVisibility.AUTO;
+//                        }
+//                    }
+//                    return ItemVisibility.AUTO;
+//                }).build();
+//
+//        try {
+//            Panel panel = getPageBase().initItemPanel(ID_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), path), settings);
+//            add(panel);
+//        } catch (SchemaException e) {
+//            //TODO:
+//            throw new SystemException(e);
+//        }
     }
 }

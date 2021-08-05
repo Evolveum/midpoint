@@ -3621,7 +3621,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:UserInterfaceFeatureType">
                 <xsd:sequence>
-                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0">
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>

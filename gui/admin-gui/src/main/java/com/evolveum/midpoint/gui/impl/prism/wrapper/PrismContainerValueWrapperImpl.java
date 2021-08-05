@@ -362,6 +362,23 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier) {
+        for (PrismContainerWrapper<? extends Containerable> container : getContainers()) {
+            if (identifier.equals(container.getIdentifier())) {
+                return (PrismContainerWrapper<T>) container;
+            }
+        }
+
+        for (PrismContainerWrapper<? extends Containerable> container : getContainers()) {
+            PrismContainerWrapper<T> foundContainer = container.findContainer(identifier);
+            if (foundContainer != null) {
+                return foundContainer;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {
         Object first = path.first();
         if (!ItemPath.isName(first)) {

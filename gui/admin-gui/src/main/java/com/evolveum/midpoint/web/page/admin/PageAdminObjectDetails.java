@@ -129,7 +129,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     private AbstractObjectMainPanel<O> mainPanel;
     private boolean saveOnConfigure;        // ugly hack - whether to invoke 'Save' when returning to this page
 
-    private boolean editingFocus = false;             //before we got isOidParameterExists status depending only on oid parameter existence
+    private boolean editingFocus = false;             //before we got isEditUser status depending only on oid parameter existence
     //we should set editingFocus=true not only when oid parameter exists but also
     //when object is given as a constructor parameter
 
