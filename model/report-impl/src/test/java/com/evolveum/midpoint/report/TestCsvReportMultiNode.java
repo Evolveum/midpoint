@@ -7,23 +7,31 @@
 package com.evolveum.midpoint.report;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class TestCsvReportMultiNode extends EmptyReportIntegrationTest {
+public class TestCsvReportMultiNode extends TestCsvReport {
 
     private static final File TEST_DIR = new File("src/test/resources/reports");
 
+    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+            "task-distributed-export.xml", "5ab8f8c6-df1a-4580-af8b-a899f240b44f");
+
     private static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_USERS = new TestResource<>(TEST_DIR,
             "report-object-collection-users.xml", "64e13165-21e5-419a-8d8b-732895109f84");
-    private static final TestResource<TaskType> TASK_EXPORT_USERS_MULTINODE = new TestResource<>(TEST_DIR,
-            "task-export-users-multinode.xml", "5ab8f8c6-df1a-4580-af8b-a899f240b44f");
 
     private static final int USERS = 1000;
 
@@ -32,7 +40,7 @@ public class TestCsvReportMultiNode extends EmptyReportIntegrationTest {
         super.initSystem(initTask, initResult);
         commonInitialization(initResult);
 
-        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
+        repoAdd(TASK_DISTRIBUTED_EXPORT_CLASSIC, initResult);
 
         createUsers(USERS, initResult);
     }
@@ -44,18 +52,32 @@ public class TestCsvReportMultiNode extends EmptyReportIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addTask(TASK_EXPORT_USERS_MULTINODE, result);
+        addObject(REPORT_OBJECT_COLLECTION_USERS.file);
+        runExportTask(REPORT_OBJECT_COLLECTION_USERS, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_EXPORT_USERS_MULTINODE.oid);
+        waitForTaskCloseOrSuspend(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid);
 
         then();
 
-        assertTask(TASK_EXPORT_USERS_MULTINODE.oid, "after")
+        assertTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
 
-        // TODO assert the resulting file
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
+        basicCheckOutputFile(report, 1002, 2, null);
+    }
+
+    @Override
+    void runExportTask(TestResource<ReportType> reportResource, OperationResult result) throws CommonException {
+        changeTaskReport(reportResource,
+                ItemPath.create(TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_DISTRIBUTED_REPORT_EXPORT,
+                        ClassicReportImportWorkDefinitionType.F_REPORT_REF
+                ),
+                TASK_DISTRIBUTED_EXPORT_CLASSIC);
+        rerunTask(TASK_DISTRIBUTED_EXPORT_CLASSIC.oid, result);
     }
 }

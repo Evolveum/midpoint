@@ -14,7 +14,7 @@ import java.io.File;
  * @author skublik
  */
 
-public class TestCsvReportSafe extends TestCsvReport{
+public class TestCsvReportSafe extends TestCsvReportOld {
 
     @Override
     protected File getSystemConfigurationFile() {

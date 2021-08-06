@@ -7,15 +7,15 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="5ab8f8c6-df1a-4580-af8b-a899f240b44f">
-    <name>export-users-multinode</name>
+    <name>distributed-export</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionStatus>closed</executionStatus>
 
     <activity>
         <work>
             <distributedReportExport>
-                <reportRef oid="64e13165-21e5-419a-8d8b-732895109f84" />
+                <reportRef oid="oid" />
             </distributedReportExport>
         </work>
         <tailoring>
