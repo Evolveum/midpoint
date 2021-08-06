@@ -98,14 +98,16 @@ public class DistributedReportExportActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(context, "Data creation", ReportDataCreationActivityExecutionSpecifics::new),
+                (context, result) -> new SearchBasedActivityExecution<>(
+                        context, "Data creation", ReportDataCreationExecutionSpecifics::new),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new SearchBasedActivityExecution<>(context, "Report data aggregation", ReportDataAggregationActivityExecutionSpecifics::new),
+                (context, result) -> new SearchBasedActivityExecution<>(
+                        context, "Report data aggregation", ReportDataAggregationExecutionSpecifics::new),
                 null,
                 (i) -> "data-aggregation",
                 ActivityStateDefinition.normal(),

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -24,18 +24,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.IMPORT;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Contains common functionality for import activity executions.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ActivityImportSupport extends ActivityExportSupport {
+class ImportActivitySupport extends ReportActivitySupport {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ActivityImportSupport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ImportActivitySupport.class);
 
     @NotNull private final Activity<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> activity;
 
@@ -44,18 +41,18 @@ class ActivityImportSupport extends ActivityExportSupport {
      */
     private ReportDataType reportData;
 
-    ActivityImportSupport(
-            ExecutionInstantiationContext<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> context) {
-        super(context,
-                context.getActivity().getHandler().reportService,
-                context.getActivity().getHandler().objectResolver,
-                context.getActivity().getWorkDefinition());
-        activity = context.getActivity();
+    ImportActivitySupport(PlainIterativeActivityExecution<InputReportLine, ClassicReportImportWorkDefinition,
+            ClassicReportImportActivityHandler, ?> activityExecution) {
+        super(activityExecution,
+                activityExecution.getActivity().getHandler().reportService,
+                activityExecution.getActivity().getHandler().objectResolver,
+                activityExecution.getActivity().getWorkDefinition());
+        activity = activityExecution.getActivity();
     }
 
     @Override
-    void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        super.initializeExecution(result);
+    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        super.beforeExecution(result);
         setupReportDataObject(result);
     }
 
@@ -83,6 +80,7 @@ class ActivityImportSupport extends ActivityExportSupport {
         MiscUtil.stateCheck(existCollectionConfiguration() || existImportScript(), "Report of 'import' direction without import script support only object collection engine."
                 + " Please define ObjectCollectionReportEngineConfigurationType in report type.");
 
+        //noinspection unchecked
         if (!reportService.isAuthorizedToImportReport(report.asPrismContainer(), runningTask, result)) {
             LOGGER.error("User is not authorized to import report {}", report);
             throw new SecurityViolationException("Not authorized");

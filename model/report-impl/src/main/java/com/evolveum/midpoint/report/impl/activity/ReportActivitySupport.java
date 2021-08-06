@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -15,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
@@ -26,32 +37,23 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
-
-import static java.util.Objects.requireNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
- * Contains common functionality for export activity executions.
+ * Contains common functionality for executions of report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ActivityExportSupport {
+class ReportActivitySupport {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ActivityExportSupport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportActivitySupport.class);
 
-    private static final String OP_CREATE_REPORT_DATA = ActivityExportSupport.class.getName() + "createReportData";
+    private static final String OP_CREATE_REPORT_DATA = ReportActivitySupport.class.getName() + "createReportData";
 
     @NotNull protected final RunningTask runningTask;
     @NotNull protected final CommonTaskBeans beans;
@@ -85,18 +87,18 @@ class ActivityExportSupport {
 
     private SaveReportFileSupport saveSupport;
 
-    ActivityExportSupport(ExecutionInstantiationContext context, ReportServiceImpl reportService,
-            ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
-        runningTask = context.getTaskExecution().getRunningTask();
-        beans = context.getTaskExecution().getBeans();
+    ReportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
+            @NotNull ObjectResolver resolver, @NotNull AbstractReportWorkDefinition workDefinition) {
+        this.runningTask = activityExecution.getTaskExecution().getRunningTask();
+        this.beans = activityExecution.getTaskExecution().getBeans();
         this.reportService = reportService;
         this.resolver = resolver;
         this.workDefinition = workDefinition;
-        auditService = reportService.getAuditService();
-        modelService = reportService.getModelService();
+        this.auditService = reportService.getAuditService();
+        this.modelService = reportService.getModelService();
     }
 
-    void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         setupReportObject(result);
         setupSaveSupport(result);
     }

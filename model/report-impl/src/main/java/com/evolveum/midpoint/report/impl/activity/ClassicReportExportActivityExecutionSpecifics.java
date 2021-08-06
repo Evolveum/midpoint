@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,22 +16,14 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedExportController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ImportController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import org.apache.commons.lang3.StringUtils;
-import com.evolveum.midpoint.task.api.RunningTask;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +34,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 
-import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.IMPORT;
-
 /**
- * Activity execution for classical report export.
+ * Activity execution specifics for classical report export.
  *
  * TODO finish the implementation
  */
@@ -59,12 +45,12 @@ public class ClassicReportExportActivityExecutionSpecifics
                 ClassicReportExportWorkDefinition,
                 ClassicReportExportActivityHandler> {
 
-    @NotNull private final ActivityExportSupport support;
+    @NotNull private final ReportActivitySupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
-    @NotNull private ReportType report;
+    private ReportType report;
 
     /**
      * Data writer which completize context of report.
@@ -88,20 +74,20 @@ public class ClassicReportExportActivityExecutionSpecifics
             @NotNull PlainIterativeActivityExecution<Containerable, ClassicReportExportWorkDefinition,
                     ClassicReportExportActivityHandler, ?> activityExecution) {
         super(activityExecution);
-        reportService = context.getActivity().getHandler().reportService;
-        support = new ActivityExportSupport(context, context.getActivity().getHandler().reportService,
-                context.getActivity().getHandler().objectResolver, context.getActivity().getWorkDefinition());
+        reportService = activityExecution.getActivity().getHandler().reportService;
+        support = new ReportActivitySupport(activityExecution, activityExecution.getActivityHandler().reportService,
+                activityExecution.getActivityHandler().objectResolver, activityExecution.getActivity().getWorkDefinition());
     }
 
     @Override
-    public void beforeExecution(OperationResult result) {
+    public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         RunningTask task = getRunningTask();
-        support.initializeExecution(result);
+        support.beforeExecution(result);
         report = support.getReport();
 
         support.stateCheck(result);
 
-        searchSpecificationHolder = new ClassicReportExportActivityExecution.SearchSpecificationHolder();
+        searchSpecificationHolder = new SearchSpecificationHolder();
         dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionBasedExportController<>(
@@ -138,19 +124,16 @@ public class ClassicReportExportActivityExecutionSpecifics
     }
 
     @Override
-    protected @NotNull ItemProcessor<Containerable> createItemProcessor(OperationResult opResult) {
-        return (request, workerTask, parentResult) -> {
-            Containerable record = request.getItem();
-
-            controller.handleDataRecord(request.getSequentialNumber(), record,workerTask, parentResult);
-
-            return true;
-        };
+    public boolean processItem(ItemProcessingRequest<Containerable> request, RunningTask workerTask, OperationResult result)
+            throws CommonException, ActivityExecutionException {
+        Containerable record = request.getItem();
+        controller.handleDataRecord(request.getSequentialNumber(), record, workerTask, result);
+        return true;
     }
 
     @Override
-    protected void finishExecution(OperationResult opResult) throws CommonException, ActivityExecutionException {
-        support.saveReportFile(dataWriter, opResult);
+    public void afterExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        support.saveReportFile(dataWriter, result);
     }
 
     @Override

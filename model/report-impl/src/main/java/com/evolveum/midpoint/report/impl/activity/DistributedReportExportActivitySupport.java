@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -26,22 +25,11 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
-
-import static java.util.Objects.requireNonNull;
 
 /**
- * Contains common functionality for export activity executions.
- * This is an experiment - using object composition instead of inheritance.
+ * Support for "distributed report export" activity.
  */
-class ActivityDistributedExportSupport extends ActivityExportSupport {
+class DistributedReportExportActivitySupport extends ReportActivitySupport {
 
     @NotNull private final Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity;
 
@@ -50,18 +38,18 @@ class ActivityDistributedExportSupport extends ActivityExportSupport {
      */
     private ObjectReferenceType globalReportDataRef;
 
-    ActivityDistributedExportSupport(
+    DistributedReportExportActivitySupport(
             SearchBasedActivityExecution<?, DistributedReportExportWorkDefinition,
                     DistributedReportExportActivityHandler, ?> activityExecution) {
-        super(context,
+        super(activityExecution,
                 activityExecution.getActivity().getHandler().reportService,
                 activityExecution.getActivity().getHandler().objectResolver,
                 activityExecution.getActivity().getWorkDefinition());
         activity = activityExecution.getActivity();
     }
 
-    void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        super.initializeExecution(result);
+    void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        super.beforeExecution(result);
         globalReportDataRef = fetchGlobalReportDataRef(result);
     }
 

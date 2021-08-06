@@ -13,10 +13,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
-import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -30,16 +27,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
-class ReportDataAggregationActivityExecutionSpecifics
+class ReportDataAggregationExecutionSpecifics
         extends BaseSearchBasedExecutionSpecificsImpl
         <ReportDataType,
                 DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReportDataAggregationActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportDataAggregationExecutionSpecifics.class);
 
     /** Helper functionality. */
-    @NotNull private final ActivityDistributedExportSupport support;
+    @NotNull private final DistributedReportExportActivitySupport support;
 
     /**
      * Data from all the partial reports.
@@ -53,15 +50,15 @@ class ReportDataAggregationActivityExecutionSpecifics
      */
     private ReportDataWriter dataWriter;
 
-    ReportDataAggregationActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ReportDataType,
+    ReportDataAggregationExecutionSpecifics(@NotNull SearchBasedActivityExecution<ReportDataType,
             DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ?> activityExecution) {
         super(activityExecution);
-        support = new ActivityDistributedExportSupport(activityExecution);
+        support = new DistributedReportExportActivitySupport(activityExecution);
     }
 
     @Override
     public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        support.initializeExecution(result);
+        support.beforeExecution(result);
 
         dataWriter = ReportUtils.createDataWriter(
                 support.getReport(), FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));

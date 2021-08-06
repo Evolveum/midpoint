@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedExportController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,22 +39,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
- * Executes the (potentially distributed) report data creation activity:
+ * Executes parts of distributed report data creation activity:
  *
  * 1. issues repo search based on data from export controller,
  * 2. processes objects found by feeding them into the export controller,
  * 3. finally, instructs the controller to write the (potentially partial) report.
  */
-public class ReportDataCreationActivityExecutionSpecifics
+public class ReportDataCreationExecutionSpecifics
         extends BaseSearchBasedExecutionSpecificsImpl
         <ObjectType,
                 DistributedReportExportWorkDefinition,
                 DistributedReportExportActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportDataCreationExecutionSpecifics.class);
 
     /**
-     * Execution object (~ controller) that is used to transfer objects found into report data.
+     * Execution object (~ controller) that is used to translate objects found into report data.
      * Initialized on the activity execution start.
      *
      * TODO decide on the correct name for this class and its instances
@@ -68,17 +67,17 @@ public class ReportDataCreationActivityExecutionSpecifics
      */
     private SearchSpecification<ObjectType> masterSearchSpecification;
 
-    @NotNull private final ActivityDistributedExportSupport support;
+    @NotNull private final DistributedReportExportActivitySupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
-    ReportDataCreationActivityExecutionSpecifics(
+    ReportDataCreationExecutionSpecifics(
             @NotNull SearchBasedActivityExecution<ObjectType, DistributedReportExportWorkDefinition,
                     DistributedReportExportActivityHandler, ?> activityExecution) {
         super(activityExecution);
         reportService = getActivity().getHandler().reportService;
-        support = new ActivityDistributedExportSupport(activityExecution);
+        support = new DistributedReportExportActivitySupport(activityExecution);
     }
 
     /**
@@ -87,7 +86,7 @@ public class ReportDataCreationActivityExecutionSpecifics
      */
     @Override
     public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-        support.initializeExecution(result);
+        support.beforeExecution(result);
         initializeController(result);
     }
 
