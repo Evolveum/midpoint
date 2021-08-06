@@ -33,7 +33,7 @@ import static java.util.Objects.requireNonNull;
  * Contains common functionality for import activity executions.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ActivityImportSupport extends ActivityExportSupport {
+class ActivityImportSupport extends AbstractActivityReportSupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityImportSupport.class);
 
