@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Represents data about iterative operation that starts.
  *
@@ -17,7 +19,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public class IterativeOperationStartInfo {
 
-    private final IterationItemInformation item;
+    @NotNull private final IterationItemInformation item;
 
     private final long startTimeMillis;
     private final long startTimeNanos;
@@ -32,14 +34,14 @@ public class IterativeOperationStartInfo {
      */
     private ProgressCollector progressCollector;
 
-    public IterativeOperationStartInfo(IterationItemInformation item) {
+    public IterativeOperationStartInfo(@NotNull IterationItemInformation item) {
         this.item = item;
 
         this.startTimeMillis = System.currentTimeMillis();
         this.startTimeNanos = System.nanoTime();
     }
 
-    public IterationItemInformation getItem() {
+    public @NotNull IterationItemInformation getItem() {
         return item;
     }
 

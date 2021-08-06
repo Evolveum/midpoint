@@ -168,9 +168,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         // Scan all provided directories
         List<Object> dirs = config.getList("scanDirectory");
         for (Object dir : dirs) {
-            bundleURIs.addAll(scanDirectory(dir.toString()));
+            bundleURIs.addAll(scanAndWatchDirectory(dir.toString()));
         }
-
 
         for (URI u : bundleURIs) {
             LOGGER.debug("ICF bundle URI : {}", u);
@@ -567,32 +566,48 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return "file:" + string;
     }
 
-    // TODO: what is lval? does it return "bundle" or "bundles"?
-
     /**
-     * Scan directory for bundles only on first lval we do the scan
+     * Scans the directory for ConnId connector bundles and schedules it for later scanning.
+     *
+     * As a special case, checks if the path provided points to a single JAR file. (No watching in that case.)
+     *
+     * @return Collection of bundle URIs found.
      */
-    private Set<URI> scanDirectory(String path) {
+    private Set<URI> scanAndWatchDirectory(String path) {
 
-        // Prepare return object
-        Set<URI> bundle = new HashSet<>();
-        // Convert path to object File
+        Set<URI> bundleUris = new HashSet<>();
         File dir = new File(path);
 
-        // Test if this path is single jar or need to do deep examination
+        // Test for the special case: is this path a single JAR file?
         if (isThisJarFileBundle(dir)) {
-            addBundleIfEligible(bundle, dir);
-            return bundle;
+            addBundleIfEligible(bundleUris, dir);
+            return bundleUris;
         }
 
-        // Test if it is a directory
-        if (!dir.isDirectory()) {
-            LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
+        if (dir.isDirectory()) {
+            scanDirectoryNow(bundleUris, dir);
+        } else {
+            LOGGER.error("Provided ConnId connector path {} is not a directory.", dir.getAbsolutePath());
         }
 
-        // It is directory, so lets watch it
+        // TODO is this OK even if the "dir" is not a directory?
         localConnectorInfoManager.watchDirectory(dir);
-        return bundle;
+
+        return bundleUris;
+    }
+
+    private void scanDirectoryNow(Set<URI> bundleUris, File dir) {
+        File[] dirEntries = dir.listFiles();
+        if (dirEntries == null) {
+            LOGGER.debug("No bundles found in directory {}", dir.getAbsolutePath());
+            return;
+        }
+
+        for (File dirEntry : dirEntries) {
+            if (isThisJarFileBundle(dirEntry)) {
+                addBundleIfEligible(bundleUris, dirEntry);
+            }
+        }
     }
 
     private void addBundleIfEligible(Set<URI> bundle, File dirEntry) {
@@ -604,7 +619,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
             }
         } catch (MalformedURLException e) {
-            LOGGER.error("This never happened we hope.", e);
             throw new SystemException(e);
         }
     }
@@ -648,7 +662,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     static Boolean isThisJarFileBundle(File file) {
         // Startup tests
         if (null == file) {
-            throw new IllegalArgumentException("No file is providied for bundle test.");
+            throw new IllegalArgumentException("No file is provided for bundle test.");
         }
 
         // Skip all processing if it is not a file
@@ -688,12 +702,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
         // Test if it is a connector
         if (null != prop.get("ConnectorBundle-Name")) {
-            LOGGER.info("Discovered ICF bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
+            LOGGER.info("Discovered ConnId bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
                     + prop.get("ConnectorBundle-Version"));
             return true;
         }
 
-        LOGGER.debug("Provided file {} is not iCF bundle jar", file.getAbsolutePath());
+        LOGGER.debug("Provided file {} is not ConnId bundle jar", file.getAbsolutePath());
         return false;
     }
 

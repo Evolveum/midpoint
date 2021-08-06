@@ -10,11 +10,25 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.*;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -62,12 +76,25 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
+    private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+
     public MainObjectListPanel(String id, Class<O> type) {
         this(id, type, null);
     }
 
     public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, type, options);
+        executeOptionsModel = new LoadableModel<>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+            }
+        };
     }
 
     @Override
@@ -426,4 +453,113 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return getAllApplicableArchetypeViews();
     }
 
+    private void deleteConfirmedPerformed(AjaxRequestTarget target, O objectToDelete) {
+        List<O> objects = isAnythingSelected(target, objectToDelete);
+
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
+        for (O object : objects) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
+            try {
+                Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECT);
+
+                ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
+                delta.setOid(object.getOid());
+
+                ExecuteChangeOptionsDto executeOptions = getExecuteOptions();
+                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
+                LOGGER.debug("Using options {}.", executeOptions);
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
+                        subResult);
+                subResult.computeStatus();
+            } catch (Exception ex) {
+                subResult.recomputeStatus();
+                subResult.recordFatalError(getString("PageUsers.message.delete.fatalError"), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete user", ex);
+            }
+        }
+        result.computeStatusComposite();
+        clearCache();
+
+        getPageBase().showResult(result);
+        target.add(getFeedbackPanel());
+        refreshTable(target);
+        clearCache();
+    }
+
+    public ExecuteChangeOptionsDto getExecuteOptions() {
+        return executeOptionsModel.getObject();
+    }
+
+    /**
+     * This method check selection in table. If selectedObject != null than it
+     * returns only this object.
+     */
+    public List<O> isAnythingSelected(AjaxRequestTarget target, O selectedObject) {
+        List<O> users;
+        if (selectedObject != null) {
+            users = new ArrayList<>();
+            users.add(selectedObject);
+        } else {
+            users = getSelectedRealObjects();
+            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
+                warn(getNothingSelectedMessage());
+                target.add(getFeedbackPanel());
+            }
+        }
+
+        return users;
+    }
+
+    protected String getNothingSelectedMessage() {
+        return null;
+    }
+
+    public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+        if (action.getRowModel() == null) {
+            return createStringResource(getConfirmMessageKeyForSingleObject(),
+                    actionName, getSelectedObjectsCount() );
+        } else {
+            return createStringResource(getConfirmMessageKeyForMultiObject(),
+                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+        }
+    }
+
+    protected String getConfirmMessageKeyForSingleObject() {
+        return null;
+    }
+
+    protected String getConfirmMessageKeyForMultiObject() {
+        return null;
+    }
+
+    public InlineMenuItem createDeleteInlineMenu() {
+        return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<O>>() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            deleteConfirmedPerformed(target, null);
+                        } else {
+                            SelectableBean<O> rowDto = getRowModel().getObject();
+                            deleteConfirmedPerformed(target, rowDto.getValue());
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
+                return MainObjectListPanel.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
+        };
+    }
 }

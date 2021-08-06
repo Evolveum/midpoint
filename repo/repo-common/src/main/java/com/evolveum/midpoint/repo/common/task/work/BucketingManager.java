@@ -9,11 +9,7 @@ package com.evolveum.midpoint.repo.common.task.work;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
-import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -21,19 +17,19 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryCreator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -49,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
  * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, ActivityPath, ActivityDistributionDefinition, long, Supplier, boolean, ActivityBucketManagementStatistics, OperationResult)}.
  * 2. Marks buckets as complete: {@link #completeWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
  * 3. Releases work buckets in case they are not going to be processed: {@link #releaseWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
- * 4. Computes query narrowing for given work bucket: {@link #narrowQueryForWorkBucket(Class, ObjectQuery, ActivityDistributionDefinition, Function, WorkBucketType)}.
+ * 4. Computes query narrowing for given work bucket: {@link #narrowQueryForWorkBucket(Class, ObjectQuery, ActivityDistributionDefinition, ItemDefinitionProvider, WorkBucketType)}.
  *
  * (The last method should be probably moved to a separate class.)
  */
@@ -115,7 +111,7 @@ public class BucketingManager {
      */
     public ObjectQuery narrowQueryForWorkBucket(@NotNull Class<? extends ObjectType> type, ObjectQuery query,
             @NotNull ActivityDistributionDefinition distributionDefinition,
-            @Nullable Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
+            @Nullable ItemDefinitionProvider itemDefinitionProvider,
             @NotNull WorkBucketType workBucket)
             throws SchemaException {
 

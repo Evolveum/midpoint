@@ -5143,7 +5143,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemRefinedDefinitionType.documentation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -6127,6 +6133,9 @@
                 Iteration is a process of choosing unique (or otherwise acceptable) values. E.g. it
                 is usually used to generate unique user names.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="maxIterations" type="xsd:int">
@@ -6135,6 +6144,9 @@
                         Maximum number of iteration attempts. The number specifies attempts
                         beyond the first one, which is not considered to be an iteration.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.maxIterations</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tokenExpression" type="tns:ExpressionType" minOccurs="0">
@@ -6142,6 +6154,9 @@
                     <xsd:documentation>
                         An expression that will be used to format an iteration token.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.tokenExpression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="preIterationCondition" type="tns:ExpressionType" minOccurs="0">
@@ -6151,6 +6166,9 @@
                         then the iteration will continue. If it returns false then the iteration
                         will be skipped (as if there is an conflict).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.preIterationCondition</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="postIterationCondition" type="tns:ExpressionType" minOccurs="0">
@@ -6160,6 +6178,9 @@
                         then the iteration will be accepted as valid. If it returns false then
                         the iteration will be skipped (as if there is an conflict).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.postIterationCondition</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
          </xsd:sequence>
@@ -7346,6 +7367,7 @@
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
                                 <a:since>4.2</a:since>
+                                <a:displayName>MappingType.metadataMapping</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7358,6 +7380,7 @@
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
                                 <a:since>4.2</a:since>
+                                <a:displayName>MappingType.ignoreMetadataProcessing</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12404,12 +12427,25 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                                <a:displayName>ObjectTemplateType.includeRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="iterationSpecification" type="tns:IterationSpecificationType" minOccurs="0"/>
+                    <xsd:element name="iterationSpecification" type="tns:IterationSpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTemplateType.iterationSpecification</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="item" type="tns:ObjectTemplateItemDefinitionType" minOccurs="0"
-                                 maxOccurs="unbounded"/>
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTemplateType.item</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
@@ -12429,6 +12465,9 @@
                                 would do the job.
                             </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTemplateType.mapping</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
@@ -12479,6 +12518,9 @@
                                 $user - The user object being created.
                                 $account - (optional) the account from which was the user created (if present)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTemplateItemDefinitionType.mapping</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
@@ -12507,7 +12549,13 @@
             <xsd:extension base="tns:MappingType">
                 <xsd:sequence>
                     <xsd:element name="evaluationPhase" type="tns:ObjectTemplateMappingEvaluationPhaseType"
-                                    minOccurs="0" default="beforeAssignments"/>
+                                    minOccurs="0" default="beforeAssignments">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTemplateMappingType.evaluationPhase</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -22517,6 +22565,20 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.3</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.4</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activityPath" type="tns:ActivityPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the activity whose execution resulted in this record. Necessary to distinguish between
+                        results of various activities within a task. Currently supported only for complex operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

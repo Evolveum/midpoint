@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 public class GenericProcessingRequest<T> extends ItemProcessingRequest<T> {
 
     public GenericProcessingRequest(int sequentialNumber, T item,
-            @NotNull AbstractIterativeActivityExecution<T, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<T, ?, ?, ?, ?, ?> activityExecution) {
         super(sequentialNumber, item, activityExecution);
     }
 

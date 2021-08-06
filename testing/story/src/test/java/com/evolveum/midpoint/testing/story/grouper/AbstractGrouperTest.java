@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 Evolveum and contributors
+ * Copyright (C) 2019-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,10 +11,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,6 +24,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Superclass for all Grouper-like test scenarios.
@@ -81,7 +81,6 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected static final String STAFF_ID = "9789654960496542staff";
     protected static final String STAFF_NAME = "ref:affiliation:staff";
     protected static final String STAFF2_NAME = "ref:affiliation:staff2";
-    protected static final String MEMBER_NAME = "ref:affiliation:member";
 
     protected static final ItemName ATTR_MEMBER = new ItemName(MidPointConstants.NS_RI, "members");
 
@@ -91,8 +90,6 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected static final String DN_STAFF = "cn=staff,ou=Affiliations,ou=Groups,dc=example,dc=com";
     protected static final String DN_STAFF2 = "cn=staff2,ou=Affiliations,ou=Groups,dc=example,dc=com";
 
-    protected static final QName GROUPER_GROUP_OBJECT_CLASS_NAME = new QName(MidPointConstants.NS_RI, "GroupObjectClass");
-
     protected static final String GROUPER_DUMMY_RESOURCE_ID = "grouper";
     public static final String USERNAME_FORMAT = "user-%08d";
     protected PrismObject<ResourceType> resourceGrouper;
@@ -100,6 +97,9 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected DummyResource grouperDummyResource;
 
     protected PrismObject<ResourceType> resourceLdap;
+
+    @Autowired(required = false)
+    protected SqlRepositoryConfiguration sqlRepositoryService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -109,9 +109,11 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
         // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
         // when we make them enabled by default.
-        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
-        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        if (sqlRepositoryService != null) {
+            sqlRepositoryService.setEnableIndexOnlyItems(true);
+            sqlRepositoryService.setEnableNoFetchExtensionValuesInsertion(true);
+            sqlRepositoryService.setEnableNoFetchExtensionValuesDeletion(true);
+        }
 
         openDJController.addEntriesFromLdifFile(LDIF_INITIAL_OBJECTS_FILE);
 

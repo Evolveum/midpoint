@@ -7,16 +7,27 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
-import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityState;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,12 +51,13 @@ class ActivityDistributedExportSupport extends ActivityExportSupport {
     private ObjectReferenceType globalReportDataRef;
 
     ActivityDistributedExportSupport(
-            ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context) {
+            SearchBasedActivityExecution<?, DistributedReportExportWorkDefinition,
+                    DistributedReportExportActivityHandler, ?> activityExecution) {
         super(context,
-                context.getActivity().getHandler().reportService,
-                context.getActivity().getHandler().objectResolver,
-                context.getActivity().getWorkDefinition());
-        activity = context.getActivity();
+                activityExecution.getActivity().getHandler().reportService,
+                activityExecution.getActivity().getHandler().objectResolver,
+                activityExecution.getActivity().getWorkDefinition());
+        activity = activityExecution.getActivity();
     }
 
     void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {

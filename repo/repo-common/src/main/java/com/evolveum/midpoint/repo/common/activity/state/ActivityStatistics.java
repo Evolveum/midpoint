@@ -83,12 +83,12 @@ public class ActivityStatistics {
     void writeToTaskAsPendingModifications() throws ActivityExecutionException {
         // TODO We should use the dynamic modification approach in order to provide most current values to the task
         //  (in case of update conflicts). But let's wait for the new repo with this.
-        if (activityState.getActivityExecution().supportsStatistics()) {
+        if (activityState.getActivityExecution().doesSupportStatistics()) {
             activityState.setItemRealValues(ITEM_PROCESSING_STATISTICS_PATH, itemProcessing.getValueCopy());
-            if (activityState.getActivityExecution().supportsSynchronizationStatistics()) {
+            if (activityState.getActivityExecution().doesSupportSynchronizationStatistics()) {
                 activityState.setItemRealValues(SYNCHRONIZATION_STATISTICS_PATH, synchronizationStatistics.getValueCopy());
             }
-            if (activityState.getActivityExecution().supportsActionsExecuted()) {
+            if (activityState.getActivityExecution().doesSupportActionsExecuted()) {
                 activityState.setItemRealValues(ACTIONS_EXECUTED_PATH, actionsExecuted.getValueCopy());
             }
             if (activityState.getActivity().getDistributionDefinition().hasBuckets()) {

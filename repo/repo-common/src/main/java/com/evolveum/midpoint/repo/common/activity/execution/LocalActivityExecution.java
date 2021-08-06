@@ -18,11 +18,20 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The "real" execution of an activity - i.e. not a delegation nor a distribution.
+ *
+ * Responsibilities at this level of abstraction:
+ *
+ * 1. records execution start/stop in the tree state overview,
+ * 2. records execution start/stop in the item processing statistics (execution records),
+ * 3. updates progress information (clears uncommitted on start).
  */
 public abstract class LocalActivityExecution<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>,
         BS extends AbstractActivityWorkStateType> extends AbstractActivityExecution<WD, AH, BS> {
+
+    /** When did the execution start? */
+    private long startTimestamp;
 
     protected LocalActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context) {
         super(context);
@@ -30,39 +39,44 @@ public abstract class LocalActivityExecution<
 
     @Override
     protected @NotNull ActivityExecutionResult executeInternal(OperationResult result)
-            throws ActivityExecutionException, CommonException {
+            throws ActivityExecutionException {
 
         activityState.markInProgressLocal(result); // The realization state might be "in progress" already.
 
-        updateStateInformationOnExecutionStart(result);
-        ActivityExecutionResult executionResult = null;
+        updateStateOnExecutionStart(result);
+        ActivityExecutionResult executionResult;
         try {
             executionResult = executeLocal(result);
-        } finally {
-            updateStateInformationOnExecutionFinish(result, executionResult);
+        } catch (Exception e) {
+            executionResult = ActivityExecutionResult.handleException(e, this);
         }
 
+        updateStateOnExecutionFinish(result, executionResult);
         return executionResult;
     }
 
-    private void updateStateInformationOnExecutionStart(OperationResult result) throws ActivityExecutionException {
+    private void updateStateOnExecutionStart(OperationResult result) throws ActivityExecutionException {
+        startTimestamp = System.currentTimeMillis();
         getTreeStateOverview().recordExecutionStart(this, result);
         if (supportsExecutionRecords()) {
-            activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionStart(getStartTimestamp());
+            activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionStart(startTimestamp);
         }
         activityState.getLiveProgress().clearUncommitted();
     }
 
-    private void updateStateInformationOnExecutionFinish(OperationResult result, ActivityExecutionResult executionResult)
+    private void updateStateOnExecutionFinish(OperationResult result, ActivityExecutionResult executionResult)
             throws ActivityExecutionException {
         getTreeStateOverview().recordExecutionFinish(this, executionResult, result);
         if (supportsExecutionRecords()) {
-            activityState.getLiveStatistics().getLiveItemProcessing().recordExecutionEnd(getStartTimestamp(), System.currentTimeMillis());
+            activityState.getLiveStatistics().getLiveItemProcessing()
+                    .recordExecutionEnd(startTimestamp, System.currentTimeMillis());
         }
     }
 
-    public boolean supportsExecutionRecords() {
-        return supportsStatistics() && activityStateDefinition.isSingleRealization();
+    private boolean supportsExecutionRecords() {
+        // Temporary solution: activities that have persistent/semi-persistent state are those that execute in short cycles
+        // (like live sync, various scanners, and so on). We usually do not want to store execution records for these.
+        return doesSupportStatistics() && activityStateDefinition.isSingleRealization();
     }
 
     protected abstract @NotNull ActivityExecutionResult executeLocal(OperationResult result)

@@ -14,24 +14,16 @@ import java.util.function.IntFunction;
 import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Filter processor for multi-value property represented by single array column.
- * These paths support only value equality (of any value), which is "contains" in DB terminology.
- * Our filter "contains" (meaning substring) is *not* supported.
+ * Delta processor for multi-value property represented by single array column.
  *
  * @param <V> type of value in schema
  * @param <E> type of element in DB (can be the same like `V`)
  */
-public class ArrayItemDeltaProcessor<V, E> extends ItemDeltaValueProcessor<E> {
+public class ArrayItemDeltaProcessor<V, E> extends FinalValueDeltaProcessor<E> {
 
     private final ArrayPath<E[], E> path;
     private final Class<E> elementType;
@@ -52,19 +44,6 @@ public class ArrayItemDeltaProcessor<V, E> extends ItemDeltaValueProcessor<E> {
         this.path = rootToQueryItem.apply(context.entityPath());
         this.elementType = elementType;
         this.conversionFunction = conversionFunction;
-    }
-
-    @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
-        Item<PrismValue, ?> item = context.findItem(modification.getPath());
-        Collection<?> realValues = item != null ? item.getRealValues() : null;
-
-        if (realValues == null || realValues.isEmpty()) {
-            delete();
-        } else {
-            // Whatever the operation is, we just set the new value here.
-            setRealValues(realValues);
-        }
     }
 
     @Override

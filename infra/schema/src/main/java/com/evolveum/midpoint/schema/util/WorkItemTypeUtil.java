@@ -30,6 +30,16 @@ public class WorkItemTypeUtil {
         return output != null ? output.getComment() : null;
     }
 
+    public static void setEvidence(AbstractWorkItemType workItem, byte[] file) {
+        if (workItem == null) {
+            return;
+        }
+        if (workItem.getOutput() == null) {
+            workItem.setOutput(new AbstractWorkItemOutputType());
+        }
+        workItem.getOutput().setEvidence(file);
+    }
+
     public static byte[] getEvidence(AbstractWorkItemType workItem) {
         return getEvidence(getOutput(workItem));
     }

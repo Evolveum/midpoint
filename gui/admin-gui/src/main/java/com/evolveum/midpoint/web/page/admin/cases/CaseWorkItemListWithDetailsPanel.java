@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -82,18 +84,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
-                String comment = workItemDetails != null ? workItemDetails.getApproverComment() : null;
-                byte[] evidence = workItemDetails != null ? workItemDetails.getWorkItemEvidence() : null;
-                return super.getWorkItemOutput(approved)
-                        .comment(comment)
-                        .evidence(evidence);
-            }
-
-            @Override
             protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
                 return super.getDelegationRequest(delegate)
-                        .comment(workItemDetails != null ? workItemDetails.getApproverComment() : null);
+                        .comment(WorkItemTypeUtil.getComment(getModelObject()));
             }
 
             @Override
@@ -171,14 +164,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
                     }
                 };
             }
-
-//            @Override
-//            protected AbstractTab addBasicContainerValuePanel(String idPanel) {
-//                //todo fix  implement with WorkItemDetailsPanelFactory
-//                workItemDetails = new WorkItemDetailsPanel(idPanel, Model.of(item.getModel().getObject().getRealValue()));
-//                workItemDetails.setOutputMarkupId(true);
-//                add(workItemDetails);
-//            }
 
         };
     }

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -30,6 +33,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -78,7 +82,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String user4Oid; // another user in org
     private String task1Oid; // task has more attribute type variability
     private String task2Oid;
-    private String shadow1Oid; // ditto
+    private String shadow1Oid; // shadow with owner
     private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
@@ -136,6 +140,22 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
                         .asPrismObject(),
                 null, result);
+
+        // shadow, owned by user-3
+        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
+                .pendingOperation(new PendingOperationType().attemptNumber(1))
+                .pendingOperation(new PendingOperationType().attemptNumber(2))
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .extension(new ExtensionType(prismContext));
+        addExtensionValue(shadow1.getExtension(), "string", "string-value");
+        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
+                .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
+        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
+        shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
+        // another shadow just to be check we don't select it accidentally
+        repositoryService.addObject(
+                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
         // users
         creatorOid = repositoryService.addObject(
@@ -239,6 +259,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .validFrom("2021-01-01T00:00:00Z"))
                         .subtype("ass-subtype-1")
                         .subtype("ass-subtype-2"))
+                .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType(prismContext)
                         .activation(new ActivationType(prismContext)
                                 .validTo("2022-01-01T00:00:00Z")))
@@ -255,6 +276,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .parentOrgRef(org111Oid, OrgType.COMPLEX_TYPE)
                         .subtype("workerB")
                         .policySituation("situationB")
+                        .organization("org-1") // orgs and ous are polys stored in JSONB arrays
+                        .organization("org-2")
+                        .organizationalUnit("ou-1")
+                        .organizationalUnit("ou-2")
                         .asPrismObject(),
                 null, result);
 
@@ -269,21 +294,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .executionStatus(TaskExecutionStateType.CLOSED)
                         .asPrismObject(),
                 null, result);
-
-        ShadowType shadow1 = new ShadowType(prismContext).name("shadow-1")
-                .pendingOperation(new PendingOperationType().attemptNumber(1))
-                .pendingOperation(new PendingOperationType().attemptNumber(2))
-                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
-                .extension(new ExtensionType(prismContext));
-        addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
-        ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
-                .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
-        shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
-        shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
-        // another shadow just to be check we don't select it accidentally
-        repositoryService.addObject(
-                new ShadowType(prismContext).name("shadow-2").asPrismObject(), null, result);
 
         service1Oid = repositoryService.addObject(
                 new ServiceType(prismContext).name("service-1")
@@ -431,56 +441,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test130SearchObjectsByPolicySituation() throws Exception {
-        when("searching objects with policy situation equal to value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
-                        .build(),
-                operationResult);
-
-        then("only objects having the specified policy situation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, org21Oid);
+        searchObjectTest("with policy situation equal to value", ObjectType.class,
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationC"),
+                user1Oid, org21Oid);
     }
 
     @Test
     public void test131SearchOrgsByPolicySituation() throws Exception {
-        when("searching orgs with policy situation equal to value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<OrgType> result = searchObjects(OrgType.class,
-                prismContext.queryFor(OrgType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationC")
-                        .build(),
-                operationResult);
-
-        then("only orgs having the specified policy situation are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(org21Oid);
+        searchObjectTest("with policy situation equal to value", OrgType.class,
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationC"),
+                org21Oid);
     }
 
     @Test
     public void test132SearchObjectsByPolicySituationWithMultipleValues() throws Exception {
-        when("searching objects with any policy situation equal to any of the provided values");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(ObjectType.F_POLICY_SITUATION).eq("situationA", "situationB")
-                        .build(),
-                operationResult);
-
-        then("objects with any of the policy situations are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(3)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(user1Oid, user3Oid, user4Oid);
+        searchUsersTest("with any policy situation equal to any of the provided values",
+                f -> f.item(ObjectType.F_POLICY_SITUATION).eq("situationA", "situationB"),
+                user1Oid, user3Oid, user4Oid);
     }
 
     @Test
@@ -499,39 +476,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test140SearchTaskByEnumValue() throws Exception {
-        when("searching task with execution status equal to one value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<TaskType> result = searchObjects(TaskType.class,
-                prismContext.queryFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE)
-                        .build(),
-                operationResult);
-
-        then("tasks with the execution status with the provided value are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(1)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(task1Oid);
+        searchObjectTest("with execution status equal to one value", TaskType.class,
+                f -> f.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStateType.RUNNABLE),
+                task1Oid);
     }
 
     @Test
     public void test141SearchTaskByEnumWithMultipleValues() throws Exception {
-        when("searching task with execution status equal to any of provided value");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<TaskType> result = searchObjects(TaskType.class,
-                prismContext.queryFor(TaskType.class)
-                        .item(TaskType.F_EXECUTION_STATUS).eq(
-                        TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED)
-                        .build(),
-                operationResult);
-
-        then("tasks with execution status equal to any of the provided values are returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result)
-                .hasSize(2)
-                .extracting(o -> o.getOid())
-                .containsExactlyInAnyOrder(task1Oid, task2Oid);
+        searchObjectTest("with execution status equal to any of provided value", TaskType.class,
+                f -> f.item(TaskType.F_EXECUTION_STATUS)
+                        .eq(TaskExecutionStateType.RUNNABLE, TaskExecutionStateType.CLOSED),
+                task1Oid, task2Oid);
     }
 
     @Test
@@ -562,11 +517,55 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test150SearchShadowByObjectClass() throws SchemaException {
+    public void test150SearchUserByOrganizations() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATION).eq("org-1").matchingOrig(),
+                user4Oid);
+    }
+
+    @Test
+    public void test151SearchUserByOrganizationUnits() throws Exception {
+        searchUsersTest("having organization equal to value",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).eq(new PolyString("ou-1")),
+                user4Oid);
+    }
+
+    @Test
+    public void test160SearchShadowByObjectClass() throws SchemaException {
         // this uses URI mapping with QName instead of String
         searchObjectTest("having specified object class", ShadowType.class,
                 f -> f.item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS),
                 shadow1Oid);
+    }
+
+    @Test
+    public void test170SearchShadowOwner() {
+        when("searching for shadow owner by shadow OID");
+        OperationResult operationResult = createOperationResult();
+        PrismObject<UserType> result =
+                repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
+
+        then("focus object owning the shadow is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.asObjectable())
+                .isInstanceOf(UserType.class)
+                .matches(u -> u.getOid().equals(user3Oid));
+    }
+
+    @Test
+    public void test171SearchShadowOwnerByNonexistentOid() {
+        when("searching for shadow owner by shadow OID");
+        OperationResult operationResult = createOperationResult();
+        PrismObject<UserType> result =
+                repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
+
+        then("focus object owning the shadow is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.asObjectable())
+                .isInstanceOf(UserType.class)
+                .matches(u -> u.getOid().equals(user3Oid));
     }
 
     /**
@@ -1678,14 +1677,97 @@ AND(
         assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test960SearchByAxiomQueryLanguage() throws SchemaException {
         OperationResult operationResult = createOperationResult();
-        SearchResultList<FocusType> focusTypes = searchObjects(FocusType.class,
-                ". type UserType and employeeNumber startsWith \"5\"",
+
+        given("query for not-indexed extension");
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                ". type UserType and costCenter startsWith \"5\"",
                 operationResult);
-        System.out.println("focusTypes = " + focusTypes);
+
+        expect("searchObjects throws exception because of not-indexed item");
+        assertThat(result)
+                .extracting(f -> f.getOid())
+                .containsExactlyInAnyOrder(user3Oid, user4Oid);
     }
+
+    @Test
+    public void test970IsAncestor() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        expect("isAncestor returns true for parent-child orgs");
+        PrismObject<OrgType> rootOrg =
+                repositoryService.getObject(OrgType.class, org1Oid, null, operationResult);
+        assertTrue(repositoryService.isAncestor(rootOrg, org11Oid));
+
+        expect("isAncestor returns true for parent-descendant (deep child) orgs");
+        assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
+
+        expect("isAncestor returns true for the same org");
+        assertTrue(repositoryService.isAncestor(rootOrg, org1Oid));
+
+        expect("isAncestor returns false for unrelated orgs");
+        assertFalse(repositoryService.isAncestor(rootOrg, org21Oid));
+
+        expect("isAncestor returns false for reverse relationship");
+        assertFalse(repositoryService.isAncestor(
+                repositoryService.getObject(OrgType.class, org11Oid, null, operationResult),
+                org1Oid));
+    }
+
+    @Test
+    public void test971IsDescendant() throws Exception {
+        OperationResult operationResult = createOperationResult();
+
+        expect("isDescendant returns true for child-parent orgs");
+        PrismObject<OrgType> org11 =
+                repositoryService.getObject(OrgType.class, org11Oid, null, operationResult);
+        assertTrue(repositoryService.isDescendant(org11, org1Oid));
+
+        expect("isDescendant returns true for org-grandparent orgs");
+        assertTrue(repositoryService.isDescendant(
+                repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
+                org1Oid));
+
+        // TODO this one is strange, as it is not symmetric with isAncestor.
+        //  This works fine for non-orgs, but not for org itself - which by one look is ancestor
+        //  of itself, but then by another one is NOT descendant of itself.
+        expect("isDescendant returns false for the same org");
+        assertFalse(repositoryService.isDescendant(org11, org11Oid));
+
+        expect("isDescendant returns false for unrelated orgs");
+        assertFalse(repositoryService.isDescendant(org11, org21Oid));
+
+        expect("isDescendant returns false for reverse relationship");
+        assertFalse(repositoryService.isDescendant(org11, org112Oid));
+    }
+
+    @Test
+    public void test972IsAnySubordinate() {
+        expect("isAnySubordinate returns true for parent-child orgs");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org11Oid)));
+
+        expect("isAnySubordinate returns true for parent-descendant (deep child) orgs");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid)));
+
+        expect("isAnySubordinate returns true for the same org");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org1Oid)));
+
+        expect("isAnySubordinate returns true when the list contains only descendants");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid,
+                List.of(org1Oid, org111Oid, org112Oid)));
+
+        expect("isAnySubordinate returns true when the list mixes descendants and non-descendants");
+        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid, org21Oid)));
+
+        expect("isAnySubordinate returns false when list contains only unrelated orgs");
+        assertFalse(repositoryService.isAnySubordinate(org1Oid, List.of(org21Oid)));
+
+        expect("isAnySubordinate returns false when list contains only ancestors");
+        assertFalse(repositoryService.isAnySubordinate(org11Oid, List.of(org1Oid)));
+    }
+
     // endregion
 
     // support methods
@@ -1748,7 +1830,8 @@ AND(
         return repositoryService.searchObjects(
                 type,
                 query,
-                Arrays.asList(selectorOptions),
+                selectorOptions != null && selectorOptions.length != 0
+                        ? Arrays.asList(selectorOptions) : null,
                 operationResult)
                 .map(p -> p.asObjectable());
     }

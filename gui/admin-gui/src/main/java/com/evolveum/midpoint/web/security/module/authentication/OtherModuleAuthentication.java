@@ -36,6 +36,7 @@ public class OtherModuleAuthentication extends ModuleAuthentication {
 
     public ModuleAuthentication clone() {
         OtherModuleAuthentication module = new OtherModuleAuthentication();
+        module.setAuthentication(this.getAuthentication());
         clone(module);
         return module;
     }

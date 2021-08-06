@@ -25,7 +25,6 @@ import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -43,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Activity state for the current activity execution. Provides the full functionality, including creation of the work state
  * and maintenance of live progress and statistics.
  *
- * @param <WS>
+ * @param <WS> Work (business) state of the activity.
  */
 public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         extends ActivityState {
@@ -327,10 +326,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         return workStateComplexTypeDefinition;
     }
 
-    @NotNull ActivityHandler<?, ?> getActivityHandler() {
-        return activityExecution.getActivityHandler();
-    }
-
     //endregion
 
     //region Progress & statistics
@@ -359,11 +354,11 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityExecutionException {
-        if (activityExecution.supportsProgress()) {
+        if (activityExecution.doesSupportProgress()) {
             liveProgress.writeToTaskAsPendingModification();
             LegacyProgressUpdater.update(this);
         }
-        if (activityExecution.supportsStatistics()) {
+        if (activityExecution.doesSupportStatistics()) {
             liveStatistics.writeToTaskAsPendingModifications();
         }
     }

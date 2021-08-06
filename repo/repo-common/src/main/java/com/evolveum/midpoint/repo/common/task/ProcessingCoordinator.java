@@ -131,10 +131,11 @@ public class ProcessingCoordinator<I> {
         LOGGER.warn("Processing was interrupted in {}", coordinatorTask);
     }
 
-    void createWorkerTasks(@NotNull ActivityReportingOptions reportingOptions) {
+    void createWorkerThreads(@NotNull ActivityReportingOptions reportingOptions) {
         if (threadsCount == 0) {
             return;
         }
+        assert workerSpecificResults != null;
 
         // remove subtasks that could have been created previously
         coordinatorTask.deleteLightweightAsynchronousSubtasks();
@@ -193,6 +194,7 @@ public class ProcessingCoordinator<I> {
 
     private void nackQueuedRequests(OperationResult result) {
         if (multithreaded) {
+            assert requestsBuffer != null;
             LOGGER.trace("Acknowledging (release=false) all pending requests");
             int count = requestsBuffer.nackAllRequests(result);
             LOGGER.trace("Acknowledged {} pending requests", count);

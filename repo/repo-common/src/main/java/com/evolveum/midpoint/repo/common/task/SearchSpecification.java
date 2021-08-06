@@ -131,6 +131,10 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable,
         return useRepository;
     }
 
+    public boolean isUseRepository() {
+        return Boolean.TRUE.equals(getUseRepository());
+    }
+
     public void setUseRepository(Boolean useRepository) {
         this.useRepository = useRepository;
     }

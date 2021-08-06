@@ -82,8 +82,6 @@ public class PageUsers extends PageAdmin {
 
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
 
-    private static final String OPERATION_DELETE_USERS = DOT_CLASS + "deleteUsers";
-    private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
     private static final String OPERATION_DISABLE_USERS = DOT_CLASS + "disableUsers";
     private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
     private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
@@ -97,21 +95,12 @@ public class PageUsers extends PageAdmin {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
 
-    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
-
     public PageUsers() {
         this(null);
     }
 
     public PageUsers(PageParameters params) {
         super(params);
-        executeOptionsModel = new LoadableModel<>(false) {
-
-            @Override
-            protected ExecuteChangeOptionsDto load() {
-                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
-            }
-        };
     }
 
     @Override
@@ -152,6 +141,20 @@ public class PageUsers extends PageAdmin {
                 return fixedSearchItems;
             }
 
+            @Override
+            protected String getNothingSelectedMessage() {
+                return getString("pageUsers.message.nothingSelected");
+            }
+
+            @Override
+            protected String getConfirmMessageKeyForSingleObject() {
+                return "pageUsers.message.confirmationMessageForMultipleObject";
+            }
+
+            @Override
+            protected String getConfirmMessageKeyForMultiObject() {
+                return "pageUsers.message.confirmationMessageForSingleObject";
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -186,7 +189,7 @@ public class PageUsers extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel(){
                 String actionName = createStringResource("pageUsers.message.enableAction").getString();
-                return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         };
         enableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectDisabled);
@@ -222,7 +225,7 @@ public class PageUsers extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageUsers.message.disableAction").getString();
-                return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         };
         disableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectEnabled);
@@ -256,7 +259,7 @@ public class PageUsers extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageUsers.message.reconcileAction").getString();
-                return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
 
@@ -283,34 +286,11 @@ public class PageUsers extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel(){
                 String actionName = createStringResource("pageUsers.message.unlockAction").getString();
-                return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
 
-        menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<UserType>>() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            deleteConfirmedPerformed(target, null);
-                        } else {
-                            SelectableBean<UserType> rowDto = getRowModel().getObject();
-                            deleteConfirmedPerformed(target, rowDto.getValue());
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel(){
-                String actionName = createStringResource("pageUsers.message.deleteAction").getString();
-                return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-            }
-        });
+        menu.add(getTable().createDeleteInlineMenu());
 
         menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge")) {
             private static final long serialVersionUID = 1L;
@@ -361,43 +341,6 @@ public class PageUsers extends PageAdmin {
         return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, UserType userToDelete) {
-        List<UserType> users = isAnythingSelected(target, userToDelete);
-
-        if (users.isEmpty()) {
-            return;
-        }
-
-        OperationResult result = new OperationResult(OPERATION_DELETE_USERS);
-        for (UserType user : users) {
-            OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
-            try {
-                Task task = createSimpleTask(OPERATION_DELETE_USER);
-
-                ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
-                delta.setOid(user.getOid());
-
-                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
-                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
-                LOGGER.debug("Using options {}.", executeOptions);
-                getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
-                        subResult);
-                subResult.computeStatus();
-            } catch (Exception ex) {
-                subResult.recomputeStatus();
-                subResult.recordFatalError(getString("PageUsers.message.delete.fatalError"), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete user", ex);
-            }
-        }
-        result.computeStatusComposite();
-        getTable().clearCache();
-
-        showResult(result);
-        target.add(getFeedbackPanel());
-        getTable().refreshTable(target);
-        getTable().clearCache();
-    }
-
     private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(UserType.COMPLEX_TYPE);
@@ -424,7 +367,7 @@ public class PageUsers extends PageAdmin {
     }
 
     private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = isAnythingSelected(target, selectedUser);
+        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
@@ -459,7 +402,7 @@ public class PageUsers extends PageAdmin {
     }
 
     private void reconcilePerformed(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users = isAnythingSelected(target, selectedUser);
+        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
@@ -493,33 +436,13 @@ public class PageUsers extends PageAdmin {
     }
 
     /**
-     * This method check selection in table. If selectedUser != null than it
-     * returns only this user.
-     */
-    private List<UserType> isAnythingSelected(AjaxRequestTarget target, UserType selectedUser) {
-        List<UserType> users;
-        if (selectedUser != null) {
-            users = new ArrayList<>();
-            users.add(selectedUser);
-        } else {
-            users = getTable().getSelectedRealObjects();
-            if (users.isEmpty()) {
-                warn(getString("pageUsers.message.nothingSelected"));
-                target.add(getFeedbackPanel());
-            }
-        }
-
-        return users;
-    }
-
-    /**
      * This method updates user activation. If userOid parameter is not null,
      * than it updates only that user, otherwise it checks table for selected
      * users.
      */
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling,
             UserType selectedUser) {
-        List<UserType> users = isAnythingSelected(target, selectedUser);
+        List<UserType> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
         }
@@ -535,7 +458,7 @@ public class PageUsers extends PageAdmin {
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
                         UserType.class, user.getOid(), enabling, getPrismContext());
 
-                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ExecuteChangeOptionsDto executeOptions = getTable().getExecuteOptions();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
                 LOGGER.debug("Using options {}.", executeOptions);
                 getModelService().executeChanges(MiscUtil.createCollection(objectDelta), options,
@@ -559,16 +482,4 @@ public class PageUsers extends PageAdmin {
         getTable().clearCache();
         getTable().refreshTable(target);
     }
-
-    private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-        if (action.getRowModel() == null) {
-            return createStringResource("pageUsers.message.confirmationMessageForMultipleObject",
-                    actionName, getTable().getSelectedObjectsCount() );
-        } else {
-            return createStringResource("pageUsers.message.confirmationMessageForSingleObject",
-                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
-        }
-
-    }
-
 }

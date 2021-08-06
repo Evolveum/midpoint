@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Definition of an activity. It is analogous to ActivityDefinitionType, but contains the complete information
  * about particular activity in the context of given task.
@@ -28,7 +31,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
     private final String identifierFromDefinition;
 
-    /** Should not be changed. */
+    /** Currently not tailorable. */
     @NotNull private final WD workDefinition;
 
     /** Tailorable. */
@@ -37,17 +40,32 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Tailorable. */
     @NotNull private final ActivityDistributionDefinition distributionDefinition;
 
+    /** Definition for tracing and profiling. Currently not tailorable. */
+    @NotNull private final ActivityMonitoringDefinition monitoringDefinition;
+
+    /**
+     * Reporting options specified for specific activity. These are merged with default reporting options
+     * hardcoded in activity execution code.
+     *
+     * Currently not tailorable.
+     */
+    @NotNull private final TaskReportingOptionsType specificReportingOptions;
+
     @NotNull private final WorkDefinitionFactory workDefinitionFactory;
 
     private ActivityDefinition(String identifierFromDefinition,
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
+            @NotNull ActivityMonitoringDefinition monitoringDefinition,
+            @NotNull TaskReportingOptionsType specificReportingOptions,
             @NotNull WorkDefinitionFactory workDefinitionFactory) {
         this.identifierFromDefinition = identifierFromDefinition;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
+        this.monitoringDefinition = monitoringDefinition;
+        this.specificReportingOptions = specificReportingOptions;
         this.workDefinitionFactory = workDefinitionFactory;
     }
 
@@ -69,13 +87,32 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition =
                 ActivityDistributionDefinition.create(bean, getWorkerThreadsSupplier(rootTask));
+        ActivityMonitoringDefinition monitoringDefinition = ActivityMonitoringDefinition.create(bean, rootTask);
 
         return new ActivityDefinition<>(
                 bean != null ? bean.getIdentifier() : null,
                 rootWorkDefinition,
                 controlFlowDefinition,
                 distributionDefinition,
+                monitoringDefinition,
+                getReportingOptionsCloned(bean, rootTask),
                 factory);
+    }
+
+    private static @NotNull TaskReportingOptionsType getReportingOptionsCloned(ActivityDefinitionType bean, Task task) {
+        if (bean != null && bean.getReporting() != null) {
+            return bean.getReporting().clone();
+        }
+
+        if (task != null) {
+            TaskReportingOptionsType fromTask =
+                    task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_REPORTING_OPTIONS);
+            if (fromTask != null) {
+                return fromTask.clone();
+            }
+        }
+
+        return new TaskReportingOptionsType(PrismContext.get());
     }
 
     /**
@@ -99,12 +136,15 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
 
         ActivityControlFlowDefinition controlFlowDefinition = ActivityControlFlowDefinition.create(bean);
         ActivityDistributionDefinition distributionDefinition = ActivityDistributionDefinition.create(bean, () -> null);
+        ActivityMonitoringDefinition monitoringDefinition = ActivityMonitoringDefinition.create(bean, null);
 
         return new ActivityDefinition<>(
                 bean.getIdentifier(),
                 definition,
                 controlFlowDefinition,
                 distributionDefinition,
+                monitoringDefinition,
+                getReportingOptionsCloned(bean, null),
                 workDefinitionFactory);
     }
 
@@ -144,9 +184,9 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return null;
     }
 
-    private static ExecutionModeType determineExecutionMode(ActivityDefinitionType activityBean,
+    private static ExecutionModeType determineExecutionMode(ActivityDefinitionType bean,
             Supplier<ExecutionModeType> defaultValueSupplier) {
-        ExecutionModeType explicitMode = activityBean != null ? activityBean.getExecutionMode() : null;
+        ExecutionModeType explicitMode = bean != null ? bean.getExecutionMode() : null;
         if (explicitMode != null) {
             return explicitMode;
         } else {
@@ -238,6 +278,25 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 (WD) workDefinition.clone(),
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
+                monitoringDefinition.clone(),
+                specificReportingOptions.clone(),
                 workDefinitionFactory);
+    }
+
+    public @NotNull ActivityMonitoringDefinition getMonitoringDefinition() {
+        return monitoringDefinition;
+    }
+
+    public @NotNull TaskReportingOptionsType getSpecificReportingOptions() {
+        return specificReportingOptions;
+    }
+
+    public @Nullable FailedObjectsSelectorType getFailedObjectsSelector() {
+        // In the future the selector can be present somewhere else (maybe in "error handling"-like section).
+        if (workDefinition instanceof FailedObjectsSelectorProvider) {
+            return ((FailedObjectsSelectorProvider) workDefinition).getFailedObjectsSelector();
+        } else {
+            return null;
+        }
     }
 }

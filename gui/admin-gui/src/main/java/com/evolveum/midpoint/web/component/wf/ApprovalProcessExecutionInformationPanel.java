@@ -86,7 +86,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         ApproverEngagementDto ae = approversListItem.getModelObject();
 
                         // original approver name
-                        approversListItem.add(createApproverLabel(ID_APPROVER_NAME,
+                        approversListItem.add(createReferencedObjectLabel(ID_APPROVER_NAME,
                                 "ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef(), true));
 
                         // outcome
@@ -121,8 +121,8 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         WebMarkupContainer approvalBoxContent = new WebMarkupContainer(ID_APPROVAL_BOX_CONTENT);
                         approversListItem.add(approvalBoxContent);
                         approvalBoxContent.setVisible(performerVisible(ae) || attorneyVisible(ae));
-                        approvalBoxContent.add(createApproverLabel(ID_PERFORMER_NAME, "ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy(), performerVisible(ae)));
-                        approvalBoxContent.add(createApproverLabel(ID_ATTORNEY_NAME, "ApprovalProcessExecutionInformationPanel.attorney", ae.getAttorney(), attorneyVisible(ae)));
+                        approvalBoxContent.add(createReferencedObjectLabel(ID_PERFORMER_NAME, "ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy(), performerVisible(ae)));
+                        approvalBoxContent.add(createReferencedObjectLabel(ID_ATTORNEY_NAME, "ApprovalProcessExecutionInformationPanel.attorney", ae.getAttorney(), attorneyVisible(ae)));
 
                         // junction
                         Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
@@ -181,7 +181,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
     }
 
     @NotNull
-    private Label createApproverLabel(String id, String key, ObjectReferenceType reference, boolean visibility) {
+    private Label createReferencedObjectLabel(String id, String key, ObjectReferenceType reference, boolean visibility) {
         Label label = new Label(id, getApproverLabel(key, reference));
         label.setVisible(visibility);
         return label;
@@ -212,7 +212,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
     private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
         if (ref != null) {
-            return getString(labelKey) + ": " + WebComponentUtil.getDisplayNameAndName(ref);
+            return getString(labelKey) + ": " + WebComponentUtil.getReferencedObjectDisplayNameAndName(ref, true, getPageBase());
         } else {
             return "";
         }

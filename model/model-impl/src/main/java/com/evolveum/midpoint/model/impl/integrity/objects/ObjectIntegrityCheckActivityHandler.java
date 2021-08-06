@@ -1,9 +1,3 @@
-/*
- * Copyright (C) 2010-2021 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
 
 package com.evolveum.midpoint.model.impl.integrity.objects;
 
@@ -11,15 +5,13 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
-import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,6 +21,8 @@ import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificat
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -46,6 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectIntegrityCheckWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * Task handler for "Object integrity check" task.
@@ -57,9 +52,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class ObjectIntegrityCheckActivityHandler
         extends SimpleActivityHandler<
-        ObjectType,
-        ObjectIntegrityCheckActivityHandler.MyWorkDefinition,
-        ObjectIntegrityCheckActivityHandler.MyExecutionContext> {
+            ObjectType,
+            ObjectIntegrityCheckActivityHandler.MyWorkDefinition,
+            ObjectIntegrityCheckActivityHandler> {
 
     public static final String LEGACY_HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
@@ -85,6 +80,11 @@ public class ObjectIntegrityCheckActivityHandler
     }
 
     @Override
+    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> getSpecificSupplier() {
+        return MyExecutionSpecifics::new;
+    }
+
+    @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
     }
@@ -100,59 +100,67 @@ public class ObjectIntegrityCheckActivityHandler
     }
 
     @Override
-    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions()
-                .logErrors(false) // we do log errors ourselves
-                .skipWritingOperationExecutionRecords(true); // because of performance
+    public String getIdentifierPrefix() {
+        return "object-integrity-check";
     }
 
-    @Override
-    public boolean processItem(PrismObject<ObjectType> object, ItemProcessingRequest<PrismObject<ObjectType>> request,
-            SimpleActivityExecution<ObjectType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            RunningTask workerTask, OperationResult parentResult) throws CommonException, ActivityExecutionException {
+    static class MyExecutionSpecifics extends
+            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler> {
 
-        OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_ITEM);
-        ObjectStatistics objectStatistics = activityExecution.getExecutionContext().objectStatistics;
-        try {
-            objectStatistics.record(object);
-        } catch (RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking object {} integrity", e, ObjectTypeUtil.toShortString(object));
-            result.recordPartialError("Unexpected error while checking object integrity", e);
-            objectStatistics.incrementObjectsWithErrors();
+        final ObjectStatistics objectStatistics = new ObjectStatistics();
+
+        MyExecutionSpecifics(
+                @NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ObjectIntegrityCheckActivityHandler, ?> activityExecution) {
+            super(activityExecution);
         }
 
-        result.computeStatusIfUnknown();
-        return true;
-    }
+        @Override
+        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+            return super.getDefaultReportingOptions()
+                    .logErrors(false) // we do log errors ourselves
+                    .skipWritingOperationExecutionRecords(true); // because of performance
+        }
 
-    @Override
-    public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-            @NotNull SimpleActivityExecution<ObjectType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult opResult)
-            throws CommonException {
-        return SelectorOptions.updateRootOptions(configuredOptions, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
-    }
+        @Override
+        public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result)
+                throws CommonException {
+            return SelectorOptions.updateRootOptions(configuredOptions, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
+        }
 
-    @Override
-    public boolean doesRequireDirectRepositoryAccess() {
-        return true;
-    }
+        @Override
+        public boolean doesRequireDirectRepositoryAccess() {
+            return true;
+        }
 
-    @Override
-    public void beforeExecution(
-            @NotNull SimpleActivityExecution<ObjectType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            OperationResult opResult) {
+        @Override
+        public void beforeExecution(OperationResult result) {
+            activityExecution.ensureNoWorkerThreads();
+        }
 
-        activityExecution.ensureNoWorkerThreads();
-    }
+        @Override
+        public void afterExecution(OperationResult result) throws ActivityExecutionException, CommonException {
+            getActivityHandler().dumpStatistics(
+                    objectStatistics,
+                    getWorkDefinition().histogramColumns);
+        }
 
-    @Override
-    public void afterExecution(
-            @NotNull SimpleActivityExecution<ObjectType, MyWorkDefinition, MyExecutionContext> activityExecution,
-            OperationResult opResult) throws ActivityExecutionException, CommonException {
-        dumpStatistics(
-                activityExecution.getExecutionContext().objectStatistics,
-                activityExecution.getWorkDefinition().histogramColumns);
+        @Override
+        public boolean processObject(@NotNull PrismObject<ObjectType> object,
+                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult parentResult)
+                throws CommonException, ActivityExecutionException {
+            OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_ITEM);
+            try {
+                objectStatistics.record(object);
+            } catch (RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking object {} integrity", e, ObjectTypeUtil.toShortString(object));
+                result.recordPartialError("Unexpected error while checking object integrity", e);
+                objectStatistics.incrementObjectsWithErrors();
+            }
+
+            result.computeStatusIfUnknown();
+            return true;
+        }
     }
 
     private void dumpStatistics(ObjectStatistics objectStatistics, int histogramColumns) {
@@ -168,12 +176,6 @@ public class ObjectIntegrityCheckActivityHandler
             LOGGER.info("{}", sb);
         }
         LOGGER.info("Objects processed with errors: {}", objectStatistics.getErrors());
-    }
-
-    static class MyExecutionContext extends ExecutionContext {
-
-        final ObjectStatistics objectStatistics = new ObjectStatistics();
-
     }
 
     static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {

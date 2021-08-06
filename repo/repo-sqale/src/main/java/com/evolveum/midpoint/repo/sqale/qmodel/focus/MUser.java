@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+
 /**
  * Querydsl "row bean" type related to {@link QUser}.
  */
@@ -28,4 +30,6 @@ public class MUser extends MFocus {
     public String nickNameNorm;
     public String titleOrig;
     public String titleNorm;
+    public Jsonb organizations;
+    public Jsonb organizationUnits;
 }

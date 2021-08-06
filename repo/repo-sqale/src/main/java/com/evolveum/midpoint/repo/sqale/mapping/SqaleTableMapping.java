@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.JsonbPolysPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
@@ -119,7 +120,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, StringPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -131,7 +132,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, NumberPath<Integer>> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -143,7 +144,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, BooleanPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -154,7 +155,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected ItemSqlMapper<Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
                 ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                ctx -> new SimpleItemDeltaProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
 
@@ -214,6 +215,16 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx, rootToQueryItem, "TEXT", String.class, null),
                 ctx -> new ArrayItemDeltaProcessor<String, String>(
                         ctx, rootToQueryItem, String.class, null));
+    }
+
+    /**
+     * Returns the mapper creating poly-string multi-value filter/delta processors from context.
+     */
+    protected ItemSqlMapper<Q, R> multiPolyStringMapper(
+            @NotNull Function<Q, JsonbPath> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new JsonbPolysPathItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new JsonbPolysItemDeltaProcessor(ctx, rootToQueryItem));
     }
 
     /**
@@ -370,7 +381,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected String[] listToArray(List<String> strings) {
+    protected String[] stringsToArray(List<String> strings) {
         if (strings == null || strings.isEmpty()) {
             return null;
         }

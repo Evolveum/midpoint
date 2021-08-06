@@ -25,6 +25,7 @@ public class HttpHeaderModuleAuthentication extends ModuleAuthentication {
 
     public ModuleAuthentication clone() {
         HttpHeaderModuleAuthentication module = new HttpHeaderModuleAuthentication();
+        module.setAuthentication(this.getAuthentication());
         clone(module);
         return module;
     }
