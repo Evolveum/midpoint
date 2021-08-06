@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
@@ -15,16 +20,23 @@ import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.cxf.databinding.DataWriter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.report.impl.ReportUtils.getDirection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionTypeType.EXPORT;
@@ -46,6 +58,8 @@ class ActivityExportSupport {
     @NotNull protected final ReportServiceImpl reportService;
     @NotNull protected final ObjectResolver resolver;
     @NotNull protected final AbstractReportWorkDefinition workDefinition;
+    @NotNull protected final AuditService auditService;
+    @NotNull protected final ModelService modelService;
 
     /**
      * Resolved report object.
@@ -78,6 +92,8 @@ class ActivityExportSupport {
         this.reportService = reportService;
         this.resolver = resolver;
         this.workDefinition = workDefinition;
+        auditService = reportService.getAuditService();
+        modelService = reportService.getModelService();
     }
 
     void initializeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
@@ -116,6 +132,9 @@ class ActivityExportSupport {
         compiledView = reportService.createCompiledView(report.getObjectCollection(), true, runningTask, result);
     }
 
+    /**
+     * Check actual report for different report handlers.
+     */
     public void stateCheck(OperationResult result) throws CommonException {
         MiscUtil.stateCheck(getDirection(report) == EXPORT, "Only report export are supported here");
         MiscUtil.stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
@@ -126,11 +145,36 @@ class ActivityExportSupport {
         }
     }
 
+    /**
+     * Save exported report to a file.
+     */
     public void saveReportFile(String aggregatedData, ReportDataWriter dataWriter, OperationResult result) throws CommonException {
         saveSupport.saveReportFile(aggregatedData, dataWriter, result);
     }
 
     public void saveReportFile(ReportDataWriter dataWriter, OperationResult result) throws CommonException {
         saveSupport.saveReportFile(dataWriter.getStringData(), dataWriter, result);
+    }
+
+    /**
+     * Search container objects for iterative task.
+     * Temporary until will be implemented iterative search for audit records and containerable objects.
+     */
+    public List<? extends Containerable> searchRecords(Class<? extends Containerable> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result) throws CommonException {
+        if (AuditEventRecordType.class.equals(type)) {
+            @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+            return auditRecords.getList();
+        } else if (ObjectType.class.isAssignableFrom(type)) {
+            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, runningTask, result);
+            List list = new ArrayList<Containerable>();
+            results.forEach(object -> list.add(object.asObjectable()));
+            return list;
+        } else {
+            SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, runningTask, result);
+            return containers.getList();
+        }
     }
 }

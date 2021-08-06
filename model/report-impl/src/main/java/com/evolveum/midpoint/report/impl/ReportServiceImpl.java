@@ -377,6 +377,10 @@ public class ReportServiceImpl implements ReportService {
         return modelService;
     }
 
+    public AuditService getAuditService() {
+        return auditService;
+    }
+
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }

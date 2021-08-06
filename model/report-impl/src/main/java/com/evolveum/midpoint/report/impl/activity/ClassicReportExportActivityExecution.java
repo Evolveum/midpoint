@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -79,6 +80,11 @@ public class ClassicReportExportActivityExecution
      */
     private CollectionBasedExportController<Containerable> controller;
 
+    /**
+     * This is "master" search specification, derived from the report.
+     */
+    private SearchSpecificationHolder searchSpecificationHolder;
+
     ClassicReportExportActivityExecution(
             @NotNull ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context) {
         super(context, "Report export");
@@ -95,7 +101,7 @@ public class ClassicReportExportActivityExecution
 
         support.stateCheck(result);
 
-        ClassicReportExportActivityExecution.SearchSpecificationHolder searchSpecificationHolder = new ClassicReportExportActivityExecution.SearchSpecificationHolder();
+        searchSpecificationHolder = new ClassicReportExportActivityExecution.SearchSpecificationHolder();
         dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionBasedExportController<>(
@@ -122,6 +128,13 @@ public class ClassicReportExportActivityExecution
             coordinator.submit(request, result);
             return true;
         };
+
+        List<? extends Containerable> objects = support.searchRecords(
+                searchSpecificationHolder.type,
+                searchSpecificationHolder.query,
+                searchSpecificationHolder.options,
+                result);
+        objects.forEach(object -> handler.handle(object));
     }
 
     @Override
@@ -129,7 +142,7 @@ public class ClassicReportExportActivityExecution
         return (request, workerTask, parentResult) -> {
             Containerable record = request.getItem();
 
-            // TODO process the record
+            controller.handleDataRecord(request.getSequentialNumber(), record,workerTask, parentResult);
 
             return true;
         };
