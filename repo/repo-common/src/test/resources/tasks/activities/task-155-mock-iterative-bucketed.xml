@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="02a94071-2eff-4ca0-aa63-3fdf9d540064"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-mock-iterative-bucketed</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <extension>
+                <ext:iterativeMock>
+                    <ext:from>1</ext:from>
+                    <ext:to>12</ext:to>
+                    <ext:message>Item: </ext:message>
+                </ext:iterativeMock>
+            </extension>
+        </work>
+        <distribution>
+            <buckets>
+                <implicitSegmentation>
+                    <numberOfBuckets>4</numberOfBuckets>
+                </implicitSegmentation>
+            </buckets>
+        </distribution>
+    </activity>
+</task>

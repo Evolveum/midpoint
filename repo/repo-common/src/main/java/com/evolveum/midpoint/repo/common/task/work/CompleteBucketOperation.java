@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
@@ -37,9 +38,9 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private final int sequentialNumber;
 
-    CompleteBucketOperation(BucketingManager bucketingManager, @NotNull String workerTaskOid,
-            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, int sequentialNumber) {
-        super(workerTaskOid, activityPath, collector, bucketingManager);
+    CompleteBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
+            int sequentialNumber) {
+        super(workerTaskOid, activityPath, collector, beans);
         this.sequentialNumber = sequentialNumber;
     }
 
@@ -68,7 +69,7 @@ public class CompleteBucketOperation extends BucketOperation {
                     + " cannot be marked as complete, as it is not ready; its state = " + bucket.getState());
         }
         Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(workerStatePath, bucket, WorkBucketStateType.COMPLETE);
-        repositoryService.modifyObject(TaskType.class, workerTask.getOid(), modifications, null, result);
+        plainRepositoryService.modifyObject(TaskType.class, workerTask.getOid(), modifications, null, result);
         workerTask.applyModificationsTransient(modifications);
         workerTask.applyDeltasImmediate(modifications, result);
         compressCompletedBuckets(workerTask, workerStatePath, result);
@@ -90,7 +91,7 @@ public class CompleteBucketOperation extends BucketOperation {
         Collection<ItemDelta<?, ?>> modifications =
                 bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.COMPLETE);
         try {
-            ModifyObjectResult<TaskType> modifyObjectResult = repositoryService.modifyObject(TaskType.class,
+            ModifyObjectResult<TaskType> modifyObjectResult = plainRepositoryService.modifyObject(TaskType.class,
                     coordinatorTask.getOid(), modifications, bucketUnchangedPrecondition(bucket), null, result);
             statisticsKeeper.addToConflictCounts(modifyObjectResult);
         } catch (PreconditionViolationException e) {
@@ -123,7 +124,7 @@ public class CompleteBucketOperation extends BucketOperation {
         // these buckets should not be touched by anyone (as they are already completed); so we can execute without preconditions
         if (!deleteItemDeltas.isEmpty()) {
             ModifyObjectResult<TaskType> modifyObjectResult =
-                    repositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
+                    plainRepositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
             statisticsKeeper.addToConflictCounts(modifyObjectResult);
         }
     }

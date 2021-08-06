@@ -25,6 +25,8 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -102,7 +104,7 @@ public class ClassicReportExportActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItems(OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) throws CommonException {
         // Issue the search to audit or model/repository
         // And use the following handler to handle the results
 

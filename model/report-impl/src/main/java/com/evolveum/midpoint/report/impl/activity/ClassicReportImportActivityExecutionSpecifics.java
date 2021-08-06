@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
@@ -69,7 +71,7 @@ class ClassicReportImportActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItems(OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) throws CommonException {
         BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
             InputReportLine line = new InputReportLine(lineNumber, variables);
             // TODO determine the correlation value, if possible

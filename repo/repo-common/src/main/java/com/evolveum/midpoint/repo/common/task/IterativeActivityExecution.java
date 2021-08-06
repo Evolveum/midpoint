@@ -10,6 +10,10 @@ package com.evolveum.midpoint.repo.common.task;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
+import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
  * 2. Orchestrates the basic bucket execution cycle - see {@link #executeSingleBucket(OperationResult)}:
  *
  * a. item source preparation,
- * b. before/after bucket execution "hook" methods, along with main {@link #iterateOverItems(OperationResult)} method,
+ * b. before/after bucket execution "hook" methods, along with main {@link #iterateOverItemsInBucket(OperationResult)} method,
  * c. sets up and winds down the coordinator,
  *
  */
@@ -64,6 +68,8 @@ public abstract class IterativeActivityExecution<
         extends LocalActivityExecution<WD, AH, WS> implements ExecutionSupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeActivityExecution.class);
+
+    private static final long FREE_BUCKET_WAIT_TIME = -1; // indefinitely
 
     /**
      * Things like "Import", "Reconciliation (on resource)", and so on. The first letter should be a capital.
@@ -80,6 +86,13 @@ public abstract class IterativeActivityExecution<
      * An example: "from [resource]".
      */
     @NotNull private String contextDescription;
+
+    /**
+     * Current bucket that is being processed.
+     *
+     * It is used to narrow the search query for search-based activities.
+     */
+    protected WorkBucketType bucket;
 
     /**
      * Schedules individual items for processing by worker threads (if running in multiple threads).
@@ -157,23 +170,97 @@ public abstract class IterativeActivityExecution<
     }
 
     /**
-     * Execute the activity.
+     * Bucketed version of the execution.
      */
-    protected abstract void doExecute(OperationResult result) throws ActivityExecutionException, CommonException;
+    protected void doExecute(OperationResult result)
+            throws ActivityExecutionException, CommonException {
+
+        RunningTask task = taskExecution.getRunningTask();
+        boolean initialExecution = true;
+
+//        resetWorkStateAndStatisticsIfWorkComplete(result);
+//        startCollectingStatistics(task, handler);
+
+        for (; task.canRun(); initialExecution = false) {
+
+            bucket = getWorkBucket(initialExecution, result);
+            if (!task.canRun()) {
+                break;
+            }
+
+            if (bucket == null) {
+                LOGGER.trace("No (next) work bucket within {}, exiting", task);
+                break;
+            }
+
+            executeSingleBucket(result);
+
+            if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
+                break;
+            }
+
+            completeWorkBucketAndCommitProgress(result);
+        }
+    }
+
+    private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
+        RunningTask task = taskExecution.getRunningTask();
+
+        WorkBucketType bucket;
+        try {
+            bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
+                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution,
+                    getLiveBucketManagementStatistics(), executionSpecifics, result);
+            task.refresh(result); // We want to have the most current state of the running task.
+        } catch (InterruptedException e) {
+            LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+            if (!task.canRun()) {
+                return null;
+            } else {
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
+                throw new SystemException("Unexpected InterruptedException: " + e.getMessage(), e);
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);
+            throw new SystemException("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
+        }
+        return bucket;
+    }
+
+    private void completeWorkBucketAndCommitProgress(OperationResult result) throws ActivityExecutionException {
+        RunningTask task = taskExecution.getRunningTask();
+        try {
+            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket,
+                    getLiveBucketManagementStatistics(), result);
+
+            activityState.getLiveProgress().onCommitPoint();
+            activityState.updateProgressAndStatisticsNoCommit();
+
+            // TODO update also the task-level statistics
+
+            activityState.flushPendingModificationsChecked(result);
+        } catch (CommonException e) {
+            throw new ActivityExecutionException("Couldn't complete work bucket", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+    }
+
+    private ActivityBucketManagementStatistics getLiveBucketManagementStatistics() {
+        return activityState.getLiveStatistics().getLiveBucketManagement();
+    }
 
     /**
      * Execute a single bucket.
      */
-    void executeSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
+    private void executeSingleBucket(OperationResult result) throws ActivityExecutionException, CommonException {
         prepareItemSource(result);
 
-        beforeBucketExecution(result);
+        executionSpecifics.beforeBucketExecution(result);
 
         setExpectedTotal(result);
 
         coordinator = setupCoordinatorAndWorkerThreads();
         try {
-            iterateOverItems(result);
+            iterateOverItemsInBucket(result);
         } finally {
             // This is redundant in the case of live sync event handling (because the handler gets a notification when all
             // items are submitted, and must stop the threads in order to allow provisioning to update the token).
@@ -182,7 +269,7 @@ public abstract class IterativeActivityExecution<
             coordinator.finishProcessing(result);
         }
 
-        afterBucketExecution(result);
+        executionSpecifics.afterBucketExecution(result);
 
         // TODO reconsider this: why do we update in-memory representation only?
         getRunningTask()
@@ -191,10 +278,6 @@ public abstract class IterativeActivityExecution<
         new StatisticsLogger(this)
                 .logBucketCompletion();
     }
-
-    protected abstract void beforeBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException;
-
-    protected abstract void afterBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException;
 
     /**
      * Prepares the item source. E.g. for search-iterative tasks we prepare object type, query, and options here.
@@ -237,7 +320,7 @@ public abstract class IterativeActivityExecution<
      * - for live sync task, this returns after all changes were fetched and acknowledged, and the resulting token was written;
      * - for async update task, this returns also after all changes were fetched and acknowledged and confirmed to the source.
      */
-    protected abstract void iterateOverItems(OperationResult result) throws CommonException;
+    protected abstract void iterateOverItemsInBucket(OperationResult result) throws CommonException;
 
     /**
      * Creates the processing coordinator and worker threads.
