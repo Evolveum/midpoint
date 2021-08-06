@@ -38,6 +38,10 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
         return new PrismContainerWrapperModel<>(parent, path, true);
     }
 
+    public static <C extends Containerable> PrismContainerWrapperModel<C, C> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent) {
+        return new PrismContainerWrapperModel<>(parent, null, true);
+    }
+
     public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemName path) {
         return new PrismContainerWrapperModel<>(parent, ItemPath.create(path), true);
     }

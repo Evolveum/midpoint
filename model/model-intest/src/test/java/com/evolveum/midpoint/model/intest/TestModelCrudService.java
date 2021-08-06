@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,19 +72,19 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test050AddResourceMaroon() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(RESOURCE_MAROON_FILE).asObjectable();
 
-        // WHEN
+        when();
         PrismObject<ResourceType> object = resourceType.asPrismObject();
         prismContext.adopt(resourceType);
         modelCrudService.addObject(object, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -103,8 +102,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test119ModifyUserDeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -118,10 +116,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
         modifications.add(accountDelta);
 
-        // WHEN
+        when();
         modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -142,18 +140,17 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test120AddAccount() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test120AddAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
-        // WHEN
+        when();
         accountOid = modelCrudService.addObject(account, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef (should be none)
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -174,8 +171,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test121ModifyUserAddAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -184,10 +180,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
         modifications.add(accountDelta);
 
-        // WHEN
+        when();
         modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -207,8 +203,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test128ModifyUserDeleteAccountRef() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test128ModifyUserDeleteAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -222,10 +217,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
                 .createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
         modifications.add(accountDelta);
 
-        // WHEN
+        when();
         modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
-        // THEN
+        then();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
         assertUser(userJack, "after")
@@ -246,16 +241,15 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test129DeleteAccount() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test129DeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        // WHEN
+        when();
         modelCrudService.deleteObject(ShadowType.class, accountOid, null, task, result);
 
-        // THEN
+        then();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
         // Check accountRef
@@ -270,8 +264,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test150AddUserBlackbeardWithAccount() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test150AddUserBlackbeardWithAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -279,10 +272,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-blackbeard-account-dummy.xml"));
         addAccountLinkRef(user, new File(TEST_CONTRACT_DIR, "account-blackbeard-dummy.xml"));
 
-        // WHEN
+        when();
         modelCrudService.addObject(user, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -305,18 +298,17 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test210AddUserMorganWithAssignment() throws Exception {
-
-        // GIVEN
+        given();
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test210AddUserMorganWithAssignment");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-morgan-assignment-dummy.xml"));
 
-        // WHEN
+        when();
         modelCrudService.addObject(user, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -339,18 +331,17 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
     @Test
     public void test220DeleteUserMorgan() throws Exception {
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test220DeleteUserMorgan");
+        given();
+        Task task = createTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         assertDummyAccount(null, "morgan");
 
-        // WHEN
+        when();
         modelCrudService.deleteObject(FocusType.class, USER_MORGAN_OID, null, task, result);
 
-        // THEN
+        then();
         try {
             getUser(USER_MORGAN_OID);
             fail("User morgan exists even if he should not");
@@ -373,11 +364,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     // test302 has to run after test301, because test302 relies on accountOid set in test301
     @Test
     public void test302deleteUserJack() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        //WHEN
+        when();
         try {
             deleteObject(UserType.class, USER_JACK_OID, task, result);
             fail("Unexpected success. Should fail because resource doesn't support delete and criticality is not set");
@@ -385,8 +376,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
             // this is expected
         }
 
-        //THEN
-        // Check shadow, must be still in repo, becuase resource doesn't support delete
+        then();
+        // Check shadow, must be still in repo, because resource doesn't support delete
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", maroonNoDeleteCtl.getResourceType());
         //check that situation was updated MID-4038
@@ -395,7 +386,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
     }
 
     private void testModifyUserJackAddAccount(File accountFile, DummyResourceContoller dummyController) throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -409,10 +400,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
                 .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         modifications.add(accountDelta);
 
-        // WHEN
+        when();
         modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications, null, task, result);
 
-        // THEN
+        then();
         // Check accountRef
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);

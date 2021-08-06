@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportTaskHandler;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -79,10 +81,10 @@ public class DistributedReportExportActivityHandler
 
     @NotNull
     @Override
-    public DistributedReportExportActivityExecution createExecution(
+    public CompositeActivityExecution<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new DistributedReportExportActivityExecution(context);
+        return new CompositeActivityExecution<>(context);
     }
 
     @Override
@@ -96,14 +98,16 @@ public class DistributedReportExportActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ReportDataCreationActivityExecution(context),
+                (context, result) -> new SearchBasedActivityExecution<>(
+                        context, "Data creation", ReportDataCreationExecutionSpecifics::new),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().clone(),
-                (context, result) -> new ReportDataAggregationActivityExecution(context),
+                (context, result) -> new SearchBasedActivityExecution<>(
+                        context, "Report data aggregation", ReportDataAggregationExecutionSpecifics::new),
                 null,
                 (i) -> "data-aggregation",
                 ActivityStateDefinition.normal(),

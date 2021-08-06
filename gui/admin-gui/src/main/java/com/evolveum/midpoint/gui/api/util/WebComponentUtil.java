@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -231,6 +233,7 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(ArchetypeType.class, PageArchetype.class);
         OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
         OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ObjectTemplateType.class, PageObjectTemplate.class);
     }
 
     static {
@@ -329,6 +332,31 @@ public final class WebComponentUtil {
 
     private static String emptyIfNull(String s) {
         return s != null ? s : "";
+    }
+
+    public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
+        if (ref == null || ref.getOid() == null) {
+            return "";
+        }
+        if (ref.asReferenceValue().getObject() == null && !loadObject) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        PrismObject<ObjectType> prismObject = ref.asReferenceValue().getObject();
+        if (prismObject == null) {
+            prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+        }
+        if (prismObject == null) {
+            return getReferencedObjectDisplayNamesAndNames(ref, false, true);
+        }
+        ObjectType object = prismObject.asObjectable();
+        String displayName = null;
+        if (object instanceof UserType) {
+            displayName = getTranslatedPolyString(((UserType) object).getFullName());
+        } else if (object instanceof AbstractRoleType) {
+            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
+        }
+        String name = getTranslatedPolyString(object.getName());
+        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
@@ -1777,8 +1805,9 @@ public final class WebComponentUtil {
             return createObjectColletionIcon();
         } else if (type == ReportType.class) {
             return createReportIcon();
+        } else if (type == ObjectTemplateType.class) {
+            return createObjectTemplateIcon();
         }
-
         return "";
     }
 
@@ -2161,6 +2190,10 @@ public final class WebComponentUtil {
 
     public static String createObjectColletionIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+    }
+
+    private static String createObjectTemplateIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON);
     }
 
     public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, VariablesMap variables, OperationResult result, PageBase pageBase) {
@@ -4283,26 +4316,26 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
+    public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem,
             Component formPanel, PrismObject<UserType> powerDonor, boolean approved, OperationResult result, PageBase pageBase) {
         if (workItem == null) {
             return;
         }
         CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+        AbstractWorkItemOutputType output = workItem.getOutput();
+        if (output == null) {
+            output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+        }
+        output.setOutcome(ApprovalUtils.toUri(approved));
+        if (WorkItemTypeUtil.getComment(workItem) != null) {
+            output.setComment(WorkItemTypeUtil.getComment(workItem));
+        }
+        if (WorkItemTypeUtil.getEvidence(workItem) != null) {
+            output.setEvidence(WorkItemTypeUtil.getEvidence(workItem));
+        }
         if (CaseTypeUtil.isManualProvisioningCase(parentCase)) {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
-                AbstractWorkItemOutputType output = workItem.getOutput();
-                if (output == null) {
-                    output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
-                }
-                output.setOutcome(ApprovalUtils.toUri(approved));
-                if (workItemOutput != null && workItemOutput.getComment() != null) {
-                    output.setComment(workItemOutput.getComment());
-                }
-                if (workItemOutput != null && workItemOutput.getEvidence() != null) {
-                    output.setEvidence(workItemOutput.getEvidence());
-                }
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
                 pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
@@ -4330,8 +4363,7 @@ public final class WebComponentUtil {
                     }
                     assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                     pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
-                            workItemOutput,
-                            additionalDelta, task, result);
+                            output, additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
                 }
@@ -4940,5 +4972,47 @@ public final class WebComponentUtil {
     public static boolean isImportReport(ReportType report) {
         ReportBehaviorType behavior = report.getBehavior();
         return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
+    }
+
+    public static IModel<String> createMappingDescription(IModel<PrismContainerValueWrapper<MappingType>> model) {
+        return new ReadOnlyModel<>(() -> {
+
+            if (model == null || model.getObject() == null) {
+                return null;
+            }
+
+            MappingType mappingType = model.getObject().getRealValue();
+            if (mappingType == null) {
+                return null;
+            }
+
+            List<VariableBindingDefinitionType> sources = mappingType.getSource();
+            String sourceString = "";
+            if (!sources.isEmpty()) {
+                sourceString += "From: ";
+            }
+            for (VariableBindingDefinitionType s : sources) {
+                if (s == null) {
+                    continue;
+                }
+                sourceString += s.getPath().toString() + ", ";
+            }
+            String strength = "";
+            if (mappingType.getStrength() != null) {
+                strength = mappingType.getStrength().toString();
+            }
+
+            String target = "";
+            VariableBindingDefinitionType targetv = mappingType.getTarget();
+            if (targetv != null) {
+                target += "To: " + targetv.getPath().toString();
+            }
+
+            if (target.isBlank()) {
+                return sourceString + "(" + strength + ")";
+            }
+
+            return target + "(" + strength + ")";
+        });
     }
 }

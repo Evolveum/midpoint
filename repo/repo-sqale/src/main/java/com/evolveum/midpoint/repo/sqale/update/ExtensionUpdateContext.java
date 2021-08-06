@@ -97,7 +97,7 @@ public class ExtensionUpdateContext<Q extends FlexibleRelationalPathBase<R>, R>
         }
         if (!changedItems.isEmpty()) {
             resultJsonb = template(Jsonb.class, "{0} || {1}::jsonb",
-                    resultJsonb, Jsonb.from(changedItems));
+                    resultJsonb, Jsonb.fromMap(changedItems));
         }
 
         parentContext.set(jsonbPath, resultJsonb);

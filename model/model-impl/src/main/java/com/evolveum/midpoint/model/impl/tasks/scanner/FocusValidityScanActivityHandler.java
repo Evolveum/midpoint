@@ -6,13 +6,16 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialExecution.ScanScope.*;
+import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialExecutionSpecifics.ScanScope.*;
 
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +52,7 @@ public class FocusValidityScanActivityHandler
     public AbstractActivityExecution<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
             @NotNull OperationResult result) {
-        return new FocusValidityScanActivityExecution(context);
+        return new CompositeActivityExecution<>(context);
     }
 
     @Override
@@ -63,22 +66,25 @@ public class FocusValidityScanActivityHandler
             case SINGLE_QUERY:
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, COMBINED),
-                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
+                        (context, result) -> createEmbeddedExecution(context, COMBINED),
+                        null,
+                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
                         stateDef,
                         parentActivity));
                 break;
             case SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES:
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, OBJECTS),
-                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
+                        (context, result) -> createEmbeddedExecution(context, OBJECTS),
+                        null,
+                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
                         stateDef,
                         parentActivity));
                 children.add(EmbeddedActivity.create(
                         parentActivity.getDefinition().clone(),
-                        (context, result) -> new FocusValidityScanPartialExecution(context, ASSIGNMENTS),
-                        null, (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
+                        (context, result) -> createEmbeddedExecution(context, ASSIGNMENTS),
+                        null,
+                        (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,
                         stateDef,
                         parentActivity));
                 break;
@@ -86,6 +92,16 @@ public class FocusValidityScanActivityHandler
                 throw new AssertionError(queryStyle);
         }
         return children;
+    }
+
+    private AbstractActivityExecution<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler, ?> createEmbeddedExecution(
+            ExecutionInstantiationContext<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> context,
+            FocusValidityScanPartialExecutionSpecifics.ScanScope scanScope) {
+        SearchBasedSpecificsSupplier<FocusType, FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> supplier =
+                ae -> new FocusValidityScanPartialExecutionSpecifics(ae, scanScope);
+        return new ModelSearchBasedActivityExecution<>(context,
+                String.format("Validity scan (%s)", scanScope),
+                supplier);
     }
 
     @Override

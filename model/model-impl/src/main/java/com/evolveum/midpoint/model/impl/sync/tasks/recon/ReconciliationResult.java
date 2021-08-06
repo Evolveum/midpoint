@@ -41,16 +41,16 @@ public class ReconciliationResult implements DebugDumpable {
             result.resource = resourceObjectClassSpecification.resource.asPrismObject();
             result.objectclassDefinition = resourceObjectClassSpecification.getObjectClassDefinition();
         }
-        OperationCompletionActivityExecution operationCompletionExecution = execution.getOperationCompletionExecution();
+        OperationCompletionActivityExecutionSpecifics operationCompletionExecution = execution.getOperationCompletionExecution();
         if (operationCompletionExecution != null) {
             result.unOpsCount = operationCompletionExecution.getUnOpsCount();
         }
-        ResourceObjectsReconciliationActivityExecution resourceReconciliationExecution = execution.getResourceReconciliationExecution();
+        ResourceObjectsReconciliationActivityExecutionSpecifics resourceReconciliationExecution = execution.getResourceReconciliationExecution();
         if (resourceReconciliationExecution != null) {
             result.resourceReconCount = resourceReconciliationExecution.getResourceReconCount();
             result.resourceReconErrors = resourceReconciliationExecution.getResourceReconErrors();
         }
-        RemainingShadowsActivityExecution remainingShadowsExecution = execution.getRemainingShadowsExecution();
+        RemainingShadowsActivityExecutionSpecifics remainingShadowsExecution = execution.getRemainingShadowsExecution();
         if (remainingShadowsExecution != null) {
             result.shadowReconCount = remainingShadowsExecution.getShadowReconCount();
         }
@@ -58,7 +58,7 @@ public class ReconciliationResult implements DebugDumpable {
     }
 
     private static ResourceObjectClassSpecification findTargetInfo(ReconciliationActivityExecution execution) {
-        for (PartialReconciliationActivityExecution<?> partialActivityExecution : execution.getPartialActivityExecutions()) {
+        for (PartialReconciliationActivityExecutionSpecifics partialActivityExecution : execution.getPartialActivityExecutionSpecificsList()) {
             if (partialActivityExecution.objectClassSpec != null) {
                 return partialActivityExecution.objectClassSpec;
             }

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -18,14 +19,13 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
     @NotNull
     @Override
     public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-            Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
+            Class<? extends ObjectType> type, ItemDefinitionProvider itemDefinitionProvider) {
 
         AbstractWorkBucketContentType content = bucket.getContent();
 
@@ -36,7 +36,7 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
             throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
         }
         ItemPath discriminator = getDiscriminator(configuration, content);
-        ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
+        ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.getItemDefinition(discriminator) : null;
 
         QName matchingRuleName = configuration.getMatchingRule() != null
                 ? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)

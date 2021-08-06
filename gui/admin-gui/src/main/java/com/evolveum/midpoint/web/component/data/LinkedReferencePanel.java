@@ -124,12 +124,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             if (ref == null) {
                 return "";
             }
-
-            if (ref.getObject() != null) {
-                return WebComponentUtil.getDisplayNameOrName(ref.getObject());
-            }
-
-            return WebComponentUtil.getDisplayNameOrName(ref.asReferencable());
+            return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
         }));
         nameLinkText.setOutputMarkupId(true);
         nameLink.add(nameLinkText);

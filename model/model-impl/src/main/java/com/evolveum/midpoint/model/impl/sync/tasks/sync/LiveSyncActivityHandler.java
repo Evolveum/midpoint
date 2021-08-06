@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -45,10 +49,10 @@ public class LiveSyncActivityHandler
     }
 
     @Override
-    public @NotNull LiveSyncActivityExecution createExecution(
+    public AbstractActivityExecution<LiveSyncWorkDefinition, LiveSyncActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> context,
             @NotNull OperationResult result) {
-        return new LiveSyncActivityExecution(context);
+        return new PlainIterativeActivityExecution<>(context, "LiveSync", LiveSyncActivityExecutionSpecifics::new);
     }
 
     @Override

@@ -98,6 +98,9 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
         throw new UnsupportedOperationException("deleteValues not implemented");
     }
 
-    /** Resets the database columns or deletes sub-entities like refs, containers, etc. */
+    /**
+     * Resets the database columns or deletes sub-entities like refs, containers, etc.
+     * This must be implemented to support clearing the columns of single-value embedded containers.
+     */
     public abstract void delete();
 }

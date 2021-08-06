@@ -16,10 +16,9 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefinition;
-
-import com.evolveum.midpoint.repo.common.activity.execution.PureCompositeActivityExecution;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -57,7 +56,7 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     public @NotNull AbstractActivityExecution<CompositeWorkDefinition, PureCompositeActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PureCompositeActivityExecution(context);
+        return new CompositeActivityExecution<>(context);
     }
 
     @Override

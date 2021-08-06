@@ -1,0 +1,101 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.report.impl.activity;
+
+import java.io.IOException;
+import java.util.function.BiConsumer;
+
+import com.evolveum.midpoint.repo.common.task.*;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+
+import com.evolveum.midpoint.report.impl.controller.fileformat.ImportController;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
+
+/**
+ * Activity execution for report import.
+ */
+class ClassicReportImportActivityExecutionSpecifics
+        extends BasePlainIterativeExecutionSpecificsImpl
+        <InputReportLine,
+                ClassicReportImportWorkDefinition,
+                ClassicReportImportActivityHandler> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityExecutionSpecifics.class);
+
+    @NotNull private final ImportActivitySupport support;
+
+    private ReportType report;
+
+    /** The report service Spring bean. */
+    @NotNull private final ReportServiceImpl reportService;
+
+    private ImportController controller;
+
+    ClassicReportImportActivityExecutionSpecifics(
+            @NotNull PlainIterativeActivityExecution<InputReportLine,
+                    ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler, ?> activityExecution) {
+        super(activityExecution);
+        reportService = activityExecution.getActivity().getHandler().reportService;
+        support = new ImportActivitySupport(activityExecution);
+    }
+
+    @Override
+    public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
+        support.beforeExecution(result);
+        report = support.getReport();
+
+        support.stateCheck(result);
+
+        controller = new ImportController(
+                report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);
+        controller.initialize(getRunningTask(), result);
+    }
+
+    @Override
+    public void iterateOverItems(OperationResult result) throws CommonException {
+        BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
+            InputReportLine line = new InputReportLine(lineNumber, variables);
+            // TODO determine the correlation value, if possible
+
+            getProcessingCoordinator().submit(
+                    new InputReportLineProcessingRequest(line, activityExecution),
+                    result);
+        };
+
+        try {
+            controller.processVariableFromFile(report, support.getReportData(), handler); // TODO better name
+        } catch (IOException e) {
+            LOGGER.error("Couldn't read content of imported file", e);
+        }
+    }
+
+    @Override
+    public boolean processItem(ItemProcessingRequest<InputReportLine> request, RunningTask workerTask, OperationResult result)
+            throws CommonException, ActivityExecutionException {
+        InputReportLine line = request.getItem();
+        controller.handleDataRecord(line, workerTask, result);
+        return true;
+    }
+
+    @Override
+    public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE; // TODO or STOP ?
+    }
+}

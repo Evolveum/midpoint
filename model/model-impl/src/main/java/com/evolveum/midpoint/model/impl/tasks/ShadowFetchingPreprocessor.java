@@ -26,9 +26,9 @@ public class ShadowFetchingPreprocessor implements ObjectPreprocessor<ShadowType
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFetchingPreprocessor.class);
 
-    private final AbstractModelSearchActivityExecution<?, ?, ?, ?, ?> activityExecution;
+    private final ModelSearchBasedActivityExecution<?, ?, ?, ?> activityExecution;
 
-    ShadowFetchingPreprocessor(AbstractModelSearchActivityExecution<?, ?, ?, ?, ?> activityExecution) {
+    ShadowFetchingPreprocessor(ModelSearchBasedActivityExecution<?, ?, ?, ?> activityExecution) {
         this.activityExecution = activityExecution;
     }
 

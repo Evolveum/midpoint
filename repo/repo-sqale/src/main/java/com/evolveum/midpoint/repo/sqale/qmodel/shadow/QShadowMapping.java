@@ -13,7 +13,9 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
@@ -55,6 +57,7 @@ public class QShadowMapping
                 q -> q.resourceRefRelationId,
                 QResourceMapping::get);
         addItemMapping(F_INTENT, stringMapper(q -> q.intent));
+        addItemMapping(F_TAG, stringMapper(q -> q.tag));
         addItemMapping(F_KIND, enumMapper(q -> q.kind));
         // TODO attemptNumber?
         addItemMapping(F_DEAD, booleanMapper(q -> q.dead));
@@ -67,6 +70,9 @@ public class QShadowMapping
                 timestampMapper(q -> q.synchronizationTimestamp));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
 
+        // Item mapping to update the count, relation resolver for query with EXISTS filter.
+        addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
+                ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
         addRelationResolver(F_PENDING_OPERATION,
                 new CountMappingResolver<>(q -> q.pendingOperationCount));
     }
@@ -92,6 +98,7 @@ public class QShadowMapping
                 t -> row.resourceRefTargetType = t,
                 r -> row.resourceRefRelationId = r);
         row.intent = shadow.getIntent();
+        row.tag = shadow.getTag();
         row.kind = shadow.getKind();
 //        row.attemptNumber = shadow.att; TODO not set in RShadow, probably just with deltas? Where does it come from?
         row.dead = shadow.isDead();

@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -69,6 +71,7 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
             duplicateShadowsResolverNullable = typedDefinition.getDuplicateShadowsResolver();
             checkDuplicatesOnPrimaryIdentifiersOnlyNullable = typedDefinition.isCheckDuplicatesOnPrimaryIdentifiersOnly();
         }
+        ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
         duplicateShadowsResolver = firstNonNull(duplicateShadowsResolverNullable, DefaultDuplicateShadowsResolver.class.getName());
         checkDuplicatesOnPrimaryIdentifiersOnly = Boolean.TRUE.equals(checkDuplicatesOnPrimaryIdentifiersOnlyNullable);
     }

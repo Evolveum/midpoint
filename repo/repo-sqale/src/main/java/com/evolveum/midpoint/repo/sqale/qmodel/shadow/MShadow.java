@@ -25,6 +25,7 @@ public class MShadow extends MObject {
     public MObjectType resourceRefTargetType;
     public Integer resourceRefRelationId;
     public String intent;
+    public String tag;
     public ShadowKindType kind;
     public Integer attemptNumber;
     public Boolean dead;

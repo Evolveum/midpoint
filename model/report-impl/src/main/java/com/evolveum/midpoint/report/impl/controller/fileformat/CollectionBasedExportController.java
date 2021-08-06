@@ -14,10 +14,10 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.report.impl.activity.ClassicReportExportActivityExecutionSpecifics;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.report.impl.activity.ClassicReportExportActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -47,7 +46,7 @@ import static java.util.Objects.requireNonNull;
  * Controls the process of exporting collection-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ClassicReportExportActivityExecution} class) and a set of cooperating
+ * (represented mainly by {@link ClassicReportExportActivityExecutionSpecifics} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *

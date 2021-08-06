@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2016-2017 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story.ldap.hierarchy;
-
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -21,13 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -36,9 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * the orgstruct.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapFlat extends AbstractLdapHierarchyTest {
 
@@ -55,18 +46,20 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
     }
 
     @Override
-    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
-        Entry accountEntry = openDJController.searchSingle("uid="+username);
+    protected PrismObject<UserType> getAndAssertUser(
+            String username, String directOrgGroupName, String... indirectGroupNames)
+            throws CommonException, DirectoryException {
+        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupName, indirectGroupNames);
+        Entry accountEntry = openDJController.searchSingle("uid=" + username);
 
-        Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
-        assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
+        Entry groupEntry = openDJController.searchSingle("cn=" + directOrgGroupName);
+        assertNotNull("No group LDAP entry for " + directOrgGroupName, groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 
         if (indirectGroupNames != null) {
-            for (String expectedGroupName: indirectGroupNames) {
-                groupEntry = openDJController.searchSingle("cn="+expectedGroupName);
-                assertNotNull("No group LDAP entry for "+expectedGroupName, groupEntry);
+            for (String expectedGroupName : indirectGroupNames) {
+                groupEntry = openDJController.searchSingle("cn=" + expectedGroupName);
+                assertNotNull("No group LDAP entry for " + expectedGroupName, groupEntry);
                 openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
             }
         }
@@ -75,8 +68,9 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
     }
 
     @Override
-    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void recomputeIfNeeded(String changedOrgOid)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         reconcileAllUsers();
     }
-
 }

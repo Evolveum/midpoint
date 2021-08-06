@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.task.AbstractIterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -34,7 +34,7 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
         extends ItemProcessingRequest<SE>
         implements Comparable<SyncItemProcessingRequest<SE>>, CorrelatableProcessingRequest {
 
-    public SyncItemProcessingRequest(SE item, AbstractIterativeActivityExecution<SE, ?, ?, ?> activityExecution) {
+    public SyncItemProcessingRequest(SE item, IterativeActivityExecution<SE, ?, ?, ?, ?, ?> activityExecution) {
         super(item.getSequentialNumber(), item, activityExecution);
     }
 
@@ -67,7 +67,7 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
     @Override
     public @NotNull IterationItemInformation getIterationItemInformation() {
         ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
-        if (changeDescription != null && changeDescription.getShadowedResourceObject() != null) {
+        if (changeDescription != null) {
             return new IterationItemInformation(changeDescription.getShadowedResourceObject());
         } else {
             return new IterationItemInformation(); // TODO

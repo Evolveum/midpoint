@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplate;
+import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -392,6 +395,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
         item.addMainMenuItem(createArchetypesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
+        item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());
@@ -518,6 +522,16 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class));
         createFocusPageNewEditMenu(item, "PageAdmin.menu.top.objectCollections.new",
                 "PageAdmin.menu.top.objectCollections.edit", PageObjectCollection.class);
+
+        return item;
+    }
+
+    private MainMenuItem createObjectTemplatesItems() {
+        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON
+        );
+        item.addMenuItem(createObjectListPageMenuItem("PageAdmin.menu.top.objectTemplates.list", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class));
+        createFocusPageNewEditMenu(item, "PageAdmin.menu.top.objectTemplates.new",
+                "PageAdmin.menu.top.objectTemplates.edit", PageObjectTemplate.class);
 
         return item;
     }

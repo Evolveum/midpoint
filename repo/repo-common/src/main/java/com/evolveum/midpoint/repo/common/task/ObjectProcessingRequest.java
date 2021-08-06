@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessingRequest<PrismObject<O>> {
 
     ObjectProcessingRequest(int sequentialNumber, PrismObject<O> item,
-            @NotNull AbstractIterativeActivityExecution<PrismObject<O>, ?, ?, ?> activityExecution) {
+            @NotNull IterativeActivityExecution<PrismObject<O>, ?, ?, ?, ?, ?> activityExecution) {
         super(sequentialNumber, item, activityExecution);
     }
 

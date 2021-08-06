@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
-import ch.qos.logback.classic.Level;
-
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -22,7 +18,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +25,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
@@ -76,9 +67,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
      * How many objects were seen by this task. This is to determine whether interval-based profiling is to be started.
      */
     private final AtomicInteger objectsSeen = new AtomicInteger(0);
-
-    /** TODO */
-    private Level originalProfilingLevel;
 
     /**
      * Execution context. Currently used to store activity execution during item processing in worker tasks.
@@ -293,73 +281,6 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     //endregion
 
-    //region Tracing and profiling
-    @Override
-    public int getAndIncrementObjectsSeen() {
-        return objectsSeen.getAndIncrement();
-    }
-
-    @Override
-    public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen) {
-        Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_PROFILING_INTERVAL);
-        if (interval != null && interval != 0 && objectsSeen%interval == 0) {
-            LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", objectsSeen, interval);
-            originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
-            OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
-        }
-    }
-
-    @Override
-    public void stopDynamicProfiling() {
-        OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
-    }
-
-    @Override
-    public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot) {
-        ProcessTracingConfigurationType config = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING);
-        int interval;
-        if (config != null) {
-            interval = defaultIfNull(config.getInterval(), 1);
-        } else {
-            // the old way
-            interval = defaultIfNull(
-                    coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL), 0);
-        }
-
-        if (interval != 0 && objectsSeen % interval == 0) {
-            TracingProfileType tracingProfileConfigured;
-            Collection<TracingRootType> pointsConfigured;
-            if (config != null) {
-                tracingProfileConfigured = config.getTracingProfile();
-                pointsConfigured = config.getTracingPoint();
-            } else {
-                // the old way
-                tracingProfileConfigured = coordinatorTask
-                        .getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-                PrismProperty<TracingRootType> tracingRootProperty = coordinatorTask
-                        .getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
-                pointsConfigured = tracingRootProperty != null ? tracingRootProperty.getRealValues() : emptyList();
-            }
-
-            LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
-
-            TracingProfileType tracingProfile =
-                    tracingProfileConfigured != null ? tracingProfileConfigured : beans.tracer.getDefaultProfile();
-            Collection<TracingRootType> points = pointsConfigured.isEmpty() ? singleton(defaultTracingRoot) : pointsConfigured;
-
-            points.forEach(this::addTracingRequest);
-            setTracingProfile(tracingProfile);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void stopTracing() {
-        removeTracingRequests();
-        setTracingProfile(null);
-    }
     //endregion
 
     //region Switching to waiting state

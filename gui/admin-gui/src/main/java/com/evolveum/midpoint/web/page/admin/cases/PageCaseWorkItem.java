@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -58,38 +60,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final String DOT_CLASS = PageCaseWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
     private static final String OPERATION_LOAD_DONOR = DOT_CLASS + "loadPowerDonor";
-    private static final String OPERATION_SAVE_CASE_WORK_ITEM = DOT_CLASS + "closeCaseWorkItem";
-    private static final String PARAMETER_CASE_ID = "caseId";
-    private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItem.class);
     private static final String ID_WORK_ITEM_DETAILS = "workItemDetails";
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
-    private static final String ID_DELTA_PANEL = "deltaPanel";
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_CASE_WORK_ITEM_FORM = "caseWorkItemForm";
-    private static final String ID_CASE_NAME = "caseName";
-    private static final String ID_CASE_DESCRIPTION = "caseDescription";
-    private static final String ID_CASE_RESOURCE = "caseResource";
-    private static final String ID_CASE_TARGET = "caseTarget";
-    private static final String ID_CASE_EVENT = "caseEvent";
-    private static final String ID_CASE_OUTCOME = "caseOutcome";
-    private static final String ID_CASE_OPEN_TIMESTAMP = "caseOpenTimestamp";
-    private static final String ID_CASE_CLOSE_TIMESTAMP = "caseCloseTimestamp";
-    private static final String ID_CASE_STATE = "caseState";
-    private static final String ID_CASE_WORK_ITEM_NAME = "caseWorkItemName";
-    private static final String ID_CASE_WORK_ITEM_ASSIGNEES = "caseWorkItemAssignees";
-    private static final String ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE = "caseWorkItemOriginalAssignee";
-    private static final String ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP = "caseWorkItemCloseTimestamp";
-    private static final String ID_CASE_WORK_ITEM_DEADLINE = "caseWorkItemDeadline";
-    private static final String ID_CASE_WORK_ITEM_OUTCOME = "caseWorkItemOutcome";
-    private static final String ID_CASE_WORK_ITEM_COMMENT = "caseWorkItemComment";
-    private static final String ID_CASE_WORK_ITEM_FORM_COMMENT = "caseWorkItemFormComment";
-    private static final String ID_CASE_WORK_ITEM_FORM_EVIDENCE = "caseWorkItemFormEvidence";
-    private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
     private static final String ID_BACK_BUTTON = "backButton";
-    private static final String ID_CLOSE_CASE_BUTTON = "closeCaseButton";
 
     private final LoadableModel<CaseWorkItemType> caseWorkItemModel;
     private final PageParameters pageParameters;
@@ -241,16 +217,9 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
-                return super.getWorkItemOutput(approved)
-                        .comment(workItemDetailsPanel.getApproverComment())
-                        .evidence(workItemDetailsPanel.getWorkItemEvidence());
-            }
-
-            @Override
             protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
                 return super.getDelegationRequest(delegate)
-                        .comment(workItemDetailsPanel.getApproverComment());
+                        .comment(WorkItemTypeUtil.getComment(getModelObject()));
             }
 
             @Override
