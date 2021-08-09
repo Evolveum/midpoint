@@ -77,6 +77,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_130_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
     private static final TestResource<TaskType> TASK_140_PURE_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-pure-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
     private static final TestResource<TaskType> TASK_150_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
+    private static final TestResource<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = new TestResource<>(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
     private static final TestResource<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestResource<TaskType> TASK_170_MOCK_BUCKETED = new TestResource<>(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
     private static final TestResource<TaskType> TASK_180_BUCKETED_TREE = new TestResource<>(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
@@ -555,6 +556,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         displayDumpable("recorder", recorder);
 
         task1.refresh(result);
+        // @formatter:off
         assertTask(task1, "after")
                 .display()
                 .assertSuccess()
@@ -592,6 +594,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, 5, 0)
                                 .assertLastSuccessName(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, "5")
                             .end();
+        // @formatter:on
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("task statistics", TaskOperationStatsUtil.format(stats));
@@ -608,6 +611,86 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertItemsProcessed(5)
                 .assertErrors(0)
                 .assertProgress(5)
+                .assertHasWallClockTime();
+    }
+
+    @Test
+    public void test155RunBucketedMockIterativeTask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task task1 = taskAdd(TASK_155_MOCK_ITERATIVE_BUCKETED, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then();
+
+        displayDumpable("recorder", recorder);
+
+        task1.refresh(result);
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .assertProgress(12)
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertCommitted(12, 0, 0) // maybe in the future we may move these to committed on activity close
+                            .assertNoUncommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(12, 0, 0)
+                            .assertLastSuccessObjectName("12")
+                            .assertExecutions(1)
+                        .end()
+                        .synchronizationStatistics()
+                            .display()
+                            .assertTransitions(1)
+                            .assertTransition(UNMATCHED, UNLINKED, LINKED, null, 12, 0, 0)
+                        .end()
+                        .actionsExecuted()
+                            .part(ActionsExecutedInformationUtil.Part.ALL)
+                                .display()
+                                .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, 12, 0)
+                                .assertCount(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, 12, 0)
+                                .assertLastSuccessName(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, "12")
+                                .assertLastSuccessName(ChangeTypeType.MODIFY, UserType.COMPLEX_TYPE, "12")
+                            .end()
+                            .part(ActionsExecutedInformationUtil.Part.RESULTING)
+                                .display()
+                                .assertCount(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, 12, 0)
+                                .assertLastSuccessName(ChangeTypeType.ADD, UserType.COMPLEX_TYPE, "12")
+                            .end();
+        // @formatter:on
+
+        OperationStatsType stats = task1.getStoredOperationStatsOrClone();
+        displayValue("task statistics", TaskOperationStatsUtil.format(stats));
+
+        assertThat(recorder.getExecutions()).as("recorder")
+                .containsExactly("Item: 1", "Item: 2", "Item: 3", "Item: 4", "Item: 5", "Item: 6",
+                        "Item: 7", "Item: 8", "Item: 9", "Item: 10", "Item: 11", "Item: 12");
+
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertItems(12, null)
+                .assertBuckets(4, 4);
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(12)
+                .assertErrors(0)
+                .assertProgress(12)
                 .assertHasWallClockTime();
     }
 
@@ -2466,10 +2549,5 @@ public class TestActivities extends AbstractRepoCommonTest {
         TreeNode<ActivityPerformanceInformation> performanceInfo =
                 activityManager.getPerformanceInformation(oid, result);
         displayDumpable("performance information", performanceInfo);
-    }
-
-    @NotNull
-    private TaskType getObjectable(Task task1) {
-        return task1.getUpdatedTaskObject().asObjectable();
     }
 }

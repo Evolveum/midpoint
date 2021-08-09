@@ -30,18 +30,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Things that we want to remember for all task scanners, like scanning timestamps.
  */
-public abstract class AbstractScanActivityExecutionSpecifics<
+public abstract class ScanActivityExecutionSpecifics<
         O extends ObjectType,
         WD extends WorkDefinition,
         MAH extends ModelActivityHandler<WD, MAH>>
         extends BaseSearchBasedExecutionSpecificsImpl<O, WD, MAH> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractScanActivityExecutionSpecifics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ScanActivityExecutionSpecifics.class);
 
     XMLGregorianCalendar lastScanTimestamp;
     protected XMLGregorianCalendar thisScanTimestamp;
 
-    public AbstractScanActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<O, WD, MAH, ?> activityExecution) {
+    public ScanActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<O, WD, MAH, ?> activityExecution) {
         super(activityExecution);
     }
 

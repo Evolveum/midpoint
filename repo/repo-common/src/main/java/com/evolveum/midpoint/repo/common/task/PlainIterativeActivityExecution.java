@@ -49,23 +49,8 @@ public class PlainIterativeActivityExecution<
     }
 
     @Override
-    protected void doExecute(OperationResult result) throws ActivityExecutionException, CommonException {
-        executeSingleBucket(result);
-    }
-
-    @Override
     protected void prepareItemSource(OperationResult result) throws ActivityExecutionException, CommonException {
         // Nothing to do here. Item source preparation can be done in iterateOverItems method.
-    }
-
-    @Override
-    protected void beforeBucketExecution(OperationResult result) {
-        // There is only a single bucket (currently), so there's nothing to do here.
-    }
-
-    @Override
-    protected void afterBucketExecution(OperationResult result) {
-        // There is only a single bucket (currently), so there's nothing to do here.
     }
 
     @Override
@@ -75,8 +60,8 @@ public class PlainIterativeActivityExecution<
     }
 
     @Override
-    protected void iterateOverItems(OperationResult result) throws CommonException {
-        executionSpecifics.iterateOverItems(result);
+    protected void iterateOverItemsInBucket(OperationResult result) throws CommonException {
+        executionSpecifics.iterateOverItemsInBucket(bucket, result);
     }
 
     @Override

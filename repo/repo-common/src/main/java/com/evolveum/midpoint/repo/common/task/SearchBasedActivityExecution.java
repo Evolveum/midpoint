@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -85,7 +83,6 @@ public class SearchBasedActivityExecution<
 
     private static final String OP_PREPROCESS_OBJECT = SearchBasedActivityExecution.class.getName() + ".preprocessObject";
 
-    private static final long FREE_BUCKET_WAIT_TIME = -1; // indefinitely
 
     /**
      * Specification of the search that is to be executed: object type, query, options, and "use repository" flag.
@@ -114,12 +111,6 @@ public class SearchBasedActivityExecution<
      */
     private final Set<String> oidsSeen = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Current bucket that is being processed.
-     * It is used to narrow the search query.
-     */
-    protected WorkBucketType bucket;
-
     @NotNull private final AtomicInteger sequentialNumberCounter = new AtomicInteger(0);
 
     public SearchBasedActivityExecution(@NotNull ExecutionInstantiationContext<WD, AH> context,
@@ -128,95 +119,9 @@ public class SearchBasedActivityExecution<
         super(context, shortNameCapitalized, specificsSupplier);
     }
 
-    /**
-     * Bucketed version of the execution.
-     */
-    @Override
-    protected void doExecute(OperationResult result)
-            throws ActivityExecutionException, CommonException {
-
-        RunningTask task = taskExecution.getRunningTask();
-        boolean initialExecution = true;
-
-//        resetWorkStateAndStatisticsIfWorkComplete(result);
-//        startCollectingStatistics(task, handler);
-
-        for (; task.canRun(); initialExecution = false) {
-
-            bucket = getWorkBucket(initialExecution, result);
-            if (!task.canRun()) {
-                break;
-            }
-
-            if (bucket == null) {
-                LOGGER.trace("No (next) work bucket within {}, exiting", task);
-                break;
-            }
-
-            executeSingleBucket(result);
-
-            if (!task.canRun() || errorState.wasStoppingExceptionEncountered()) {
-                break;
-            }
-
-            completeWorkBucketAndCommitProgress(result);
-        }
-    }
-
-    private WorkBucketType getWorkBucket(boolean initialExecution, OperationResult result) {
-        RunningTask task = taskExecution.getRunningTask();
-
-        WorkBucketType bucket;
-        try {
-            bucket = beans.bucketingManager.getWorkBucket(task, activity.getPath(),
-                    activity.getDefinition().getDistributionDefinition(), FREE_BUCKET_WAIT_TIME, initialExecution,
-                    getLiveBucketManagementStatistics(), result);
-            task.refresh(result); // We want to have the most current state of the running task.
-        } catch (InterruptedException e) {
-            LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-            if (!task.canRun()) {
-                return null;
-            } else {
-                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
-                throw new SystemException("Unexpected InterruptedException: " + e.getMessage(), e);
-            }
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {}", t, task);
-            throw new SystemException("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
-        }
-        return bucket;
-    }
-
-    private void completeWorkBucketAndCommitProgress(OperationResult result) throws ActivityExecutionException {
-        RunningTask task = taskExecution.getRunningTask();
-        try {
-            beans.bucketingManager.completeWorkBucket(task, getActivityPath(), bucket,
-                    getLiveBucketManagementStatistics(), result);
-
-            activityState.getLiveProgress().onCommitPoint();
-            activityState.updateProgressAndStatisticsNoCommit();
-
-            // TODO update also the task-level statistics
-
-            activityState.flushPendingModificationsChecked(result);
-        } catch (CommonException e) {
-            throw new ActivityExecutionException("Couldn't complete work bucket", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-    }
-
     @Override
     protected void prepareItemSource(OperationResult result) throws ActivityExecutionException, CommonException {
         prepareSearchSpecification(result);
-    }
-
-    @Override
-    protected void beforeBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException {
-        executionSpecifics.beforeBucketExecution(result);
-    }
-
-    @Override
-    protected void afterBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException {
-        executionSpecifics.afterBucketExecution(result);
     }
 
     private void prepareSearchSpecification(OperationResult result) throws CommonException, ActivityExecutionException {
@@ -475,7 +380,7 @@ public class SearchBasedActivityExecution<
     }
 
     @Override
-    protected void iterateOverItems(OperationResult result) throws CommonException {
+    protected void iterateOverItemsInBucket(OperationResult result) throws CommonException {
         searchIterative(result);
     }
 
@@ -621,10 +526,6 @@ public class SearchBasedActivityExecution<
     @Override
     protected boolean hasProgressCommitPoints() {
         return true;
-    }
-
-    private ActivityBucketManagementStatistics getLiveBucketManagementStatistics() {
-        return activityState.getLiveStatistics().getLiveBucketManagement();
     }
 
     @NotNull

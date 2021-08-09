@@ -11,19 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+
+import com.evolveum.midpoint.repo.common.task.work.segmentation.ImplicitSegmentationResolver;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryCreator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 /**
  * Responsible for managing task work state:
  *
- * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, ActivityPath, ActivityDistributionDefinition, long, Supplier, boolean, ActivityBucketManagementStatistics, OperationResult)}.
+ * 1. Obtains new buckets to be processed: {@link #getWorkBucket(String, ActivityPath, ActivityDistributionDefinition, long, Supplier, boolean, ActivityBucketManagementStatistics, ImplicitSegmentationResolver, OperationResult)}.
  * 2. Marks buckets as complete: {@link #completeWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
  * 3. Releases work buckets in case they are not going to be processed: {@link #releaseWorkBucket(String, ActivityPath, int, ActivityBucketManagementStatistics, OperationResult)}.
  * 4. Computes query narrowing for given work bucket: {@link #narrowQueryForWorkBucket(Class, ObjectQuery, ActivityDistributionDefinition, ItemDefinitionProvider, WorkBucketType)}.
@@ -52,11 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 @Component
 public class BucketingManager {
 
-    @Autowired private TaskManager taskManager;
-    @Autowired private RepositoryService repositoryService;
-    @Autowired private PrismContext prismContext;
-    @Autowired private BucketContentFactoryCreator strategyFactory;
-    @Autowired private WorkBucketContentHandlerRegistry handlerFactory;
+    @Autowired private CommonTaskBeans beans;
+    @Autowired private WorkBucketContentHandlerRegistry handlerRegistry;
 
     private Long freeBucketWaitIntervalOverride;
     private Long freeBucketWaitTimeOverride;
@@ -70,11 +67,13 @@ public class BucketingManager {
     private WorkBucketType getWorkBucket(@NotNull String workerTaskOid,
             @NotNull ActivityPath activityPath, @NotNull ActivityDistributionDefinition distributionDefinition,
             long freeBucketWaitTime, Supplier<Boolean> canRun, boolean executeInitialWait,
-            ActivityBucketManagementStatistics statistics, @NotNull OperationResult result)
+            ActivityBucketManagementStatistics statistics, ImplicitSegmentationResolver implicitSegmentationResolver,
+            @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
         long realFreeBucketWaitTime = freeBucketWaitTimeOverride != null ? freeBucketWaitTimeOverride : freeBucketWaitTime;
         GetBucketOperation.Options options = new GetBucketOperation.Options(realFreeBucketWaitTime, executeInitialWait);
-        return new GetBucketOperation(workerTaskOid, activityPath, distributionDefinition, statistics, this, canRun, options)
+        return new GetBucketOperation(workerTaskOid, activityPath, distributionDefinition, statistics, beans, canRun, options,
+                implicitSegmentationResolver)
                 .execute(result);
     }
 
@@ -84,7 +83,7 @@ public class BucketingManager {
             @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
         return getWorkBucket(workerTaskOid, ActivityPath.empty(), distributionDefinition, freeBucketWaitTime, null,
-                false, null, result);
+                false, null, null, result);
     }
 
     /**
@@ -92,7 +91,7 @@ public class BucketingManager {
      */
     public void completeWorkBucket(String workerTaskOid, ActivityPath activityPath, int sequentialNumber,
             ActivityBucketManagementStatistics statistics, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        new CompleteBucketOperation(this, workerTaskOid, activityPath, statistics, sequentialNumber)
+        new CompleteBucketOperation(workerTaskOid, activityPath, statistics, beans, sequentialNumber)
                 .execute(result);
     }
 
@@ -102,7 +101,7 @@ public class BucketingManager {
     public void releaseWorkBucket(String workerTaskOid, ActivityPath activityPath, int sequentialNumber,
             ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        new ReleaseBucketOperation(this, workerTaskOid, activityPath, statistics, sequentialNumber)
+        new ReleaseBucketOperation(workerTaskOid, activityPath, statistics, beans, sequentialNumber)
                 .execute(result);
     }
 
@@ -115,7 +114,7 @@ public class BucketingManager {
             @NotNull WorkBucketType workBucket)
             throws SchemaException {
 
-        WorkBucketContentHandler contentHandler = handlerFactory.getHandler(workBucket.getContent());
+        WorkBucketContentHandler contentHandler = handlerRegistry.getHandler(workBucket.getContent());
 
         AbstractWorkSegmentationType segmentationConfig =
                 BucketingUtil.getWorkSegmentationConfiguration(distributionDefinition.getBuckets());
@@ -123,7 +122,7 @@ public class BucketingManager {
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 contentHandler.createSpecificFilters(workBucket, segmentationConfig, type, itemDefinitionProvider));
 
-        return ObjectQueryUtil.addConjunctions(query, prismContext, conjunctionMembers);
+        return ObjectQueryUtil.addConjunctions(query, beans.prismContext, conjunctionMembers);
     }
 
     public void setFreeBucketWaitTimeOverride(Long value) {
@@ -138,31 +137,16 @@ public class BucketingManager {
         return freeBucketWaitIntervalOverride;
     }
 
-    public TaskManager getTaskManager() {
-        return taskManager;
-    }
-
-    BucketContentFactoryCreator getStrategyFactory() {
-        return strategyFactory;
-    }
-
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
     // PUBLIC INTERFACE (moved from task manager)
 
     public WorkBucketType getWorkBucket(@NotNull RunningTask task,
             @NotNull ActivityPath activityPath, @NotNull ActivityDistributionDefinition distributionDefinition,
             long freeBucketWaitTime, boolean executeInitialWait, @Nullable ActivityBucketManagementStatistics statistics,
+            @Nullable ImplicitSegmentationResolver implicitSegmentationResolver,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, InterruptedException {
         return getWorkBucket(task.getOid(), activityPath, distributionDefinition, freeBucketWaitTime, task::canRun,
-                executeInitialWait, statistics, result);
+                executeInitialWait, statistics, implicitSegmentationResolver, result);
     }
 
     public void completeWorkBucket(@NotNull RunningTask task, @NotNull ActivityPath activityPath,

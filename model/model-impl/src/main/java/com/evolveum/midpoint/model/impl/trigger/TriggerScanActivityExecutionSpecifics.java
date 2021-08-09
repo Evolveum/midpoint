@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScanActivityExecutionSpecifics;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Single execution of a trigger scanner task part.
  */
 class TriggerScanActivityExecutionSpecifics
-        extends AbstractScanActivityExecutionSpecifics<ObjectType, TriggerScanWorkDefinition, TriggerScanActivityHandler> {
+        extends ScanActivityExecutionSpecifics<ObjectType, TriggerScanWorkDefinition, TriggerScanActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerScanActivityExecutionSpecifics.class);
 
@@ -45,6 +45,7 @@ class TriggerScanActivityExecutionSpecifics
 
     @Override
     public void beforeExecution(OperationResult opResult) {
+        super.beforeExecution(opResult);
         itemProcessor = new TriggerScanItemProcessor(this);
     }
 

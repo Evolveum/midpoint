@@ -35,8 +35,7 @@ public class StringBucketContentFactory extends BaseBucketContentFactory<StringW
 
     private static final String OID_BOUNDARIES = "0-9a-f";
 
-    @SuppressWarnings("WeakerAccess") // called using reflection
-    public StringBucketContentFactory(@NotNull StringWorkSegmentationType segmentationConfig) {
+    StringBucketContentFactory(@NotNull StringWorkSegmentationType segmentationConfig) {
         super(segmentationConfig);
         this.marking = defaultIfNull(segmentationConfig.getComparisonMethod(), INTERVAL);
         this.boundaries = processBoundaries();
@@ -47,8 +46,7 @@ public class StringBucketContentFactory extends BaseBucketContentFactory<StringW
      * It is a price we pay for using simple {@link Class#getConstructor(Class[])} to look for
      * the applicable constructor.
      */
-    @SuppressWarnings("unused") // called using reflection
-    public StringBucketContentFactory(@NotNull OidWorkSegmentationType segmentationConfig) {
+    StringBucketContentFactory(@NotNull OidWorkSegmentationType segmentationConfig) {
         this((StringWorkSegmentationType) segmentationConfig);
     }
 

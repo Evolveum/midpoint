@@ -42,6 +42,7 @@ public class BucketingUtil {
                     buckets.getStringSegmentation(),
                     buckets.getOidSegmentation(),
                     buckets.getExplicitSegmentation(),
+                    buckets.getImplicitSegmentation(),
                     buckets.getSegmentation());
         } else {
             return null;

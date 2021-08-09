@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExplicitWorkSegmenta
  */
 public class ExplicitBucketContentFactory extends BaseBucketContentFactory<ExplicitWorkSegmentationType> {
 
-    public ExplicitBucketContentFactory(@NotNull ExplicitWorkSegmentationType segmentationConfig) {
+    ExplicitBucketContentFactory(@NotNull ExplicitWorkSegmentationType segmentationConfig) {
         super(segmentationConfig);
     }
 
