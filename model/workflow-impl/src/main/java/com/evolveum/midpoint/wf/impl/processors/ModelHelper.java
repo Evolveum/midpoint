@@ -111,7 +111,7 @@ public class ModelHelper {
 
         return new LocalizableMessageBuilder()
                 .key(APPROVING_AND_EXECUTING_KEY + operationKey)
-                .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+                .arg(ObjectTypeUtil.getDetailedDisplayName(focus != null ? focus.asPrismObject() : null))
                 .arg(time)
                 .build();
     }

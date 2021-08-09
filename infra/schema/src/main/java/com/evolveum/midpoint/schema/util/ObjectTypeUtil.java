@@ -771,7 +771,7 @@ public class ObjectTypeUtil {
             return new LocalizableMessageBuilder()
                     .key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
                     .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-                    .arg(object.asObjectable().getName())
+                    .arg(getDetailedDisplayName((PrismObject<ObjectType>) object))
                     .build();
         } else {
             return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!

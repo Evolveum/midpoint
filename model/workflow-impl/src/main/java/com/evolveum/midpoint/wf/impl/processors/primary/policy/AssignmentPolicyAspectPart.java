@@ -347,8 +347,8 @@ public class AssignmentPolicyAspectPart {
 
         return new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
-                .arg(ObjectTypeUtil.createDisplayInformation(target, false))
-                .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+                .arg(ObjectTypeUtil.getDetailedDisplayName(target))
+                .arg(ObjectTypeUtil.getDetailedDisplayName(focus == null ? null : focus.asPrismObject()))
                 .build();
     }
 
