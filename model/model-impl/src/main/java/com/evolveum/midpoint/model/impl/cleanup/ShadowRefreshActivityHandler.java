@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScanActivityExecutionSpecifics;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -89,7 +89,7 @@ public class ShadowRefreshActivityHandler
     }
 
     public static class MyActivityExecutionSpecifics
-            extends AbstractScanActivityExecutionSpecifics<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
+            extends ScanActivityExecutionSpecifics<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
 
         MyActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, MyWorkDefinition,
                 ShadowRefreshActivityHandler, ?> activityExecution) {
