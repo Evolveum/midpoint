@@ -122,6 +122,10 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
 
+            if (virtualContainer.getPath() != null) {
+                continue;
+            }
+
             MutableComplexTypeDefinition mCtd = getPrismContext().definitionFactory().createComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
             DisplayType display = virtualContainer.getDisplay();
 
@@ -159,7 +163,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             }
             iw.setVisibleOverwrite(virtualContainer.getVisibility());
 
-            ((List) objectValueWrapper.getItems()).add(iw);
+            objectValueWrapper.addItem(iw);
 
         }
 

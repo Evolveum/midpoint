@@ -79,6 +79,7 @@ public class PageUser extends PageBase {
 
     private LoadableModel<PrismObjectWrapper<UserType>> model;
     private GuiObjectDetailsPageType detailsPageConfiguration;
+    private List<ContainerPanelConfigurationType> userPanels;
 
     public PageUser() {
         this(null);
@@ -89,6 +90,7 @@ public class PageUser extends PageBase {
 
         model = createPageModel();
         detailsPageConfiguration = getCompiledGuiProfile().findObjectDetailsConfiguration(UserType.class);
+        userPanels = getPanelsForUser();
         initLayout();
     }
 
@@ -103,6 +105,7 @@ public class PageUser extends PageBase {
                 OperationResult result = task.getResult();
                 WrapperContext ctx = new WrapperContext(task, result);
                 ctx.setCreateIfEmpty(true);
+                ctx.setContainerPanelConfigurationType(userPanels);
 
                 try {
                     return factory.createObjectWrapper(prismUser, isEditUser()? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
@@ -165,7 +168,8 @@ public class PageUser extends PageBase {
         initButtons();
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         add(form);
-        initMainPanel("basic", null, form);
+        ContainerPanelConfigurationType basicPanelConfig = userPanels.stream().filter(panel -> "basic".equals(panel.getIdentifier())).findFirst().get();
+        initMainPanel("basic", basicPanelConfig, form);
         initNavigation();
     }
 
@@ -217,8 +221,8 @@ public class PageUser extends PageBase {
     }
 
     private void initNavigation() {
-        List<ContainerPanelConfigurationType> panels = getPanelsForUser();
-        DetailsNavigationPanel navigationPanel = createNavigationPanel(ID_NAVIGATION, panels);
+//        List<ContainerPanelConfigurationType> panels = getPanelsForUser();
+        DetailsNavigationPanel navigationPanel = createNavigationPanel(ID_NAVIGATION, userPanels);
         add(navigationPanel);
 
     }

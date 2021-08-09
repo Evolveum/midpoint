@@ -10,10 +10,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelLoader;
 import com.evolveum.midpoint.web.component.assignment.TabbedAssignmentTypePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -21,7 +19,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;

@@ -704,7 +704,7 @@ public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<
         } else if (item.getModelObject().isReadOnly()) {
             item.getModelObject().setReadOnly(false, true);
         }
-        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment());
+        return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment(), config);
     }
 
     private <AH extends FocusType> List<InlineMenuItem> getAssignmentMenuActions() {

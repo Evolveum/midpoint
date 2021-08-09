@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -98,7 +102,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     protected void createContainersPanel() {
         WebMarkupContainer containersLabel = new WebMarkupContainer(ID_CONTAINERS_LABEL);
         add(containersLabel);
-        ListView<PrismContainerWrapper<?>> containers = new ListView<>("containers", new PropertyModel<>(getModel(), "containers")) {
+        ListView<PrismContainerWrapper<?>> containers = new ListView<>("containers", createContainersModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -110,6 +114,13 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         containers.setReuseItems(true);
         containers.setOutputMarkupId(true);
         containersLabel.add(containers);
+    }
+
+    private IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
+        return new ReadOnlyModel<>(() -> {
+            PrismContainerValueWrapper<C> modelObject = getModelObject();
+            return modelObject.getContainers(getPanelConfiguration());
+        });
     }
 
     private void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
@@ -185,6 +196,13 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
     private ItemPanelSettings getSettings() {
         return settings;
+    }
+
+    private ContainerPanelConfigurationType getPanelConfiguration() {
+        if (settings == null) {
+            return null;
+        }
+        return settings.getConfig();
     }
 
     private ItemVisibilityHandler getVisibilityHandler() {

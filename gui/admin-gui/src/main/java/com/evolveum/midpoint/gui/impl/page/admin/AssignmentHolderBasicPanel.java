@@ -8,30 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
-import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-
-import java.util.List;
 
 @PanelDescription(identifier = "basic",
         panelIdentifier = "basic",
-        applicableFor = AssignmentHolderType.class)
+        applicableFor = AssignmentHolderType.class,
+        defaultContainerPath = "empty")
 @PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL)
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
@@ -45,30 +33,31 @@ public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends
 
     @Override
     protected void initLayout() {
-        try {
+//        try {
 
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO);
-            builder.headerVisibility(false);
-
-            Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getModelObject().getTypeName(),
-                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.EMPTY_PATH), builder.build());
-            add(main);
-
-            RepeatingView view = new RepeatingView(ID_VIRTUAL_PANELS);
-            if (getPanelConfiguration() != null) {
-                List<VirtualContainersSpecificationType> virtualContainers = getPanelConfiguration().getContainer();
-                for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
-                    PrismContainerWrapperModel virtualContainerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), virtualContainer.getIdentifier());
-                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, builder.build());
-                    view.add(virtualPanel);
-                }
-
-            }
-            add(view);
-
-        } catch (SchemaException e) {
-            LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);
-        }
+//            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO);
+//            builder.headerVisibility(false);
+//
+//            Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getModelObject().getTypeName(),
+//                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.EMPTY_PATH), builder.build());
+//            add(main);
+//
+//            RepeatingView view = new RepeatingView(ID_VIRTUAL_PANELS);
+//            if (getPanelConfiguration() != null) {
+//                List<VirtualContainersSpecificationType> virtualContainers = getPanelConfiguration().getContainer();
+//                for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
+//                    PrismContainerWrapperModel virtualContainerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), virtualContainer.getIdentifier());
+//                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, builder.build());
+//                    view.add(virtualPanel);
+//                }
+//
+//            }
+//            add(view);
+            SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL, getModel(), getPanelConfiguration());
+            add(panel);
+//        } catch (SchemaException e) {
+//            LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);
+//        }
     }
 
 

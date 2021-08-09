@@ -13,6 +13,10 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -66,14 +70,37 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         List<ItemWrapper<?, ?>> children = createChildren(parent, value, containerValueWrapper, context);
 
-        containerValueWrapper.getItems().addAll((Collection) children);
+        VirtualContainersSpecificationType virtualContainerSpec = context.findVirtualContainerConfiguration(parent.getPath());
+        if (virtualContainerSpec != null) {
+            for (ItemWrapper<?, ?> child : children) {
+                 if (childNotDefined(virtualContainerSpec, child)) {
+                     continue;
+                 }
+                 containerValueWrapper.addItem(child);
+            }
+        } else {
+            containerValueWrapper.addItems(children);
+        }
         containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
         if (parent != null) {
-            parent.setVirtual(context.getVirtualItemSpecification() != null);
+            parent.setVirtual(context.getVirtualItemSpecification() != null || virtualContainerSpec != null);
         }
         return containerValueWrapper;
     }
 
+    private boolean childNotDefined(VirtualContainersSpecificationType virtualContainerSpec, ItemWrapper<?, ?> child) {
+        if (virtualContainerSpec.getItem().isEmpty()) {
+            return false;
+        }
+        for (VirtualContainerItemSpecificationType item : virtualContainerSpec.getItem()) {
+            if (child.getPath().equivalent(item.getPath().getItemPath())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @NotNull
     protected List<ItemWrapper<?, ?>> createChildren(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, PrismContainerValueWrapper<C> containerValueWrapper, WrapperContext context) throws SchemaException {
         List<ItemWrapper<?,?>> wrappers = new ArrayList<>();
         for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {

@@ -8,6 +8,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -52,6 +53,15 @@ public class PanelLoader {
                     ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
                     config.setIdentifier(desc.identifier());
                     config.setPanelIdentifier(desc.panelIdentifier());
+                    VirtualContainersSpecificationType container = new VirtualContainersSpecificationType();
+                    if (!desc.path().isBlank()) {
+                        if ("empty".equals(desc.path())) {
+                            container.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
+                        } else {
+                            container.setPath(new ItemPathType(ItemPath.create(desc.path())));
+                        }
+                    }
+                    config.getContainer().add(container);
                     PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
@@ -121,6 +131,15 @@ public class PanelLoader {
 //                    if (!desc.path().isBlank()) {  //TODO append to parent? consider only absolutePaths?
 //                        config.setPath(new ItemPathType(ItemPath.create(desc.path())));
 //                    }
+                    VirtualContainersSpecificationType container = new VirtualContainersSpecificationType();
+                    if (!desc.path().isBlank()) {
+                        if ("empty".equals(desc.path())) {
+                            container.setPath(new ItemPathType(ItemPath.EMPTY_PATH));
+                        } else {
+                            container.setPath(new ItemPathType(ItemPath.create(desc.path())));
+                        }
+                    }
+                    config.getContainer().add(container);
                     PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));

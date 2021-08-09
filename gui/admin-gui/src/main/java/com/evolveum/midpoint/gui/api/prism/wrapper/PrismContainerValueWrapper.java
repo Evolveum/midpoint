@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 /**
@@ -38,6 +39,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     void setStatus(ValueStatus status);
 
     List<PrismContainerWrapper<? extends Containerable>> getContainers();
+    List<PrismContainerWrapper<? extends Containerable>> getContainers(ContainerPanelConfigurationType config);
 
     List<ItemWrapper<?, ?>> getNonContainers();
 

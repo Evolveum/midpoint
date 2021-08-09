@@ -33,7 +33,9 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
+
+        SingleContainerPanel<C> panel = new SingleContainerPanel<C>(ID_DETAILS, (IModel) getModel(), getPanelConfiguration());
+//        SingleContainerPanel<C> panel = new SingleContainerPanel<>(ID_DETAILS, createContainerModel(), getType());
         add(panel);
 
     }

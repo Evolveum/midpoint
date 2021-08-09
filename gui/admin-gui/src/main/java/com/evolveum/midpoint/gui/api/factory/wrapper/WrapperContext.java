@@ -60,6 +60,8 @@ public class WrapperContext {
      @Experimental
     private Map<String, LookupTableType> lookupTableCache = new HashMap();
 
+     private List<ContainerPanelConfigurationType> containerPanelConfigurationType;
+
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -194,6 +196,26 @@ public class WrapperContext {
         return lookupTableCache.get(oid);
     }
 
+    public List<ContainerPanelConfigurationType> getContainerPanelConfigurationType() {
+        return containerPanelConfigurationType;
+    }
+
+    public void setContainerPanelConfigurationType(List<ContainerPanelConfigurationType> containerPanelConfigurationType) {
+        this.containerPanelConfigurationType = containerPanelConfigurationType;
+    }
+
+    public VirtualContainersSpecificationType findVirtualContainerConfiguration(ItemPath path) {
+        if (virtualContainers == null) {
+            return null;
+        }
+        for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
+            if (virtualContainer.getPath() != null && path.equivalent(virtualContainer.getPath().getItemPath())) {
+                return virtualContainer;
+            }
+        }
+        return null;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -210,6 +232,7 @@ public class WrapperContext {
         ctx.setMetadata(isMetadata);
         ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
         ctx.lookupTableCache = lookupTableCache;
+        ctx.setContainerPanelConfigurationType(containerPanelConfigurationType);
         return ctx;
     }
 }

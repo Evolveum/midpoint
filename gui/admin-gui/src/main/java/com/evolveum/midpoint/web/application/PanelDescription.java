@@ -24,6 +24,7 @@ public @interface PanelDescription {
     ItemStatus[] status() default {ItemStatus.ADDED, ItemStatus.NOT_CHANGED};
     Class<? extends Panel> childOf() default Panel.class;
     boolean generic() default false;
+    String defaultContainerPath() default "";
 
 
     //probably not needed

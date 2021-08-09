@@ -42,9 +42,9 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
             collectExtensionItems(container, true, containers);
 
-            if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
-                ((List)containers).add(container);
-            }
+//            if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
+//                ((List)containers).add(container);
+//            }
 
 //            if (ObjectType.F_METADATA.equals(container.getItemName())) {
 //                ((List)containers).add(container);
