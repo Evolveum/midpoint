@@ -592,12 +592,9 @@ public class ColumnUtils {
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                         String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    List<ObjectReferenceType> assigneeRefs;
-                    if (CaseWorkItemUtil.doesAssigneeExist(unwrapRowModel(rowModel))) {
-                        assigneeRefs = unwrapRowModel(rowModel).getAssigneeRef();
-                    } else {
-                        assigneeRefs = unwrapRowModel(rowModel).getCandidateRef();
-                    }
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    List<ObjectReferenceType> assigneeRefs = getActorsForWorkitem(caseWorkItemType, CaseTypeUtil.isClosed(caseType));
                     cellItem.add(getMultilineLinkPanel(componentId, assigneeRefs, pageBase));
                 }
 
@@ -875,18 +872,24 @@ public class ColumnUtils {
         return rowModel.getObject().getRealValue();
     }
 
-    public static List<ObjectReferenceType> getActorsForCase(CaseType caseType) {
+    private static List<ObjectReferenceType> getActorsForCase(CaseType caseType) {
         List<ObjectReferenceType> actorsList = new ArrayList<>();
         if (caseType != null) {
             List<CaseWorkItemType> caseWorkItemTypes = caseType.getWorkItem();
             for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-                if (caseWorkItem.getAssigneeRef() != null && !caseWorkItem.getAssigneeRef().isEmpty()) {
-                    actorsList.addAll(caseWorkItem.getAssigneeRef());
-                } else {
-                    actorsList.addAll(caseWorkItem.getCandidateRef());
-                }
+                actorsList.addAll(getActorsForWorkitem(caseWorkItem, CaseTypeUtil.isClosed(caseType)));
             }
         }
         return actorsList;
+    }
+
+    private static List<ObjectReferenceType> getActorsForWorkitem(CaseWorkItemType workItem, boolean isClosed) {
+        if (isClosed) {
+            return Collections.singletonList(workItem.getPerformerRef());
+        } else if (workItem.getAssigneeRef() != null && !workItem.getAssigneeRef().isEmpty()) {
+            return workItem.getAssigneeRef();
+        } else {
+            return workItem.getCandidateRef();
+        }
     }
 }
