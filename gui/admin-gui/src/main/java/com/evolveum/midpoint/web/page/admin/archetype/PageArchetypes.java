@@ -81,10 +81,10 @@ public class PageArchetypes extends PageAdmin {
                 return UserProfileStorage.TableId.TABLE_ARCHETYPES;
             }
 
-            @Override
-            protected List<IColumn<SelectableBean<ArchetypeType>, String>> createDefaultColumns() {
-                return ColumnUtils.getDefaultArchetypeColumns();
-            }
+//            @Override
+//            protected List<IColumn<SelectableBean<ArchetypeType>, String>> createDefaultColumns() {
+//                return ColumnUtils.getDefaultArchetypeColumns();
+//            }
 
             @Override
             protected IColumn<SelectableBean<ArchetypeType>, String> createCheckboxColumn() {
