@@ -7,25 +7,29 @@
 package com.evolveum.midpoint.report;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-@ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestCsvReportExportClassic extends TestCsvReport {
+/**
+ * @author skublik
+ */
+
+public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
 
     private static final int USERS = 50;
 
@@ -69,82 +73,82 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test100CreateAuditCollectionReportWithDefaultColumn() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, -1, 8, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN);
     }
 
     @Test
     public void test101CreateAuditCollectionReportWithView() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_VIEW, -1, 2, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_VIEW);
     }
 
     @Test
     public void test102CreateAuditCollectionReportWithDoubleView() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW, -1, 3, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW);
     }
 
     @Test
     public void test103CreateAuditCollectionReportWithCondition() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_CONDITION, 2, 8, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_CONDITION);
     }
 
     @Test
     public void test104CreateAuditCollectionReportEmpty() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_EMPTY, 1, 8, null);
+        runTest(REPORT_AUDIT_COLLECTION_EMPTY);
     }
 
     @Test
     public void test110CreateObjectCollectionReportWithDefaultColumn() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN, 54, 6, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN);
     }
 
     @Test
     public void test111CreateObjectCollectionReportWithView() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_VIEW, 2, 2, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_VIEW);
     }
 
     @Test
     public void test112CreateObjectCollectionReportWithDoubleView() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW, 54, 3, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW);
     }
 
     @Test
     public void test113CreateObjectCollectionReportWithFilter() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER, 3, 2, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER);
     }
 
     @Test
     public void test114CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION, 2, 2, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION);
     }
 
     @Test
     public void test115CreateObjectCollectionReportWithCondition() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_CONDITION, 2, 6, null);
+        runTest(REPORT_OBJECT_COLLECTION_WITH_CONDITION);
     }
 
     @Test
     public void test116CreateObjectCollectionEmptyReport() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_EMPTY, 1, 6, null);
+        runTest(REPORT_OBJECT_COLLECTION_EMPTY);
     }
 
     @Test
     public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW, 2, 1, null);
+        runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW);
     }
 
 //    @Test //TODO uncomment after implementation of parameters in new task config
 //    public void test118CreateObjectCollectionWithParamReport() throws Exception {
-//        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM, 2, 2, null);
+//        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM);
 //    }
 
     @Test
     public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
-        runTest(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, 2, 2, "\"will\";\"TestRole1230,TestRole123010\"");
+        runTest(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM);
     }
 
     @Test
     public void test120RunMidpointUsers() throws Exception {
-        runTest(REPORT_USER_LIST, 54, 6, null);
+        runTest(REPORT_USER_LIST);
     }
 
     @Test
@@ -153,12 +157,19 @@ public class TestCsvReportExportClassic extends TestCsvReport {
             displaySkip();
             return;
         }
-        runTest(REPORT_USER_LIST_SCRIPT, 54, 6, null);
+        runTest(REPORT_USER_LIST_SCRIPT);
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "report-users");
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline) throws Exception {
+    @Override
+    protected FileFormatConfigurationType getFileFormatConfiguration() {
+        FileFormatConfigurationType config = new FileFormatConfigurationType();
+        config.setType(FileFormatTypeType.HTML);
+        return config;
+    }
+
+    private void runTest(TestResource<ReportType> reportResource) throws Exception {
         given();
 
         Task task = getTestTask();
@@ -177,6 +188,10 @@ public class TestCsvReportExportClassic extends TestCsvReport {
                 .display();
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
-        basicCheckOutputFile(report, expectedRows, expectedColumns, lastline);
+        List<String> lines = getLinesOfOutputFile(report);
+
+        if (lines.size() < 10) {
+            fail("Html report too short ("+lines.size()+" lines)");
+        }
     }
 }

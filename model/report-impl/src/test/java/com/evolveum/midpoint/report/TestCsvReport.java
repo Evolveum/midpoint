@@ -8,10 +8,15 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,7 +32,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCsvReport extends EmptyReportIntegrationTest {
 
-    List<String> basicCheckOutputFile(PrismObject<ReportType> report, int expectedRow, int expectedColumns, CharSequence lastLine) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        addObject(USER_WILL, initTask, initResult);
+        addObject(USER_JACK, initTask, initResult);
+    }
+
+    List<String> basicCheckOutputFile(PrismObject<ReportType> report, int expectedRow, int expectedColumns, CharSequence lastLine) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ParseException {
         List<String> lines = getLinesOfOutputFile(report);
 
         if (expectedRow != -1 && lines.size() != expectedRow) {
@@ -55,5 +67,12 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
             throw new IllegalArgumentException("Couldn't find line of report");
         }
         return lines.get(0).split(";").length;
+    }
+
+    @Override
+    protected FileFormatConfigurationType getFileFormatConfiguration() {
+        FileFormatConfigurationType config = new FileFormatConfigurationType();
+        config.setType(FileFormatTypeType.CSV);
+        return config;
     }
 }

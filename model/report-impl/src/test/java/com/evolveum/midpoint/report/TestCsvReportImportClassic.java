@@ -33,7 +33,7 @@ import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
+public class TestCsvReportImportClassic extends TestCsvReport {
 
     private static final TestResource<TaskType> TASK_IMPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "task-import.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f12");
@@ -44,16 +44,6 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
             "report-object-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a851a");
     private static final TestResource<ReportType> REPORT_IMPORT_WITH_SCRIPT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "report-with-import-script.xml", "2b44aa2e-dd86-4842-bcf5-762c8c4a851a");
-
-    private static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-all-user-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb266");
-    private static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-all-user.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb266");
-
-    private static final TestResource<ObjectCollectionType> USER_WILL = new TestResource<>(TEST_DIR_COMMON,
-            "user-will.xml", "c0c010c0-d34d-b33f-f00d-111111111122");
-    private static final TestResource<ObjectCollectionType> USER_JACK = new TestResource<>(TEST_DIR_COMMON,
-            "user-jack.xml", "c0c010c0-d34d-b33f-f00d-111111111111");
 
     private static final String REPORT_DATA_TEST100_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a8588";
     private static final String REPORT_DATA_TEST101_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a8589";

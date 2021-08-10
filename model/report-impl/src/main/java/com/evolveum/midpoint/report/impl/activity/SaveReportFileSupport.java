@@ -22,6 +22,8 @@ import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatControl
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -125,6 +127,9 @@ class SaveReportFileSupport {
     public void saveReportFile(String aggregatedData, ReportDataWriter dataWriter, OperationResult result) throws CommonException {
         writeToReportFile(dataWriter.completizeReport(aggregatedData));
         saveReportDataObject(result);
+        if (report.getPostReportScript() != null) {
+            processPostReportScript(report, aggregatedFilePath, runningTask, result);
+        }
     }
 
     private void writeToReportFile(String contextOfFile) {
@@ -198,5 +203,25 @@ class SaveReportFileSupport {
         task.setExtensionReference(reportDataRef);
 
         subResult.computeStatus();
+    }
+
+    private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult) {
+        CommandLineScriptType scriptType = parentReport.getPostReportScript();
+        if (scriptType == null) {
+            LOGGER.debug("No post report script found in {}, skipping", parentReport);
+            return;
+        }
+
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_OBJECT, parentReport, parentReport.asPrismObject().getDefinition());
+        PrismObject<TaskType> taskObject = task.getRawTaskObjectClonedIfNecessary();
+        variables.put(ExpressionConstants.VAR_TASK, taskObject.asObjectable(), taskObject.getDefinition());
+        variables.put(ExpressionConstants.VAR_FILE, reportService.getCommandLineScriptExecutor().getOsSpecificFilePath(reportOutputFilePath), String.class);
+
+        try {
+            reportService.getCommandLineScriptExecutor().executeScript(scriptType, variables, "post-report script in " + parentReport, task, parentResult);
+        } catch (Exception e) {
+            LOGGER.error("An exception has occurred during post report script execution {}", e.getLocalizedMessage(), e);
+        }
     }
 }

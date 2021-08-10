@@ -13,8 +13,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,9 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Contains common functionality for executions of report-related activities.
@@ -75,15 +71,16 @@ class ExportActivitySupport extends ReportActivitySupport{
             OperationResult result) throws CommonException {
         if (AuditEventRecordType.class.equals(type)) {
             @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
-            return auditRecords.getList();
+            return Objects.requireNonNullElse(auditRecords.getList(), Collections.emptyList());
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            SearchResultList<PrismObject<ObjectType>> results = modelService.searchObjects((Class<ObjectType>) type, query, options, runningTask, result);
-            List list = new ArrayList();
+            Class<? extends ObjectType> objectType = type.asSubclass(ObjectType.class);
+            SearchResultList<? extends PrismObject<? extends ObjectType>> results = modelService.searchObjects(objectType, query, options, runningTask, result);
+            List<ObjectType> list = new ArrayList<>();
             results.forEach(object -> list.add(object.asObjectable()));
             return list;
         } else {
             SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, runningTask, result);
-            return containers.getList();
+            return Objects.requireNonNullElse(containers.getList(), Collections.emptyList());
         }
     }
 }
