@@ -114,10 +114,10 @@ public class PageServices extends PageAdmin {
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
-            @Override
-            protected List<IColumn<SelectableBean<ServiceType>, String>> createDefaultColumns() {
-                return ColumnUtils.getDefaultServiceColumns();
-            }
+//            @Override
+//            protected List<IColumn<SelectableBean<ServiceType>, String>> createDefaultColumns() {
+//                return ColumnUtils.getDefaultServiceColumns();
+//            }
 
             @Override
             protected List<ItemPath> getFixedSearchItems() {

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,9 @@ import java.util.List;
 public class AssignmentListProvider extends MultivalueContainerListDataProvider<AssignmentType> {
 
     public AssignmentListProvider(Component component, @NotNull IModel<Search<AssignmentType>> search, IModel<List<PrismContainerValueWrapper<AssignmentType>>> model) {
-        super(component, search, model);
+        super(component, search, model, true);
+
+        setSort(new SortParam("targetRef.targetName.orig", true));
     }
 
     @Override

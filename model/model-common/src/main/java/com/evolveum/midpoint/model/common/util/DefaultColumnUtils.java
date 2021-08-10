@@ -59,18 +59,18 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AuditEventRecordType.F_MESSAGE),
                         new ColumnWrapper(AuditEventRecordType.F_DELTA)))
                 .put(ResourceType.class, Arrays.asList(
-                        new ColumnWrapper(ResourceType.F_NAME),
+//                        new ColumnWrapper(ResourceType.F_NAME), //todo refactor ContainerableListPanel.createNameColumn usage
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION), "ConnectorType.connectorVersion")))
                 .put(UserType.class, Arrays.asList(
-                        new ColumnWrapper(UserType.F_NAME, true),
+//                        new ColumnWrapper(UserType.F_NAME, true), //todo refactor ContainerableListPanel.createNameColumn usage
                         new ColumnWrapper(UserType.F_GIVEN_NAME, true),
                         new ColumnWrapper(UserType.F_FAMILY_NAME, true),
                         new ColumnWrapper(UserType.F_FULL_NAME, true),
                         new ColumnWrapper(UserType.F_EMAIL_ADDRESS),
                         new ColumnWrapper(UserType.F_LINK_REF, "FocusType.accounts", DisplayValueType.NUMBER)))
                 .put(AbstractRoleType.class, Arrays.asList(
-                        new ColumnWrapper(AbstractRoleType.F_NAME),
+//                        new ColumnWrapper(AbstractRoleType.F_NAME),   //todo refactor ContainerableListPanel.createNameColumn usage
                         new ColumnWrapper(AbstractRoleType.F_DISPLAY_NAME, true),
                         new ColumnWrapper(AbstractRoleType.F_DESCRIPTION),
                         new ColumnWrapper(AbstractRoleType.F_IDENTIFIER, true),
@@ -103,7 +103,8 @@ public class DefaultColumnUtils {
     private static List<ColumnWrapper> getColumnsForType(Class<? extends Containerable> type) {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
-                || type.equals(ServiceType.class)) {
+                || type.equals(ServiceType.class)
+                || type.equals(ArchetypeType.class)) {
             return COLUMNS_DEF.get(AbstractRoleType.class);
         }
         if (COLUMNS_DEF.containsKey(type)) {
@@ -125,6 +126,8 @@ public class DefaultColumnUtils {
             return getDefaultOrgView();
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceView();
+        } else if (ArchetypeType.class.equals(type)) {
+            return getDefaultArchetypeView();
         } else if (TaskType.class.equals(type)) {
             return getDefaultTaskView();
         } else if (ResourceType.class.equals(type)) {
@@ -163,6 +166,10 @@ public class DefaultColumnUtils {
 
     public static GuiObjectListViewType getDefaultServiceView() {
         return getDefaultView(ServiceType.COMPLEX_TYPE, "default-service", ServiceType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultArchetypeView() {
+        return getDefaultView(ArchetypeType.COMPLEX_TYPE, "default-archetype", ArchetypeType.class);
     }
 
     public static GuiObjectListViewType getDefaultOrgView() {
