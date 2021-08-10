@@ -66,7 +66,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
                 .display();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
-        basicCheckOutputFile(report, 1002, 2, null);
+        basicCheckOutputFile(report, 1004, 2, null);
     }
 
     @Override

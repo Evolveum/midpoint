@@ -125,7 +125,6 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(USER_WILL, task, result);
         addTask(TASK_EXPORT_CLASSIC, result);
 
         addObject(OBJECT_COLLECTION_ALL_USERS, task, result);
@@ -183,8 +182,6 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        addObject(USER_JACK, task, result);
 
         PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);
