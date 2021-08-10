@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
         identifier = "constructionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Resource")
+@PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50)
 public class ConstructionAssignmentPanel<AH extends AssignmentHolderType> extends AssignmentPanel<AH> {
     private static final long serialVersionUID = 1L;
 

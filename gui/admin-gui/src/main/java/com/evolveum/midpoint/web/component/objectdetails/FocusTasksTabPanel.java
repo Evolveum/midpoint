@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         panelIdentifier = "tasks",
         status = ItemStatus.NOT_CHANGED,
         applicableFor = UserType.class)
-@PanelDisplay(label = "Cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON)
+@PanelDisplay(label = "Cases", icon = GuiStyleConstants.EVO_CASE_OBJECT_ICON, order = 50)
 public class FocusTasksTabPanel<F extends FocusType>
         extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;

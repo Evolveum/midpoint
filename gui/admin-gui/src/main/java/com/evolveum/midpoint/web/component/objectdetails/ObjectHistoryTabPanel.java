@@ -8,11 +8,16 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 
 import com.evolveum.midpoint.web.session.SessionStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -50,6 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 /**
  * Created by honchar.
  */
+@PanelDescription(panelIdentifier = "history", identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
+@PanelDisplay(label = "History", icon = "fa fa-history", order = 40)
 public abstract class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 
     private static final long serialVersionUID = 1L;
@@ -59,9 +66,16 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
+    private ContainerPanelConfigurationType config;
+
     public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
         super(id, focusWrapperModel);
 
+    }
+
+    public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
+        super(id, focusModel);
+        this.config = config;
     }
 
     @Override

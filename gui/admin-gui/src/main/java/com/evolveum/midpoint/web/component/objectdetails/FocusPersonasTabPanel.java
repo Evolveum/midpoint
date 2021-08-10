@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 @PanelDescription(identifier = "personas",
         panelIdentifier = "personas",
         applicableFor = FocusType.class)
-@PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT)
+@PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)
 public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = FocusPersonasTabPanel.class.getName() + ".";

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         panelIdentifier = "basic",
         applicableFor = AssignmentHolderType.class,
         defaultContainerPath = "empty")
-@PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL)
+@PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
     private static final String ID_MAIN_PANEL = "properties";

@@ -18,4 +18,6 @@ public @interface PanelDisplay {
     String label() default "";
     String icon() default "";
 
+    int order() default 1000;
+
 }

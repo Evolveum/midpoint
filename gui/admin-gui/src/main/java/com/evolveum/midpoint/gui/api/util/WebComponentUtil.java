@@ -5027,6 +5027,7 @@ public final class WebComponentUtil {
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {
+            e.printStackTrace();
             LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.");
         }
 

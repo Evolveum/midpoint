@@ -98,7 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelDescription(identifier = "projections",
         panelIdentifier = "projections",
         applicableFor = FocusType.class)
-@PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT)
+@PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
     private static final long serialVersionUID = 1L;
 
@@ -213,7 +213,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         if (listItems != null) {
                             listItems.forEach(value -> {
                                 if (((ShadowWrapper) value.getParent()).isLoadWithNoFetch()) {
-                                    ((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper) value, target);
+                                    loadFullShadow((PrismObjectValueWrapper) value, target);
                                 }
                             });
                         }
@@ -328,8 +328,49 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         }
 
         if (shadowWrapper.isLoadWithNoFetch()) {
-            ((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
+            loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
         }
+    }
+
+    public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
+        LOGGER.trace("Loading full shadow");
+        long start = System.currentTimeMillis();
+        if (shadowWrapperValue.getRealValue() == null) {
+            error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
+            LOGGER.error("Couldn't create shadow wrapper, because RealValue is null in " + shadowWrapperValue);
+            return;
+        }
+        String oid = shadowWrapperValue.getRealValue().getOid();
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW);
+        OperationResult result = task.getResult();
+        long loadStart = System.currentTimeMillis();
+        PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(oid, false, task,
+                result, createLoadOptionForShadowWrapper());
+
+        long loadEnd = System.currentTimeMillis();
+        LOGGER.trace("Load projection in {} ms", loadEnd - loadStart);
+        if (projection == null) {
+            result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        long wrapperStart = System.currentTimeMillis();
+        ShadowWrapper shadowWrapperNew;
+        try {
+            shadowWrapperNew = loadShadowWrapper(projection, task, result);
+            shadowWrapperValue.clearItems();
+            shadowWrapperValue.addItems((Collection) shadowWrapperNew.getValue().getItems());
+            ((ShadowWrapper) shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
+        } catch (SchemaException e) {
+            error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
+            LOGGER.error("Couldn't create shadow wrapper", e);
+        }
+        long wrapperEnd = System.currentTimeMillis();
+        LOGGER.trace("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
+        long end = System.currentTimeMillis();
+        LOGGER.trace("Got full shadow in {} ms", end - start);
     }
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(

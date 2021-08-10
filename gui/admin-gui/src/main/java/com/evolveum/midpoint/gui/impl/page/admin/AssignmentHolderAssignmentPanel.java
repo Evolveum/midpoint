@@ -37,7 +37,7 @@ import java.util.Map;
         panelIdentifier = "assignments",
         applicableFor = AssignmentHolderType.class,
         path = "assignment")
-@PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON)
+@PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";

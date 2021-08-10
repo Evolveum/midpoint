@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
         identifier = "serviceAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Service")
+@PanelDisplay(label = "Service", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, order = 40)
 public class ServiceAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

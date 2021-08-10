@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         identifier = "policyRuleAssignments",
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Policy rule")
+@PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60)
 public class PolicyRulesPanel<AR extends AbstractRoleType> extends AssignmentPanel<AR> {
 
     private static final long serialVersionUID = 1L;

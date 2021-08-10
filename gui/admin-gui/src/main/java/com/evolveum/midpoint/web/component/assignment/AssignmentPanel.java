@@ -99,7 +99,7 @@ import org.jetbrains.annotations.NotNull;
         panelIdentifier = "allAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "All")
+@PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10)
 public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
     private static final long serialVersionUID = 1L;

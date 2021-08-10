@@ -65,46 +65,32 @@ public class PanelLoader {
                     PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
+                        config.setDisplayOrder(display.order());
                     }
 //                    if (!desc.path().isBlank()) {
 //                        config.setPath(new ItemPathType(ItemPath.create(desc.path())));
 //                    }
-                    processChildren(objectType, config, clazz);
+                    List<ContainerPanelConfigurationType> children = processChildren(objectType, clazz);
+                    config.getPanel().addAll(children);
                     panels.add(config);
                 }
             }
         }
+        sort(panels);
         return panels;
     }
 
-    public static Map<String, ContainerPanelConfigurationType> getPanelMapFor(Class<? extends ObjectType> objectType) {
-        Map<String, ContainerPanelConfigurationType> panels = new HashMap<>();
-        for (String packageToScan : PACKAGES_TO_SCAN) {
-            Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
-            for (Class<?> clazz : classes) {
-                PanelDescription desc = clazz.getAnnotation(PanelDescription.class);
-                if (desc == null || desc.applicableFor() == null) {
-                    continue;
-                }
-                Class<? extends ObjectType> applicableFor = desc.applicableFor();
-                if (applicableFor.isAssignableFrom(objectType) && desc.childOf().equals(Panel.class)) {
-                    ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
-                    config.setIdentifier(desc.identifier());
-                    config.setPanelIdentifier(desc.panelIdentifier());
+    private static void sort(List<ContainerPanelConfigurationType> panels) {
+        panels.sort((p1, p2) -> {
+            int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();
+            int displayOrder2 = (p2 == null || p2.getDisplayOrder() == null) ? Integer.MAX_VALUE : p2.getDisplayOrder();
 
-                    PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
-                    if (display != null) {
-                        config.setDisplay(createDisplayType(display));
-                    }
-                    processChildren(objectType, config, clazz);
-                    panels.put(desc.identifier(), config);
-                }
-            }
-        }
-        return panels;
+            return Integer.compare(displayOrder1, displayOrder2);
+        });
     }
 
-    private static void processChildren(Class<? extends ObjectType> objectType, ContainerPanelConfigurationType parent, Class<?> parentClass) {
+    private static List<ContainerPanelConfigurationType> processChildren(Class<? extends ObjectType> objectType, Class<?> parentClass) {
+        List<ContainerPanelConfigurationType> configs = new ArrayList<>();
         for (String packageToScan : PACKAGES_TO_SCAN) {
             Set<Class<?>> classes = ClassPathUtil.listClasses(packageToScan);
             for (Class<?> clazz : classes) {
@@ -125,6 +111,7 @@ public class PanelLoader {
                     ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
                     config.setIdentifier(desc.identifier());
                     config.setPanelIdentifier(desc.panelIdentifier());
+
 //                    if (parent.getPath() != null) {
 //                        config.setPath(parent.getPath());
 //                    }
@@ -143,11 +130,14 @@ public class PanelLoader {
                     PanelDisplay display = clazz.getAnnotation(PanelDisplay.class);
                     if (display != null) {
                         config.setDisplay(createDisplayType(display));
+                        config.setDisplayOrder(display.order());
                     }
-                    parent.getPanel().add(config);
+                    configs.add(config);
                 }
             }
         }
+        sort(configs);
+        return configs;
     }
 
     private static DisplayType createDisplayType(PanelDisplay display) {
