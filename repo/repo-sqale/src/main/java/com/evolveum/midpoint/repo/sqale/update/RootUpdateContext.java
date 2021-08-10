@@ -95,8 +95,8 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             return modifications; // no need to execute any update
         }
 
-        cidGenerator = new ContainerValueIdGenerator()
-                .forModifyObject(getPrismObject(), row.containerIdSeq);
+        cidGenerator = new ContainerValueIdGenerator(getPrismObject())
+                .forModifyObject(row.containerIdSeq);
 
         for (ItemDelta<?, ?> modification : modifications) {
             try {

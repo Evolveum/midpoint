@@ -83,7 +83,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     }
 
     private String addObjectWithOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
+        long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
@@ -119,7 +119,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
                             .toString();
             object.setOid(oidString);
 
-            long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
+            long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
 
             // now to update full object with known OID
             rootMapping.setFullObject(row, schemaObject);
