@@ -118,7 +118,7 @@ public class ResourceObjectConverter {
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 
         PrismObject<ShadowType> resourceShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchAssociations, parentResult);            // todo consider whether it is always necessary to fetch the entitlements
+                attributesToReturn, fetchAssociations, parentResult); // todo consider whether it is always necessary to fetch the entitlements
 
         LOGGER.trace("Got resource object\n{}", resourceShadow.debugDumpLazily());
 
@@ -427,7 +427,7 @@ public class ResourceObjectConverter {
             LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
             AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
-            updateQuantum(ctx, connector, aResult, parentResult); // Hack: we use parentResult because result is closed now.
+            updateQuantum(ctx, connector, aResult, result); // The result is not closed, even if its status is set. So we use it.
             if (connectorAsyncOpRet != null) {
                 aResult.setOperationType(connectorAsyncOpRet.getOperationType());
             }
@@ -1801,10 +1801,13 @@ public class ResourceObjectConverter {
         OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
         refreshResult.setStatus(status);
         AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
-        updateQuantum(ctx, connector, asyncResult, result);
+        updateQuantum(ctx, connector, asyncResult, parentResult); // We have to use parent result here because the result is closed.
         return asyncResult;
     }
 
+    /**
+     * Does _not_ close the operation result, just sets its status (and async operation reference).
+     */
     private void computeResultStatus(OperationResult result) {
         if (result.isInProgress()) {
             return;

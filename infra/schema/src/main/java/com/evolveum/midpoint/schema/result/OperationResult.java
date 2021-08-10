@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -88,8 +87,6 @@ public class OperationResult
     private static final ThreadLocal<OperationResultHandlingStrategyType> LOCAL_HANDLING_STRATEGY =
             new ThreadLocal<>();
 
-    private static final AtomicInteger LOG_SEQUENCE_COUNTER = new AtomicInteger(0);
-
     public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
     public static final String CONTEXT_PROGRESS = "progress";
     public static final String CONTEXT_OID = "oid";
@@ -152,9 +149,26 @@ public class OperationResult
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
 
-    private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
-    private boolean collectingLogEntries;               // NOT SERIALIZED
-    private boolean startedLoggingOverride;             // NOT SERIALIZED
+    // The following properties are NOT SERIALIZED
+    private CompiledTracingProfile tracingProfile;
+
+    /**
+     * True if we collect log entries.
+     * Maybe it could be replaced by checking {@link #logRecorder} being not null and open?
+     */
+    private boolean collectingLogEntries;
+
+    /**
+     * Collects log entries for the current operation result. Directly updates {@link #logSegments}.
+     */
+    private transient LogRecorder logRecorder;
+
+    /**
+     * Log recorder for the parent operation result. Kept for safety check reasons.
+     */
+    private transient LogRecorder parentLogRecorder;
+
+    private boolean startedLoggingOverride;
 
     /**
      * After a trace rooted at this operation result is stored, the dictionary that was extracted is stored here.
@@ -239,6 +253,7 @@ public class OperationResult
         subresult.building = true;
         subresult.futureParent = this;
         subresult.tracingProfile = tracingProfile;
+        subresult.parentLogRecorder = logRecorder;
         return subresult;
     }
 
@@ -277,7 +292,7 @@ public class OperationResult
                 LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
                 startedLoggingOverride = true;
             }
-            TracingAppender.openSink(this::appendLoggedEvents);
+            logRecorder = LogRecorder.open(logSegments, parentLogRecorder, this);
         }
         // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
         //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
@@ -287,18 +302,6 @@ public class OperationResult
         invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
         invocationId = invocationRecord.getInvocationId();
         start = System.currentTimeMillis();
-    }
-
-    private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
-        if (!loggingEventSink.getEvents().isEmpty()) {
-            LogSegmentType segment = new LogSegmentType();
-            segment.setSequenceNumber(LOG_SEQUENCE_COUNTER.getAndIncrement());
-            for (LoggedEvent event : loggingEventSink.getEvents()) {
-                segment.getEntry().add(event.getText());
-            }
-            logSegments.add(segment);
-            loggingEventSink.clearEvents();
-        }
     }
 
     private Object[] createArguments() {
@@ -320,8 +323,9 @@ public class OperationResult
         OperationResult subresult = new OperationResult(operation);
         subresult.recordCallerReason(this);
         addSubresult(subresult);
-        subresult.recordStart(operation, arguments);
+        subresult.parentLogRecorder = logRecorder;
         subresult.importance = minor ? MINOR : NORMAL;
+        subresult.recordStart(operation, arguments);
         return subresult;
     }
 
@@ -335,7 +339,7 @@ public class OperationResult
             microseconds = invocationRecord.getElapsedTimeMicros();
             cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
-                TracingAppender.closeCurrentSink();
+                logRecorder.close();
                 collectingLogEntries = false;
             }
             invocationRecord = null;
@@ -345,6 +349,16 @@ public class OperationResult
             LevelOverrideTurboFilter.cancelLoggingOverride();
             startedLoggingOverride = false;
         }
+    }
+
+    /**
+     * Checks if the recorder was correctly flushed. Used before writing the trace file.
+     */
+    public void checkLogRecorderFlushed() {
+        if (logRecorder != null) {
+            logRecorder.flush();
+        }
+        getSubresults().forEach(OperationResult::checkLogRecorderFlushed);
     }
 
     /**
@@ -553,6 +567,9 @@ public class OperationResult
         return status;
     }
 
+    /**
+     * Sets the status _without_ recording operation end.
+     */
     public void setStatus(OperationResultStatus status) {
         this.status = status;
     }
@@ -1494,6 +1511,10 @@ public class OperationResult
         recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
     }
 
+    public void recordFatalErrorNotFinish(String message, Throwable cause) {
+        recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, message, cause);
+    }
+
     /**
      * If the operation is an error then it will switch the status to HANDLED_ERROR.
      * This is used if the error is expected and properly handled.
@@ -1599,6 +1620,10 @@ public class OperationResult
         // TODO: switch to a localized message later
         // Exception is a fatal error in this context
         recordFatalError(exception.getErrorTypeMessage(), exception);
+    }
+
+    public void recordStatus(OperationResultStatus status) {
+        recordStatus(status, (String) null);
     }
 
     public void recordStatus(OperationResultStatus status, String message) {

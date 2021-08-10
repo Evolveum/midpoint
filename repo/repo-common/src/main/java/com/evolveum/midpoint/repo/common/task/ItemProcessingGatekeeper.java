@@ -311,7 +311,7 @@ class ItemProcessingGatekeeper<I> {
     private void storeTraceIfRequested(OperationResult result, OperationResult parentResult) {
         if (tracingRequested) {
             getTracer().storeTrace(workerTask, result, parentResult);
-            TracingAppender.terminateCollecting(); // todo reconsider
+            TracingAppender.removeSink(); // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
     }

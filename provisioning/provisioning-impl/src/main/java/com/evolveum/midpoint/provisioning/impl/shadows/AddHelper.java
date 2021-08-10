@@ -232,8 +232,8 @@ class AddHelper {
             opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
             // Create dummy subresult with IN_PROGRESS state.
             // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-            OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
-            delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
+            parentResult.createSubresult(OP_DELAYED_OPERATION)
+                    .recordInProgress(); // using "record" to immediately close the result
             LOGGER.debug("ADD {}: resource operation NOT executed, execution pending", resourceObjectToAdd);
         }
 

@@ -155,9 +155,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     finalStatus = OperationResultStatus.PARTIAL_ERROR;
                 }
             }
-            result.recordEnd();
             result.setStatus(finalStatus);
             result.setMessage(message);
+            result.recordEnd();
             result.cleanupResult();
         } catch (Throwable t) { // shouldn't occur -- just in case
             result.recordFatalError(t);

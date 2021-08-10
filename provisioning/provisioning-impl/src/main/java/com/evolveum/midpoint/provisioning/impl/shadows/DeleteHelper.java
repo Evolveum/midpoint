@@ -164,7 +164,7 @@ class DeleteHelper {
         // Create dummy subresult with IN_PROGRESS state.
         // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
         result.createSubresult(OP_DELAYED_OPERATION)
-                .setStatus(OperationResultStatus.IN_PROGRESS);
+                .recordInProgress(); // using "record" to immediately close the result
         LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", opState.getRepoShadow());
         return null;
     }
@@ -186,7 +186,7 @@ class DeleteHelper {
 
             opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
             result.createSubresult(OP_RESOURCE_OPERATION)
-                    .setStatus(OperationResultStatus.NOT_APPLICABLE);
+                    .recordNotApplicable(); // using "record" to immediately close the result
             return null;
 
         }
