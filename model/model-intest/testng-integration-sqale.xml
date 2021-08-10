@@ -5,6 +5,11 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+
+<!--
+Tests for new repository can be run with this command:
+mvn integration-test -P sqale -pl model/model-intest/
+-->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false">
     <listeners>
@@ -48,13 +53,20 @@
             -->
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingChaining"/>
+            <!-- TODO: mix of problems:
+            test110/120/300: Error in task 10000000-0000-0000-5555-55550000c404: Couldn't update the task: CID 4 is used repeatedly in the object
+            test150: probably consequence of failing test110
+            test500/510: UnsupportedOperationException: Unknown definition type 'PCD+:{http://midpoint.evolveum.com/xml/ns/samples/piracy}dataProtection {.../common/common-3}DataProtectionType[0,1],RAM,runtime', can't say if 'dataProtection' is indexed or not.
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
+            -->
+            <!-- TODO failing on duplicate assignment regression
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
+            -->
+            <!--
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
             <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>

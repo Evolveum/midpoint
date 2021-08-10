@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,13 +15,6 @@ import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.test.TestResource;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,8 +23,11 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -40,6 +36,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -119,14 +116,12 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test010SanitySchema() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
 
-        /// WHEN
         when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN_OID, task);
 
-        // THEN
         then();
         TestUtil.assertSuccess(testResult);
 
@@ -153,7 +148,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -169,14 +164,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, "simple");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, "pirate");
 
-        /// WHEN
         when();
 
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
-        // THEN
         then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
@@ -226,11 +219,10 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test120ModifyMancombPhotoSource() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        /// WHEN
         when();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
@@ -241,7 +233,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         waitForSyncTaskNextRun();
 
-        // THEN
         then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
@@ -259,11 +250,10 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        /// WHEN
         when();
 
         // stop the task to avoid interference with the reconciliations
@@ -280,7 +270,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         reconcileUser(userMancomb.getOid(), task, result);
 
-        // THEN
         then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
@@ -296,11 +285,10 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test140ModifyMancombPhotoInRepo() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        /// WHEN
         when();
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -311,7 +299,6 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .asObjectDelta(userMancomb.getOid());
         executeChanges(delta, executeOptions().reconcile(), task, result);
 
-        // THEN
         then();
 
         assertSuccess(result);
@@ -330,7 +317,7 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test150UserReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -338,7 +325,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         // Preconditions
         //assertUsers(5);
 
-        /// WHEN
         when();
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -346,7 +332,6 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         reconcileUser(userMancomb.getOid(), task, result);
 
-        // THEN
         then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
@@ -375,8 +360,6 @@ public class TestMappingInbound extends AbstractMappingTest {
                 // MID-5197
                 .assertEquals(mancombLocker);
 
-//        assertUsers(6);
-
         // notifications
         notificationManager.setDisabled(true);
 
@@ -400,6 +383,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .assertFullName("Mancomb Seepgood")
                 .links()
@@ -408,8 +392,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .display()
                         .assertTombstone()
                         .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
-
-//        assertUsers(7 + getNumberOfExtraDummyUsers());
+        // @formatter:on
 
         // notifications
         notificationManager.setDisabled(true);
@@ -418,23 +401,20 @@ public class TestMappingInbound extends AbstractMappingTest {
     // Remove livesync task so it won't get into the way for next tests
     @Test
     public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        /// WHEN
         when();
         deleteObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, task, result);
 
-        // THEN
         then();
-
         assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
 
     @Test
     public void test400AddUserLeeloo() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -447,7 +427,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_MULTIPASS);
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
-        /// WHEN
         when();
 
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
@@ -456,7 +435,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, true);
 
-        // THEN
         then();
 
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -485,17 +463,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test402UserLeelooRecompute() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         recomputeUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -516,17 +492,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test404UserLeelooReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         reconcileUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -551,7 +525,7 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test410UserLeeloominaiReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -560,12 +534,10 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         reconcileUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -591,17 +563,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test412UserLeeloominaiRecompute() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         recomputeUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -622,17 +592,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test414UserLeeloominaiReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         reconcileUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -657,7 +625,7 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test420UserLeelooStrangeReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -666,12 +634,10 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         reconcileUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -698,17 +664,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test424UserLeelooStrangeReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        /// WHEN
         when();
 
         reconcileUser(userLeelooOid, task, result);
 
-        // THEN
         then();
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
@@ -774,6 +738,7 @@ public class TestMappingInbound extends AbstractMappingTest {
          * The former was kept intact because of set specification.
          * The latter was taken from treasonRisk value from dummy account (and overwritten because of set specification).
          */
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_RISKY_USERNAME)
                 .assertExtensionItems(1)
                 .extensionContainer(RISK_VECTOR)
@@ -783,6 +748,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .end()
                     .value(ValueSelector.itemEquals(RISK, "death"))
                         .assertPropertyEquals(VALUE, 1);
+        // @formatter:on
     }
 
     /**
@@ -824,6 +790,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         assertSuccess(task.getResult());
 
+        // @formatter:off
         assertUserAfterByUsername(ACCOUNT_GDPR_USERNAME)
                 .assertExtensionItems(1)
                 .extensionContainer(DATA_PROTECTION)
@@ -831,7 +798,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                     .value(0)
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_NAME, "new-controller")
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_CONTACT, "new-controller@evolveum.com");
-
+        // @formatter:on
     }
 
     protected void importSyncTask() throws FileNotFoundException {
