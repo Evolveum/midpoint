@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -222,10 +223,10 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         AsynchronousOperationReturnValue<X> ret = new AsynchronousOperationReturnValue<>();
         if (configuration.isOperationExecutionConfirmation()) {
             ret.setOperationType(PendingOperationTypeType.ASYNCHRONOUS);
-            result.recordInProgress();
+            result.setInProgress();
             result.setAsynchronousOperationReference(asyncOperationReference);
         } else {
-            result.recordSuccess();
+            result.setStatus(OperationResultStatus.SUCCESS);
         }
         ret.setOperationResult(result);
         return ret;

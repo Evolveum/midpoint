@@ -36,8 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Various advanced tests related to mappings.
  *
  * NOT a subclass of AbstractMappingTest.
- *
- * TEMPORARILY DISABLED.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

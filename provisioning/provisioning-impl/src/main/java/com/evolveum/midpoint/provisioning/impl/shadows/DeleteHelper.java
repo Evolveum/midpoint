@@ -121,7 +121,7 @@ class DeleteHelper {
         PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx,
                 opState, result);
         if (duplicateOperation != null) {
-            result.recordInProgress();
+            result.setInProgress();
             return opState.getRepoShadow();
         }
 
@@ -142,7 +142,7 @@ class DeleteHelper {
         try {
             resultShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
             throw new ObjectNotFoundException("An error occurred while deleting resource object " + repoShadow
                     + " with identifiers " + repoShadow + ": " + ex.getMessage(), ex);
         } catch (EncryptionException e) {

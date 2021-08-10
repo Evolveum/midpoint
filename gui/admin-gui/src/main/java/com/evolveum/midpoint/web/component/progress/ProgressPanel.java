@@ -679,7 +679,7 @@ public class ProgressPanel extends BasePanel {
             }
         };
 
-        result.recordInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
+        result.setInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
         AsyncWebProcessManager manager = application.getAsyncWebProcessManager();
         manager.submit(reporterModel.getId(), execution);

@@ -435,7 +435,7 @@ public class MemberOperationsHelper {
         OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
         pageBase.getTaskManager().switchToBackground(operationalTask, result);
         result.computeStatus();
-        parentResult.recordInProgress();
+        parentResult.setInProgress();
         parentResult.setBackgroundTaskOid(operationalTask.getOid());
         pageBase.showResult(parentResult);
     }

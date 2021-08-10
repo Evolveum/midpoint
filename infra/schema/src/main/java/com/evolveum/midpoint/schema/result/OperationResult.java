@@ -356,7 +356,7 @@ public class OperationResult
      */
     public void checkLogRecorderFlushed() {
         if (logRecorder != null) {
-            logRecorder.flush();
+            logRecorder.checkFlushed();
         }
         getSubresults().forEach(OperationResult::checkLogRecorderFlushed);
     }
@@ -1479,15 +1479,24 @@ public class OperationResult
 
     public void recordSuccess() {
         recordEnd();
+        setSuccess();
+    }
+
+    public void setSuccess() {
         // Success, no message or other explanation is needed.
         status = OperationResultStatus.SUCCESS;
     }
 
     public void recordInProgress() {
+        recordEnd();
+        setInProgress();
+    }
+
+    public void setInProgress() {
         status = OperationResultStatus.IN_PROGRESS;
     }
 
-    public void recordUnknown() {
+    public void setUnknown() {
         status = OperationResultStatus.UNKNOWN;
     }
 
@@ -1585,7 +1594,7 @@ public class OperationResult
         recordStatusNotFinish(status, message, cause);
     }
 
-    public void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
+    private void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
         this.status = status;
         this.message = message;
         this.cause = cause;

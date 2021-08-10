@@ -144,7 +144,7 @@ class ModifyHelper {
         PendingOperationType duplicateOperation =
                 shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, parentResult);
         if (duplicateOperation != null) {
-            parentResult.recordInProgress();
+            parentResult.setInProgress();
             return repoShadow.getOid();
         }
 

@@ -88,7 +88,7 @@ class ShadowCreator {
         return repoShadow;
     }
 
-    public void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,

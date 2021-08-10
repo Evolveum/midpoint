@@ -65,13 +65,13 @@ public class TaskPersister {
         try {
             if (task.getResult().isUnknown()) {
                 wasUnknown = true;
-                task.getResult().recordInProgress();
+                task.getResult().setInProgress();
             }
             persist(task, result);
             result.recordSuccess();
         } catch (RuntimeException ex) {
             if (wasUnknown) {
-                task.getResult().recordUnknown();
+                task.getResult().setUnknown();
             }
             result.recordFatalError("Unexpected problem: " + ex.getMessage(), ex);
             throw ex;

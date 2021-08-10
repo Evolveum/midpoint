@@ -180,7 +180,7 @@ public class WebModelServiceUtils {
                 ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
                 delta.setOid(deltaOperation.getObjectDelta().getOid());
             }
-            parentResult.recordInProgress();
+            parentResult.setInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
             return delta.getOid();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException

@@ -287,7 +287,7 @@ class AddHelper {
 
         ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
         if (handler == null) {
-            parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
+            parentResult.recordFatalErrorNotFinish("Error without a handler: " + cause.getMessage(), cause);
             throw new SystemException(cause.getMessage(), cause);
         }
         LOGGER.debug("Handling provisioning ADD exception {}: {}", cause.getClass(), cause.getMessage());
