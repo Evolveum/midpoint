@@ -3337,6 +3337,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="implicitSegmentation" type="tns:ImplicitWorkSegmentationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Uses segmentation that is implicit for given kind of activity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="segmentation" type="tns:AbstractWorkSegmentationType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -3700,6 +3707,22 @@
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ImplicitWorkSegmentationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkSegmentationType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

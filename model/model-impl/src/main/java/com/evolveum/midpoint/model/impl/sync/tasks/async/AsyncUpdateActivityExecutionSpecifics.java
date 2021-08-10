@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -53,9 +55,9 @@ public class AsyncUpdateActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItems(OperationResult opResult)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
+            ConfigurationException, ExpressionEvaluationException {
 
         AsyncUpdateEventHandler handler = (event, hResult) -> {
             SyncItemProcessingRequest<AsyncUpdateEvent> request =

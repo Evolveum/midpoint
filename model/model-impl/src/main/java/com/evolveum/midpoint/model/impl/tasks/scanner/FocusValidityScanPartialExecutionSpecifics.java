@@ -49,7 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Execution of a single focus validity scanner task part.
  */
 public class FocusValidityScanPartialExecutionSpecifics
-        extends AbstractScanActivityExecutionSpecifics<FocusType, FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> {
+        extends ScanActivityExecutionSpecifics<FocusType, FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScanPartialExecutionSpecifics.class);
 

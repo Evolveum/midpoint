@@ -36,8 +36,7 @@ import javax.xml.namespace.QName;
  * Main responsibilities:
  *
  * 1. search specification formulation and customization,
- * 2. object processing,
- * 3. code to be executed before/after individual buckets are executed.
+ * 2. object processing.
  *
  * Note that we *do not* allow customizing the type of objects being processed (e.g. by restricting them to {@link ShadowType}).
  * The reason is that the type has to be known a little ahead e.g. to interpret the configured object query.
@@ -105,19 +104,5 @@ public interface SearchBasedActivityExecutionSpecifics<O extends ObjectType>
      */
     boolean processObject(@NotNull PrismObject<O> object, @NotNull ItemProcessingRequest<PrismObject<O>> request,
             RunningTask workerTask, OperationResult result) throws CommonException, ActivityExecutionException;
-    //endregion
-
-    //region 3. Before/after bucket execution
-    /**
-     * Called before bucket is executed. Search specification is now prepared.
-     */
-    default void beforeBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException {
-    }
-
-    /**
-     * Called after bucket is executed.
-     */
-    default void afterBucketExecution(OperationResult result) throws ActivityExecutionException, CommonException {
-    }
     //endregion
 }

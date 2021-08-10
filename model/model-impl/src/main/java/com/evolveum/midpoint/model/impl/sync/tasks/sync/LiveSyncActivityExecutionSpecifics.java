@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,7 +88,7 @@ public class LiveSyncActivityExecutionSpecifics
     }
 
     @Override
-    public void iterateOverItems(OperationResult opResult)
+    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
 
