@@ -57,28 +57,30 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingChaining"/>
-            <!-- TODO: mix of problems:
-            test110/120/300: Error in task 10000000-0000-0000-5555-55550000c404: Couldn't update the task: CID 4 is used repeatedly in the object
-            test150: probably consequence of failing test110
-            test500/510: UnsupportedOperationException: Unknown definition type 'PCD+:{http://midpoint.evolveum.com/xml/ns/samples/piracy}dataProtection {.../common/common-3}DataProtectionType[0,1],RAM,runtime', can't say if 'dataProtection' is indexed or not.
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
-            -->
             <!-- TODO failing on duplicate assignment regression
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             -->
-            <!--
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
+            <!-- TODO fails on skip counter assert
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>
+            <!-- TODO fails on assert delta count in audit
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
+            <!-- TODO fails with SystemException: Expected that <identifiers> will be ResourceAttributeContainer but it is class com.evolveum.midpoint.prism.impl.PrismContainerImpl
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
             -->
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/> <!-- missing from original suite, why? -->
+            <!-- TODO many "row is not incomplete in lookupTable" assertion errors
             <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
+            -->
+            <!-- TODO test210 fails with: Unknown compile time class of container value of 'riskVector'.
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
