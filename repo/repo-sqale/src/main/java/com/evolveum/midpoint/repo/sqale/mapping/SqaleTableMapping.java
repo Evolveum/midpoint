@@ -23,10 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.JsonbPolysPathItemFilterProcessor;
@@ -364,10 +366,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected void setReference(ObjectReferenceType ref,
+    protected void setReference(Referencable ref,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
+            if (ref.getType() == null) {
+                ref = SqaleUtils.referenceWithTypeFixed(ref);
+            }
             targetOidConsumer.accept(oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
@@ -444,6 +449,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
+        repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
         return repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -30,5 +31,6 @@ public interface SqaleItemRelationResolver<
      * Return value `null` indicates that the modification using the resolver should be ignored
      * by the repository.
      */
-    SqaleUpdateContext<?, ?, ?> resolve(SqaleUpdateContext<?, Q, R> context, ItemPath itemPath);
+    SqaleUpdateContext<?, ?, ?> resolve(SqaleUpdateContext<?, Q, R> context, ItemPath itemPath)
+            throws RepositoryException;
 }

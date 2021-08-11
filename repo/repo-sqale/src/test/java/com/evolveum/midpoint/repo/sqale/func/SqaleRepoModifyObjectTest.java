@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.assertj.core.api.Assertions;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -69,7 +72,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
     private String accessCertificationCampaign1Oid;
-    private UUID accessCertificationCampaign1Case2ObjectOid;
+    private UUID accCertCampaign1Case2ObjectOid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -1041,7 +1044,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta replacing projection refs w relation for user 1");
+        given("delta replacing projection refs with relation for user 1");
         UUID refTargetOid = UUID.randomUUID();
         QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel3");
         QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel4");
@@ -1274,6 +1277,41 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         r = QObjectReferenceMapping.getForModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
+
+    @Test
+    public void test175ReplacingProjectionRefsWithoutSpecifyingTypeShouldUseDefinition()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing projection refs with one without specified type");
+        UUID refTargetOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid.toString()))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).singleElement()
+                .matches(r -> r.getType().equals(ShadowType.COMPLEX_TYPE));
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).singleElement()
+                .matches(rRow -> rRow.targetType == MObjectType.SHADOW);
+    }
+
     // endregion
 
     // region array/jsonb stored multi-values
@@ -2490,6 +2528,56 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test315ReplaceAssignmentWithCid()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("object with existing container values");
+        AtomicInteger counter = new AtomicInteger(1);
+        List<AssignmentType> assignments = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable()
+                .getAssignment()
+                .stream()
+                .map(a -> a.clone() // we need to get it out of original parent
+                        .lifecycleState(String.valueOf(counter.getAndIncrement()))) // some change
+                .collect(Collectors.toList());
+
+        and("delta replacing the values with the same values again (with CIDs already)");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .replace(assignments.stream()
+                        .map(a -> a.asPrismContainerValue())
+                        .collect(Collectors.toList()))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> newAssignments = userObject.getAssignment();
+        assertThat(newAssignments).hasSize(assignments.size());
+
+        and("new assignment rows replace the old ones");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
+
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(assignments.size())
+                .extracting(aRow -> aRow.lifecycleState)
+                .containsExactlyInAnyOrder("1", "2", "3");
+    }
+
+    @Test
     public void test320AddingAssignmentWithItemPathEndingWithCidIsIllegal() {
         expect("creating delta adding assignment to path ending with CID throws exception");
         assertThatThrownBy(
@@ -2531,7 +2619,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test330AddedCertificationCaseStoresItAndGeneratesMissingId()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
-        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        MAccessCertificationCampaign originalRow = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
 
         given("delta adding case for campaign 1");
         UUID targetOid = UUID.randomUUID();
@@ -2539,28 +2628,34 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .stageNumber(3)
                 .iteration(4)
                 .targetRef(targetOid.toString(), RoleType.COMPLEX_TYPE);
-        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
-                .item(AccessCertificationCampaignType.F_CASE)
-                .add(caseBefore)
-                .asObjectDelta(accessCertificationCampaign1Oid);
+        ObjectDelta<AccessCertificationCampaignType> delta =
+                prismContext.deltaFor(AccessCertificationCampaignType.class)
+                        .item(AccessCertificationCampaignType.F_CASE)
+                        .add(caseBefore)
+                        .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(AccessCertificationCampaignType.class,
+                accessCertificationCampaign1Oid, delta.getModifications(), result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService
+                .getObject(AccessCertificationCampaignType.class,
+                        accessCertificationCampaign1Oid, null, result)
                 .asObjectable();
-        assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(campaignObjectAfter.getVersion())
+                .isEqualTo(String.valueOf(originalRow.version + 1));
         List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
         assertThat(casesAfter).isNotNull();
         // next free CID was assigned
         assertThat(casesAfter.get(0).getId()).isEqualTo(originalRow.containerIdSeq);
 
         and("campaign row is created");
-        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        MAccessCertificationCampaign row = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("case row is created");
@@ -2581,29 +2676,35 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test331AddedCertificationCaseStoresItFixedId()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
-        MAccessCertificationCampaign originalRow = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        MAccessCertificationCampaign originalRow = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
 
         given("delta adding case for campaign 1");
-        accessCertificationCampaign1Case2ObjectOid = UUID.randomUUID();
+        accCertCampaign1Case2ObjectOid = UUID.randomUUID();
         AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
                 .id(CAMPAIGN_1_CASE_2_ID)
                 .stageNumber(5)
                 .iteration(7)
-                .objectRef(accessCertificationCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
-                .outcome("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
-        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
-                .item(AccessCertificationCampaignType.F_CASE)
-                .add(caseBefore)
-                .asObjectDelta(accessCertificationCampaign1Oid);
+                .objectRef(accCertCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
+                .outcome("anyone who is capable of getting themselves made"
+                        + " President should on no account be allowed to do the job");
+        ObjectDelta<AccessCertificationCampaignType> delta =
+                prismContext.deltaFor(AccessCertificationCampaignType.class)
+                        .item(AccessCertificationCampaignType.F_CASE)
+                        .add(caseBefore)
+                        .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(AccessCertificationCampaignType.class,
+                accessCertificationCampaign1Oid, delta.getModifications(), result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService
+                .getObject(AccessCertificationCampaignType.class,
+                        accessCertificationCampaign1Oid, null, result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
@@ -2611,12 +2712,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(casesAfter.get(1).getId()).isEqualTo(CAMPAIGN_1_CASE_2_ID);
 
         and("campaign row is created");
-        MAccessCertificationCampaign row = selectObjectByOid(QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
+        MAccessCertificationCampaign row = selectObjectByOid(
+                QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
 
         and("case row is created");
         QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
-
         List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
         assertThat(caseRows).hasSize(2);
         caseRows.sort(comparing(tr -> tr.cid));
@@ -2625,19 +2726,24 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
         assertThat(aRow.targetRefTargetOid).isNull();
-        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accCertCampaign1Case2ObjectOid);
         assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
-        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made"
+                + " President should on no account be allowed to do the job");
         assertThat(aRow.stageNumber).isEqualTo(5);
         assertThat(aRow.campaignIteration).isEqualTo(7);
 
         assertCertificationCaseFullObject(aRow, caseBefore);
     }
 
-    private void assertCertificationCaseFullObject(MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore) throws SchemaException {
+    private void assertCertificationCaseFullObject(
+            MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore)
+            throws SchemaException {
         String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
         display("Case full object:\n" + fullObjectStr);
+        // added objects have normalized relations, so we have to do this for original too
+        ObjectTypeUtil.normalizeAllRelations(caseBefore.asPrismContainerValue(), relationRegistry);
         String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
@@ -2660,13 +2766,15 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, delta.getModifications(), result);
+        repositoryService.modifyObject(AccessCertificationCampaignType.class,
+                accessCertificationCampaign1Oid, delta.getModifications(), result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        AccessCertificationCampaignType campaignObjectAfter = repositoryService.getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
+        AccessCertificationCampaignType campaignObjectAfter = repositoryService
+                .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, null, result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AccessCertificationCaseType> casesAfter = campaignObjectAfter.getCase();
@@ -2688,7 +2796,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
         assertThat(aRow.targetRefTargetOid).isNull();
-        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accCertCampaign1Case2ObjectOid);
         assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
         assertThat(aRow.outcome).isEqualTo("People are the problem");

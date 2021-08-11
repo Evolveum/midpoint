@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Generator assigning missing IDs to PCVs of multi-value containers.
@@ -23,16 +24,21 @@ public class ContainerValueIdGenerator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerValueIdGenerator.class);
 
+    private final PrismObject<? extends ObjectType> object;
     private final Set<Long> usedIds = new HashSet<>();
     private final List<PrismContainerValue<?>> pcvsWithoutId = new ArrayList<>();
 
     private long maxUsedId = 0; // tracks max CID (set to duplicate CID if found)
 
+    public <S extends ObjectType> ContainerValueIdGenerator(@NotNull PrismObject<S> object) {
+        this.object = object;
+    }
+
     /**
      * Method inserts IDs for prism container values without IDs and returns highest CID.
      * This directly changes the object provided as a parameter, if necessary.
      */
-    public long generateForNewObject(@NotNull PrismObject<?> object) throws SchemaException {
+    public long generateForNewObject() throws SchemaException {
         checkExistingContainers(object);
         LOGGER.trace("Generating " + pcvsWithoutId.size() + " missing container IDs for "
                 + object.toDebugType() + "/" + object.getOid());
@@ -44,8 +50,7 @@ public class ContainerValueIdGenerator {
      * Initializes the generator for modify object and checks that no previous CIDs are missing.
      * This is a critical step before calling {@link #processModification}.
      */
-    public ContainerValueIdGenerator forModifyObject(
-            @NotNull PrismObject<?> object, long containerIdSeq) throws SchemaException {
+    public ContainerValueIdGenerator forModifyObject(long containerIdSeq) throws SchemaException {
         checkExistingContainers(object);
         if (!pcvsWithoutId.isEmpty()) {
             LOGGER.warn("Generating missing container IDs in previously persisted prism object "
@@ -70,11 +75,44 @@ public class ContainerValueIdGenerator {
      * is involved this may not be true, so preferably use this *before* applying the modification.
      */
     public void processModification(ItemDelta<?, ?> modification) throws SchemaException {
-        processModificationValues(modification.getValuesToAdd());
-        processModificationValues(modification.getValuesToReplace());
-        // values to delete are irrelevant
-
+        if (modification.isReplace()) {
+            freeIdsFromReplacedContainer(modification);
+        }
+        try {
+            processModificationValues(modification.getValuesToAdd());
+            processModificationValues(modification.getValuesToReplace());
+            // values to delete are irrelevant
+        } catch (DuplicateContainerIdException e) {
+            throw new SchemaException("CID " + maxUsedId
+                    + " is used repeatedly in the object: " + object);
+        }
         assignMissingContainerIds();
+    }
+
+    private void freeIdsFromReplacedContainer(ItemDelta<?, ?> modification) {
+        ItemDefinition<?> definition = modification.getDefinition();
+        // we don't check multi-value, even single-value container can contain multi-value ones
+        if (definition instanceof PrismContainerDefinition<?>) {
+            Visitable<?> container = object.findContainer(modification.getPath());
+            if (container != null) {
+                container.accept(visitable -> {
+                    if (visitable instanceof PrismContainer
+                            && !(visitable instanceof PrismObject)
+                            && ((PrismContainer<?>) visitable).getDefinition().isMultiValue()) {
+                        freeContainerIds((PrismContainer<?>) visitable);
+                    }
+                });
+            }
+        }
+    }
+
+    private void freeContainerIds(PrismContainer<?> container) {
+        for (PrismContainerValue<?> val : container.getValues()) {
+            Long cid = val.getId();
+            if (cid != null) {
+                usedIds.remove(cid);
+            }
+        }
     }
 
     private void processModificationValues(Collection<? extends PrismValue> values)
@@ -120,8 +158,8 @@ public class ContainerValueIdGenerator {
     }
 
     private void processContainerValue(PrismContainerValue<?> val) {
-        if (val.getId() != null) {
-            Long cid = val.getId();
+        Long cid = val.getId();
+        if (cid != null) {
             if (!usedIds.add(cid)) {
                 maxUsedId = cid;
                 throw DuplicateContainerIdException.INSTANCE;
@@ -149,6 +187,7 @@ public class ContainerValueIdGenerator {
         return maxUsedId;
     }
 
+    // static single-value runtime exception to be thrown from lambdas (used in visitor)
     private static class DuplicateContainerIdException extends RuntimeException {
         static final DuplicateContainerIdException INSTANCE = new DuplicateContainerIdException();
 
