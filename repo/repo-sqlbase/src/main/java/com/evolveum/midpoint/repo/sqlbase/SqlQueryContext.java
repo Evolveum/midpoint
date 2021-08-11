@@ -229,6 +229,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             ItemRelationResolver resolver = current.relationResolver(path);
             ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(this);
             current = resolution.mapping;
+            // TODO: Throw when subquery true?
             path = path.rest();
         }
         ItemSqlMapper mapper = current.itemMapper(path.firstToName());

@@ -996,21 +996,21 @@ AND(
                 creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
-    @Test
-    public void test504SearchObjectOrderedByMetadataTimestamp() throws SchemaException {
-        searchUsersTest("with extension string item with any value ordered by that item",
-                f -> f.not()
-                  .item(UserType.F_EXTENSION, new QName("string")).isNull()
-                  .asc(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                user2Oid, user1Oid);
-    }
-
     @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
     public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
         searchUsersTest("with extension string item with any value ordered by that item",
                 f -> f.not()
                         .item(UserType.F_EXTENSION, new QName("string")).isNull()
                         .asc(UserType.F_EXTENSION, new QName("string")),
+                user2Oid, user1Oid);
+    }
+
+    @Test
+    public void test504SearchObjectOrderedByMetadataTimestamp() throws SchemaException {
+        searchUsersTest("with extension string item with any value ordered by that item",
+                f -> f.not()
+                  .item(UserType.F_EXTENSION, new QName("string")).isNull()
+                  .asc(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
                 user2Oid, user1Oid);
     }
 
