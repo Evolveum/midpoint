@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
@@ -39,8 +40,10 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends 
     }
 
     @Override
-    public void addValues(Collection<Referencable> values) throws SchemaException {
+    public void addValues(Collection<Referencable> values)
+            throws SchemaException {
         for (Referencable ref : values) {
+            ref = SqaleUtils.referenceWithTypeFixed(ref);
             context.insertOwnedRow(refTableMapping, ref);
         }
     }

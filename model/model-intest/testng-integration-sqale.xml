@@ -48,9 +48,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             -->
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
-            <!-- TODO java.lang.IllegalArgumentException: Unsupported object type null when setting connector ref without type, but default value should be obvious
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>

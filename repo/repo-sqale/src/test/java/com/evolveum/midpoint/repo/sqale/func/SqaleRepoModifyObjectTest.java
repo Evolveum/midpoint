@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.MTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -71,7 +72,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private String shadow1Oid; // ditto
     private String service1Oid; // object with integer attribute
     private String accessCertificationCampaign1Oid;
-    private UUID accessCertificationCampaign1Case2ObjectOid;
+    private UUID accCertCampaign1Case2ObjectOid;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -1043,7 +1044,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta replacing projection refs w relation for user 1");
+        given("delta replacing projection refs with relation for user 1");
         UUID refTargetOid = UUID.randomUUID();
         QName refRelation1 = QName.valueOf("{https://random.org/ns}projection-rel3");
         QName refRelation2 = QName.valueOf("{https://random.org/ns}projection-rel4");
@@ -1276,6 +1277,41 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         r = QObjectReferenceMapping.getForModifyApprover().defaultAlias();
         assertThat(count(r, r.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
+
+    @Test
+    public void test175ReplacingProjectionRefsWithoutSpecifyingTypeShouldUseDefinition()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing projection refs with one without specified type");
+        UUID refTargetOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF).replace(
+                        new ObjectReferenceType().oid(refTargetOid.toString()))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userObject.getLinkRef()).singleElement()
+                .matches(r -> r.getType().equals(ShadowType.COMPLEX_TYPE));
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.getForProjection().defaultAlias();
+        List<MReference> refs = select(r, r.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(refs).singleElement()
+                .matches(rRow -> rRow.targetType == MObjectType.SHADOW);
+    }
+
     // endregion
 
     // region array/jsonb stored multi-values
@@ -2644,17 +2680,19 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 QAccessCertificationCampaign.class, accessCertificationCampaign1Oid);
 
         given("delta adding case for campaign 1");
-        accessCertificationCampaign1Case2ObjectOid = UUID.randomUUID();
+        accCertCampaign1Case2ObjectOid = UUID.randomUUID();
         AccessCertificationCaseType caseBefore = new AccessCertificationCaseType(prismContext)
                 .id(CAMPAIGN_1_CASE_2_ID)
                 .stageNumber(5)
                 .iteration(7)
-                .objectRef(accessCertificationCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
-                .outcome("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
-        ObjectDelta<AccessCertificationCampaignType> delta = prismContext.deltaFor(AccessCertificationCampaignType.class)
-                .item(AccessCertificationCampaignType.F_CASE)
-                .add(caseBefore)
-                .asObjectDelta(accessCertificationCampaign1Oid);
+                .objectRef(accCertCampaign1Case2ObjectOid.toString(), UserType.COMPLEX_TYPE)
+                .outcome("anyone who is capable of getting themselves made"
+                        + " President should on no account be allowed to do the job");
+        ObjectDelta<AccessCertificationCampaignType> delta =
+                prismContext.deltaFor(AccessCertificationCampaignType.class)
+                        .item(AccessCertificationCampaignType.F_CASE)
+                        .add(caseBefore)
+                        .asObjectDelta(accessCertificationCampaign1Oid);
 
         when("modifyObject is called");
         repositoryService.modifyObject(AccessCertificationCampaignType.class,
@@ -2680,7 +2718,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         and("case row is created");
         QAccessCertificationCase a = QAccessCertificationCaseMapping.getAccessCertificationCaseMapping().defaultAlias();
-
         List<MAccessCertificationCase> caseRows = select(a, a.ownerOid.eq(UUID.fromString(accessCertificationCampaign1Oid)));
         assertThat(caseRows).hasSize(2);
         caseRows.sort(comparing(tr -> tr.cid));
@@ -2689,19 +2726,24 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
         assertThat(aRow.targetRefTargetOid).isNull();
-        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accCertCampaign1Case2ObjectOid);
         assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
-        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made President should on no account be allowed to do the job");
+        assertThat(aRow.outcome).isEqualTo("anyone who is capable of getting themselves made"
+                + " President should on no account be allowed to do the job");
         assertThat(aRow.stageNumber).isEqualTo(5);
         assertThat(aRow.campaignIteration).isEqualTo(7);
 
         assertCertificationCaseFullObject(aRow, caseBefore);
     }
 
-    private void assertCertificationCaseFullObject(MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore) throws SchemaException {
+    private void assertCertificationCaseFullObject(
+            MAccessCertificationCase aRow, AccessCertificationCaseType caseBefore)
+            throws SchemaException {
         String fullObjectStr = new String(aRow.fullObject, StandardCharsets.UTF_8);
         display("Case full object:\n" + fullObjectStr);
+        // added objects have normalized relations, so we have to do this for original too
+        ObjectTypeUtil.normalizeAllRelations(caseBefore.asPrismContainerValue(), relationRegistry);
         String caseBeforeStr = prismContext.serializerFor(PrismContext.LANG_XML)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
@@ -2754,7 +2796,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.cid).isEqualTo(CAMPAIGN_1_CASE_2_ID);
         assertThat(aRow.containerType).isEqualTo(MContainerType.ACCESS_CERTIFICATION_CASE);
         assertThat(aRow.targetRefTargetOid).isNull();
-        assertThat(aRow.objectRefTargetOid).isEqualTo(accessCertificationCampaign1Case2ObjectOid);
+        assertThat(aRow.objectRefTargetOid).isEqualTo(accCertCampaign1Case2ObjectOid);
         assertThat(aRow.objectRefTargetType).isEqualTo(MObjectType.USER);
         assertCachedUri(aRow.objectRefRelationId, relationRegistry.getDefaultRelation());
         assertThat(aRow.outcome).isEqualTo("People are the problem");

@@ -65,7 +65,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
         // It's a similar case like the fast return after resolving the path.
     }
 
-    private QName resolvePath(ItemDelta<?, ?> modification) {
+    private QName resolvePath(ItemDelta<?, ?> modification) throws RepositoryException {
         ItemPath path = modification.getPath();
         while (!path.isSingleName()) {
             ItemName firstName = path.firstName();

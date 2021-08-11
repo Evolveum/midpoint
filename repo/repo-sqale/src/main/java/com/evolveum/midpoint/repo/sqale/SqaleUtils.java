@@ -7,11 +7,15 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleUtils {
@@ -48,6 +52,29 @@ public class SqaleUtils {
     public static <S> Class<S> getClass(S object) {
         //noinspection unchecked
         return (Class<S>) object.getClass();
+    }
+
+    /**
+     * Fixes reference type if `null` and tries to use default from definition.
+     * Use returned value.
+     */
+    public static Referencable referenceWithTypeFixed(Referencable value) {
+        if (value.getType() != null) {
+            return value;
+        }
+
+        PrismReferenceDefinition def = value.asReferenceValue().getDefinition();
+        QName defaultType = def.getTargetTypeName();
+        if (defaultType == null) {
+            throw new IllegalArgumentException("Can't modify reference with no target type"
+                    + " specified and no default type in the definition. Value: " + value
+                    + " Definition: " + def);
+        }
+        value = new ObjectReferenceType()
+                .oid(value.getOid())
+                .type(defaultType)
+                .relation(value.getRelation());
+        return value;
     }
 
     public static String toString(Object object) {
