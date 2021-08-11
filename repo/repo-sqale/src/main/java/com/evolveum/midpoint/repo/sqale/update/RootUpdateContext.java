@@ -107,7 +107,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             }
         }
 
-        repositoryContext().normalizeAllRelations(prismObject);
+        repositoryContext().normalizeAllRelations(prismObject.getValue());
         finishExecution();
 
         return modifications;

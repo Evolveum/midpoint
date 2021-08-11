@@ -66,9 +66,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
             -->
             <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>
-            <!-- TODO fails on assert delta count in audit
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
             <!-- TODO fails with SystemException: Expected that <identifiers> will be ResourceAttributeContainer but it is class com.evolveum.midpoint.prism.impl.PrismContainerImpl
