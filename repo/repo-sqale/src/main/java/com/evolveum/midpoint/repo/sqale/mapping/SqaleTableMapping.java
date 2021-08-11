@@ -106,6 +106,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+
     }
 
     @Override
@@ -238,7 +239,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx, rootToQueryItem, "INTEGER", Integer.class,
                         ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
                 ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
+                        ctx.repositoryContext()::processCacheableUri));
     }
 
     /**
@@ -404,7 +405,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
         ExtensionMapping<Q, R> mapping =
-                new ExtensionMapping<>(holderType, queryType(), rootToPath);
+                new ExtensionMapping<>(holderType, queryType(), rootToPath, repositoryContext());
         addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));

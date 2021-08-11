@@ -996,7 +996,7 @@ AND(
                 creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
-    @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
+    @Test() // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
     public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
         searchUsersTest("with extension string item with any value ordered by that item",
                 f -> f.not()
