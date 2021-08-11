@@ -41,7 +41,7 @@ public abstract class FinalValueDeltaProcessor<T> extends ItemDeltaValueProcesso
 
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
-        Item<PrismValue, ?> item = context.findItem(modification.getPath());
+        Item<PrismValue, ?> item = context.findValueOrItem(modification.getPath());
         Collection<?> realValues = item != null ? item.getRealValues() : null;
 
         if (realValues == null || realValues.isEmpty()) {

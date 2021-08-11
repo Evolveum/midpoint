@@ -39,7 +39,7 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         ItemPath itemPath = modification.getPath();
-        Item<PrismValue, ?> item = context.findItem(itemPath);
+        Item<PrismValue, ?> item = context.findValueOrItem(itemPath);
         Collection<?> realValues = item != null ? item.getRealValues() : null;
         ItemDefinition<?> definition = modification.getDefinition();
 
