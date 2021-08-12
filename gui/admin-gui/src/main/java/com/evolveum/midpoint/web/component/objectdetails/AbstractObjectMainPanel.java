@@ -6,20 +6,11 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.impl.registry.ObjectDetailsMenuRegistry;
-
-import com.evolveum.midpoint.web.application.PanelLoader;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -116,47 +107,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         mainForm = new MidpointForm<>(ID_MAIN_FORM, true);
         mainForm.setMultiPart(true);
         add(mainForm);
-//        initMainLayout();
         initLayoutTabs(parentPage);
         initLayoutOptions();
         initLayoutButtons(parentPage);
     }
-
-    private void initMainLayout() {
-        List<ITab> tabs = createMainTabs();
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null, PARAMETER_SELECTED_TAB);
-        mainForm.add(tabPanel);
-    }
-
-    private List<ITab> createMainTabs() {
-        List<ITab> tabs = new ArrayList<>();
-
-        List<String> panelIdentifiers = ObjectDetailsMenuRegistry.findPanelsFor(getObject().getDefinition().getTypeName());
-        for (String panelIdentifier : panelIdentifiers) {
-            tabs.add(new PanelTab(getDetailsPage().createStringResource(panelIdentifier)) {
-                @Override
-                public WebMarkupContainer createPanel(String panelId) {
-                    Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
-                    Constructor constructor = null;
-                    try {
-                        constructor = panelClass.getConstructor(String.class, MidpointForm.class, LoadableModel.class);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        Panel panel = (Panel) constructor.newInstance(panelId, getMainForm(), getObjectModel());
-                        return panel;
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            });
-        }
-        return tabs;
-
-    }
-
 
     protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
         List<ITab> tabs = createTabs(parentPage);

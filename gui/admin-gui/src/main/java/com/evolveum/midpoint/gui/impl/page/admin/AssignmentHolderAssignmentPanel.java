@@ -105,7 +105,6 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
     }
 
     private List<ContainerPanelConfigurationType> getAssignmentPanels() {
-//        List<ContainerPanelConfigurationType> panels = PanelLoader.getAssignmentPanelsFor(UserType.class);
         List<ContainerPanelConfigurationType> subPanels = getPanelConfiguration().getPanel();
         Map<String, ContainerPanelConfigurationType> panelsMap = new HashMap<>();
         for (ContainerPanelConfigurationType subPanel : subPanels) {

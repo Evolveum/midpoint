@@ -6,21 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.web.application.AssignmentCounter;
-import com.evolveum.midpoint.web.application.Counter;
-import com.evolveum.midpoint.web.application.PanelLoader;
-import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -32,9 +18,16 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.web.application.AssignmentCounter;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List<ContainerPanelConfigurationType>> {
 
@@ -116,25 +109,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return String.valueOf(count);
             }
             return null;
-//            Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
-//            Counter counter = panelClass.getAnnotation(Counter.class);
-//            if (counter == null || counter.provider().equals(SimpleCounter.class)) {
-//                return null;
-//            }
-//
-//            Class<?> counterProvider = counter.provider();
-//            try {
-//                Constructor<?> constructor = counterProvider.getConstructor(IModel.class);
-//                AssignmentCounter assoginmentCounter = (AssignmentCounter) constructor.newInstance(objectModel);
-//                int count = assoginmentCounter.count();
-//                if (count == 0) {
-//                    return null;
-//                }
-//                return String.valueOf(count);
-//            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//                e.printStackTrace();
-//            }
-//            return null;
         });
     }
 
