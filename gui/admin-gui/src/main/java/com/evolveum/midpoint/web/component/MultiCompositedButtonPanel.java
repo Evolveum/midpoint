@@ -34,6 +34,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
     private static final String ID_BUTTON_PANEL = "additionalButton";
     private static final String ID_BUTTON_DESCRIPTION = "buttonDescription";
     private static final String ID_COMPOSITED_BUTTON = "compositedButton";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
 
     public MultiCompositedButtonPanel(String id, IModel<List<CompositedIconButtonDto>> model) {
         super(id, model);
@@ -73,6 +74,19 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
         buttonsPanel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(buttonsPanel);
 
+        AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
+                createStringResource("PageBase.button.cancel")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        add(cancel);
+    }
+
+    protected void cancelPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 
     private String getButtonDescription(CompositedIconButtonDto button) {
