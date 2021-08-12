@@ -42,10 +42,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
-            <!-- TODO: init failing: ObjectNotFoundException:Object of type 'OrgType' with OID '00000000-8888-6666-0000-100000000002' was not found.
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
