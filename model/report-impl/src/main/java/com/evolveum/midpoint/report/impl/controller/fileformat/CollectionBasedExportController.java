@@ -14,7 +14,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.report.impl.activity.ClassicReportExportActivityExecutionSpecifics;
+import com.evolveum.midpoint.report.impl.activity.ClassicCollectionReportExportActivityExecutionSpecifics;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -46,7 +46,7 @@ import static java.util.Objects.requireNonNull;
  * Controls the process of exporting collection-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
- * (represented mainly by {@link ClassicReportExportActivityExecutionSpecifics} class) and a set of cooperating
+ * (represented mainly by {@link ClassicCollectionReportExportActivityExecutionSpecifics} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
  *
@@ -60,7 +60,7 @@ import static java.util.Objects.requireNonNull;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class CollectionBasedExportController<C extends Containerable> {
+public class CollectionBasedExportController<C extends Containerable> implements ExportController<C>{
 
     private static final Trace LOGGER = TraceManager.getTrace(CollectionBasedExportController.class);
 
@@ -74,7 +74,7 @@ public class CollectionBasedExportController<C extends Containerable> {
     /**
      * Definition of records that are processed. Initialized along with the data source.
      */
-    private PrismContainerDefinition<C> recordDefinition;
+    protected PrismContainerDefinition<C> recordDefinition;
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
@@ -88,12 +88,12 @@ public class CollectionBasedExportController<C extends Containerable> {
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
 
     /** Compiled final collection from more collections and archetypes related to object type. */
-    @NotNull private final CompiledObjectCollectionView compiledCollection;
+    @NotNull protected final CompiledObjectCollectionView compiledCollection;
 
     /**
      * Columns for the report.
      */
-    private List<GuiObjectColumnType> columns;
+    protected List<GuiObjectColumnType> columns;
 
     /**
      * Values of report parameters.
@@ -144,15 +144,13 @@ public class CollectionBasedExportController<C extends Containerable> {
         initializeDataSource(task, result);
     }
 
-    private void initializeDataSource(RunningTask task, OperationResult result) throws CommonException {
+    protected void initializeDataSource(RunningTask task, OperationResult result) throws CommonException {
 
-        CollectionRefSpecificationType collectionConfig = configuration.getCollection();
-
-        Class<Containerable> type = reportService.resolveTypeForReport(collectionConfig, compiledCollection);
+        Class<Containerable> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> defaultOptions = DefaultColumnUtils.createOption(type, schemaService);
 
         ModelInteractionService.SearchSpec<C> searchSpec = modelInteractionService.getSearchSpecificationFromCollection(
-                collectionConfig, compiledCollection.getContainerType(), defaultOptions, parameters, task, result);
+                compiledCollection, compiledCollection.getContainerType(), defaultOptions, parameters, task, result);
 
         recordDefinition = requireNonNull(
                 schemaRegistry.findContainerDefinitionByCompileTimeClass(searchSpec.type),

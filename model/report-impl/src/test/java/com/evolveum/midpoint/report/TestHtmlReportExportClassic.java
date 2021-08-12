@@ -56,6 +56,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, initResult);
         repoAdd(REPORT_USER_LIST, initResult);
         repoAdd(REPORT_USER_LIST_SCRIPT, initResult);
+        repoAdd(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, initResult);
 
 //        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
 
@@ -67,8 +68,19 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         repoAdd(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW, initResult);
         repoAdd(OBJECT_COLLECTION_BASIC_FILTER, initResult);
         repoAdd(OBJECT_COLLECTION_EMPTY, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_RESOURCE, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_ASSIGNMENT, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_TASK, initResult);
+        repoAdd(OBJECT_COLLECTION_SHADOW_OF_RESOURCE, initResult);
+
+        repoAdd(DASHBOARD_DEFAULT_COLUMNS, initResult);
 
         createUsers(USERS, initResult);
+    }
+
+    @Test
+    public void test001CreateDashboardReportWithDefaultColumn() throws Exception {
+        runTest(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN);
     }
 
     @Test

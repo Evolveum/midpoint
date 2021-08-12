@@ -29,7 +29,7 @@ class ExportedReportHeaderRow {
      */
     @NotNull private final List<ExportedReportHeaderColumn> columns;
 
-    private ExportedReportHeaderRow(@NotNull List<ExportedReportHeaderColumn> columns, @NotNull List<String> labels) {
+    protected ExportedReportHeaderRow(@NotNull List<ExportedReportHeaderColumn> columns, @NotNull List<String> labels) {
         this.columns = columns;
         this.labels = labels;
     }

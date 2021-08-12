@@ -16,7 +16,7 @@ import java.util.List;
  * Creates and manipulates exported reports.
  *
  */
-public abstract class AbstractReportDataWriter implements ReportDataWriter {
+public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> implements ReportDataWriter<ED, EH> {
 
     /**
      * Header row to be put into resulting CSV file.
@@ -28,10 +28,10 @@ public abstract class AbstractReportDataWriter implements ReportDataWriter {
      * Data rows to be put into resulting CSV file.
      *
      */
-    @NotNull private final List<ExportedReportDataRow> dataRows = new ArrayList<>();
+    @NotNull private final List<ED> dataRows = new ArrayList<>();
 
     @Override
-    public void setHeaderRow(ExportedReportHeaderRow headerRow) {
+    public void setHeaderRow(EH headerRow) {
         this.headerRow = headerRow;
     }
 
@@ -39,7 +39,7 @@ public abstract class AbstractReportDataWriter implements ReportDataWriter {
         return headerRow;
     }
 
-    protected List<ExportedReportDataRow> getDataRows() {
+    protected List<ED> getDataRows() {
         return dataRows;
     }
 
@@ -55,7 +55,7 @@ public abstract class AbstractReportDataWriter implements ReportDataWriter {
      * @param row Formatted (string) values for the row.
      */
     @Override
-    public synchronized void appendDataRow(ExportedReportDataRow row) {
+    public synchronized void appendDataRow(ED row) {
         int i;
         for (i = getDataRows().size() - 1; i >= 0; i--) {
             if (getDataRows().get(i).getSequentialNumber() < row.getSequentialNumber()) {
@@ -80,5 +80,10 @@ public abstract class AbstractReportDataWriter implements ReportDataWriter {
     @Override
     public String completizeReport(String aggregatedData) {
         return aggregatedData;
+    }
+
+    @Override
+    public String completizeReport() {
+        return completizeReport(getStringData());
     }
 }

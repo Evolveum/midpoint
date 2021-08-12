@@ -18,10 +18,13 @@ import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportExportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +70,30 @@ public class ClassicReportExportActivityHandler
     public AbstractActivityExecution<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
             @NotNull OperationResult result) {
-        return new PlainIterativeActivityExecution<>(context, "Report export", ClassicReportExportActivityExecutionSpecifics::new);
+        return resolveExecution(context, result);
+    }
+
+    private AbstractActivityExecution<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler, ?> resolveExecution(
+            ExecutionInstantiationContext<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> context,
+            OperationResult result) {
+        @NotNull ClassicReportExportWorkDefinition workDefinition = context.getActivity().getWorkDefinition();
+        ReportType report = null;
+        try {
+            report = reportService.getObjectResolver().resolve(workDefinition.getReportRef(), ReportType.class,
+                    null, "resolving report", context.getTaskExecution().getRunningTask(), result);
+        } catch (CommonException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        if (report.getDashboard() != null) {
+            return new PlainIterativeActivityExecution<>(context, "Collection report export", ClassicDashboardReportExportActivityExecutionSpecifics::new);
+        }
+        if (report.getObjectCollection() != null) {
+            return new PlainIterativeActivityExecution<>(context, "Dashboard report export", ClassicCollectionReportExportActivityExecutionSpecifics::new);
+        }
+        LOGGER.error("Report don't contains engine");
+        throw new IllegalArgumentException("Report don't contains engine");
+
     }
 
     @Override

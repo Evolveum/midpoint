@@ -49,6 +49,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import static java.util.Objects.requireNonNull;
@@ -430,7 +431,7 @@ public class ImportController {
         if (headers.isEmpty()) {
             headers = csvParser.getHeaderNames();
         }
-        int index = 0;
+        AtomicInteger sequence = new AtomicInteger(1);
         for (CSVRecord csvRecord : csvParser) {
             VariablesMap variables = new VariablesMap();
             for (String name : headers) {
@@ -450,8 +451,7 @@ public class ImportController {
                     variables.put(name, value, String.class);
                 }
             }
-            handler.accept(index, variables);
-            index++;
+            handler.accept(sequence.getAndIncrement(), variables);
         }
     }
 

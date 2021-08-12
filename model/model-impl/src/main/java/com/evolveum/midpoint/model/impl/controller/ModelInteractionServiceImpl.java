@@ -1990,18 +1990,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CollectionRefSpecificationType collectionConfig,
+    public <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
             QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
             Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
 
         SearchSpec<C> searchSpec = new SearchSpec<>();
-
-        if (collectionConfig != null && collectionConfig.getCollectionRef() != null &&
-                collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
-            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
-        }
 
         Class<C> type;
         if (typeForFilter != null) {
@@ -2010,10 +2005,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             type = null;
         }
 
-        if (collectionConfig != null) {
-            CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, result);
-            //noinspection unchecked
-            searchSpec.type = (Class<C>) determineTypeForSearch(compiledCollection, typeForFilter);
+        if (compiledCollection != null) {
+            searchSpec.type = determineTypeForSearch(compiledCollection, typeForFilter);
             searchSpec.query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
             searchSpec.options = determineOptionsForSearch(compiledCollection, defaultOptions);
         } else {
@@ -2126,7 +2119,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return compiledCollection.getOptions();
     }
 
-    private Class<? extends Containerable> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
+    private <C extends Containerable> Class<C> determineTypeForSearch(CompiledObjectCollectionView compiledCollection, QName typeForFilter) throws ConfigurationException {
         if (compiledCollection.getTargetClass(prismContext) == null) {
             if (typeForFilter == null) {
                 LOGGER.error("Type of objects is null");

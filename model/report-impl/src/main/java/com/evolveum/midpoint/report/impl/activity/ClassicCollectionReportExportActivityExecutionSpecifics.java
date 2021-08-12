@@ -37,17 +37,17 @@ import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 /**
- * Activity execution specifics for classical report export.
+ * Activity execution specifics for classical collection report export.
  *
  * TODO finish the implementation
  */
-public class ClassicReportExportActivityExecutionSpecifics
+public class ClassicCollectionReportExportActivityExecutionSpecifics
         extends BasePlainIterativeExecutionSpecificsImpl
         <Containerable,
                 ClassicReportExportWorkDefinition,
                 ClassicReportExportActivityHandler> {
 
-    @NotNull private final ExportActivitySupport support;
+    @NotNull private final ExportCollectionActivitySupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
@@ -72,12 +72,12 @@ public class ClassicReportExportActivityExecutionSpecifics
      */
     private SearchSpecificationHolder searchSpecificationHolder;
 
-    ClassicReportExportActivityExecutionSpecifics(
+    ClassicCollectionReportExportActivityExecutionSpecifics(
             @NotNull PlainIterativeActivityExecution<Containerable, ClassicReportExportWorkDefinition,
                     ClassicReportExportActivityHandler, ?> activityExecution) {
         super(activityExecution);
         reportService = activityExecution.getActivity().getHandler().reportService;
-        support = new ExportActivitySupport(activityExecution, activityExecution.getActivityHandler().reportService,
+        support = new ExportCollectionActivitySupport(activityExecution, activityExecution.getActivityHandler().reportService,
                 activityExecution.getActivityHandler().objectResolver, activityExecution.getActivity().getWorkDefinition());
     }
 

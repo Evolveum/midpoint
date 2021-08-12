@@ -8,25 +8,20 @@
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.base.MoreObjects;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.QuoteMode;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
-
-import static com.evolveum.midpoint.report.impl.controller.fileformat.CsvController.toCharacter;
+import java.util.Set;
 
 /**
  * Generally useful methods for dealing with HTML files.
@@ -36,6 +31,16 @@ class CommonHtmlSupport {
 
     private static final String REPORT_CSS_STYLE_FILE_NAME = "html-report-style.css";
     static final String REPORT_GENERATED_ON = "Widget.generatedOn";
+    static final String REPORT_WIDGET_TABLE_NAME = "Widget.tableName";
+
+    static final String VALUE_CSS_STYLE_TAG = "#css-style";
+
+    static final String LABEL_COLUMN = "label";
+    static final String NUMBER_COLUMN = "number";
+    static final String STATUS_COLUMN = "status";
+
+    static final Set<String> HEADS_OF_WIDGET =
+            ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
     private String cssStyle;
     private final Clock clock;
@@ -73,7 +78,11 @@ class CommonHtmlSupport {
         return dateFormat.format(millis);
     }
 
-    String getTableName() {
+    String getTableName(LocalizationService localizationService) {
+        DisplayType display = compiledView.getDisplay();
+        if (display != null && display.getLabel() != null) {
+            return GenericSupport.getMessage(localizationService, display.getLabel());
+        }
         return compiledView.getViewIdentifier();
     }
 

@@ -102,11 +102,10 @@ class ReportActivitySupport {
     }
 
     /**
-     * Check actual report for different report handlers.
+     * Check actual report for different report activity execution.
      */
     public void stateCheck(OperationResult result) throws CommonException {
         MiscUtil.stateCheck(getDirection(report) == EXPORT, "Only report export are supported here");
-        MiscUtil.stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
 
         if (!reportService.isAuthorizedToRunReport(report.asPrismObject(), runningTask, result)) {
             LOGGER.error("Task {} is not authorized to run report {}", runningTask, report);

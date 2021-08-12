@@ -510,7 +510,7 @@ public interface ModelInteractionService {
      * TODO document and clean up the interface
      */
     @Experimental
-    <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CollectionRefSpecificationType collection, QName typeForFilter,
+    <C extends Containerable> SearchSpec<C> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
 

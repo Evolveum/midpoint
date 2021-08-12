@@ -21,12 +21,12 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
  *
  * TODO better name?
  */
-public interface ReportDataWriter {
+public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> {
 
     /**
      * Sets the header row.
      */
-    void setHeaderRow(ExportedReportHeaderRow headerRow);
+    void setHeaderRow(EH headerRow);
 
     /**
      * Appends a row of data to the report.
@@ -35,7 +35,7 @@ public interface ReportDataWriter {
      *
      * @param row Formatted (string) values for the row.
      */
-    void appendDataRow(ExportedReportDataRow row);
+    void appendDataRow(ED row);
 
     /** Resets the state of the writer, e.g. erasing all stored data. */
     void reset();
@@ -59,4 +59,9 @@ public interface ReportDataWriter {
      * and an added prefix and suffix of report.
      */
     String completizeReport(String aggregatedData);
+
+    /**
+     * Use data in data writer.
+     */
+    String completizeReport();
 }

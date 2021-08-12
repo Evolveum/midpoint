@@ -140,7 +140,7 @@ public class HtmlController extends FileFormatController {
                                 throw new IllegalArgumentException("CollectionRef is null for report of audit records");
                             }
                         case OBJECT_COLLECTION:
-                            tableBox = createTableBox(widgetData.getLabel(), collectionRefSpecification, compiledCollection,
+                            tableBox = createTableBox(widgetData.getLabel(getReportService().getLocalizationService()), collectionRefSpecification, compiledCollection,
                                     null, Collections.emptyList(), result, false, task);
                             break;
                     }
@@ -265,7 +265,7 @@ public class HtmlController extends FileFormatController {
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        Class<Containerable> type = getReportService().resolveTypeForReport(collection, compiledCollection);
+        Class<Containerable> type = getReportService().resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaService());
         PrismContainerDefinition<Containerable> def = getReportService().getPrismContext().getSchemaRegistry()
                 .findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
@@ -361,7 +361,7 @@ public class HtmlController extends FileFormatController {
 
     private ContainerTag getContainerTagForWidgetHeader(String header, DashboardWidget data) {
         if (header.equals(LABEL_COLUMN)) {
-            ContainerTag div = TagCreator.div(data.getLabel());
+            ContainerTag div = TagCreator.div(data.getLabel(getReportService().getLocalizationService()));
             return TagCreator.th().with(div);
         }
         if (header.equals(NUMBER_COLUMN)) {
@@ -372,7 +372,7 @@ public class HtmlController extends FileFormatController {
             ContainerTag div = TagCreator.div().withStyle("width: 100%; height: 20px; ");
             ContainerTag th = TagCreator.th();
             if (data.getDisplay() != null && StringUtils.isNoneBlank(data.getDisplay().getColor())) {
-                th.withStyle("background-color: " + data.getDisplay().getColor() + "; !important;");
+                th.withStyle("background-color: " + data.getDisplay().getColor() + " !important;");
             }
             th.with(div);
             return th;

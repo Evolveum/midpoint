@@ -68,11 +68,6 @@ class SaveReportFileSupport {
     private final ReportType report;
 
     /**
-     * Compiled final collection from more collections and archetypes related to object type.
-     */
-    private final CompiledObjectCollectionView compiledView;
-
-    /**
      * Used to derive the file path and to save report data.
      *
      * TODO remove dependency on this class
@@ -84,12 +79,10 @@ class SaveReportFileSupport {
      */
     private String aggregatedFilePath;
 
-    SaveReportFileSupport(ReportType report, RunningTask task, CompiledObjectCollectionView compiledView,
-            ReportServiceImpl reportService) {
+    SaveReportFileSupport(ReportType report, RunningTask task, ReportServiceImpl reportService) {
         this.report = report;
         runningTask = task;
         this.reportService = reportService;
-        this.compiledView = compiledView;
     }
 
     void initializeExecution(OperationResult result) {
@@ -126,6 +119,14 @@ class SaveReportFileSupport {
 
     public void saveReportFile(String aggregatedData, ReportDataWriter dataWriter, OperationResult result) throws CommonException {
         writeToReportFile(dataWriter.completizeReport(aggregatedData));
+        saveReportDataObject(result);
+        if (report.getPostReportScript() != null) {
+            processPostReportScript(report, aggregatedFilePath, runningTask, result);
+        }
+    }
+
+    public void saveReportFile(ReportDataWriter dataWriter, OperationResult result) throws CommonException {
+        writeToReportFile(dataWriter.completizeReport());
         saveReportDataObject(result);
         if (report.getPostReportScript() != null) {
             processPostReportScript(report, aggregatedFilePath, runningTask, result);

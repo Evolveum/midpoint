@@ -243,6 +243,12 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
+
+        if (collectionRef != null && collectionRef.getOid() != null && collectionSpec.getFilter() != null) {
+            throw new IllegalArgumentException(
+                    "CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+
         if (collectionRef != null && collectionRef.getOid() != null) {
             QName collectionRefType = collectionRef.getType();
 

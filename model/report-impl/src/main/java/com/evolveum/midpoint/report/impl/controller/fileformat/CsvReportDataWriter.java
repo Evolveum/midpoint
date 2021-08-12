@@ -16,14 +16,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Creates and manipulates exported reports in CSV format.
  */
-public class CsvReportDataWriter extends AbstractReportDataWriter {
+public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> {
 
     @NotNull private final CommonCsvSupport support;
 

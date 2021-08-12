@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -22,9 +23,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Generic support methods, useful in all contexts (e.g. both export and import of reports).
@@ -87,5 +92,9 @@ class GenericSupport {
 
     protected static String getMessage(LocalizationService localizationService, String key, Object... params) {
         return localizationService.translate(key, params, Locale.getDefault(), key);
+    }
+
+    protected static String getMessage(LocalizationService localizationService, PolyStringType polyString) {
+        return localizationService.translate(polyString.toPolyString(), Locale.getDefault(), true);
     }
 }

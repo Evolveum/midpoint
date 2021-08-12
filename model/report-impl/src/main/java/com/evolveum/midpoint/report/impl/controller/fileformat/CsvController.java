@@ -109,7 +109,7 @@ public class CsvController extends FileFormatController {
         getHeadsOfWidget().forEach(header ->
         {
             if (header.equals(LABEL_COLUMN)) {
-                items.add(data.getLabel());
+                items.add(data.getLabel(getReportService().getLocalizationService()));
             }
             if (header.equals(NUMBER_COLUMN)) {
                 items.add(data.getNumberMessage());
@@ -141,7 +141,7 @@ public class CsvController extends FileFormatController {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        Class<Containerable> type = reportService.resolveTypeForReport(collection, compiledCollection);
+        Class<Containerable> type = reportService.resolveTypeForReport(compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, schemaService);
         PrismContainerDefinition<Containerable> def = schemaRegistry.findItemDefinitionByCompileTimeClass(type, PrismContainerDefinition.class);
 

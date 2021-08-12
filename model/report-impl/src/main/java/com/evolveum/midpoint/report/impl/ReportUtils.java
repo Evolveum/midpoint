@@ -964,4 +964,22 @@ public class ReportUtils {
                 throw new AssertionError(formatType);
         }
     }
+
+    public static ReportDataWriter createDashboardDataWriter(@NotNull ReportType report, ReportServiceImpl reportService,
+            Map<String, CompiledObjectCollectionView> mapOfCompiledView) {
+        FileFormatTypeType formatType;
+        if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
+            formatType = report.getFileFormat().getType();
+        } else {
+            formatType = FileFormatTypeType.HTML;
+        }
+        switch (formatType) {
+            case HTML:
+                return new HtmlDashboardReportDataWriter(reportService, mapOfCompiledView);
+            case CSV:
+                return new CsvReportDataWriter(report.getFileFormat());
+            default:
+                throw new AssertionError(formatType);
+        }
+    }
 }

@@ -14,11 +14,13 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
 import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -28,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 /**
- * Contains common functionality for executions of report-related activities.
+ * Contains common functionality for executions of export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
 class ExportActivitySupport extends ReportActivitySupport{
@@ -46,7 +48,7 @@ class ExportActivitySupport extends ReportActivitySupport{
     }
 
     private void setupSaveSupport(OperationResult result) throws CommonException {
-        saveSupport = new SaveReportFileSupport(report, runningTask, getCompiledCollectionView(result), reportService);
+        saveSupport = new SaveReportFileSupport(report, runningTask, reportService);
         saveSupport.initializeExecution(result);
     }
 
@@ -58,7 +60,7 @@ class ExportActivitySupport extends ReportActivitySupport{
     }
 
     public void saveReportFile(ReportDataWriter dataWriter, OperationResult result) throws CommonException {
-        saveSupport.saveReportFile(dataWriter.getStringData(), dataWriter, result);
+        saveSupport.saveReportFile(dataWriter, result);
     }
 
     /**
@@ -81,6 +83,37 @@ class ExportActivitySupport extends ReportActivitySupport{
         } else {
             SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, runningTask, result);
             return Objects.requireNonNullElse(containers.getList(), Collections.emptyList());
+        }
+    }
+
+    static class SearchSpecificationHolder implements ReportDataSource<Containerable> {
+
+        private Class<Containerable> type;
+        private ObjectQuery query;
+        private Collection<SelectorOptions<GetOperationOptions>> options;
+
+        @Override
+        public void initialize(Class<Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
+            SearchSpecificationHolder.this.type = type;
+            SearchSpecificationHolder.this.query = query;
+            SearchSpecificationHolder.this.options = options;
+        }
+
+        @NotNull public Class<Containerable> getType() {
+            return type;
+        }
+
+        @NotNull public ObjectQuery getQuery() {
+            return query;
+        }
+
+        @NotNull public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+            return options;
+        }
+
+        @Override
+        public void run(Handler<Containerable> handler, OperationResult result) {
+            // no-op
         }
     }
 }
