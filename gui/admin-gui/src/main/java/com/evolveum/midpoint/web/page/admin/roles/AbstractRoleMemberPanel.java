@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +24,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -174,7 +178,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-                MultifunctionalButton assignButton = createAssignButton(buttonId);
+                AjaxIconButton assignButton = createAssignButton(buttonId);
                 buttonsList.add(1, assignButton);
                 return buttonsList;
             }
@@ -395,22 +399,60 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return builder.build();
     }
 
-    private MultifunctionalButton createAssignButton(String buttonId) {
-        MultifunctionalButton assignButton = new MultifunctionalButton(buttonId, createAssignmentAdditionalButtons()) {
+    private AjaxIconButton createAssignButton(String buttonId) {
+        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
+                createStringResource("MainObjectListPanel.newObject")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
-                        relation.getObjectTypes() : null;
-                List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
-                        relation.getArchetypeRefs() : null;
-                assignMembers(target, getMemberPanelStorage().getRelationSearchItem(), objectTypes, archetypeRefList, relation == null);
+            public void onClick(AjaxRequestTarget target) {
+                ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
+                        null) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected R getAssignmentTargetRefObject(){
+                        return AbstractRoleMemberPanel.this.getModelObject();
+                    }
+
+                    @Override
+                    protected List<QName> getAvailableObjectTypes(){
+                        return new ArrayList<>(); //todo
+                    }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList(){
+                        return new ArrayList<>(); //todo
+                    }
+
+                    @Override
+                    protected boolean isOrgTreeVisible(){
+                        return true;
+                    }
+                };
+                browser.setOutputMarkupId(true);
+                AbstractRoleMemberPanel.this.getPageBase().showMainPopup(browser, target);
             }
         };
-        assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
-
+        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return assignButton;
+//        bar.add(newObjectButton);
+//        MultifunctionalButton assignButton = new MultifunctionalButton(buttonId, createAssignmentAdditionalButtons()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+//                List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
+//                        relation.getObjectTypes() : null;
+//                List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
+//                        relation.getArchetypeRefs() : null;
+//                assignMembers(target, getMemberPanelStorage().getRelationSearchItem(), objectTypes, archetypeRefList, relation == null);
+//            }
+//        };
+//        assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
+//
+//        return assignButton;
     }
 
     private LoadableModel<MultiFunctinalButtonDto> createAssignmentAdditionalButtons() {
