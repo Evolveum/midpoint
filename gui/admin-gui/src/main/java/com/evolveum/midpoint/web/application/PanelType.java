@@ -16,13 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PanelDescription {
+public @interface PanelType {
 
-    String identifier() default "";
     String panelIdentifier() default "";
-    Class<? extends ObjectType> applicableFor() default ObjectType.class;
-    ItemStatus[] status() default {ItemStatus.ADDED, ItemStatus.NOT_CHANGED};
-    Class<? extends Panel> childOf() default Panel.class;
     boolean generic() default false;
     String defaultContainerPath() default "";
 

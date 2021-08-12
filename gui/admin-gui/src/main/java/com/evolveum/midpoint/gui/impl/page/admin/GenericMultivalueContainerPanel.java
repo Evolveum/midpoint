@@ -6,17 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -28,17 +24,13 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.application.GuiPanelConfiguration;
-import com.evolveum.midpoint.web.application.PanelDescription;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.application.PanelType;
 
 import java.util.Collections;
 import java.util.List;
 
-@PanelDescription(panelIdentifier = "genericMultiValue", generic = true)
+@PanelType(panelIdentifier = "genericMultiValue", generic = true)
 public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
 
     private static final String ID_DETAILS = "details";

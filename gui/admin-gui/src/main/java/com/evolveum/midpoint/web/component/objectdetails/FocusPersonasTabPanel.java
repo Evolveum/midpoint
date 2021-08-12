@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -44,8 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author honchar
  */
-@PanelDescription(identifier = "personas",
-        panelIdentifier = "personas",
+@PanelType(panelIdentifier = "personas")
+@PanelInstance(identifier = "personas",
         applicableFor = FocusType.class)
 @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)
 public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {

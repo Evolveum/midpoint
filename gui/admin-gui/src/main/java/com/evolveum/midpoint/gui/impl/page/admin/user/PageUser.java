@@ -229,11 +229,11 @@ public class PageUser extends PageBase {
 
     private DetailsNavigationPanel createNavigationPanel(String id, List<ContainerPanelConfigurationType> panels) {
 
-        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, Model.ofList(panels)) {
+        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, model, Model.ofList(panels)) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
-                initMainPanel(config.getPanelIdentifier(), config, form);
+                initMainPanel(config.getPanelType(), config, form);
                 target.add(form);
             }
         };
@@ -267,8 +267,8 @@ public class PageUser extends PageBase {
     }
 
     private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
-        if (configuredPanel.getPanelIdentifier() != null) {
-            mergedPanel.setPanelIdentifier(configuredPanel.getPanelIdentifier());
+        if (configuredPanel.getPanelType() != null) {
+            mergedPanel.setPanelType(configuredPanel.getPanelType());
         }
 
         if (configuredPanel.getPath() != null) {
@@ -285,6 +285,10 @@ public class PageUser extends PageBase {
 
         if (configuredPanel.getType() != null) {
             mergedPanel.setType(configuredPanel.getType());
+        }
+
+        if (configuredPanel.getVisibility() != null) {
+            mergedPanel.setVisibility(configuredPanel.getVisibility());
         }
 
         if (!configuredPanel.getPanel().isEmpty()) {

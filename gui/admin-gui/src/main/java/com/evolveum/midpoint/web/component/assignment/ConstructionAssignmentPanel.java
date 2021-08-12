@@ -14,7 +14,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,8 +33,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 
-@PanelDescription(panelIdentifier = "constructionAssignments",
-        identifier = "constructionAssignments",
+@PanelType(panelIdentifier = "constructionAssignments")
+@PanelInstance(identifier = "constructionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Resource", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50)

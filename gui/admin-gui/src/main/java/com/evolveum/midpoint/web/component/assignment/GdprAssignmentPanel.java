@@ -16,7 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -40,8 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import javax.xml.namespace.QName;
 
 @Experimental
-@PanelDescription(panelIdentifier = "gdprAssignments",
-        identifier = "gdprAssignments",
+@PanelType(panelIdentifier = "gdprAssignments")
+@PanelInstance(identifier = "gdprAssignments",
         applicableFor = UserType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "GDPR")

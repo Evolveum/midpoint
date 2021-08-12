@@ -12,17 +12,18 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
-@PanelDescription(panelIdentifier = "orgAssignments",
-        identifier = "orgAssignments",
+@PanelType(panelIdentifier = "orgAssignments")
+@PanelInstance(identifier = "orgAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Org", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON, order = 30)

@@ -12,14 +12,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelDescription(identifier = "basic",
-        panelIdentifier = "basic",
-        applicableFor = AssignmentHolderType.class,
-        defaultContainerPath = "empty")
+@PanelType(panelIdentifier = "basic", defaultContainerPath = "empty")
+@PanelInstance(identifier = "basic", applicableFor = AssignmentHolderType.class)
 @PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 

@@ -16,7 +16,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -34,8 +35,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 
 @Experimental
-@PanelDescription(panelIdentifier = "dataProtectionAssignments",
-        identifier = "dataProtectionAssignments",
+@PanelType(panelIdentifier = "dataProtectionAssignments")
+@PanelInstance(identifier = "dataProtectionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Data protection")

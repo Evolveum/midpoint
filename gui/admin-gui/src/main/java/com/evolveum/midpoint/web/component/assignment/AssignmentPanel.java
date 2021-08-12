@@ -18,7 +18,8 @@ import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -95,8 +96,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-@PanelDescription(identifier = "allAssignments",
-        panelIdentifier = "allAssignments",
+@PanelType(panelIdentifier = "allAssignments")
+@PanelInstance(identifier = "allAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10)

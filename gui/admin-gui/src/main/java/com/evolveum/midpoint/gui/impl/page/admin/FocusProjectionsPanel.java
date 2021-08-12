@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
+import com.evolveum.midpoint.web.application.PanelInstance;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -69,7 +71,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -79,12 +81,10 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -95,9 +95,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  * @author skublik
  */
-@PanelDescription(identifier = "projections",
-        panelIdentifier = "projections",
-        applicableFor = FocusType.class)
+@PanelType(panelIdentifier = "projections")
+@PanelInstance(identifier = "projections", applicableFor = FocusType.class)
 @PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
     private static final long serialVersionUID = 1L;

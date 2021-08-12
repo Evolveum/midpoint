@@ -15,18 +15,17 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
-import org.apache.catalina.users.AbstractRole;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -62,8 +61,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * Created by honchar.
  */
-@PanelDescription(panelIdentifier = "inducedEntitlements",
-        identifier = "inducedEntitlements",
+@PanelType(panelIdentifier = "inducedEntitlements")
+@PanelInstance(identifier = "inducedEntitlements",
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)
 @PanelDisplay(label = "Induced entitlements")

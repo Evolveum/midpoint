@@ -11,9 +11,11 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.assignment.TabbedAssignmentTypePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -22,7 +24,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.web.application.PanelDescription;
 import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -33,11 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@PanelDescription(identifier = "assignments",
-        panelIdentifier = "assignments",
-        applicableFor = AssignmentHolderType.class,
-        path = "assignment")
+@PanelType(panelIdentifier = "assignments", path = "assignment")
+@PanelInstance(identifier = "assignments", applicableFor = AssignmentHolderType.class)
 @PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30)
+@Counter(provider = AssignmentCounter.class)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH> {
 
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
@@ -64,17 +64,33 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
     private List<ITab> createAssignmentTabs(PrismContainerWrapperModel<AH, AssignmentType> assignmentModel) {
         List<ITab> tabs = new ArrayList<>();
         for (ContainerPanelConfigurationType panelConfig : getAssignmentPanels()) {
+            if (isNotVisible(panelConfig)) {
+                continue;
+            }
             tabs.add(new AbstractTab(createStringResource(getLabel(panelConfig))) {
                 @Override
                 public WebMarkupContainer getPanel(String s) {
 
-                    String panelIdentifier =  panelConfig.getPanelIdentifier();
+                    String panelIdentifier =  panelConfig.getPanelType();
                     Panel panel = WebComponentUtil.createPanel(panelIdentifier, s, assignmentModel, panelConfig);
                     return panel;
                 }
             });
         }
         return tabs;
+    }
+
+    private boolean isNotVisible(ContainerPanelConfigurationType config) {
+        if (config == null) {
+            return false;
+        }
+
+        UserInterfaceElementVisibilityType visibility = config.getVisibility();
+        if (visibility == null) {
+            return false;
+        }
+
+        return UserInterfaceElementVisibilityType.HIDDEN == visibility;
     }
 
     private String getLabel(ContainerPanelConfigurationType panelConfig) {

@@ -10,14 +10,19 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.application.PanelDescription;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnitHistory;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 
+import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
+import com.evolveum.midpoint.web.page.admin.services.PageServiceHistory;
+import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -45,19 +50,18 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Created by honchar.
  */
-@PanelDescription(panelIdentifier = "history", identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
+@PanelType(panelIdentifier = "history")
+@PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "History", icon = "fa fa-history", order = 40)
-public abstract class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 
     private static final long serialVersionUID = 1L;
 
@@ -70,7 +74,6 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
     public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
         super(id, focusWrapperModel);
-
     }
 
     public ObjectHistoryTabPanel(String id, LoadableModel<PrismObjectWrapper<F>> focusModel, ContainerPanelConfigurationType config) {
@@ -174,7 +177,18 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
         add(panel);
     }
 
-    protected abstract void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date);
+    protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date) {
+        Class<F> objectClass = object.getCompileTimeClass();
+        if (UserType.class.equals(objectClass)) {
+            getPageBase().navigateToNext(new PageUserHistory((PrismObject<UserType>) object, date));
+        } else if (RoleType.class.equals(objectClass)) {
+            getPageBase().navigateToNext(new PageRoleHistory((PrismObject<RoleType>) object, date));
+        } else if (OrgType.class.equals(objectClass)) {
+            getPageBase().navigateToNext(new PageOrgUnitHistory((PrismObject<OrgType>) object, date));
+        } else if (ServiceType.class.equals(objectClass)) {
+            getPageBase().navigateToNext(new PageServiceHistory((PrismObject<ServiceType>) object, date));
+        }
+    }
 
     private PrismObject<F> getReconstructedObject(String oid, String eventIdentifier,
                                                   Class type) {
