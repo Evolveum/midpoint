@@ -14,6 +14,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -285,6 +286,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private MidpointFunctions midpointFunctions;
 
     @SpringBean private GuiComponentRegistry registry;
+    @SpringBean private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
 
     @SpringBean private CounterManager counterManager;
 
@@ -1866,5 +1868,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public ModelExecuteOptions executeOptions() {
         return ModelExecuteOptions.create(getPrismContext());
+    }
+
+    public Class<? extends Panel> findObjectPanel(String identifier) {
+        return guiConfigurationRegistry.findPanel(identifier);
     }
 }

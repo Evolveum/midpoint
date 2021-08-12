@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author mederly
  * @author semancik
  */
-@PanelType(panelIdentifier = "tasks")
+@PanelType(name = "tasks")
 @PanelInstance(identifier = "tasks",
         status = ItemStatus.NOT_CHANGED,
         applicableFor = UserType.class)

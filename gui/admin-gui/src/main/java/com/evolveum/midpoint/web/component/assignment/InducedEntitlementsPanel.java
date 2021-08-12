@@ -61,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * Created by honchar.
  */
-@PanelType(panelIdentifier = "inducedEntitlements")
+@PanelType(name = "inducedEntitlements")
 @PanelInstance(identifier = "inducedEntitlements",
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

@@ -95,7 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  * @author skublik
  */
-@PanelType(panelIdentifier = "projections")
+@PanelType(name = "projections")
 @PanelInstance(identifier = "projections", applicableFor = FocusType.class)
 @PanelDisplay(label = "Projections", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 20)
 public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {

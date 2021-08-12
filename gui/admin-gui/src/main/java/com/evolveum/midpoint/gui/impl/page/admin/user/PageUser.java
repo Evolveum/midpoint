@@ -90,7 +90,7 @@ public class PageUser extends PageBase {
 
         model = createPageModel();
         detailsPageConfiguration = getCompiledGuiProfile().findObjectDetailsConfiguration(UserType.class);
-        userPanels = getPanelsForUser();
+        userPanels = detailsPageConfiguration.getPanel();
         initLayout();
     }
 
@@ -200,9 +200,10 @@ public class PageUser extends PageBase {
 
     private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         //TODO load default panel?
-        IModel<?> panelModel = getPanelModel(panelConfig);
+//        IModel<?> panelModel = getPanelModel(panelConfig);
 
-        Panel panel = WebComponentUtil.createPanel(identifier, ID_MAIN_PANEL, model, panelConfig);
+        Class<? extends Panel> panelClass = findObjectPanel(identifier);
+        Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, model, panelConfig);
         form.addOrReplace(panel);
 
     }
@@ -240,63 +241,63 @@ public class PageUser extends PageBase {
         return panel;
     }
 
-    private List<ContainerPanelConfigurationType> getPanelsForUser() {
-        List<ContainerPanelConfigurationType> defaultPanels = PanelLoader.getPanelsFor(UserType.class);
-        List<ContainerPanelConfigurationType> configuredPanels = detailsPageConfiguration.getPanel();
-        List<ContainerPanelConfigurationType> mergedPanels = mergeConfigurations(defaultPanels, configuredPanels);
-        return mergedPanels;
-
-    }
-
-    private List<ContainerPanelConfigurationType> mergeConfigurations(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
-        List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
-        for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
-            mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
-        }
-        return mergedPanels;
-    }
-
-    private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
-        for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
-            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
-                mergePanels(defaultPanel, configuredPanel);
-                return;
-            }
-        }
-        mergedPanels.add(configuredPanel.cloneWithoutId());
-    }
-
-    private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
-        if (configuredPanel.getPanelType() != null) {
-            mergedPanel.setPanelType(configuredPanel.getPanelType());
-        }
-
-        if (configuredPanel.getPath() != null) {
-            mergedPanel.setPath(configuredPanel.getPath());
-        }
-
-        if (configuredPanel.getListView() != null) {
-            mergedPanel.setListView(configuredPanel.getListView().cloneWithoutId());
-        }
-
-        if (!configuredPanel.getContainer().isEmpty()) {
-            mergedPanel.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(configuredPanel.getContainer()));
-        }
-
-        if (configuredPanel.getType() != null) {
-            mergedPanel.setType(configuredPanel.getType());
-        }
-
-        if (configuredPanel.getVisibility() != null) {
-            mergedPanel.setVisibility(configuredPanel.getVisibility());
-        }
-
-        if (!configuredPanel.getPanel().isEmpty()) {
-            List<ContainerPanelConfigurationType> mergedConfigs = mergeConfigurations(mergedPanel.getPanel(), configuredPanel.getPanel());
-            mergedPanel.getPanel().clear();
-            mergedPanel.getPanel().addAll(mergedConfigs);
-        }
-    }
+//    private List<ContainerPanelConfigurationType> getPanelsForUser() {
+//        List<ContainerPanelConfigurationType> defaultPanels = PanelLoader.getPanelsFor(UserType.class);
+//        List<ContainerPanelConfigurationType> configuredPanels = detailsPageConfiguration.getPanel();
+//        List<ContainerPanelConfigurationType> mergedPanels = mergeConfigurations(defaultPanels, configuredPanels);
+//        return mergedPanels;
+//
+//    }
+//
+//    private List<ContainerPanelConfigurationType> mergeConfigurations(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
+//        List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
+//        for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
+//            mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
+//        }
+//        return mergedPanels;
+//    }
+//
+//    private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
+//        for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
+//            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
+//                mergePanels(defaultPanel, configuredPanel);
+//                return;
+//            }
+//        }
+//        mergedPanels.add(configuredPanel.cloneWithoutId());
+//    }
+//
+//    private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
+//        if (configuredPanel.getPanelType() != null) {
+//            mergedPanel.setPanelType(configuredPanel.getPanelType());
+//        }
+//
+//        if (configuredPanel.getPath() != null) {
+//            mergedPanel.setPath(configuredPanel.getPath());
+//        }
+//
+//        if (configuredPanel.getListView() != null) {
+//            mergedPanel.setListView(configuredPanel.getListView().cloneWithoutId());
+//        }
+//
+//        if (!configuredPanel.getContainer().isEmpty()) {
+//            mergedPanel.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(configuredPanel.getContainer()));
+//        }
+//
+//        if (configuredPanel.getType() != null) {
+//            mergedPanel.setType(configuredPanel.getType());
+//        }
+//
+//        if (configuredPanel.getVisibility() != null) {
+//            mergedPanel.setVisibility(configuredPanel.getVisibility());
+//        }
+//
+//        if (!configuredPanel.getPanel().isEmpty()) {
+//            List<ContainerPanelConfigurationType> mergedConfigs = mergeConfigurations(mergedPanel.getPanel(), configuredPanel.getPanel());
+//            mergedPanel.getPanel().clear();
+//            mergedPanel.getPanel().addAll(mergedConfigs);
+//        }
+//    }
 
     private Component getMainPanel() {
         return get(createComponentPath(ID_MAIN_FORM, ID_MAIN_PANEL));

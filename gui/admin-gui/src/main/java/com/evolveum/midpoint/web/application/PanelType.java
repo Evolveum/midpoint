@@ -18,12 +18,8 @@ import java.util.List;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PanelType {
 
-    String panelIdentifier() default "";
+    String name() default "";
     boolean generic() default false;
     String defaultContainerPath() default "";
-
-
-    //probably not needed
-    String path() default "";
 
 }

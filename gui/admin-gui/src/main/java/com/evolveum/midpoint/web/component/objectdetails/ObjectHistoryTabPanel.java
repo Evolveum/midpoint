@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 /**
  * Created by honchar.
  */
-@PanelType(panelIdentifier = "history")
+@PanelType(name = "history")
 @PanelInstance(identifier = "history", applicableFor = FocusType.class, status = ItemStatus.NOT_CHANGED)
 @PanelDisplay(label = "History", icon = "fa fa-history", order = 40)
 public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {

@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@PanelType(panelIdentifier = "assignments", path = "assignment")
+@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments", applicableFor = AssignmentHolderType.class)
 @PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30)
 @Counter(provider = AssignmentCounter.class)
@@ -72,7 +72,8 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
                 public WebMarkupContainer getPanel(String s) {
 
                     String panelIdentifier =  panelConfig.getPanelType();
-                    Panel panel = WebComponentUtil.createPanel(panelIdentifier, s, assignmentModel, panelConfig);
+                    Class<? extends Panel> panelClass = getPageBase().findObjectPanel(panelIdentifier);
+                    Panel panel = WebComponentUtil.createPanel(panelClass, s, assignmentModel, panelConfig);
                     return panel;
                 }
             });

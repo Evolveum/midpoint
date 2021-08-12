@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 
-@PanelType(panelIdentifier = "constructionAssignments")
+@PanelType(name = "constructionAssignments")
 @PanelInstance(identifier = "constructionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

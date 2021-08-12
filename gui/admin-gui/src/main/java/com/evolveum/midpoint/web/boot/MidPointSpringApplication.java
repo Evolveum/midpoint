@@ -81,7 +81,7 @@ import java.util.Collections;
         basePackages = {
                 "com.evolveum.midpoint.web.security.factory",
                 "com.evolveum.midpoint.gui",
-                "com.evolveum.midpoint.gui.api"
+                "com.evolveum.midpoint.gui.api",
         },
         basePackageClasses = {
                 TextAreaPanelFactory.class,

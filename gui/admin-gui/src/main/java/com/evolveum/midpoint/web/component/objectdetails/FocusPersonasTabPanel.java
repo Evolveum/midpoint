@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author honchar
  */
-@PanelType(panelIdentifier = "personas")
+@PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
         applicableFor = FocusType.class)
 @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)

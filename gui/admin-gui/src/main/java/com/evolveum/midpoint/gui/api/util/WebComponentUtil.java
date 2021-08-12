@@ -5018,8 +5018,10 @@ public final class WebComponentUtil {
         });
     }
 
-    public static <T> Panel createPanel(String panelIdentifier, String markupId, IModel<T> model, ContainerPanelConfigurationType panelConfig) {
-        Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
+    public static <T> Panel createPanel(Class<? extends Panel> panelClass, String markupId, IModel<T> model, ContainerPanelConfigurationType panelConfig) {
+        if (panelClass == null) {
+            return null;
+        }
 
         try {
             Constructor constructor = panelClass.getConstructor(String.class, LoadableModel.class, ContainerPanelConfigurationType.class);

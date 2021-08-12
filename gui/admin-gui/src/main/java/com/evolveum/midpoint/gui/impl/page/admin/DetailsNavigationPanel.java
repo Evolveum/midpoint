@@ -107,25 +107,34 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return new ReadOnlyModel<>( () -> {
             ContainerPanelConfigurationType config = panelModel.getObject();
             String panelIdentifier = config.getPanelType();
-            Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
-            Counter counter = panelClass.getAnnotation(Counter.class);
-            if (counter == null || counter.provider().equals(SimpleCounter.class)) {
-                return null;
-            }
-
-            Class<?> counterProvider = counter.provider();
-            try {
-                Constructor<?> constructor = counterProvider.getConstructor(IModel.class);
-                AssignmentCounter assoginmentCounter = (AssignmentCounter) constructor.newInstance(objectModel);
-                int count = assoginmentCounter.count();
+            if ("assignments".equals(panelIdentifier)) {
+                AssignmentCounter counter = new AssignmentCounter(objectModel);
+                int count = counter.count();
                 if (count == 0) {
                     return null;
                 }
                 return String.valueOf(count);
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
             }
             return null;
+//            Class<?> panelClass = PanelLoader.findPanel(panelIdentifier);
+//            Counter counter = panelClass.getAnnotation(Counter.class);
+//            if (counter == null || counter.provider().equals(SimpleCounter.class)) {
+//                return null;
+//            }
+//
+//            Class<?> counterProvider = counter.provider();
+//            try {
+//                Constructor<?> constructor = counterProvider.getConstructor(IModel.class);
+//                AssignmentCounter assoginmentCounter = (AssignmentCounter) constructor.newInstance(objectModel);
+//                int count = assoginmentCounter.count();
+//                if (count == 0) {
+//                    return null;
+//                }
+//                return String.valueOf(count);
+//            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//                e.printStackTrace();
+//            }
+//            return null;
         });
     }
 

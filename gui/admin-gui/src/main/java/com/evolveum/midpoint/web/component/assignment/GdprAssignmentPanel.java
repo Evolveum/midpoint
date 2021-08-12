@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import javax.xml.namespace.QName;
 
 @Experimental
-@PanelType(panelIdentifier = "gdprAssignments")
+@PanelType(name = "gdprAssignments")
 @PanelInstance(identifier = "gdprAssignments",
         applicableFor = UserType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

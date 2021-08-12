@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
@@ -74,6 +71,8 @@ public class GuiProfileCompiler {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
+    @Autowired private GuiProfileCompilerRegistry guiProfileCompilerRegistry;
+
     public void compileUserProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -87,7 +86,7 @@ public class GuiProfileCompiler {
         if (compiledGuiProfile != null) {
             setupUserPhoto(principal, compiledGuiProfile, result);
         }
-
+        guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 

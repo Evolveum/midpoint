@@ -96,7 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-@PanelType(panelIdentifier = "allAssignments")
+@PanelType(name = "allAssignments")
 @PanelInstance(identifier = "allAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

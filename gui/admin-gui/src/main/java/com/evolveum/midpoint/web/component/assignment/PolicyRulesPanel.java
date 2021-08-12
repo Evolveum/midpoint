@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(panelIdentifier = "policyRuleAssignments")
+@PanelType(name = "policyRuleAssignments")
 @PanelInstance(identifier = "policyRuleAssignments",
         applicableFor = AbstractRoleType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

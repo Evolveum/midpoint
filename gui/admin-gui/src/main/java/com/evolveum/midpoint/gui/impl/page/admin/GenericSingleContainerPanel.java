@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
 
-@PanelType(panelIdentifier = "genericSingleValue", generic = true)
+@PanelType(name = "genericSingleValue", generic = true)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
 
     private static final String ID_DETAILS = "details";

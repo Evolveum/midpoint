@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
-@PanelType(panelIdentifier = "orgAssignments")
+@PanelType(name = "orgAssignments")
 @PanelInstance(identifier = "orgAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

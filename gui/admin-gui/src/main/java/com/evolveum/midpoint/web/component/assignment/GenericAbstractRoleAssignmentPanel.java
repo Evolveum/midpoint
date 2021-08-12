@@ -35,7 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 
 @Experimental
-@PanelType(panelIdentifier = "dataProtectionAssignments")
+@PanelType(name = "dataProtectionAssignments")
 @PanelInstance(identifier = "dataProtectionAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

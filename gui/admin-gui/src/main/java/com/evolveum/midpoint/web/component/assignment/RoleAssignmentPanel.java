@@ -23,7 +23,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
-@PanelType(panelIdentifier = "roleAssignments")
+@PanelType(name = "roleAssignments")
 @PanelInstance(identifier = "roleAssignments",
         applicableFor = FocusType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
-@PanelType(panelIdentifier = "indirectAssignments")
+@PanelType(name = "indirectAssignments")
 @PanelInstance(identifier = "indirectAssignments",
         applicableFor = AssignmentHolderType.class,
         childOf = AssignmentHolderAssignmentPanel.class)

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import java.util.Collections;
 import java.util.List;
 
-@PanelType(panelIdentifier = "genericMultiValue", generic = true)
+@PanelType(name = "genericMultiValue", generic = true)
 public class GenericMultivalueContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O> {
 
     private static final String ID_DETAILS = "details";
