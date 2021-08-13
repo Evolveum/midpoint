@@ -236,32 +236,31 @@ public class ReportServiceImpl implements ReportService {
         DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
         MiscUtil.stateCheck(sourceType != null, "No source type specified in " + widget);
 
-        CollectionRefSpecificationType collectionRefSpecification =
-                getDashboardService().getCollectionRefSpecificationType(widget, task, result);
-
-        CompiledObjectCollectionView compiledCollection = getModelInteractionService().compileObjectCollectionView(
-                collectionRefSpecification, null, task, result);
-
+        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
         if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
             getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
         }
+        CollectionRefSpecificationType collectionRefSpecification =
+                getDashboardService().getCollectionRefSpecificationType(widget, task, result);
+        if (collectionRefSpecification != null) {
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
+                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+            getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
+            compiledCollection = compiledCollectionRefSpec;
+        }
 
-        GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, compiledCollection.getContainerType());
+        GuiObjectListViewType reportView = getReportViewByType(
+                dashboardConfig, ObjectUtils.defaultIfNull(compiledCollection.getContainerType(), ObjectType.COMPLEX_TYPE));
         if (reportView != null) {
             getModelInteractionService().applyView(compiledCollection, reportView);
         }
+
         if (compiledCollection.getColumns().isEmpty()) {
            Class<Containerable> type = resolveTypeForReport(compiledCollection);
-           getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+           getModelInteractionService().applyView(
+                   compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
         }
         return compiledCollection;
-    }
-
-    private void applyView(CompiledObjectCollectionView compiledCollection, ObjectCollectionType collection) {
-        getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
-        if (compiledCollection.getContainerType() == null) {
-            compiledCollection.setContainerType(collection.getType());
-        }
     }
 
     private GuiObjectListViewType getReportViewByType(DashboardReportEngineConfigurationType dashboardConfig, QName type) {
@@ -276,38 +275,30 @@ public class ReportServiceImpl implements ReportService {
     public CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(collectionConfig, "Collection engine in report couldn't be null.");
-        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
-        ObjectReferenceType ref = null;
-        if (collectionRefSpecification != null) {
-            ref = collectionRefSpecification.getCollectionRef();
-        }
-        ObjectCollectionType collection = null;
-        if (ref != null && ref.getOid() != null) {
-            Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-            collection = (ObjectCollectionType) getModelService()
-                    .getObject(type, ref.getOid(), null, task, result)
-                    .asObjectable();
-        }
-        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
-            if (collection != null) {
-                applyView(compiledCollection, collection);
-            } else if (collectionRefSpecification != null && collectionRefSpecification.getBaseCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null
-                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef().getOid() != null) {
-                ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-                applyView(compiledCollection, baseCollection);
-            }
-        }
 
+        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
         GuiObjectListViewType reportView = collectionConfig.getView();
         if (reportView != null) {
             getModelInteractionService().applyView(compiledCollection, reportView);
         }
+
+        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
+        if (collectionRefSpecification != null) {
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
+                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+
+            if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
+                compiledCollectionRefSpec.getColumns().clear();
+            }
+            getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
+            compiledCollection = compiledCollectionRefSpec;
+        }
+
         if (compiledCollection.getColumns().isEmpty()) {
             if (useDefaultView) {
                 Class<Containerable> type = resolveTypeForReport(compiledCollection);
-                getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+                getModelInteractionService().applyView(
+                        compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
             } else {
                 return null;
             }

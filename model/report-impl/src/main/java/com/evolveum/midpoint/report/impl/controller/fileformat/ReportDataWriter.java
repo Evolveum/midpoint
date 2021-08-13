@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.report.impl.controller.fileformat;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Function;
+
 /**
  * Responsible for creating and manipulating text representation of an exported report.
  *
@@ -64,4 +68,9 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
      * Use data in data writer.
      */
     String completizeReport();
+
+    @Nullable
+    default Function<String, String> getFunctionForWidgetStatus(){
+        return null;
+    };
 }

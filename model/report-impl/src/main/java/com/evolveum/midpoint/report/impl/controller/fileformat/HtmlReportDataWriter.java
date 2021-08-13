@@ -54,7 +54,9 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
             });
             tBody.with(tr);
         });
-        sb.append(tBody.render());
+        if (tBody.getNumChildren() != 0) {
+            sb.append(tBody.render());
+        }
         return sb.toString();
     }
 

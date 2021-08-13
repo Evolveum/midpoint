@@ -23,7 +23,7 @@
     <defaultView>
         <column>
             <name>timeColumnCollection</name>
-            <path>time</path>
+            <path>timestamp</path>
             <display>
                 <label>Time (Collection)</label>
             </display>

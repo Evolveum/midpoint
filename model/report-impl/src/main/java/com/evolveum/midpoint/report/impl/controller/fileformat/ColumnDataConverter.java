@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,10 +30,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.report.impl.controller.fileformat.CommonHtmlSupport.*;
@@ -80,7 +85,7 @@ class ColumnDataConverter<C extends Containerable> {
         this(record, report, new VariablesMap(), reportService, task, result);
     }
 
-    List<String> convertWidgetColumn(@NotNull String header) throws CommonException {
+    List<String> convertWidgetColumn(@NotNull String header, @Nullable Function<String, String> processValueForStatus) throws CommonException {
         DashboardWidget data = reportService.getDashboardService().createWidgetData((DashboardWidgetType) record, task, result);
         if (header.equals(LABEL_COLUMN)) {
             return Collections.singletonList(data.getLabel(reportService.getLocalizationService()));
@@ -91,7 +96,11 @@ class ColumnDataConverter<C extends Containerable> {
         if (header.equals(STATUS_COLUMN)) {
             List<String> values = new ArrayList<>();
             if (data.getDisplay() != null && StringUtils.isNoneBlank(data.getDisplay().getColor())) {
-                values.add(VALUE_CSS_STYLE_TAG + "{background-color: " + data.getDisplay().getColor() + " !important;}");
+                if (processValueForStatus == null) {
+                    values.add(data.getDisplay().getColor());
+                } else {
+                    values.add(processValueForStatus.apply(data.getDisplay().getColor()));
+                }
             }
             return values;
         }

@@ -139,8 +139,6 @@ public class DashboardBasedExportController<C extends Containerable> extends Col
 //            }
 //        }
 
-        variables.putAll(this.reportService.evaluateSubreportParameters(report.asPrismObject(), variables, workerTask, result));
-
         ColumnDataConverter<C> columnDataConverter =
                 new ColumnDataConverter<>(record, report, variables, reportService, workerTask, result);
 

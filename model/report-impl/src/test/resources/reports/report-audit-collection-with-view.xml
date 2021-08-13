@@ -14,14 +14,14 @@
         <view>
             <column>
                 <name>timeColumn</name>
-                <path>time</path>
+                <path>timestamp</path>
                 <display>
                     <label>Time</label>
                 </display>
             </column>
             <column>
                 <name>timeColumn2</name>
-                <path>time</path>
+                <path>timestamp</path>
                 <display>
                     <label>Time2</label>
                 </display>

@@ -52,8 +52,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, initResult);
         repoAdd(REPORT_USER_LIST, initResult);
         repoAdd(REPORT_USER_LIST_SCRIPT, initResult);
-
-//        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
+        repoAdd(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, initResult);
+        repoAdd(REPORT_DASHBOARD_EMPTY, initResult);
 
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS_WITH_VIEW, initResult);
@@ -63,82 +63,99 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW, initResult);
         repoAdd(OBJECT_COLLECTION_BASIC_FILTER, initResult);
         repoAdd(OBJECT_COLLECTION_EMPTY, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_RESOURCE, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_ASSIGNMENT_HOLDER, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_TASK, initResult);
+        repoAdd(OBJECT_COLLECTION_SHADOW_OF_RESOURCE, initResult);
+
+        repoAdd(DASHBOARD_DEFAULT_COLUMNS, initResult);
+        repoAdd(DASHBOARD_EMPTY, initResult);
 
         createUsers(USERS, initResult);
     }
 
     @Test
-    public void test100CreateAuditCollectionReportWithDefaultColumn() throws Exception {
+    public void test001DashboardReportWithDefaultColumn() throws Exception {
+        runTest(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, 8, 3, null);
+    }
+
+    @Test
+    public void test004DashboardReportEmpty() throws Exception {
+        runTest(REPORT_DASHBOARD_EMPTY, 3, 3, null);
+    }
+
+    @Test
+    public void test100AuditCollectionReportWithDefaultColumn() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, -1, 8, null);
     }
 
     @Test
-    public void test101CreateAuditCollectionReportWithView() throws Exception {
+    public void test101AuditCollectionReportWithView() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_WITH_VIEW, -1, 2, null);
     }
 
     @Test
-    public void test102CreateAuditCollectionReportWithDoubleView() throws Exception {
+    public void test102AuditCollectionReportWithDoubleView() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW, -1, 3, null);
     }
 
     @Test
-    public void test103CreateAuditCollectionReportWithCondition() throws Exception {
+    public void test103AuditCollectionReportWithCondition() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_WITH_CONDITION, 2, 8, null);
     }
 
     @Test
-    public void test104CreateAuditCollectionReportEmpty() throws Exception {
+    public void test104AuditCollectionReportEmpty() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_EMPTY, 1, 8, null);
     }
 
     @Test
-    public void test110CreateObjectCollectionReportWithDefaultColumn() throws Exception {
+    public void test110ObjectCollectionReportWithDefaultColumn() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN, 54, 6, null);
     }
 
     @Test
-    public void test111CreateObjectCollectionReportWithView() throws Exception {
+    public void test111ObjectCollectionReportWithView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_VIEW, 2, 2, null);
     }
 
     @Test
-    public void test112CreateObjectCollectionReportWithDoubleView() throws Exception {
+    public void test112ObjectCollectionReportWithDoubleView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW, 54, 3, null);
     }
 
     @Test
-    public void test113CreateObjectCollectionReportWithFilter() throws Exception {
+    public void test113ObjectCollectionReportWithFilter() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER, 3, 2, null);
     }
 
     @Test
-    public void test114CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
+    public void test114ObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION, 2, 2, null);
     }
 
     @Test
-    public void test115CreateObjectCollectionReportWithCondition() throws Exception {
+    public void test115ObjectCollectionReportWithCondition() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_CONDITION, 2, 6, null);
     }
 
     @Test
-    public void test116CreateObjectCollectionEmptyReport() throws Exception {
+    public void test116ObjectCollectionEmptyReport() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_EMPTY, 1, 6, null);
     }
 
     @Test
-    public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+    public void test117ObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW, 2, 1, null);
     }
 
 //    @Test //TODO uncomment after implementation of parameters in new task config
-//    public void test118CreateObjectCollectionWithParamReport() throws Exception {
+//    public void test118ObjectCollectionWithParamReport() throws Exception {
 //        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM, 2, 2, null);
 //    }
 
     @Test
-    public void test119CreateObjectCollectionWithSubreportParamReport() throws Exception {
+    public void test119ObjectCollectionWithSubreportParamReport() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, 2, 2, "\"will\";\"TestRole1230,TestRole123010\"");
     }
 

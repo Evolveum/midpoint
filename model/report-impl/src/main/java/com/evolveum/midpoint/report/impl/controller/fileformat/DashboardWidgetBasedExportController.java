@@ -124,7 +124,7 @@ public class DashboardWidgetBasedExportController<C extends Containerable> imple
 
         for (String label : getHeadsOfWidget()) {
             dataRow.addColumn(
-                    columnDataConverter.convertWidgetColumn(label));
+                    columnDataConverter.convertWidgetColumn(label, dataWriter.getFunctionForWidgetStatus()));
         }
 
         dataWriter.appendDataRow(dataRow);

@@ -89,6 +89,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "report-user-list-script.xml", "222bf2b8-c89b-11e7-bf36-ebd4e4d45a80");
     static final TestResource<ReportType> REPORT_DASHBOARD_WITH_DEFAULT_COLUMN = new TestResource<>(TEST_DIR_REPORTS,
             "report-dashboard-with-default-column.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8582");
+    static final TestResource<ReportType> REPORT_DASHBOARD_WITH_VIEW = new TestResource<>(TEST_DIR_REPORTS,
+            "report-dashboard-with-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8533");
+    static final TestResource<ReportType> REPORT_DASHBOARD_WITH_TRIPLE_VIEW = new TestResource<>(TEST_DIR_REPORTS,
+            "report-dashboard-with-triple-view.xml", "2b87aa2e-dd86-4842-bcf5-76200a9a8533");
+    static final TestResource<ReportType> REPORT_DASHBOARD_EMPTY = new TestResource<>(TEST_DIR_REPORTS,
+            "report-dashboard-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8eq2");
 
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-audit-records.xml", "00000000-0000-0000-0001-000000001234");
@@ -98,25 +104,41 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "object-collection-audit-empty.xml", "11000000-0000-0000-0001-000000gh1234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-user.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb266");
-    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ROLES = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-all-role.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb255");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-user-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb266");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ROLES = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-all-role.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb255");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ROLES_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-all-role-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb255");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_BASIC_FILTER = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-basic-filter.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb299");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_EMPTY = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-empty.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb201");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_RESOURCE = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-resource.xml", "00000000-0000-0000-0001-000000000006");
-    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ASSIGNMENT = new TestResource<>(TEST_DIR_COMMON,
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_RESOURCE_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-all-resource-with-view.xml", "11000000-0000-0000-0001-000000000006");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ASSIGNMENT_HOLDER = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-assignment-holder.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb775");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_ASSIGNMENT_HOLDER_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-all-assignment-holder-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb775");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_TASK = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-task.xml", "00000000-0000-0000-0001-000000000007");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_TASK_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-all-task-with-view.xml", "11000000-0000-0000-0001-000000000007");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_SHADOW_OF_RESOURCE = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-shadow-of-resource.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb244");
+    static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_SHADOW_OF_RESOURCE_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "object-collection-shadow-of-resource-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb244");
 
     static final TestResource<ObjectCollectionType> DASHBOARD_DEFAULT_COLUMNS = new TestResource<>(TEST_DIR_COMMON,
             "dashboard-default-columns.xml", "00000000-0000-0000-0001-000000001231");
+    static final TestResource<ObjectCollectionType> DASHBOARD_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "dashboard-with-view.xml", "00000000-0000-0000-0001-000000661231");
+    static final TestResource<ObjectCollectionType> DASHBOARD_WITH_TRIPLE_VIEW = new TestResource<>(TEST_DIR_COMMON,
+            "dashboard-with-triple-view.xml", "00000000-0000-0000-0001-000022661231");
+    static final TestResource<ObjectCollectionType> DASHBOARD_EMPTY = new TestResource<>(TEST_DIR_COMMON,
+            "dashboard-empty.xml", "00000000-0000-0000-0001-000000kj1231");
 
     static final TestResource<ObjectCollectionType> USER_WILL = new TestResource<>(TEST_DIR_COMMON,
             "user-will.xml", "c0c010c0-d34d-b33f-f00d-111111111122");

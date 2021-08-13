@@ -35,11 +35,11 @@ public class TestCsvReportExportClassicSafe extends TestCsvReportExportClassic {
     }
 
     @Test( expectedExceptions = { AssertionError.class })
-    public void test101CreateAuditCollectionReportWithView() throws Exception {
-        super.test101CreateAuditCollectionReportWithView();
+    public void test101AuditCollectionReportWithView() throws Exception {
+        super.test101AuditCollectionReportWithView();
     }
     @Test( expectedExceptions = { AssertionError.class })
-    public void test102CreateAuditCollectionReportWithDoubleView() throws Exception {
-        super.test102CreateAuditCollectionReportWithDoubleView();
+    public void test102AuditCollectionReportWithDoubleView() throws Exception {
+        super.test102AuditCollectionReportWithDoubleView();
     }
 }

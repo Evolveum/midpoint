@@ -478,6 +478,13 @@ public class CollectionProcessor {
         if (existingView.getContainerType() == null) {
             existingView.setContainerType(objectListViewType.getType());
         }
+        if (objectListViewType.getType() != null) {
+            Class<Object> existingType = prismContext.getSchemaRegistry().determineCompileTimeClass(existingView.getContainerType());
+            Class<Object> newType = prismContext.getSchemaRegistry().determineCompileTimeClass(objectListViewType.getType());
+            if (existingType != null && newType != null && existingType.isAssignableFrom(newType)) {
+                existingView.setContainerType(objectListViewType.getType());
+            }
+        }
     }
 
     private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

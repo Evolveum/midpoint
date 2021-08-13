@@ -10,18 +10,19 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
-import j2html.TagCreator;
-import j2html.tags.ContainerTag;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Creates and manipulates exported reports in HTML format for dashboard reports.
  */
-public class HtmlDashboardReportDataWriter extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> {
+public class HtmlDashboardReportDataWriter
+        extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> {
 
     private static final String BASIC_WIDGET_ROW_KEY = "BaseWidgetID";
 
@@ -122,6 +123,9 @@ public class HtmlDashboardReportDataWriter extends HtmlReportDataWriter<Exported
             String tableData = Arrays.stream(
                     StringUtils.substringsBetween(aggregatedData, "<" +entry.getKey() + ">", "</" +entry.getKey() + ">"))
                     .collect(Collectors.joining());
+            if (!BASIC_WIDGET_ROW_KEY.equals(entry.getKey()) && !tableData.contains("<tbody>")) {
+                return;
+            }
             String tableBox = createTableBox(tableData, entry.getValue().support, true);
             body.append(tableBox).append("<br>");
         });
@@ -140,6 +144,9 @@ public class HtmlDashboardReportDataWriter extends HtmlReportDataWriter<Exported
         body.append("<div> <style> ").append(cssStyle).append(" </style>");
 
         data.entrySet().forEach(entry -> {
+            if (!BASIC_WIDGET_ROW_KEY.equals(entry.getKey()) && entry.getValue().dataRows.isEmpty()) {
+                return;
+            }
             String tableData = getStringDataInternal(entry.getValue().headerRow, entry.getValue().dataRows);
             String tableBox = createTableBox(tableData, entry.getValue().support, false);
             body.append(tableBox).append("<br>");
@@ -152,6 +159,11 @@ public class HtmlDashboardReportDataWriter extends HtmlReportDataWriter<Exported
 
     private CommonHtmlSupport getDefaultSupport() {
         return data.get(BASIC_WIDGET_ROW_KEY).support;
+    }
+
+    @Override
+    public @Nullable Function<String, String> getFunctionForWidgetStatus() {
+        return (value) -> CommonHtmlSupport.VALUE_CSS_STYLE_TAG + "{background-color: " + value + " !important;}";
     }
 
     class ExportedWidgetData {
