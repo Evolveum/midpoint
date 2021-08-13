@@ -102,7 +102,9 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
             <!--
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypeInheritance"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.misc.TestTracing"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>

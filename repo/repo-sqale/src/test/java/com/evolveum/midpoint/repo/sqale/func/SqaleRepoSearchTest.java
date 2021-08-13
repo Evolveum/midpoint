@@ -377,7 +377,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     // region simple filters
     @Test
-    public void test100SearchUserByName() throws Exception {
+    public void test100SearchAllObjectsWithEmptyFilter() throws Exception {
         when("searching all objects with query without any conditions and paging");
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
@@ -398,18 +398,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test110SearchUserByName() throws Exception {
-        when("searching user with query without any conditions and paging");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(UserType.F_NAME).eq(PolyString.fromOrig("user-1"))
-                        .build(),
-                operationResult);
+        searchUsersTest("with name matching provided value",
+                f -> f.item(UserType.F_NAME).eq(PolyString.fromOrig("user-1")),
+                user1Oid);
+    }
 
-        then("user with the matching name is returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
+    /**
+     * Couple of notes about matchingNorm/Orig:
+     *
+     * * String value can be provided instead of {@link PolyString} with norm/orig matcher.
+     * * String value is taken as-is for orig matching.
+     * * String value is normalized as configured for norm matching (as demonstrated in this test).
+     */
+    @Test
+    public void test110SearchUserByNameNormalized() throws Exception {
+        searchUsersTest("with normalized name matching provided value",
+                f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
+                user2Oid);
     }
 
     @Test
@@ -1344,7 +1349,8 @@ AND(
             throws SchemaException {
         searchUsersTest("with extension poly-string item norm equal to String value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
-                        .eq("polyvalue").matchingNorm(),
+                        // casing of provided string is ignored
+                        .eq("PolyValue").matchingNorm(),
                 user1Oid);
     }
 
