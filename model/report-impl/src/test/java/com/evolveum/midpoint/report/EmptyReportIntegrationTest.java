@@ -32,8 +32,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static com.evolveum.midpoint.report.AbstractReportIntegrationTest.*;
-
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
@@ -147,6 +145,10 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
     static final TestResource<TaskType> TASK_EXPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "task-export.xml", "d3a13f2e-a8c0-4f8c-bbf9-e8996848bddf");
+
+    protected static final File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
+    protected static final File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
+    protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR_COMMON, "system-configuration.xml");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
