@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -350,7 +351,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        return oid != null ? UUID.fromString(oid) : null;
+        try {
+            return oid != null ? UUID.fromString(oid) : null;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
+        }
     }
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
