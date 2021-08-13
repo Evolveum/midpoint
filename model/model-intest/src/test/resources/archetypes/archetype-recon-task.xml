@@ -8,7 +8,7 @@
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
            oid="00000000-0000-0000-0000-000000000541" >
-    <name>Reconciliation task</name>
+    <name>Reconciliation task 2</name>
     <superArchetypeRef oid="00000000-0000-0000-0000-000000000521" type="ArchetypeType"/>
     <archetypePolicy>
         <display>
