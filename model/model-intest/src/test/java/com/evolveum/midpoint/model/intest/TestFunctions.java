@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests selected methods in MidpointFunctions.
@@ -33,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestFunctions extends AbstractInitializedModelIntegrationTest {
+
+    public static final String NON_EXISTENT_OID = "8dbaca35-6b64-4d1b-a476-b21a550ed136";
 
     @FunctionalInterface
     private interface CheckedRunnable {
@@ -48,7 +48,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef("non-existing-oid", ObjectTypes.USER);
+        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(NON_EXISTENT_OID, ObjectTypes.USER);
 
         when();
         execute(task, result, () -> libraryMidpointFunctions.resolveReferenceIfExists(broken));
@@ -66,7 +66,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef("non-existing-oid", ObjectTypes.USER);
+        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(NON_EXISTENT_OID, ObjectTypes.USER);
 
         when();
         try {
@@ -97,14 +97,16 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
 
         then();
         assertSuccess(result);
+        // @formatter:off
         assertUserAfter(USER_ADMINISTRATOR_OID)
                 .triggers()
                     .single()
                         .assertOriginDescription("test120");
+        // @formatter:on
     }
 
     private void execute(Task task, OperationResult result, CheckedRunnable runnable) throws CommonException {
-        ExpressionEnvironment<?,?,?> environment = new ExpressionEnvironment<>(task, result);
+        ExpressionEnvironment<?, ?, ?> environment = new ExpressionEnvironment<>(task, result);
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(environment);
         try {
             runnable.run();
