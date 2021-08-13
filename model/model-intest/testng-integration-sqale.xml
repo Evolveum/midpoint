@@ -28,9 +28,8 @@ mvn integration-test -P sqale -pl model/model-intest/
     -->
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <!--
-            TODO: starts failing with test135 (WIP)
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+            <!--
             TODO: subclass of the above, but more is failing, probably because of missing RAW support?
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
             -->
@@ -54,9 +53,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingChaining"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
-            <!-- TODO failing on duplicate assignment regression
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <!-- TODO fails on skip counter assert
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
@@ -76,15 +73,23 @@ mvn integration-test -P sqale -pl model/model-intest/
             -->
             <!-- TODO test210 fails with: Unknown compile time class of container value of 'riskVector'.
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
             <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
+            <!-- TODO needs working audit impl.
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
+            -->
+            <!-- TODO test800/804 fail on validity scanner (type of search problem I guess)
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
+            TODO: different kind of wrong query: Missing item mapping for 'roleType' in mapping QAssignmentHolderMapping
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <!-- TODO Missing item mapping for 'roleType' in mapping QAssignmentHolderMapping
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAutoassign"/>
@@ -95,6 +100,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypes"/>
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypeInheritance"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestTracing"/>
@@ -103,6 +109,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestFunctions"/>
             <class name="com.evolveum.midpoint.model.intest.TestLinkedObjects"/>
             <class name="com.evolveum.midpoint.model.intest.TestMemberRecompute"/>
+            -->
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -110,9 +117,12 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingLiveSync"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliation"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultithreaded"/>
+            <!-- TODO test130: Unknown definition type 'PCD:{.../common/common-3}modelExecuteOptions {.../common/common-3}ModelExecuteOptionsType[0,-1],RAM', can't say if 'modelExecuteOptions' is indexed or not.
             <class name="com.evolveum.midpoint.model.intest.sync.TestRecomputeTask"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>

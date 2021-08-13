@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -2409,10 +2408,92 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test307RepeatedContainerAdditionDoesNotAddDuplicates()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        long origAssignmentCount = count(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+
+        given("delta replacing assignments for user 1 with a single one applied to object once");
+        UUID roleOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE))
+                .asObjectDelta(user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid))))
+                .isEqualTo(origAssignmentCount + 1);
+
+        when("the same delta is executed repeatedly");
+        // this one is easy, modification is actually narrowed out as it is the same (ignoring ID)
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("no new container should be added");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid))))
+                .isEqualTo(origAssignmentCount + 1);
+
+        and("serialized form also contains only one more assignment");
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize((int) (origAssignmentCount + 1));
+    }
+
+    @Test
+    public void test308RepeatedContainerAdditionWithDifferentOperationalAttrsDoesNotAddDuplicates()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        long origAssignmentCount = count(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+
+        given("delta replacing assignments for user 1 with a single one applied to object once");
+        UUID roleOid = UUID.randomUUID();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
+                        .metadata(new MetadataType(prismContext)
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
+                .asObjectDelta(user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(count(a, a.ownerOid.eq(UUID.fromString(user1Oid))))
+                .isEqualTo(origAssignmentCount + 1);
+
+        when("add delta with similar container with only operational attributes different");
+        delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext)
+                        .targetRef(roleOid.toString(), RoleType.COMPLEX_TYPE)
+                        .metadata(new MetadataType(prismContext)
+                                .createTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
+                .asObjectDelta(user1Oid);
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("serialized form contains no new assignments");
+        assertThatOperationResult(result).isSuccess();
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        List<AssignmentType> assignments = userObject.getAssignment();
+        assertThat(assignments).hasSize((int) (origAssignmentCount + 1));
+
+        and("no new row is added, but assignment row is updated");
+        List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
+        assertThat(aRows).hasSize(assignments.size())
+                .anyMatch(aRow -> aRow.targetRefTargetOid.equals(roleOid)
+                        && aRow.createTimestamp.equals(Instant.ofEpochMilli(2)));
+    }
+
+    @Test
     public void test310AddingAssignmentWithNewPrefilledCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        int origAssignmentCount = (int) count(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
 
         given("delta adding assignments with free CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -2433,17 +2514,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(3)
-                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq));
+        assertThat(assignments).hasSize(origAssignmentCount + 1)
+                .anyMatch(ass -> ass.getId().equals(originalRow.containerIdSeq));
 
         and("new assignment row is created");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq + 1);
 
-        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(3)
+        assertThat(aRows).hasSize(assignments.size())
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq)
                         && aRow.orderValue == 1);
     }
@@ -2453,6 +2533,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        int origAssignmentCount = (int) count(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
 
         given("delta deleting assignments using CID for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -2472,17 +2554,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(2)
-                .noneMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+        assertThat(assignments).hasSize(origAssignmentCount - 1)
+                .noneMatch(ass -> ass.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no need for change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(2)
+        assertThat(aRows).hasSize(assignments.size())
                 .noneMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1));
     }
 
@@ -2491,6 +2572,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
+        int origAssignmentCount = (int) count(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
 
         // this is NOT recommended in practice, reusing previous CIDs is messy
         given("delta adding assignments with used but now free CID for user 1");
@@ -2512,17 +2595,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
         List<AssignmentType> assignments = userObject.getAssignment();
-        assertThat(assignments).hasSize(3)
-                .anyMatch(a -> a.getId().equals(originalRow.containerIdSeq - 1));
+        assertThat(assignments).hasSize(origAssignmentCount + 1)
+                .anyMatch(ass -> ass.getId().equals(originalRow.containerIdSeq - 1));
 
         and("new assignment row is created");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.containerIdSeq).isEqualTo(originalRow.containerIdSeq); // no change
 
-        QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
-        assertThat(aRows).hasSize(3)
+        assertThat(aRows).hasSize(assignments.size())
                 .anyMatch(aRow -> aRow.cid.equals(originalRow.containerIdSeq - 1)
                         && aRow.orderValue == 1);
     }
@@ -2534,21 +2616,20 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("object with existing container values");
-        AtomicInteger counter = new AtomicInteger(1);
         List<AssignmentType> assignments = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable()
                 .getAssignment()
                 .stream()
-                .map(a -> a.clone() // we need to get it out of original parent
-                        .lifecycleState(String.valueOf(counter.getAndIncrement()))) // some change
+                .map(ass -> ass.clone() // we need to get it out of original parent
+                        .lifecycleState(String.valueOf(ass.getId()))) // some change
                 .collect(Collectors.toList());
 
         and("delta replacing the values with the same values again (with CIDs already)");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .replace(assignments.stream()
-                        .map(a -> a.asPrismContainerValue())
+                        .map(ass -> ass.asPrismContainerValue())
                         .collect(Collectors.toList()))
                 .asObjectDelta(user1Oid);
 
@@ -2573,8 +2654,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         List<MAssignment> aRows = select(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRows).hasSize(assignments.size())
-                .extracting(aRow -> aRow.lifecycleState)
-                .containsExactlyInAnyOrder("1", "2", "3");
+                .allMatch(aRow -> String.valueOf(aRow.cid).equals(aRow.lifecycleState));
     }
 
     @Test
