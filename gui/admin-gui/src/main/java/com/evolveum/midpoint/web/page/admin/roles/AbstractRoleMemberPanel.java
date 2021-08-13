@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
@@ -359,7 +360,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return new SearchValue<>(typeClass, "ObjectType." + typeClass.getSimpleName());
     }
 
-    protected LoadableModel<MultiFunctinalButtonDto> loadButtonDescriptions() {
+    protected LoadableModel<MultiFunctinalButtonDto> loadMultiFunctionalButtonModel() {
 
         return new LoadableModel<>(false) {
 
@@ -408,7 +409,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ChooseMemberPopup browser = new ChooseMemberPopup(AbstractRoleMemberPanel.this.getPageBase().getMainPopupBodyId(),
-                        null) {
+                        getMemberPanelStorage().getRelationSearchItem(), loadMultiFunctionalButtonModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -418,7 +419,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                     @Override
                     protected List<QName> getAvailableObjectTypes(){
-                        return new ArrayList<>(); //todo
+                        return null;
                     }
 
                     @Override
@@ -521,6 +522,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private DisplayType getAssignMemberButtonDisplayType() {
         return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
                 AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
+    }
+
+    private IModel<AssignmentPopupDto> createAssignmentPopupModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected AssignmentPopupDto load() {
+                List<AssignmentObjectRelation> assignmentObjectRelations = loadMemberRelationsList();
+                return new AssignmentPopupDto(assignmentObjectRelations);
+            }
+        };
     }
 
     protected List<InlineMenuItem> createRowActions() {

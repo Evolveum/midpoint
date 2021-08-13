@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -29,12 +30,12 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
     private static final long serialVersionUID = 1L;
 
     public ChooseOrgMemberPopup(String id, RelationSearchItemConfigurationType relationCofig){
-        super(id, relationCofig);
+        super(id, relationCofig, null); //todo
     }
 
     @Override
-    protected List<ITab> createAssignmentTabs() {
-        List<ITab> tabs = super.createAssignmentTabs();
+    protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
+        List<ITab> tabs = super.createAssignmentTabs(relationSpec);
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"),
                 new VisibleBehaviour(() -> getAvailableObjectTypes() == null)) {
 
