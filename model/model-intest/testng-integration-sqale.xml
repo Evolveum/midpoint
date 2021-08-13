@@ -15,17 +15,18 @@ mvn integration-test -P sqale -pl model/model-intest/
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
-    <!-- TODO were in unit tests - but why?
+    <!-- TODO were in unit tests - but why? -->
     <test name="Security" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
+            <!-- TODO missing audit implementation
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
+            -->
         </classes>
     </test>
-    -->
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
@@ -108,10 +109,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>
             <class name="com.evolveum.midpoint.model.intest.TestFunctions"/>
-            <!--
             <class name="com.evolveum.midpoint.model.intest.TestLinkedObjects"/>
             <class name="com.evolveum.midpoint.model.intest.TestMemberRecompute"/>
-            -->
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -126,6 +125,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
             <!--
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
+            -->
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
@@ -134,6 +134,7 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskMultithreaded"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacy"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacyMultithreaded"/>
+            <!--
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskReporting"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
         </classes>

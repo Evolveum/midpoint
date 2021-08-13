@@ -205,7 +205,7 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("OID " + oid + " is invalid", e);
+            throw new IllegalArgumentException("Invalid UUID string: " + oid, e);
         }
     }
 
