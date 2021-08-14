@@ -82,6 +82,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
                 cancelPerformed(target);
             }
         };
+        cancel.add(new VisibleBehaviour(() -> isCancelButtonVisible()));
         add(cancel);
     }
 
@@ -104,6 +105,10 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 
 
     protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+    }
+
+    protected boolean isCancelButtonVisible() {
+        return !(MultiCompositedButtonPanel.this.findParent(BasePanel.class) instanceof Popupable);
     }
 
     @Override
