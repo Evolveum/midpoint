@@ -50,13 +50,13 @@ public class CompositedButtonPanel extends BasePanel<CompositedIconButtonDto> {
         }));
         add(label);
 
-        add(AttributeAppender.append("title", new ReadOnlyModel<>(() -> {
+        compositedIconPanel.add(AttributeAppender.append("title", new ReadOnlyModel<>(() -> {
             DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
             return WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
         })));
-        add(new TooltipBehavior());
+        compositedIconPanel.add(new TooltipBehavior());
 
-        add(new AjaxEventBehavior("click"){
+        compositedIconPanel.add(new AjaxEventBehavior("click"){
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
