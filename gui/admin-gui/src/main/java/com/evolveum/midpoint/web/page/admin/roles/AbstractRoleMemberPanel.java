@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -220,10 +221,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 super.refreshTable(target);
             }
 
-//            @Override
-//            protected MultifunctionalButton createCreateNewObjectButton(String buttonId) {
-//                return AbstractRoleMemberPanel.this.createCreateNewObjectButton(buttonId);
-//            }
+            @Override
+            protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView) {
+                List<ObjectReferenceType> refList = super.getNewObjectReferencesList(collectionView);
+                if (refList == null) {
+                    refList = new ArrayList<>();
+                }
+                ObjectReferenceType membershipRef = new ObjectReferenceType();
+                membershipRef.setOid(AbstractRoleMemberPanel.this.getModelObject().getOid());
+                membershipRef.setType(R.COMPLEX_TYPE);
+                refList.add(membershipRef);
+                return refList;
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
