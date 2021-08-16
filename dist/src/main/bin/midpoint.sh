@@ -6,9 +6,21 @@
 #
 # Script should run on bash 3.2 to allow OS X usage.
 
-set -eu
+### Default values ###
+
+#JAVA_HOME
+
+JAVA_def_Xms="2048M"
+JAVA_def_Xmx="4096M"
+JAVA_def_python_cachedir="tmp"
+JAVA_def_trustStore="keystore.jceks"
+JAVA_def_trustStoreType="jceks"
 
 USE_NOHUP="true"
+
+######################
+
+set -eu
 
 if [[ -z ${1:-} ]]; then
   echo "Usage: midpoint.sh start|stop [other args...]"
@@ -25,12 +37,149 @@ mkdir -p "${MIDPOINT_HOME}/log"
 
 # shellcheck disable=SC2034  # ORIG_JAVA_OPTS can be used used in setenv.sh lower
 ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
-JAVA_OPTS="${JAVA_OPTS:-}
--Xms2048M
--Xmx4096M
--Dpython.cachedir=${MIDPOINT_HOME}/tmp
--Djavax.net.ssl.trustStore=${MIDPOINT_HOME}/keystore.jceks
--Djavax.net.ssl.trustStoreType=jceks"
+
+#############################
+# Originally Docker related #
+#############################
+
+################
+# entry point for source of the files to copy into midpoint home directory before the application start
+################
+
+if [ ${MP_ENTRY_POINT:-} != "" ]	# /opt/midpoint-dirs-docker-entrypoint
+then
+	if [ -e ${MP_ENTRY_POINT} ]
+	then
+		echo "Processing ${MP_ENTRY_POINT} directory..."
+		for i in $( find ${MP_ENTRY_POINT} -mindepth 1 -maxdepth 1 -type d )
+		do
+			l_name=$(basename ${i})
+			[ ! -e ${MIDPOINT_HOME}/${l_name} ] && mkdir -p ${MIDPOINT_HOME}/${l_name}
+			for s in $( find ${i} -mindepth 1 -maxdepth 1 -type f -follow -exec basename \{\} \; )
+			do
+				if [ ! -e ${MIDPOINT_HOME}/${l_name}/${s} -a ! -e ${MIDPOINT_HOME}/${l_name}/${s}.done ]
+				then
+					echo "COPY ${i}/${s} => ${MIDPOINT_HOME}/${l_name}/${s}"
+					cp ${i}/${s} ${MIDPOINT_HOME}/${l_name}/${s}
+				else
+					echo "SKIP: ${i}/${s}"
+				fi
+			done
+		done
+		echo "- - - - - - - - - - - - - - - - - - - - -"
+		unset l_name
+	fi
+fi
+
+################
+
+[ "${MP_MEM_MAX:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xmx[^[:space:]]*//") -Xmx${MP_MEM_MAX}"
+[ "${MP_MEM_INIT:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xms[^[:space:]]*//") -Xms${MP_MEM_INIT}"
+
+[ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
+if [ "${REPO_DATABASE_TYPE:-}" != "" ]
+then
+	JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.database=[^[:space:]]*//") -Dmidpoint.repository.database=${REPO_DATABASE_TYPE}"
+	[ "${db_port:-}" == "default" ] && db_port=""
+	case ${REPO_DATABASE_TYPE} in
+		h2)
+			[ "${db_port:-}" == "" ] && db_port=5437
+			db_prefix="jdbc:h2:tcp://"
+			db_path="/${REPO_DATABASE:-midpoint}"
+			;;
+		mariadb)
+			[ "${db_port:-}" == "" ] && db_port=3306
+			db_prefix="jdbc:mariadb://"
+			db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
+			;;
+		mysql)
+			[ "${db_port:-}" == "" ] && db_port=3306
+			db_prefix="jdbc:mysql://"
+			db_path="/${REPO_DATABASE:-midpoint}?characterEncoding=utf8"
+			;;
+		oracle)
+			[ "${db_port:-}" == "" ] && db_port=1521
+			db_prefix="jdbc:oracle:thin:@"
+			db_path="/xe"
+			;;
+		postgresql)
+			[ "${db_port:-}" == "" ] && db_port=5432
+			db_prefix="jdbc:postgresql://"
+			db_path="/${REPO_DATABASE:-midpoint}"
+			;;
+		sqlserver)
+			[ "${db_port:-}" == "" ] && db_port=1433
+			db_prefix="jdbc:sqlserver://"
+			db_path=";databse=${REPO_DATABASE:-midpoint}"
+			;;
+		*)
+			if [ "${db_port:-}" == "" -a "${REPO_URL:-}" == "" ]
+			then
+				echo "~~~~~ please supply JDBC port for your repository ~~~~~"
+				exit 1
+			fi
+			;;
+	esac
+	if [ "${REPO_URL:-}" != "" ]
+	then
+		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUrl=[^[:space:]]*//") -Dmidpoint.repository.jdbcUrl=${REPO_URL}"
+	else
+		JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUrl=[^[:space:]]*//") -Dmidpoint.repository.jdbcUrl=${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
+	fi
+fi
+[ "${REPO_USER:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcUsername=[^[:space:]]*//") -Dmidpoint.repository.jdbcUsername=${REPO_USER}"
+[ "${REPO_PASSWORD_FILE:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.jdbcPassword_FILE=[^[:space:]]*//") -Dmidpoint.repository.jdbcPassword_FILE=${REPO_PASSWORD_FILE}"
+[ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.missingSchemaAction=[^[:space:]]*//") -Dmidpoint.repository.missingSchemaAction=${REPO_MISSING_SCHEMA_ACTION}"
+[ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.upgradeableSchemaAction=[^[:space:]]*//") -Dmidpoint.repository.upgradeableSchemaAction=${REPO_UPGRADEABLE_SCHEMA_ACTION}"
+[ "${REPO_SCHEMA_VARIANT:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.schemaVariant=[^[:space:]]*//") -Dmidpoint.repository.schemaVariant=${REPO_SCHEMA_VARIANT}"
+[ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.repository.schemaVersionIfMissing=[^[:space:]]*//") -Dmidpoint.repository.schemaVersionIfMissing=${REPO_SCHEMA_VERSION_IF_MISSING}"
+
+[ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Dmidpoint.keystore.keyStorePassword_FILE=[^[:space:]]*//") -Dmidpoint.keystore.keyStorePassword_FILE=${MP_KEYSTORE_PASSWORD_FILE}"
+
+if [ -e /.dockerenv ]
+then
+	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.repository.hibernateHbm2ddl=none"
+	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.repository.initializationFailTimeout=60000"
+
+	JAVA_OPTS="${JAVA_OPTS:-} -Dfile.encoding=UTF8"
+	JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.logging.alt.enabled=true"
+fi
+
+#############################
+
+# Check for the default JAVA_OPTS values. In case the specific key is already set the value is kept untouched.
+# To prevent Xms to be set pass the --Xms to JAVA_OPTS (double dash).
+# To prevent Xmx to be set pass the --Xmx to JAVA_OPTS (double dash).
+
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Xmx[0-9]")
+then
+        if $(echo "${JAVA_OPTS:-}" | grep -q "\-\-Xmx")
+        then
+                JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | sed "s/\-\-Xmx//")"
+        else
+                JAVA_OPTS="-Xmx${JAVA_def_Xmx} ${JAVA_OPTS:-}"
+        fi
+fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Xms[0-9]")
+then
+        if $(echo "${JAVA_OPTS:-}" | grep -q "\-\-Xms")
+        then
+                JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | sed "s/\-\-Xms//")"
+        else
+                JAVA_OPTS="-Xms${JAVA_def_Xms} ${JAVA_OPTS:-}"
+        fi
+fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dpython.cachedir=")  ; then  JAVA_OPTS="${JAVA_OPTS:-} -Dpython.cachedir=${MIDPOINT_HOME}/${JAVA_def_python_cachedir}" ; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStore=") ; then  JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStore=${MIDPOINT_HOME}/${JAVA_def_trustStore}" ; fi
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djavax.net.ssl.trustStoreType=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Djavax.net.ssl.trustStoreType=${JAVA_def_trustStoreType}" ; fi
+
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Dmidpoint.home=") ; then JAVA_OPTS="${JAVA_OPTS:-} -Dmidpoint.home=${MIDPOINT_HOME}" ; fi
+
+# TODO probably useless from Tomcat 7 and before history, remove and check LDAP/ConnId logging
+if $(echo "${JAVA_OPTS:-}" | grep -v -q "\-Djava.util.logging.manager=") ; then JAVA_OPTS="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager ${JAVA_OPTS:-}" ; fi
+
+#clean up white spaces in case of key/value removal from the original JAVA_OPTS parameter set
+JAVA_OPTS="$(echo "${JAVA_OPTS:-}" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//" )"
 
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
@@ -56,9 +205,6 @@ if [[ ! -f "${BASE_DIR}/lib/midpoint.war" ]]; then
   exit 1
 fi
 
-# TODO probably useless from Tomcat 7 and before history, remove and check LDAP/ConnId logging
-: "${LOGGING_MANAGER:="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"}"
-
 # Set UMASK unless it has been overridden
 : "${UMASK:="0027"}"
 umask ${UMASK}
@@ -75,6 +221,39 @@ if [[ "${USE_NOHUP}" == "true" ]]; then
 else
   _NOHUP=""
 fi
+
+#############################################################
+# Generate Systemd service definition
+#####
+# https://docs.evolveum.com/midpoint/install/systemd/
+#############################################################
+
+if [ "${MP_GEN_SYSTEMD:-}" != "" ]
+then
+	JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-genSystemd//" | tr -s [[:space:]] " " | sed "s/^[[:space:]]//;s/[[:space:]]$//" )"
+	echo "Place following content to /etc/systemd/system/midpoint.service file" >&2
+	echo "MP_GEN_SYSTEMD=1 ${0} ${@} | sudo tee /etc/systemd/system/midpoint.service" >&2
+	echo >&2
+	cat <<EOF
+[Unit]
+Description=MidPoint Standalone Service
+###Requires=postgresql.service
+###After=postgresql.service
+[Service]
+User=${MP_USER:-midpoint}
+WorkingDirectory=${BASE_DIR}
+ExecStart="${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/midpoint.war" "$@"
+SuccessExitStatus=143
+###TimeoutStopSec=120s
+[Install]
+WantedBy=multi-user.target
+EOF
+	echo >&2
+	echo -e "sudo systemctl daemon-reload\nsudo systemctl enable midpoint\nsudo systemctl start midpoint" >&2
+	exit 0
+fi
+
+#############################################################
 
 # ----- Execute The Requested Command -----------------------------------------
 
@@ -132,7 +311,7 @@ if [[ "$1" == "start" ]]; then
 
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
-    ${LOGGING_MANAGER} ${JAVA_OPTS} -Dmidpoint.home=${MIDPOINT_HOME} \
+    ${JAVA_OPTS} \
     -jar "${BASE_DIR}/lib/midpoint.war" \
     "$@" \
     "&" >>"${BOOT_OUT}" 2>&1
