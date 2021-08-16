@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
@@ -38,11 +39,12 @@ public class ExtensionMapping<Q extends FlexibleRelationalPathBase<R>, R>
     protected ExtensionMapping(
             @NotNull MExtItemHolderType holderType,
             @NotNull Class<Q> queryType,
-            @NotNull Function<Q, JsonbPath> rootToExtensionPath) {
+            @NotNull Function<Q, JsonbPath> rootToExtensionPath,
+            SqaleRepoContext context) {
         super(Containerable.class, queryType);
 
         this.holderType = holderType;
-        this.itemMapper = new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType);
+        this.itemMapper = new ExtensionItemSqlMapper<>(rootToExtensionPath, holderType, context);
     }
 
     @Override
