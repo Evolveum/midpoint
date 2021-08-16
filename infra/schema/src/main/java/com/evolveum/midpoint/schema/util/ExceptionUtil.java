@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.util;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
@@ -12,16 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 /**
  * @author Radovan Semancik
- *
  */
 public class ExceptionUtil {
 
@@ -101,7 +100,7 @@ public class ExceptionUtil {
     public static LocalizableMessage getUserFriendlyMessage(Throwable cause) {
         while (cause != null) {
             if (cause instanceof CommonException) {
-                LocalizableMessage userFriendlyMessage = ((CommonException)cause).getUserFriendlyMessage();
+                LocalizableMessage userFriendlyMessage = ((CommonException) cause).getUserFriendlyMessage();
                 if (userFriendlyMessage != null) {
                     return userFriendlyMessage;
                 }
@@ -111,20 +110,12 @@ public class ExceptionUtil {
         return null;
     }
 
+    /**
+     * Returns cause of specified type (can be `throwable` parameter itself) or `null`.
+     */
     public static <T extends Throwable> T findCause(Throwable throwable, Class<T> causeClass) {
         while (throwable != null) {
             if (causeClass.isAssignableFrom(throwable.getClass())) {
-                //noinspection unchecked
-                return (T) throwable;
-            }
-            throwable = throwable.getCause();
-        }
-        return null;
-    }
-
-    public static <T extends Throwable> T findException(Throwable throwable, Class<T> clazz) {
-        while (throwable != null) {
-            if (clazz.isAssignableFrom(throwable.getClass())) {
                 //noinspection unchecked
                 return (T) throwable;
             }
