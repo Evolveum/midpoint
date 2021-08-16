@@ -13,6 +13,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
@@ -61,7 +62,8 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
         this(filterProcessorFactory, null);
     }
 
-    public @Nullable Path<?> itemPrimaryPath(Q root) {
+    @Override
+    public @Nullable Path<?> itemOrdering(Q root, ItemDefinition<?> itemName) {
         return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
     }
 
@@ -78,10 +80,11 @@ public class DefaultItemSqlMapper<S, Q extends FlexibleRelationalPathBase<R>, R>
      * This may return null if the subclass supports other type of mapping for this item,
      * but not filtering for queries.
      */
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(
             SqlQueryContext<?, ?, ?> sqlQueryContext) {
-        return (ItemValueFilterProcessor<T>) filterProcessorFactory
+        return filterProcessorFactory
                 .apply((SqlQueryContext) sqlQueryContext);
     }
 }

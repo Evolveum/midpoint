@@ -177,6 +177,10 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         return (O) object.asPrismObject().find(path);
     }
 
+    public boolean isOverwrittenId(Long id) {
+        return cidGenerator.isOverwrittenId(id);
+    }
+
     public SQLUpdateClause update() {
         return update;
     }

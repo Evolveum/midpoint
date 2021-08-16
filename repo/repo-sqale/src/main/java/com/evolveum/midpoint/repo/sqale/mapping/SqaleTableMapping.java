@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -108,6 +109,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+
     }
 
     @Override
@@ -240,7 +242,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx, rootToQueryItem, "INTEGER", Integer.class,
                         ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
                 ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
+                        ctx.repositoryContext()::processCacheableUri));
     }
 
     /**
@@ -350,7 +352,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        return oid != null ? UUID.fromString(oid) : null;
+        try {
+            return oid != null ? UUID.fromString(oid) : null;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
+        }
     }
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
@@ -409,7 +415,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
         ExtensionMapping<Q, R> mapping =
-                new ExtensionMapping<>(holderType, queryType(), rootToPath);
+                new ExtensionMapping<>(holderType, queryType(), rootToPath, repositoryContext());
         addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));

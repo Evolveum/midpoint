@@ -171,4 +171,12 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
         }
         return parentContext.findValueOrItem(path);
     }
+
+    public boolean isOverwrittenId(Long id) {
+        if (parentContext == null) {
+            throw new UnsupportedOperationException(
+                    "findItem() is unsupported on non-root update context");
+        }
+        return parentContext.isOverwrittenId(id);
+    }
 }

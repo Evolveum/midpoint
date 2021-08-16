@@ -94,7 +94,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_SIMPLE_WAITING = new TestResource<>(TEST_DIR, "task-simple-waiting.xml", "91919191-76e0-59e2-86d6-556655660020");
     private static final TestResource<TaskType> TASK_TREE_ROOT = new TestResource<>(TEST_DIR, "task-tree-root.xml", "91919191-76e0-59e2-86d6-556655660021");
     private static final TestResource<TaskType> TASK_TREE_CHILD_1 = new TestResource<>(TEST_DIR, "task-tree-child-1.xml", "91919191-76e0-59e2-86d6-556655661021");
-    private static final TestResource<TaskType> TASK_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-tree-child-1.xml", "91919191-76e0-59e2-86d6-556655662021");
+    private static final TestResource<TaskType> TASK_TREE_CHILD_2 = new TestResource<>(TEST_DIR, "task-tree-child-2.xml", "91919191-76e0-59e2-86d6-556655662021");
     private static final TestResource<TaskType> TASK_RUN_ON_DEMAND = new TestResource<>(TEST_DIR, "task-run-on-demand.xml", "91919191-76e0-59e2-86d6-556655660022");
     private static final TestResource<TaskType> TASK_WITH_THREADS = new TestResource<>(TEST_DIR, "task-with-threads.xml", "91919191-76e0-59e2-86d6-556655660100");
     private static final TestResource<TaskType> TASK_WITH_THREADS_TO_SUSPEND = new TestResource<>(TEST_DIR, "task-with-threads-to-suspend.xml", "91919191-76e0-59e2-86d6-556655660105");

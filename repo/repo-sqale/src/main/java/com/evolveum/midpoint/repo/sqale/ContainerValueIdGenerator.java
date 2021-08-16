@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,6 +27,7 @@ public class ContainerValueIdGenerator {
 
     private final PrismObject<? extends ObjectType> object;
     private final Set<Long> usedIds = new HashSet<>();
+    private final Set<Long> overwrittenIds = new HashSet<>(); // ids of PCV overwritten by ADD
     private final List<PrismContainerValue<?>> pcvsWithoutId = new ArrayList<>();
 
     private long maxUsedId = 0; // tracks max CID (set to duplicate CID if found)
@@ -78,6 +80,9 @@ public class ContainerValueIdGenerator {
         if (modification.isReplace()) {
             freeIdsFromReplacedContainer(modification);
         }
+        if (modification.isAdd()) {
+            identifyReplacedContainers(modification);
+        }
         try {
             processModificationValues(modification.getValuesToAdd());
             processModificationValues(modification.getValuesToReplace());
@@ -91,7 +96,7 @@ public class ContainerValueIdGenerator {
 
     private void freeIdsFromReplacedContainer(ItemDelta<?, ?> modification) {
         ItemDefinition<?> definition = modification.getDefinition();
-        // we don't check multi-value, even single-value container can contain multi-value ones
+        // we check all containers, even single-value container can contain multi-value ones
         if (definition instanceof PrismContainerDefinition<?>) {
             Visitable<?> container = object.findContainer(modification.getPath());
             if (container != null) {
@@ -102,6 +107,28 @@ public class ContainerValueIdGenerator {
                         freeContainerIds((PrismContainer<?>) visitable);
                     }
                 });
+            }
+        }
+    }
+
+    private void identifyReplacedContainers(ItemDelta<?, ?> modification) {
+        ItemDefinition<?> definition = modification.getDefinition();
+        // we check all containers, even single-value container can contain multi-value ones
+        if (definition instanceof PrismContainerDefinition<?>) {
+            for (PrismValue prismValue : modification.getValuesToAdd()) {
+                //noinspection unchecked
+                PrismContainerValue<Containerable> pcv = (PrismContainerValue<Containerable>) prismValue;
+                PrismContainer<Containerable> container = object.findContainer(modification.getPath());
+                if (container != null) {
+                    PrismContainerValue<?> oldValue = container.findValue(pcv,
+                            EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+                    if (oldValue != null) {
+                        Long cid = oldValue.getId();
+                        overwrittenIds.add(cid);
+                        usedIds.remove(cid); // technically, it's used, new PCV will take it again
+                        pcv.setId(cid);
+                    }
+                }
             }
         }
     }
@@ -185,6 +212,10 @@ public class ContainerValueIdGenerator {
 
     public long lastUsedId() {
         return maxUsedId;
+    }
+
+    public boolean isOverwrittenId(Long id) {
+        return overwrittenIds.contains(id);
     }
 
     // static single-value runtime exception to be thrown from lambdas (used in visitor)

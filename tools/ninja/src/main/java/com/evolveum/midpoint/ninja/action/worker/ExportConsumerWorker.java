@@ -8,9 +8,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
-import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -40,7 +37,7 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     protected void init() {
         serializer = context.getPrismContext()
             .xmlSerializer()
-            .options(SerializationOptions.createSerializeForExport());
+            .options(SerializationOptions.createSerializeForExport().skipContainerIds(options.isSkipContainerIds()));
     }
 
     @Override

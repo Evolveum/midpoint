@@ -21,12 +21,11 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -78,6 +77,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Instantiated lazily as needed, see {@link #defaultAlias()}. */
     private Q defaultAlias;
+    private ItemDefinition<?> itemDefinition;
 
     /**
      * Creates metamodel for the table described by designated type (Q-class) related to schema type.
@@ -98,6 +98,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.repositoryContext = repositoryContext;
+        this.itemDefinition = repositoryContext.prismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(schemaType, ItemDefinition.class);
     }
 
     /**
@@ -192,12 +193,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected <TQ extends FlexibleRelationalPathBase<TR>, TR> BiFunction<Q, TQ, Predicate> joinOn(
             BiFunction<Q, TQ, Predicate> joinOnPredicateFunction) {
         return joinOnPredicateFunction;
-    }
-
-    public final @Nullable Path<?> primarySqlPath(
-            QName itemName, SqlQueryContext<S, Q, R> context)
-            throws RepositoryException {
-        return itemMapper(itemName).itemPrimaryPath(context.path());
     }
 
     public String tableName() {
@@ -348,5 +343,9 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ", schemaType=" + schemaType() +
                 ", queryType=" + queryType() +
                 '}';
+    }
+
+    public Object itemDefinition() {
+        return itemDefinition;
     }
 }
