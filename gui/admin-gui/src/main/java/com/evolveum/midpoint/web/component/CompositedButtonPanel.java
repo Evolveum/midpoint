@@ -19,12 +19,14 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 public class CompositedButtonPanel extends BasePanel<CompositedIconButtonDto> {
 
+    private static final String ID_COMPOSITED_BUTTON = "compositedButton";
     private static final String ID_COMPOSITED_ICON = "compositedIcon";
     private static final String ID_LABEL = "label";
     private static final String ID_DESCRIPTION = "description";
@@ -40,23 +42,25 @@ public class CompositedButtonPanel extends BasePanel<CompositedIconButtonDto> {
     }
 
     private void initLayout() {
+        WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_COMPOSITED_BUTTON);
+        add(buttonContainer);
 
         CompositedIconPanel compositedIconPanel = new CompositedIconPanel(ID_COMPOSITED_ICON, new PropertyModel<>(getModel(), CompositedIconButtonDto.F_COMPOSITED_ICON));
-        add(compositedIconPanel);
+        buttonContainer.add(compositedIconPanel);
 
         Label label = new Label(ID_LABEL, new ReadOnlyModel<>(() -> {
             DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
             return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
         }));
-        add(label);
+        buttonContainer.add(label);
 
-        compositedIconPanel.add(AttributeAppender.append("title", new ReadOnlyModel<>(() -> {
+        buttonContainer.add(AttributeAppender.append("title", new ReadOnlyModel<>(() -> {
             DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
             return WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
         })));
-        compositedIconPanel.add(new TooltipBehavior());
+        buttonContainer.add(new TooltipBehavior());
 
-        compositedIconPanel.add(new AjaxEventBehavior("click"){
+        buttonContainer.add(new AjaxEventBehavior("click"){
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
@@ -74,7 +78,7 @@ public class CompositedButtonPanel extends BasePanel<CompositedIconButtonDto> {
 //            DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
 //            return WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
 //        }));
-//        add(description);
+//        buttonContainer.add(description);
     }
 
     protected void onButtonClicked(AjaxRequestTarget target, CompositedIconButtonDto buttonDescription) {
