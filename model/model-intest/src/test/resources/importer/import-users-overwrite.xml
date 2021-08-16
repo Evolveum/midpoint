@@ -47,7 +47,7 @@
     </user>
 
     <!-- match name -->
-    <user oid="123345">
+    <user oid="c0c010c0-d34d-b33f-f00d-111111112345">
         <name>james</name>
         <subtype>admiral</subtype>
         <fullName>James Norrington</fullName>

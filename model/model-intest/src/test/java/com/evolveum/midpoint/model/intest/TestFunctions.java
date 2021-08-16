@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -31,8 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestFunctions extends AbstractInitializedModelIntegrationTest {
-
-    public static final String NON_EXISTENT_OID = "8dbaca35-6b64-4d1b-a476-b21a550ed136";
 
     @FunctionalInterface
     private interface CheckedRunnable {
@@ -48,7 +47,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(NON_EXISTENT_OID, ObjectTypes.USER);
+        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(TestUtil.NON_EXISTENT_OID, ObjectTypes.USER);
 
         when();
         execute(task, result, () -> libraryMidpointFunctions.resolveReferenceIfExists(broken));
@@ -66,7 +65,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(NON_EXISTENT_OID, ObjectTypes.USER);
+        ObjectReferenceType broken = ObjectTypeUtil.createObjectRef(TestUtil.NON_EXISTENT_OID, ObjectTypes.USER);
 
         when();
         try {
