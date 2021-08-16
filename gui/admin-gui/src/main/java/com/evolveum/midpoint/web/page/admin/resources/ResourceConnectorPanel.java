@@ -8,6 +8,16 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -33,7 +43,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 /**
  * @author semancik
  */
-public class ResourceConnectorPanel extends Panel {
+@PanelType(name = "resourceConnector")
+@PanelInstance(identifier = "resourceConnector", status = ItemStatus.NOT_CHANGED, applicableFor = ResourceType.class)
+@PanelDisplay(label = "Connector", order = 70)
+public class ResourceConnectorPanel extends BasePanel<PrismObjectWrapper<ResourceType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceConnectorPanel.class);
@@ -53,35 +66,34 @@ public class ResourceConnectorPanel extends Panel {
     private static final String ID_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
     private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
-    private PageBase parentPage;
 
-    public ResourceConnectorPanel(String id, ShadowKindType kind,
-            final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
+    public ResourceConnectorPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> model, ContainerPanelConfigurationType config) {
         super(id, model);
-        this.parentPage = parentPage;
-
-        initLayout(model, parentPage);
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-    private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
+    private void initLayout() {
         setOutputMarkupId(true);
 
-        IModel<List<ConnectorOperationalStatus>> statsModel = new IModel<List<ConnectorOperationalStatus>>() {
+        IModel<List<ConnectorOperationalStatus>> statsModel = new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public List<ConnectorOperationalStatus> getObject() {
-                PrismObject<ResourceType> resource = model.getObject();
-                Task task = parentPage.createSimpleTask(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
+                Task task = getPageBase().createSimpleTask(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
                 OperationResult result = task.getResult();
                 List<ConnectorOperationalStatus> status = null;
                 try {
-                    status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), task, result);
+                    status = getPageBase().getModelInteractionService().getConnectorOperationalStatus(getModelObject().getOid(), task, result);
                 } catch (SchemaException | ObjectNotFoundException | CommunicationException
                         | ConfigurationException | ExpressionEvaluationException e) {
-                    LOGGER.error("Error getting connector status for {}: {}", resource, e.getMessage(), e);
-                    parentPage.showResult(result);
+                    LOGGER.error("Error getting connector status for {}: {}", getModelObject(), e.getMessage(), e);
+                    getPageBase().showResult(result);
                 }
                 return status;
             }

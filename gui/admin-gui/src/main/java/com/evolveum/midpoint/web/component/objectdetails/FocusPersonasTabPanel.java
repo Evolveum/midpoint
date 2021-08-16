@@ -19,6 +19,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -46,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  */
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
-        applicableFor = FocusType.class)
+        applicableFor = UserType.class)
 @PanelDisplay(label = "Personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60)
 public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;

@@ -14,8 +14,16 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -43,11 +51,13 @@ import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import org.opensaml.xacml.policy.ResourcesType;
+
 /**
  * @author katkav
  * @author semancik
  */
-public class ResourceContentTabPanel extends Panel {
+public class ResourceContentTabPanel extends BasePanel<PrismObjectWrapper<ResourceType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
@@ -68,7 +78,6 @@ public class ResourceContentTabPanel extends Panel {
 
     private static final String ID_TABLE = "table";
 
-    private PageBase parentPage;
     private ShadowKindType kind;
 
     private boolean useObjectClass;
@@ -77,15 +86,18 @@ public class ResourceContentTabPanel extends Panel {
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
     public ResourceContentTabPanel(String id, final ShadowKindType kind,
-            final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
+            final IModel<PrismObjectWrapper<ResourceType>> model, ContainerPanelConfigurationType config) {
         super(id, model);
-        this.parentPage = parentPage;
-
-        this.resourceContentSearch = createContentSearchModel(kind);
 
         this.kind = kind;
+        this.resourceContentSearch = createContentSearchModel(kind);
+        //TODO config
+    }
 
-        initLayout(model, parentPage);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     private IModel<ResourceContentSearchDto> createContentSearchModel(final ShadowKindType kind) {
@@ -112,15 +124,15 @@ public class ResourceContentTabPanel extends Panel {
     }
 
     private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
-        return parentPage.getSessionStorage().getResourceContentStorage(kind, searchMode);
+        return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
     }
 
-    private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
+    private void initLayout() {
         setOutputMarkupId(true);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
-        mainForm.addOrReplace(initTable(model));
+        mainForm.addOrReplace(initTable(getModel()));
         add(mainForm);
 
         AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
@@ -131,8 +143,8 @@ public class ResourceContentTabPanel extends Panel {
             public Iterator<String> getIterator(String input) {
                 RefinedResourceSchema refinedSchema = null;
                 try {
-                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
-                            parentPage.getPrismContext());
+                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getModelObject().getObject(),
+                            getPageBase().getPrismContext());
 
                 } catch (SchemaException e) {
                     return new ArrayList<String>().iterator();
@@ -149,7 +161,7 @@ public class ResourceContentTabPanel extends Panel {
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(get(ID_REAL_OBJECT_CLASS));
                 updateResourceContentSearch();
-                mainForm.addOrReplace(initTable(model));
+                mainForm.addOrReplace(initTable(getModel()));
                 target.add(mainForm);
 
             }
@@ -173,7 +185,7 @@ public class ResourceContentTabPanel extends Panel {
                 RefinedObjectClassDefinition ocDef;
                 try {
                     RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-                            .getRefinedSchema(model.getObject(), parentPage.getPrismContext());
+                            .getRefinedSchema(getModelObject().getObject(), getPageBase().getPrismContext());
                     if (refinedSchema == null) {
                         return "NO SCHEMA DEFINED";
                     }
@@ -196,14 +208,14 @@ public class ResourceContentTabPanel extends Panel {
 
             @Override
             public Collection<QName> loadChoices() {
-                return createObjectClassChoices(model);
+                return createObjectClassChoices(getModel());
             }
 
             @Override
             protected void onChange(AjaxRequestTarget target) {
                 LOGGER.trace("Object class panel update: {}", isUseObjectClass());
                 updateResourceContentSearch();
-                mainForm.addOrReplace(initTable(model));
+                mainForm.addOrReplace(initTable(getModel()));
                 target.add(mainForm);
             }
 
@@ -231,7 +243,7 @@ public class ResourceContentTabPanel extends Panel {
 
                 resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
                 updateResourceContentSearch();
-                mainForm.addOrReplace(initRepoContent(model));
+                mainForm.addOrReplace(initRepoContent(ResourceContentTabPanel.this.getModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this);
                 target.add(getParent().get(ID_RESOURCE_SEARCH)
@@ -258,7 +270,7 @@ public class ResourceContentTabPanel extends Panel {
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.TRUE);
                 updateResourceContentSearch();
                 resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
-                mainForm.addOrReplace(initResourceContent(model));
+                mainForm.addOrReplace(initResourceContent(ResourceContentTabPanel.this.getModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this.add(AttributeModifier.append("class", " active")));
                 target.add(getParent().get(ID_REPO_SEARCH)
@@ -277,11 +289,11 @@ public class ResourceContentTabPanel extends Panel {
 
     }
 
-    private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
+    private List<QName> createObjectClassChoices(IModel<PrismObjectWrapper<ResourceType>> model) {
         RefinedResourceSchema refinedSchema;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
-                    parentPage.getPrismContext());
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject().getObject(),
+                    getPageBase().getPrismContext());
         } catch (SchemaException e) {
             warn("Could not determine defined obejct classes for resource");
             return new ArrayList<>();
@@ -294,31 +306,41 @@ public class ResourceContentTabPanel extends Panel {
         return objectClasses;
     }
 
-    private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model) {
+    private ResourceContentPanel initTable(IModel<PrismObjectWrapper<ResourceType>> model) {
         if (isResourceSearch()) {
-            return initResourceContent(model);
+            return initResourceContent(getModel());
         } else {
-            return initRepoContent(model);
+            return initRepoContent(getModel());
         }
     }
 
-    private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
+    private ResourceContentResourcePanel initResourceContent(IModel<PrismObjectWrapper<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-        ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
-                getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
+        ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
+                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
     }
 
-    private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
+    private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObjectWrapper<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-        ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
-                getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
+        ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
+                getObjectClass(), getKind(), getIntent(), searchMode, getPageBase());
         repositoryContent.setOutputMarkupId(true);
         return repositoryContent;
+    }
+
+    private LoadableModel<PrismObject<ResourceType>> loadResourceModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected PrismObject<ResourceType> load() {
+                return getModelObject().getObject();
+            }
+        };
     }
 
     private ShadowKindType getKind() {

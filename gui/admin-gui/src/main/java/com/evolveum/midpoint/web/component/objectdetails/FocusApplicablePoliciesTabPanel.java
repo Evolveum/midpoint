@@ -7,6 +7,14 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -19,6 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 /**
  * Created by honchar.
  */
+@PanelType(name = "applicablePolicies")
+@PanelInstance(identifier = "applicablePolicies",
+        applicableFor = AbstractRoleType.class)
+@PanelDisplay(label = "Applicable policies", order = 60)
 public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
 

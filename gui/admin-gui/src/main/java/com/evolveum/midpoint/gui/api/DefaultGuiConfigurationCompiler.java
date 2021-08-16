@@ -36,7 +36,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private static final String[] PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
             "com.evolveum.midpoint.web.component.assignment",  //Assignments
-            "com.evolveum.midpoint.gui.impl.page.admin"
+            "com.evolveum.midpoint.gui.impl.page.admin",
+            "com.evolveum.midpoint.web.page.admin.resources"
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();

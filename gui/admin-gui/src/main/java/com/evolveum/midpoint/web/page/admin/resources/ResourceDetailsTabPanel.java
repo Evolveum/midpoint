@@ -11,6 +11,15 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +65,12 @@ import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ResourceDetailsTabPanel extends Panel {
+import org.opensaml.xacml.policy.ResourcesType;
+
+@PanelType(name = "resourceDetails")
+@PanelInstance(identifier = "resourceDetails", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED)
+@PanelDisplay(label = "Details", order = 10)
+public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsTabPanel.class);
 
@@ -73,28 +87,29 @@ public class ResourceDetailsTabPanel extends Panel {
 
     LoadableModel<CapabilitiesDto> capabilitiesModel;
 
-    private final PageBase parentPage;
-
-    public ResourceDetailsTabPanel(String id, final IModel<?> model, PageBase parentPage) {
-        super(id, model);
-        this.parentPage = parentPage;
+    public ResourceDetailsTabPanel(String id, final LoadableModel<PrismObjectWrapper<ResourceType>> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
 
         capabilitiesModel = new LoadableModel<CapabilitiesDto>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected CapabilitiesDto load() {
-                PrismObject<ResourceType> resource = (PrismObject<ResourceType>) model.getObject();
+                PrismObject<ResourceType> resource = (PrismObject<ResourceType>) model.getObject().getObject();
                 return new CapabilitiesDto(resource.asObjectable());
             }
         };
-
-        initLayout(model, parentPage);
     }
 
-    protected void initLayout(IModel model, PageBase parentPage) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-        PrismObject<ResourceType> resourceObject = (PrismObject<ResourceType>) model.getObject();
+    protected void initLayout() {
+
+        PrismObject<ResourceType> resourceObject = getModelObject().getObject();
         ResourceType resource = resourceObject.asObjectable();
 
         add(createLastAvailabilityStatusInfo(resource));
@@ -160,12 +175,12 @@ public class ResourceDetailsTabPanel extends Panel {
         OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
         List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-                parentPage.getPrismContext().queryFor(TaskType.class)
+                getPageBase().getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_OBJECT_REF).ref(resource.getOid())
                         .and()
                         .item(TaskType.F_PARENT).isNull()
                         .build(),
-                result, parentPage);
+                result, getPageBase());
 
         List<ResourceConfigurationDto> configs = new ArrayList<>();
 
@@ -236,11 +251,11 @@ public class ResourceDetailsTabPanel extends Panel {
         }
 
         InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
-                parentPage.getString("PageResource.resource.mappings"));
-        infoBoxType.setNumber(parentPage.getString(numberKey));
+                getPageBase().getString("PageResource.resource.mappings"));
+        infoBoxType.setNumber(getPageBase().getString(numberKey));
 
         if (isSynchronizationDefined(resource)) {
-            infoBoxType.setDescription(parentPage.getString("PageResource.resource.sync"));
+            infoBoxType.setDescription(getPageBase().getString("PageResource.resource.sync"));
         }
 
         Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
@@ -287,7 +302,7 @@ public class ResourceDetailsTabPanel extends Panel {
             }
         }
 
-        InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, parentPage.getString(messageKey));
+        InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getPageBase().getString(messageKey));
 
         ConnectorType connectorType = getConnectorType(resource);
         if (connectorType == null) {
@@ -352,25 +367,25 @@ public class ResourceDetailsTabPanel extends Panel {
                     }
                 }
                 int numAllDefinitions = refinedDefinitions.size();
-                numberMessage = numObjectTypes + " " + parentPage.getString("PageResource.resource.objectTypes");
+                numberMessage = numObjectTypes + " " + getPageBase().getString("PageResource.resource.objectTypes");
                 if (numAllDefinitions != 0) {
                     progress = numObjectTypes * 100 / numAllDefinitions;
                     if (progress > 100) {
                         progress = 100;
                     }
                 }
-                description = numAllDefinitions + " " + parentPage.getString("PageResource.resource.schemaDefinitions");
+                description = numAllDefinitions + " " + getPageBase().getString("PageResource.resource.schemaDefinitions");
             } else {
-                numberMessage = parentPage.getString("PageResource.resource.noSchema");
+                numberMessage = getPageBase().getString("PageResource.resource.noSchema");
             }
         } catch (SchemaException e) {
             backgroundColor = "bg-danger";
             icon = "fa fa-warning";
-            numberMessage = parentPage.getString("PageResource.resource.schemaError");
+            numberMessage = getPageBase().getString("PageResource.resource.schemaError");
         }
 
         InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
-                parentPage.getString("PageResource.resource.schema"));
+                getPageBase().getString("PageResource.resource.schema"));
         infoBoxType.setNumber(numberMessage);
         infoBoxType.setProgress(progress);
         infoBoxType.setDescription(description);

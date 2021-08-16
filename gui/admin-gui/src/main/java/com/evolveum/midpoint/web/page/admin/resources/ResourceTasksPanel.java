@@ -10,11 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
@@ -48,12 +57,11 @@ import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> implements Popupable {
+@PanelType(name = "resourceTasks")
+@PanelInstance(identifier = "resourceTasks", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED)
+@PanelDisplay(label = "Defined tasks", order = 20)
+public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -66,19 +74,19 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
     private static final String ID_RESUME = "resume";
     private static final String ID_SUSPEND = "suspend";
 
-    private IModel<PrismObject<ResourceType>> resourceModel;
+//    private IModel<PrismObject<ResourceType>> resourceModel;
     String[] resourceTaskArchetypeOids = new String[] { SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
             SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
             SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
 
-    public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel) {
-        super(id);
-        this.resourceModel = resourceModel;
+    public ResourceTasksPanel(String id, final LoadableModel<PrismObjectWrapper<ResourceType>> resourceModel, ContainerPanelConfigurationType config) {
+        super(id, resourceModel, config);
+//        this.resourceModel = resourceModel;
 
 //        ListModel<TaskType> model = createTaskModel();
-        initLayout();
+//        initLayout();
     }
 
 //    private ListModel<TaskType> createTaskModel() {
@@ -97,7 +105,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
 //
 //    }
 
-    private void initLayout() {
+    protected void initLayout() {
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<>(ID_TASKS_TABLE, TaskType.class, null) {
                     private static final long serialVersionUID = 1L;
@@ -149,7 +157,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
                             TaskType newTask = obj.asObjectable();
 
                             ObjectReferenceType resourceRef = new ObjectReferenceType();
-                            resourceRef.setOid(resourceModel.getObject().getOid());
+                            resourceRef.setOid(ResourceTasksPanel.this.getModelObject().getOid());
                             resourceRef.setType(ResourceType.COMPLEX_TYPE);
                             newTask.setObjectRef(resourceRef);
 
@@ -237,7 +245,7 @@ public class ResourceTasksPanel extends BasePanel<PrismObject<ResourceType>> imp
 
     private ObjectQuery createResourceTasksQuery() {
         return getPageBase().getPrismContext().queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
+                .item(TaskType.F_OBJECT_REF).ref(getModelObject().getOid())
                 .build();
     }
 
