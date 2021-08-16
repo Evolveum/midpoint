@@ -36,8 +36,8 @@
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
-                                import com.evolveum.midpoint.prism.polystring.PolyString
-                                return new PolyString("Test import: " + input)
+                                import com.evolveum.prism.xml.ns._public.types_3.PolyStringType
+                                return new PolyStringType("Test import: " + input, "")
                             </code>
                         </script>
                     </expression>

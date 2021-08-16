@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Header row for report being exported.
  *
  */
-class ExportedDashboardReportHeaderRow extends ExportedReportHeaderRow{
+public class ExportedDashboardReportHeaderRow extends ExportedReportHeaderRow{
 
     /**
      * Widget identifier.
@@ -28,10 +28,10 @@ class ExportedDashboardReportHeaderRow extends ExportedReportHeaderRow{
     /**
      * Declare if this is basic widget row.
      */
-    @NotNull private final boolean isBasicWidgetRow;
+    private final boolean isBasicWidgetRow;
 
     private ExportedDashboardReportHeaderRow(@NotNull List<ExportedReportHeaderColumn> columns, @NotNull List<String> labels,
-            String widgetIdentifier) {
+            @Nullable String widgetIdentifier) {
         super(columns, labels);
         this.widgetIdentifier = widgetIdentifier;
         this.isBasicWidgetRow = StringUtils.isEmpty(widgetIdentifier);
@@ -42,7 +42,7 @@ class ExportedDashboardReportHeaderRow extends ExportedReportHeaderRow{
         return new ExportedDashboardReportHeaderRow(columns, labels, widgetName);
     }
 
-    public String getWidgetIdentifier() {
+    @Nullable public String getWidgetIdentifier() {
         return widgetIdentifier;
     }
 

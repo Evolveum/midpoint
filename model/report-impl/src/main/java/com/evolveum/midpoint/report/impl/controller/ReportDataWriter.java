@@ -5,7 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -72,5 +74,11 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
     @Nullable
     default Function<String, String> getFunctionForWidgetStatus(){
         return null;
-    };
+    }
+
+    String getTypeSuffix();
+
+    String getType();
+
+    FileFormatConfigurationType getFileFormatConfiguration();
 }

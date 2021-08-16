@@ -10,13 +10,10 @@ package com.evolveum.midpoint.report.impl.activity;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -25,6 +22,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +59,7 @@ class ReportActivitySupport {
     private CompiledObjectCollectionView compiledView;
 
     ReportActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
-                                  ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
+            @NotNull ObjectResolver resolver, @NotNull AbstractReportWorkDefinition workDefinition) {
         runningTask = activityExecution.getTaskExecution().getRunningTask();
         beans = activityExecution.getTaskExecution().getBeans();
         this.reportService = reportService;
@@ -87,9 +85,10 @@ class ReportActivitySupport {
         return requireNonNull(report);
     }
 
-    /**
-     * Should be called only after initialization.
-     */
+    public ReportParameterType getReportParameters() {
+        return workDefinition.getReportParams();
+    }
+
     @NotNull CompiledObjectCollectionView getCompiledCollectionView(OperationResult result) throws CommonException {
         if (compiledView == null) {
             setupCompiledView(result);

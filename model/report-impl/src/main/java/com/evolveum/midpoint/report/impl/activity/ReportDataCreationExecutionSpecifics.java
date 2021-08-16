@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.DirectionType
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedDistributedExportController;
+import com.evolveum.midpoint.report.impl.controller.*;
 
 import com.evolveum.midpoint.repo.common.task.*;
 
@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -104,7 +102,7 @@ public class ReportDataCreationExecutionSpecifics
         stateCheck(report.getObjectCollection() != null, "Only collection-based reports are supported here");
 
         SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
-        ReportDataWriter dataWriter = ReportUtils.createDataWriter(
+        ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
         controller = new CollectionBasedDistributedExportController<>(
                 searchSpecificationHolder,
@@ -112,7 +110,8 @@ public class ReportDataCreationExecutionSpecifics
                 report,
                 support.getGlobalReportDataRef(),
                 reportService,
-                support.getCompiledCollectionView(result));
+                support.getCompiledCollectionView(result),
+                support.getReportParameters());
 
         controller.initialize(task, result);
 

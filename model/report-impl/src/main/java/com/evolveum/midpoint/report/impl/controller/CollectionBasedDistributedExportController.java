@@ -5,9 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
-
-import java.util.List;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.report.impl.activity.ReportDataCreationExecutionSpecifics;
 
@@ -16,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -58,34 +55,18 @@ public class CollectionBasedDistributedExportController<C extends Containerable>
      */
     @NotNull private final ObjectReferenceType globalReportDataRef;
 
-    /** Configuration of the report export, taken from the report. */
-    @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
-
-    /**
-     * Columns for the report.
-     */
-    private List<GuiObjectColumnType> columns;
-
-    /**
-     * Values of report parameters.
-     *
-     * TODO Currently filled-in from the task extension. But this is to be changed to the work definition.
-     */
-    private VariablesMap parameters;
-
     public CollectionBasedDistributedExportController(@NotNull ReportDataSource<C> dataSource,
-                                                      @NotNull ReportDataWriter dataWriter,
-                                                      @NotNull ReportType report,
-                                                      @NotNull ObjectReferenceType globalReportDataRef,
-                                                      @NotNull ReportServiceImpl reportService,
-                                                      @NotNull CompiledObjectCollectionView compiledCollection) {
+            @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
+            @NotNull ReportType report,
+            @NotNull ObjectReferenceType globalReportDataRef,
+            @NotNull ReportServiceImpl reportService,
+            @NotNull CompiledObjectCollectionView compiledCollection,
+            ReportParameterType reportParameters) {
 
-        super(dataSource, dataWriter, report, reportService, compiledCollection);
+        super(dataSource, dataWriter, report, reportService, compiledCollection, reportParameters);
 
         this.globalReportDataRef = globalReportDataRef;
-        this.configuration = report.getObjectCollection();
     }
-
 
     /**
      * Called after bucket of data is executed, i.e. after all the data from current bucket were passed to

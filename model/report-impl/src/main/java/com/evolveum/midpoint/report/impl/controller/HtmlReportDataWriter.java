@@ -5,16 +5,19 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,11 +27,16 @@ import java.util.List;
 public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> extends AbstractReportDataWriter<ED, EH> {
 
     @NotNull private final CommonHtmlSupport support;
+
     final LocalizationService localizationService;
 
-    public HtmlReportDataWriter(ReportServiceImpl reportService, CompiledObjectCollectionView compiledView) {
+    @Nullable private final FileFormatConfigurationType configuration;
+
+    public HtmlReportDataWriter(ReportServiceImpl reportService, CompiledObjectCollectionView compiledView,
+            @Nullable FileFormatConfigurationType configuration) {
         this.support = new CommonHtmlSupport(reportService.getClock(), compiledView);
         this.localizationService = reportService.getLocalizationService();
+        this.configuration = configuration;
     }
 
     @Override
@@ -98,6 +106,21 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         return completizeReportInternal(getStringData(), false);
     }
 
+    @Override
+    public String getTypeSuffix() {
+        return ".html";
+    }
+
+    @Override
+    public String getType() {
+        return "HTML";
+    }
+
+    @Override
+    public FileFormatConfigurationType getFileFormatConfiguration() {
+        return configuration;
+    }
+
     private String completizeReportInternal(String aggregatedData, boolean parseData) {
         String cssStyle = support.getCssStyle();
 
@@ -112,10 +135,8 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
 
     protected String createTableBox(String aggregatedData, CommonHtmlSupport support, boolean parseData) {
         StringBuilder table = new StringBuilder();
-        String style = "";
-        String classes = "";
-        style = support.getCssStyleOfTable();
-        classes = support.getCssClassOfTable();
+        String style = support.getCssStyleOfTable();
+        String classes = support.getCssClassOfTable();
 
         ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(support.getTableName(localizationService)))
                 .with(TagCreator.p(GenericSupport.getMessage(localizationService, CommonHtmlSupport.REPORT_GENERATED_ON, support.getActualTime())));

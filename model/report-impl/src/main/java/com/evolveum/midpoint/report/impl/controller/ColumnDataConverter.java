@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,12 +34,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.report.impl.controller.fileformat.CommonHtmlSupport.*;
+import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -56,8 +53,6 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * 3. formats (pretty-prints) the values.
  *
  * Instantiated for each individual record.
- *
- * TODO better name
  */
 class ColumnDataConverter<C extends Containerable> {
 

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,8 +18,11 @@ import com.evolveum.midpoint.report.impl.activity.ClassicCollectionReportExportA
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +36,11 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSupport.*;
+import static com.evolveum.midpoint.report.impl.controller.GenericSupport.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -79,10 +81,13 @@ public class CollectionBasedExportController<C extends Containerable> implements
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
      */
-    @NotNull protected final ReportDataWriter dataWriter;
+    @NotNull protected final ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     /** The report of which an export is being done. */
     @NotNull protected final ReportType report;
+
+    /** The report parameters. */
+    protected ReportParameterType reportParameters;
 
     /** Configuration of the report export, taken from the report. */
     @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
@@ -112,10 +117,11 @@ public class CollectionBasedExportController<C extends Containerable> implements
     protected final LocalizationService localizationService;
 
     public CollectionBasedExportController(@NotNull ReportDataSource<C> dataSource,
-            @NotNull ReportDataWriter dataWriter,
+            @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,
-            @NotNull CompiledObjectCollectionView compiledCollection) {
+            @NotNull CompiledObjectCollectionView compiledCollection,
+            ReportParameterType reportParameters) {
 
         this.dataSource = dataSource;
         this.dataWriter = dataWriter;
@@ -129,6 +135,7 @@ public class CollectionBasedExportController<C extends Containerable> implements
         this.repositoryService = reportService.getRepositoryService();
         this.localizationService = reportService.getLocalizationService();
         this.compiledCollection = compiledCollection;
+        this.reportParameters = reportParameters;
     }
 
     /**
@@ -140,7 +147,7 @@ public class CollectionBasedExportController<C extends Containerable> implements
 
         columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
 
-        initializeParameters(configuration.getParameter(), task); // must come before data source initialization
+        initializeParameters(configuration.getParameter()); // must come before data source initialization
         initializeDataSource(task, result);
     }
 
@@ -159,8 +166,32 @@ public class CollectionBasedExportController<C extends Containerable> implements
         dataSource.initialize(searchSpec.type, searchSpec.query, searchSpec.options);
     }
 
-    private void initializeParameters(List<SearchFilterParameterType> parametersDefinitions, Task task) {
-        VariablesMap parameters = reportService.getParameters(task);
+    private void initializeParameters(List<SearchFilterParameterType> parametersDefinitions) {
+        VariablesMap parameters = new VariablesMap();
+        if (reportParameters != null) {
+            PrismContainerValue<ReportParameterType> reportParamsValue = reportParameters.asPrismContainerValue();
+            @NotNull Collection<Item<?, ?>> items = reportParamsValue.getItems();
+            for (Item<?, ?> item : items) {
+                String paramName = item.getPath().lastName().getLocalPart();
+                Object value = null;
+                if (!item.getRealValues().isEmpty()) {
+                    value = item.getRealValue();
+                }
+                if (item.getRealValue() instanceof RawType) {
+                    try {
+                        ObjectReferenceType parsedRealValue = ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
+                        parameters.put(paramName, new TypedValue<>(parsedRealValue, ObjectReferenceType.class));
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());
+                    }
+                } else {
+                    if (item.getRealValue() != null) {
+                        parameters.put(paramName, new TypedValue<>(value, item.getRealValue().getClass()));
+                    }
+                }
+            }
+        }
+
         initializeMissingParametersToNull(parameters, parametersDefinitions);
         this.parameters = parameters;
     }

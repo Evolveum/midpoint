@@ -5,16 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 /**
  * Header row for report being exported.
- *
- * TODO generalize to HTML, if needed
  */
 class ExportedReportHeaderColumn {
 
@@ -40,11 +36,7 @@ class ExportedReportHeaderColumn {
     }
 
     static ExportedReportHeaderColumn fromLabel(String label) {
-        return fromLabel(label, null);
-    }
-
-    static ExportedReportHeaderColumn fromLabel(String label, String cssClass) {
-        return fromLabel(label, cssClass, null);
+        return fromLabel(label, null, null);
     }
 
     static ExportedReportHeaderColumn fromLabel(String label, String cssClass, String cssStyle) {

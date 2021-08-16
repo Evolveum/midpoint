@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -14,19 +14,16 @@ import java.util.List;
 
 /**
  * Creates and manipulates exported reports.
- *
  */
 public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> implements ReportDataWriter<ED, EH> {
 
     /**
      * Header row to be put into resulting CSV file.
-     *
      */
     private ExportedReportHeaderRow headerRow;
 
     /**
      * Data rows to be put into resulting CSV file.
-     *
      */
     @NotNull private final List<ED> dataRows = new ArrayList<>();
 
@@ -39,6 +36,7 @@ public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow,
         return headerRow;
     }
 
+    @NotNull
     protected List<ED> getDataRows() {
         return dataRows;
     }

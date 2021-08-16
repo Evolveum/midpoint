@@ -8,12 +8,12 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedExportController;
+import com.evolveum.midpoint.report.impl.controller.CollectionBasedExportController;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,10 +80,7 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
     }
 
     private boolean supportWidgetTables(FileFormatConfigurationType fileFormat) {
-        if (fileFormat != null && FileFormatTypeType.CSV.equals(fileFormat.getType())) {
-            return false;
-        }
-        return true;
+        return fileFormat == null || !FileFormatTypeType.CSV.equals(fileFormat.getType());
     }
 
     private void setupDashboard(OperationResult result) throws CommonException {
@@ -108,7 +104,7 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
         super.stateCheck(result);
     }
 
-    @Nullable public CompiledObjectCollectionView getCompiledCollectionView(String widgetIdentifier, OperationResult result) {
+    @Nullable public CompiledObjectCollectionView getCompiledCollectionView(String widgetIdentifier) {
         return mapOfCompiledViews.get(widgetIdentifier);
     }
 
@@ -119,27 +115,20 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
     static class DashboardWidgetHolder {
 
         @NotNull final SearchSpecificationHolder searchSpecificationHolder;
-        @NotNull final CollectionBasedExportController controller;
+        @NotNull final CollectionBasedExportController<Containerable> controller;
 
-        @NotNull final DashboardWidget widgetData;
-
-        DashboardWidgetHolder(SearchSpecificationHolder searchSpecificationHolder, CollectionBasedExportController controller,
-                DashboardWidget widgetData) {
+        DashboardWidgetHolder(@NotNull SearchSpecificationHolder searchSpecificationHolder,
+                @NotNull CollectionBasedExportController<Containerable> controller) {
             this.searchSpecificationHolder = searchSpecificationHolder;
             this.controller = controller;
-            this.widgetData = widgetData;
         }
 
         @NotNull public SearchSpecificationHolder getSearchSpecificationHolder() {
             return searchSpecificationHolder;
         }
 
-        @NotNull  public CollectionBasedExportController getController() {
+        @NotNull  public CollectionBasedExportController<Containerable> getController() {
             return controller;
-        }
-
-        @NotNull public DashboardWidget getWidgetData() {
-            return widgetData;
         }
     }
 }

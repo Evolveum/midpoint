@@ -8,18 +8,13 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
-import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.ReportTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportWorkDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,14 +38,9 @@ import javax.annotation.PreDestroy;
 public class ClassicReportImportActivityHandler
         implements ActivityHandler<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityHandler.class);
-
     @Autowired ActivityHandlerRegistry registry;
-    @Autowired WorkDefinitionFactory workDefinitionFactory;
-    @Autowired CommonTaskBeans commonTaskBeans;
     @Autowired ReportServiceImpl reportService;
     @Autowired @Qualifier("modelObjectResolver") ObjectResolver objectResolver;
-    @Autowired ReportTaskHandler reportTaskHandler;
 
     @PostConstruct
     public void register() {

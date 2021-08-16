@@ -15,7 +15,6 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
-import com.evolveum.midpoint.report.impl.ReportTaskHandler;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
@@ -61,11 +59,9 @@ public class DistributedReportExportActivityHandler
     private static final Trace LOGGER = TraceManager.getTrace(DistributedReportExportActivityHandler.class);
 
     @Autowired ActivityHandlerRegistry registry;
-    @Autowired WorkDefinitionFactory workDefinitionFactory;
     @Autowired CommonTaskBeans commonTaskBeans;
     @Autowired ReportServiceImpl reportService;
     @Autowired @Qualifier("modelObjectResolver") ObjectResolver objectResolver;
-    @Autowired ReportTaskHandler reportTaskHandler;
 
     @PostConstruct
     public void register() {

@@ -5,14 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Single row of data for report being exported.
@@ -32,7 +28,7 @@ public class ExportedDashboardReportDataRow extends ExportedReportDataRow {
     /**
      * Declare if this is basic widget row.
      */
-    @NotNull private final boolean isBasicWidgetRow;
+    private final boolean isBasicWidgetRow;
 
     ExportedDashboardReportDataRow(int sequentialNumber, String widgetIdentifier) {
         super(sequentialNumber);
@@ -49,7 +45,7 @@ public class ExportedDashboardReportDataRow extends ExportedReportDataRow {
         return widgetIdentifier;
     }
 
-    @NotNull public boolean isBasicWidgetRow() {
+    public boolean isBasicWidgetRow() {
         return isBasicWidgetRow;
     }
 }

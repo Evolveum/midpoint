@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
@@ -44,7 +44,7 @@ class CommonHtmlSupport {
 
     private String cssStyle;
     private final Clock clock;
-    private CompiledObjectCollectionView compiledView;
+    private final CompiledObjectCollectionView compiledView;
 
     public CommonHtmlSupport(Clock clock, CompiledObjectCollectionView compiledView) {
         this.clock = clock;

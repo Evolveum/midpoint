@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a line of dashboard report to be exported.
@@ -30,11 +31,11 @@ public class ExportDashboardReportLine<C extends Containerable> {
     /**
      * Name of widget from dashboard.
      */
-    @NotNull private final String widgetIdentifier;
+    @Nullable private final String widgetIdentifier;
 
-    @NotNull private final boolean isBasicWidgetRow;
+    private final boolean isBasicWidgetRow;
 
-    ExportDashboardReportLine(int lineNumber, C container, String widgetIdentifier) {
+    ExportDashboardReportLine(int lineNumber, @NotNull C container, @Nullable String widgetIdentifier) {
         this.lineNumber = lineNumber;
         this.container = container;
         this.widgetIdentifier = widgetIdentifier;
@@ -49,10 +50,12 @@ public class ExportDashboardReportLine<C extends Containerable> {
         return lineNumber;
     }
 
+    @NotNull
     public C getContainer() {
         return container;
     }
 
+    @Nullable
     public String getWidgetIdentifier() {
         return widgetIdentifier;
     }
@@ -65,8 +68,8 @@ public class ExportDashboardReportLine<C extends Containerable> {
     public String toString() {
         return "ExportDashboardReportLine{" +
                 "lineNumber=" + lineNumber +
-                ", container='" + container + '\'' +
-                ", widgetIdentifier='" + widgetIdentifier + "\'" +
+                ", container='" + container +
+                ", widgetIdentifier='" + "'" + widgetIdentifier + "'" +
                 '}';
     }
 

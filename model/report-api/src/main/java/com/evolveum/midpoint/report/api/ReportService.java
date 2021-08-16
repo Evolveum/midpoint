@@ -14,6 +14,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import java.util.Collection;
@@ -33,7 +34,4 @@ public interface ReportService {
     boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
-
-    @Experimental
-    VariablesMap getParameters(Task task);
 }

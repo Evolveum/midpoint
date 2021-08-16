@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.task.CorrelatableProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
@@ -20,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
  * (This is needed for the activity framework to process {@link ExportDashboardReportLine} objects.)
  */
 public class ExportDashboardReportLineProcessingRequest
-        extends GenericProcessingRequest<ExportDashboardReportLine>
+        extends GenericProcessingRequest<ExportDashboardReportLine<Containerable>>
         implements CorrelatableProcessingRequest {
 
-    ExportDashboardReportLineProcessingRequest(@NotNull ExportDashboardReportLine item,
-            @NotNull IterativeActivityExecution<ExportDashboardReportLine, ?, ?, ?, ?, ?> activityExecution) {
+    ExportDashboardReportLineProcessingRequest(@NotNull ExportDashboardReportLine<Containerable> item,
+            @NotNull IterativeActivityExecution<ExportDashboardReportLine<Containerable>, ?, ?, ?, ?, ?> activityExecution) {
         super(item.getLineNumber(), item, activityExecution);
     }
 

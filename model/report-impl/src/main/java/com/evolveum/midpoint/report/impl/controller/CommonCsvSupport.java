@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CsvFileFormatType;
@@ -18,8 +18,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.QuoteMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.report.impl.controller.fileformat.CsvController.toCharacter;
 
 /**
  * Generally useful methods for dealing with CSV files.
@@ -47,6 +45,19 @@ class CommonCsvSupport {
                 .withRecordSeparator(getRecordSeparator())
                 .withTrailingDelimiter(isTrailingDelimiter())
                 .withTrim(isTrim());
+    }
+
+    private Character toCharacter(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value.length() != 1) {
+            throw new IllegalArgumentException("Can't cast to character of " + value + ", illegal string size: "
+                    + value.length() + ", should be 1");
+        }
+
+        return value.charAt(0);
     }
 
     private String getFieldDelimiter() {

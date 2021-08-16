@@ -5,19 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.activity.InputReportLine;
-import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -52,26 +49,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
-import static java.util.Objects.requireNonNull;
-
-///**
-// * Controls the process of exporting collection-based reports.
-// *
-// * Currently the only use of this class is to be a "bridge" between the world of the activity framework
-// * (represented mainly by {@link ReportDataCreationActivityExecution} class) and a set of cooperating
-// * classes that implement the report export itself. However, in the future it may be used in other ways,
-// * independently of the activity framework.
-// *
-// * The process is driven by the activity execution that calls the following methods of this class:
-// *
-// * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
-// * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
-// * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
-// * 4. {@link #afterBucketExecution(int, OperationResult)} that wraps up processing of a bucket, storing partial results
-// * to be aggregated in the follow-up activity.
-// *
-// * @param <C> Type of records to be processed. TODO reconsider if it's OK to have a parameterized type like this
-// */
+/**
+ * Controls the process of importing collection-based reports.
+ */
 @Experimental
 public class ImportController {
 
@@ -80,14 +60,11 @@ public class ImportController {
     /** The report of which an export is being done. */
     @NotNull private final ReportType report;
 
-    /** Configuration of the report export, taken from the report. */
-    @NotNull private final ObjectCollectionReportEngineConfigurationType configuration;
-
     /** Compiled final collection from more collections and archetypes related to object type. */
     private final CompiledObjectCollectionView compiledCollection;
 
     /** Import script of report. */
-    private ExecuteScriptType script;
+    private final ExecuteScriptType script;
 
     /**
      * Columns for the report.
@@ -98,11 +75,7 @@ public class ImportController {
 
     // Useful Spring beans
     private final ReportServiceImpl reportService;
-    private final PrismContext prismContext;
     private final SchemaRegistry schemaRegistry;
-    private final SchemaService schemaService;
-    private final ModelInteractionService modelInteractionService;
-    private final RepositoryService repositoryService;
     private final LocalizationService localizationService;
 
     public ImportController(@NotNull ReportType report,
@@ -110,13 +83,8 @@ public class ImportController {
             CompiledObjectCollectionView compiledCollection) {
 
         this.report = report;
-        this.configuration = report.getObjectCollection();
         this.reportService = reportService;
-        this.prismContext = reportService.getPrismContext();
         this.schemaRegistry = reportService.getPrismContext().getSchemaRegistry();
-        this.schemaService = reportService.getSchemaService();
-        this.modelInteractionService = reportService.getModelInteractionService();
-        this.repositoryService = reportService.getRepositoryService();
         this.localizationService = reportService.getLocalizationService();
         this.compiledCollection = compiledCollection;
         this.script = report.getBehavior() != null ? report.getBehavior().getImportScript() : null;
@@ -127,7 +95,7 @@ public class ImportController {
      * Prepares the controller for accepting the source data:
      * initializes the data source, determines columns, etc.
      */
-    public void initialize(@NotNull RunningTask task, @NotNull OperationResult result)
+    public void initialize()
             throws CommonException {
         if (compiledCollection != null) {
             columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
@@ -148,8 +116,7 @@ public class ImportController {
             }
             ImportOptionsType importOption = report.getBehavior().getImportOptions();
             PrismContainerDefinition<ObjectType> def = reportService.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-            @NotNull PrismContainer object = def.instantiate();
-            PrismContainerValue value = object.createNewValue();
+            PrismContainer<ObjectType> object = def.instantiate();
             List<GuiObjectColumnType> columns = compiledCollection.getColumns();
             @NotNull VariablesMap variables = line.getVariables();
             for (String name : variables.keySet()) {
@@ -163,10 +130,10 @@ public class ImportController {
                         isFound = true;
                         if (column.getPath() != null) {
                             ItemPath path = column.getPath().getItemPath();
-                            ItemDefinition newItemDefinition = object.getDefinition().findItemDefinition(path);
-                            Item newItem = null;
+                            ItemDefinition<? extends Item<?, ?>> newItemDefinition = object.getDefinition().findItemDefinition(path);
+                            Item<?, ?> newItem;
                             Object objectFromExpression = null;
-                            TypedValue typedValue = variables.get(name);
+                            TypedValue<?> typedValue = variables.get(name);
                             if (column.getImport() != null && column.getImport().getExpression() != null) {
                                 if (newItemDefinition.isSingleValue()) {
                                     objectFromExpression = evaluateImportExpression(column.getImport().getExpression(),
@@ -181,24 +148,38 @@ public class ImportController {
                             }
                             if (newItemDefinition instanceof PrismPropertyDefinition) {
                                 newItem = object.findOrCreateProperty(path);
-                                processPropertyFromImportReport(objectFromExpression, typedValue, newItem, result);
+                                processPropertyFromImportReport(
+                                        objectFromExpression,
+                                        typedValue,
+                                        (Item<PrismPropertyValue<?>, PrismPropertyDefinition<?>>) newItem,
+                                        result);
                             } else if (newItemDefinition instanceof PrismReferenceDefinition) {
                                 newItem = object.findOrCreateReference(path);
-                                processReferenceFromImportReport(objectFromExpression, typedValue, newItem, type, workerTask, result);
+                                processReferenceFromImportReport(
+                                        objectFromExpression,
+                                        typedValue,
+                                        (Item<PrismReferenceValue, PrismReferenceDefinition>) newItem,
+                                        type,
+                                        workerTask,
+                                        result);
                             } else if (newItemDefinition instanceof PrismContainerDefinition) {
                                 newItem = object.findOrCreateContainer(path);
-                                processContainerFromImportReport(objectFromExpression, newItem, column.getPath(), result);
+                                processContainerFromImportReport(
+                                        objectFromExpression,
+                                        (Item<PrismContainerValue<?>, PrismContainerDefinition<?>>) newItem,
+                                        column.getPath(),
+                                        result);
                             }
                         } else {
                             String message = "Path of column is null, skipping column " + columnName;
                             LOGGER.error(message);
                             result.recordPartialError(message);
-                            continue;
+                            break;
                         }
                     }
                 }
             }
-            reportService.getModelService().importObject((PrismObject) object, importOption, workerTask, result);
+            reportService.getModelService().importObject((PrismObject<ObjectType>) object, importOption, workerTask, result);
         } else {
             evaluateImportScript(line, script, workerTask, result);
         }
@@ -208,7 +189,7 @@ public class ImportController {
         reportService.getScriptingService().evaluateExpression(script, line.getVariables(), false, task, result);
     }
 
-    private Object evaluateImportExpression(ExpressionType expression, TypedValue typedValue, Task task, OperationResult result) {
+    private Object evaluateImportExpression(ExpressionType expression, TypedValue<?> typedValue, Task task, OperationResult result) {
         Object value = null;
         try {
             VariablesMap variables = new VariablesMap();
@@ -220,13 +201,14 @@ public class ImportController {
         return value;
     }
 
-    private void processContainerFromImportReport(Object objectFromExpression, Item newItem, ItemPathType path, OperationResult result) {
+    private void processContainerFromImportReport(Object objectFromExpression,
+            Item<PrismContainerValue<?>, PrismContainerDefinition<?>> newItem, ItemPathType path, OperationResult result) {
         if (objectFromExpression != null) {
-            Collection realValues = new ArrayList();
+            Collection<Object> realValues = new ArrayList<>();
             exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
-                    PrismContainerValue newValue;
+                    PrismContainerValue<?> newValue;
                     if (realValue instanceof Containerable) {
                         newValue = ((Containerable) realValue).asPrismContainerValue();
                     } else {
@@ -236,12 +218,12 @@ public class ImportController {
                         continue;
                     }
                     try {
-                        ((PrismContainer) newItem).add(newValue);
+                        newItem.add(newValue);
                     } catch (SchemaException e) {
                         String message = "Couldn't add new container value to item " + newItem;
                         LOGGER.error(message);
                         result.recordPartialError(message);
-                        continue;
+                        break;
                     }
                 }
             }
@@ -252,19 +234,23 @@ public class ImportController {
         }
     }
 
-    private void processReferenceFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, Class type, Task task, OperationResult result) {
+    private void processReferenceFromImportReport(Object objectFromExpression, TypedValue<?> typedValue,
+            Item<PrismReferenceValue, PrismReferenceDefinition> newItem,
+            Class<ObjectType> type, Task task, OperationResult result) {
         if (objectFromExpression != null) {
-            Collection realValues = new ArrayList();
+            Collection<Object> realValues = new ArrayList<>();
             exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismReferenceValue newValue;
                     if (realValue instanceof PrismObject) {
-                        newValue = reportService.getPrismContext().itemFactory().createReferenceValue((PrismObject) realValue);
+                        newValue = reportService.getPrismContext().itemFactory()
+                                .createReferenceValue((PrismObject<?>) realValue);
                     } else if (realValue instanceof Referencable) {
                         newValue = ((Referencable) realValue).asReferenceValue();
                     } else {
-                        String message = "Couldn't create new reference value from " + realValue + "; expect PrismObject or Referencable type";
+                        String message = "Couldn't create new reference value from " + realValue
+                                + "; expect PrismObject or Referencable type";
                         LOGGER.error(message);
                         result.recordPartialError(message);
                         continue;
@@ -275,7 +261,7 @@ public class ImportController {
                         String message = "Couldn't add new reference value to item " + newItem;
                         LOGGER.error(message);
                         result.recordPartialError(message);
-                        continue;
+                        break;
                     }
                 }
             }
@@ -283,15 +269,15 @@ public class ImportController {
             ArrayList<String> stringValues = getImportStringValues(typedValue.getValue(), newItem.isSingleValue());
             for (String stringValue : stringValues) {
 
-                QName targetType = ((PrismReference) newItem).getDefinition().getTargetTypeName();
-                Class<ObjectType> targetTypeClass;
+                QName targetType = newItem.getDefinition().getTargetTypeName();
+                Class<? extends Containerable> targetTypeClass;
                 if (targetType == null) {
                     targetTypeClass = ObjectType.class;
                 } else {
-                    targetTypeClass = (Class<ObjectType>) schemaRegistry.getCompileTimeClassForObjectType(targetType);
+                    targetTypeClass = schemaRegistry.getCompileTimeClassForObjectType(targetType);
                 }
                 ObjectQuery query = reportService.getPrismContext().queryFor(targetTypeClass).item(ObjectType.F_NAME).eq(stringValue).build();
-                SearchResultList<PrismObject<ObjectType>> list = null;
+                SearchResultList<PrismObject<ObjectType>> list;
                 try {
                     list = reportService.getModelService().searchObjects(type, query, null, task, result);
                 } catch (Exception e) {
@@ -310,26 +296,27 @@ public class ImportController {
                     }
                     PrismReferenceValue newValue = reportService.getPrismContext().itemFactory().createReferenceValue(list.get(0));
                     try {
-                        ((PrismReference) newItem).add(newValue);
+                        newItem.add(newValue);
                     } catch (SchemaException e) {
                         String message = "Couldn't add new reference value to item " + newItem;
                         LOGGER.error(message);
                         result.recordPartialError(message);
-                        continue;
+                        break;
                     }
                 }
             }
         }
     }
 
-    private void processPropertyFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, OperationResult result) {
+    private void processPropertyFromImportReport(Object objectFromExpression, TypedValue<?> typedValue,
+            Item<PrismPropertyValue<?>, PrismPropertyDefinition<?>> newItem, OperationResult result) throws SchemaException {
         if (objectFromExpression != null) {
-            Collection realValues = new ArrayList();
+            Collection<Object> realValues = new ArrayList<>();
             exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
-                    PrismPropertyValue newValue = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
-                    ((PrismProperty) newItem).addValue(newValue);
+                    PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+                    newItem.add(newValue);
                 }
             }
         } else {
@@ -341,23 +328,23 @@ public class ImportController {
                 }
                 Object parsedObject;
                 try {
-                    parsedObject = parseRealValueFromString((PrismPropertyDefinition) newItem.getDefinition(), stringValue);
+                    parsedObject = parseRealValueFromString(newItem.getDefinition(), stringValue);
                 } catch (SchemaException e) {
                     String message = "Couldn't parse value from " + stringValue + "for item " + newItem.getDefinition();
                     LOGGER.error(message, e);
                     result.recordPartialError(message, e);
                     continue;
                 }
-                PrismPropertyValue newValue = reportService.getPrismContext().itemFactory().createPropertyValue(parsedObject);
-                ((PrismProperty) newItem).addValue(newValue);
+                PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(parsedObject);
+                newItem.add(newValue);
             }
         }
     }
 
-    private void exportRealValuesFromObjectFromExpression(Object objectFromExpression, Collection realValues) {
-        Collection collection;
+    private void exportRealValuesFromObjectFromExpression(Object objectFromExpression, Collection<Object> realValues) {
+        Collection<Object> collection;
         if (objectFromExpression instanceof Collection) {
-            collection = (Collection) objectFromExpression;
+            collection = (Collection<Object>) objectFromExpression;
         } else {
             collection = Collections.singletonList(objectFromExpression);
         }
@@ -372,7 +359,7 @@ public class ImportController {
     }
 
     private ArrayList<String> getImportStringValues(Object realValue, boolean isSingleValue) {
-        ArrayList<String> stringValues = new ArrayList();
+        ArrayList<String> stringValues = new ArrayList<>();
         if (isSingleValue || realValue == null) {
             stringValues.add((String) realValue);
         } else {
@@ -385,15 +372,13 @@ public class ImportController {
         return stringValues;
     }
 
-    private Object parseRealValueFromString(PrismPropertyDefinition def, String value) throws SchemaException {
-        String embeeded = "<a>" + StringEscapeUtils.escapeXml(value) + "</a>";
-        Object parsed = reportService.getPrismContext().parserFor(embeeded).xml().definition(def).parseRealValue();
-        return parsed;
+    private Object parseRealValueFromString(PrismPropertyDefinition<?> def, String value) throws SchemaException {
+        String embeeded = "<a>" + StringEscapeUtils.escapeHtml4(value) + "</a>";
+        return reportService.getPrismContext().parserFor(embeeded).xml().definition(def).parseRealValue();
     }
 
-    public void processVariableFromFile(ReportType report, ReportDataType reportData, BiConsumer<Integer, VariablesMap> handler)
+    public void processVariableFromFile(ReportDataType reportData, BiConsumer<Integer, VariablesMap> handler)
             throws IOException {
-        ObjectCollectionReportEngineConfigurationType collectionEngineConf = report.getObjectCollection();
         List<String> headers = new ArrayList<>();
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
         CSVFormat csvFormat = support.createCsvFormat();
@@ -402,7 +387,7 @@ public class ImportController {
             if (type == null) {
                 throw new IllegalArgumentException("Couldn't define type of imported objects");
             }
-            PrismObjectDefinition<ObjectType> def = reportService.getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(
+            PrismObjectDefinition<?> def = reportService.getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(
                     type, PrismObjectDefinition.class);
             for (GuiObjectColumnType column : columns) {
                 Validate.notNull(column.getName(), "Name of column is null");

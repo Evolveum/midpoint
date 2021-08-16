@@ -11,7 +11,7 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * TODO
+ * Work definition for multi-node report export.
  */
 class DistributedReportExportWorkDefinition extends AbstractReportWorkDefinition {
 

@@ -6355,7 +6355,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- TODO parameters? -->
+                    <xsd:element name="reportParam" type="c:ReportParameterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of the report parameters: for export direction.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractReportWorkDefinitionType.reportParam</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

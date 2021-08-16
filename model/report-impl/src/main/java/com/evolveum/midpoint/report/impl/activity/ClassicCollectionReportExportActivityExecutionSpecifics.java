@@ -15,9 +15,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.fileformat.CollectionBasedExportController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -38,8 +36,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 
 /**
  * Activity execution specifics for classical collection report export.
- *
- * TODO finish the implementation
  */
 public class ClassicCollectionReportExportActivityExecutionSpecifics
         extends BasePlainIterativeExecutionSpecificsImpl
@@ -52,18 +48,14 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
-    private ReportType report;
-
     /**
      * Data writer which completize context of report.
      */
-    private ReportDataWriter dataWriter;
+    private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     /**
      * Execution object (~ controller) that is used to transfer objects found into report data.
      * Initialized on the activity execution start.
-     *
-     * TODO decide on the correct name for this class and its instances
      */
     private CollectionBasedExportController<Containerable> controller;
 
@@ -85,7 +77,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     public void beforeExecution(OperationResult result) throws ActivityExecutionException, CommonException {
         RunningTask task = getRunningTask();
         support.beforeExecution(result);
-        report = support.getReport();
+        @NotNull ReportType report = support.getReport();
 
         support.stateCheck(result);
 
@@ -97,7 +89,8 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
                 dataWriter,
                 report,
                 reportService,
-                support.getCompiledCollectionView(result));
+                support.getCompiledCollectionView(result),
+                support.getReportParameters());
 
         controller.initialize(task, result);
         controller.beforeBucketExecution(1, result);
@@ -122,7 +115,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
                 searchSpecificationHolder.query,
                 searchSpecificationHolder.options,
                 result);
-        objects.forEach(object -> handler.handle(object));
+        objects.forEach(handler::handle);
     }
 
     @Override

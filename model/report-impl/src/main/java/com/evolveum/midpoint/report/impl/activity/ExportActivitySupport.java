@@ -14,8 +14,10 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataSource;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
+import com.evolveum.midpoint.report.impl.controller.ReportDataSource;
+import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -33,7 +35,7 @@ import java.util.*;
  * Contains common functionality for executions of export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ExportActivitySupport extends ReportActivitySupport{
+class ExportActivitySupport extends ReportActivitySupport {
 
     private SaveReportFileSupport saveSupport;
 
@@ -44,22 +46,24 @@ class ExportActivitySupport extends ReportActivitySupport{
 
     void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         super.beforeExecution(result);
-        setupSaveSupport(result);
+        setupSaveSupport();
     }
 
-    private void setupSaveSupport(OperationResult result) throws CommonException {
+    private void setupSaveSupport() {
         saveSupport = new SaveReportFileSupport(report, runningTask, reportService);
-        saveSupport.initializeExecution(result);
     }
 
     /**
      * Save exported report to a file.
      */
-    public void saveReportFile(String aggregatedData, ReportDataWriter dataWriter, OperationResult result) throws CommonException {
+    public void saveReportFile(String aggregatedData,
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            OperationResult result) throws CommonException {
         saveSupport.saveReportFile(aggregatedData, dataWriter, result);
     }
 
-    public void saveReportFile(ReportDataWriter dataWriter, OperationResult result) throws CommonException {
+    public void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            OperationResult result) throws CommonException {
         saveSupport.saveReportFile(dataWriter, result);
     }
 
@@ -99,15 +103,18 @@ class ExportActivitySupport extends ReportActivitySupport{
             SearchSpecificationHolder.this.options = options;
         }
 
-        @NotNull public Class<Containerable> getType() {
+        @NotNull
+        public Class<Containerable> getType() {
             return type;
         }
 
-        @NotNull public ObjectQuery getQuery() {
+        @NotNull
+        public ObjectQuery getQuery() {
             return query;
         }
 
-        @NotNull public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        @NotNull
+        public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
             return options;
         }
 

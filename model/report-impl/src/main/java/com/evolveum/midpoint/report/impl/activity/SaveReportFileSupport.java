@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -15,11 +15,9 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.AbstractReportDataWriter;
-import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
+import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -44,10 +42,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static java.util.Objects.requireNonNull;
+import java.util.Date;
 
 /**
  * Contains common functionality for save exported report file executions.
@@ -67,36 +65,10 @@ class SaveReportFileSupport {
      */
     private final ReportType report;
 
-    /**
-     * Used to derive the file path and to save report data.
-     *
-     * TODO remove dependency on this class
-     */
-    private FileFormatController fileFormatController;
-
-    /**
-     * File to which the aggregated data are stored.
-     */
-    private String aggregatedFilePath;
-
-    SaveReportFileSupport(ReportType report, RunningTask task, ReportServiceImpl reportService) {
+    SaveReportFileSupport(ReportType report, @NotNull RunningTask task, @NotNull ReportServiceImpl reportService) {
         this.report = report;
         runningTask = task;
         this.reportService = reportService;
-    }
-
-    void initializeExecution(OperationResult result) {
-        CollectionEngineController engineController = new CollectionEngineController(reportService);
-
-        fileFormatController = ReportUtils.createExportController(
-                report,
-                engineController.getDefaultFileFormat(),
-                reportService);
-
-        aggregatedFilePath =
-                replaceColons(
-                        engineController.getDestinationFileName(report, fileFormatController));
-
     }
 
     /**
@@ -117,23 +89,60 @@ class SaveReportFileSupport {
         return File.separatorChar == '\\';
     }
 
-    public void saveReportFile(String aggregatedData, ReportDataWriter dataWriter, OperationResult result) throws CommonException {
-        writeToReportFile(dataWriter.completizeReport(aggregatedData));
-        saveReportDataObject(result);
+    public void saveReportFile(String aggregatedData,
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            OperationResult result) throws CommonException {
+
+        String aggregatedFilePath = getDestinationFileName(report, dataWriter);
+
+        writeToReportFile(dataWriter.completizeReport(aggregatedData), aggregatedFilePath);
+        saveReportDataObject(dataWriter, aggregatedFilePath, result);
         if (report.getPostReportScript() != null) {
             processPostReportScript(report, aggregatedFilePath, runningTask, result);
         }
     }
 
-    public void saveReportFile(ReportDataWriter dataWriter, OperationResult result) throws CommonException {
-        writeToReportFile(dataWriter.completizeReport());
-        saveReportDataObject(result);
+    public void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            OperationResult result) throws CommonException {
+
+        String aggregatedFilePath = getDestinationFileName(report, dataWriter);
+
+        writeToReportFile(dataWriter.completizeReport(), aggregatedFilePath);
+        saveReportDataObject(dataWriter, aggregatedFilePath, result);
         if (report.getPostReportScript() != null) {
             processPostReportScript(report, aggregatedFilePath, runningTask, result);
         }
     }
 
-    private void writeToReportFile(String contextOfFile) {
+    public String getDestinationFileName(ReportType reportType,
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
+        File exportDir = getExportDir();
+        if (!exportDir.exists() || !exportDir.isDirectory()) {
+            if (!exportDir.mkdir()) {
+                LOGGER.error("Couldn't create export dir {}", exportDir);
+            }
+        }
+
+        String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
+        return replaceColons(new File(exportDir, fileName).getPath());
+    }
+
+    private static String getDateTime() {
+        Date createDate = new Date(System.currentTimeMillis());
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
+        return formatDate.format(createDate);
+    }
+
+    private File getExportDir() {
+        return new File(getMidPointHomeDirName(), "export");
+    }
+
+    private String getMidPointHomeDirName() {
+        return System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+    }
+
+    private void writeToReportFile(String contextOfFile, String aggregatedFilePath) {
         try {
             FileUtils.writeByteArrayToFile(
                     new File(aggregatedFilePath),
@@ -143,22 +152,26 @@ class SaveReportFileSupport {
         }
     }
 
-    private void saveReportDataObject(OperationResult result) throws CommonException {
+    private void saveReportDataObject(
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            String aggregatedFilePath,
+            OperationResult result) throws CommonException {
         saveReportDataType(
                 aggregatedFilePath,
                 report,
-                fileFormatController,
+                dataWriter,
                 runningTask,
                 result);
 
         LOGGER.info("Aggregated report was saved - the file is {}", aggregatedFilePath);
     }
 
-    private void saveReportDataType(String filePath, ReportType reportType, FileFormatController fileFormatController, Task task,
-            OperationResult parentResult) throws CommonException {
+    private void saveReportDataType(String filePath, ReportType reportType,
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            Task task,OperationResult parentResult) throws CommonException {
 
         String fileName = FilenameUtils.getBaseName(filePath);
-        String reportDataName = fileName + " - " + fileFormatController.getType();
+        String reportDataName = fileName + " - " + dataWriter.getType();
 
         ReportDataType reportDataType = new ReportDataType();
         reportService.getPrismContext().adopt(reportDataType);
@@ -167,10 +180,10 @@ class SaveReportFileSupport {
         reportDataType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
         reportDataType.setName(new PolyStringType(reportDataName));
         if (reportType.getDescription() != null) {
-            reportDataType.setDescription(reportType.getDescription() + " - " + fileFormatController.getType());
+            reportDataType.setDescription(reportType.getDescription() + " - " + dataWriter.getType());
         }
-        if (fileFormatController != null && fileFormatController.getFileFormatConfiguration() != null) {
-            reportDataType.setFileFormat(fileFormatController.getFileFormatConfiguration().getType());
+        if (dataWriter.getFileFormatConfiguration() != null) {
+            reportDataType.setFileFormat(dataWriter.getFileFormatConfiguration().getType());
         }
 
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(NodeType.class, reportService.getPrismContext()
@@ -196,7 +209,6 @@ class SaveReportFileSupport {
         String reportDataOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportDataType.asPrismObject());
 
         LOGGER.debug("Created report output with OID {}", reportDataOid);
-        //noinspection unchecked
         PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
                 .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
         PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportDataOid, ReportDataType.COMPLEX_TYPE);

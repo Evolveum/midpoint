@@ -20,16 +20,11 @@ import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
-import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-import j2html.tags.ContainerTag;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -199,33 +194,6 @@ public class ReportServiceImpl implements ReportService {
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
     }
 
-    public VariablesMap getParameters(Task task) {
-        VariablesMap variables = new VariablesMap();
-        PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItemOrClone(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-        if (reportParams != null) {
-            PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
-            Collection<Item<?, ?>> items = reportParamsValues.getItems();
-            for (Item item : items) {
-                String paramName = item.getPath().lastName().getLocalPart();
-                Object value = null;
-                if (!item.getRealValues().isEmpty()) {
-                    value = item.getRealValues().iterator().next();
-                }
-                if (item.getRealValue() instanceof RawType) {
-                    try {
-                        ObjectReferenceType parsedRealValue = ((RawType) item.getRealValue()).getParsedRealValue(ObjectReferenceType.class);
-                        variables.put(paramName, new TypedValue(parsedRealValue, ObjectReferenceType.class));
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't parse ObjectReferenceType from raw type. " + item.getRealValue());
-                    }
-                } else {
-                    variables.put(paramName, new TypedValue(value, item.getRealValue().getClass()));
-                }
-            }
-        }
-        return variables;
-    }
-
     public CompiledObjectCollectionView createCompiledView(DashboardReportEngineConfigurationType dashboardConfig,
             DashboardWidgetType widget, Task task, OperationResult result) throws CommonException {
         MiscUtil.stateCheck(dashboardConfig != null, "Dashboard engine in report couldn't be null.");
@@ -311,50 +279,21 @@ public class ReportServiceImpl implements ReportService {
         ComplexTypeDefinition def = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(type);
         if (def != null) {
             Class<?> clazz = def.getCompileTimeClass();
-            if (Containerable.class.isAssignableFrom(clazz)) {
+            if (clazz != null && Containerable.class.isAssignableFrom(clazz)) {
                 return (Class<Containerable>) clazz;
             }
         }
         throw new IllegalArgumentException("Couldn't define type for QName " + type);
     }
 
-    public QName resolveTypeQNameForReport(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
-        QName type;
-        if (collectionRef != null && collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
-            if (collection.getAuditSearch() != null) {
-                type = AuditEventRecordType.COMPLEX_TYPE;
-            } else {
-                type = collection.getType();
-            }
-        } else if (collectionRef != null && collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
-                && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
-            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
-            type = collection.getType();
-        } else {
-            type = compiledCollection.getContainerType();
-        }
-        if (type == null) {
-            LOGGER.error("Couldn't define type for objects");
-            throw new IllegalArgumentException("Couldn't define type for objects");
-        }
-        return type;
-    }
-
-    public PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
-        // FIXME - NEVER do this (except maybe in tests)!
-        Task task = getTaskManager().createTaskInstance("Get object");
-        return getObjectFromReference(ref, task, task.getResult());
-    }
-
-    public PrismObject<ObjectType> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
-        Class<ObjectType> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
+    public <O extends ObjectType> PrismObject<O> getObjectFromReference(Referencable ref, Task task, OperationResult result) {
+        Class<O> type = getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
         if (ref.asReferenceValue().getObject() != null) {
             return ref.asReferenceValue().getObject();
         }
 
-        PrismObject<ObjectType> object = null;
+        PrismObject<O> object = null;
         try {
             object = getModelService().getObject(type, ref.getOid(), null, task, result);
         } catch (Exception e) {
@@ -368,27 +307,24 @@ public class ReportServiceImpl implements ReportService {
         if (report != null && report.asObjectable().getObjectCollection() != null
                 && report.asObjectable().getObjectCollection().getSubreport() != null
                 && !report.asObjectable().getObjectCollection().getSubreport().isEmpty()) {
-            List<SubreportParameterType> sortedSubreports = new ArrayList<>();
             Collection<SubreportParameterType> subreports = report.asObjectable().getObjectCollection().getSubreport();
-            sortedSubreports.addAll(subreports);
+            List<SubreportParameterType> sortedSubreports = new ArrayList<>(subreports);
             sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
             for (SubreportParameterType subreport : sortedSubreports) {
                 if (subreport.getExpression() == null || subreport.getName() == null) {
                     continue;
                 }
-                Object subreportParameter;
                 ExpressionType expression = subreport.getExpression();
                 try {
-                    subreportParameter = evaluateScript(report, expression, variables, "subreport parameter", task, result);
+                    Collection<? extends PrismValue> subreportParameter = evaluateScript(report, expression, variables, "subreport parameter", task, result);
                     Class<?> subreportParameterClass;
                     if (subreport.getType() != null) {
                         subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
                     } else {
-                        if (subreportParameter instanceof Collection && !((Collection) subreportParameter).isEmpty()
-                                && ((Collection) subreportParameter).iterator().next() instanceof PrismValue) {
-                            subreportParameterClass = ((Collection) subreportParameter).iterator().next().getClass();
+                        if (subreportParameter != null && !subreportParameter.isEmpty()) {
+                            subreportParameterClass = subreportParameter.iterator().next().getRealClass();
                         } else {
-                            subreportParameterClass = subreportParameter.getClass();
+                            subreportParameterClass = Object.class;
                         }
                     }
                     subreportVariable.put(subreport.getName(), subreportParameter, subreportParameterClass);

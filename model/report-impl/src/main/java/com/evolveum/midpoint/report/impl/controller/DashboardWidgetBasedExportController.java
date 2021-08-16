@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.report.impl.controller.fileformat.CommonHtmlSupport.*;
-import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSupport.getMessage;
+import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
 
 /**
  * Controls the process of exporting collection-based reports.
@@ -37,7 +36,7 @@ import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSup
  *
  * The process is driven by the activity execution that calls the following methods of this class:
  *
- * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
+ * 1. {@link #initialize()} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
  * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
  * to be aggregated.
@@ -45,12 +44,12 @@ import static com.evolveum.midpoint.report.impl.controller.fileformat.GenericSup
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class DashboardWidgetBasedExportController<C extends Containerable> implements ExportController<C>{
+public class DashboardWidgetBasedExportController<C extends Containerable> implements ExportController<C> {
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
      */
-    @NotNull protected final ReportDataWriter dataWriter;
+    @NotNull protected final ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     /** The report of which an export is being done. */
     @NotNull protected final ReportType report;
@@ -65,11 +64,12 @@ public class DashboardWidgetBasedExportController<C extends Containerable> imple
     protected final SchemaService schemaService;
     protected final RepositoryService repositoryService;
 
-    public DashboardWidgetBasedExportController(@NotNull ReportDataWriter dataWriter,
-                                                @NotNull ReportType report,
-                                                @NotNull ReportServiceImpl reportService) {
+    public DashboardWidgetBasedExportController(
+            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            @NotNull ReportType report,
+            @NotNull ReportServiceImpl reportService) {
 
-        this.dataWriter = dataWriter;
+        this.dataWriter = (ReportDataWriter) dataWriter;
         this.report = report;
         this.reportService = reportService;
         this.schemaService = reportService.getSchemaService();
@@ -80,12 +80,12 @@ public class DashboardWidgetBasedExportController<C extends Containerable> imple
      * Prepares the controller for accepting the source data:
      * initializes the data source, determines columns, etc.
      */
-    public void initialize(@NotNull RunningTask task, @NotNull OperationResult result)
+    public void initialize()
             throws CommonException {
 
         List<ExportedReportHeaderColumn> headerColumns = getHeadsOfWidget().stream()
                 .map(label -> ExportedReportHeaderColumn.fromLabel(
-                        getMessage(reportService.getLocalizationService(), "Widget." + label)))
+                        GenericSupport.getMessage(reportService.getLocalizationService(), "Widget." + label)))
                 .collect(Collectors.toList());
 
         headerRow = ExportedDashboardReportHeaderRow.fromColumns(headerColumns, null);

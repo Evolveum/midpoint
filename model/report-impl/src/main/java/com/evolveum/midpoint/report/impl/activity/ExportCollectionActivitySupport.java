@@ -18,12 +18,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * Contains common functionality for executions of collection export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ExportCollectionActivitySupport extends ExportActivitySupport{
-
-    private SaveReportFileSupport saveSupport;
+class ExportCollectionActivitySupport extends ExportActivitySupport {
 
     ExportCollectionActivitySupport(AbstractActivityExecution<?, ?, ?> activityExecution, ReportServiceImpl reportService,
-                                    ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
+            ObjectResolver resolver, AbstractReportWorkDefinition workDefinition) {
         super(activityExecution, reportService, resolver, workDefinition);
     }
 

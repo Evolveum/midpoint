@@ -110,7 +110,7 @@ public class ReportManagerImpl implements ReportManager {
             throw new SecurityViolationException("Not authorized");
         }
 
-        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
+//        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
             if (paramContainer != null && !paramContainer.isEmpty()) {
@@ -148,7 +148,7 @@ public class ReportManagerImpl implements ReportManager {
             throw new SecurityViolationException("Not authorized");
         }
 
-        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
+//        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
         task.setObjectRef(report.getOid(), ReportType.COMPLEX_TYPE);
 
         PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()

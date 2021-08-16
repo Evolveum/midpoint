@@ -5,10 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Creates and manipulates exported reports in HTML format for dashboard reports.
@@ -31,13 +32,15 @@ public class HtmlDashboardReportDataWriter
      */
     @NotNull private final Map<String, ExportedWidgetData> data = new LinkedHashMap<>();
 
-    public HtmlDashboardReportDataWriter(ReportServiceImpl reportService, Map<String, CompiledObjectCollectionView> mapOfCompiledView) {
-        super(reportService, null);
+    public HtmlDashboardReportDataWriter(ReportServiceImpl reportService, Map<String,
+            CompiledObjectCollectionView> mapOfCompiledView,
+            @Nullable FileFormatConfigurationType configuration) {
+        super(reportService, null, configuration);
         setupDefaultExportedWidgetData(reportService);
-        mapOfCompiledView.entrySet().forEach(entry -> {
+        mapOfCompiledView.forEach((key, value) -> {
             ExportedWidgetData widgetData = new ExportedWidgetData();
-            widgetData.setSupport(new CommonHtmlSupport(reportService.getClock(), entry.getValue()));
-            data.put(entry.getKey(), widgetData);
+            widgetData.setSupport(new CommonHtmlSupport(reportService.getClock(), value));
+            data.put(key, widgetData);
         });
     }
 
@@ -98,11 +101,14 @@ public class HtmlDashboardReportDataWriter
     @Override
     public String getStringData() {
         StringBuilder sb = new StringBuilder();
-        data.entrySet().forEach(entry -> {
-            sb.append("<"+entry.getKey()+">")
-              .append(getStringDataInternal(entry.getValue().headerRow, entry.getValue().dataRows))
-              .append("</"+entry.getKey()+">\n");
-        });
+        data.forEach((key, value) ->
+                sb.append("<")
+                        .append(key)
+                        .append(">")
+                        .append(getStringDataInternal(value.headerRow, value.dataRows))
+                        .append("</")
+                        .append(key)
+                        .append(">\n"));
         return sb.toString();
     }
 
@@ -119,14 +125,13 @@ public class HtmlDashboardReportDataWriter
         StringBuilder body = new StringBuilder();
         body.append("<div> <style> ").append(cssStyle).append(" </style>");
 
-        data.entrySet().forEach(entry -> {
-            String tableData = Arrays.stream(
-                    StringUtils.substringsBetween(aggregatedData, "<" +entry.getKey() + ">", "</" +entry.getKey() + ">"))
-                    .collect(Collectors.joining());
-            if (!BASIC_WIDGET_ROW_KEY.equals(entry.getKey()) && !tableData.contains("<tbody>")) {
+        data.forEach((key, value) -> {
+            String tableData = String.join("",
+                    StringUtils.substringsBetween(aggregatedData, "<" + key + ">", "</" + key + ">"));
+            if (!BASIC_WIDGET_ROW_KEY.equals(key) && !tableData.contains("<tbody>")) {
                 return;
             }
-            String tableBox = createTableBox(tableData, entry.getValue().support, true);
+            String tableBox = createTableBox(tableData, value.support, true);
             body.append(tableBox).append("<br>");
         });
 
@@ -143,12 +148,12 @@ public class HtmlDashboardReportDataWriter
         StringBuilder body = new StringBuilder();
         body.append("<div> <style> ").append(cssStyle).append(" </style>");
 
-        data.entrySet().forEach(entry -> {
-            if (!BASIC_WIDGET_ROW_KEY.equals(entry.getKey()) && entry.getValue().dataRows.isEmpty()) {
+        data.forEach((key, value) -> {
+            if (!BASIC_WIDGET_ROW_KEY.equals(key) && value.dataRows.isEmpty()) {
                 return;
             }
-            String tableData = getStringDataInternal(entry.getValue().headerRow, entry.getValue().dataRows);
-            String tableBox = createTableBox(tableData, entry.getValue().support, false);
+            String tableData = getStringDataInternal(value.headerRow, value.dataRows);
+            String tableBox = createTableBox(tableData, value.support, false);
             body.append(tableBox).append("<br>");
         });
 
@@ -166,7 +171,7 @@ public class HtmlDashboardReportDataWriter
         return (value) -> CommonHtmlSupport.VALUE_CSS_STYLE_TAG + "{background-color: " + value + " !important;}";
     }
 
-    class ExportedWidgetData {
+    static class ExportedWidgetData {
 
         List<ExportedDashboardReportDataRow> dataRows = new ArrayList<>();
 

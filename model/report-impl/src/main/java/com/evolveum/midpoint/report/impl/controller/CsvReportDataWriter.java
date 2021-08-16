@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
@@ -13,6 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurat
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -26,8 +27,11 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
 
     @NotNull private final CommonCsvSupport support;
 
-    public CsvReportDataWriter(FileFormatConfigurationType configuration) {
+    @Nullable private final FileFormatConfigurationType configuration;
+
+    public CsvReportDataWriter(@Nullable FileFormatConfigurationType configuration) {
         this.support = new CommonCsvSupport(configuration);
+        this.configuration = configuration;
     }
 
     @Override
@@ -50,6 +54,21 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
     @Override
     public boolean shouldWriteHeader() {
         return support.isHeader();
+    }
+
+    @Override
+    public String getTypeSuffix() {
+        return ".csv";
+    }
+
+    @Override
+    public String getType() {
+        return "CSV";
+    }
+
+    @Override
+    public FileFormatConfigurationType getFileFormatConfiguration() {
+        return configuration;
     }
 
     private CSVFormat createCsvFormat() {

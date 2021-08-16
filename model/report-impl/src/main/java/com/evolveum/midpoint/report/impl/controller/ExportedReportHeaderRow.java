@@ -5,11 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.report.impl.controller.fileformat;
+package com.evolveum.midpoint.report.impl.controller;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * Header row for report being exported.
  *
  */
-class ExportedReportHeaderRow {
+public class ExportedReportHeaderRow {
 
     /**
      * Labels for the header row.
@@ -34,9 +33,9 @@ class ExportedReportHeaderRow {
         this.labels = labels;
     }
 
-    static ExportedReportHeaderRow fromColumns(List<ExportedReportHeaderColumn> columns) {
+    static <EH extends ExportedReportHeaderRow> EH fromColumns(List<ExportedReportHeaderColumn> columns) {
         List<String> labels = columns.stream().map(ExportedReportHeaderColumn::getLabel).collect(Collectors.toList());
-        return new ExportedReportHeaderRow(columns, labels);
+        return (EH) new ExportedReportHeaderRow(columns, labels);
     }
 
     public @NotNull List<String> getLabels() {
