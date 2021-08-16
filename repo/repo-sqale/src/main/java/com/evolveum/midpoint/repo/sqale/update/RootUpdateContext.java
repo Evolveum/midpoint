@@ -95,8 +95,8 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             return modifications; // no need to execute any update
         }
 
-        cidGenerator = new ContainerValueIdGenerator()
-                .forModifyObject(getPrismObject(), row.containerIdSeq);
+        cidGenerator = new ContainerValueIdGenerator(getPrismObject())
+                .forModifyObject(row.containerIdSeq);
 
         for (ItemDelta<?, ?> modification : modifications) {
             try {
@@ -107,7 +107,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             }
         }
 
-        repositoryContext().normalizeAllRelations(prismObject);
+        repositoryContext().normalizeAllRelations(prismObject.getValue());
         finishExecution();
 
         return modifications;
@@ -172,8 +172,13 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     }
 
     @Override
-    public <V extends PrismValue> Item<V, ?> findItem(@NotNull ItemPath path) {
-        return object.asPrismObject().findItem(path);
+    public <O> O findValueOrItem(@NotNull ItemPath path) {
+        //noinspection unchecked
+        return (O) object.asPrismObject().find(path);
+    }
+
+    public boolean isOverwrittenId(Long id) {
+        return cidGenerator.isOverwrittenId(id);
     }
 
     public SQLUpdateClause update() {

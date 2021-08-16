@@ -13,6 +13,7 @@ import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -54,6 +55,7 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<Referen
 
     @Override
     public void setValue(Referencable value) {
+        value = SqaleUtils.referenceWithTypeFixed(value);
         context.set(oidPath, UUID.fromString(value.getOid()));
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));
         context.set(relationIdPath,

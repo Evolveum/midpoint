@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,12 +8,21 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -25,17 +34,10 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.testng.AssertJUnit;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIntegrationTest {
 
@@ -248,10 +250,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String ROLE_AUTOGRAPHIC_OID = "be835a70-e3f4-11e6-82cb-9b47ebe57b11";
 
     protected static final File ROLE_AUTOTESTERS_FILE = new File(COMMON_DIR, "role-autotesters.xml");
-    protected static final String ROLE_AUTOTESTERS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v14";
+    protected static final String ROLE_AUTOTESTERS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57f14";
 
     protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
-    protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
+    protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57f15";
 
     protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
     protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-00000000aa0f";
@@ -274,7 +276,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String USER_BARBOSSA_USERNAME = "barbossa";
     protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 
-    protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
+    protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
     protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
     protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
     protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
@@ -319,7 +321,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     // Elaine has account on the dummy resources (default, red, blue)
     // The accounts are also assigned
-    protected static final File USER_ELAINE_FILE = new File (COMMON_DIR, "user-elaine.xml");
+    protected static final File USER_ELAINE_FILE = new File(COMMON_DIR, "user-elaine.xml");
     protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
     protected static final String USER_ELAINE_USERNAME = "elaine";
 
@@ -352,7 +354,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
     public static final String ACCOUNT_GUYBRUSH_DUMMY_FULLNAME = "Guybrush Threepwood";
     public static final String ACCOUNT_GUYBRUSH_DUMMY_LOCATION = "Melee Island";
-    public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File (COMMON_DIR, "account-guybrush-dummy.xml");
+    public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-guybrush-dummy.xml");
     public static final File ACCOUNT_GUYBRUSH_DUMMY_RED_FILE = new File(COMMON_DIR, "account-guybrush-dummy-red.xml");
 
     public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-jack-dummy.xml";
@@ -389,10 +391,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     public static final String DUMMY_ORG_TOP_NAME = DummyResourceContoller.ORG_TOP_NAME;
 
-    protected static final File PASSWORD_POLICY_GLOBAL_FILE = new File(COMMON_DIR,  "password-policy-global.xml");
+    protected static final File PASSWORD_POLICY_GLOBAL_FILE = new File(COMMON_DIR, "password-policy-global.xml");
     protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 
-    protected static final File PASSWORD_POLICY_BENEVOLENT_FILE = new File(COMMON_DIR,  "password-policy-benevolent.xml");
+    protected static final File PASSWORD_POLICY_BENEVOLENT_FILE = new File(COMMON_DIR, "password-policy-benevolent.xml");
     protected static final String PASSWORD_POLICY_BENEVOLENT_OID = "ed8026dc-569a-11e7-abdf-4fce56706755";
 
     protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
@@ -593,10 +595,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
         OperationResult result = createOperationResult("clearUserOrgAndRoleRefs");
         Collection modifications = new ArrayList<>();
         ReferenceDelta parentOrgRefDelta = prismContext.deltaFactory().reference().createModificationReplace(
-                UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);
+                UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue) null);
         modifications.add(parentOrgRefDelta);
         ReferenceDelta roleMembershipRefDelta = prismContext.deltaFactory().reference().createModificationReplace(
-                UserType.F_ROLE_MEMBERSHIP_REF, getUserDefinition(), (PrismReferenceValue)null);
+                UserType.F_ROLE_MEMBERSHIP_REF, getUserDefinition(), (PrismReferenceValue) null);
         modifications.add(roleMembershipRefDelta);
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
         result.computeStatus();
@@ -607,12 +609,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected void assertEvaluatedRole(Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles,
             String expectedRoleOid) {
-        for (EvaluatedAssignmentTarget evalRole: evaluatedRoles) {
+        for (EvaluatedAssignmentTarget evalRole : evaluatedRoles) {
             if (expectedRoleOid.equals(evalRole.getTarget().getOid())) {
                 return;
             }
         }
-        AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
+        AssertJUnit.fail("Role " + expectedRoleOid + " no present in evaluated roles " + evaluatedRoles);
     }
 
     protected void assertSingleAccountPasswordNotification(String dummyResourceName, String username,
@@ -655,11 +657,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
         String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
         if (!body.startsWith(expectedPrefix)) {
-            fail("Expected that "+dummyResourceName+" dummy password notification message starts with prefix '"+expectedPrefix+"', but it was: "+body);
+            fail("Expected that " + dummyResourceName + " dummy password notification message starts with prefix '" + expectedPrefix + "', but it was: " + body);
         }
         String suffix = body.substring(expectedPrefix.length());
         if (suffix.isEmpty()) {
-            fail("Empty password in "+dummyResourceName+" dummy password notification message");
+            fail("Empty password in " + dummyResourceName + " dummy password notification message");
         }
     }
 
@@ -670,7 +672,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
 
     protected String getExpectedAccountPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
         String resourceName = getDummyResourceType(dummyResourceName).getName().getOrig();
-        return "Password for account "+username+" on "+resourceName+" is: ";
+        return "Password for account " + username + " on " + resourceName + " is: ";
     }
 
     protected String getExpectedUserPasswordNotificationBody(String username, String password) {
@@ -678,7 +680,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     }
 
     protected String getExpectedUserPasswordNotificationBodyPrefix(String username) {
-        return "Password for user "+username+" is: ";
+        return "Password for user " + username + " is: ";
     }
 
     protected void displayAccountPasswordNotifications() {
@@ -693,7 +695,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
         return description + " -- " + fullName;
     }
 
-    protected void loginAdministrator() throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void loginAdministrator() throws SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         login(userAdministrator);
     }
 }

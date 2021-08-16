@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum and contributors
+ * Copyright (C) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,14 +24,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author semancik
- *
  */
 public class DummyResourceCollection {
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyResourceCollection.class);
 
-    private Map<String, DummyResourceContoller> map = new HashMap<>();
-    private ModelService modelService;
+    private final Map<String, DummyResourceContoller> map = new HashMap<>();
+    private final ModelService modelService;
 
     public DummyResourceCollection(ModelService modelService) {
         super();
@@ -42,7 +41,7 @@ public class DummyResourceCollection {
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
         if (map.containsKey(name)) {
-            throw new IllegalArgumentException("Dummy resource "+name+" already initialized");
+            throw new IllegalArgumentException("Dummy resource " + name + " already initialized");
         }
         DummyResourceContoller controller = DummyResourceContoller.create(name);
         if (controllerInitLambda != null) {
@@ -55,7 +54,7 @@ public class DummyResourceCollection {
             modelService.importObjectsFromFile(resourceFile, null, task, result);
             OperationResult importResult = result.getLastSubresult();
             if (importResult.isError()) {
-                throw new RuntimeException("Error importing "+resourceFile+": "+importResult.getMessage());
+                throw new RuntimeException("Error importing " + resourceFile + ": " + importResult.getMessage());
             }
             LOGGER.debug("File {} imported: {}", resourceFile, importResult);
         }
@@ -69,17 +68,17 @@ public class DummyResourceCollection {
 
     public void initDummyResource(String name, DummyResourceContoller controller) {
         if (map.containsKey(name)) {
-            throw new IllegalArgumentException("Dummy resource "+name+" already initialized");
+            throw new IllegalArgumentException("Dummy resource " + name + " already initialized");
         }
         map.put(name, controller);
     }
 
     public DummyResourceContoller get(String name) {
-        DummyResourceContoller contoller = map.get(name);
-        if (contoller == null) {
-            throw new IllegalArgumentException("No dummy resource with name "+name);
+        DummyResourceContoller controller = map.get(name);
+        if (controller == null) {
+            throw new IllegalArgumentException("No dummy resource with name " + name);
         }
-        return contoller;
+        return controller;
     }
 
     public PrismObject<ResourceType> getResourceObject(String name) {
@@ -95,7 +94,7 @@ public class DummyResourceCollection {
     }
 
     public void forEachResourceCtl(Consumer<DummyResourceContoller> lambda) {
-        map.forEach((k,v) -> lambda.accept(v));
+        map.forEach((k, v) -> lambda.accept(v));
     }
 
     /**

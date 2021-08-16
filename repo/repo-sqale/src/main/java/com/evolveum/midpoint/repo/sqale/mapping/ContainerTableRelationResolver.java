@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.ContainerTableUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
@@ -45,20 +46,21 @@ public class ContainerTableRelationResolver<
 
     @Override
     public ContainerTableUpdateContext<TS, TQ, TR, R> resolve(
-            SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) {
+            SqaleUpdateContext<?, Q, R> context, ItemPath itemPath) throws RepositoryException {
         if (itemPath == null || itemPath.size() != 2 || !(itemPath.getSegment(1) instanceof Long)) {
             throw new IllegalArgumentException(
                     "Item path provided for container table relation resolver must have two"
                             + " segments with PCV ID as the second");
         }
+        if (context.findValueOrItem(itemPath) == null) {
+            throw new RepositoryException("Container for path '" + itemPath + "' does not exist!");
+        }
+
         QContainerMapping<TS, TQ, TR, R> containerMapping =
                 (QContainerMapping<TS, TQ, TR, R>) targetMappingSupplier.get();
         TR row = containerMapping.newRowObject(context.row());
         //noinspection ConstantConditions
         row.cid = (long) itemPath.getSegment(1);
-        // TODO check actual container existence? E.g. run test332ModifiedCertificationCaseStoresIt
-        //  isolated and it ignores the missing container here and later fails with NPE.
-        //  Funny thing is, that modification.applyTo(prism) only logs WARN and doesn't care anymore.
         return new ContainerTableUpdateContext<>(context, containerMapping, row);
     }
 }

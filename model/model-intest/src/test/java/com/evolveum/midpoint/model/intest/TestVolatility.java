@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.intest;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -19,29 +31,12 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests for MID-2436 (volatile attributes).
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
@@ -97,7 +92,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test110AddDummyHrAccountMancomb() throws Exception {
-        // GIVEN
+        given();
         // Preconditions
         //assertUsers(5);
 
@@ -105,14 +100,12 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
-        /// WHEN
         when();
 
         getDummyResource(RESOURCE_DUMMY_HR_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
-        // THEN
         then();
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
@@ -211,7 +204,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200ModifyGuybrushAssignAccount() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -224,10 +217,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_VOLATILE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
-        // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
-        // THEN
         then();
 
         PrismObject<UserType> userGuybrush = findUserByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -261,7 +252,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test300AddLargo() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -273,10 +264,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
-        // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
-        // THEN
         then();
 
         PrismObject<UserType> userLargo = findUserByUsername(ACCOUNT_LARGO_DUMMY_USERNAME);
@@ -313,7 +302,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test400AddHerman() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -325,11 +314,9 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         userBefore.asObjectable().getOrganization().add(createPolyStringType("bar"));
         display("User before", userBefore);
 
-        // WHEN
         when();
         addObject(userBefore, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -352,16 +339,14 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test402ModifyHermanMonster() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString(DummyResource.VALUE_MONSTER));
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -385,5 +370,4 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected void waitForSyncTaskNextRun() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
     }
-
 }

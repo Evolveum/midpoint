@@ -155,7 +155,11 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             object = executeGetObject(type, oidUuid, options);
             return object;
-        } catch (RuntimeException e) { // TODO what else to catch?
+        } catch (ObjectNotFoundException e) {
+            recordException(e, operationResult,
+                    !GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(options)));
+            throw e;
+        } catch (RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
             operationResult.recordFatalError(t);
@@ -201,7 +205,7 @@ public class SqaleRepositoryService implements RepositoryService {
         try {
             return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("OID " + oid + " is invalid", e);
+            throw new IllegalArgumentException("Invalid UUID string: " + oid, e);
         }
     }
 

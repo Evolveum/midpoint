@@ -6,13 +6,19 @@
  */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
+import static com.querydsl.core.types.dsl.Expressions.stringTemplate;
+
 import java.util.function.Function;
 
-import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Expression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor.ExtItemInfo;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.ExtensionItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.ExtensionItemFilterProcessor;
@@ -38,23 +44,26 @@ public class ExtensionItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R>
 
     private final Function<Q, JsonbPath> rootToExtensionPath;
     private final MExtItemHolderType holderType;
+    private @NotNull SqaleRepoContext repositoryContext;
 
     public ExtensionItemSqlMapper(
             @NotNull Function<Q, JsonbPath> rootToExtensionPath,
-            @NotNull MExtItemHolderType holderType) {
+            @NotNull MExtItemHolderType holderType,
+            @NotNull SqaleRepoContext context) {
         this.rootToExtensionPath = rootToExtensionPath;
         this.holderType = holderType;
+        this.repositoryContext = context;
     }
 
     @Override
-    public @Nullable Path<?> itemPrimaryPath(Q entityPath) {
-        // TODO this currently does NOT work because:
-        //  - sorting by ext does not make sense, we want to sort by ext->something (or ->>)
-        //  - that also means that we don't want to return Path but Expression instead
-        //  - but sorting by ext/something is not yet supported in SqlQueryContext.processOrdering
-        //  In short, we will not even get here
-        return rootToExtensionPath.apply(entityPath);
+    public @Nullable Expression<?> itemOrdering(Q entityPath, ItemDefinition<?> definition) {
+
+        JsonbPath path = rootToExtensionPath.apply(entityPath);
+        ExtItemInfo info = new ExtensionProcessor(repositoryContext).findExtensionItem(definition, holderType);
+        // TODO: Is polystring ordered by normalized or original form?
+        return stringTemplate("{0}->'{1s}'", path, info.getId());
     }
+
 
     @Override
     public @Nullable <T extends ValueFilter<?, ?>> ItemValueFilterProcessor<T> createFilterProcessor(

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -19,6 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Delta value processor for multi-value containers stored in separate tables.
@@ -47,8 +46,11 @@ public class ContainerTableDeltaProcessor<
 
     @Override
     public void addValues(Collection<T> values) throws SchemaException {
-        for (T ref: values) {
-            context.insertOwnedRow(containerTableMapping, ref);
+        for (T container : values) {
+            if (context.isOverwrittenId(container.asPrismContainerValue().getId())) {
+                deleteContainer(containerTableMapping.defaultAlias(), container);
+            }
+            context.insertOwnedRow(containerTableMapping, container);
         }
     }
 
@@ -56,11 +58,15 @@ public class ContainerTableDeltaProcessor<
     public void deleteValues(Collection<T> values) {
         Q c = containerTableMapping.defaultAlias();
         for (T container : values) {
-            context.jdbcSession().newDelete(c)
-                    .where(c.isOwnedBy(context.row())
-                            .and(c.cid.eq(container.asPrismContainerValue().getId())))
-                    .execute();
+            deleteContainer(c, container);
         }
+    }
+
+    private void deleteContainer(Q c, T container) {
+        context.jdbcSession().newDelete(c)
+                .where(c.isOwnedBy(context.row())
+                        .and(c.cid.eq(container.asPrismContainerValue().getId())))
+                .execute();
     }
 
     @Override

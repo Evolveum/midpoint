@@ -16,19 +16,14 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.jetbrains.annotations.NotNull;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerListener;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
@@ -39,10 +34,10 @@ import com.evolveum.midpoint.util.sql.ScriptRunner;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
- * Helps with Quartz starting and stopping
+ * Helps with Quartz starting and stopping.
  */
 @Component
-class QuartzInitializationHelper implements BeanFactoryAware {
+class QuartzInitializationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(QuartzInitializationHelper.class);
 
@@ -58,8 +53,7 @@ class QuartzInitializationHelper implements BeanFactoryAware {
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private ClusterManager clusterManager;
     @Autowired private LocalScheduler localScheduler;
-
-    private BeanFactory beanFactory;
+    @Autowired(required = false) private DataSource repositoryDataSource;
 
     /**
      * Prepares Quartz scheduler. Configures its properties (based on Task Manager configuration) and creates the instance.
@@ -80,9 +74,8 @@ class QuartzInitializationHelper implements BeanFactoryAware {
             final String myDs = "myDS";
             quartzProperties.put("org.quartz.jobStore.dataSource", myDs);
             if (configuration.isUseRepositoryConnectionProvider()) {
-                DataSourceFactory dataSourceFactory = (DataSourceFactory) beanFactory.getBean("dataSourceFactory");
                 int index = (int) (Math.random() * Integer.MAX_VALUE);
-                RepositoryConnectionProvider.DATA_SOURCES.put(index, dataSourceFactory.getDataSource());
+                RepositoryConnectionProvider.DATA_SOURCES.put(index, repositoryDataSource);
                 quartzProperties.put("org.quartz.dataSource." + myDs + ".connectionProvider.class", RepositoryConnectionProvider.class.getName());
                 quartzProperties.put("org.quartz.dataSource." + myDs + ".dataSourceIndex", String.valueOf(index));
             } else if (configuration.getDataSource() != null) {
@@ -195,8 +188,7 @@ class QuartzInitializationHelper implements BeanFactoryAware {
         Connection connection;
         try {
             if (configuration.isUseRepositoryConnectionProvider()) {
-                DataSourceFactory dataSourceFactory = (DataSourceFactory) beanFactory.getBean("dataSourceFactory");
-                connection = dataSourceFactory.getDataSource().getConnection();
+                connection = repositoryDataSource.getConnection();
             } else if (configuration.getDataSource() != null) {
                 DataSource dataSource;
                 try {
@@ -240,11 +232,6 @@ class QuartzInitializationHelper implements BeanFactoryAware {
         return new BufferedReader(new InputStreamReader(stream));
     }
 
-    @Override
-    public void setBeanFactory(@NotNull BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
-
     private class MySchedulerListener extends SchedulerListenerSupport {
         @Override
         public void schedulerStarting() {
@@ -257,5 +244,4 @@ class QuartzInitializationHelper implements BeanFactoryAware {
             }
         }
     }
-
 }

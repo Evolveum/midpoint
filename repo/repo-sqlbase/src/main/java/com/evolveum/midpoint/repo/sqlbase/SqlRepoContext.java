@@ -166,7 +166,7 @@ public class SqlRepoContext {
         return schemaService.relationRegistry();
     }
 
-    public void normalizeAllRelations(PrismObject<?> prismObject) {
-        ObjectTypeUtil.normalizeAllRelations(prismObject, schemaService.relationRegistry());
+    public void normalizeAllRelations(PrismContainerValue<?> pcv) {
+        ObjectTypeUtil.normalizeAllRelations(pcv, schemaService.relationRegistry());
     }
 }

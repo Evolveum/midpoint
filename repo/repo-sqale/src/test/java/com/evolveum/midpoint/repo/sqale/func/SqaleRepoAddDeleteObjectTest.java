@@ -258,12 +258,13 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(count(QUser.class)).isEqualTo(baseCount + 1); // no change in count
         MUser row = selectObjectByOid(QUser.class, user2.getOid());
         assRows = select(qa, qa.ownerOid.eq(UUID.fromString(user2.getOid())));
-        assertThat(assRows).hasSize(1)
-                .anyMatch(aRow -> aRow.resourceRefTargetOid == null // removed
-                        && aRow.resourceRefTargetType == null // removed
-                        && aRow.resourceRefRelationId == null // removed
-                        && aRow.targetRefTargetOid != null // added
-                        && aRow.targetRefTargetType == MObjectType.ROLE);
+        assertThat(assRows).hasSize(1);
+        MAssignment assRow = assRows.get(0);
+        assertThat(assRow.resourceRefTargetOid).isNull(); // removed
+        assertThat(assRow.resourceRefTargetType).isNull(); // removed
+        assertThat(assRow.resourceRefRelationId).isNull(); // removed
+        assertThat(assRow.targetRefTargetOid).isNotNull(); // added
+        assertThat(assRow.targetRefTargetType).isEqualTo(MObjectType.ROLE);
 
         and("provided version for overwrite is ignored");
         assertThat(row.version).isEqualTo(2);
@@ -539,6 +540,31 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .allMatch(rRow -> rRow.ownerOid.equals(userRow.oid))
                 .allMatch(rRow -> rRow.assignmentCid.equals(1L)) // there's just one container
                 .anyMatch(refRowMatcher(approverRef1, approverRelation));
+    }
+
+    @Test
+    public void test208AddObjectWithRefWithoutTypeImpliedByDefault()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("object with ref without specified target type");
+        String userName = "user" + getTestNumber();
+        UUID approverRef1 = UUID.randomUUID();
+        UserType user = new UserType(prismContext)
+                .name(userName)
+                .metadata(new MetadataType().creatorRef(
+                        new ObjectReferenceType().oid(approverRef1.toString())));
+
+        when("adding it to the repository");
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its reference rows are created");
+        assertThatOperationResult(result).isSuccess();
+
+        MUser userRow = selectObjectByOid(QUser.class, oid);
+        assertThat(userRow.oid).isNotNull();
+        assertThat(userRow.creatorRefTargetOid).isEqualTo(approverRef1);
+        assertThat(userRow.creatorRefTargetType).isEqualTo(MObjectType.USER); // default from def
     }
 
     @Test

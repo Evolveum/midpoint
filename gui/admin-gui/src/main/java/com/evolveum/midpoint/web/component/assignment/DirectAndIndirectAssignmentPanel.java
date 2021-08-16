@@ -10,22 +10,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
-
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractRoleInducementPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-
-import com.evolveum.midpoint.web.application.PanelDisplay;
-
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -40,15 +27,23 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.AssignmentValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -133,13 +128,41 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
         });
 
-        columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_TARGET_REF, ColumnType.LINK, getPageBase()){
+        columns.add(new AjaxLinkColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.name")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<AssignmentType>> mainModel) {
-                return new Label(componentId, getPageBase().createStringResource("DirectAndIndirectAssignmentPanel.column.name"));
+            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
+                if (StringUtils.isEmpty(name)) {
+                    ObjectReferenceType ref;
+                    if (rowModel.getObject().getRealValue().getConstruction() != null) {
+                        ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
+                    } else {
+                        ref = rowModel.getObject().getRealValue().getTargetRef();
+                    }
+                    name = WebComponentUtil.getDisplayNameOrName(ref);
+                }
+                return Model.of(name);
             }
 
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                ObjectReferenceType ref;
+                if (rowModel.getObject().getRealValue().getConstruction() != null) {
+                    ref = rowModel.getObject().getRealValue().getConstruction().getResourceRef();
+                } else {
+                    ref = rowModel.getObject().getRealValue().getTargetRef();
+                }
+                if (ref != null) {
+                    try {
+                        WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), true);
+                    } catch (Exception e) {
+                        getPageBase().error("Cannot determine details page for " + ref);
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+                }
+            }
         });
 
         columns.add(new AbstractColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.type")) {
