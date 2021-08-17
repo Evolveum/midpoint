@@ -77,10 +77,10 @@ public class ClassicReportExportActivityHandler
         }
 
         if (report.getDashboard() != null) {
-            return new PlainIterativeActivityExecution<>(context, "Collection report export", ClassicDashboardReportExportActivityExecutionSpecifics::new);
+            return new PlainIterativeActivityExecution<>(context, "Dashboard report export", ClassicDashboardReportExportActivityExecutionSpecifics::new);
         }
         if (report.getObjectCollection() != null) {
-            return new PlainIterativeActivityExecution<>(context, "Dashboard report export", ClassicCollectionReportExportActivityExecutionSpecifics::new);
+            return new PlainIterativeActivityExecution<>(context, "Collection report export", ClassicCollectionReportExportActivityExecutionSpecifics::new);
         }
         LOGGER.error("Report don't contains engine");
         throw new IllegalArgumentException("Report don't contains engine");

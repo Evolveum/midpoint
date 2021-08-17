@@ -93,32 +93,35 @@ public class ReportManagerImpl implements ReportManager {
      * Creates and starts task with proper handler, also adds necessary information to task
      * (like ReportType reference and so on).
      *
-     * @param object
+     * @param report
      * @param task
      * @param parentResult describes report which has to be created
      */
 
     @Override
-    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
+    public void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
         task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
 
-        if (!reportService.isAuthorizedToRunReport(object, task, parentResult)) {
-            LOGGER.error("User is not authorized to run report {}", object);
+        if (!reportService.isAuthorizedToRunReport(report, task, parentResult)) {
+            LOGGER.error("User is not authorized to run report {}", report);
             throw new SecurityViolationException("Not authorized");
         }
 
-//        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
-        task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
-        try {
-            if (paramContainer != null && !paramContainer.isEmpty()) {
-                task.setExtensionContainer(paramContainer);
-            }
-        } catch (SchemaException e) {
-            throw new SystemException(e);
+        ClassicReportExportWorkDefinitionType reportConfig = new ClassicReportExportWorkDefinitionType()
+                .reportRef(new ObjectReferenceType().oid(report.getOid()).type(ReportType.COMPLEX_TYPE));
+        if (paramContainer != null && !paramContainer.isEmpty()) {
+            reportConfig.reportParam(paramContainer.getRealValue());
         }
+
+        task.getUpdatedTaskObject().getRealValue()
+                .activity(new ActivityDefinitionType()
+                        .work(new WorkDefinitionsType()
+                                .reportExport(reportConfig)
+                        )
+                );
 
         task.setThreadStopAction(ThreadStopActionType.CLOSE);
         task.makeSingle();
@@ -148,14 +151,16 @@ public class ReportManagerImpl implements ReportManager {
             throw new SecurityViolationException("Not authorized");
         }
 
-//        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
-        task.setObjectRef(report.getOid(), ReportType.COMPLEX_TYPE);
+        ClassicReportImportWorkDefinitionType reportConfig = new ClassicReportImportWorkDefinitionType()
+                .reportRef(new ObjectReferenceType().oid(report.getOid()).type(ReportType.COMPLEX_TYPE))
+                .reportDataRef(new ObjectReferenceType().oid(reportData.getOid()).type(ReportDataType.COMPLEX_TYPE));
 
-        PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
-                .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
-        PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportData.getOid(), ReportDataType.COMPLEX_TYPE);
-        reportDataRef.getValues().add(refValue);
-        task.setExtensionReference(reportDataRef);
+        task.getUpdatedTaskObject().getRealValue()
+                .activity(new ActivityDefinitionType()
+                        .work(new WorkDefinitionsType()
+                                .reportImport(reportConfig)
+                        )
+                );
 
         task.setThreadStopAction(ThreadStopActionType.CLOSE);
         task.makeSingle();
