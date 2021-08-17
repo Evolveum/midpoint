@@ -72,7 +72,6 @@ class ClassicReportImportActivityExecutionSpecifics
     public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
         BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
             InputReportLine line = new InputReportLine(lineNumber, variables);
-            // TODO determine the correlation value, if possible
 
             getProcessingCoordinator().submit(
                     new InputReportLineProcessingRequest(line, activityExecution),
@@ -80,7 +79,7 @@ class ClassicReportImportActivityExecutionSpecifics
         };
 
         try {
-            controller.processVariableFromFile(support.getReportData(), handler); // TODO better name
+            controller.parseColumnsAsVariablesFromFile(support.getReportData(), handler);
         } catch (IOException e) {
             LOGGER.error("Couldn't read content of imported file", e);
         }
@@ -96,6 +95,6 @@ class ClassicReportImportActivityExecutionSpecifics
 
     @Override
     public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
-        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE; // TODO or STOP ?
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 }

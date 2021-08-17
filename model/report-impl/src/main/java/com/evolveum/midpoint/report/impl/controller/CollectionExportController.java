@@ -62,9 +62,9 @@ import static java.util.Objects.requireNonNull;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class CollectionBasedExportController<C extends Containerable> implements ExportController<C>{
+public class CollectionExportController<C extends Containerable> implements ExportController<C>{
 
-    private static final Trace LOGGER = TraceManager.getTrace(CollectionBasedExportController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CollectionExportController.class);
 
     /**
      * Data source for the report. It is initialized from within this class. But the actual feeding
@@ -102,8 +102,6 @@ public class CollectionBasedExportController<C extends Containerable> implements
 
     /**
      * Values of report parameters.
-     *
-     * TODO Currently filled-in from the task extension. But this is to be changed to the work definition.
      */
     private VariablesMap parameters;
 
@@ -116,7 +114,7 @@ public class CollectionBasedExportController<C extends Containerable> implements
     protected final RepositoryService repositoryService;
     protected final LocalizationService localizationService;
 
-    public CollectionBasedExportController(@NotNull ReportDataSource<C> dataSource,
+    public CollectionExportController(@NotNull ReportDataSource<C> dataSource,
             @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,

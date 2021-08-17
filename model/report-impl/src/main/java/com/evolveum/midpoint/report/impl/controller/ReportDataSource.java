@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.util.Collection;
 
@@ -28,8 +29,6 @@ public interface ReportDataSource<C extends Containerable> {
 
     /**
      * Executes the search and feeds the handler with the data.
-     *
-     * TODO not used yet
      */
-    void run(Handler<C> handler, OperationResult result);
+    void run(Handler<C> handler, OperationResult result) throws CommonException;
 }

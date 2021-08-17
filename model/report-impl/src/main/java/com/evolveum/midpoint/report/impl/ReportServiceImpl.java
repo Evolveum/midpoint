@@ -93,7 +93,6 @@ public class ReportServiceImpl implements ReportService {
     public Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        // TODO why do we treat scripting expressions separately here?!
         if (expression.getExpressionEvaluator().size() == 1
                 && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
             ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();

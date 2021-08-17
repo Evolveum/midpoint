@@ -7,17 +7,12 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
@@ -57,12 +52,12 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
      * Execution object (~ controller) that is used to transfer objects found into report data.
      * Initialized on the activity execution start.
      */
-    private CollectionBasedExportController<Containerable> controller;
+    private CollectionExportController<Containerable> controller;
 
     /**
      * This is "master" search specification, derived from the report.
      */
-    private SearchSpecificationHolder searchSpecificationHolder;
+    private ContainerableReportDataSource searchSpecificationHolder;
 
     ClassicCollectionReportExportActivityExecutionSpecifics(
             @NotNull PlainIterativeActivityExecution<Containerable, ClassicReportExportWorkDefinition,
@@ -81,10 +76,10 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
 
         support.stateCheck(result);
 
-        searchSpecificationHolder = new SearchSpecificationHolder();
+        searchSpecificationHolder = new ContainerableReportDataSource(support);
         dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
-        controller = new CollectionBasedExportController<>(
+        controller = new CollectionExportController<>(
                 searchSpecificationHolder,
                 dataWriter,
                 report,
@@ -109,13 +104,7 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
             getProcessingCoordinator().submit(request, result);
             return true;
         };
-
-        List<? extends Containerable> objects = support.searchRecords(
-                searchSpecificationHolder.type,
-                searchSpecificationHolder.query,
-                searchSpecificationHolder.options,
-                result);
-        objects.forEach(handler::handle);
+        searchSpecificationHolder.run(handler, result);
     }
 
     @Override
@@ -134,24 +123,5 @@ public class ClassicCollectionReportExportActivityExecutionSpecifics
     @Override
     public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
-    }
-
-    private static class SearchSpecificationHolder implements ReportDataSource<Containerable> {
-
-        private Class<Containerable> type;
-        private ObjectQuery query;
-        Collection<SelectorOptions<GetOperationOptions>> options;
-
-        @Override
-        public void initialize(Class<Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
-            this.type = type;
-            this.query = query;
-            this.options = options;
-        }
-
-        @Override
-        public void run(Handler<Containerable> handler, OperationResult result) {
-            // no-op
-        }
     }
 }

@@ -16,6 +16,8 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.repo.common.activity.execution.CompositeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +40,6 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistributedReportExportWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
 
 /**
  * Activity handler for distributed report export.
@@ -125,14 +124,28 @@ public class DistributedReportExportActivityHandler
             return;
         }
 
+        ReportType report = objectResolver.resolve(
+                activity.getWorkDefinition().getReportRef(),
+                ReportType.class,
+                null,
+                "resolve report ref",
+                runningTask,
+                result);
         ReportDataType reportData = new ReportDataType(commonTaskBeans.prismContext)
-                .name(RandomStringUtils.randomAlphabetic(10)); // TODO
+                .name(SaveReportFileSupport.getNameOfExportedReportData(report, getType(report)));
         String oid = commonTaskBeans.repositoryService.addObject(reportData.asPrismObject(), null, result);
 
         activityState.setWorkStateItemRealValues(F_REPORT_DATA_REF, createObjectRef(oid, ObjectTypes.REPORT_DATA));
         activityState.flushPendingModifications(result);
 
         LOGGER.info("Created empty report data object {}", reportData);
+    }
+
+    private String getType(ReportType report) {
+        if (report == null || report.getFileFormat() == null || report.getFileFormat().getType() == null) {
+            return FileFormatTypeType.CSV.name();
+        }
+        return report.getFileFormat().getType().name();
     }
 
     @Override

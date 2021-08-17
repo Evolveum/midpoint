@@ -38,8 +38,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  * Common superclass for "empty" report integration tests.
  *
  * VERY EXPERIMENTAL
- *
- * TODO reconsider
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

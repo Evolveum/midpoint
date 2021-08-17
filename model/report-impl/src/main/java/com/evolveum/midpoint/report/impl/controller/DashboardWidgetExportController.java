@@ -44,7 +44,7 @@ import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class DashboardWidgetBasedExportController<C extends Containerable> implements ExportController<C> {
+public class DashboardWidgetExportController<C extends Containerable> implements ExportController<C> {
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
@@ -64,7 +64,7 @@ public class DashboardWidgetBasedExportController<C extends Containerable> imple
     protected final SchemaService schemaService;
     protected final RepositoryService repositoryService;
 
-    public DashboardWidgetBasedExportController(
+    public DashboardWidgetExportController(
             @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService) {

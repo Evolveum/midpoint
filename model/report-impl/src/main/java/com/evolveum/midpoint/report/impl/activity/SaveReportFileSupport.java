@@ -128,6 +128,12 @@ class SaveReportFileSupport {
         return replaceColons(new File(exportDir, fileName).getPath());
     }
 
+    static String getNameOfExportedReportData(ReportType reportType, String type) {
+        String fileName = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        String reportDataName = fileName + " - " + type;
+        return reportDataName;
+    }
+
     private static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
         SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
@@ -170,8 +176,7 @@ class SaveReportFileSupport {
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             Task task,OperationResult parentResult) throws CommonException {
 
-        String fileName = FilenameUtils.getBaseName(filePath);
-        String reportDataName = fileName + " - " + dataWriter.getType();
+        String reportDataName = getNameOfExportedReportData(reportType, dataWriter.getType());
 
         ReportDataType reportDataType = new ReportDataType();
         reportService.getPrismContext().adopt(reportDataType);

@@ -377,7 +377,7 @@ public class ImportController {
         return reportService.getPrismContext().parserFor(embeeded).xml().definition(def).parseRealValue();
     }
 
-    public void processVariableFromFile(ReportDataType reportData, BiConsumer<Integer, VariablesMap> handler)
+    public void parseColumnsAsVariablesFromFile(ReportDataType reportData, BiConsumer<Integer, VariablesMap> handler)
             throws IOException {
         List<String> headers = new ArrayList<>();
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));

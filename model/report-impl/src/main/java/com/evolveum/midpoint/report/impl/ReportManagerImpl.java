@@ -299,9 +299,9 @@ public class ReportManagerImpl implements ReportManager {
         }
     }
 
-    //TODO re-throw exceptions?
     @Override
-    public InputStream getReportDataStream(String reportDataOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException {
+    public InputStream getReportDataStream(String reportDataOid, OperationResult parentResult)
+            throws CommonException, IOException {
         Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
 
         OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);

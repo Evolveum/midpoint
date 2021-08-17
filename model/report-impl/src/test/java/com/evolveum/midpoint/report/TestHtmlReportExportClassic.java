@@ -58,8 +58,6 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         repoAdd(REPORT_DASHBOARD_WITH_TRIPLE_VIEW, initResult);
         repoAdd(REPORT_DASHBOARD_EMPTY, initResult);
 
-//        repoAdd(REPORT_OBJECT_COLLECTION_USERS, initResult);
-
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS_WITH_VIEW, initResult);
         repoAdd(OBJECT_COLLECTION_AUDIT_EMPTY, initResult);
@@ -171,10 +169,10 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW);
     }
 
-//    @Test //TODO uncomment after implementation of parameters in new task config
-//    public void test118ObjectCollectionWithParamReport() throws Exception {
-//        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM);
-//    }
+    @Test
+    public void test118ObjectCollectionWithParamReport() throws Exception {
+        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM);
+    }
 
     @Test
     public void test119ObjectCollectionWithSubreportParamReport() throws Exception {

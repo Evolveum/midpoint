@@ -54,10 +54,8 @@ public class ReportDataCreationExecutionSpecifics
     /**
      * Execution object (~ controller) that is used to translate objects found into report data.
      * Initialized on the activity execution start.
-     *
-     * TODO decide on the correct name for this class and its instances
      */
-    private CollectionBasedDistributedExportController<ObjectType> controller;
+    private CollectionDistributedExportController<ObjectType> controller;
 
     /**
      * This is "master" search specification, derived from the report.
@@ -104,7 +102,7 @@ public class ReportDataCreationExecutionSpecifics
         SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
         ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter = ReportUtils.createDataWriter(
                 report, FileFormatTypeType.CSV, getActivityHandler().reportService, support.getCompiledCollectionView(result));
-        controller = new CollectionBasedDistributedExportController<>(
+        controller = new CollectionDistributedExportController<>(
                 searchSpecificationHolder,
                 dataWriter,
                 report,

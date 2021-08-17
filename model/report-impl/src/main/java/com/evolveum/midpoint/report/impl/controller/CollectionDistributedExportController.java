@@ -43,9 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class CollectionBasedDistributedExportController<C extends Containerable> extends CollectionBasedExportController<C> {
+public class CollectionDistributedExportController<C extends Containerable> extends CollectionExportController<C> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CollectionBasedDistributedExportController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CollectionDistributedExportController.class);
 
     /**
      * Reference to the global (aggregated) report data object.
@@ -55,7 +55,7 @@ public class CollectionBasedDistributedExportController<C extends Containerable>
      */
     @NotNull private final ObjectReferenceType globalReportDataRef;
 
-    public CollectionBasedDistributedExportController(@NotNull ReportDataSource<C> dataSource,
+    public CollectionDistributedExportController(@NotNull ReportDataSource<C> dataSource,
             @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ObjectReferenceType globalReportDataRef,
@@ -80,8 +80,8 @@ public class CollectionBasedDistributedExportController<C extends Containerable>
         String data = dataWriter.getStringData();
         dataWriter.reset();
 
-        LOGGER.info("Bucket {} is complete ({} chars in report). Let's create the partial report data object:\n{}",
-                bucketNumber, data.length(), data); // todo debug
+        LOGGER.debug("Bucket {} is complete ({} chars in report). Let's create the partial report data object:\n{}",
+                bucketNumber, data.length(), data);
 
         // Note that we include [oid] in the object name to allow a poor man searching over the children.
         // It's until parentRef is properly indexed in the repository.

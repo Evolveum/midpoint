@@ -10,7 +10,6 @@ package com.evolveum.midpoint.report.impl.activity;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.task.*;
-import com.evolveum.midpoint.report.impl.activity.ExportActivitySupport.SearchSpecificationHolder;
 import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport.DashboardWidgetHolder;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
@@ -57,7 +56,7 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     /**
      * Controller for widgets.
      */
-    private DashboardWidgetBasedExportController<Containerable> basicWidgetController;
+    private DashboardWidgetExportController<Containerable> basicWidgetController;
 
     ClassicDashboardReportExportActivityExecutionSpecifics(
             @NotNull PlainIterativeActivityExecution<ExportDashboardReportLine<Containerable>, ClassicReportExportWorkDefinition,
@@ -82,15 +81,15 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
 
         dataWriter = ReportUtils.createDashboardDataWriter(
                 report, getActivityHandler().reportService, support.getMapOfCompiledViews());
-        basicWidgetController = new DashboardWidgetBasedExportController<>(dataWriter, report, reportService);
+        basicWidgetController = new DashboardWidgetExportController<>(dataWriter, report, reportService);
         basicWidgetController.initialize();
         basicWidgetController.beforeBucketExecution(1, result);
 
         for (DashboardWidgetType widget : widgets) {
             if (support.isWidgetTableVisible()) {
                 String widgetIdentifier = widget.getIdentifier();
-                SearchSpecificationHolder searchSpecificationHolder = new SearchSpecificationHolder();
-                DashboardBasedExportController<Containerable> controller = new DashboardBasedExportController(
+                ContainerableReportDataSource searchSpecificationHolder = new ContainerableReportDataSource(support);
+                DashboardExportController<Containerable> controller = new DashboardExportController(
                         searchSpecificationHolder,
                         dataWriter,
                         report,
@@ -133,13 +132,8 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
                 };
 
                 DashboardWidgetHolder holder = mapOfWidgetsController.get(widget.getIdentifier());
-                SearchSpecificationHolder searchSpecificationHolder = holder.getSearchSpecificationHolder();
-                List<? extends Containerable> objects = support.searchRecords(
-                        searchSpecificationHolder.getType(),
-                        searchSpecificationHolder.getQuery(),
-                        searchSpecificationHolder.getOptions(),
-                        result);
-                objects.forEach(handler::handle);
+                ContainerableReportDataSource searchSpecificationHolder = holder.getSearchSpecificationHolder();
+                searchSpecificationHolder.run(handler, result);
             }
         }
     }

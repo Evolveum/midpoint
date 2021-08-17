@@ -35,7 +35,7 @@ import java.util.*;
  * Contains common functionality for executions of export report-related activities.
  * This is an experiment - using object composition instead of inheritance.
  */
-class ExportActivitySupport extends ReportActivitySupport {
+public class ExportActivitySupport extends ReportActivitySupport {
 
     private SaveReportFileSupport saveSupport;
 
@@ -87,40 +87,6 @@ class ExportActivitySupport extends ReportActivitySupport {
         } else {
             SearchResultList<? extends Containerable> containers = modelService.searchContainers(type, query, options, runningTask, result);
             return Objects.requireNonNullElse(containers.getList(), Collections.emptyList());
-        }
-    }
-
-    static class SearchSpecificationHolder implements ReportDataSource<Containerable> {
-
-        private Class<Containerable> type;
-        private ObjectQuery query;
-        private Collection<SelectorOptions<GetOperationOptions>> options;
-
-        @Override
-        public void initialize(Class<Containerable> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) {
-            SearchSpecificationHolder.this.type = type;
-            SearchSpecificationHolder.this.query = query;
-            SearchSpecificationHolder.this.options = options;
-        }
-
-        @NotNull
-        public Class<Containerable> getType() {
-            return type;
-        }
-
-        @NotNull
-        public ObjectQuery getQuery() {
-            return query;
-        }
-
-        @NotNull
-        public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-            return options;
-        }
-
-        @Override
-        public void run(Handler<Containerable> handler, OperationResult result) {
-            // no-op
         }
     }
 }

@@ -344,7 +344,6 @@ public class ReportFunctions {
      * Retrieves all definitions.
      * Augments them by count of campaigns (all + open ones).
      *
-     * TODO query parameters, customizable sorting
      * definitions and campaigns counts are expected to be low, so we can afford to go through all of them here
      */
     public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions()

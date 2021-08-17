@@ -13,7 +13,8 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.CollectionBasedExportController;
+import com.evolveum.midpoint.report.impl.controller.CollectionExportController;
+import com.evolveum.midpoint.report.impl.controller.ContainerableReportDataSource;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -114,20 +115,20 @@ class ExportDashboardActivitySupport extends ExportActivitySupport{
 
     static class DashboardWidgetHolder {
 
-        @NotNull final SearchSpecificationHolder searchSpecificationHolder;
-        @NotNull final CollectionBasedExportController<Containerable> controller;
+        @NotNull final ContainerableReportDataSource searchSpecificationHolder;
+        @NotNull final CollectionExportController<Containerable> controller;
 
-        DashboardWidgetHolder(@NotNull SearchSpecificationHolder searchSpecificationHolder,
-                @NotNull CollectionBasedExportController<Containerable> controller) {
+        DashboardWidgetHolder(@NotNull ContainerableReportDataSource searchSpecificationHolder,
+                @NotNull CollectionExportController<Containerable> controller) {
             this.searchSpecificationHolder = searchSpecificationHolder;
             this.controller = controller;
         }
 
-        @NotNull public SearchSpecificationHolder getSearchSpecificationHolder() {
+        @NotNull public ContainerableReportDataSource getSearchSpecificationHolder() {
             return searchSpecificationHolder;
         }
 
-        @NotNull  public CollectionBasedExportController<Containerable> getController() {
+        @NotNull  public CollectionExportController<Containerable> getController() {
             return controller;
         }
     }

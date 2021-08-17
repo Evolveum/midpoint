@@ -242,7 +242,7 @@ class ColumnDataConverter<C extends Containerable> {
     private Collection<? extends PrismValue> evaluateExportExpressionOverRealValues(ExpressionType expression, Object input) {
         VariablesMap variables = new VariablesMap();
         variables.putAll(parameters);
-        if (input == null) { // TODO or should we put 'input' here only under specific conditions as it was originally?
+        if (input == null) {
             variables.put(ExpressionConstants.VAR_INPUT, null, Object.class);
         } else {
             variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());

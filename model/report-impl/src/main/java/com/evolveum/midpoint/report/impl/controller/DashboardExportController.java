@@ -44,14 +44,14 @@ import java.util.stream.Collectors;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class DashboardBasedExportController<C extends Containerable> extends CollectionBasedExportController<C> {
+public class DashboardExportController<C extends Containerable> extends CollectionExportController<C> {
 
     /**
      * Identifier of widget.
      */
     private final String widgetIdentifier;
 
-    public DashboardBasedExportController(@NotNull ReportDataSource<C> dataSource,
+    public DashboardExportController(@NotNull ReportDataSource<C> dataSource,
             @NotNull ReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,

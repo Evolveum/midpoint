@@ -24,8 +24,6 @@ import java.util.function.Function;
  * 2. Produces final string form when asked to do so.
  *
  * 2. Holds the file-format-specific configuration.
- *
- * TODO better name?
  */
 public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> {
 
