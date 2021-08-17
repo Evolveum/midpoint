@@ -316,7 +316,7 @@ public class ImportController {
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
-                    newItem.add(newValue);
+                    ((PrismProperty)newItem).addValue(newValue);
                 }
             }
         } else {
@@ -336,7 +336,7 @@ public class ImportController {
                     continue;
                 }
                 PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(parsedObject);
-                newItem.add(newValue);
+                ((PrismProperty)newItem).addValue(newValue);
             }
         }
     }
