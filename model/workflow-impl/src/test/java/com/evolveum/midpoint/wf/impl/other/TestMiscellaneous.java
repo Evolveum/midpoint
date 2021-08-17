@@ -493,7 +493,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         assertCase(approvalCase, "after")
                 .display()
-                .assertNameOrig("Assigning role \"vault-access\" to user \"launchpad\"")
+                .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack\"")
                 .assertApprovalCaseArchetype()
                 .assertObjectRef(USER_LAUNCHPAD.oid, UserType.COMPLEX_TYPE)
                 .assertTargetRef(ROLE_VAULT_ACCESS.oid, RoleType.COMPLEX_TYPE)
