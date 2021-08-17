@@ -46,7 +46,7 @@ ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
 # entry point for source of the files to copy into midpoint home directory before the application start
 ################
 
-if [ ${MP_ENTRY_POINT:-} != "" ]	# /opt/midpoint-dirs-docker-entrypoint
+if [ "${MP_ENTRY_POINT:-}" != "" ]	# /opt/midpoint-dirs-docker-entrypoint
 then
 	if [ -e ${MP_ENTRY_POINT} ]
 	then
