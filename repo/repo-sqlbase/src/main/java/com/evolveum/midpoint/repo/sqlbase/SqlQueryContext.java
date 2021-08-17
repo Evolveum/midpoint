@@ -22,7 +22,6 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
@@ -33,12 +32,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NaryLogicalFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NotFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -223,31 +217,41 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
     }
 
-    private Expression<?> orderingPath(ItemPath orderByItemPath) throws RepositoryException {
+    /**
+     * @param <CQ> current entity query path type, can change during multi-segment path resolution
+     * @param <CR> row type related to {@link CQ}
+     */
+    @SuppressWarnings("unchecked")
+    private <CQ extends FlexibleRelationalPathBase<CR>, CR> Expression<?> orderingPath(
+            ItemPath orderByItemPath) throws RepositoryException {
+
         ItemPath path = orderByItemPath;
-        QueryModelMapping<?, ?, ?> current = entityPathMapping;
-        PrismContainerDefinition<?> container = (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
-        // TODO to support ordering by ext/something we need to implement correctly itemPrimaryPath in ExtensionMapping
-        //  That may not even require cache for JOIN because it should be allowed only for
-        //  single-value containers embedded in the object.
+        QueryModelMapping<?, CQ, CR> mapping = (QueryModelMapping<?, CQ, CR>) entityPathMapping;
+        SqlQueryContext<?, CQ, CR> context = (SqlQueryContext<?, CQ, CR>) this;
+        PrismContainerDefinition<?> containerDefinition =
+                (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
         while (path.size() > 1) {
-            ItemRelationResolver resolver = current.relationResolver(path); // Resolves only first element
-            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(this);
-            current = resolution.mapping;
-            container = container.findLocalItemDefinition(path.firstToName(), PrismContainerDefinition.class, false);
-            // TODO: Throw when subquery true?
+            ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
+            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+            if (resolution.subquery) {
+                throw new QueryException("Item path '" + orderByItemPath
+                        + "' cannot be used for ordering because subquery is used to resolve it.");
+            }
+            // CQ/CR for the next loop may be actually different then before, but that's OK
+            mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
+            context = (SqlQueryContext<?, CQ, CR>) resolution.context;
+            containerDefinition = containerDefinition.findLocalItemDefinition(
+                    path.firstToName(), PrismContainerDefinition.class, false);
             path = path.rest();
         }
 
-        ItemName itemName = path.firstToName();
-        final ItemDefinition<?> definition;
-        if (PrismConstants.T_ID.equals(itemName)) {
-            definition = null;
-        } else {
-            definition = container.findItemDefinition(itemName);
-        }
-        ItemSqlMapper mapper = current.itemMapper(itemName);
-        return mapper.itemOrdering(entityPath, definition);
+        QName first = path.firstToQName();
+        ItemDefinition<?> definition = first instanceof ItemName
+                ? containerDefinition.findItemDefinition((ItemName) first)
+                : null;
+
+        ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
+        return mapper.itemOrdering(context.path(), definition);
     }
 
     /**
