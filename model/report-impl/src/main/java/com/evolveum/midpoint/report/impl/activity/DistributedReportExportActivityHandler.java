@@ -48,8 +48,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * 1. Partial reports creation: report data is created for each bucket of objects.
  * 2. Report summarization: partial report data objects are aggregated into summary one.
- *
- * TODO simplify processing if no bucketing is defined
  */
 @Component
 public class DistributedReportExportActivityHandler

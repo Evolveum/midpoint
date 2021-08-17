@@ -74,8 +74,6 @@ class SaveReportFileSupport {
     /**
      * Very strange: colons are no problem for Windows, but Apache file utils complain for them (when running on Windows).
      * So they will be replaced, at least temporarily.
-     *
-     * TODO research this
      */
     private String replaceColons(String path) {
         if (onWindows()) {

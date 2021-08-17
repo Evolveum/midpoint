@@ -154,7 +154,6 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         commonInitialization(initResult);
     }
 
-    // TODO deduplicate
     void commonInitialization(OperationResult initResult)
             throws CommonException, EncryptionException, IOException {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
