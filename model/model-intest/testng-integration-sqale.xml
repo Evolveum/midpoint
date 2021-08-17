@@ -86,6 +86,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
             -->
             <!-- TODO test800/804 fail on validity scanner (type of search problem I guess)
+            searchObjectsIterative fails on the query for ObjectType asking for attributes from subclass (FocusType):
+            Q{OR(LESS-OR-EQUAL: activation/validFrom, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); LESS-OR-EQUAL: activation/validTo, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); EXISTS(assignment, OR(LESS-OR-EQUAL: activation/validFrom, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00); LESS-OR-EQUAL: activation/validTo, PPV(XMLGregorianCalendarImpl:2021-08-17T10:35:36.975+02:00)))), null paging}
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
             TODO: different kind of wrong query: Missing item mapping for 'roleType' in mapping QAssignmentHolderMapping
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
