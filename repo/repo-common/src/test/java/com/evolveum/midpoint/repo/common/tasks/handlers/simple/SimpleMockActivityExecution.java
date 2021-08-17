@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 /**
- * TODO
+ * Execution for the simple custom mock activity (custom = not plain iterative nor search-based nor even composite).
  */
 class SimpleMockActivityExecution
         extends LocalActivityExecution<SimpleMockWorkDefinition, SimpleMockActivityHandler, AbstractActivityWorkStateType> {
@@ -91,17 +91,17 @@ class SimpleMockActivityExecution
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false;
     }
 }

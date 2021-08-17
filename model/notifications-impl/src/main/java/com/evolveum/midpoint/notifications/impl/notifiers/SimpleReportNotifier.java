@@ -18,11 +18,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +50,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     private static final String REPORT_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/handler-3";
 
     @Autowired private ModelService modelService;
+    @Autowired private ObjectResolver resolver;
 
     @Override
     public Class<TaskEvent> getEventType() {
@@ -64,7 +67,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
-        } else if (!event.isFinished()){
+        } else if (!event.isFinished()) {
             LOGGER.trace("No report output oid present in task. Skip sending notifications.");
             return false;
         }
@@ -74,13 +77,26 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
 
     @Override
     protected boolean quickCheckApplicability(TaskEvent event, SimpleReportNotifierType configuration, OperationResult result) {
-        if (!event.getTask().getHandlerUri().equals(REPORT_TASK_URI)) {
+        @NotNull Task task = event.getTask();
+        if (task.getHandlerUri() != null && !task.getHandlerUri().equals(REPORT_TASK_URI) && !isReportTask(task)) {
             LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}",
                     getClass().getSimpleName(), event.getClass());
             return false;
         } else {
             return true;
         }
+    }
+
+    private boolean isReportTask(Task task) {
+        ActivityDefinitionType activity = task.getRootActivityDefinitionOrClone();
+        if (activity == null) {
+            return false;
+        }
+        WorkDefinitionsType workDef = activity.getWork();
+        if (workDef == null) {
+            return false;
+        }
+        return workDef.getReportExport() != null || workDef.getDistributedReportExport() != null;
     }
 
     @Override
@@ -137,13 +153,7 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     protected String getBody(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task opTask, OperationResult opResult) throws SchemaException {
 
         Task task = event.getTask();
-        PrismObject<ReportType> report;
-        try {
-            report = task.getObject(ReportType.class, opResult);
-        } catch (ObjectNotFoundException e) {
-            getLogger().error("Could't get Report from task " + task.debugDump(), e);
-            throw new SystemException("Could't get Report from task " + task.debugDump(), e);
-        }
+        PrismObject<ReportType> report = getReportFromTask(task, opTask, opResult);
 
         StringBuilder body = new StringBuilder();
 
@@ -153,11 +163,36 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
         return body.toString();
     }
 
+    private PrismObject<ReportType> getReportFromTask(Task task, Task opTask, OperationResult opResult) {
+        try {
+            if (isReportTask(task)) {
+                ObjectReferenceType ref;
+                if (task.getRootActivityDefinitionOrClone().getWork().getReportExport() != null) {
+                    ref = task.getRootActivityDefinitionOrClone().getWork().getReportExport().getReportRef();
+                } else {
+                    ref = task.getRootActivityDefinitionOrClone().getWork().getDistributedReportExport().getReportRef();
+                }
+                return resolver.resolve(
+                        ref,
+                        ReportType.class,
+                        null,
+                        "resolving report",
+                        opTask,
+                        opResult
+                        ).asPrismContainer();
+            }
+            return task.getObject(ReportType.class, opResult);
+        } catch (CommonException e) {
+            getLogger().error("Couldn't get Report from task " + task.debugDump(), e);
+            throw new SystemException("Could't get Report from task " + task.debugDump(), e);
+        }
+    }
+
     private String getReportDataOid(Task task) {
         PrismReference reportData = task.getExtensionReferenceOrClone(ReportConstants.REPORT_DATA_PROPERTY_NAME);
         if (reportData == null || reportData.getRealValue() == null) {
             String reportOutputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
-            if (reportOutputOid == null){
+            if (reportOutputOid == null) {
                 return null;
             }
             return reportOutputOid;

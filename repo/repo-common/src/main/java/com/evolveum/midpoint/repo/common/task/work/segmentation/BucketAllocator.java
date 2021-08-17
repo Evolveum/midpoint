@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.task.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.work.GetBucketOperation;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator.Response.FoundExisting;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
@@ -34,25 +35,26 @@ import java.util.List;
  */
 public class BucketAllocator {
 
-    private final WorkBucketsManagementType bucketingConfig;
     @NotNull private final BucketContentFactory contentFactory;
+    private final WorkAllocationConfigurationType allocationConfig;
     private final PrismContext prismContext;
 
-    private BucketAllocator(WorkBucketsManagementType bucketingConfig,
-            @NotNull BucketContentFactory contentFactory) {
-        this.bucketingConfig = bucketingConfig;
+    private BucketAllocator(@NotNull BucketContentFactory contentFactory, WorkBucketsManagementType bucketingConfig) {
+        this.allocationConfig = bucketingConfig != null ? bucketingConfig.getAllocation() : null;
         this.contentFactory = contentFactory;
         this.prismContext = PrismContext.get();
     }
 
-    public static BucketAllocator create(WorkBucketsManagementType bucketingConfig, BucketContentFactoryCreator strategyFactory) {
-        BucketContentFactory strategy = strategyFactory.createContentFactory(bucketingConfig);
-        return new BucketAllocator(bucketingConfig, strategy);
+    public static BucketAllocator create(@Nullable WorkBucketsManagementType bucketingConfig,
+            @NotNull CommonTaskBeans beans, @Nullable ImplicitSegmentationResolver implicitSegmentationResolver) {
+        return new BucketAllocator(
+                beans.contentFactoryCreator.createContentFactory(bucketingConfig, implicitSegmentationResolver),
+                bucketingConfig);
     }
 
     public static BucketAllocator create(@NotNull ActivityDistributionDefinition distributionDefinition,
-            BucketContentFactoryCreator strategyFactory) {
-        return create(distributionDefinition.getBuckets(), strategyFactory);
+            @NotNull CommonTaskBeans beans, @Nullable ImplicitSegmentationResolver implicitSegmentationResolver) {
+        return create(distributionDefinition.getBuckets(), beans, implicitSegmentationResolver);
     }
 
     /**
@@ -131,26 +133,19 @@ public class BucketAllocator {
     }
 
     private int getBucketCreationBatch() {
-        WorkAllocationConfigurationType ac = getAllocationConfig();
-        if (ac != null && ac.getBucketCreationBatch() != null) {
-            return ac.getBucketCreationBatch();
+        if (allocationConfig != null && allocationConfig.getBucketCreationBatch() != null) {
+            return allocationConfig.getBucketCreationBatch();
         } else {
             return 1;
         }
     }
 
     private boolean isAllocateFirst() {
-        WorkAllocationConfigurationType ac = getAllocationConfig();
-        if (ac != null && ac.isAllocateFirst() != null) {
-            return ac.isAllocateFirst();
+        if (allocationConfig != null && allocationConfig.isAllocateFirst() != null) {
+            return allocationConfig.isAllocateFirst();
         } else {
             return true;
         }
-    }
-
-    @Nullable
-    private WorkAllocationConfigurationType getAllocationConfig() {
-        return bucketingConfig != null ? bucketingConfig.getAllocation() : null;
     }
 
     @NotNull public BucketContentFactory getContentFactory() {

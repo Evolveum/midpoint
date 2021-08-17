@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
@@ -23,8 +25,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,10 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-public class ShadowIntegrityCheckItemProcessor
-        implements AbstractSearchIterativeActivityExecution.SimpleItemProcessor<ShadowType> {
+public class ShadowIntegrityCheckItemProcessor {
 
     private static final String CLASS_DOT = ShadowIntegrityCheckItemProcessor.class.getName() + ".";
     static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";
@@ -49,17 +46,15 @@ public class ShadowIntegrityCheckItemProcessor
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckItemProcessor.class);
 
-    @NotNull private final ShadowIntegrityCheckActivityExecution activityExecution;
+    @NotNull private final ShadowIntegrityCheckActivityExecutionSpecifics executionSpecifics;
     @NotNull private final PrismContext prismContext;
 
-    ShadowIntegrityCheckItemProcessor(ShadowIntegrityCheckActivityExecution activityExecution) {
-        this.activityExecution = activityExecution;
-        this.prismContext = activityExecution.getPrismContext();
+    ShadowIntegrityCheckItemProcessor(@NotNull ShadowIntegrityCheckActivityExecutionSpecifics executionSpecifics) {
+        this.executionSpecifics = executionSpecifics;
+        this.prismContext = PrismContext.get();
     }
 
-    @Override
     public boolean processObject(PrismObject<ShadowType> shadow,
-            ItemProcessingRequest<PrismObject<ShadowType>> request,
             RunningTask workerTask, OperationResult parentResult)
             throws CommonException {
 
@@ -102,7 +97,7 @@ public class ShadowIntegrityCheckItemProcessor
 
     private void checkShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) throws SchemaException {
 
-        ShadowCheckConfiguration cfg = activityExecution.getConfiguration();
+        ShadowCheckConfiguration cfg = executionSpecifics.getConfiguration();
 
         ShadowType shadowType = shadow.asObjectable();
         ObjectReferenceType resourceRef = shadowType.getResourceRef();
@@ -167,7 +162,7 @@ public class ShadowIntegrityCheckItemProcessor
         }
 
         if (cfg.checkOwners) {
-            List<PrismObject<FocusType>> owners = activityExecution.searchOwners(shadow, result);
+            List<PrismObject<FocusType>> owners = executionSpecifics.searchOwners(shadow, result);
             if (owners != null) {
                 shadow.setUserData(KEY_OWNERS, owners);
                 if (owners.size() > 1) {
@@ -199,7 +194,7 @@ public class ShadowIntegrityCheckItemProcessor
         }
 
         ContextMapKey key = new ContextMapKey(resourceOid, objectClassName);
-        ObjectTypeContext context = activityExecution.getObjectTypeContext(key);
+        ObjectTypeContext context = executionSpecifics.getObjectTypeContext(key);
         if (context == null) {
             context = new ObjectTypeContext();
             context.setResource(resource);
@@ -221,7 +216,7 @@ public class ShadowIntegrityCheckItemProcessor
                 checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA, new SchemaException("No refined object class definition for kind=" + kind + ", intent=" + intent));
                 return;
             }
-            activityExecution.putObjectTypeContext(key, context);
+            executionSpecifics.putObjectTypeContext(key, context);
         }
 
         try {
@@ -276,11 +271,11 @@ public class ShadowIntegrityCheckItemProcessor
     }
 
     private void cacheResource(PrismObject<ResourceType> resource) {
-        activityExecution.cacheResource(resource);
+        executionSpecifics.cacheResource(resource);
     }
 
     private PrismObject<ResourceType> getCachedResource(String resourceOid) {
-        return activityExecution.getCachedResource(resourceOid);
+        return executionSpecifics.getCachedResource(resourceOid);
     }
 
     private void applyFixes(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask,
@@ -353,7 +348,7 @@ public class ShadowIntegrityCheckItemProcessor
     }
 
     private void applyFix(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) throws CommonException {
-        LOGGER.info("Applying shadow fix{}:\n{}", activityExecution.skippedForDryRun(),
+        LOGGER.info("Applying shadow fix{}:\n{}", executionSpecifics.skippedForDryRun(),
                 checkResult.isFixByRemovingShadow() ?
                         "DELETE " + ObjectTypeUtil.toShortString(shadow)
                         : DebugUtil.debugDump(checkResult.getFixDeltas()));
@@ -380,7 +375,7 @@ public class ShadowIntegrityCheckItemProcessor
 
         MatchingRule<Object> matchingRule;
         try {
-            matchingRule = activityExecution.getBeans().matchingRuleRegistry
+            matchingRule = executionSpecifics.getBeans().matchingRuleRegistry
                     .getMatchingRule(matchingRuleQName, identifier.getTypeName());
         } catch (SchemaException e) {
             checkResult.recordError(
@@ -406,6 +401,7 @@ public class ShadowIntegrityCheckItemProcessor
                         + ": " + value + " (normalized form: " + normalizedValue + ")"));
 
         if (getConfiguration().fixNormalization) {
+            //noinspection rawtypes
             PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
             //noinspection unchecked
             delta.setRealValuesToReplace(normalizedStringValue);
@@ -425,7 +421,7 @@ public class ShadowIntegrityCheckItemProcessor
             valueMap.put(identifierValue, existingShadowOids);
         } else {
             // duplicate shadows statistics are collected in a special way
-            activityExecution.duplicateShadowDetected(shadow.getOid());
+            executionSpecifics.duplicateShadowDetected(shadow.getOid());
             LOGGER.error("Multiple shadows with the value of identifier attribute {} = {}: existing one(s): {}, duplicate: {}",
                     identifierName, identifierValue, existingShadowOids, ObjectTypeUtil.toShortString(shadow.asObjectable()));
             existingShadowOids.add(shadow.getOid());
@@ -466,22 +462,22 @@ public class ShadowIntegrityCheckItemProcessor
     }
 
     private ShadowCheckConfiguration getConfiguration() {
-        return activityExecution.getConfiguration();
+        return executionSpecifics.getConfiguration();
     }
 
     private ShadowStatistics getStats() {
-        return activityExecution.getStatistics();
+        return executionSpecifics.getStatistics();
     }
 
     private ProvisioningService getProvisioningService() {
-        return activityExecution.getModelBeans().provisioningService;
+        return executionSpecifics.getModelBeans().provisioningService;
     }
 
     private RepositoryService getRepositoryService() {
-        return activityExecution.getModelBeans().cacheRepositoryService;
+        return executionSpecifics.getModelBeans().cacheRepositoryService;
     }
 
     private SynchronizationService getSynchronizationService() {
-        return activityExecution.getModelBeans().synchronizationService;
+        return executionSpecifics.getModelBeans().synchronizationService;
     }
 }

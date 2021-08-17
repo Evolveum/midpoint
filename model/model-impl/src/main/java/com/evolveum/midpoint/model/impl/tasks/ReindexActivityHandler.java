@@ -10,42 +10,45 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext;
-
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.repo.common.task.BaseSearchBasedExecutionSpecificsImpl;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution.SearchBasedSpecificsSupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Task handler for "reindex" task.
- * It simply executes empty modification delta on each repository object.
+ * Activity handler for reindexing activity.
+ * It simply executes empty modification delta on each repository object found.
  *
  * TODO implement also for sub-objects, namely certification cases.
  */
 @Component
 public class ReindexActivityHandler
-        extends SimpleActivityHandler<ObjectType, ReindexActivityHandler.MyWorkDefinition, ExecutionContext> {
+        extends SimpleActivityHandler<
+            ObjectType,
+            ReindexActivityHandler.MyWorkDefinition,
+            ReindexActivityHandler> {
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
@@ -65,6 +68,11 @@ public class ReindexActivityHandler
     }
 
     @Override
+    protected @NotNull SearchBasedSpecificsSupplier<ObjectType, MyWorkDefinition, ReindexActivityHandler> getSpecificSupplier() {
+        return MyExecutionSpecifics::new;
+    }
+
+    @Override
     protected @NotNull String getLegacyHandlerUri() {
         return LEGACY_HANDLER_URI;
     }
@@ -80,28 +88,41 @@ public class ReindexActivityHandler
     }
 
     @Override
-    public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
-        return new ActivityReportingOptions()
-                .enableActionsExecutedStatistics(true)
-                .skipWritingOperationExecutionRecords(false); // because of performance
+    public String getIdentifierPrefix() {
+        return "reindexing";
     }
 
-    @Override
-    public void beforeExecution(@NotNull SimpleActivityExecution<ObjectType, MyWorkDefinition, ExecutionContext> activityExecution,
-            OperationResult opResult) throws CommonException {
-        securityEnforcer.authorizeAll(activityExecution.getRunningTask(), opResult);
-    }
+    static class MyExecutionSpecifics extends
+            BaseSearchBasedExecutionSpecificsImpl<ObjectType, MyWorkDefinition, ReindexActivityHandler> {
 
-    @Override
-    public boolean processItem(PrismObject<ObjectType> object, ItemProcessingRequest<PrismObject<ObjectType>> request,
-            SimpleActivityExecution<ObjectType, MyWorkDefinition, ExecutionContext> ignored, RunningTask workerTask, OperationResult result) throws CommonException {
-        reindexObject(object, result);
-        return true;
-    }
+        MyExecutionSpecifics(@NotNull SearchBasedActivityExecution<ObjectType, MyWorkDefinition, ReindexActivityHandler, ?> activityExecution) {
+            super(activityExecution);
+        }
 
-    private void reindexObject(PrismObject<ObjectType> object, OperationResult result) throws CommonException {
-        repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), emptyList(),
-                RepoModifyOptions.createForceReindex(), result);
+        @Override
+        public @NotNull ActivityReportingOptions getDefaultReportingOptions() {
+            return super.getDefaultReportingOptions()
+                    .enableActionsExecutedStatistics(true)
+                    .skipWritingOperationExecutionRecords(false); // because of performance
+        }
+
+        @Override
+        public void beforeExecution(OperationResult result) throws CommonException {
+            getActivityHandler().securityEnforcer.authorizeAll(getRunningTask(), result);
+        }
+
+        @Override
+        public boolean processObject(@NotNull PrismObject<ObjectType> object,
+                @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result)
+                throws CommonException, ActivityExecutionException {
+            reindexObject(object, result);
+            return true;
+        }
+
+        private void reindexObject(PrismObject<ObjectType> object, OperationResult result) throws CommonException {
+            getBeans().repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), emptyList(),
+                    RepoModifyOptions.createForceReindex(), result);
+        }
     }
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {

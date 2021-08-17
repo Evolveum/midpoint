@@ -289,7 +289,7 @@
             <view>
                 <column>
                     <name>timeColumnDashboard</name>
-                    <path>time</path>
+                    <path>timestamp</path>
                     <display>
                         <label>Time (Dashboard)</label>
                     </display>

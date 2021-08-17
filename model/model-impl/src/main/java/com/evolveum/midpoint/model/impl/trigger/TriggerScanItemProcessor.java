@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.trigger;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
-
 import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 
 import java.util.*;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -23,8 +25,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeActivityExecution.SimpleItemProcessor;
-import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,31 +41,25 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Fires triggers on objects found by the search operation.
  */
-public class TriggerScanItemProcessor
-        implements SimpleItemProcessor<ObjectType> {
+public class TriggerScanItemProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerScanItemProcessor.class);
 
     /**
      * Triggers that were processed by this handler (during execution of this trigger task).
-     * This field could reside also in {@link TriggerScanActivityExecution} but here it is closer to the usage site.
+     * This field could reside also in {@link TriggerScanActivityExecutionSpecifics} but here it is closer to the usage site.
      */
     @NotNull private final ProcessedTriggers processedTriggers = new ProcessedTriggers();
-    @NotNull private final TriggerScanActivityExecution activityExecution;
+    @NotNull private final TriggerScanActivityExecutionSpecifics activityExecution;
 
-    public TriggerScanItemProcessor(@NotNull TriggerScanActivityExecution activityExecution) {
+    TriggerScanItemProcessor(@NotNull TriggerScanActivityExecutionSpecifics activityExecution) {
         this.activityExecution = activityExecution;
     }
 
-    @Override
-    public boolean processObject(PrismObject<ObjectType> object,
-            ItemProcessingRequest<PrismObject<ObjectType>> request,
-            RunningTask workerTask, OperationResult result)
+    public boolean processObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result)
             throws CommonException {
         fireTriggers(object, workerTask, result);
         return true;

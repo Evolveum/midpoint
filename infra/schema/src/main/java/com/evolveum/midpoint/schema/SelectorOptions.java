@@ -16,6 +16,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author semancik
  */
-public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable {
+public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
     private static final long serialVersionUID = 1L;
 
     private final ObjectSelector selector;
@@ -41,15 +43,18 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 
     //region Construction
     public SelectorOptions(ObjectSelector selector, T options) {
-        super();
         this.selector = selector;
         this.options = options;
     }
 
     public SelectorOptions(T options) {
-        super();
         this.selector = null;
         this.options = options;
+    }
+
+    public SelectorOptions(@NotNull SelectorOptions<T> prototype) {
+        this.selector = prototype.selector != null ? new ObjectSelector(prototype.selector) : null;
+        this.options = CloneUtil.clone(prototype.options);
     }
 
     public static <T> SelectorOptions<T> create(UniformItemPath path, T options) {
@@ -268,4 +273,10 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         }
     }
     //endregion
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public SelectorOptions<T> clone() {
+        return new SelectorOptions<>(this);
+    }
 }

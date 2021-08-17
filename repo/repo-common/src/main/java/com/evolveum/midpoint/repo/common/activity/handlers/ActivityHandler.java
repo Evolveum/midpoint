@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import java.util.ArrayList;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.CandidateIdentifierFormatter;
 import com.evolveum.midpoint.repo.common.activity.ExecutionSupplier;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecution;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Spring component that ensures handling activity invocations.
  *
- * It is really minimalistic: its only responsibility is to instantiate appropriate {@link ActivityExecution} object.
+ * It is really minimalistic: its only responsibility is to instantiate appropriate {@link AbstractActivityExecution} object.
  *
  * The naming is derived from the {@link TaskHandler}, to which it is conceptually somewhat similar.
  */

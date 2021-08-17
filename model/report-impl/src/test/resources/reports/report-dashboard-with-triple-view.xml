@@ -79,7 +79,7 @@
             <type>AuditEventRecordType</type>
             <column>
                 <name>timeColumnReport</name>
-                <path>time</path>
+                <path>timestamp</path>
                 <display>
                     <label>Time (Report)</label>
                 </display>

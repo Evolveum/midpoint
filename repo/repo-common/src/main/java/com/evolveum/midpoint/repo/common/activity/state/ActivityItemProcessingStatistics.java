@@ -215,6 +215,10 @@ public class ActivityItemProcessingStatistics extends Initializable {
         return collectExecutions;
     }
 
+    public int getItemsProcessed() {
+        return ActivityItemProcessingStatisticsUtil.getItemsProcessed(getValueCopy());
+    }
+
     /**
      * Operation being recorded: represents an object to which the client reports the end of the operation.
      * It is called simply {@link Operation} to avoid confusing the clients.
@@ -245,6 +249,8 @@ public class ActivityItemProcessingStatistics extends Initializable {
         double getDurationRounded();
 
         long getEndTimeMillis();
+
+        @NotNull IterationItemInformation getIterationItemInformation();
     }
 
     /**
@@ -304,6 +310,11 @@ public class ActivityItemProcessingStatistics extends Initializable {
         @Override
         public long getEndTimeMillis() {
             return endTimeMillis;
+        }
+
+        @Override
+        public @NotNull IterationItemInformation getIterationItemInformation() {
+            return startInfo.getItem();
         }
     }
 }

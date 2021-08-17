@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="d3a13f2e-a8c0-4f8c-bbf9-e8996848bddf">
+    <name>export</name>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>closed</executionStatus>
+
+    <activity>
+        <work>
+            <reportExport>
+                <reportRef oid="oid" />
+            </reportExport>
+        </work>
+    </activity>
+</task>

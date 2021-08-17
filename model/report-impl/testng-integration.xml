@@ -9,9 +9,11 @@
 <suite name="unit" parallel="false">
     <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-             <class name="com.evolveum.midpoint.report.TestHtmlReport"/>
-             <class name="com.evolveum.midpoint.report.TestCsvReport"/>
-             <class name="com.evolveum.midpoint.report.TestCsvReportSafe"/>
+            <class name="com.evolveum.midpoint.report.TestHtmlReportExportClassic"/>
+            <class name="com.evolveum.midpoint.report.TestCsvReportExportClassic"/>
+            <class name="com.evolveum.midpoint.report.TestCsvReportExportClassicSafe"/>
+            <class name="com.evolveum.midpoint.report.TestCsvReportImportClassic"/>
+            <class name="com.evolveum.midpoint.report.TestCsvReportMultiNode"/>
         </classes>
     </test>
 </suite>

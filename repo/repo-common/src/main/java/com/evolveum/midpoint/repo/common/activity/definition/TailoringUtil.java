@@ -31,7 +31,7 @@ class TailoringUtil {
         TailoringModeType mode = getTailoringMode(tailoring.asPrismContainerValue());
         switch (mode) {
             case OVERWRITE:
-                return tailoring;
+                return tailoring.cloneWithoutId();
             case OVERWRITE_SPECIFIED:
                 return overwriteSpecified(original, tailoring);
             default:
