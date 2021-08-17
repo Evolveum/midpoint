@@ -8,9 +8,14 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,7 +24,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
+import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -149,10 +155,11 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW, 2, 1, null);
     }
 
-//    @Test //TODO uncomment after implementation of parameters in new task config
-//    public void test118ObjectCollectionWithParamReport() throws Exception {
-//        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM, 2, 2, null);
-//    }
+    @Test
+    public void test118ObjectCollectionWithParamReport() throws Exception {
+        ReportParameterType parameters = getParameters("givenName", String.class, "Will");
+        runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM, 2, 2, null, parameters);
+    }
 
     @Test
     public void test119ObjectCollectionWithSubreportParamReport() throws Exception {
@@ -175,11 +182,26 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline) throws Exception {
+    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline,
+            ReportParameterType parameters) throws Exception {
         given();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        if (parameters != null) {
+            modifyObjectReplaceContainer(TaskType.class,
+                    TASK_EXPORT_CLASSIC.oid,
+                    ItemPath.create(TaskType.F_ACTIVITY,
+                            ActivityDefinitionType.F_WORK,
+                            WorkDefinitionsType.F_REPORT_EXPORT,
+                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM
+                    ),
+                    task,
+                    result,
+                    parameters
+            );
+        }
 
         runExportTask(reportResource, result);
 
@@ -195,5 +217,33 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
         basicCheckOutputFile(report, expectedRows, expectedColumns, lastline);
+    }
+
+    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline)
+            throws Exception {
+        runTest(reportResource, expectedRows, expectedColumns, lastline, null);
+    }
+
+    private ReportParameterType getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
+//        PrismContainerDefinition<ReportParameterType> paramContainerDef = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+//        PrismContainer<ReportParameterType> paramContainer;
+//        paramContainer = paramContainerDef.instantiate();
+        ReportParameterType reportParam = new ReportParameterType();
+        PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
+//        reportParamValue.revive(prismContext);
+//        paramContainer.add(reportParamValue);
+
+        QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
+        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+                new QName(ReportConstants.NS_EXTENSION, name), typeName);
+        def.setDynamic(true);
+        def.setRuntimeSchema(true);
+        def.toMutable().setMaxOccurs(1);
+
+        PrismProperty prop = def.instantiate();
+        prop.addRealValue(realValue);
+        reportParamValue.add(prop);
+
+        return reportParam;
     }
 }
