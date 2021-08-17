@@ -24,11 +24,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
-@PanelType(name = "roleAssignments")
-@PanelInstance(identifier = "roleAssignments",
-        applicableFor = FocusType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Role", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20)
+//@PanelType(name = "roleAssignments")
+//@PanelInstance(identifier = "roleAssignments",
+//        applicableFor = FocusType.class,
+//        childOf = AssignmentHolderAssignmentPanel.class)
+//@PanelDisplay(label = "Role", icon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, order = 20)
 public class RoleAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

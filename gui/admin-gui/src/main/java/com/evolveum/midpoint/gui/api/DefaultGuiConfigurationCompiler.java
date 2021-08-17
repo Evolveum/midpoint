@@ -37,7 +37,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
             "com.evolveum.midpoint.web.component.assignment",  //Assignments
             "com.evolveum.midpoint.gui.impl.page.admin",
-            "com.evolveum.midpoint.web.page.admin.resources"
+            "com.evolveum.midpoint.web.page.admin.resources",
+            "com.evolveum.midpoint.gui.impl.component.assignment"
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();

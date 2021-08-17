@@ -96,11 +96,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-@PanelType(name = "allAssignments")
-@PanelInstance(identifier = "allAssignments",
-        applicableFor = AssignmentHolderType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10)
+//@PanelType(name = "allAssignments")
+//@PanelInstance(identifier = "allAssignments",
+//        applicableFor = AssignmentHolderType.class,
+//        childOf = AssignmentHolderAssignmentPanel.class)
+//@PanelDisplay(label = "All", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 10)
 public class AssignmentPanel<AH extends AssignmentHolderType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
     private static final long serialVersionUID = 1L;
