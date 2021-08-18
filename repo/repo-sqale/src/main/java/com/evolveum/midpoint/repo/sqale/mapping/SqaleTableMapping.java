@@ -43,7 +43,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.EnumItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
@@ -469,5 +468,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected Collection<? extends QName> fullObjectItemsToSkip() {
         // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
         return Collections.emptyList();
+    }
+
+    public S toSchemaObject(Tuple result, Q root,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession, boolean forceFull) throws SchemaException {
+        return toSchemaObject(result, root, options);
     }
 }

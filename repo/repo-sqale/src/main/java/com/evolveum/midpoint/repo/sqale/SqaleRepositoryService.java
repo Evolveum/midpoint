@@ -230,7 +230,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        return rootMapping.toSchemaObject(result, root, options);
+        return rootMapping.toSchemaObject(result, root, options, jdbcSession, false);
     }
 
     @Override
@@ -573,7 +573,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList());
+        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList(), jdbcSession, true);
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;

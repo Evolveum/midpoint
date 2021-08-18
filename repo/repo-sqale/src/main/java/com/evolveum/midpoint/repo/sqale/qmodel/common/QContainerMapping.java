@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.querydsl.core.types.Predicate;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -86,5 +87,9 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     @Override
     public R insert(S schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         throw new UnsupportedOperationException("Missing insert() implementation in " + getClass());
+    }
+
+    public Predicate containerIdentityPredicate(Q entityPath, S container) {
+        return entityPath.cid.eq(container.asPrismContainerValue().getId());
     }
 }

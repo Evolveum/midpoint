@@ -65,7 +65,7 @@ public class ContainerTableDeltaProcessor<
     private void deleteContainer(Q c, T container) {
         context.jdbcSession().newDelete(c)
                 .where(c.isOwnedBy(context.row())
-                        .and(c.cid.eq(container.asPrismContainerValue().getId())))
+                        .and(containerTableMapping.containerIdentityPredicate(c, container)))
                 .execute();
     }
 
