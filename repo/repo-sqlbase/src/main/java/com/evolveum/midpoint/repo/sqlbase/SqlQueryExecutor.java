@@ -46,7 +46,7 @@ public class SqlQueryExecutor {
 
         context.beforeQuery();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            return context.executeCount(jdbcSession.connection());
+            return context.executeCount(jdbcSession);
         }
     }
 
@@ -65,7 +65,7 @@ public class SqlQueryExecutor {
         context.beforeQuery();
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            result = context.executeQuery(jdbcSession.connection());
+            result = context.executeQuery(jdbcSession);
         }
 
         return createSearchResultList(context.transformToSchemaType(result));
