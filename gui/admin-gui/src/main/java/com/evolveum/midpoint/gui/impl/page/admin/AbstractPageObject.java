@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -68,7 +69,7 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         add(form);
         ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
-        initMainPanel("basic", defaultConfiguration, form);
+        initMainPanel(defaultConfiguration, form);
         initNavigation();
     }
 
@@ -97,19 +98,16 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        //TODO possibility to configure default panel in configuration
-        ContainerPanelConfigurationType basicPanelConfig = getPanelConfigurations().stream().filter(panel -> "basic".equals(panel.getIdentifier())).findFirst().get();
+        //TODO support for second level panel as a default, e.g. assignment -> role
+        ContainerPanelConfigurationType basicPanelConfig = getPanelConfigurations().stream().filter(panel -> BooleanUtils.isTrue(panel.isDefault())).findFirst().get();
         return basicPanelConfig;
     }
 
-    private void initMainPanel(String identifier, ContainerPanelConfigurationType panelConfig, MidpointForm form) {
-        //TODO load default panel?
-//        IModel<?> panelModel = getPanelModel(panelConfig);
-
-        Class<? extends Panel> panelClass = findObjectPanel(identifier);
+    private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, model, panelConfig);
         form.addOrReplace(panel);
-
+        getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
     }
 
     private void initNavigation() {
@@ -125,7 +123,7 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
-                initMainPanel(config.getPanelType(), config, form);
+                initMainPanel(config, form);
                 target.add(form);
             }
         };

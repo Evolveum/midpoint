@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import org.apache.wicket.markup.html.panel.Panel;
 
 import java.lang.annotation.Retention;
@@ -20,4 +22,7 @@ public @interface PanelInstance {
     Class<? extends ObjectType> applicableFor() default ObjectType.class;
     ItemStatus[] status() default {ItemStatus.ADDED, ItemStatus.NOT_CHANGED};
     Class<? extends Panel> childOf() default Panel.class;
+    boolean defaultPanel() default false;
+
+    Class<? extends ObjectType> notApplicableFor() default SystemConfigurationType.class;
 }

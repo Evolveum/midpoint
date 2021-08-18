@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.opensaml.xacml.policy.ResourcesType;
 
 @PanelType(name = "resourceDetails")
-@PanelInstance(identifier = "resourceDetails", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED)
+@PanelInstance(identifier = "resourceDetails", applicableFor = ResourceType.class, status = ItemStatus.NOT_CHANGED, defaultPanel = true)
 @PanelDisplay(label = "Details", order = 10)
 public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceType> {
 
@@ -95,16 +95,10 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
             @Override
             protected CapabilitiesDto load() {
-                PrismObject<ResourceType> resource = (PrismObject<ResourceType>) model.getObject().getObject();
+                PrismObject<ResourceType> resource = model.getObject().getObject();
                 return new CapabilitiesDto(resource.asObjectable());
             }
         };
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
     }
 
     protected void initLayout() {

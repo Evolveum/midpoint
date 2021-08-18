@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,6 +38,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private static final String ID_NAV_ITEM_ICON = "navItemIcon";
     private static final String ID_SUB_NAVIGATION = "subNavigation";
     private static final String ID_COUNT = "count";
+    private static final String ID_NAVIGATION_DETAILS = "navLinkStyle";
 
     private LoadableModel<PrismObjectWrapper<O>> objectModel;
 
@@ -48,6 +51,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        setOutputMarkupId(true);
     }
 
     private void initLayout() {
@@ -55,26 +59,38 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
             @Override
             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+                WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
+                navigationDetails.add(AttributeAppender.append("style", new ReadOnlyModel<>(() -> {
+                    ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectModel.getObject().getCompileTimeClass().getSimpleName());
+                    ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
+                    ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+                    if (storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
+                        return "background-color: #eeeeee;";
+                    }
+                    return "";
+                })));
+                item.add(navigationDetails);
                 WebMarkupContainer icon = new WebMarkupContainer(ID_NAV_ITEM_ICON);
                 icon.setOutputMarkupId(true);
                 icon.add(AttributeAppender.append("class",
                         item.getModelObject().getDisplay() != null ? item.getModelObject().getDisplay().getCssClass() :
                                 GuiStyleConstants.CLASS_CIRCLE_FULL));
-                item.add(icon);
+                navigationDetails.add(icon);
                 AjaxLink<Void> link = new AjaxLink<>(ID_NAV_ITEM) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        target.add(DetailsNavigationPanel.this);
                         onClickPerformed(item.getModelObject(), target);
                     }
                 };
                 link.setBody(Model.of(createButtonLabel(item.getModelObject())));
-                item.add(link);
+                navigationDetails.add(link);
 
                 IModel<String> countModel = createCountModel(item.getModel());
                 Label label = new Label(ID_COUNT, countModel);
                 label.add(new VisibleBehaviour(() -> countModel.getObject() != null));
-                item.add(label);
+                navigationDetails.add(label);
 
                 DetailsNavigationPanel subPanel = new DetailsNavigationPanel(ID_SUB_NAVIGATION, objectModel, Model.ofList(item.getModelObject().getPanel())) {
 
@@ -83,6 +99,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                         if (config.getPath() == null) {
                             config.setPath(item.getModelObject().getPath());
                         }
+                        target.add(DetailsNavigationPanel.this);
                         DetailsNavigationPanel.this.onClickPerformed(config, target);
                     }
                 };
