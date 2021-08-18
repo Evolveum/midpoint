@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -26,7 +27,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 public interface ItemSqlMapper<Q extends FlexibleRelationalPathBase<R>, R> {
 
     /** Returns primary path for provided entity path - usable for ordering. */
-    @Nullable Expression<?> itemOrdering(Q entityPath, ItemDefinition<?> definition);
+    @Nullable Expression<?> itemOrdering(Q entityPath, ItemDefinition<?> definition)
+            throws QueryException;
 
     /**
      * Creates {@link ItemValueFilterProcessor} based on this mapping.

@@ -522,9 +522,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return Arrays.asList(
-                        new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"jack\""),
-                        new ExpectedTask(getRoleOid(2), "Assigning role \"" + getRoleName(2) + "\" to user \"jack\""),
-                        new ExpectedTask(getRoleOid(3), "Assigning role \"" + getRoleName(3) + "\" to user \"jack\""));
+                        new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(getRoleOid(2), "Assigning role \"" + getRoleName(2) + "\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(getRoleOid(3), "Assigning role \"" + getRoleName(3) + "\" to user \"Jack Sparrow\""));
             }
 
             @Override

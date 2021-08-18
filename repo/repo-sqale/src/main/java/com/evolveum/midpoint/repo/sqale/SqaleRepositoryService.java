@@ -1877,7 +1877,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private void recordException(
             @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
-        String message = Strings.isNullOrEmpty(ex.getMessage()) ? ex.getMessage() : "null";
+        String message = Strings.isNullOrEmpty(ex.getMessage()) ? "null" : ex.getMessage();
         if (Strings.isNullOrEmpty(message)) {
             message = ex.getMessage();
         }
