@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -58,6 +59,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Collection<SelectorOptions<GetOperationOptions>> options;
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
     private PagingType paging;
+    private PolyString name;
 
     private String objectCollectionDescription;
 
@@ -91,6 +93,10 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public String getViewIdentifier() {
         return viewIdentifier;
+    }
+
+    public void setViewIdentifier(String viewIdentifier) {
+        this.viewIdentifier = viewIdentifier;
     }
 
     @NotNull

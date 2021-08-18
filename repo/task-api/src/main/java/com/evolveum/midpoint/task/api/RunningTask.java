@@ -53,35 +53,10 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      */
     void deleteLightweightAsynchronousSubtasks();
 
-    // EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-    @Experimental
-    int getAndIncrementObjectsSeen();
-
-    /**
-     * Must be called from the thread that executes the task.
-     * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-     */
-    void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
-
-    /**
-     * Must be called from the thread that executes the task.
-     */
-    void stopDynamicProfiling();
-
-    /**
-     * EXPERIMENTAL
-     */
-    boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot);
-
-    /**
-     * EXPERIMENTAL
-     */
-    void stopTracing();
-
     /**
      * TODO
-     * EXPERIMENTAL
      */
+    @Experimental
     @NotNull String getRootTaskOid();
 
     /** TODO EXPERIMENTAL */

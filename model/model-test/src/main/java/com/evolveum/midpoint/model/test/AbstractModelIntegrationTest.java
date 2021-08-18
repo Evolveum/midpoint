@@ -566,6 +566,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(objectDelta, options, task, result);
     }
 
+    protected <O extends ObjectType> void modifyObjectReplaceReference(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Referencable newRealValue)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
+                .createModificationReplaceReference(type, oid, propertyPath, newRealValue.asReferenceValue());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+        modelService.executeChanges(deltas, null, task, result);
+    }
+
     protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {

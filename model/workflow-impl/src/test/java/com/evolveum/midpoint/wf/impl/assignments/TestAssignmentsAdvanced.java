@@ -1193,9 +1193,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return Arrays.asList(
-                        new ExpectedTask(roleRole21Oid, "Assigning role \"Role21\" to user \"jack\""),
-                        new ExpectedTask(roleRole22Oid, "Assigning role \"Role22\" to user \"jack\""),
-                        new ExpectedTask(roleRole23Oid, "Assigning role \"Role23\" to user \"jack\""));
+                        new ExpectedTask(roleRole21Oid, "Assigning role \"Role21\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(roleRole22Oid, "Assigning role \"Role22\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(roleRole23Oid, "Assigning role \"Role23\" to user \"Jack Sparrow\""));
             }
 
             // after first step

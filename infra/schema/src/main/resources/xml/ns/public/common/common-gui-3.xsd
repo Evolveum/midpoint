@@ -2927,7 +2927,7 @@
     <xsd:complexType name="CollectionSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specification of an explicit or implicit object collection, withough reference to the collection.
+                Specification of an explicit or implicit object collection, without reference to the collection.
                 This data structure expects that the collection is referenced implicitly (e.g. from policy rules).
             </xsd:documentation>
             <xsd:appinfo>
@@ -2936,7 +2936,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2957,7 +2957,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+            <xsd:element name="relation" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Relation parameter for collection interpretations that depend on relation.
@@ -2968,7 +2968,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
@@ -2998,7 +2998,7 @@
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
                     <xsd:choice>
-                        <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Reference to an object that defines the base of implicit or explicit collection.
@@ -3010,7 +3010,7 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+                        <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Filter for objectType. This filter can be use instead of reference of collection.
@@ -3022,7 +3022,7 @@
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
-                    <xsd:element name="baseCollectionRef" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="baseCollectionRef" type="tns:CollectionRefSpecificationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to an object that defines the base of implicit or explicit collection.

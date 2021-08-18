@@ -341,41 +341,20 @@ public class GuiProfileCompiler {
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
             // This is also handled somewhere up the call stack. But we want to handle it also here. Otherwise an error in one collection would
             // mean that entire configuration processing will be stopped. We do not want that. We want to skip processing of just that one wrong view.
-            LOGGER.error("Error compiling user profile, view '{}': {}", determineViewIdentifier(objectListViewType), e.getMessage(), e);
+            LOGGER.error("Error compiling user profile, view '{}': {}", collectionProcessor.determineViewIdentifier(objectListViewType), e.getMessage(), e);
         }
     }
 
 
     private CompiledObjectCollectionView findOrCreateMatchingView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType) {
         QName objectType = objectListViewType.getType();
-        String viewIdentifier = determineViewIdentifier(objectListViewType);
+        String viewIdentifier = collectionProcessor.determineViewIdentifier(objectListViewType);
         CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewIdentifier);
         if (existingView == null) {
             existingView = new CompiledObjectCollectionView(objectType, viewIdentifier);
             composite.getObjectCollectionViews().add(existingView);
         }
         return existingView;
-    }
-
-    private String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
-        String viewIdentifier = objectListViewType.getIdentifier();
-        if (viewIdentifier != null) {
-            return viewIdentifier;
-        }
-        String viewName = objectListViewType.getName();
-        if (viewName != null) {
-            // legacy, deprecated
-            return viewName;
-        }
-        CollectionRefSpecificationType collection = objectListViewType.getCollection();
-        if (collection == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
-        }
-        ObjectReferenceType collectionRef = collection.getCollectionRef();
-        if (collectionRef == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
-        }
-        return collectionRef.getOid();
     }
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
@@ -36,8 +37,14 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  */
 public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
+    /**
+     * Number of this request within given context (e.g. a search operation/operations, or a synchronization operation).
+     * TODO deduplicate with SynchronizationEvent.sequentialNumber
+     */
+    private final int sequentialNumber;
+
     @NotNull protected final I item;
-    @NotNull private final AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution;
+    @NotNull private final IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution;
 
     /**
      * Unique identifier of this request. Not to be confused with requestIdentifier used for auditing purposes!
@@ -47,10 +54,16 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @Experimental // maybe will be removed
     @NotNull protected final String identifier;
 
-    public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> activityExecution) {
+    public ItemProcessingRequest(int sequentialNumber, @NotNull I item,
+            @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> activityExecution) {
+        this.sequentialNumber = sequentialNumber;
         this.item = item;
         this.activityExecution = activityExecution;
         this.identifier = activityExecution.beans.lightweightIdentifierGenerator.generate().toString();
+    }
+
+    public int getSequentialNumber() {
+        return sequentialNumber;
     }
 
     public @NotNull I getItem() {
@@ -88,9 +101,14 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
         return activityExecution.getRootTaskOid();
     }
 
-    protected @NotNull QName getType(PrismObject<?> object) {
+    protected @NotNull QName getType(@NotNull PrismObject<?> object) {
         return Objects.requireNonNull(
                 getPrismContext().getSchemaRegistry().determineTypeForClass(object.getCompileTimeClass()));
+    }
+
+    protected @NotNull QName getType(@NotNull Containerable value) {
+        return Objects.requireNonNull(
+                getPrismContext().getSchemaRegistry().determineTypeForClass(value.getClass()));
     }
 
     /**
@@ -109,7 +127,7 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
         return identifier;
     }
 
-    public @NotNull AbstractIterativeActivityExecution<I, ?, ?, ?> getActivityExecution() {
+    public @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> getActivityExecution() {
         return activityExecution;
     }
 }

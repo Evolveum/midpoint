@@ -13,6 +13,9 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import com.google.common.base.MoreObjects;
@@ -21,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -31,7 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class SearchSpecification<O extends ObjectType> implements DebugDumpable {
+public class SearchSpecification<O extends ObjectType> implements DebugDumpable, Cloneable {
 
     /**
      * Object type provided when counting and retrieving objects.
@@ -61,6 +62,14 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable 
         this.query = query;
         this.searchOptions = searchOptions;
         this.useRepository = useRepository;
+    }
+
+    @SuppressWarnings("CopyConstructorMissesField")
+    protected SearchSpecification(SearchSpecification<O> prototype) {
+        this(prototype.objectType,
+                CloneUtil.clone(prototype.query),
+                CloneUtil.cloneCollectionMembers(prototype.searchOptions),
+                prototype.useRepository);
     }
 
     @NotNull static <O extends ObjectType> SearchSpecification<O> fromRepositoryObjectSetSpecification(
@@ -122,6 +131,10 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable 
         return useRepository;
     }
 
+    public boolean isUseRepository() {
+        return Boolean.TRUE.equals(getUseRepository());
+    }
+
     public void setUseRepository(Boolean useRepository) {
         this.useRepository = useRepository;
     }
@@ -154,5 +167,11 @@ public class SearchSpecification<O extends ObjectType> implements DebugDumpable 
         DebugUtil.debugDumpWithLabelLn(sb, "searchOptions", searchOptions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "useRepository", useRepository, indent + 1);
         return sb.toString();
+    }
+
+    @SuppressWarnings({ "MethodDoesntCallSuperMethod" })
+    @Override
+    public SearchSpecification<O> clone() {
+        return new SearchSpecification<>(this);
     }
 }

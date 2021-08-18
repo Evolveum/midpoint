@@ -6,30 +6,42 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -45,18 +57,28 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseMemberPopup.class);
+    private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
 
     private static final String ID_TABS_PANEL = "tabsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_FORM = "form";
+    private static final String ID_COMPOSITED_BUTTONS = "compositedButtons";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
     protected RelationSearchItemConfigurationType relationsConfig;
+    private IModel<MultiFunctinalButtonDto> compositedButtonsModel;
+    private boolean isCompositedButtonsPanelVisible;
+    private List<ITab> tabs;
 
-    public ChooseMemberPopup(String id, RelationSearchItemConfigurationType relationsConfig){
+    public ChooseMemberPopup(String id, RelationSearchItemConfigurationType relationsConfig,
+            IModel<MultiFunctinalButtonDto> compositedButtonsModel){
         super(id);
         this.relationsConfig = relationsConfig;
+        this.compositedButtonsModel = compositedButtonsModel;
+        isCompositedButtonsPanelVisible = compositedButtonsModel != null && compositedButtonsModel.getObject() != null &&
+                !CollectionUtils.isEmpty(compositedButtonsModel.getObject().getAdditionalButtons());
     }
 
     @Override
@@ -67,10 +89,23 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         form.setOutputMarkupId(true);
         add(form);
 
-        List<ITab> tabs = createAssignmentTabs();
-        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
-        tabPanel.setOutputMarkupId(true);
-        form.add(tabPanel);
+        IModel<List<CompositedIconButtonDto>> assignButtonDescriptionModel = createAssignButtonDescriptionModel();
+        MultiCompositedButtonPanel assignDescriptionButtonsPanel =
+                new MultiCompositedButtonPanel(ID_COMPOSITED_BUTTONS, assignButtonDescriptionModel) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
+                        Form form = (Form) ChooseMemberPopup.this.get(ID_FORM);
+                        isCompositedButtonsPanelVisible = false;
+                        addOrReplaceTabPanels(form, relationSpec);
+                        target.add(form);
+                    }
+                };
+        form.add(assignDescriptionButtonsPanel);
+        assignDescriptionButtonsPanel.add(new VisibleBehaviour(() -> isCompositedButtonsPanelVisible));
+
+        addOrReplaceTabPanels(form, null);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
@@ -124,10 +159,20 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         form.add(addButton);
     }
 
-    protected List<ITab> createAssignmentTabs() {
+    private void addOrReplaceTabPanels(Form form, AssignmentObjectRelation relationSpec) {
+        tabs = createAssignmentTabs(relationSpec);
+        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
+        tabPanel.add(new VisibleBehaviour(() -> !isCompositedButtonsPanelVisible));
+        tabPanel.setOutputMarkupId(true);
+        form.addOrReplace(tabPanel);
+    }
+
+    protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
         List<ITab> tabs = new ArrayList<>();
-        List<QName> objectTypes = getAvailableObjectTypes();
-        List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
+        List<QName> objectTypes = relationSpec != null && CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ?
+                relationSpec.getObjectTypes() : getAvailableObjectTypes();
+        List<ObjectReferenceType> archetypeRefList = relationSpec != null && !CollectionUtils.isEmpty(relationSpec.getArchetypeRefs()) ?
+                relationSpec.getArchetypeRefs() : getArchetypeRefList();
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
                 new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
 
@@ -382,6 +427,72 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
         MemberOperationsHelper.assignMembersPerformed(targetObject, query,
                 relation, type, target, pageBase);
+    }
+
+    private IModel<List<CompositedIconButtonDto>> createAssignButtonDescriptionModel() {
+        return new LoadableModel<>(false) {
+            @Override
+            protected List<CompositedIconButtonDto> load() {
+                return getAssignButtonDescription();
+            }
+        };
+    }
+
+    private List<CompositedIconButtonDto> getAssignButtonDescription() {
+        List<CompositedIconButtonDto> additionalAssignmentButtons = new ArrayList<>();
+        List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+        if (assignmentObjectRelations != null) {
+            assignmentObjectRelations.forEach(relation -> {
+                DisplayType additionalDispayType = WebDisplayTypeUtil.getAssignmentObjectRelationDisplayType(ChooseMemberPopup.this.getPageBase(),
+                        relation, "abstractRoleMemberPanel.menu.assignMember");
+                CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(ChooseMemberPopup.this.getPageBase(), relation,
+                        additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+                CompositedIcon icon = builder.build();
+                CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalDispayType, relation, icon);
+                additionalAssignmentButtons.add(buttonDto);
+            });
+        }
+        additionalAssignmentButtons.add(createCompositedIconButtonDto(getAssignMemberButtonDisplayType(), null, null));
+        return additionalAssignmentButtons;
+    }
+
+    private DisplayType getAssignMemberButtonDisplayType() {
+        return WebDisplayTypeUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+                ChooseMemberPopup.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
+    }
+
+    private CompositedIconButtonDto createCompositedIconButtonDto(DisplayType buttonDisplayType, AssignmentObjectRelation relation, CompositedIcon icon) {
+        CompositedIconButtonDto compositedIconButtonDto = new CompositedIconButtonDto();
+        compositedIconButtonDto.setAdditionalButtonDisplayType(buttonDisplayType);
+        if (icon != null) {
+            compositedIconButtonDto.setCompositedIcon(icon);
+        } else {
+            CompositedIconBuilder mainButtonIconBuilder = new CompositedIconBuilder();
+            mainButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(buttonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(WebComponentUtil.getIconColor(buttonDisplayType));
+            compositedIconButtonDto.setCompositedIcon(mainButtonIconBuilder.build());
+        }
+        compositedIconButtonDto.setAssignmentObjectRelation(relation);
+        return compositedIconButtonDto;
+    }
+
+    private List<AssignmentObjectRelation> loadMemberRelationsList() {
+        AssignmentCandidatesSpecification spec = loadCandidateSpecification();
+        return spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
+    }
+
+    private AssignmentCandidatesSpecification loadCandidateSpecification() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATIONS);
+        PrismObject obj = getAssignmentTargetRefObject().asPrismObject();
+        AssignmentCandidatesSpecification spec = null;
+        try {
+            spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentHolderSpecification(obj, result);
+        } catch (Throwable ex) {
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load member relations list for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return spec;
     }
 
     protected boolean isOrgTreeVisible(){

@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -338,8 +337,8 @@ public class SqaleRepositoryService implements RepositoryService {
             }
 
             return object.getOid() == null || !options.isOverwrite()
-                    ? executeAddObject(object, options, operationResult)
-                    : executeOverwriteObject(object, options, operationResult);
+                    ? executeAddObject(object)
+                    : executeOverwriteObject(object);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -352,9 +351,7 @@ public class SqaleRepositoryService implements RepositoryService {
     }
 
     private <T extends ObjectType> String executeAddObject(
-            @NotNull PrismObject<T> object,
-            @NotNull RepoAddOptions options,
-            @NotNull OperationResult operationResult)
+            @NotNull PrismObject<T> object)
             throws SchemaException, ObjectAlreadyExistsException {
         long opHandle = registerOperationStart(OP_ADD_OBJECT, object);
             /* old repo code missing in new repo:
@@ -366,7 +363,7 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO use executeAttempts
 
         try {
-            String oid = new AddObjectContext<>(repositoryContext, object, options, operationResult)
+            String oid = new AddObjectContext<>(repositoryContext, object)
                     .execute();
             invokeConflictWatchers((w) -> w.afterAddObject(oid, object));
             return oid;
@@ -391,9 +388,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     /** Overwrite is more like update than add. */
     private <T extends ObjectType> String executeOverwriteObject(
-            @NotNull PrismObject<T> newObject,
-            @NotNull RepoAddOptions options,
-            @NotNull OperationResult operationResult)
+            @NotNull PrismObject<T> newObject)
             throws SchemaException, RepositoryException, ObjectAlreadyExistsException {
 
         String oid = newObject.getOid();
@@ -426,12 +421,15 @@ public class SqaleRepositoryService implements RepositoryService {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
             } catch (ObjectNotFoundException e) {
                 // so it is just plain addObject after all
-                new AddObjectContext<>(repositoryContext, newObject, options, operationResult)
+                new AddObjectContext<>(repositoryContext, newObject)
                         .execute();
                 invokeConflictWatchers((w) -> w.afterAddObject(oid, newObject));
             }
             jdbcSession.commit();
             return oid;
+        } catch (RuntimeException e) {
+            SqaleUtils.handlePostgresException(e);
+            throw e;
         } finally {
             registerOperationFinish(opHandle, 1); // TODO attempt
         }
@@ -1879,7 +1877,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private void recordException(
             @NotNull Throwable ex, OperationResult operationResult, boolean fatal) {
-        String message = Strings.isNullOrEmpty(ex.getMessage()) ? ex.getMessage() : "null";
+        String message = Strings.isNullOrEmpty(ex.getMessage()) ? "null" : ex.getMessage();
         if (Strings.isNullOrEmpty(message)) {
             message = ex.getMessage();
         }
@@ -1899,8 +1897,7 @@ public class SqaleRepositoryService implements RepositoryService {
         return performanceMonitor.registerOperationStart(kind, type);
     }
 
-    // TODO return will be used probably by modifyObject*
-    private OperationRecord registerOperationFinish(long opHandle, int attempt) {
-        return performanceMonitor.registerOperationFinish(opHandle, attempt);
+    private void registerOperationFinish(long opHandle, int attempt) {
+        performanceMonitor.registerOperationFinish(opHandle, attempt);
     }
 }

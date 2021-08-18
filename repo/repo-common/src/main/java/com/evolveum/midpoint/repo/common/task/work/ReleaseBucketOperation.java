@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.task.work;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagementStatistics;
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -31,9 +32,9 @@ public class ReleaseBucketOperation extends BucketOperation {
 
     private final int sequentialNumber;
 
-    ReleaseBucketOperation(BucketingManager bucketingManager, @NotNull String workerTaskOid,
-            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, int sequentialNumber) {
-        super(workerTaskOid, activityPath, collector, bucketingManager);
+    ReleaseBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
+            int sequentialNumber) {
+        super(workerTaskOid, activityPath, collector, beans);
         this.sequentialNumber = sequentialNumber;
     }
 
@@ -63,7 +64,7 @@ public class ReleaseBucketOperation extends BucketOperation {
         }
         checkWorkerRefOnDelegatedBucket(bucket);
         try {
-            repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
+            plainRepositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
                     bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.READY, null),
                     bucketUnchangedPrecondition(bucket), null, result);
         } catch (PreconditionViolationException e) {

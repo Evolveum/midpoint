@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,20 +27,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkStateType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 public class ActivityTokenStorageImpl implements LiveSyncTokenStorage {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityTokenStorageImpl.class);
 
-    @NotNull private final LiveSyncActivityExecution activityExecution;
+    @NotNull private final AbstractActivityExecution<?, ?, ?> activityExecution;
 
-    ActivityTokenStorageImpl(@NotNull LiveSyncActivityExecution activityExecution) {
+    ActivityTokenStorageImpl(@NotNull AbstractActivityExecution<?, ?, ?> activityExecution) {
         this.activityExecution = activityExecution;
     }
 

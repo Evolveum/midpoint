@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -275,6 +276,14 @@ public abstract class ActivityState implements DebugDumpable {
         return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, 0, beans, result);
     }
 
+    /**
+     * Returns activity state for given path, crawling from the current task upwards.
+     *
+     * @param activityPath Path to activity for which to obtain activity state.
+     * @param task Task where to start searching.
+     * @param workStateTypeName Expected type of the work state.
+     */
+    @Experimental
     public static @NotNull ActivityState getActivityStateUpwards(@NotNull ActivityPath activityPath, @NotNull Task task,
             @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
             throws SchemaException, ObjectNotFoundException {

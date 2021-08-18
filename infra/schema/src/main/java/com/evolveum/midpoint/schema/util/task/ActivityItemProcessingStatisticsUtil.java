@@ -81,6 +81,12 @@ public class ActivityItemProcessingStatisticsUtil {
         }
     }
 
+    public static int getItemsProcessed(ActivityItemProcessingStatisticsType itemProcessingStatistics) {
+        return itemProcessingStatistics != null ?
+                getCounts(List.of(itemProcessingStatistics), set -> true) :
+                0;
+    }
+
     public static int getItemsProcessed(@NotNull Collection<ActivityStateType> states) {
         return getCounts(
                 getItemProcessingStatisticsCollection(states),

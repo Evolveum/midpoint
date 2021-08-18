@@ -517,7 +517,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         QName approverRelation = QName.valueOf("{https://random.org/ns}conn-rel");
         UserType user = new UserType(prismContext)
                 .name(userName)
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .metadata(new MetadataType()
                                 .createApproverRef(approverRef1.toString(),
                                         UserType.COMPLEX_TYPE, approverRelation)
@@ -571,9 +571,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     public void test290DuplicateCidInsideOneContainerIsCaughtByPrism() {
         expect("object construction with duplicate CID inside container fails immediately");
         assertThatThrownBy(() -> new UserType(prismContext)
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .targetRef("ref1", RoleType.COMPLEX_TYPE).id(1L))
-                .assignment(new AssignmentType()
+                .assignment(new AssignmentType(prismContext)
                         .targetRef("ref2", RoleType.COMPLEX_TYPE).id(1L)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Attempt to add a container value with an id that already exists: 1");
@@ -587,7 +587,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         given("object with duplicate CID in different containers");
         UserType user = new UserType(prismContext)
                 .name("user" + getTestNumber())
-                .assignment(new AssignmentType().id(1L))
+                .assignment(new AssignmentType(prismContext).id(1L))
                 .operationExecution(new OperationExecutionType().id(1L));
 
         expect("adding object to repository throws exception");
@@ -1135,7 +1135,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .modifyChannel("modify-channel")
                                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L))))
                 // one more just to see it stores multiple assignments
-                .assignment(new AssignmentType().order(1));
+                .assignment(new AssignmentType(prismContext).order(1));
 
         when("adding it to the repository");
         repositoryService.addObject(object.asPrismObject(), null, result);
@@ -1537,11 +1537,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .identifier("identifier")
                 .requestable(false)
                 .riskLevel("extremely-high")
-                // we don't need all attributes here, this is tested in TODO
-                .inducement(new AssignmentType()
+                // we don't need all attributes here, this is tested in test803ContainerAssignment
+                .inducement(new AssignmentType(prismContext)
                         .order(2)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
-                .inducement(new AssignmentType()
+                .inducement(new AssignmentType(prismContext)
                         .order(3)
                         .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
         // this is no additional attribute specific for archetype
@@ -1821,8 +1821,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 .validFrom(MiscUtil.asXMLGregorianCalendar(validFrom))
                                 .validTo(MiscUtil.asXMLGregorianCalendar(validTo))
                                 .validityChangeTimestamp(MiscUtil.asXMLGregorianCalendar(validityChangeTimestamp))
-                                .validityStatus(TimeIntervalStatusType.IN)
-                        )
+                                .validityStatus(TimeIntervalStatusType.IN))
                         .currentStageOutcome(case1CurrentStageOutcome)
                         // TODO campaignIteration
                         .iteration(case1Iteration)
@@ -1841,30 +1840,26 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 // TODO: iteration -> campaignIteration
                                 .iteration(81)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("almost, but not quite, entirely done")
-                                )
+                                        .outcome("almost, but not quite, entirely done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi1OutputChangeTimestamp))
                                 .performerRef(performer1Oid.toString(), UserType.COMPLEX_TYPE, performer1Relation)
                                 .stageNumber(21)
                                 .assigneeRef(wi1AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef1Relation)
                                 .assigneeRef(wi1AssigneeRef2Oid.toString(), UserType.COMPLEX_TYPE, wi1AssigneeRef2Relation)
-                                .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation)
-                        )
+                                .candidateRef(wi1CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi1CandidateRef1Relation))
                         .workItem(new AccessCertificationWorkItemType(prismContext)
                                 .id(56L)
                                 .closeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2CloseTimestamp))
                                 // TODO: iteration -> campaignIteration
                                 .iteration(82)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("A tad more than almost, but not quite, entirely done")
-                                )
+                                        .outcome("A tad more than almost, but not quite, entirely done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi2OutputChangeTimestamp))
                                 .performerRef(performer2Oid.toString(), UserType.COMPLEX_TYPE, performer2Relation)
                                 .stageNumber(22)
                                 .assigneeRef(wi2AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2AssigneeRef1Relation)
                                 .candidateRef(wi2CandidateRef1Oid.toString(), UserType.COMPLEX_TYPE, wi2CandidateRef1Relation)
-                                .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)
-                        ))
+                                .candidateRef(wi2CandidateRef2Oid.toString(), OrgType.COMPLEX_TYPE, wi2CandidateRef2Relation)))
                 ._case(new AccessCertificationCaseType(prismContext)
                         .id(49L)
                         .currentStageOutcome(case2CurrentStageOutcome)
@@ -1880,14 +1875,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 // TODO: iteration -> campaignIteration
                                 .iteration(83)
                                 .output(new AbstractWorkItemOutputType()
-                                        .outcome("certainly not quite done")
-                                )
+                                        .outcome("certainly not quite done"))
                                 .outputChangeTimestamp(MiscUtil.asXMLGregorianCalendar(wi3OutputChangeTimestamp))
                                 .performerRef(performer3Oid.toString(), UserType.COMPLEX_TYPE, performer3Relation)
                                 .stageNumber(21)
                                 .assigneeRef(wi3AssigneeRef1Oid.toString(), UserType.COMPLEX_TYPE, wi3AssigneeRef1Relation)
-                                .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)
-                        ));
+                                .candidateRef(wi3CandidateRef1Oid.toString(), OrgType.COMPLEX_TYPE, wi3CandidateRef1Relation)));
 
         when("adding it to the repository");
         repositoryService.addObject(accessCertificationCampaign.asPrismObject(), null, result);

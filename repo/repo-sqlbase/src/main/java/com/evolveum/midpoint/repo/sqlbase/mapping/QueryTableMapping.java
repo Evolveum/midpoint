@@ -67,6 +67,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     private final String tableName;
     private final String defaultAliasName;
     private final SqlRepoContext repositoryContext;
+    private final ItemDefinition<?> itemDefinition;
 
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
@@ -77,7 +78,6 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Instantiated lazily as needed, see {@link #defaultAlias()}. */
     private Q defaultAlias;
-    private ItemDefinition<?> itemDefinition;
 
     /**
      * Creates metamodel for the table described by designated type (Q-class) related to schema type.
@@ -98,7 +98,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.repositoryContext = repositoryContext;
-        this.itemDefinition = repositoryContext.prismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(schemaType, ItemDefinition.class);
+        this.itemDefinition = repositoryContext.prismContext().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(schemaType, ItemDefinition.class);
     }
 
     /**
@@ -165,7 +166,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             Function<Q, StringPath> origMapping,
             Function<Q, StringPath> normMapping) {
         return new DefaultItemSqlMapper<>(ctx ->
-                new PolyStringItemFilterProcessor(ctx, origMapping, normMapping), origMapping);
+                new PolyStringItemFilterProcessor<>(ctx, origMapping, normMapping), origMapping);
     }
 
     /**
@@ -335,6 +336,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
+    public Object itemDefinition() {
+        return itemDefinition;
+    }
+
     @Override
     public String toString() {
         return "QueryTableMapping{" +
@@ -343,9 +348,5 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ", schemaType=" + schemaType() +
                 ", queryType=" + queryType() +
                 '}';
-    }
-
-    public Object itemDefinition() {
-        return itemDefinition;
     }
 }

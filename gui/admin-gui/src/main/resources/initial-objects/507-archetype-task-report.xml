@@ -69,10 +69,10 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>Report</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/report/handler-3</value>
                 </expression>
                 <target>
-                    <c:path>category</c:path>
+                    <c:path>handlerUri</c:path>
                 </target>
             </mapping>
         </focusMappings>

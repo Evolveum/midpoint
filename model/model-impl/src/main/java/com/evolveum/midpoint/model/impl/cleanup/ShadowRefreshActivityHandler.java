@@ -9,30 +9,35 @@ package com.evolveum.midpoint.model.impl.cleanup;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScanActivityExecution;
+import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
+import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
+import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.execution.ExecutionInstantiationContext;
 import com.evolveum.midpoint.repo.common.task.ActivityReportingOptions;
-import com.evolveum.midpoint.repo.common.task.ItemProcessor;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
@@ -59,15 +64,15 @@ public class ShadowRefreshActivityHandler
     }
 
     @Override
-    public @NotNull MyActivityExecution createExecution(
+    public AbstractActivityExecution<MyWorkDefinition, ShadowRefreshActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MyActivityExecution(context);
+        return new ModelSearchBasedActivityExecution<>(context, "Shadow refresh", MyActivityExecutionSpecifics::new);
     }
 
     @Override
     public String getIdentifierPrefix() {
-        return "import";
+        return "shadow-refresh";
     }
 
     @Override
@@ -83,12 +88,17 @@ public class ShadowRefreshActivityHandler
         return ARCHETYPE_OID;
     }
 
-    public static class MyActivityExecution
-            extends AbstractScanActivityExecution<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
+    public static class MyActivityExecutionSpecifics
+            extends ScanActivityExecutionSpecifics<ShadowType, MyWorkDefinition, ShadowRefreshActivityHandler> {
 
-        MyActivityExecution(@NotNull ExecutionInstantiationContext<MyWorkDefinition, ShadowRefreshActivityHandler> context) {
-            super(context, "Shadow refresh");
-            setRequiresDirectRepositoryAccess();
+        MyActivityExecutionSpecifics(@NotNull SearchBasedActivityExecution<ShadowType, MyWorkDefinition,
+                ShadowRefreshActivityHandler, ?> activityExecution) {
+            super(activityExecution);
+        }
+
+        @Override
+        public boolean doesRequireDirectRepositoryAccess() {
+            return true;
         }
 
         @Override
@@ -101,26 +111,24 @@ public class ShadowRefreshActivityHandler
         }
 
         @Override
-        protected ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult opResult) {
+        public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
             if (ObjectQueryUtil.hasFilter(configuredQuery)) {
                 return configuredQuery;
             } else {
                 return ObjectQueryUtil.replaceFilter(
                         configuredQuery,
-                        getPrismContext().queryFor(ShadowType.class)
+                        getBeans().prismContext.queryFor(ShadowType.class)
                                 .exists(ShadowType.F_PENDING_OPERATION)
                                 .buildFilter());
             }
         }
 
         @Override
-        protected @NotNull ItemProcessor<PrismObject<ShadowType>> createItemProcessor(OperationResult opResult) {
-            return createDefaultItemProcessor(
-                    (object, request, workerTask, result) -> {
-                        getModelBeans().provisioningService.refreshShadow(object, null, workerTask, result);
-                        return true;
-                    }
-            );
+        public boolean processObject(@NotNull PrismObject<ShadowType> object,
+                @NotNull ItemProcessingRequest<PrismObject<ShadowType>> request, RunningTask workerTask, OperationResult result)
+                throws CommonException, ActivityExecutionException {
+            getModelBeans().provisioningService.refreshShadow(object, null, workerTask, result);
+            return true;
         }
     }
 
