@@ -23,11 +23,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
-@PanelType(name = "orgAssignments")
-@PanelInstance(identifier = "orgAssignments",
-        applicableFor = FocusType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Org", icon = GuiStyleConstants.CLASS_OBJECT_ORG_ICON, order = 30)
 public class OrgAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

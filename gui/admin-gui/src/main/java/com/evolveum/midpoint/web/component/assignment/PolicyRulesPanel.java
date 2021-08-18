@@ -44,11 +44,11 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "policyRuleAssignments")
-@PanelInstance(identifier = "policyRuleAssignments",
-        applicableFor = AbstractRoleType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60)
+//@PanelType(name = "policyRuleAssignments")
+//@PanelInstance(identifier = "policyRuleAssignments",
+//        applicableFor = AbstractRoleType.class,
+//        childOf = AssignmentHolderAssignmentPanel.class)
+//@PanelDisplay(label = "Policy rule", icon = GuiStyleConstants.CLASS_POLICY_RULES_ICON, order = 60)
 public class PolicyRulesPanel<AR extends AbstractRoleType> extends AssignmentPanel<AR> {
 
     private static final long serialVersionUID = 1L;

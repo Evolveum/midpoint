@@ -1,45 +1,20 @@
 /*
- * Copyright (C) 2018-2020 Evolveum and contributors
+ * Copyright (C) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.assignment;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractRoleInducementPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.session.SessionStorage;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+package com.evolveum.midpoint.gui.impl.component.assignmentType.inducement;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,30 +22,39 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.assignment.ConstructionAssociationPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
-import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-/**
- * Created by honchar.
- */
-//@PanelType(name = "inducedEntitlements")
-//@PanelInstance(identifier = "inducedEntitlements",
-//        applicableFor = AbstractRoleType.class,
-//        childOf = AssignmentHolderAssignmentPanel.class)
-//@PanelDisplay(label = "Induced entitlements")
-//TODO only for indicements
-public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends InducementsPanel<AR> {
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-    private static final long serialVersionUID = 1L;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@PanelType(name = "inducedEntitlements")
+@PanelInstance(identifier = "inducedEntitlements",
+        applicableFor = AbstractRoleType.class,
+        childOf = AbstractRoleInducementPanel.class)
+@PanelDisplay(label = "Induced entitlements", order = 70)
+public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);
 
@@ -80,78 +64,12 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Induc
 
     private MidpointFormValidator validator;
 
-    public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> inducementContainerWrapperModel) {
-        super(id, inducementContainerWrapperModel);
-    }
-
-    public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
-        super(id, assignmentContainerWrapperModel, config);
-    }
-
-    public InducedEntitlementsPanel(String id, LoadableModel<PrismObjectWrapper<AR>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
-        super(id, PrismContainerWrapperModel.fromContainerWrapper(assignmentContainerWrapperModel, AbstractRoleType.F_INDUCEMENT), config);
+    public InducedEntitlementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
     }
 
     private void createValidator() {
-        validator = new MidpointFormValidatorImpl() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
-                List<SimpleValidationError> errors = new ArrayList<>();
-                for (ObjectDelta<?> delta : deltas) {
-                    if (AbstractRoleType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                        switch (delta.getChangeType()) {
-                            case MODIFY:
-                                Collection<? extends ItemDelta<?, ?>> itemDeltas = delta.getModifications();
-                                for (ItemDelta<?, ?> itemDelta : itemDeltas) {
-                                    if (itemDelta.getPath().equivalent(AbstractRoleType.F_INDUCEMENT) && itemDelta.getValuesToAdd() != null) {
-                                        for (PrismValue value : itemDelta.getValuesToAdd()) {
-                                            errors.addAll(validateInducement(value.getRealValue()));
-                                        }
-                                    }
-                                }
-                                break;
-                            case ADD:
-                                if (delta != null && delta.getObjectToAdd().asObjectable() != null) {
-                                    for (AssignmentType assignment : ((AbstractRoleType) object.asObjectable()).getInducement()) {
-                                        errors.addAll(validateInducement(assignment));
-                                    }
-                                }
-                                break;
-                        }
-                    }
-                }
-                return errors;
-            }
-
-            private Collection<SimpleValidationError> validateInducement(AssignmentType assignment) {
-                List<SimpleValidationError> errors = new ArrayList<>();
-                //TODO impelemnt findContainer(ItemPath)
-                com.evolveum.midpoint.prism.Item<PrismContainerValue<ResourceObjectAssociationType>, PrismContainerDefinition<ResourceObjectAssociationType>> association =
-                        assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
-                if (association != null && !association.getValues().isEmpty()) {
-                    for (PrismContainerValue<ResourceObjectAssociationType> associationValue : association.getValues()) {
-                        PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
-                        if (outbound == null || outbound.getValues().isEmpty()) {
-                            SimpleValidationError error = new SimpleValidationError();
-                            error.setMessage(PageBase.createStringResourceStatic(null, "InducedEntitlementsPanel.validator.message").getString());
-                            ItemPathType path = new ItemPathType();
-                            path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
-                            error.setAttribute(path);
-                            errors.add(error);
-                        }
-                    }
-                }
-                return errors;
-            }
-
-            @Override
-            public Collection<SimpleValidationError> validateAssignment(AssignmentType assignment) {
-                return new ArrayList<>();
-            }
-        };
+        validator = new InducedEntitlementsValidator();
     }
 
     @Override
@@ -174,9 +92,9 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Induc
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 
         columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
 
@@ -184,13 +102,13 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Induc
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
+            public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 
                 ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
                 List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-                        expressionType,
-                        InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
+                                expressionType,
+                                InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
                         OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
 
                 MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
@@ -239,7 +157,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Induc
 
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }

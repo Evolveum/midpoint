@@ -29,11 +29,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 
-@PanelType(name = "focusMappingsAssignments")
-@PanelInstance(identifier = "focusMappingsAssignments",
-        applicableFor = AbstractRoleType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Focus mappings", order = 70)
+//@PanelType(name = "focusMappingsAssignments")
+//@PanelInstance(identifier = "focusMappingsAssignments",
+//        applicableFor = AbstractRoleType.class,
+//        childOf = AssignmentHolderAssignmentPanel.class)
+//@PanelDisplay(label = "Focus mappings", order = 70)
 public class FocusMappingsAssignmentPanel<AR extends AbstractRoleType> extends AssignmentPanel<AR> {
     private static final long serialVersionUID = 1L;
 

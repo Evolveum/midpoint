@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.assignment;
+package com.evolveum.midpoint.gui.impl.component.assignmentType;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -68,9 +67,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractAssignmentTypePanel extends MultivalueContainerListPanelWithDetailsPanel<AssignmentType> {
@@ -507,37 +504,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return assignments;
     }
 
-    protected ObjectQuery getCustomizeQuery() {
-        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
-                .getAllRelationsFor(RelationKindType.DELEGATION);
-
-        //do not show archetype assignments
-        ObjectReferenceType archetypeRef = new ObjectReferenceType();
-        archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
-        archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(archetypeRef.asReferenceValue())
-                .buildFilter();
-        archetypeFilter.setOidNullAsAny(true);
-
-        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .not()
-                .item(AssignmentType.F_TARGET_REF)
-                .refRelation(delegationRelations.toArray(new QName[0]))
-                .buildFilter();
-
-        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
-        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
-
-        RefFilter targetRefFilter = getTargetTypeFilter();
-        if (targetRefFilter != null) {
-            query.addFilter(targetRefFilter);
-        }
-        return query;
-    }
-
-    protected abstract RefFilter getTargetTypeFilter();
+    protected abstract ObjectQuery getCustomizeQuery();
 
     @Override
     protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(

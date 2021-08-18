@@ -23,11 +23,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 
-@PanelType(name = "serviceAssignments")
-@PanelInstance(identifier = "serviceAssignments",
-        applicableFor = FocusType.class,
-        childOf = AssignmentHolderAssignmentPanel.class)
-@PanelDisplay(label = "Service", icon = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, order = 40)
+
 public class ServiceAssignmentPanel<AH extends AssignmentHolderType> extends AbstractRoleAssignmentPanel {
 
     private static final long serialVersionUID = 1L;

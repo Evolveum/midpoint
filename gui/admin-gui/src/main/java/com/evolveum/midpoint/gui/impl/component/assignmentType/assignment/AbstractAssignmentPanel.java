@@ -4,16 +4,20 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.assignment;
+package com.evolveum.midpoint.gui.impl.component.assignmentType.assignment;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -122,7 +126,6 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         return Collections.singletonList(ObjectTypes.getObjectTypeFromTypeQName(getAssignmentType()));
     }
 
-    @Override
     protected RefFilter getTargetTypeFilter() {
         QName targetType = getAssignmentType();
         RefFilter targetRefFilter = null;
@@ -156,5 +159,36 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
+    }
+
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.DELEGATION);
+
+        //do not show archetype assignments
+        ObjectReferenceType archetypeRef = new ObjectReferenceType();
+        archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
+        archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(archetypeRef.asReferenceValue())
+                .buildFilter();
+        archetypeFilter.setOidNullAsAny(true);
+
+        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .not()
+                .item(AssignmentType.F_TARGET_REF)
+                .refRelation(delegationRelations.toArray(new QName[0]))
+                .buildFilter();
+
+        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
+        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+
+        RefFilter targetRefFilter = getTargetTypeFilter();
+        if (targetRefFilter != null) {
+            query.addFilter(targetRefFilter);
+        }
+        return query;
     }
 }
