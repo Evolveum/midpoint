@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,6 +41,10 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         ItemPath itemPath = modification.getPath();
         Item<PrismValue, ?> item = context.findValueOrItem(itemPath);
+        if (item.getDefinition() instanceof PrismContainerDefinition<?>) {
+            // We do not index containers
+            return;
+        }
         Collection<?> realValues = item != null ? item.getRealValues() : null;
         ItemDefinition<?> definition = modification.getDefinition();
 
