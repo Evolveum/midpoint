@@ -40,11 +40,11 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
     @Override
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         ItemPath itemPath = modification.getPath();
-        Item<PrismValue, ?> item = context.findValueOrItem(itemPath);
-        if (item.getDefinition() instanceof PrismContainerDefinition<?>) {
-            // We do not index containers
-            return;
+        if (modification.getDefinition() instanceof PrismContainerDefinition<?>) {
+            return; // We do not index containers
         }
+
+        Item<PrismValue, ?> item = context.findValueOrItem(itemPath);
         Collection<?> realValues = item != null ? item.getRealValues() : null;
         ItemDefinition<?> definition = modification.getDefinition();
 
