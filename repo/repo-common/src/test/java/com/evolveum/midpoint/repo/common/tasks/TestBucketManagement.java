@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributionDefinition;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.task.work.BucketingManager;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketAllocator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactory;
-import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryCreator;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.BucketContentFactoryGenerator;
 import com.evolveum.midpoint.repo.common.task.work.segmentation.StringBucketContentFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -63,7 +64,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestBucketManagement extends AbstractRepoCommonTest {
 
     @Autowired private BucketingManager bucketingManager;
-    @Autowired private BucketContentFactoryCreator contentFactoryCreator;
+    @Autowired private BucketContentFactoryGenerator contentFactoryCreator;
+    @Autowired private CommonTaskBeans beans;
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/buckets");
 
@@ -110,7 +112,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -165,7 +167,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -220,7 +222,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), contentFactoryCreator);
+        BucketAllocator allocator = BucketAllocator.create(getDistributionDefinition(task), beans, null);
         BucketContentFactory contentFactory = allocator.getContentFactory();
 
         then();
@@ -270,7 +272,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
+        BucketContentFactory contentFactory = createContentFactory(getDistributionDefinition(task));
 
         then();
 
@@ -289,7 +291,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
 
         when();
 
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
+        BucketContentFactory contentFactory = createContentFactory(getDistributionDefinition(task));
 
         then();
 
@@ -387,7 +389,7 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         taskAdd(TASK_110, result);
 
         Task task = taskManager.getTaskPlain(TASK_110.oid, result);
-        BucketContentFactory contentFactory = contentFactoryCreator.createContentFactory(getDistributionDefinition(task));
+        BucketContentFactory contentFactory = createContentFactory(getDistributionDefinition(task));
 
         when("1st get");
 
@@ -994,4 +996,10 @@ public class TestBucketManagement extends AbstractRepoCommonTest {
         assertOptimizedCompletedBuckets(taskAfter, ActivityPath.empty());
         return taskAfter;
     }
+
+    @NotNull
+    private BucketContentFactory createContentFactory(@NotNull ActivityDistributionDefinition distributionDefinition) {
+        return contentFactoryCreator.createContentFactory(distributionDefinition.getBuckets(), null);
+    }
+
 }

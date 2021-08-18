@@ -157,17 +157,17 @@ public class DistributingActivityExecution<
     }
 
     @Override
-    public boolean supportsStatistics() {
+    public boolean doesSupportStatistics() {
         return true;
     }
 
     @Override
-    public boolean supportsSynchronizationStatistics() {
+    public boolean doesSupportSynchronizationStatistics() {
         return false;
     }
 
     @Override
-    public boolean supportsActionsExecuted() {
+    public boolean doesSupportActionsExecuted() {
         return false;
     }
 

@@ -229,12 +229,16 @@ public class DefaultColumnUtils {
 
     public static String processSpecialColumn(
             ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
-        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
-        if (type == null || itemPath == null) {
+        return processSpecialColumn(itemPath, object.getRealValue(), localization);
+    }
+
+    public static String processSpecialColumn(
+            ItemPath itemPath, Containerable object, LocalizationService localization) {
+        if (itemPath == null) {
             return null;
         }
-        if (type.isAssignableFrom(TaskType.class)) {
-            TaskType task = (TaskType) object.getRealValue();
+        if (object instanceof TaskType) {
+            TaskType task = (TaskType) object;
             if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)) {
                 XMLGregorianCalendar timestamp = task.getCompletionTimestamp();
                 if (timestamp != null && task.getExecutionStatus() == TaskExecutionStateType.CLOSED) {
@@ -263,8 +267,8 @@ public class DefaultColumnUtils {
                     return "";
                 }
             }
-        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+        } else if (object instanceof AuditEventRecordType) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return customColumn.getValue();
                 }
@@ -276,19 +280,18 @@ public class DefaultColumnUtils {
         return null;
     }
 
-    public static boolean isSpecialColumn(ItemPath itemPath, PrismContainer<? extends Containerable> object) {
-        @Nullable Class<? extends Containerable> type = object.getCompileTimeClass();
-        if (type == null || itemPath == null) {
+    public static boolean isSpecialColumn(ItemPath itemPath, Containerable value) {
+        if (value == null || itemPath == null) {
             return false;
         }
-        if (type.isAssignableFrom(TaskType.class)) {
+        if (value instanceof TaskType) {
             return itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)
                     || itemPath.equivalent(TaskType.F_SCHEDULE)
                     || itemPath.equivalent(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
                     IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT)) // TODO MID-6850
                     || itemPath.equivalent(TaskType.F_PROGRESS);
-        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+        } else if (value instanceof AuditEventRecordType) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)value).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return true;
                 }

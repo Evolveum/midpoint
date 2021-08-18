@@ -18,6 +18,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityState
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -92,17 +94,17 @@ class BucketOperation implements DebugDumpable {
 
     // Useful beans
 
-    final BucketingManager bucketingManager;
+    final CommonTaskBeans beans;
     final TaskManager taskManager;
-    final RepositoryService repositoryService;
+    final RepositoryService plainRepositoryService;
     final PrismContext prismContext;
 
     BucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
-                    ActivityBucketManagementStatistics statistics, BucketingManager bucketingManager) {
-        this.bucketingManager = bucketingManager;
-        this.taskManager = bucketingManager.getTaskManager();
-        this.repositoryService = bucketingManager.getRepositoryService();
-        this.prismContext = bucketingManager.getPrismContext();
+            ActivityBucketManagementStatistics statistics, @NotNull CommonTaskBeans beans) {
+        this.beans = beans;
+        this.taskManager = beans.taskManager;
+        this.plainRepositoryService = beans.plainRepositoryService;
+        this.prismContext = beans.prismContext;
         this.workerTaskOid = workerTaskOid;
         this.activityPath = activityPath;
         this.statisticsKeeper = new BucketOperationStatisticsKeeper(statistics);
@@ -221,7 +223,7 @@ class BucketOperation implements DebugDumpable {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber +
                     " in worker task " + workerTask);
         }
-        repositoryService.modifyObject(TaskType.class, workerTask.getOid(),
+        plainRepositoryService.modifyObject(TaskType.class, workerTask.getOid(),
                 bucketDeleteDeltas(workerStatePath, workerBucket), result);
     }
 

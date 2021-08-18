@@ -1810,6 +1810,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="monitoring" type="tns:ActivityMonitoringDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the activity is monitored, e.g. using tracing or dynamic profiling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reporting" type="tns:TaskReportingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the activity is monitored, e.g. using tracing or dynamic profiling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1876,10 +1890,29 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="report" type="tns:ReportDefinitionType" minOccurs="0">
+
+                <!-- Temporarily disabled because of inability to map from legacy handler URI (report/handler-3) to
+                     both export and import activities -->
+
+                <xsd:element name="reportExport" type="tns:ClassicReportExportWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Exports report of any containerable (either from audit or from the repository).
+                            Supports multithreading but not bucketing (multi-node mode).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="reportImport" type="tns:ClassicReportImportWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Imports a report. Supports multithreading.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="distributedReportExport" type="tns:DistributedReportExportWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Exports report of repository objects. Supports bucketing (multi-node mode) and multithreading.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -1951,6 +1984,39 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityMonitoringDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How the activity is monitored, e.g. using tracing or dynamic profiling.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="tracing" type="tns:ProcessTracingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies when and how should be the activity execution traced. Contains tracing interval
+                        (i.e. how often a trace should be recorded), tracing profile to be used and tracing points
+                        (roots) where the tracing should be done.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="profiling" type="tns:ProcessProfilingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies when and how should be the activity execution dynamically profiled.
+                        This functionality is deprecated. The tracing should be used instead.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3271,6 +3337,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="implicitSegmentation" type="tns:ImplicitWorkSegmentationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Uses segmentation that is implicit for given kind of activity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="segmentation" type="tns:AbstractWorkSegmentationType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -3638,6 +3711,22 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="ImplicitWorkSegmentationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkSegmentationType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <!-- Work bucket runtime structures -->
 
     <xsd:complexType name="WorkBucketType">
@@ -3655,7 +3744,7 @@
             <xsd:element name="sequentialNumber" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Sequential number of give work bucket. Starting at 1.
+                        Sequential number of given work bucket. Starting at 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5733,6 +5822,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selects objects that were failed to be processed in previous task run(s).
+                        TODO To be decided if this element belongs to the work definition or to a separate
+                         place in the activity definition (something like "error handling").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="objectSet" type="tns:ObjectSetType"/>
@@ -5799,6 +5897,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selects objects that were failed to be processed in previous task run(s).
+                        TODO To be decided if this element belongs to the work definition or to a separate
+                        place in the activity definition (something like "error handling").
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6224,7 +6331,7 @@
     </xsd:complexType>
     <xsd:element name="cleanupDefinition" type="tns:CleanupWorkDefinitionType"/>
 
-    <xsd:complexType name="ReportDefinitionType">
+    <xsd:complexType name="AbstractReportWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -6238,12 +6345,97 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <!-- TODO -->
+                    <xsd:element name="reportRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of the report: for either import or export direction.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reportParam" type="c:ReportParameterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of the report parameters: for export direction.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractReportWorkDefinitionType.reportParam</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reportDefinition" type="tns:ReportDefinitionType"/>
+
+    <!-- currently unused -->
+    <xsd:complexType name="ClassicReportExportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType" />
+
+    <xsd:complexType name="DistributedReportExportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType" />
+
+    <xsd:complexType name="ClassicReportImportWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractReportWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="reportDataRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report data to be imported.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType" />
 
     <xsd:complexType name="GenericParametersContainerType">
         <xsd:annotation>
@@ -6703,6 +6895,35 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
+
+    <xsd:complexType name="ReportExportWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="reportDataRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report data that have been exported
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportDataType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType" />
 
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>

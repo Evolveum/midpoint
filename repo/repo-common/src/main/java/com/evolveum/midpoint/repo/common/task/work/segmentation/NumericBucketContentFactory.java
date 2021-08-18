@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericWorkSegmentat
  */
 public class NumericBucketContentFactory extends BaseBucketContentFactory<NumericWorkSegmentationType> {
 
-    public NumericBucketContentFactory(@NotNull NumericWorkSegmentationType segmentationConfig) {
+    NumericBucketContentFactory(@NotNull NumericWorkSegmentationType segmentationConfig) {
         super(segmentationConfig);
     }
 

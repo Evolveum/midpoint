@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.task.work.segmentation.content;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.task.work.ItemDefinitionProvider;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * Handles various aspects of work bucket content e.g. creating filters for work space segmentation.
@@ -27,7 +26,7 @@ public interface WorkBucketContentHandler {
     // TODO experimental
     @NotNull
     List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-            Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider)
+            Class<? extends ObjectType> type, ItemDefinitionProvider itemDefinitionProvider)
             throws SchemaException;
 
 }

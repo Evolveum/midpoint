@@ -2232,6 +2232,30 @@
     </xsd:complexType>
     <xsd:element name="processTracingConfiguration" type="tns:ProcessTracingConfigurationType"/>
 
+    <xsd:complexType name="ProcessProfilingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="interval" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Profiles processing of each N-th item.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Profiling interval</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="processProfilingConfiguration" type="tns:ProcessProfilingConfigurationType"/>
+
     <xsd:complexType name="TracingProfileType">
         <xsd:annotation>
             <xsd:documentation>

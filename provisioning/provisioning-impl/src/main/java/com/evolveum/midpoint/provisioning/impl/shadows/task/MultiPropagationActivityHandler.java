@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.task.SearchBasedActivityExecution;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,10 +53,10 @@ public class MultiPropagationActivityHandler implements ActivityHandler<MultiPro
     }
 
     @Override
-    public @NotNull MultiPropagationActivityExecution createExecution(
+    public AbstractActivityExecution<MultiPropagationWorkDefinition, MultiPropagationActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MultiPropagationActivityExecution(context);
+        return new SearchBasedActivityExecution<>(context, "Multi-propagation", MultiPropagationActivityExecutionSpecifics::new);
     }
 
     @Override

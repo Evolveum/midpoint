@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.impl.trigger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScanWorkStateType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -54,10 +56,10 @@ public class TriggerScanActivityHandler
     }
 
     @Override
-    public @NotNull TriggerScanActivityExecution createExecution(
+    public AbstractActivityExecution<TriggerScanWorkDefinition, TriggerScanActivityHandler, ?> createExecution(
             @NotNull ExecutionInstantiationContext<TriggerScanWorkDefinition, TriggerScanActivityHandler> context,
             @NotNull OperationResult result) {
-        return new TriggerScanActivityExecution(context);
+        return new ModelSearchBasedActivityExecution<>(context, "Trigger scan", TriggerScanActivityExecutionSpecifics::new);
     }
 
     @Override

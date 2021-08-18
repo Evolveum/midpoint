@@ -165,7 +165,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         UserType user1 = new UserType(prismContext).name("user-1")
                 .fullName("User Name 1")
-                .metadata(new MetadataType()
+                .metadata(new MetadataType(prismContext)
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
                         .createTimestamp(asXMLGregorianCalendar(1L))
@@ -228,6 +228,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .activation(new ActivationType(prismContext)
                         .validFrom("2021-03-01T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
+                .metadata(new MetadataType(prismContext)
+                        .createTimestamp(asXMLGregorianCalendar(2L)))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
@@ -238,6 +240,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user2Extension, "float", 0);
         addExtensionValue(user2Extension, "ref", ref(orgXOid, OrgType.COMPLEX_TYPE));
         addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
+        addExtensionValue(user2Extension, "poly", PolyString.fromOrig("poly-value-user2"));
         addExtensionValue(user2Extension, "enum-mv",
                 OperationResultStatusType.UNKNOWN, OperationResultStatusType.SUCCESS);
         addExtensionValue(user2Extension, "poly-mv",
@@ -263,7 +266,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .validTo("2022-01-01T00:00:00Z")))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user3Extension = user3.getExtension();
-        addExtensionValue(user3Extension, "int", 3);
+        addExtensionValue(user3Extension, "int", 10);
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
                 asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L)));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
@@ -973,6 +976,28 @@ AND(
                 user1Oid);
     }
 
+    @Test
+    public void test450SearchObjectOrderedByName() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("ordered by name descending",
+                        f -> f.desc(UserType.F_NAME),
+                        user1Oid, user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+        assertThat(result)
+                .extracting(u -> u.getOid())
+                .containsExactly(user4Oid, user3Oid, user2Oid, user1Oid, modifierOid, creatorOid);
+    }
+
+    @Test
+    public void test451SearchObjectOrderedByMetadataTimestamp() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("with metadata/createTimestamp ordered by it ascending",
+                        f -> f.not()
+                                .item(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).isNull()
+                                .asc(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                        user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
+    }
+
     // TODO tests with ref/@/...
     // query for AccessCertificationCaseType container with order by objectRef/@/name
     // PERHAPS: single refs can be LEFT JOINed to support ordering?
@@ -1001,22 +1026,22 @@ AND(
                 creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
-    @Test() // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
+    @Test
     public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
-        searchUsersTest("with extension string item with any value ordered by that item",
+        SearchResultList<UserType> result =
+                searchUsersTest("with extension string item with any value ordered by that item",
+                        f -> f.not()
+                                .item(UserType.F_EXTENSION, new QName("string")).isNull()
+                                .asc(UserType.F_EXTENSION, new QName("string")),
+                        user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user2Oid); // "other..." < "string..."
+
+        result = searchUsersTest("with extension string item with any value ordered by that item",
                 f -> f.not()
                         .item(UserType.F_EXTENSION, new QName("string")).isNull()
-                        .asc(UserType.F_EXTENSION, new QName("string")),
-                user2Oid, user1Oid);
-    }
-
-    @Test
-    public void test504SearchObjectOrderedByMetadataTimestamp() throws SchemaException {
-        searchUsersTest("with extension string item with any value ordered by that item",
-                f -> f.not()
-                  .item(UserType.F_EXTENSION, new QName("string")).isNull()
-                  .asc(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                user2Oid, user1Oid);
+                        .desc(UserType.F_EXTENSION, new QName("string")),
+                user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user1Oid); // to be sure it works both ways
     }
 
     @Test
@@ -1120,6 +1145,18 @@ AND(
         searchUsersTest("not having extension int item equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(1),
                 user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test524SearchObjectWithIntExtensionOrderedByIt() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("with extension int item ordered by that item",
+                        f -> f.not()
+                                .item(UserType.F_EXTENSION, new QName("int")).isNull()
+                                .asc(UserType.F_EXTENSION, new QName("int")),
+                        user1Oid, user2Oid, user3Oid);
+        assertThat(result).extracting(u -> u.getOid())
+                .containsExactly(user1Oid, user2Oid, user3Oid); // user30id with 10 is behind 2
     }
 
     @Test
@@ -1316,6 +1353,19 @@ AND(
                 user1Oid, user3Oid);
     }
 
+    @Test
+    public void test553SearchObjectWithDateTimeExtensionOrderedByIt() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("having extension date-time item and ordered by it",
+                        f -> f.not().item(UserType.F_EXTENSION, new QName("dateTime")).isNull()
+                                .desc(UserType.F_EXTENSION, new QName("dateTime")),
+                        user1Oid, user2Oid, user3Oid);
+
+        // reverse ordering, user 3 first
+        assertThat(result).extracting(u -> u.getOid())
+                .containsExactly(user3Oid, user2Oid, user1Oid);
+    }
+
     // date-time uses the same code as string, no need for more tests, only EQ works for multi-value
 
     @Test
@@ -1369,7 +1419,7 @@ AND(
         searchUsersTest("with extension poly-string item greater than value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .gt(new PolyString("aa-aa")),
-                user1Oid);
+                user1Oid, user2Oid);
     }
 
     @Test
@@ -1934,13 +1984,14 @@ AND(
         return searchObjects(type, objectQuery, operationResult, selectorOptions);
     }
 
-    private void searchUsersTest(String description,
+    private SearchResultList<UserType> searchUsersTest(String description,
             Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
             throws SchemaException {
-        searchObjectTest(description, UserType.class, filter, expectedOids);
+        return searchObjectTest(description, UserType.class, filter, expectedOids);
     }
 
-    private <T extends ObjectType> void searchObjectTest(String description, Class<T> type,
+    private <T extends ObjectType> SearchResultList<T> searchObjectTest(
+            String description, Class<T> type,
             Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
@@ -1955,6 +2006,7 @@ AND(
         assertThat(result)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(expectedOids);
+        return result;
     }
 
     /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */

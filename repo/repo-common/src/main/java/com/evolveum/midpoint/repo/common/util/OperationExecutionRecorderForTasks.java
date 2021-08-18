@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.util;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +48,7 @@ public class OperationExecutionRecorderForTasks {
      *
      * @param target Where to write the record to.
      * @param task Related task. It could be any task that has the correct root task OID filled-in.
-     * @param partUri URI of the task part in context of which the processing took place.
+     * @param activityPath Path of the related activity.
      * @param result Combined use: (1) This is the result that we want to write to the object (i.e. it must have
      * already computed status and message. (2) This is the result we use for our own writing operations.
      * We hope these two usages are not in conflict. If so, they will need to be split.
@@ -56,8 +58,9 @@ public class OperationExecutionRecorderForTasks {
      *
      * TODO move redirection to the writer level?
      */
-    public void recordOperationExecution(Target target, RunningTask task, String partUri, OperationResult result) {
-        OperationExecutionType recordToAdd = createExecutionRecord(task, partUri, result);
+    public void recordOperationExecution(@NotNull Target target, @NotNull RunningTask task, @NotNull ActivityPath activityPath,
+            OperationResult result) {
+        OperationExecutionType recordToAdd = createExecutionRecord(task, activityPath, result);
         if (target.canWriteToObject()) {
             recordOperationExecutionToOwner(target, recordToAdd, task, result);
         } else {
@@ -96,11 +99,11 @@ public class OperationExecutionRecorderForTasks {
         }
     }
 
-    private OperationExecutionType createExecutionRecord(RunningTask task, String partUri, OperationResult result) {
+    private OperationExecutionType createExecutionRecord(RunningTask task, ActivityPath activityPath, OperationResult result) {
         OperationExecutionType operation = new OperationExecutionType(prismContext);
         operation.setRecordType(OperationExecutionRecordTypeType.COMPLEX);
         operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getRootTaskOid(), ObjectTypes.TASK));
-        operation.setTaskPartUri(partUri);
+        operation.setActivityPath(activityPath.toBean());
         operation.setStatus(result.getStatus().createStatusType());
         operation.setMessage(result.getMessage());
         // TODO what if the real initiator is different? (e.g. when executing approved changes)

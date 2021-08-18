@@ -11,6 +11,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
+import com.evolveum.midpoint.repo.common.task.PlainIterativeActivityExecution;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateWorkDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
- * Task handler for controlled processing of asynchronous updates.
+ * Activity handler for controlled processing of asynchronous updates.
  */
 @Component
 public class AsyncUpdateActivityHandler
@@ -48,10 +51,10 @@ public class AsyncUpdateActivityHandler
     }
 
     @Override
-    public @NotNull AsyncUpdateActivityExecution createExecution(
+    public @NotNull AbstractActivityExecution<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler, AbstractActivityWorkStateType> createExecution(
             @NotNull ExecutionInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AsyncUpdateActivityExecution(context);
+        return new PlainIterativeActivityExecution<>(context, "AsyncUpdate", AsyncUpdateActivityExecutionSpecifics::new);
     }
 
     @Override

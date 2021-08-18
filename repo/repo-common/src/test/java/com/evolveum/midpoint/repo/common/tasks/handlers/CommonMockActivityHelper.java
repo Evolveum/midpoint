@@ -32,7 +32,7 @@ public class CommonMockActivityHelper {
     public static final ItemName EXECUTION_COUNT_NAME = new ItemName(NS_EXT, "executionCount");
     private static final ItemPath EXECUTION_COUNT_PATH = ItemPath.create(F_EXTENSION, EXECUTION_COUNT_NAME);
 
-    public static final ItemName LAST_MESSAGE_NAME = new ItemName(NS_EXT, "lastMessage");
+    private static final ItemName LAST_MESSAGE_NAME = new ItemName(NS_EXT, "lastMessage");
     private static final ItemPath LAST_MESSAGE_PATH = ItemPath.create(F_EXTENSION, LAST_MESSAGE_NAME);
 
     //region Execution count

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.execution.AbstractActivityExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractIterativeActivityExecution;
+import com.evolveum.midpoint.repo.common.task.IterativeActivityExecution;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressUtil;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
  *
  * The counters are managed in memory, and written to the running task (in-memory + repo representation) in regular intervals.
  *
- * Although this is mostly relevant for iterative activities (see {@link AbstractIterativeActivityExecution}), it has its
+ * Although this is mostly relevant for iterative activities (see {@link IterativeActivityExecution}), it has its
  * place also in non-standard activities that do their own iteration, like the cleanup activity.
  *
  * The distinction between open and closed items is relevant to activities with "commit points", like bucketed ones.

@@ -12,6 +12,8 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.ShortDumpable;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  */
@@ -20,8 +22,11 @@ public class ObjectSelector implements Serializable, ShortDumpable {
     private final UniformItemPath path; // do not change to ItemPath unless equals/hashCode is adapted
 
     public ObjectSelector(UniformItemPath path) {
-        super();
         this.path = path;
+    }
+
+    public ObjectSelector(@NotNull ObjectSelector prototype) {
+        this(prototype.path);
     }
 
     public UniformItemPath getPath() {

@@ -1376,8 +1376,7 @@ ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_i
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
-        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
-        ON DELETE CASCADE; -- TODO is the cascade needed?
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid);
 
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (
