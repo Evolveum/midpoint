@@ -237,7 +237,7 @@ public class SearchFactory {
                 true, Search.PanelType.DEFAULT, isOidSearchEnabled);
     }
 
-    public static <T extends ObjectType> Search createSearch(
+    public static <T extends ObjectType> Search<T> createSearch(
             ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
         return createSearch(type, collectionViewName, fixedSearchItems, discriminator, modelServiceLocator, availableItemPath, useDefsFromSuperclass, useObjectCollection,
