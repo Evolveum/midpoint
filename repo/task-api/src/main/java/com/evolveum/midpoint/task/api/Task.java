@@ -292,7 +292,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /** Sets task execution constraints. */
     void setExecutionConstraints(TaskExecutionConstraintsType value);
 
-    /** Sets the execution group name (i.e. executionConstraints/group). */
+    /** Gets the execution group name (i.e. executionConstraints/group). */
     String getGroup();
 
     /** Returns names of all groups (primary plus all secondary ones). */

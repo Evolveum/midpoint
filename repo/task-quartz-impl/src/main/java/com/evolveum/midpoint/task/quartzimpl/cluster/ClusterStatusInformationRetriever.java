@@ -107,7 +107,7 @@ public class ClusterStatusInformationRetriever {
         }
     }
 
-    public void getLocalNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult result) {
+    private void getLocalNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult result) {
         LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
         SchedulerInformationType schedulerInformation = localExecutionManager.getLocalSchedulerInformation(result);
@@ -123,7 +123,7 @@ public class ClusterStatusInformationRetriever {
      * @param clusterInfo A structure to which information should be added
      * @param node Node which to query
      */
-    public void addNodeStatusFromRemoteNode(ClusterStatusInformation clusterInfo, PrismObject<NodeType> node, OperationResult result)
+    private void addNodeStatusFromRemoteNode(ClusterStatusInformation clusterInfo, PrismObject<NodeType> node, OperationResult result)
             throws SchemaException {
 
         LOGGER.debug("Getting running task info from remote node ({}, {})", node.asObjectable().getNodeIdentifier(),
@@ -131,11 +131,11 @@ public class ClusterStatusInformationRetriever {
 
         NodeType nodeBean = node.asObjectable();
         result.addParam("node", nodeBean.getNodeIdentifier());
-        if (nodeBean.getOperationalStatus() == NodeOperationalStateType.DOWN) {
+        if (nodeBean.getOperationalState() == NodeOperationalStateType.DOWN) {
             nodeBean.setExecutionState(NodeExecutionStateType.DOWN);
             clusterInfo.addNodeInfo(nodeBean);
             result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
-        } else if (nodeBean.getOperationalStatus() == NodeOperationalStateType.STARTING) {
+        } else if (nodeBean.getOperationalState() == NodeOperationalStateType.STARTING) {
             nodeBean.setExecutionState(NodeExecutionStateType.STARTING);
             clusterInfo.addNodeInfo(nodeBean);
             result.recordStatus(OperationResultStatus.SUCCESS, "Node is starting");

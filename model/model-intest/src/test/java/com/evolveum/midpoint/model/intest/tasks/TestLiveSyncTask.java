@@ -1175,7 +1175,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(start, "PT5M"), fromNow(end, "PT5M"))
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
@@ -1189,7 +1189,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(start, "PT30M"), fromNow(end, "PT30M"))
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
                             .assertNoItem(PlannedOperationAttemptType.F_LIMIT)
@@ -1222,7 +1222,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(triggerFirstStart, "PT1H"), fromNow(triggerFirstEnd, "PT1H")) // from current or from clock.current (overridden)?
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
@@ -1254,7 +1254,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                     .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
                     .assertTimestampBetween(fromNow(triggerSecondStart, "PT1H"), fromNow(triggerSecondEnd, "PT1H")) // from current or from clock.current (overridden)?
                     .extension()
-                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .assertItemsExactly(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                         .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
                             .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));

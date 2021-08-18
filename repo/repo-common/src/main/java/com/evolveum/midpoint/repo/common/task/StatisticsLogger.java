@@ -42,9 +42,9 @@ class StatisticsLogger {
         TransientActivityExecutionStatistics current = activityExecution.getTransientExecutionStatistics();
         ActivityPerformanceInformation overall = getOverallStatistics();
 
-        String mainMessage = String.format(Locale.US, "%s of %s %s done with status %s in %,1f ms.",
+        String mainMessage = String.format(Locale.US, "%s of %s%s done with status %s in %,1f ms.",
                 activityExecution.getShortName(), operation.getIterationItemInformation(),
-                activityExecution.getContextDescription(), resultStatus, operation.getDurationRounded());
+                activityExecution.getContextDescriptionSpaced(), resultStatus, operation.getDurationRounded());
 
         String counts = String.format(Locale.US,
                 " Items processed in current execution: %,d (%,d overall), errors: %,d (%,d overall).",

@@ -1024,6 +1024,10 @@ public class OperationResult
         return computePreview().status;
     }
 
+    public void close() {
+        computeStatusIfUnknown();
+    }
+
     public void computeStatusIfUnknown() {
         recordEnd();
         if (isUnknown()) {

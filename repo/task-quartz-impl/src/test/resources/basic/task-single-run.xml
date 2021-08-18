@@ -9,7 +9,7 @@
 <task oid="91919191-76e0-59e2-86d6-556655660005"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>Testing single task 0005</name>
+    <name>task-single-run</name>
 
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30005</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
@@ -17,7 +17,7 @@
 
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
     <!-- No schedule - will execute immediately -->
     <cleanupAfterCompletion>PT10S</cleanupAfterCompletion>

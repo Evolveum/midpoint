@@ -20,5 +20,5 @@ public interface ImplicitSegmentationResolver {
     /**
      * Converts `ImplicitWorkSegmentationType` into "real" segmentation configuration.
      */
-    AbstractWorkSegmentationType resolveConfiguration(@NotNull ImplicitWorkSegmentationType configuration);
+    AbstractWorkSegmentationType resolveImplicitSegmentation(@NotNull ImplicitWorkSegmentationType segmentation);
 }

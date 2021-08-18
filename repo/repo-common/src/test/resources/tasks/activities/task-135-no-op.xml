@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="d1c750b0-eddc-445f-b907-d19c8ed754b5"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-no-op</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <recurrence>single</recurrence>
+    <activity>
+        <work>
+            <noOp>
+                <steps>5</steps>
+                <delay>10</delay>
+            </noOp>
+        </work>
+    </activity>
+</task>

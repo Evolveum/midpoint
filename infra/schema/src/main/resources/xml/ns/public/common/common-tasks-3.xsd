@@ -376,13 +376,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!--<xsd:element name="workManagement" type="tns:WorkDistributionType" minOccurs="0">-->
-                    <!--    <xsd:annotation>-->
-                    <!--        <xsd:documentation>-->
-                    <!--            Configuration of how the work should be managed: segmented into buckets and processed by workers.-->
-                    <!--        </xsd:documentation>-->
-                    <!--    </xsd:annotation>-->
-                    <!--</xsd:element>-->
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -480,10 +473,27 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Error handling strategy for this task. EXPERIMENTAL.
+                                DEPRECATED. Set error handling strategy in activity instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
                                 <a:since>4.3</a:since>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.4</a:deprecatedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="autoScaling" type="tns:TaskAutoScalingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Auto-scaling related options.
+
+                                Eventually, this item will be marked as operational and filled-in dynamically based
+                                on information in activities.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1659,6 +1669,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Other deltas to be applied to newly created worker task.
+
+                        BEWARE! These are applied only to newly created tasks. During further workers reconciliation
+                        runs they are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1706,13 +1719,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskName" type="xsd:string" minOccurs="0">
+            <xsd:element name="taskName" type="xsd:string" minOccurs="0" default="Worker {node}:{index} for {activity} in {rootTaskName}">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to derive names for the tasks. This overrides the name setting of parent element.
-                        It is possible to use substitution strings of {coordinatorTaskName}, {node} and {index} here.
-                        CoordinatorTaskName is the name of the coordinator task, node is the node identifier and index
-                        numbers workers created for particular node, starting at 1.
+                        How to derive names for the tasks. It is possible to use substitution strings of {node} (identifier of
+                        the node executing the worker task), {index} (number of worker at particular node, starting at 1),
+                        {activity} (name of the activity), {rootTaskName} (name of the root task), {rootTaskOid} (OID of the
+                        root task), {coordinatorTaskName} (name of the coordinator task), {coordinatorTaskOid} (OID of the
+                        coordinator task).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1729,6 +1743,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Other deltas to be applied to newly created worker task in this group.
+
+                        BEWARE! These are applied only to newly created tasks. During further workers reconciliation
+                        runs they are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1973,6 +1990,20 @@
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="shadowIntegrityCheck" type="tns:ShadowIntegrityCheckWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="activityAutoScaling" type="tns:ActivityAutoScalingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="noOp" type="tns:NoOpWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             TODO
@@ -3214,6 +3245,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="scavenging" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Are we in the scavenging phase? Relevant only for coordinator tasks.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="scavenger" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4107,6 +4145,18 @@
                 Node describes a single installation of midPoint. MidPoint installations can work in cluster.
                 The Node objects are the way how the nodes in cluster know about each other.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:operationalStatus</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation> <!-- todo "renamed"? -->
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:running</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
@@ -4114,9 +4164,9 @@
                     <xsd:element name="nodeIdentifier" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Short, cluster-wide identifier of the node. It may be a hostname or a short number node ID.
-                                Very short string is advised as this identifier is used to generate other identifiers
-                                (e.g. lightweight IDs), it is used in audit records, etc.
+                                Short, cluster-wide identifier of the node. It may be a hostname, a number, or a short string.
+                                It should be short as it is used e.g. in audit records. Its use is planned also
+                                for lightweight IDs.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4154,7 +4204,7 @@
                     <xsd:element name="ipAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                IP addresses of the node (both IPv4 and IPv6 addresses in textual notation)
+                                IP addresses of the node (both IPv4 and IPv6 addresses in textual notation).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4177,36 +4227,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="operationalStatus" type="tns:NodeOperationalStateType" minOccurs="0">
+                    <!-- We could consider adding "administrativeState" (status?) to allow nodes being permanently off.
+                    Just a safeguard for mistakenly turning the node on. But it's probably not much needed now. -->
+                    <xsd:element name="operationalState" type="tns:NodeOperationalStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Basic node operational state: whether it is up (e.g. should be accepting REST/JMX queries),
                                 or it is down (known to be turned off or just not checking-in for a longer time), or starting.
                                 Does NOT indicate anything about the scheduler status.
 
-                                Supersedes "running" property.
-
-                                TODO rename to operationalState.
+                                Supersedes "running" property. Renamed from "operationalStatus" property in 4.4.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="running" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Whether this node is running, i.e. it can be queried via JMX.
-                                (This does not necessarily mean that the scheduler thread and task threads are running!)
-
-                                DEPRECATED. Replaced by operationalState.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.1</a:deprecatedSince>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <!-- We could add "schedulerState" property with two possible meanings: either 1) current state
+                    of the Quartz scheduler (on/off), or 2) intended state of the scheduler. In the latter case we could
+                    skip creating worker tasks for such node. But let us wait until it's really needed. -->
                     <xsd:element name="clustered" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6982,24 +7021,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="closedExecuting" type="xsd:int" minOccurs="0">
+            <xsd:element name="adapted" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of executing worker tasks that were closed.
+                        Number of worker tasks that were adapted (renamed + set the scavenger flag) to match their specification.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="moved" type="xsd:int" minOccurs="0">
+            <xsd:element name="suspended" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of worker tasks that were moved.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="closedSuperfluous" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Number of worker tasks that were closed as superfluous.
+                        Number of ready worker tasks that were suspended because they were on wrong node or superfluous.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7017,6 +7049,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="resumed" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of worker tasks that were resumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType" />
@@ -7120,4 +7160,251 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="TaskAutoScalingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mode" type="tns:TaskAutoScalingModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Auto-scaling mode.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TaskAutoScalingModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Auto-scaling is disabled for this task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default auto-scaling strategy is to be used. TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFAULT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ActivityAutoScalingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for the auto scaling activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="tasks" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Tasks that should be covered by this activity. The default is to cover
+                                all running tasks that have some children and that do not have autoscaling disabled.
+
+                                This specification extends this default.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="minReconciliationInterval" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, reconciliation is postponed if specified interval has not elapsed
+                                after previous reconciliation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxReconciliationInterval" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, a reconciliation is forced after specified time even if no cluster state
+                                changes are detected.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="skipInitialReconciliation" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, the initial reconciliation (when the cluster state is first determined) should be skipped.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="activityAutoScalingWorkDefinition" type="tns:ActivityAutoScalingWorkDefinitionType"/>
+
+    <xsd:complexType name="ActivityAutoScalingWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for the auto scaling activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="lastClusterState" type="tns:ClusterStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Last known cluster state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastClusterStateChangeTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Time when the cluster state last changed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastReconciliationTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When was the last reconciliation started? (With one exception: if initial reconciliation
+                                is being skipped, the time of that skipped reconciliation is written here.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reconciliationPending" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is reconciliation pending, i.e. was it determined to start but was postponed because
+                                of the minimal interval requirement?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="activityAutoScalingWorkState" type="tns:ActivityAutoScalingWorkStateType"/>
+
+    <xsd:complexType name="ClusterStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of the cluster for the purposes of auto-scaling.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nodeUp" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Nodes that are up (according to operational state in repo).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="NoOpWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="delay" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="stepInterruptibility" type="tns:NoOpActivityStepInterruptibilityType" minOccurs="0" default="none" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="noOpWorkDefinition" type="tns:NoOpWorkDefinitionType"/>
+
+    <xsd:simpleType name="NoOpActivityStepInterruptibilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Should a step of NoOp activity be interruptible?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity can be interrupted any time.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hard">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity can be interrupted only in "hard" way, i.e. by sending the Java interrupt signal.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity is not interruptible, except at step boundaries.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

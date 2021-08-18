@@ -309,7 +309,6 @@ public class TaskRetriever {
             }
             tasks.add(taskInRepository);
         }
-        result.computeStatus();
         return new SearchResultList<>(tasks);
     }
 

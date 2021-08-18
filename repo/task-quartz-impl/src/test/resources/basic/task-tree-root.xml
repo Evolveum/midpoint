@@ -8,13 +8,11 @@
 
 <task oid="91919191-76e0-59e2-86d6-556655660021"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>DeleteTaskTree-parent</name>
+    <name>task-tree-parent</name>
     <taskIdentifier>10000000-0000-0000-0000-123450000021</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>running</executionStatus>
     <schedulingState>waiting</schedulingState>
     <waitingReason>otherTasks</waitingReason>
-    <category>Demo</category>
     <recurrence>single</recurrence>
 </task>
-

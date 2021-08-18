@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="76d0c81d-759d-4e71-b2d7-04443032a0e4"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>task-120</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+    <executionStatus>runnable</executionStatus>
+    <activity>
+        <work>
+            <extension>
+                <ext:searchIterativeMock>
+                    <ext:objectSet>
+                        <type>RoleType</type>
+                        <query>
+                            <q:filter>
+                                <q:substring>
+                                    <q:path>name</q:path>
+                                    <q:value>test-role-</q:value>
+                                    <q:anchorStart>true</q:anchorStart>
+                                </q:substring>
+                            </q:filter>
+                        </query>
+                    </ext:objectSet>
+                </ext:searchIterativeMock>
+            </extension>
+        </work>
+        <distribution>
+            <buckets>
+                <numericSegmentation>
+                    <discriminator>extension/ext:discriminator</discriminator>
+                    <numberOfBuckets>20</numberOfBuckets>
+                    <from>0</from>
+                    <bucketSize>4</bucketSize>
+                </numericSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

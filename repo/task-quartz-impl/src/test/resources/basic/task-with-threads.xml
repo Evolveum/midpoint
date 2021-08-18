@@ -7,13 +7,14 @@
   -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660100"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:my="http://myself.me/schemas/whatever">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/task-manager-test/extension">
 
-    <name>Testing single task 0100</name>
+    <name>task-with-threads</name>
 
     <extension>
-      <my:duration>3000</my:duration>
+        <ext:duration>3000</ext:duration>
     </extension>
 
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30100</taskIdentifier>

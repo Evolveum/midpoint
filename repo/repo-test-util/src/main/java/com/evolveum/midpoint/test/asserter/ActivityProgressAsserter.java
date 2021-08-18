@@ -16,7 +16,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 
 /**
- *  Asserter that checks raw activity progress data.
+ * Asserter that checks raw activity progress data.
+ *
+ * For checking "processed" progress information see {@link ActivityProgressInformationAsserter}.
  */
 @SuppressWarnings("WeakerAccess")
 public class ActivityProgressAsserter<RA> extends AbstractAsserter<RA> {
@@ -63,7 +65,7 @@ public class ActivityProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityProgressAsserter<RA> assertSuccessCount(int min, int max, boolean uncommitted) {
-        assertBetween(getSuccessCount(uncommitted), min, max, "Total success counter");
+        assertMinMax("Total success counter", min, max, getSuccessCount(uncommitted));
         return this;
     }
 
@@ -78,7 +80,7 @@ public class ActivityProgressAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityProgressAsserter<RA> assertFailureCount(int min, int max, boolean uncommitted) {
-        assertBetween(getFailureCount(uncommitted), min, max, "Total failure counter");
+        assertMinMax("Total failure counter", min, max, getFailureCount(uncommitted));
         return this;
     }
 
@@ -90,15 +92,6 @@ public class ActivityProgressAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityProgressAsserter<RA> display() {
         IntegrationTestTools.display(desc(), DebugUtil.debugDump(information));
         return this;
-    }
-
-    // Move to more general place
-    private void assertBetween(int actual, int min, int max, String label) {
-        if (actual < min) {
-            fail(label + " (" + actual + ") is less than minimum expected (" + min + ")");
-        } else if (actual > max) {
-            fail(label + " (" + actual + ") is more than maximum expected (" + max + ")");
-        }
     }
 
     private int getSuccessCount(boolean open) {

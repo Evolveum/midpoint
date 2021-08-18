@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 import org.apache.commons.collections4.ListUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,16 +49,27 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
- * FIXME
+ * Tests basic features of the activity framework:
  *
- * Tests basic features of work state management:
+ * 1. running simple mock activity ({@link #test100RunSimpleLegacyTask()}, {@link #test120RunSimpleTask()}),
+ * 2. running mock semi-composite activity ({@link #test110RunCompositeLegacyTask()}, {@link #test130RunCompositeTask()}),
+ * 3. running pure composite activity ({@link #test140RunPureCompositeTask()}),
+ * 4. running mock iterative activity, including bucketing ({@link #test150RunMockIterativeTask()}, {@link #test155RunBucketedMockIterativeTask()}),
+ * 5. running mock search-based activity, including bucketing ({@link #test160RunMockSearchBasedTask()}, {@link #test170RunBucketedTask()}),
+ * 6. running tree of bucketed activities ({@link #test180RunBucketedTree()}),
+ * 7. delegation of processing to separate task(s) - for simple activity ({@link #test200Subtask()}) or children
+ * of a semi-composite one ({@link #test220MockCompositeWithSubtasks()}),
+ * 8. distribution of a processing to worker tasks ({@link #test300WorkersSimple()}.
  *
- * - basic creation of work buckets
- * - allocation, completion, release of buckets
- * - allocation of buckets when some workers are suspended
- * - basic propagation of buckets into bucket-aware task handler
+ * Specifically, the following is checked as well:
  *
- * Both in coordinator-worker and standalone tasks.
+ * 1. suspension and resuming for composite activities ({@link #test190SuspendingComposite()}), even those with
+ * subtasks ({@link #test210SuspendingCompositeWithSubtasks()}),
+ * 2. extraction of progress and performance information - see {@link ActivityProgressInformation}
+ * and {@link ActivityPerformanceInformation}.
+ *
+ * Activities used here are the mock ones: in {@link com.evolveum.midpoint.repo.common.tasks.handlers} package.
+ * As a special case, {@link NoOpActivityHandler} is tested briefly.
  */
 
 @ContextConfiguration(locations = "classpath:ctx-repo-common-test-main.xml")
@@ -66,15 +77,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestActivities extends AbstractRepoCommonTest {
 
-    // TODO enable
-//    private static final long DEFAULT_TIMEOUT = 30000L;
-//
     private static final File TEST_DIR = new File("src/test/resources/tasks/activities");
 
     private static final TestResource<TaskType> TASK_100_MOCK_SIMPLE_LEGACY = new TestResource<>(TEST_DIR, "task-100-mock-simple-legacy.xml", "7523433a-a537-4943-96e9-58b6c57566e8");
     private static final TestResource<TaskType> TASK_110_MOCK_COMPOSITE_LEGACY = new TestResource<>(TEST_DIR, "task-110-mock-composite-legacy.xml", "b5fd4ecf-2163-4079-99ec-d56e8a96ca94");
+    private static final TestResource<TaskType> TASK_115_NO_OP_LEGACY = new TestResource<>(TEST_DIR, "task-115-no-op-legacy.xml", "2e577670-e422-47d9-a915-92e8ddfee087");
     private static final TestResource<TaskType> TASK_120_MOCK_SIMPLE = new TestResource<>(TEST_DIR, "task-120-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
     private static final TestResource<TaskType> TASK_130_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
+    private static final TestResource<TaskType> TASK_135_NO_OP = new TestResource<>(TEST_DIR, "task-135-no-op.xml", "d1c750b0-eddc-445f-b907-d19c8ed754b5");
     private static final TestResource<TaskType> TASK_140_PURE_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-pure-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
     private static final TestResource<TaskType> TASK_150_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
     private static final TestResource<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = new TestResource<>(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
@@ -87,22 +97,6 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = new TestResource<>(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestResource<TaskType> TASK_300_WORKERS_SIMPLE = new TestResource<>(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
 
-    //    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
-//    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_1 = new TestResource<>(TEST_DIR, "task-210-1.xml", "44444444-2222-2222-2222-210100000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_2 = new TestResource<>(TEST_DIR, "task-210-2.xml", "44444444-2222-2222-2222-210200000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_3 = new TestResource<>(TEST_DIR, "task-210-3.xml", "44444444-2222-2222-2222-210300000000");
-//    private static final TestResource<TaskType> TASK_220_COORDINATOR = new TestResource<>(TEST_DIR, "task-220-c.xml", "44444444-2222-2222-2222-220c00000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_1 = new TestResource<>(TEST_DIR, "task-220-1.xml", "44444444-2222-2222-2222-220100000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_2 = new TestResource<>(TEST_DIR, "task-220-2.xml", "44444444-2222-2222-2222-220200000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_3 = new TestResource<>(TEST_DIR, "task-220-3.xml", "44444444-2222-2222-2222-220300000000");
-//    private static final TestResource<TaskType> TASK_230_COORDINATOR = new TestResource<>(TEST_DIR, "task-230-c.xml", "44444444-2222-2222-2222-230c00000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_1 = new TestResource<>(TEST_DIR, "task-230-1.xml", "44444444-2222-2222-2222-230100000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_2 = new TestResource<>(TEST_DIR, "task-230-2.xml", "44444444-2222-2222-2222-230200000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_3 = new TestResource<>(TEST_DIR, "task-230-3.xml", "44444444-2222-2222-2222-230300000000");
-//    private static final TestResource<TaskType> TASK_300_COORDINATOR = new TestResource<>(TEST_DIR, "task-300-c.xml", "44444444-2222-2222-2222-300c00000000");
-//    private static final TestResource<TaskType> TASK_300_WORKER = new TestResource<>(TEST_DIR, "task-300-w.xml", "44444444-2222-2222-2222-300w00000000");
-//
     @Autowired private MockRecorder recorder;
 
     private static final int ROLES = 100;
@@ -144,6 +138,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         // TODO asserts
     }
 
+    /**
+     * Mock-simple activity configured in a legacy way.
+     */
     @Test
     public void test100RunSimpleLegacyTask() throws Exception {
         given();
@@ -193,6 +190,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasThroughput();
     }
 
+    /**
+     * Mock-composite activity configured in a legacy way.
+     */
     @Test
     public void test110RunCompositeLegacyTask() throws Exception {
         given();
@@ -211,6 +211,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
+        // @formatter:off
         assertTask(task1, "after")
                 .display()
                 .assertClosed()
@@ -231,10 +232,12 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .end()
                     .end()
                 .end();
+        // @formatter:on
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
 
+        // @formatter:off
         assertProgress(task1.getOid(), "after")
                 .display()
                 .assertComplete()
@@ -268,10 +271,69 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertProgress(1)
                     .assertHasWallClockTime()
                     .assertNoThroughput();
+        // @formatter:on
     }
 
     /**
-     * Runs the task twice to check the purger.
+     * NoOp activity configured in a legacy way.
+     */
+    @Test
+    public void test115RunNoOpLegacyTask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Task task1 = taskAdd(TASK_115_NO_OP_LEGACY, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then();
+
+        task1.refresh(result);
+        assertNoOpTaskAfter(task1);
+    }
+
+    private void assertNoOpTaskAfter(Task task1) throws SchemaException, ObjectNotFoundException {
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .assertProgress(5)
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertNoSynchronizationStatistics()
+                        .assertNoActionsExecutedInformation()
+                        .assertPersistenceSingleRealization()
+                    .end()
+                .end();
+
+        assertProgress(task1.getOid(), "after")
+                .display()
+                .assertComplete()
+                .assertBuckets(1, 1)
+                .assertItems(5, null);
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(5)
+                .assertErrors(0)
+                .assertProgress(5)
+                .assertHasWallClockTime()
+                .assertHasThroughput();
+        // @formatter:on
+    }
+
+    /**
+     * Mock-simple activity in modern way.
+     *
+     * This test runs the task twice to check the activity state purger
+     * (it cleans up the state before second run).
      */
     @Test
     public void test120RunSimpleTask() throws Exception {
@@ -333,6 +395,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     }
 
+    /**
+     * Mock-composite activity in a modern way.
+     */
     @Test
     public void test130RunCompositeTask() throws Exception {
         given();
@@ -365,11 +430,35 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         displayDumpable("recorder", recorder);
         assertThat(recorder.getExecutions()).as("executions").containsExactly("id1:opening", "id1:closing");
-
     }
 
     /**
-     * Run twice to check state purge.
+     * NoOp activity configured in a legacy way.
+     */
+    @Test
+    public void test135RunNoOpTask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Task task1 = taskAdd(TASK_135_NO_OP, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000, 200);
+
+        then();
+
+        task1.refresh(result);
+        assertNoOpTaskAfter(task1);
+    }
+
+    /**
+     * Pure composite activity.
+     *
+     * This test runs the task twice to check the activity state purger
+     * (it cleans up the state before second run).
      */
     @Test
     public void test140RunPureCompositeTask() throws Exception {
@@ -536,6 +625,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         // @formatter:on
     }
 
+    /**
+     * Runs mock-iterative activity.
+     */
     @Test
     public void test150RunMockIterativeTask() throws Exception {
         given();
@@ -614,6 +706,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasWallClockTime();
     }
 
+    /**
+     * Runs mock-iterative activity with buckets.
+     */
     @Test
     public void test155RunBucketedMockIterativeTask() throws Exception {
         given();
@@ -694,8 +789,11 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasWallClockTime();
     }
 
+    /**
+     * Runs mock search-based activity.
+     */
     @Test
-    public void test160RunMockSearchIterativeTask() throws Exception {
+    public void test160RunMockSearchBasedTask() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -712,6 +810,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
+        // @formatter:off
         assertTask(task1, "after")
                 .display()
                 .assertSuccess()
@@ -744,6 +843,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                                 .assertCount(ChangeTypeType.MODIFY, RoleType.COMPLEX_TYPE, 100, 0)
                             .end()
                         .end();
+        // @formatter:on
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
@@ -768,6 +868,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasWallClockTime();
     }
 
+    /**
+     * Runs mock search-based activity with buckets.
+     */
     @Test
     public void test170RunBucketedTask() throws Exception {
         given();
@@ -830,6 +933,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasWallClockTime();
     }
 
+    /**
+     * Runs a tree of bucketed activities, to check that multiple bucketed activities do not conflict with each other.
+     */
     @Test
     public void test180RunBucketedTree() throws Exception {
         given();
@@ -848,6 +954,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         then();
 
         task1.refresh(result);
+        // @formatter:off
         assertTask(task1, "after")
                 .display()
                 .assertSuccess()
@@ -973,6 +1080,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .end()
                             .assertBucketManagementStatisticsOperations(3)
                         .end();
+        // @formatter:on
 
         // TODO assert the bucketing
 
@@ -1086,6 +1194,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         // @formatter:on
     }
 
+    /**
+     * Checks suspension and resuming for composite activities.
+     */
     @Test
     public void test190SuspendingComposite() throws Exception {
         given();
@@ -1570,6 +1681,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         // @formatter:on
     }
 
+    /**
+     * Checks delegation of processing to separate task.
+     */
     @Test
     public void test200Subtask() throws Exception {
         given();
@@ -1589,6 +1703,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         task1.refresh(result);
 
+        // @formatter:off
         assertTaskTree(task1.getOid(), "after")
                 .display("root")
                 .assertSuccess()
@@ -1620,6 +1735,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                             .workStateExtension()
                                 .assertPropertyValuesEqual(EXECUTION_COUNT_NAME, 1)
                             .end();
+        // @formatter:on
 
         OperationStatsType stats = task1.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
@@ -1641,6 +1757,9 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertHasThroughput();
     }
 
+    /**
+     * Checks suspension of composite activity that contains delegation to subtasks.
+     */
     @Test
     public void test210SuspendingCompositeWithSubtasks() throws Exception {
         given();
@@ -2048,6 +2167,9 @@ public class TestActivities extends AbstractRepoCommonTest {
         // @formatter:on
     }
 
+    /**
+     * Delegation of embedded activities (i.e. children of semi-composite activity).
+     */
     @Test
     public void test220MockCompositeWithSubtasks() throws Exception {
         given();
@@ -2069,6 +2191,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         root.refresh(result);
 
+        // @formatter:off
         assertTaskTree(root.getOid(), "after")
                 .display("root")
                 .assertSuccess()
@@ -2127,10 +2250,12 @@ public class TestActivities extends AbstractRepoCommonTest {
                         .end()
                     .end()
                 .end();
+        // @formatter:on
 
         OperationStatsType stats = root.getStoredOperationStatsOrClone();
         displayValue("statistics", TaskOperationStatsUtil.format(stats));
 
+        // @formatter:off
         assertProgress(root.getOid(), "after") // This is derived from the subtask
                 .display()
                 .assertComplete()
@@ -2165,6 +2290,7 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertHasWallClockTime()
                     .assertNoThroughput()
                 .end();
+        // @formatter:on
     }
 
     @Test
@@ -2209,333 +2335,6 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertProgress(100)
                 .assertHasWallClockTime();
     }
-
-
-//    @Test
-//    public void test200OneWorkerTask() throws Exception {
-//        given();
-//
-//        OperationResult result = createOperationResult();
-//        repoAdd(TASK_200_COORDINATOR, result); // waiting; 3 buckets per 10 objects, single
-//        repoAdd(TASK_200_WORKER, result); // suspended
-//
-//        Task worker = taskManager.getTaskPlain(TASK_200_WORKER.oid, result);
-//
-//        try {
-//            when();
-//
-//            taskManager.resumeTask(worker, result);
-//
-//            then();
-//            String coordinatorTaskOid = TASK_200_COORDINATOR.oid;
-//            waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
-//
-//            Task coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            Task workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
-//            displayDumpable("coordinator task after", coordinatorAfter);
-//            displayDumpable("worker task after", workerAfter);
-//            displayIterativeStatisticsAndProgress(workerAfter);
-//
-//            assertTotalSuccessCountInIterativeInfo(30, singleton(workerAfter));
-//            assertTotalSuccessCountInProgress(30, 0, singleton(workerAfter));
-//        } finally {
-//            suspendAndDeleteTasks(TASK_200_COORDINATOR.oid);
-//        }
-//    }
-//
-//    @Test
-//    public void test210ThreeWorkersTask() throws Exception {
-//        given();
-//
-//        OperationResult result = createOperationResult();
-//        taskAdd(TASK_210_COORDINATOR, result); // waiting, buckets sized 10, to 107
-//        taskAdd(TASK_210_WORKER_1, result); // suspended
-//        taskAdd(TASK_210_WORKER_2, result); // suspended
-//        taskAdd(TASK_210_WORKER_3, result); // suspended
-//
-//        try {
-//            Task worker1 = taskManager.getTaskPlain(TASK_210_WORKER_1.oid, result);
-//            Task worker2 = taskManager.getTaskPlain(TASK_210_WORKER_2.oid, result);
-//            Task worker3 = taskManager.getTaskPlain(TASK_210_WORKER_3.oid, result);
-//
-////            workBucketsTaskHandler.setDelayProcessor(50);
-//
-//            when();
-//
-//            taskManager.resumeTask(worker1, result);
-//            taskManager.resumeTask(worker2, result);
-//            taskManager.resumeTask(worker3, result);
-//
-//            then();
-//
-//            String coordinatorTaskOid = TASK_210_COORDINATOR.oid;
-//            waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
-//
-//            TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-//            worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-//            worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-//            displayDumpable("coordinator task after", coordinatorAfter);
-//            displayWorkers(worker1, worker2, worker3);
-//
-//            assertNumberOfBuckets(coordinatorAfter, 11);
-//
-//            assertOptimizedCompletedBuckets(coordinatorAfter);
-//
-//            assertTotalSuccessCountInIterativeInfo(107, Arrays.asList(worker1, worker2, worker3));
-//            assertTotalSuccessCountInProgress(107, 0, Arrays.asList(worker1, worker2, worker3));
-//
-//            // WHEN
-//            //taskManager.resumeTask();
-//
-//            // TODO other asserts
-//        } finally {
-//            suspendAndDeleteTasks(TASK_210_COORDINATOR.oid);
-//        }
-//    }
-//
-//    private void taskAdd(TestResource<TaskType> testResource, OperationResult result) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    private void displayWorkers(TaskQuartzImpl worker1, TaskQuartzImpl worker2, TaskQuartzImpl worker3) {
-////        displayDumpable("worker1 task after", worker1);
-////        displayDumpable("worker2 task after", worker2);
-////        displayDumpable("worker3 task after", worker3);
-//        displayIterativeStatisticsAndProgress(worker1);
-//        displayIterativeStatisticsAndProgress(worker2);
-//        displayIterativeStatisticsAndProgress(worker3);
-//    }
-//
-//    private void displayIterativeStatisticsAndProgress(Task task) {
-//        displayValue(task.getName() + " stats", IterativeTaskInformation.format(task.getStoredOperationStatsOrClone().getIterativeTaskInformation()));
-//        displayValue(task.getName() + " progress", StructuredTaskProgress.format(task.getStructuredProgressOrClone()));
-//    }
-//
-//    @Test
-//    public void test220WorkerSuspend() throws Exception {
-//        given();
-//
-//        OperationResult result = createOperationResult();
-//
-//        taskAdd(TASK_220_COORDINATOR, result); // waiting, bucket size 10, up to 107
-//        taskAdd(TASK_220_WORKER_1, result); // suspended
-//        taskAdd(TASK_220_WORKER_2, result); // suspended
-//        taskAdd(TASK_220_WORKER_3, result); // suspended
-//
-//        try {
-//            Task worker1 = taskManager.getTaskPlain(TASK_220_WORKER_1.oid, result);
-//            Task worker2 = taskManager.getTaskPlain(TASK_220_WORKER_2.oid, result);
-//            Task worker3 = taskManager.getTaskPlain(TASK_220_WORKER_3.oid, result);
-//
-//            Holder<Task> suspensionVictim = new Holder<>();
-//            workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
-//                if (index == 44) {
-//                    task.updateAndStoreStatisticsIntoRepository(true, new OperationResult("storeStats"));
-//                    display("Going to suspend " + task);
-//                    new Thread(() -> {
-//                        taskStateManager.suspendTaskNoException((TaskQuartzImpl) task, TaskManager.DO_NOT_WAIT, new OperationResult("suspend"));
-//                        display("Suspended " + task);
-//                        suspensionVictim.setValue(task);
-//                    }).start();
-//                    sleepChecked(20000);
-//                } else {
-//                    sleepChecked(100);
-//                }
-//            });
-//
-//            when();
-//
-//            taskManager.resumeTask(worker1, result);
-//            taskManager.resumeTask(worker2, result);
-//            taskManager.resumeTask(worker3, result);
-//
-//            then();
-//
-//            String coordinatorTaskOid = TASK_220_COORDINATOR.oid;
-//            // We have to wait for success closed because that is updated after iterative item information.
-//            waitFor("waiting for all items to be processed", () -> getTotalSuccessClosed(coordinatorTaskOid) == 107 - 10,
-//                    DEFAULT_TIMEOUT, 500);
-//
-//            TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-//            worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-//            worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-//            displayDumpable("coordinator task after unfinished run", coordinatorAfter);
-//            displayWorkers(worker1, worker2, worker3);
-//
-//            assertTotalSuccessCountInIterativeInfo(107 - 6, Arrays.asList(worker1, worker2, worker3));
-//            assertTotalSuccessCountInProgress(107 - 10, 4, Arrays.asList(worker1, worker2, worker3));
-//
-//            assertOptimizedCompletedBuckets(coordinatorAfter);
-//
-//            // TODO other asserts
-//
-//            when("delete victim");
-//
-//            workBucketsTaskHandler.setDelayProcessor(50);
-//
-//            TaskQuartzImpl deletedTask = taskManager.getTaskPlain(suspensionVictim.getValue().getOid(), null, result);
-//            display("Deleting task " + deletedTask);
-//            taskManager.deleteTask(deletedTask.getOid(), result);
-//
-//            then("delete victim");
-//
-//            display("Waiting for coordinator task close");
-//            waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
-//
-//            coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            displayDumpable("coordinator task after finished run", coordinatorAfter);
-//            displayWorkers(worker1, worker2, worker3);
-//
-//            assertOptimizedCompletedBuckets(coordinatorAfter);
-//
-//            // Some of the "closed" successes were counted in the task that is now removed.
-//            int missingClosed = TaskProgressUtil.getProgressForOutcome(deletedTask.getStructuredProgressOrClone(), SUCCESS, false);
-//
-//            assertTotalSuccessCountInProgress(107 - missingClosed, 0, coordinatorAfter.listSubtasks(result));
-//        } finally {
-//            suspendAndDeleteTasks(TASK_220_COORDINATOR.oid);
-//        }
-//    }
-//
-//    @Test
-//    public void test230WorkerException() throws Exception {
-//        given();
-//
-//        OperationResult result = createOperationResult();
-//        add(TASK_230_COORDINATOR, result); // waiting, bucket size 10, up to 107
-//        add(TASK_230_WORKER_1, result); // suspended
-//        add(TASK_230_WORKER_2, result); // suspended
-//        add(TASK_230_WORKER_3, result); // suspended
-//
-//        try {
-//            TaskQuartzImpl worker1 = taskManager.getTaskPlain(TASK_230_WORKER_1.oid, result);
-//            TaskQuartzImpl worker2 = taskManager.getTaskPlain(TASK_230_WORKER_2.oid, result);
-//            TaskQuartzImpl worker3 = taskManager.getTaskPlain(TASK_230_WORKER_3.oid, result);
-//
-//            Holder<Task> exceptionVictim = new Holder<>();
-//            workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
-//                if (index == 44) {
-//                    task.updateAndStoreStatisticsIntoRepository(true, new OperationResult("storeStats"));
-//                    display("Going to explode in " + task);
-//                    exceptionVictim.setValue(task);
-//                    throw new IllegalStateException("Bum");
-//                } else {
-//                    sleepChecked(100);
-//                }
-//            });
-//
-//            when();
-//
-//            taskManager.resumeTask(worker1, result);
-//            taskManager.resumeTask(worker2, result);
-//            taskManager.resumeTask(worker3, result);
-//
-//            then();
-//
-//            String coordinatorTaskOid = TASK_230_COORDINATOR.oid;
-//            // We have to wait for success closed because that is updated after iterative item information.
-//            waitFor("waiting for all items to be processed", () -> getTotalSuccessClosed(coordinatorTaskOid) == 107 - 10,
-//                    DEFAULT_TIMEOUT, 500);
-//
-//            TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-//            worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-//            worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-//            displayDumpable("coordinator task after unfinished run", coordinatorAfter);
-//            displayWorkers(worker1, worker2, worker3);
-//
-//            assertTotalSuccessCountInIterativeInfo(107 - 6, Arrays.asList(worker1, worker2, worker3));
-//            assertTotalSuccessCountInProgress(107 - 10, 4, Arrays.asList(worker1, worker2, worker3));
-//
-//            assertOptimizedCompletedBuckets(coordinatorAfter);
-//
-//            // TODO other asserts
-//
-//            when("close victim");
-//
-//            workBucketsTaskHandler.setDelayProcessor(50);
-//
-//            String oidToClose = exceptionVictim.getValue().getOid();
-//            display("Closing task " + oidToClose);
-//            taskManager.closeTask(taskManager.getTaskPlain(oidToClose, result), result);
-//
-//            then("close victim");
-//
-//            display("Waiting for coordinator task close");
-//            waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
-//
-//            coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            worker1 = taskManager.getTaskPlain(worker1.getOid(), result);
-//            worker2 = taskManager.getTaskPlain(worker2.getOid(), result);
-//            worker3 = taskManager.getTaskPlain(worker3.getOid(), result);
-//            displayDumpable("coordinator task after", coordinatorAfter);
-//            displayWorkers(worker1, worker2, worker3);
-//
-//            assertTotalSuccessCountInIterativeInfo(107 - 6 + 10, coordinatorAfter.listSubtasks(result));
-//            assertTotalSuccessCountInProgress(107, 4, coordinatorAfter.listSubtasks(result));
-//
-//            assertOptimizedCompletedBuckets(coordinatorAfter);
-//        } finally {
-//            suspendAndDeleteTasks(TASK_230_COORDINATOR.oid);
-//        }
-//    }
-//
-//    @Test
-//    public void test300NarrowQueryOneWorkerTask() throws Exception {
-//        given();
-//
-//        OperationResult result = createOperationResult();
-//        add(TASK_300_COORDINATOR, result); // waiting; 3 buckets per 10 items
-//        add(TASK_300_WORKER, result); // suspended
-//
-//        workBucketsTaskHandler.resetBeforeTest();
-//        workBucketsTaskHandler.setDefaultQuery(prismContext.queryFactory().createQuery());
-//
-//        try {
-//
-//            TaskQuartzImpl worker = taskManager.getTaskPlain(TASK_300_WORKER.oid, result);
-//
-//            when();
-//
-//            taskManager.resumeTask(worker, result);
-//
-//            then();
-//
-//            String coordinatorTaskOid = TASK_300_COORDINATOR.oid;
-//            waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, 200);
-//
-//            TaskQuartzImpl coordinatorAfter = taskManager.getTaskPlain(coordinatorTaskOid, result);
-//            TaskQuartzImpl workerAfter = taskManager.getTaskPlain(worker.getOid(), result);
-//            displayDumpable("coordinator task after", coordinatorAfter);
-//            displayDumpable("worker task after", workerAfter);
-//
-//            assertTotalSuccessCountInIterativeInfo(30, singleton(workerAfter));
-//            assertTotalSuccessCountInProgress(30, 0, singleton(workerAfter));
-//
-//            List<ObjectQuery> qe = workBucketsTaskHandler.getQueriesExecuted();
-//            displayValue("Queries executed", qe);
-//            assertEquals("Wrong # of queries", 3, qe.size());
-//            ObjectQuery q1 = prismContext.queryFor(UserType.class)
-//                    .item(UserType.F_ITERATION).ge(BigInteger.valueOf(0))
-//                    .and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(10))
-//                    .build();
-//            ObjectQuery q2 = prismContext.queryFor(UserType.class)
-//                    .item(UserType.F_ITERATION).ge(BigInteger.valueOf(10))
-//                    .and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(20))
-//                    .build();
-//            ObjectQuery q3 = prismContext.queryFor(UserType.class)
-//                    .item(UserType.F_ITERATION).ge(BigInteger.valueOf(20))
-//                    .and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(30))
-//                    .build();
-//            PrismAsserts.assertQueriesEquivalent("Wrong query #1", q1, qe.get(0));
-//            PrismAsserts.assertQueriesEquivalent("Wrong query #2", q2, qe.get(1));
-//            PrismAsserts.assertQueriesEquivalent("Wrong query #3", q3, qe.get(2));
-//        } finally {
-//            suspendAndDeleteTasks(TASK_300_COORDINATOR.oid);
-//        }
-//    }
 
     private void dumpProgressAndPerformanceInfo(String oid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {

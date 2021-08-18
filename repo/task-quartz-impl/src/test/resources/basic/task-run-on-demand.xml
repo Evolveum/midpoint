@@ -7,25 +7,22 @@
   -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660022"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/task-manager-test/extension">
 
-    <name>Testing task ... number 22</name>
+    <name>task-run-on-demand</name>
     <extension>
-        <noop:delay xsi:type="xsd:int">500</noop:delay>
-        <noop:steps xsi:type="xsd:int">1</noop:steps>
+        <ext:delay>500</ext:delay>
+        <ext:steps>1</ext:steps>
     </extension>
     <taskIdentifier>91919191-76e0-59e2-86d6-556655660022</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>runnable</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>
         <!-- empty schedule to signal 'start on demand only' -->
     </schedule>
 </task>
-

@@ -1138,7 +1138,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         assertRoleBefore(ROLE_SWASHBUCKLER_OID)
                 .extension()
-                .assertItems(PIRACY_COST_CENTER);
+                .assertItemsExactly(PIRACY_COST_CENTER);
 
         // WHEN
         when();
@@ -1151,7 +1151,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertRoleAfter(ROLE_SWASHBUCKLER_OID)
                 .assertRiskLevel("99")
                 .extension()
-                .assertItems(PIRACY_COST_CENTER, PIRACY_RISK_VECTOR)
+                .assertItemsExactly(PIRACY_COST_CENTER, PIRACY_RISK_VECTOR)
                 .containerSingle(PIRACY_RISK_VECTOR)
                 .assertPropertyEquals(PIRACY_RISK_VECTOR_RISK, "X")
                 .assertPropertyEquals(PIRACY_RISK_VECTOR_VALUE, 99);

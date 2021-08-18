@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.common.activity.state.ActivityBucketManagement
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
+import com.evolveum.midpoint.schema.util.task.work.BucketingConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -32,8 +33,8 @@ public class ReleaseBucketOperation extends BucketOperation {
 
     private final int sequentialNumber;
 
-    ReleaseBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics collector, CommonTaskBeans beans,
-            int sequentialNumber) {
+    ReleaseBucketOperation(@NotNull String workerTaskOid, @NotNull ActivityPath activityPath,
+            ActivityBucketManagementStatistics collector, CommonTaskBeans beans, int sequentialNumber) {
         super(workerTaskOid, activityPath, collector, beans);
         this.sequentialNumber = sequentialNumber;
     }
@@ -53,8 +54,8 @@ public class ReleaseBucketOperation extends BucketOperation {
 
     private void releaseWorkBucketMultiNode(int sequentialNumber, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityStateType workState = getCoordinatorTaskPartWorkState();
-        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
+        ActivityStateType coordinatorState = getCoordinatorTaskActivityState();
+        WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(coordinatorState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
         }
@@ -62,7 +63,7 @@ public class ReleaseBucketOperation extends BucketOperation {
             throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + coordinatorTask
                     + " cannot be released, as it is not delegated; its state = " + bucket.getState());
         }
-        checkWorkerRefOnDelegatedBucket(bucket);
+        checkWorkerRefOnDelegatedBuckets(bucket);
         try {
             plainRepositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
                     bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.READY, null),
@@ -72,7 +73,7 @@ public class ReleaseBucketOperation extends BucketOperation {
             throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + coordinatorTask, e);
         }
         deleteBucketFromWorker(sequentialNumber, result);
-        statisticsKeeper.register(RELEASE_WORK_BUCKET);
+        statisticsKeeper.register(BucketingConstants.RELEASE_WORK_BUCKET);
     }
 
     @Override

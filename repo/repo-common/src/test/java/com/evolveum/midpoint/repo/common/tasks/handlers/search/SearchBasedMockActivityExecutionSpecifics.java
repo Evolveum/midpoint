@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * TODO
  */
@@ -45,7 +47,7 @@ class SearchBasedMockActivityExecutionSpecifics
     @Override
     public boolean processObject(@NotNull PrismObject<ObjectType> object,
             @NotNull ItemProcessingRequest<PrismObject<ObjectType>> request, RunningTask workerTask, OperationResult result) {
-        String message = getWorkDefinition().getMessage() + object.getName().getOrig();
+        String message = emptyIfNull(getWorkDefinition().getMessage()) + object.getName().getOrig();
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);
 

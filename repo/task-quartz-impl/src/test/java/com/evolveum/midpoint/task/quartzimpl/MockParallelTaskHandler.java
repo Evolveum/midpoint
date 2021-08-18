@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static com.evolveum.midpoint.task.quartzimpl.TestTaskManagerBasic.NS_EXT;
+
 import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -33,18 +35,14 @@ public class MockParallelTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
     static final int NUM_SUBTASKS = 15; // Shouldn't be too high because of concurrent repository access.
-    private static final String NS_EXT = "http://myself.me/schemas/whatever";
-    private static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
+    private static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration");
 
     private TaskManagerQuartzImpl taskManager;
 
     /** In-memory version of last task executed */
     private RunningTask lastTaskExecuted;
 
-    private final String id;
-
-    MockParallelTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
-        this.id = id;
+    MockParallelTaskHandler(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -113,9 +111,9 @@ public class MockParallelTaskHandler implements TaskHandler {
 
     @Override
     public TaskRunResult run(@NotNull RunningTask task) {
-        LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
+        LOGGER.info("MockParallelTaskHandler.run starting");
 
-        OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");
+        OperationResult opResult = task.getResult();
         TaskRunResult runResult = new TaskRunResult();
 
         Integer duration = task.getExtensionPropertyRealValue(DURATION_QNAME);
@@ -146,7 +144,6 @@ public class MockParallelTaskHandler implements TaskHandler {
 
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         runResult.setProgress(task.getProgress()+1);
-        runResult.setOperationResult(opResult);
 
         hasRun = true;
         lastTaskExecuted = task;

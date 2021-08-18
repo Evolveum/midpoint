@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.execution.ActivityExecutionResult;
@@ -61,7 +63,8 @@ public abstract class MockComponentActivityExecution
         RunningTask task = taskExecution.getRunningTask();
 
         if (delay > 0) {
-            sleep(task, delay);
+            LOGGER.trace("Sleeping for {} msecs", delay);
+            MiscUtil.sleepWatchfully(System.currentTimeMillis() + delay, 100, task::canRun);
         }
 
         result.recordSuccess();
@@ -88,18 +91,6 @@ public abstract class MockComponentActivityExecution
     @NotNull
     private MockRecorder getRecorder() {
         return activity.getHandler().getRecorder();
-    }
-
-    private void sleep(RunningTask task, long delay) {
-        LOGGER.trace("Sleeping for {} msecs", delay);
-        long end = System.currentTimeMillis() + delay;
-        while (task.canRun() && System.currentTimeMillis() < end) {
-            try {
-                //noinspection BusyWait
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-            }
-        }
     }
 
     abstract String getMockSubActivity();

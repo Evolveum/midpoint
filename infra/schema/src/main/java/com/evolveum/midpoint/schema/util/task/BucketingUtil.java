@@ -15,8 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Methods related to bucketing part of an activity state and activity distribution definition.
@@ -126,6 +129,12 @@ public class BucketingUtil {
         return bucketing != null ? bucketing.getBucket() : List.of();
     }
 
+    public static @NotNull List<WorkBucketType> getReadyBuckets(@NotNull ActivityStateType state) {
+        return getBuckets(state).stream()
+                .filter(b -> b.getState() == WorkBucketStateType.READY)
+                .collect(Collectors.toList());
+    }
+
     public static Integer getNumberOfBuckets(@NotNull ActivityStateType state) {
         ActivityBucketingStateType bucketing = state.getBucketing();
         return bucketing != null ? bucketing.getNumberOfBuckets() : null;
@@ -149,5 +158,19 @@ public class BucketingUtil {
 
     public static boolean isWorkComplete(ActivityStateType state) {
         return state != null && state.getBucketing() != null && Boolean.TRUE.equals(state.getBucketing().isWorkComplete());
+    }
+
+    public static String getWorkerOid(@NotNull WorkBucketType bucket) {
+        return bucket.getWorkerRef() != null ? bucket.getWorkerRef().getOid() : null;
+    }
+
+    public static boolean isDelegatedTo(@NotNull WorkBucketType bucket, @NotNull String workerOid) {
+        return bucket.getState() == WorkBucketStateType.DELEGATED && workerOid.equals(getWorkerOid(bucket));
+    }
+
+    public static @NotNull Set<Integer> getSequentialNumbers(@NotNull Collection<WorkBucketType> buckets) {
+        return buckets.stream()
+                .map(WorkBucketType::getSequentialNumber)
+                .collect(Collectors.toSet());
     }
 }

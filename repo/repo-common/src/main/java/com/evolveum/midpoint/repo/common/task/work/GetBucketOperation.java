@@ -44,8 +44,8 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getActivi
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getBuckets;
 
 import static com.evolveum.midpoint.schema.util.task.BucketingUtil.getNumberOfBuckets;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_NUMBER_OF_BUCKETS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_WORK_COMPLETE;
+import static com.evolveum.midpoint.schema.util.task.work.BucketingConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import static java.util.Collections.emptyList;
@@ -102,8 +102,7 @@ public class GetBucketOperation extends BucketOperation {
 
         setOrUpdateEstimatedNumberOfBuckets(workerTask, workerStatePath, allocator.getContentFactory(), result);
 
-        ActivityStateType workState = getWorkerTaskActivityWorkState();
-        BucketAllocator.Response response = allocator.getBucket(getBuckets(workState));
+        BucketAllocator.Response response = allocator.getBucket(getBuckets(getWorkerTaskActivityState()));
         LOGGER.trace("getWorkBucketStandalone: segmentation strategy returned {} for standalone task {}", response, workerTask);
 
         if (response instanceof BucketAllocator.Response.FoundExisting) {
@@ -178,7 +177,7 @@ public class GetBucketOperation extends BucketOperation {
                 return recordExistingBucketInWorkerTask((BucketAllocator.Response.FoundExisting) response, result);
             } else if (response instanceof BucketAllocator.Response.NothingFound) {
                 if (!BucketingUtil.isScavenger(workerTask.getWorkState(), activityPath)) {
-                    processNothingFoundForNonScavenger();
+                    processNothingFoundForNonScavenger(result);
                     return null;
                 } else if (((BucketAllocator.Response.NothingFound) response).definite || options.freeBucketWaitTime == 0L) {
                     processNothingFoundDefinite(result);
@@ -305,7 +304,9 @@ public class GetBucketOperation extends BucketOperation {
         return foundBucket;
     }
 
-    private void processNothingFoundForNonScavenger() {
+    private void processNothingFoundForNonScavenger(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        markScavengingIfNotYet(result);
         CONTENTION_LOGGER.trace("'No bucket' found (and not a scavenger) after {} ms (conflicts: {}) in {}",
                 System.currentTimeMillis() - statisticsKeeper.start, statisticsKeeper.conflictCount, workerTask);
         statisticsKeeper.register(GET_WORK_BUCKET_NO_MORE_BUCKETS_NOT_SCAVENGER);
@@ -366,7 +367,7 @@ public class GetBucketOperation extends BucketOperation {
     private void reclaimWronglyAllocatedBuckets(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         reloadCoordinatorTask(result);
-        ActivityStateType partWorkState = getCoordinatorTaskPartWorkState();
+        ActivityStateType partWorkState = getCoordinatorTaskActivityState();
         ActivityStateType newState = partWorkState.clone();
         int reclaiming = 0;
         Set<String> deadWorkers = new HashSet<>();
@@ -430,6 +431,18 @@ public class GetBucketOperation extends BucketOperation {
                 liveWorkers.add(workerOid);
                 return false;
             }
+        }
+    }
+
+    private void markScavengingIfNotYet(OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        ItemPath path = coordinatorStatePath.append(F_BUCKETING, F_SCAVENGING);
+        if (!Boolean.TRUE.equals(coordinatorTask.getPropertyRealValue(path, Boolean.class))) {
+            LOGGER.debug("Marking state as scavenging in {}", coordinatorTask);
+            List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
+                    .item(path).replace(true)
+                    .asItemDeltas();
+            plainRepositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(), itemDeltas, result);
         }
     }
 

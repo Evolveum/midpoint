@@ -35,18 +35,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class AbstractTaskManagerTest extends AbstractIntegrationTest {
 
-    private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
-    private static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
-    private static final String SINGLE_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-wb-task-handler";
-    private static final String PARTITIONED_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/partitioned-wb-task-handler";
-    private static final String PARTITIONED_WB_TASK_HANDLER_URI_1 = PARTITIONED_WB_TASK_HANDLER_URI + "#1";
-    private static final String PARTITIONED_WB_TASK_HANDLER_URI_2 = PARTITIONED_WB_TASK_HANDLER_URI + "#2";
-    private static final String PARTITIONED_WB_TASK_HANDLER_URI_3 = PARTITIONED_WB_TASK_HANDLER_URI + "#3";
-    private static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
-    private static final String LONG_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/long-task-handler";
+    private static final String MOCK_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock-task-handler";
+    private static final String MOCK_PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
 
     private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 
     @Autowired protected RepositoryService repositoryService;
     @Autowired protected TaskManagerQuartzImpl taskManager;
@@ -55,20 +47,15 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaService schemaService;
 
-    MockSingleTaskHandler singleHandler1;
-    MockParallelTaskHandler parallelTaskHandler;
+    MockTaskHandler mockTaskHandler;
+    MockParallelTaskHandler mockParallelTaskHandler;
 
     private void initHandlers() {
-        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler();
-        taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
+        mockTaskHandler = new MockTaskHandler();
+        taskManager.registerHandler(MOCK_TASK_HANDLER_URI, mockTaskHandler);
 
-        singleHandler1 = new MockSingleTaskHandler("1", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
-
-        parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
-        taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);
-        MockLongTaskHandler longTaskHandler = new MockLongTaskHandler("1", taskManager);
-        taskManager.registerHandler(LONG_TASK_HANDLER_URI, longTaskHandler);
+        mockParallelTaskHandler = new MockParallelTaskHandler(taskManager);
+        taskManager.registerHandler(MOCK_PARALLEL_TASK_HANDLER_URI, mockParallelTaskHandler);
     }
 
     @BeforeSuite

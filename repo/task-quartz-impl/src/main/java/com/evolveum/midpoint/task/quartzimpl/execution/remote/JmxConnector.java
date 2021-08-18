@@ -134,7 +134,7 @@ public class JmxConnector {
     }
 
     public void stopRemoteScheduler(NodeType node, OperationResult result) {
-        String nodeName = node.getNodeIdentifier();
+        String nodeIdentifier = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
 
         JMXConnector connector = null;
@@ -146,23 +146,23 @@ public class JmxConnector {
                 connector = connectViaJmx(address);
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeIdentifier, address);
+                result.recordFatalError("Cannot connect to the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
                 return;
             }
 
             try {
-                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
+                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeIdentifier, mbsc);
                 if (mbeanProxy != null) {
                     mbeanProxy.standby();
                     result.recordSuccess();
                 } else {
-                    result.recordWarning("Cannot stop the scheduler on node " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
+                    result.recordWarning("Cannot stop the scheduler on node " + nodeIdentifier + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
                 }
             }
             catch (Exception e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot put remote scheduler into standby mode; remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot put remote scheduler " + nodeName + " at " + address + " into standby mode: " + e.getMessage());
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot put remote scheduler into standby mode; remote node {} at {}", e, nodeIdentifier, address);
+                result.recordFatalError("Cannot put remote scheduler " + nodeIdentifier + " at " + address + " into standby mode: " + e.getMessage());
             }
         }
         finally {
@@ -178,8 +178,7 @@ public class JmxConnector {
     }
 
     public void startRemoteScheduler(NodeType node, OperationResult result) {
-
-        String nodeName = node.getNodeIdentifier();
+        String nodeIdentifier = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
 
         JMXConnector connector = null;
@@ -191,23 +190,23 @@ public class JmxConnector {
                 connector = connectViaJmx(address);
                 mbsc = connector.getMBeanServerConnection();
             } catch (IOException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeIdentifier, address);
+                result.recordFatalError("Cannot connect to the remote node " + nodeIdentifier + " at " + address + ": " + e.getMessage(), e);
                 return;
             }
 
             try {
-                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
+                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeIdentifier, mbsc);
                 if (mbeanProxy != null) {
                     mbeanProxy.start();
                     result.recordSuccessIfUnknown();
                 } else {
-                    result.recordFatalError("Cannot start remote scheduler " + nodeName + " at " + address + " because it cannot be found on that node.");
+                    result.recordFatalError("Cannot start remote scheduler " + nodeIdentifier + " at " + address + " because it cannot be found on that node.");
                 }
             }
             catch (Exception e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot start remote scheduler; remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot start remote scheduler " + nodeName + " at " + address + ": " + e.getMessage());
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot start remote scheduler; remote node {} at {}", e, nodeIdentifier, address);
+                result.recordFatalError("Cannot start remote scheduler " + nodeIdentifier + " at " + address + ": " + e.getMessage());
             }
 
         }
@@ -265,7 +264,7 @@ public class JmxConnector {
 
         LOGGER.debug("Interrupting task " + oid + " running at " + getClusterManager().dumpNodeInfo(node));
 
-        String nodeName = node.getNodeIdentifier();
+        String nodeIdentifier = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
 
         Holder<JMXConnector> connectorHolder = new Holder<>();
@@ -278,7 +277,7 @@ public class JmxConnector {
                     LOGGER.debug("Successfully signalled shutdown to task " + oid + " running at " + getClusterManager().dumpNodeInfo(node));
                     result.recordSuccessIfUnknown();
                 } catch (Exception e) {   // necessary because of mbeanProxy
-                    String message = "Cannot signal task "+oid+" interruption to remote node "+nodeName+" at "+address;
+                    String message = "Cannot signal task "+oid+" interruption to remote node "+nodeIdentifier+" at "+address;
                     LoggingUtils.logUnexpectedException(LOGGER, message, e);
                     result.recordFatalError(message + ":" + e.getMessage(), e);
                 }

@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>4.2 suspended</name>
+    <name>task-42-suspended</name>
 
     <taskIdentifier>12125ca4-7107-437d-a448-facae780a306</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
@@ -18,6 +18,6 @@
 
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <recurrence>single</recurrence>
 </task>
