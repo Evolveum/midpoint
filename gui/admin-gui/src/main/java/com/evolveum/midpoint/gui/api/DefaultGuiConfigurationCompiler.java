@@ -11,7 +11,7 @@ import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

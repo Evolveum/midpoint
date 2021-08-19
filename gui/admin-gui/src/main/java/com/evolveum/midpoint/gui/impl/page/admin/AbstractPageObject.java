@@ -19,7 +19,7 @@ import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
