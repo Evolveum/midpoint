@@ -299,4 +299,18 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
         tester.clickLink(tabPath);
     }
+
+    protected void clickOnDetailsAssignmentMenu(int order, Class<? extends Page> expectedPage) {
+        tester.assertRenderedPage(expectedPage);
+        tester.debugComponentTrees("navigation");
+        String tabPath = "navigation:menu:2:navLinkStyle:subNavigation:menu:" + order + ":navLinkStyle:navItem";
+        tester.clickLink(tabPath);
+    }
+
+    protected void clickOnDetailsMenu(int order, Class<? extends Page> expectedPage) {
+        tester.assertRenderedPage(expectedPage);
+        tester.debugComponentTrees("navigation");
+        String tabPath = "navigation:menu:" + order + ":navLinkStyle:navItem";
+        tester.clickLink(tabPath);
+    }
 }

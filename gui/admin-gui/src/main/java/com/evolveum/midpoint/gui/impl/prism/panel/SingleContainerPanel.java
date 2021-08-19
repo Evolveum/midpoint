@@ -79,7 +79,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                 }
 
                 Panel panel = getPageBase().initItemPanel(view.newChildId(), getTypeName(), getModel(), builder.build());
-                add(panel);
+                view.add(panel);
 
 
                 add(view);

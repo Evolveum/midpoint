@@ -8,7 +8,9 @@ package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
-public class ObjectDetailsStorage {
+import java.io.Serializable;
+
+public class ObjectDetailsStorage implements Serializable {
 
     private ContainerPanelConfigurationType defaultConfiguration;
 
