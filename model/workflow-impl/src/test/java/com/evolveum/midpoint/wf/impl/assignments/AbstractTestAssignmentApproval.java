@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -341,7 +342,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     private OperationResult executeAssignRole1(String userOid, boolean immediate, boolean deputiesOfLeadOneSeeItems, String approverOid, QName relation,
             boolean useInMemoryTracing) throws Exception {
         PrismObject<UserType> user = getUser(userOid);
-        String userName = user.getName().getOrig();
+        String userDisplayName = user.asObjectable().getFullName() != null && StringUtils.isNotEmpty(user.asObjectable().getFullName().getOrig())
+                ? user.asObjectable().getFullName().getOrig() : user.getName().getOrig();
         // @formatter:off
         ObjectDelta<UserType> delta = prismContext
                 .deltaFor(UserType.class)
@@ -390,7 +392,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return singletonList(new ExpectedTask(getRoleOid(1), "Assigning role \"" +
-                        getRoleName(1) + "\" to user \"" + userName + "\""));
+                        getRoleName(1) + "\" to user \"" + userDisplayName + "\""));
             }
 
             @Override

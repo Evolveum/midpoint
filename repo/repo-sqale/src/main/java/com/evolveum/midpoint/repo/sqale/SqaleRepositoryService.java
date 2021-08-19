@@ -220,7 +220,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 repositoryContext.getMappingBySchemaType(schemaType);
         QObject<MObject> root = rootMapping.defaultAlias();
 
-        Tuple result = repositoryContext.newQuery(jdbcSession.connection())
+        Tuple result = jdbcSession.newQuery()
                 .from(root)
                 .select(rootMapping.selectExpressions(root, options))
                 .where(root.oid.eq(oid))
@@ -230,7 +230,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        return rootMapping.toSchemaObject(result, root, options);
+        return rootMapping.toSchemaObject(result, root, options, jdbcSession, false);
     }
 
     @Override
@@ -562,7 +562,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 repositoryContext.getMappingBySchemaType(schemaType);
         QObject<R> entityPath = rootMapping.defaultAlias();
 
-        Tuple result = repositoryContext.newQuery(jdbcSession.connection())
+        Tuple result = jdbcSession.newQuery()
                 .select(entityPath.oid, entityPath.fullObject, entityPath.containerIdSeq)
                 .from(entityPath)
                 .where(entityPath.oid.eq(oid))
@@ -573,7 +573,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList());
+        S object = rootMapping.toSchemaObject(result, entityPath, Collections.emptyList(), jdbcSession, true);
 
         R rootRow = rootMapping.newRowObject();
         rootRow.oid = oid;

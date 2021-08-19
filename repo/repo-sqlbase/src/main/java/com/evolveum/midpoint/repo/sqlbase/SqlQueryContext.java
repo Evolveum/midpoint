@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
-import java.sql.Connection;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -258,8 +257,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * Returns page of results with each row represented by a Tuple containing {@link R} and then
      * individual paths for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
      */
-    public PageOf<Tuple> executeQuery(Connection conn) throws QueryException {
-        SQLQuery<?> query = sqlQuery.clone(conn);
+    public PageOf<Tuple> executeQuery(JdbcSession jdbcSession) throws QueryException {
+        SQLQuery<?> query = sqlQuery.clone(jdbcSession.connection());
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
             // TODO indicate incomplete result?
@@ -280,7 +279,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .map(t -> t.get(entity))
                     .collect(Collectors.toList());
             for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : detailFetchMappers) {
-                fetcher.execute(sqlRepoContext, () -> sqlRepoContext.newQuery(conn), dataEntities);
+                fetcher.execute(sqlRepoContext, jdbcSession::newQuery, dataEntities);
             }
         }
 
@@ -304,8 +303,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return expressions.toArray(new Expression<?>[0]);
     }
 
-    public int executeCount(Connection conn) {
-        return (int) sqlQuery.clone(conn)
+    public int executeCount(JdbcSession jdbcSession) {
+        return (int) sqlQuery.clone(jdbcSession.connection())
                 // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
     }
