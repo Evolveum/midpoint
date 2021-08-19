@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static java.util.Map.entry;
+
 import java.util.*;
 
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
@@ -446,29 +448,22 @@ public class TaskManagerConfiguration {
         }
     }
 
-    private static final Map<SupportedDatabase, String> SCHEMAS = new HashMap<>();
-    private static final Map<SupportedDatabase, String> DELEGATES = new HashMap<>();
+    private static final Map<SupportedDatabase, String> SCHEMAS = Map.ofEntries(
+            entry(SupportedDatabase.H2, "tables_h2.sql"),
+            entry(SupportedDatabase.MYSQL, "tables_mysql_innodb.sql"),
+            entry(SupportedDatabase.MARIADB, "tables_mysql_innodb.sql"),
+            entry(SupportedDatabase.POSTGRESQL, "tables_postgres.sql"),
+            entry(SupportedDatabase.ORACLE, "tables_oracle.sql"),
+            entry(SupportedDatabase.SQLSERVER, "tables_sqlServer.sql"));
 
-    private static void addDbInfo(SupportedDatabase database, String schema, String delegate) {
-        SCHEMAS.put(database, schema);
-        DELEGATES.put(database, delegate);
-    }
-
-    static {
-        addDbInfo(SupportedDatabase.H2,
-                "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.MYSQL,
-                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.MARIADB,
-                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.POSTGRESQL,
-                "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo(SupportedDatabase.ORACLE,
-                // TODO shouldn't we use OracleDelegate?
-                "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(SupportedDatabase.SQLSERVER,
-                "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
-    }
+    private static final Map<SupportedDatabase, String> DELEGATES = Map.ofEntries(
+            entry(SupportedDatabase.H2, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.MYSQL, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.MARIADB, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.POSTGRESQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate"),
+            // TODO shouldn't we use OracleDelegate?
+            entry(SupportedDatabase.ORACLE, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
+            entry(SupportedDatabase.SQLSERVER, "org.quartz.impl.jdbcjobstore.MSSQLDelegate"));
 
     void setJdbcJobStoreInformation(
             MidpointConfiguration masterConfig, JdbcRepositoryConfiguration jdbcConfig) {
