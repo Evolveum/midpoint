@@ -34,7 +34,7 @@ class ImportActivitySupport extends ReportActivitySupport {
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportActivitySupport.class);
 
-    @NotNull private final Activity<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> activity;
+    private final @NotNull Activity<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> activity;
 
     /**
      * Resolved report data object.

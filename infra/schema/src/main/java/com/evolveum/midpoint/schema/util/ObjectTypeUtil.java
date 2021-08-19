@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -768,10 +769,11 @@ public class ObjectTypeUtil {
 
     public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
         if (object != null) {
+            String displayName = getDetailedDisplayName((PrismObject<ObjectType>) object);
             return new LocalizableMessageBuilder()
                     .key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
                     .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-                    .arg(object.asObjectable().getName())
+                    .arg(StringUtils.isEmpty(displayName) ? object.asObjectable().getName() : displayName)
                     .build();
         } else {
             return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!

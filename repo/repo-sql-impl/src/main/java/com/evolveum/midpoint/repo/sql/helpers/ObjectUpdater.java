@@ -13,13 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
 
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.schema.*;
-
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -48,7 +41,9 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -56,6 +51,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -126,7 +122,7 @@ public class ObjectUpdater {
 
             object.setOid(oid);
         } catch (PersistenceException ex) {
-            ConstraintViolationException constEx = findConstraintViolationException(ex);
+            ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
             if (constEx == null) {
                 baseHelper.handleGeneralException(ex, session, result);
                 throw new AssertionError("shouldn't be here");
@@ -160,10 +156,6 @@ public class ObjectUpdater {
         }
 
         return oid;
-    }
-
-    private ConstraintViolationException findConstraintViolationException(PersistenceException ex) {
-        return ExceptionUtil.findException(ex, ConstraintViolationException.class);
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(
@@ -504,7 +496,7 @@ public class ObjectUpdater {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (PersistenceException ex) {
-            ConstraintViolationException constEx = findConstraintViolationException(ex);
+            ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
             if (constEx != null) {
                 handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
                 baseHelper.rollbackTransaction(session, constEx, result, true);

@@ -237,7 +237,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel<SelectableBean<C>> model) {
+    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<SelectableBean<C>> item, IModel<SelectableBean<C>> model) {
         if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
             return;
         }

@@ -10,14 +10,11 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.StringPath;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.DefaultItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -37,16 +34,5 @@ public class SimpleItemFilterProcessor<T, P extends Path<T>>
     @Override
     public Predicate process(PropertyValueFilter<T> filter) throws QueryException {
         return createBinaryCondition(filter, path, ValueFilterValues.from(filter));
-    }
-
-    /**
-     * Returns the mapper creating the string filter processor from context.
-     * This is unbound version that will adapt to the types in the client code.
-     */
-    public static <Q extends FlexibleRelationalPathBase<R>, R>
-    ItemSqlMapper<Q, R> stringMapper(Function<Q, StringPath> rootToQueryItem) {
-        return new DefaultItemSqlMapper<>(
-                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
-                rootToQueryItem);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -53,7 +53,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
     private PrismObject<ResourceType> resourceDummy;
     private PrismObject<ResourceType> resourceDummyFake;
 
-    private DummyResourceContoller dummyResourceCtl;
     protected static DummyResource dummyResource;
 
     @Override
@@ -66,7 +65,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // will be used instead of test logging config
         super.initSystem(initTask, initResult);
 
-        dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
+        DummyResourceContoller dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
         dummyResourceCtl.extendSchemaPirate();
         dummyResource = dummyResourceCtl.getDummyResource();
 

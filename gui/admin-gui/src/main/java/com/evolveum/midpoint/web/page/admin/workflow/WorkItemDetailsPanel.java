@@ -146,9 +146,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
-        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER,
-                getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
-                Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of());
+        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER, getApproverModel());
         approver.setOutputMarkupId(true);
         add(approver);
 
@@ -244,12 +242,11 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
         Form evidenceForm = new Form(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
         evidenceForm.add(new VisibleBehaviour(() -> CaseTypeUtil.isManualProvisioningCase(parentCase) &&
-                (!SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
+                (!isParentCaseClosed() || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
         evidenceForm.setMultiPart(true);
         add(evidenceForm);
 
-        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, parentCase != null &&
-                SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
+        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, isParentCaseClosed() && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -290,7 +287,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(commentContainer);
 
         TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
-        approverComment.add(new EnableBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState())));
+        approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
@@ -358,5 +355,20 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
     public Component getCustomForm(){
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
+    }
+
+    private boolean isParentCaseClosed() {
+        CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
+        return parentCase != null && SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState());
+    }
+
+    private IModel<ObjectReferenceType> getApproverModel() {
+        if (isParentCaseClosed()) {
+            return getModelObject() != null && getModelObject().getPerformerRef() != null ?
+                    Model.of(getModelObject().getPerformerRef()) : Model.of();
+        } else {
+            return getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
+                    Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of();
+        }
     }
 }

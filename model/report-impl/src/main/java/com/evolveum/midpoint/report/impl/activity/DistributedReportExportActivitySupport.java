@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStat
 /**
  * Support for "distributed report export" activity.
  */
-class DistributedReportExportActivitySupport extends ReportActivitySupport {
+class DistributedReportExportActivitySupport extends ExportActivitySupport {
 
     @NotNull private final Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity;
 

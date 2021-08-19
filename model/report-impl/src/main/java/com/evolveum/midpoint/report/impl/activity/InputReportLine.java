@@ -23,9 +23,6 @@ public class InputReportLine {
 
     /**
      * VariablesMap from the line.
-     *
-     * TODO - or maybe we can use parsed form here - an advantage would be that we could derive the correlation value more
-     *  easily (?)
      */
     @NotNull private final VariablesMap variables;
 
@@ -56,7 +53,7 @@ public class InputReportLine {
     public String toString() {
         return "InputReportLine{" +
                 "number=" + lineNumber +
-                ", variables='" + variables + '\'' +
+                ", variables='" + variables + "'" +
                 ", correlationValue=" + correlationValue +
                 '}';
     }

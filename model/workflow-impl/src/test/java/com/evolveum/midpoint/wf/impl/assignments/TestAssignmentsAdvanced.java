@@ -417,7 +417,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"jack\""));
+                return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"Jack Sparrow\""));
             }
 
             @Override
@@ -533,7 +533,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"jack\""));
+                return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"Jack Sparrow\""));
             }
 
             @Override
@@ -657,7 +657,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return singletonList(new ExpectedTask(roleRole28Oid, "Assigning role \"Role28\" to user \"jack\""));
+                return singletonList(new ExpectedTask(roleRole28Oid, "Assigning role \"Role28\" to user \"Jack Sparrow\""));
             }
 
             @Override
@@ -768,7 +768,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return singletonList(new ExpectedTask(roleRole28Oid, "Modifying assignment of role \"Role28\" on user \"jack\""));
+                return singletonList(new ExpectedTask(roleRole28Oid, "Modifying assignment of role \"Role28\" on user \"Jack Sparrow\""));
             }
 
             @Override
@@ -874,7 +874,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
-                return singletonList(new ExpectedTask(roleRole28Oid, "Unassigning role \"Role28\" from user \"jack\""));
+                return singletonList(new ExpectedTask(roleRole28Oid, "Unassigning role \"Role28\" from user \"Jack Sparrow\""));
             }
 
             @Override
@@ -1193,9 +1193,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return Arrays.asList(
-                        new ExpectedTask(roleRole21Oid, "Assigning role \"Role21\" to user \"jack\""),
-                        new ExpectedTask(roleRole22Oid, "Assigning role \"Role22\" to user \"jack\""),
-                        new ExpectedTask(roleRole23Oid, "Assigning role \"Role23\" to user \"jack\""));
+                        new ExpectedTask(roleRole21Oid, "Assigning role \"Role21\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(roleRole22Oid, "Assigning role \"Role22\" to user \"Jack Sparrow\""),
+                        new ExpectedTask(roleRole23Oid, "Assigning role \"Role23\" to user \"Jack Sparrow\""));
             }
 
             // after first step
@@ -1471,7 +1471,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return singletonList(
-                        new ExpectedTask(roleRole23Oid, "Unassigning role \"Role23\" from user \"jack\""));
+                        new ExpectedTask(roleRole23Oid, "Unassigning role \"Role23\" from user \"Jack Sparrow\""));
             }
 
             // after first step

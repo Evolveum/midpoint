@@ -10,21 +10,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.querydsl.core.QueryException;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
-import org.postgresql.util.PSQLState;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sqale.ContainerValueIdGenerator;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -36,8 +33,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
 
     private final SqaleRepoContext repositoryContext;
     private final PrismObject<S> object;
-    private final RepoAddOptions options;
-    private final OperationResult result;
 
     private Q root;
     private QObjectMapping<S, Q, R> rootMapping;
@@ -45,13 +40,9 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
 
     public AddObjectContext(
             @NotNull SqaleRepoContext repositoryContext,
-            @NotNull PrismObject<S> object,
-            @NotNull RepoAddOptions options,
-            @NotNull OperationResult result) {
+            @NotNull PrismObject<S> object) {
         this.repositoryContext = repositoryContext;
         this.object = object;
-        this.options = options;
-        this.result = result;
     }
 
     /**
@@ -60,7 +51,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
         try {
-            // TODO utilize options and result
             object.setVersion("1"); // initial add always uses 1 as version number
             Class<S> schemaObjectClass = object.getCompileTimeClass();
             objectType = MObjectType.fromSchemaType(schemaObjectClass);
@@ -76,14 +66,14 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
             if (cause instanceof PSQLException) {
-                handlePostgresException((PSQLException) cause);
+                SqaleUtils.handlePostgresException((PSQLException) cause);
             }
             throw e;
         }
     }
 
     private String addObjectWithOid() throws SchemaException {
-        long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
+        long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             S schemaObject = object.asObjectable();
             R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
@@ -119,7 +109,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
                             .toString();
             object.setOid(oidString);
 
-            long lastCid = new ContainerValueIdGenerator().generateForNewObject(object);
+            long lastCid = new ContainerValueIdGenerator(object).generateForNewObject();
 
             // now to update full object with known OID
             rootMapping.setFullObject(row, schemaObject);
@@ -135,23 +125,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
 
             jdbcSession.commit();
             return oidString;
-        }
-    }
-
-    // TODO can be static. Should it move to other SQL exception handling code?
-
-    /** Throws more specific exception or returns and then original exception should be rethrown. */
-    private void handlePostgresException(PSQLException psqlException)
-            throws ObjectAlreadyExistsException {
-        String state = psqlException.getSQLState();
-        String message = psqlException.getMessage();
-        if (PSQLState.UNIQUE_VIOLATION.getState().equals(state)) {
-            if (message.contains("m_object_oid_pkey")) {
-                String oid = StringUtils.substringBetween(message, "(oid)=(", ")");
-                throw new ObjectAlreadyExistsException(
-                        oid != null ? "Provided OID " + oid + " already exists" : message,
-                        psqlException);
-            }
         }
     }
 }

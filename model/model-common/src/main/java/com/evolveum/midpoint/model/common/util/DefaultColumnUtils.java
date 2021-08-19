@@ -103,7 +103,8 @@ public class DefaultColumnUtils {
     private static List<ColumnWrapper> getColumnsForType(Class<? extends Containerable> type) {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
-                || type.equals(ServiceType.class)) {
+                || type.equals(ServiceType.class)
+                || type.equals(ArchetypeType.class)) {
             return COLUMNS_DEF.get(AbstractRoleType.class);
         }
         if (COLUMNS_DEF.containsKey(type)) {
@@ -125,6 +126,8 @@ public class DefaultColumnUtils {
             return getDefaultOrgView();
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceView();
+        } else if (ArchetypeType.class.equals(type)) {
+            return getDefaultArchetypeView();
         } else if (TaskType.class.equals(type)) {
             return getDefaultTaskView();
         } else if (ResourceType.class.equals(type)) {
@@ -163,6 +166,10 @@ public class DefaultColumnUtils {
 
     public static GuiObjectListViewType getDefaultServiceView() {
         return getDefaultView(ServiceType.COMPLEX_TYPE, "default-service", ServiceType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultArchetypeView() {
+        return getDefaultView(ArchetypeType.COMPLEX_TYPE, "default-archetype", ArchetypeType.class);
     }
 
     public static GuiObjectListViewType getDefaultOrgView() {

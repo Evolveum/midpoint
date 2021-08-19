@@ -23,8 +23,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * Component just under the service that orchestrates query transformation and execution.
  * Sql query executor itself does hold the query state, it uses {@link SqlQueryContext} for that.
  * This object manages configuration information and provides dataSource/connections for queries.
- * <p>
- * TODO: Not audit specific, should migrate to sqlbase when cleaned around BaseHelper/JdbcSession.
  */
 public class SqlQueryExecutor {
 
@@ -48,7 +46,7 @@ public class SqlQueryExecutor {
 
         context.beforeQuery();
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            return context.executeCount(jdbcSession.connection());
+            return context.executeCount(jdbcSession);
         }
     }
 
@@ -67,7 +65,7 @@ public class SqlQueryExecutor {
         context.beforeQuery();
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            result = context.executeQuery(jdbcSession.connection());
+            result = context.executeQuery(jdbcSession);
         }
 
         return createSearchResultList(context.transformToSchemaType(result));

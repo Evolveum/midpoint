@@ -243,6 +243,12 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
+
+        if (collectionRef != null && collectionRef.getOid() != null && collectionSpec.getFilter() != null) {
+            throw new IllegalArgumentException(
+                    "CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+
         if (collectionRef != null && collectionRef.getOid() != null) {
             QName collectionRefType = collectionRef.getType();
 
@@ -471,6 +477,13 @@ public class CollectionProcessor {
     private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         if (existingView.getContainerType() == null) {
             existingView.setContainerType(objectListViewType.getType());
+        }
+        if (objectListViewType.getType() != null) {
+            Class<Object> existingType = prismContext.getSchemaRegistry().determineCompileTimeClass(existingView.getContainerType());
+            Class<Object> newType = prismContext.getSchemaRegistry().determineCompileTimeClass(objectListViewType.getType());
+            if (existingType != null && newType != null && existingType.isAssignableFrom(newType)) {
+                existingView.setContainerType(objectListViewType.getType());
+            }
         }
     }
 

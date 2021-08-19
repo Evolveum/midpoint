@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -23,9 +24,7 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.function.Supplier;
@@ -34,20 +33,10 @@ import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
+public class TestCsvReportImportClassic extends TestCsvReport {
 
-    private static final File TEST_DIR_REPORTS = new File("src/test/resources/reports");
-    private static final File TEST_DIR_COMMON = new File("src/test/resources/common");
-    private static final File EXPORT_DIR = new File("target/midpoint-home/export");
-
-    private static final TestResource<TaskType> TASK_IMPORT_USERS_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
-            "task-import-users-classic-with-view.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f12");
-    private static final TestResource<TaskType> TASK_REIMPORT_USER_WILL = new TestResource<>(TEST_DIR_REPORTS,
-            "task-reimport-user-will.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f19");
-    private static final TestResource<TaskType> TASK_REIMPORT_EXPORT_USER_WILL = new TestResource<>(TEST_DIR_REPORTS,
-            "task-reimport-export-user-will.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f29");
-    private static final TestResource<TaskType> TASK_IMPORT_WITH_SCRIPT = new TestResource<>(TEST_DIR_REPORTS,
-            "task-import-with-script.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f14");
+    private static final TestResource<TaskType> TASK_IMPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+            "task-import.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f12");
 
     private static final TestResource<ReportType> REPORT_IMPORT_USERS_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "report-import-object-collection-with-view.xml", "2b77aa2e-dd86-4842-bcf5-762c8a9a85de");
@@ -55,16 +44,6 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
             "report-object-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a851a");
     private static final TestResource<ReportType> REPORT_IMPORT_WITH_SCRIPT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "report-with-import-script.xml", "2b44aa2e-dd86-4842-bcf5-762c8c4a851a");
-
-    private static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-all-user-with-view.xml", "11b1f98e-f587-4b9f-b92b-72e251dbb266");
-    private static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_USERS = new TestResource<>(TEST_DIR_COMMON,
-            "object-collection-all-user.xml", "72b1f98e-f587-4b9f-b92b-72e251dbb266");
-
-    private static final TestResource<ObjectCollectionType> USER_WILL = new TestResource<>(TEST_DIR_COMMON,
-            "user-will.xml", "c0c010c0-d34d-b33f-f00d-111111111122");
-    private static final TestResource<ObjectCollectionType> USER_JACK = new TestResource<>(TEST_DIR_COMMON,
-            "user-jack.xml", "c0c010c0-d34d-b33f-f00d-111111111111");
 
     private static final String REPORT_DATA_TEST100_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a8588";
     private static final String REPORT_DATA_TEST101_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a8589";
@@ -76,6 +55,7 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        repoAdd(TASK_IMPORT_CLASSIC, initResult);
     }
 
     @Test(priority = 100)
@@ -99,15 +79,15 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
         addObject(reportData.asPrismObject());
         addObject(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW.file);
         addObject(REPORT_IMPORT_USERS_CLASSIC.file);
-        addTask(TASK_IMPORT_USERS_CLASSIC, result);
+        runImportTask(REPORT_IMPORT_USERS_CLASSIC, REPORT_DATA_TEST100_OID, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_IMPORT_USERS_CLASSIC.oid);
+        waitForTaskCloseOrSuspend(TASK_IMPORT_CLASSIC.oid);
 
         then();
 
-        assertTask(TASK_IMPORT_USERS_CLASSIC.oid, "after")
+        assertTask(TASK_IMPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
 
@@ -145,14 +125,15 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(USER_WILL, task, result);
+        addTask(TASK_EXPORT_CLASSIC, result);
+
         addObject(OBJECT_COLLECTION_ALL_USERS, task, result);
         addObject(REPORT_REIMPORT_USERS_CLASSIC, task, result);
-        addTask(TASK_REIMPORT_EXPORT_USER_WILL, result);
+        runExportTask(REPORT_REIMPORT_USERS_CLASSIC, result);
         PrismObject<UserType> oldWill = getObject(UserType.class, USER_WILL.oid);
 
-        waitForTaskCloseOrSuspend(TASK_REIMPORT_EXPORT_USER_WILL.oid);
-        assertTask(TASK_REIMPORT_EXPORT_USER_WILL.oid, "after")
+        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
+        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
                 .assertSuccess();
 
         modifyObjectReplaceProperty(ReportType.class, REPORT_REIMPORT_USERS_CLASSIC.oid,
@@ -173,16 +154,16 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
         reportData.setParentRef(ref);
         reportData.setFilePath(outputFile.getAbsolutePath());
         addObject(reportData.asPrismObject());
-        addTask(TASK_REIMPORT_USER_WILL, result);
+        runImportTask(REPORT_REIMPORT_USERS_CLASSIC, REPORT_DATA_TEST101_OID, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_REIMPORT_USER_WILL.oid);
+        waitForTaskCloseOrSuspend(TASK_IMPORT_CLASSIC.oid);
 
         then();
 
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
-        assertTask(TASK_REIMPORT_USER_WILL.oid, "after")
+        assertTask(TASK_IMPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
 
@@ -201,8 +182,6 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        addObject(USER_JACK, task, result);
 
         PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);
@@ -230,15 +209,15 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
 
         addObject(reportData.asPrismObject());
         addObject(REPORT_IMPORT_WITH_SCRIPT_CLASSIC, task, result);
-        addTask(TASK_IMPORT_WITH_SCRIPT, result);
+        runImportTask(REPORT_IMPORT_WITH_SCRIPT_CLASSIC, REPORT_DATA_TEST102_OID, result);
 
         when();
 
-        waitForTaskCloseOrSuspend(TASK_IMPORT_WITH_SCRIPT.oid);
+        waitForTaskCloseOrSuspend(TASK_IMPORT_CLASSIC.oid);
 
         then();
 
-        assertTask(TASK_IMPORT_WITH_SCRIPT.oid, "after")
+        assertTask(TASK_IMPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
 
@@ -269,6 +248,11 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
         assertEquals(validTo, jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
     }
 
+    private void runImportTask(TestResource<ReportType> reportResource, String reportDataOid, OperationResult result) throws CommonException {
+        changeImportReport(reportResource, reportDataOid);
+        rerunTask(TASK_IMPORT_CLASSIC.oid, result);
+    }
+
     private Object getValueOrNull(Supplier<Object> function){
         try {
             return function.get();
@@ -277,19 +261,27 @@ public class TestCsvReportImportClassic extends EmptyReportIntegrationTest {
         }
     }
 
-    protected File findOutputFile(PrismObject<ReportType> report) {
-        String filePrefix = report.getName().getOrig();
-        File[] matchingFiles = EXPORT_DIR.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.startsWith(filePrefix);
-            }
-        });
-        if (matchingFiles.length == 0) {
-            return null;
-        }
-        if (matchingFiles.length > 1) {
-            throw new IllegalStateException("Found more than one output files for " + report + ": " + Arrays.toString(matchingFiles));
-        }
-        return matchingFiles[0];
+    private void changeImportReport(TestResource<ReportType> reportResource, String reportDataOid) throws CommonException {
+        changeTaskReport(reportResource,
+                ItemPath.create(TaskType.F_ACTIVITY,
+                    ActivityDefinitionType.F_WORK,
+                    WorkDefinitionsType.F_REPORT_IMPORT,
+                    ClassicReportImportWorkDefinitionType.F_REPORT_REF
+                    ),
+                TASK_IMPORT_CLASSIC);
+        Task task = getTestTask();
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(reportDataOid);
+        modifyObjectReplaceReference(TaskType.class,
+                TASK_IMPORT_CLASSIC.oid,
+                ItemPath.create(TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_REPORT_IMPORT,
+                        ClassicReportImportWorkDefinitionType.F_REPORT_DATA_REF
+                ),
+                task,
+                task.getResult(),
+                ref
+        );
     }
 }

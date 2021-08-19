@@ -298,7 +298,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
-        query = query.cloneEmpty();
+        query = query.cloneWithoutFilter();
         query.setFilter(filter instanceof AllFilter ? null : filter);
         return query;
     }
@@ -1005,8 +1005,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO conflict checking (if needed)
     }
 
-    @Override
-    public boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
+    protected boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids) {
         Validate.notNull(ancestorOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(descendantOrgOids, "lowerObjectOids must not be null.");
 
@@ -1247,7 +1246,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String ancestorOrgOid) {
+    public <O extends ObjectType> boolean isDescendant(
+            PrismObject<O> object, String ancestorOrgOid) {
         List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
         List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
         for (ObjectReferenceType objParentOrgRef : objParentOrgRefs) {
@@ -1257,13 +1257,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean isAncestor(PrismObject<O> ancestorOrg, String descendantOrgOid) {
-        if (ancestorOrg.getOid() == null) {
+    public <O extends ObjectType> boolean isAncestor(
+            PrismObject<O> object, String descendantOrgOid) {
+        // object is not considered ancestor of itself
+        if (object.getOid() == null || object.getOid().equals(descendantOrgOid)) {
             return false;
         }
-        Collection<String> oidList = new ArrayList<>(1);
-        oidList.add(descendantOrgOid);
-        return isAnySubordinate(ancestorOrg.getOid(), oidList);
+
+        return isAnySubordinate(object.getOid(), List.of(descendantOrgOid));
     }
 
     @Override

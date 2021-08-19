@@ -696,6 +696,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         targetRef.setTargetName(new PolyStringType(construction.getResource().getName()));
                         assignmentType.setTargetRef(targetRef);
                         ConstructionType constructionType = new ConstructionType();
+                        constructionType.setResourceRef(targetRef);
                         constructionType.setKind(construction.getKind());
                         constructionType.setIntent(construction.getIntent());
                         assignmentType.setConstruction(constructionType);

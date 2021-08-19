@@ -85,18 +85,22 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         // nothig to do, use when e.g. references needs to be resolved, etc..
     }
 
+    private <V extends Comparable<V>> V getPropertyValue(PrismContainerValueWrapper<C> o1, String propertyName) {
+        try {
+            return (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
+        } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
         list.sort((o1, o2) -> {
             SortParam<String> sortParam = getSort();
             String propertyName = sortParam.getProperty();
-            V prop1, prop2;
-            try {
-                prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
-                prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
-            } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-            }
+            V prop1 = getPropertyValue(o1, propertyName);
+            V prop2 = getPropertyValue(o2, propertyName);
+
             int comparison = ObjectUtils.compare(prop1, prop2, true);
             return sortParam.isAscending() ? comparison : -comparison;
         });

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -31,11 +32,11 @@ public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType>
     private static final long serialVersionUID = 1L;
 
     public ChooseArchetypeMemberPopup(String id, RelationSearchItemConfigurationType relationConfig){
-        super(id, relationConfig);
+        super(id, relationConfig, null); //todo
     }
 
     @Override
-    protected List<ITab> createAssignmentTabs() {
+    protected List<ITab> createAssignmentTabs(AssignmentObjectRelation relationSpec) {
         List<ITab> tabs = new ArrayList<>();//super.createAssignmentTabs();
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"),
                 new VisibleBehaviour(() -> getAvailableObjectTypes() != null)) {

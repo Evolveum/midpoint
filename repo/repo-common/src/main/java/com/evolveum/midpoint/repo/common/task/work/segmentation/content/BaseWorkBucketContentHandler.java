@@ -29,7 +29,7 @@ public abstract class BaseWorkBucketContentHandler implements WorkBucketContentH
         if (discriminatorPathType != null) {
             return discriminatorPathType.getItemPath();
         } else if (configuration instanceof OidWorkSegmentationType) {
-            return ItemName.fromQName(PrismConstants.T_ID);     // fixme
+            return ItemName.fromQName(PrismConstants.T_ID);
         } else {
             throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
         }

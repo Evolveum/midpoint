@@ -117,7 +117,9 @@ public interface RepositoryService {
     String OP_MODIFY_OBJECT = "modifyObject";
     String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
     String OP_GET_VERSION = "getVersion";
-    String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
+    String OP_IS_ANY_SUBORDINATE = "isAnySubordinate"; // TODO remove with old repo, not public op anymore
+    String OP_IS_DESCENDANT = "isDescendant";
+    String OP_IS_ANCESTOR = "isAncestor";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
@@ -125,6 +127,7 @@ public interface RepositoryService {
     String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+    String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
     String OP_SEARCH_CONTAINERS = "searchContainers";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
@@ -403,14 +406,6 @@ public interface RepositoryService {
      * Should fail if object type is wrong. Should fail if unknown property is
      * specified in the query.
      * </p>
-     *
-     * @param query search query
-     * @param handler result handler
-     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
-     * @param parentResult parent OperationResult (in/out)
-     * @return all objects of specified type that match search criteria (subject to paging)
-     * @throws IllegalArgumentException wrong object type
-     * @throws SchemaException unknown property used in search query
      * <p>
      * A note related to iteration method:
      * <p>
@@ -436,6 +431,14 @@ public interface RepositoryService {
      * - ordering is specified
      * - offset is specified
      * (limit is not a problem)
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
+     * @param parentResult parent OperationResult (in/out)
+     * @return all objects of specified type that match search criteria (subject to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
@@ -443,25 +446,17 @@ public interface RepositoryService {
             throws SchemaException;
 
     /**
-     * Returns `true` if any of organizations identified with `descendantOrgOids` is under
-     * organization identified by `ancestorOrgOid`.
-     * For this method organization is under itself, that is `isAnySubordinate(oid, List.of(oid))`
-     * returns `true`.
-     * Using of non-organizational OID for `ancestorOrgOid` is sure to result in `false`.
-     * Non-organizational OIDs in `descendantOrgOids` do not help with `true` result either.
+     * Returns `true` if the `object` is under the organization identified with `ancestorOrgOid`.
+     * The `object` can either be an Org or any other object in which case all the targets
+     * of its `parentOrgRefs` are tested.
      *
-     * @param ancestorOrgOid identifier of ancestor (upper) organization
-     * @param descendantOrgOids identifiers of potential descendant organizations
-     */
-    boolean isAnySubordinate(String ancestorOrgOid, Collection<String> descendantOrgOids)
-            throws SchemaException;
-
-    /**
-     * Returns `true` if the `object` is under the organization identified with `ancestorOrg`.
-     * For this method *organization is NOT under itself*, that is `isDescendant(org, oidOfThatOrg)`
-     * returns `false` - which is not a symmetric behavior with {@link #isAncestor(PrismObject, String)}.
-     * On the other hand, the `object` here can be non-organization as the actual tested objects
-     * are targets of its `parentOrgRefs`.
+     * Examples (from the perspective of the first parameter):
+     *
+     * * User belonging to Org with `ancestorOrgOid` returns true.
+     * * Organization under Org with `ancestorOrgOid` returns true (in any depth).
+     * * User belonging to Org under another Org with `ancestorOrgOid` returns true (any depth).
+     * * Organization with `ancestorOrgOid` returns `false`, as it is not considered
+     * to be its own descendant.
      *
      * @param object object of any type tested to belong under Org with `ancestorOrgOid`
      * @param ancestorOrgOid identifier of ancestor organization
@@ -470,16 +465,24 @@ public interface RepositoryService {
             throws SchemaException;
 
     /**
-     * Returns `true` if the organization identified with `descendantOrgOid` is under `ancestorOrg`.
-     * For this method organization is under itself, that is `isAncestor(org, oidOfThatOrg)`
-     * returns `true`.
-     * Despite type parameter, only `PrismObject<OrgType>` can return `true` and `descendantOrgOid`
-     * must belong to the `OrgType` object as well, e.g. user under `ancestorOrg` returns `false`.
+     * Returns `true` if the `object` is above organization identified with `descendantOrgOid`.
+     * Despite type parameter, only `PrismObject<OrgType>` can return `true`.
      *
-     * @param ancestorOrg ancestor organization
+     * Examples (from the perspective of the first parameter):
+     *
+     * * Any other type than `Org` used for `object` returns `false`.
+     * * Organization being a parent of another organization with `descendantOrgOid` returns `true`.
+     * This means that Organization with `descendantOrgOid` has `parentOrgRef` to `object`.
+     * * Organization higher in the organization hierarchy than Org with `descendantOrgOid`
+     * returns `true`, for any number of levels between them as long as it's possible to traverse
+     * from Org identified by `descendantOrgOid` to `object` using any number of `parentOrgRefs`.
+     * * Organization with `descendantOrgOid` returns `false`, as it is not considered
+     * to be its own ancestor.
+     *
+     * @param object potential ancestor organization
      * @param descendantOrgOid identifier of potential descendant organization
      */
-    <O extends ObjectType> boolean isAncestor(PrismObject<O> ancestorOrg, String descendantOrgOid)
+    <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String descendantOrgOid)
             throws SchemaException;
 
     /**

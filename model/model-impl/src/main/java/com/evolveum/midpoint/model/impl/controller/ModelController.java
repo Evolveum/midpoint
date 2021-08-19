@@ -1118,7 +1118,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             } else {
                 LOGGER.trace("Searching objects from {} to {} ordered {} by {}. Processed query:\n{}",
                         query.getPaging().getOffset(), query.getPaging().getMaxSize(),
-                        query.getPaging().getDirection(), query.getPaging().getOrderBy(),
+                        query.getPaging().getPrimaryOrderingDirection(), query.getPaging().getPrimaryOrderingPath(),
                         query.debugDump(1));
             }
         } else {

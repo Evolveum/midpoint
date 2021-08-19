@@ -109,10 +109,10 @@ public class PageRoles extends PageAdmin {
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
-            @Override
-            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
-                return ColumnUtils.getDefaultRoleColumns();
-            }
+//            @Override
+//            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
+//                return ColumnUtils.getDefaultRoleColumns();
+//            }
 
             @Override
             protected List<ItemPath> getFixedSearchItems() {

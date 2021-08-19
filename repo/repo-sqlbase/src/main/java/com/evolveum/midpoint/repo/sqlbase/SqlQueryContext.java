@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
-import java.sql.Connection;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -21,17 +20,18 @@ import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NaryLogicalFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NotFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.RepositoryMappingException;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -187,11 +187,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         processOrdering(paging.getOrderingInstructions());
 
         Integer offset = paging.getOffset();
+        Integer maxSize = paging.getMaxSize();
         // we take null offset as no paging at all
         if (offset != null) {
             sqlQuery.offset(offset.longValue());
-            Integer pageSize = paging.getMaxSize();
-            sqlQuery.limit(pageSize != null ? pageSize.longValue() : DEFAULT_PAGE_SIZE);
+            sqlQuery.limit(maxSize != null ? maxSize.longValue() : DEFAULT_PAGE_SIZE);
+        } else if (maxSize != null) {
+            // we respect limit even without offset, other ways can be used (e.g. WHERE OID > ...)
+            sqlQuery.limit(maxSize);
         }
     }
 
@@ -199,36 +202,66 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             throws RepositoryException {
         for (ObjectOrdering ordering : orderings) {
             ItemPath orderByItemPath = ordering.getOrderBy();
-            // TODO to support ordering by ext/something we need to implement this.
-            //  That may not even require cache for JOIN because it should be allowed only for
-            //  single-value containers embedded in the object.
-            if (!(orderByItemPath.isSingleName())) {
-                throw new QueryException(
-                        "ORDER BY is not possible for complex paths: " + orderByItemPath);
-            }
-            Path<?> path = entityPathMapping.primarySqlPath(
-                    orderByItemPath.asSingleNameOrFail(), this);
-            if (!(path instanceof ComparableExpressionBase)) {
+            Expression<?> expression = orderingPath(orderByItemPath);
+            if (!(expression instanceof ComparableExpressionBase)) {
                 throw new QueryException(
                         "ORDER BY is not possible for non-comparable path: " + orderByItemPath);
             }
 
             if (ordering.getDirection() == OrderDirection.DESCENDING) {
-                sqlQuery.orderBy(((ComparableExpressionBase<?>) path).desc());
+                sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).desc());
             } else {
-                sqlQuery.orderBy(((ComparableExpressionBase<?>) path).asc());
+                sqlQuery.orderBy(((ComparableExpressionBase<?>) expression).asc());
             }
         }
+    }
+
+    /**
+     * @param <CQ> current entity query path type, can change during multi-segment path resolution
+     * @param <CR> row type related to {@link CQ}
+     */
+    @SuppressWarnings("unchecked")
+    private <CQ extends FlexibleRelationalPathBase<CR>, CR> Expression<?> orderingPath(
+            ItemPath orderByItemPath) throws RepositoryException {
+
+        ItemPath path = orderByItemPath;
+        QueryModelMapping<?, CQ, CR> mapping = (QueryModelMapping<?, CQ, CR>) entityPathMapping;
+        SqlQueryContext<?, CQ, CR> context = (SqlQueryContext<?, CQ, CR>) this;
+        PrismContainerDefinition<?> containerDefinition =
+                (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
+        while (path.size() > 1) {
+            ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
+            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+            if (resolution.subquery) {
+                throw new QueryException("Item path '" + orderByItemPath
+                        + "' cannot be used for ordering because subquery is used to resolve it.");
+            }
+            // CQ/CR for the next loop may be actually different then before, but that's OK
+            mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
+            context = (SqlQueryContext<?, CQ, CR>) resolution.context;
+            containerDefinition = containerDefinition.findLocalItemDefinition(
+                    path.firstToName(), PrismContainerDefinition.class, false);
+            path = path.rest();
+        }
+
+        QName first = path.firstToQName();
+        ItemDefinition<?> definition = first instanceof ItemName
+                ? containerDefinition.findItemDefinition((ItemName) first)
+                : null;
+
+        ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
+        return mapper.itemOrdering(context.path(), definition);
     }
 
     /**
      * Returns page of results with each row represented by a Tuple containing {@link R} and then
      * individual paths for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
      */
-    public PageOf<Tuple> executeQuery(Connection conn) throws QueryException {
-        SQLQuery<?> query = this.sqlQuery.clone(conn);
+    public PageOf<Tuple> executeQuery(JdbcSession jdbcSession) throws QueryException {
+        SQLQuery<?> query = sqlQuery.clone(jdbcSession.connection());
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
+            // TODO indicate incomplete result?
         }
 
         // see com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger for logging details
@@ -246,7 +279,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .map(t -> t.get(entity))
                     .collect(Collectors.toList());
             for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : detailFetchMappers) {
-                fetcher.execute(sqlRepoContext, () -> sqlRepoContext.newQuery(conn), dataEntities);
+                fetcher.execute(sqlRepoContext, jdbcSession::newQuery, dataEntities);
             }
         }
 
@@ -270,8 +303,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return expressions.toArray(new Expression<?>[0]);
     }
 
-    public int executeCount(Connection conn) {
-        return (int) sqlQuery.clone(conn)
+    public int executeCount(JdbcSession jdbcSession) {
+        return (int) sqlQuery.clone(jdbcSession.connection())
                 // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
     }

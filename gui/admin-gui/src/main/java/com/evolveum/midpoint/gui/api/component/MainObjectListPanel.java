@@ -112,16 +112,18 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         if (collectionView == null) {
             collectionView = getObjectCollectionView();
         }
-
-        List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
                     WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    archetypeRef);
+                    getNewObjectReferencesList(collectionView));
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
+    }
+
+    protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView) {
+        return ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {

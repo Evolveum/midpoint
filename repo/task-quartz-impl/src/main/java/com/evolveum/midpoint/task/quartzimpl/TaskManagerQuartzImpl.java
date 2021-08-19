@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.sql.DataSource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfigMXBean;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -135,7 +135,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
-    @Autowired(required = false) private DataSourceFactory dataSourceFactory;
+    @Autowired(required = false) private DataSource dataSource;
 
     @Autowired
     @Qualifier("securityContextManager")
@@ -1211,15 +1211,9 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     // TODO move to more appropriate place
     @Override
     public Number[] getDBPoolStats() {
-        if (dataSourceFactory != null && dataSourceFactory.getDataSource() instanceof HikariDataSource) {
-            HikariDataSource dataSource = (HikariDataSource) dataSourceFactory.getDataSource();
-
-            if (dataSource == null) {
-                return null;
-            }
-
-            HikariPoolMXBean pool = dataSource.getHikariPoolMXBean();
-            HikariConfigMXBean config = dataSource.getHikariConfigMXBean();
+        if (dataSource instanceof HikariDataSource) {
+            HikariPoolMXBean pool = ((HikariDataSource) dataSource).getHikariPoolMXBean();
+            HikariConfigMXBean config = ((HikariDataSource) dataSource).getHikariConfigMXBean();
 
             if (pool == null || config == null) {
                 return null;

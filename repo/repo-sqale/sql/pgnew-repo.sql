@@ -481,10 +481,9 @@ CREATE TRIGGER m_generic_object_update_tr BEFORE UPDATE ON m_generic_object
 CREATE TRIGGER m_generic_object_oid_delete_tr AFTER DELETE ON m_generic_object
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
--- TODO unique per genericObjectTypeId?
---  No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_nameOrig_idx ON m_generic_object (nameOrig);
 ALTER TABLE m_generic_object ADD CONSTRAINT m_generic_object_nameNorm_key UNIQUE (nameNorm);
+-- TODO No indexes for GenericObjectType#objectType were in old repo, what queries are expected?
 CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtypes);
 -- endregion
 
@@ -1000,7 +999,7 @@ CREATE TRIGGER m_report_data_oid_delete_tr AFTER DELETE ON m_report_data
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_report_data_nameOrig_idx ON m_report_data (nameOrig);
-ALTER TABLE m_report_data ADD CONSTRAINT m_report_data_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_report_data_nameNorm_idx ON m_report_data (nameNorm); -- not unique
 CREATE INDEX m_report_data_subtypes_idx ON m_report_data USING gin(subtypes);
 CREATE INDEX m_report_data_policySituation_idx
     ON m_report_data USING gin(policysituations gin__int_ops);
@@ -1068,7 +1067,9 @@ CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
-ALTER TABLE m_connector ADD CONSTRAINT m_connector_nameNorm_key UNIQUE (nameNorm);
+-- TODO: wasn't unique but duplicates caused problems
+--  Also, perhaps unique constraint on type+version would be handy?
+CREATE INDEX m_connector_nameNorm_idx ON m_connector (nameNorm);
 CREATE INDEX m_connector_subtypes_idx ON m_connector USING gin(subtypes);
 CREATE INDEX m_connector_policySituation_idx
     ON m_connector USING gin(policysituations gin__int_ops);
@@ -1134,7 +1135,7 @@ CREATE TRIGGER m_task_oid_delete_tr AFTER DELETE ON m_task
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_task_nameOrig_idx ON m_task (nameOrig);
-ALTER TABLE m_task ADD CONSTRAINT m_task_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_task_nameNorm_idx ON m_task (nameNorm); -- can have duplicates
 CREATE INDEX m_task_parent_idx ON m_task (parent);
 CREATE INDEX m_task_objectRefTargetOid_idx ON m_task(objectRefTargetOid);
 ALTER TABLE m_task ADD CONSTRAINT m_task_taskIdentifier_key UNIQUE (taskIdentifier);
@@ -1174,7 +1175,7 @@ CREATE TRIGGER m_case_oid_delete_tr AFTER DELETE ON m_case
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
 CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
-ALTER TABLE m_case ADD CONSTRAINT m_case_nameNorm_key UNIQUE (nameNorm);
+CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
 CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
 
@@ -1375,8 +1376,7 @@ ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_i
 
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
-        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
-        ON DELETE CASCADE; -- TODO is the cascade needed?
+        REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid);
 
 -- stores case/workItem/candidateRef
 CREATE TABLE m_access_cert_wi_candidate (

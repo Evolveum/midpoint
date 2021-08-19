@@ -20,7 +20,6 @@ import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -42,13 +41,13 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -63,7 +62,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
-    private final static String NONEXIST_OID = UUID.randomUUID().toString();
+    private final static String NONEXISTENT_OID = UUID.randomUUID().toString();
 
     // org structure
     private String org1Oid; // one root
@@ -83,7 +82,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String task1Oid; // task has more attribute type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
-    private String service1Oid; // object with integer attribute
     private String case1Oid; // Closed case, two work items
     private String accCertCampaign1Oid;
 
@@ -148,7 +146,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType(prismContext));
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
-        ItemName shadowAttributeName = new ItemName("http://example.com/p", "string-mv");
+        ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
                 .set(shadowAttributeName, DOMUtil.XSD_STRING, "string-value1", "string-value2");
         shadowAttributeDefinition = attributesHelper.getDefinition(shadowAttributeName);
@@ -167,7 +165,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         UserType user1 = new UserType(prismContext).name("user-1")
                 .fullName("User Name 1")
-                .metadata(new MetadataType()
+                .metadata(new MetadataType(prismContext)
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
                         .createTimestamp(asXMLGregorianCalendar(1L))
@@ -230,6 +228,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .activation(new ActivationType(prismContext)
                         .validFrom("2021-03-01T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
+                .metadata(new MetadataType(prismContext)
+                        .createTimestamp(asXMLGregorianCalendar(2L)))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user2Extension = user2.getExtension();
         addExtensionValue(user2Extension, "string", "other-value...");
@@ -240,6 +240,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user2Extension, "float", 0);
         addExtensionValue(user2Extension, "ref", ref(orgXOid, OrgType.COMPLEX_TYPE));
         addExtensionValue(user2Extension, "string-mv", "string-value2", "string-value3");
+        addExtensionValue(user2Extension, "poly", PolyString.fromOrig("poly-value-user2"));
         addExtensionValue(user2Extension, "enum-mv",
                 OperationResultStatusType.UNKNOWN, OperationResultStatusType.SUCCESS);
         addExtensionValue(user2Extension, "poly-mv",
@@ -265,7 +266,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .validTo("2022-01-01T00:00:00Z")))
                 .extension(new ExtensionType(prismContext));
         ExtensionType user3Extension = user3.getExtension();
-        addExtensionValue(user3Extension, "int", 3);
+        addExtensionValue(user3Extension, "int", 10);
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
                 asXMLGregorianCalendar(Instant.ofEpochMilli(1633_200_000_000L)));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
@@ -295,11 +296,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
-        service1Oid = repositoryService.addObject(
-                new ServiceType(prismContext).name("service-1")
-                        // TODO integer attribute
-                        .asPrismObject(),
-                null, result);
         case1Oid = repositoryService.addObject(
                 new CaseType(prismContext).name("case-1")
                         .state("closed")
@@ -354,12 +350,37 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
+        // objects for OID range tests
+        List.of("00000000-1000-0000-0000-000000000000",
+                "00000000-1000-0000-0000-000000000001",
+                "10000000-1000-0000-0000-000000000000",
+                "10000000-1000-0000-0000-100000000000",
+                "10ffffff-ffff-ffff-ffff-ffffffffffff",
+                "11000000-0000-0000-0000-000000000000",
+                "11000000-1000-0000-0000-100000000000",
+                "11000000-1000-0000-0000-100000000001",
+                "11ffffff-ffff-ffff-ffff-fffffffffffe",
+                "11ffffff-ffff-ffff-ffff-ffffffffffff",
+                "20ffffff-ffff-ffff-ffff-ffffffffffff",
+                "ff000000-0000-0000-0000-000000000000",
+                "ffffffff-ffff-ffff-ffff-ffffffffffff").forEach(oid -> {
+            try {
+                repositoryService.addObject(
+                        new ServiceType(prismContext).oid(oid).name(oid)
+                                .costCenter("OIDTEST")
+                                .asPrismObject(),
+                        null, result);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         assertThatOperationResult(result).isSuccess();
     }
 
     // region simple filters
     @Test
-    public void test100SearchUserByName() throws Exception {
+    public void test100SearchAllObjectsWithEmptyFilter() throws Exception {
         when("searching all objects with query without any conditions and paging");
         OperationResult operationResult = createOperationResult();
         SearchResultList<ObjectType> result = searchObjects(ObjectType.class,
@@ -380,18 +401,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test110SearchUserByName() throws Exception {
-        when("searching user with query without any conditions and paging");
-        OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = searchObjects(UserType.class,
-                prismContext.queryFor(UserType.class)
-                        .item(UserType.F_NAME).eq(PolyString.fromOrig("user-1"))
-                        .build(),
-                operationResult);
+        searchUsersTest("with name matching provided value",
+                f -> f.item(UserType.F_NAME).eq(PolyString.fromOrig("user-1")),
+                user1Oid);
+    }
 
-        then("user with the matching name is returned");
-        assertThatOperationResult(operationResult).isSuccess();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
+    /**
+     * Couple of notes about matchingNorm/Orig:
+     *
+     * * String value can be provided instead of {@link PolyString} with norm/orig matcher.
+     * * String value is taken as-is for orig matching.
+     * * String value is normalized as configured for norm matching (as demonstrated in this test).
+     */
+    @Test
+    public void test110SearchUserByNameNormalized() throws Exception {
+        searchUsersTest("with normalized name matching provided value",
+                f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
+                user2Oid);
     }
 
     @Test
@@ -604,7 +630,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
         searchCaseWorkItemByAssignee(user1Oid, case1Oid);
         searchCaseWorkItemByAssignee(user2Oid, case1Oid);
-        searchCaseWorkItemByAssignee(NONEXIST_OID);
+        searchCaseWorkItemByAssignee(NONEXISTENT_OID);
     }
 
     private void searchCaseWorkItemByAssignee(String assigneeOid, String... expectedCaseOids) throws Exception {
@@ -950,6 +976,28 @@ AND(
                 user1Oid);
     }
 
+    @Test
+    public void test450SearchObjectOrderedByName() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("ordered by name descending",
+                        f -> f.desc(UserType.F_NAME),
+                        user1Oid, user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+        assertThat(result)
+                .extracting(u -> u.getOid())
+                .containsExactly(user4Oid, user3Oid, user2Oid, user1Oid, modifierOid, creatorOid);
+    }
+
+    @Test
+    public void test451SearchObjectOrderedByMetadataTimestamp() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("with metadata/createTimestamp ordered by it ascending",
+                        f -> f.not()
+                                .item(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).isNull()
+                                .asc(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                        user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user1Oid);
+    }
+
     // TODO tests with ref/@/...
     // query for AccessCertificationCaseType container with order by objectRef/@/name
     // PERHAPS: single refs can be LEFT JOINed to support ordering?
@@ -978,13 +1026,22 @@ AND(
                 creatorOid, modifierOid, user3Oid, user4Oid);
     }
 
-    @Test(enabled = false) // TODO missing feature order by complex paths, see SqlQueryContext.processOrdering
+    @Test
     public void test503SearchObjectWithAnyValueForExtensionItemOrderedByIt() throws SchemaException {
-        searchUsersTest("with extension string item with any value ordered by that item",
+        SearchResultList<UserType> result =
+                searchUsersTest("with extension string item with any value ordered by that item",
+                        f -> f.not()
+                                .item(UserType.F_EXTENSION, new QName("string")).isNull()
+                                .asc(UserType.F_EXTENSION, new QName("string")),
+                        user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user2Oid); // "other..." < "string..."
+
+        result = searchUsersTest("with extension string item with any value ordered by that item",
                 f -> f.not()
                         .item(UserType.F_EXTENSION, new QName("string")).isNull()
-                        .asc(UserType.F_EXTENSION, new QName("string")),
-                user2Oid, user1Oid);
+                        .desc(UserType.F_EXTENSION, new QName("string")),
+                user1Oid, user2Oid);
+        assertThat(result.get(0).getOid()).isEqualTo(user1Oid); // to be sure it works both ways
     }
 
     @Test
@@ -1088,6 +1145,18 @@ AND(
         searchUsersTest("not having extension int item equal to value",
                 f -> f.item(UserType.F_EXTENSION, new QName("int")).gt(1),
                 user2Oid, user3Oid);
+    }
+
+    @Test
+    public void test524SearchObjectWithIntExtensionOrderedByIt() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("with extension int item ordered by that item",
+                        f -> f.not()
+                                .item(UserType.F_EXTENSION, new QName("int")).isNull()
+                                .asc(UserType.F_EXTENSION, new QName("int")),
+                        user1Oid, user2Oid, user3Oid);
+        assertThat(result).extracting(u -> u.getOid())
+                .containsExactly(user1Oid, user2Oid, user3Oid); // user30id with 10 is behind 2
     }
 
     @Test
@@ -1284,6 +1353,19 @@ AND(
                 user1Oid, user3Oid);
     }
 
+    @Test
+    public void test553SearchObjectWithDateTimeExtensionOrderedByIt() throws SchemaException {
+        SearchResultList<UserType> result =
+                searchUsersTest("having extension date-time item and ordered by it",
+                        f -> f.not().item(UserType.F_EXTENSION, new QName("dateTime")).isNull()
+                                .desc(UserType.F_EXTENSION, new QName("dateTime")),
+                        user1Oid, user2Oid, user3Oid);
+
+        // reverse ordering, user 3 first
+        assertThat(result).extracting(u -> u.getOid())
+                .containsExactly(user3Oid, user2Oid, user1Oid);
+    }
+
     // date-time uses the same code as string, no need for more tests, only EQ works for multi-value
 
     @Test
@@ -1326,7 +1408,8 @@ AND(
             throws SchemaException {
         searchUsersTest("with extension poly-string item norm equal to String value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
-                        .eq("polyvalue").matchingNorm(),
+                        // casing of provided string is ignored
+                        .eq("PolyValue").matchingNorm(),
                 user1Oid);
     }
 
@@ -1336,7 +1419,7 @@ AND(
         searchUsersTest("with extension poly-string item greater than value",
                 f -> f.item(UserType.F_EXTENSION, new QName("poly"))
                         .gt(new PolyString("aa-aa")),
-                user1Oid);
+                user1Oid, user2Oid);
     }
 
     @Test
@@ -1458,7 +1541,7 @@ AND(
     public void test591SearchShadowWithAttribute() throws SchemaException {
         searchObjectTest("with assignment extension item equal to value", ShadowType.class,
                 f -> f.itemWithDef(shadowAttributeDefinition,
-                        ShadowType.F_ATTRIBUTES, new QName("http://example.com/p", "string-mv"))
+                        ShadowType.F_ATTRIBUTES, new QName("https://example.com/p", "string-mv"))
                         .eq("string-value2"),
                 shadow1Oid);
     }
@@ -1606,6 +1689,152 @@ AND(
     }
 
     @Test
+    public void test910SearchByOid() throws SchemaException {
+        // This is new repo speciality, but this query can't be format/re-parsed
+        when("searching for user having specified OID");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
+                prismContext.queryFor(UserType.class)
+                        .item(PrismConstants.T_ID).eq(user1Oid)
+                        .build(),
+                operationResult);
+
+        then("user with specified OID is returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(user1Oid);
+    }
+
+    // Following OID tests use services in one cost center, only OID conditions are of interest.
+    @Test
+    public void test911SearchByOidLowerThan() throws SchemaException {
+        when("searching for objects with OID lower than");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).lt("00000000-1000-0000-0000-000000000000")
+                        .build(),
+                operationResult);
+
+        then("user with OID lower than specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder();
+    }
+
+    @Test
+    public void test912SearchByOidLoe() throws SchemaException {
+        when("searching for objects with OID lower than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).le("00000000-1000-0000-0000-000000000001")
+                        .build(),
+                operationResult);
+
+        then("user with OID lower than or equal to specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "00000000-1000-0000-0000-000000000000",
+                        "00000000-1000-0000-0000-000000000001");
+    }
+
+    @Test
+    public void test913SearchByOidGoe() throws SchemaException {
+        when("searching for objects with OID greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).ge("ffffffff-ffff-ffff-ffff-ffffffffffff")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test914SearchByOidPrefixGoe() throws SchemaException {
+        when("searching for objects with OID prefix greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).ge("ff")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified prefix are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ff000000-0000-0000-0000-000000000000",
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test915SearchByUpperCaseOidPrefixGoe() throws SchemaException {
+        when("searching for objects with upper-case OID prefix greater than or equal");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        // if this was interpreted as VARCHAR, all lowercase OIDs would be returned
+                        .item(PrismConstants.T_ID).ge("FF")
+                        .build(),
+                operationResult);
+
+        then("user with OID greater than or equal to specified prefix ignoring case are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "ff000000-0000-0000-0000-000000000000",
+                        "ffffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
+    public void test916SearchByOidPrefixStartsWith() throws SchemaException {
+        when("searching for objects with OID prefix starting with");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+                prismContext.queryFor(ServiceType.class)
+                        .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
+                        .and()
+                        .item(PrismConstants.T_ID).startsWith("11")
+                        .build(),
+                operationResult);
+
+        then("user with OID starting with the specified prefix are returned");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactlyInAnyOrder(
+                        "11000000-0000-0000-0000-000000000000",
+                        "11000000-1000-0000-0000-100000000000",
+                        "11000000-1000-0000-0000-100000000001",
+                        "11ffffff-ffff-ffff-ffff-fffffffffffe",
+                        "11ffffff-ffff-ffff-ffff-ffffffffffff");
+    }
+
+    @Test
     public void test920SearchObjectTypeFindsAllObjects() throws SchemaException {
         OperationResult operationResult = createOperationResult();
 
@@ -1663,9 +1892,7 @@ AND(
         OperationResult operationResult = createOperationResult();
 
         given("cleared performance information");
-        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        pm.clearGlobalPerformanceInformation();
-        assertThat(pm.getGlobalPerformanceInformation().getAllData()).isEmpty();
+        clearPerformanceMonitor();
 
         when("search is called on the repository");
         searchObjects(FocusType.class,
@@ -1674,7 +1901,7 @@ AND(
 
         then("performance monitor is updated");
         assertThatOperationResult(operationResult).isSuccess();
-        assertSingleOperationRecorded(pm, RepositoryService.OP_SEARCH_OBJECTS);
+        assertSingleOperationRecorded(RepositoryService.OP_SEARCH_OBJECTS);
     }
 
     @Test
@@ -1704,8 +1931,8 @@ AND(
         expect("isAncestor returns true for parent-descendant (deep child) orgs");
         assertTrue(repositoryService.isAncestor(rootOrg, org111Oid));
 
-        expect("isAncestor returns true for the same org");
-        assertTrue(repositoryService.isAncestor(rootOrg, org1Oid));
+        expect("isAncestor returns false for the same org (not ancestor of itself)");
+        assertFalse(repositoryService.isAncestor(rootOrg, org1Oid));
 
         expect("isAncestor returns false for unrelated orgs");
         assertFalse(repositoryService.isAncestor(rootOrg, org21Oid));
@@ -1730,10 +1957,7 @@ AND(
                 repositoryService.getObject(OrgType.class, org112Oid, null, operationResult),
                 org1Oid));
 
-        // TODO this one is strange, as it is not symmetric with isAncestor.
-        //  This works fine for non-orgs, but not for org itself - which by one look is ancestor
-        //  of itself, but then by another one is NOT descendant of itself.
-        expect("isDescendant returns false for the same org");
+        expect("isDescendant returns false for the same org (not descendant of itself)");
         assertFalse(repositoryService.isDescendant(org11, org11Oid));
 
         expect("isDescendant returns false for unrelated orgs");
@@ -1742,32 +1966,6 @@ AND(
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
     }
-
-    @Test
-    public void test972IsAnySubordinate() {
-        expect("isAnySubordinate returns true for parent-child orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org11Oid)));
-
-        expect("isAnySubordinate returns true for parent-descendant (deep child) orgs");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid)));
-
-        expect("isAnySubordinate returns true for the same org");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org1Oid)));
-
-        expect("isAnySubordinate returns true when the list contains only descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid,
-                List.of(org1Oid, org111Oid, org112Oid)));
-
-        expect("isAnySubordinate returns true when the list mixes descendants and non-descendants");
-        assertTrue(repositoryService.isAnySubordinate(org1Oid, List.of(org111Oid, org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only unrelated orgs");
-        assertFalse(repositoryService.isAnySubordinate(org1Oid, List.of(org21Oid)));
-
-        expect("isAnySubordinate returns false when list contains only ancestors");
-        assertFalse(repositoryService.isAnySubordinate(org11Oid, List.of(org1Oid)));
-    }
-
     // endregion
 
     // support methods
@@ -1786,13 +1984,14 @@ AND(
         return searchObjects(type, objectQuery, operationResult, selectorOptions);
     }
 
-    private void searchUsersTest(String description,
+    private SearchResultList<UserType> searchUsersTest(String description,
             Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
             throws SchemaException {
-        searchObjectTest(description, UserType.class, filter, expectedOids);
+        return searchObjectTest(description, UserType.class, filter, expectedOids);
     }
 
-    private <T extends ObjectType> void searchObjectTest(String description, Class<T> type,
+    private <T extends ObjectType> SearchResultList<T> searchObjectTest(
+            String description, Class<T> type,
             Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
@@ -1807,9 +2006,10 @@ AND(
         assertThat(result)
                 .extracting(o -> o.getOid())
                 .containsExactlyInAnyOrder(expectedOids);
+        return result;
     }
 
-    /** Search objects using {@link ObjectQuery}. */
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
     @SafeVarargs
     @NotNull
     private <T extends ObjectType> SearchResultList<T> searchObjects(
@@ -1827,11 +2027,23 @@ AND(
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
+        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @SafeVarargs
+    @NotNull
+    private <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
         return repositoryService.searchObjects(
                 type,
                 query,
                 selectorOptions != null && selectorOptions.length != 0
-                        ? Arrays.asList(selectorOptions) : null,
+                        ? List.of(selectorOptions) : null,
                 operationResult)
                 .map(p -> p.asObjectable());
     }
@@ -1872,7 +2084,8 @@ AND(
         return repositoryService.searchContainers(
                 type,
                 query,
-                Arrays.asList(selectorOptions),
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null,
                 operationResult);
     }
 }

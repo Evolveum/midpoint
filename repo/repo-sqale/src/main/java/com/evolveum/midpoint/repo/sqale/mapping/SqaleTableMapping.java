@@ -23,14 +23,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.ArrayPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.JsonbPolysPathItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.UriItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.UuidItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -105,6 +108,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+
     }
 
     @Override
@@ -154,7 +158,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     @Override
     protected ItemSqlMapper<Q, R> uuidMapper(Function<Q, UuidPath> rootToQueryItem) {
         return new SqaleItemSqlMapper<>(
-                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new UuidItemFilterProcessor(ctx, rootToQueryItem),
                 ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
     }
@@ -237,7 +241,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                         ctx, rootToQueryItem, "INTEGER", Integer.class,
                         ((SqaleRepoContext) ctx.repositoryContext())::searchCachedUriId),
                 ctx -> new ArrayItemDeltaProcessor<>(ctx, rootToQueryItem, Integer.class,
-                        ((SqaleRepoContext) ctx.repositoryContext())::processCacheableUri));
+                        ctx.repositoryContext()::processCacheableUri));
     }
 
     /**
@@ -347,7 +351,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected @Nullable UUID oidToUUid(@Nullable String oid) {
-        return oid != null ? UUID.fromString(oid) : null;
+        try {
+            return oid != null ? UUID.fromString(oid) : null;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Cannot convert oid '" + oid + "' to UUID", e);
+        }
     }
 
     protected MObjectType schemaTypeToObjectType(QName schemaType) {
@@ -363,10 +371,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         }
     }
 
-    protected void setReference(ObjectReferenceType ref,
+    protected void setReference(Referencable ref,
             Consumer<UUID> targetOidConsumer, Consumer<MObjectType> targetTypeConsumer,
             Consumer<Integer> relationIdConsumer) {
         if (ref != null) {
+            if (ref.getType() == null) {
+                ref = SqaleUtils.referenceWithTypeFixed(ref);
+            }
             targetOidConsumer.accept(oidToUUid(ref.getOid()));
             targetTypeConsumer.accept(schemaTypeToObjectType(ref.getType()));
             relationIdConsumer.accept(processCacheableRelation(ref.getRelation()));
@@ -403,7 +414,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
         ExtensionMapping<Q, R> mapping =
-                new ExtensionMapping<>(holderType, queryType(), rootToPath);
+                new ExtensionMapping<>(holderType, queryType(), rootToPath, repositoryContext());
         addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
         addItemMapping(itemName, new SqaleItemSqlMapper<>(
                 ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));
@@ -443,6 +454,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
+        repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
         return repositoryContext().createStringSerializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
@@ -456,5 +468,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     protected Collection<? extends QName> fullObjectItemsToSkip() {
         // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
         return Collections.emptyList();
+    }
+
+    public S toSchemaObject(Tuple result, Q root,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession, boolean forceFull) throws SchemaException {
+        return toSchemaObject(result, root, options);
     }
 }

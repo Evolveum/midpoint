@@ -23,7 +23,6 @@ import com.google.common.base.Strings;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -45,6 +44,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.FilterOperation;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -300,28 +300,16 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
             // The value here should be poly-string, otherwise it never matches both orig and norm.
             return processPolyStringBoth(extItem, values, operation);
         } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
-            return processPolyStringComponent(
-                    extItem, convertPolyValuesToString(values, filter, p -> p.getOrig()),
+            return processPolyStringComponent(extItem,
+                    ValueFilterValues.from(filter, PolyStringItemFilterProcessor::extractOrig),
                     JSONB_POLY_ORIG_KEY, operation);
         } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
             return processPolyStringComponent(
-                    extItem, convertPolyValuesToString(values, filter, p -> p.getNorm()),
+                    extItem, ValueFilterValues.from(filter, this::extractNorm),
                     JSONB_POLY_NORM_KEY, operation);
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
-    }
-
-    @NotNull
-    private ValueFilterValues<?, ?> convertPolyValuesToString(ValueFilterValues<?, ?> values,
-            PropertyValueFilter<?> filter, Function<PolyString, String> extractor) {
-        // In case it is string already we don't need to do anything.
-        if (values.singleValueRaw() instanceof String) {
-            return values;
-        }
-
-        //noinspection unchecked
-        return ValueFilterValues.from((PropertyValueFilter<PolyString>) filter, extractor);
     }
 
     private Predicate processPolyStringBoth(
@@ -396,5 +384,9 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         // We have to use parenthesis with AND shovelled into the template like this.
         return booleanTemplate("({0} ?? {1} AND {0} is not null)",
                 path, extItem.id.toString()).not();
+    }
+
+    private String extractNorm(Object value) {
+        return PolyStringItemFilterProcessor.extractNorm(value, context.prismContext());
     }
 }

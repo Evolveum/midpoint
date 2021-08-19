@@ -66,6 +66,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                         .and(rootPath.version.eq(objectVersion)));
     }
 
+    @Override
     public Q entityPath() {
         return rootPath;
     }
@@ -95,19 +96,19 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             return modifications; // no need to execute any update
         }
 
-        cidGenerator = new ContainerValueIdGenerator()
-                .forModifyObject(getPrismObject(), row.containerIdSeq);
+        cidGenerator = new ContainerValueIdGenerator(getPrismObject())
+                .forModifyObject(row.containerIdSeq);
 
         for (ItemDelta<?, ?> modification : modifications) {
             try {
                 processModification(modification);
             } catch (IllegalArgumentException e) {
-                logger.warn("Modification failed/not implemented yet: {}", e.toString());
-                throw new SystemException(e);
+                logger.warn("Modification failed with '{}': {}", e, modification);
+                throw new SystemException("Modification failed: " + modification, e);
             }
         }
 
-        repositoryContext().normalizeAllRelations(prismObject);
+        repositoryContext().normalizeAllRelations(prismObject.getValue());
         finishExecution();
 
         return modifications;
@@ -137,7 +138,9 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
                     PrismContainerValue<Containerable> existingValue = container.findValue(
                             pcv, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
                     // We will set CID and use that for DB updates.
-                    pcv.setId(existingValue.getId());
+                    if (existingValue != null) {
+                        pcv.setId(existingValue.getId());
+                    }
                 }
             }
         }
@@ -150,6 +153,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
      *
      * This is made public for cases when we want to update full object even without modifications.
      */
+    @Override
     public void finishExecutionOwn() throws SchemaException, RepositoryException {
         int newVersion = objectVersionAsInt(object) + 1;
         object.setVersion(String.valueOf(newVersion));
@@ -172,14 +176,21 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     }
 
     @Override
-    public <V extends PrismValue> Item<V, ?> findItem(@NotNull ItemPath path) {
-        return object.asPrismObject().findItem(path);
+    public <O> O findValueOrItem(@NotNull ItemPath path) {
+        //noinspection unchecked
+        return (O) object.asPrismObject().find(path);
+    }
+
+    @Override
+    public boolean isOverwrittenId(Long id) {
+        return cidGenerator.isOverwrittenId(id);
     }
 
     public SQLUpdateClause update() {
         return update;
     }
 
+    @Override
     public <P extends Path<T>, T> void set(P path, T value) {
         update.set(path, value);
     }

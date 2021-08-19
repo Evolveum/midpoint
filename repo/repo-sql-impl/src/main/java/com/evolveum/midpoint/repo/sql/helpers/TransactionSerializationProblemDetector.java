@@ -56,7 +56,7 @@ public class TransactionSerializationProblemDetector {
         // however, it still could be such exception... wrapped in e.g. TransactionException
         // so we have a look inside - we try to find SQLException there
 
-        SQLException sqlException = findSqlException(ex);
+        SQLException sqlException = ExceptionUtil.findCause(ex, SQLException.class);
         if (sqlException == null) {
             return false;
         }
@@ -142,7 +142,7 @@ public class TransactionSerializationProblemDetector {
     };
 
     private boolean hasSerializationRelatedConstraintViolationException(Throwable ex) {
-        ConstraintViolationException cve = ExceptionUtil.findException(ex, ConstraintViolationException.class);
+        ConstraintViolationException cve = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
         return cve != null && isSerializationRelatedConstraintViolationException(cve);
     }
 
@@ -165,7 +165,7 @@ public class TransactionSerializationProblemDetector {
         //
         // see MID-4698
 
-        SQLException sqlException = findSqlException(cve);
+        SQLException sqlException = ExceptionUtil.findCause(cve, SQLException.class);
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             log.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}",
@@ -194,9 +194,5 @@ public class TransactionSerializationProblemDetector {
             }
         }
         return false;
-    }
-
-    private SQLException findSqlException(Throwable ex) {
-        return ExceptionUtil.findException(ex, SQLException.class);
     }
 }

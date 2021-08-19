@@ -12,7 +12,9 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.report.impl.ReportUtils;
-import com.evolveum.midpoint.report.impl.controller.fileformat.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
+import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
+import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +50,7 @@ class ReportDataAggregationExecutionSpecifics
     /**
      * Data writer which completize context of report.
      */
-    private ReportDataWriter dataWriter;
+    private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter;
 
     ReportDataAggregationExecutionSpecifics(@NotNull SearchBasedActivityExecution<ReportDataType,
             DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler, ?> activityExecution) {
@@ -92,6 +94,6 @@ class ReportDataAggregationExecutionSpecifics
 
     @Override
     public void afterExecution(OperationResult result) throws CommonException, ActivityExecutionException {
-       support.saveReportFile(aggregatedData.toString(), dataWriter, result);
+        support.saveReportFile(aggregatedData.toString(), dataWriter, result);
     }
 }

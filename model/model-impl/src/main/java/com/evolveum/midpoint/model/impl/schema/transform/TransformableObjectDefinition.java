@@ -81,8 +81,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
 
     @Override
     public @NotNull PrismObject<O> instantiate(QName name) throws SchemaException {
-        // TODO Auto-generated method stub
-        return getPrismContext().itemFactory().createObject(name, this);
+        return (PrismObject<O>) super.instantiate(name);
     }
 
 }

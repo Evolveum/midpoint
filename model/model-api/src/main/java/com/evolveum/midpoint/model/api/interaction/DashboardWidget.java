@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.model.api.interaction;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.springframework.cglib.core.Local;
+
 import java.io.Serializable;
+import java.util.Locale;
 
 /**
  * @author skublik
@@ -53,9 +57,9 @@ public class DashboardWidget {
         this.widget = widget;
     }
 
-    public String getLabel() {
+    public String getLabel(LocalizationService localizationService) {
         if(getDisplay() != null && getDisplay().getLabel() != null) {
-            return getDisplay().getLabel().toString();
+            return localizationService.translate(getDisplay().getLabel().toPolyString(), Locale.getDefault(), true);
         } else {
             return getWidget().getIdentifier();
         }

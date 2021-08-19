@@ -13,7 +13,7 @@ import java.util.function.BiConsumer;
 import com.evolveum.midpoint.repo.common.task.*;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 
-import com.evolveum.midpoint.report.impl.controller.fileformat.ImportController;
+import com.evolveum.midpoint.report.impl.controller.ImportController;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -43,8 +43,6 @@ class ClassicReportImportActivityExecutionSpecifics
 
     @NotNull private final ImportActivitySupport support;
 
-    private ReportType report;
-
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
@@ -61,20 +59,19 @@ class ClassicReportImportActivityExecutionSpecifics
     @Override
     public void beforeExecution(OperationResult result) throws CommonException, ActivityExecutionException {
         support.beforeExecution(result);
-        report = support.getReport();
+        ReportType report = support.getReport();
 
         support.stateCheck(result);
 
         controller = new ImportController(
                 report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);
-        controller.initialize(getRunningTask(), result);
+        controller.initialize();
     }
 
     @Override
-    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) throws CommonException {
+    public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
         BiConsumer<Integer, VariablesMap> handler = (lineNumber, variables) -> {
             InputReportLine line = new InputReportLine(lineNumber, variables);
-            // TODO determine the correlation value, if possible
 
             getProcessingCoordinator().submit(
                     new InputReportLineProcessingRequest(line, activityExecution),
@@ -82,7 +79,7 @@ class ClassicReportImportActivityExecutionSpecifics
         };
 
         try {
-            controller.processVariableFromFile(report, support.getReportData(), handler); // TODO better name
+            controller.parseColumnsAsVariablesFromFile(support.getReportData(), handler);
         } catch (IOException e) {
             LOGGER.error("Couldn't read content of imported file", e);
         }
@@ -98,6 +95,6 @@ class ClassicReportImportActivityExecutionSpecifics
 
     @Override
     public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
-        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE; // TODO or STOP ?
+        return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
     }
 }

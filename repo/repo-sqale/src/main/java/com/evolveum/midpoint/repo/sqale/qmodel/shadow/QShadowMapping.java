@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,8 +21,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QShadow} and {@link ShadowType}.
@@ -111,5 +116,14 @@ public class QShadowMapping
         row.synchronizationTimestamp = MiscUtil.asInstant(shadow.getSynchronizationTimestamp());
         row.attributes = processExtensions(shadow.getAttributes(), MExtItemHolderType.ATTRIBUTES);
         return row;
+    }
+
+    @Override
+    public ShadowType toSchemaObject(Tuple row, QShadow entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+        ShadowType shadowType = super.toSchemaObject(row, entityPath, options);
+        // FIXME: we store it because provisioning now sends it to repo, but it should be transient
+        shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
+        return shadowType;
     }
 }
