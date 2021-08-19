@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -30,8 +29,7 @@ public class AsyncUpdateWorkDefinition extends AbstractWorkDefinition implements
         } else {
             AsyncUpdateWorkDefinitionType typedDefinition = (AsyncUpdateWorkDefinitionType)
                     ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = typedDefinition.getUpdatedResourceObjects() != null ?
-                    typedDefinition.getUpdatedResourceObjects() : new ResourceObjectSetType(PrismContext.get());
+            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getUpdatedResourceObjects());
         }
         ResourceObjectSetUtil.removeQuery(resourceObjects);
     }
