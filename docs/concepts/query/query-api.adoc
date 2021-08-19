@@ -11,7 +11,8 @@
 == Objects, Queries and Filters
 
 midPoint works with tree-shaped data structures, just like hierarchical databases do.
-These structures are called *prism objects*.They are stored in various places, namely:
+These structures are called *prism objects*.
+They are stored in various places, namely:
 
 [%autowidth]
 |===
@@ -41,6 +42,9 @@ The resource objects are currently a bit simplified: they consist of one single-
 
 In the following we will discuss primarily queries targeted at repository objects.
 These notes apply to resource and workflow objects appropriately.
+
+[NOTE]
+Query language is defined in Prism project in link:https://github.com/Evolveum/prism/blob/master/infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd[query-3 schema].
 
 A query can be:
 
