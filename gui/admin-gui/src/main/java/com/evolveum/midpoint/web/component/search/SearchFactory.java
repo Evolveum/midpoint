@@ -185,23 +185,23 @@ public class SearchFactory {
         ));
     }
 
-    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
         return createContainerSearch(type, null, modelServiceLocator, false);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
         return createContainerSearch(type, containerDef, defaultSearchItem, defaultAvailableDefs, modelServiceLocator, useObjectCollection);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
 
         List<SearchItemDefinition> availableDefs = defaultAvailableDefs;

@@ -140,6 +140,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
+    protected boolean notContainsNameColumn(List<IColumn<SelectableBean<O>, String>> columns) {
+        for(IColumn<SelectableBean<O>, String> column : columns) {
+            if (column instanceof ObjectNameColumn) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, String itemPath, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {

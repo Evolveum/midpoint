@@ -59,18 +59,18 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AuditEventRecordType.F_MESSAGE),
                         new ColumnWrapper(AuditEventRecordType.F_DELTA)))
                 .put(ResourceType.class, Arrays.asList(
-//                        new ColumnWrapper(ResourceType.F_NAME), //todo refactor ContainerableListPanel.createNameColumn usage
+                        new ColumnWrapper(ResourceType.F_NAME),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION), "ConnectorType.connectorVersion")))
                 .put(UserType.class, Arrays.asList(
-//                        new ColumnWrapper(UserType.F_NAME, true), //todo refactor ContainerableListPanel.createNameColumn usage
+                        new ColumnWrapper(UserType.F_NAME, true),
                         new ColumnWrapper(UserType.F_GIVEN_NAME, true),
                         new ColumnWrapper(UserType.F_FAMILY_NAME, true),
                         new ColumnWrapper(UserType.F_FULL_NAME, true),
                         new ColumnWrapper(UserType.F_EMAIL_ADDRESS),
                         new ColumnWrapper(UserType.F_LINK_REF, "FocusType.accounts", DisplayValueType.NUMBER)))
                 .put(AbstractRoleType.class, Arrays.asList(
-//                        new ColumnWrapper(AbstractRoleType.F_NAME),   //todo refactor ContainerableListPanel.createNameColumn usage
+                        new ColumnWrapper(AbstractRoleType.F_NAME),
                         new ColumnWrapper(AbstractRoleType.F_DISPLAY_NAME, true),
                         new ColumnWrapper(AbstractRoleType.F_DESCRIPTION),
                         new ColumnWrapper(AbstractRoleType.F_IDENTIFIER, true),
