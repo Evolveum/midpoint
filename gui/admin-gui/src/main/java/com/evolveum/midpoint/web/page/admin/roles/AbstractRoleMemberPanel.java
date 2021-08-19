@@ -100,7 +100,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
-    private PageBase pageBase;
 
     static {
         TABLES_ID.put(RoleType.COMPLEX_TYPE, UserProfileStorage.TableId.ROLE_MEMBER_PANEL);
@@ -123,7 +122,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        pageBase = getPageBase();
         initLayout();
     }
 
@@ -277,9 +275,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-                return pageBase.getPrismContext().getSchemaRegistry()                       //todo pageBase usage is a hack to fix the bug
-                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)    //when search item is initialized before
-                        .findReferenceDefinition(refName);                                  //the panel is attached
+                return PrismContext.get().getSchemaRegistry()
+                        .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
+                        .findReferenceDefinition(refName);
             }
 
             @Override
