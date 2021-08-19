@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,6 +117,7 @@ public interface RepositoryService {
     String OP_COUNT_OBJECTS = "countObjects";
     String OP_MODIFY_OBJECT = "modifyObject";
     String OP_MODIFY_OBJECT_DYNAMICALLY = "modifyObjectDynamically";
+    String OP_EXECUTE_JOB = "executeJob";
     String OP_GET_VERSION = "getVersion";
     String OP_IS_ANY_SUBORDINATE = "isAnySubordinate"; // TODO remove with old repo, not public op anymore
     String OP_IS_DESCENDANT = "isDescendant";
@@ -145,6 +147,7 @@ public interface RepositoryService {
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT;
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + OP_COUNT_OBJECTS;
     String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT_DYNAMICALLY;
+    String EXECUTE_JOB = CLASS_NAME_WITH_DOT + OP_EXECUTE_JOB;
     String GET_VERSION = CLASS_NAME_WITH_DOT + OP_GET_VERSION;
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
     String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + OP_SEARCH_SHADOW_OWNER;
@@ -316,6 +319,71 @@ public interface RepositoryService {
     @FunctionalInterface
     interface ModificationsSupplier<T extends ObjectType> {
         @NotNull Collection<? extends ItemDelta<?, ?>> get(T object) throws SchemaException;
+    }
+
+    /**
+     * Executes a general query/update job (i.e. a job that executes a set of queries and updates,
+     * potentially on a different objects) in a single database transaction.
+     *
+     * @return a list of operation results returned from individual add/modify/delete operations.
+     */
+    @Experimental
+    @NotNull
+    default List<RepoUpdateOperationResult> executeJob(@NotNull Job job,
+            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Client-supplied piece of code that invokes a set of queries and updates
+     * using provided {@link JobOperationExecutor} object.
+     */
+    @Experimental
+    @FunctionalInterface
+    interface Job {
+
+        /**
+         * Executes the job. Must *not* call repository API, neither directly nor indirectly!
+         *
+         * @param localResult Operation result to use if any result-aware methods are to be called.
+         * Never use closure-bound "outer" operation result!
+         */
+        void execute(@NotNull RepositoryService.JobOperationExecutor operationExecutor, @NotNull OperationResult localResult)
+                throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+    }
+
+    /**
+     * Interface to be used by {@link Job#execute(JobOperationExecutor, OperationResult)} method implementation
+     * to read and write data from/to repository.
+     *
+     * TODO better name
+     */
+    @Experimental
+    interface JobOperationExecutor {
+
+        /**
+         * Retrieves an object.
+         *
+         * Limitations:
+         *
+         * - option "allow not found" not supported.
+         */
+        <T extends ObjectType> PrismObject<T> getObject(@NotNull Class<T> type, @NotNull String oid,
+                Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException;
+
+        /**
+         * Modifies an object.
+         *
+         * Limitations:
+         *
+         * - modifications touching org closure are not supported in legacy repo,
+         * - "reindex" option is not supported.
+         */
+        <T extends ObjectType> void modifyObject(@NotNull Class<T> type, @NotNull String oid,
+                @NotNull Collection<? extends ItemDelta<?, ?>> modifications, RepoModifyOptions options)
+                throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+
+        // TODO later maybe also addObject, deleteObject, searchObjects?
     }
 
     /**

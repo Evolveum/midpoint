@@ -11,8 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucke
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_ACTIVITY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -24,7 +23,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -812,7 +815,183 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("task after", taskAfter);
 
-        assertCorrectBucketSequence(taskAfter.asObjectable().getActivityState().getActivity().getBucketing().getBucket());
+        assertCorrectBucketSequence(getBuckets(taskAfter));
+    }
+
+    /**
+     * Here we test concurrent work bucket migration among tasks
+     * using {@link RepositoryService#executeJob(RepositoryService.Job, OperationResult)} method.
+     *
+     * Threads of n ~ 0 (mod 3) move buckets from coordinator to worker1.
+     * Threads of n ~ 1 (mod 3) move buckets from worker1 to worker2.
+     * Threads of n ~ 2 (mod 3) move buckets from worker2 to coordinator.
+     *
+     * https://www.youtube.com/watch?v=ejyA22n-_mc&t=25s
+     *
+     * (Note that actual bucketing algorithms do not work this way.)
+     */
+    @Test
+    public void test145WorkBucketsMigration() throws Exception {
+
+        int BUCKETS_PER_TASK = 10;
+        int THREADS = 9;
+        long DURATION = 30000L;
+
+        TaskType coordinator = new TaskType(prismContext)
+                .name("test145-coordinator")
+                .beginActivityState()
+                    .beginActivity()
+                        .beginBucketing()
+                            .bucketsProcessingRole(BucketsProcessingRoleType.COORDINATOR)
+                        .<ActivityStateType>end()
+                    .<TaskActivityStateType>end()
+                .end();
+        createBucketsInTask(coordinator, 0, BUCKETS_PER_TASK);
+
+        TaskType worker1 = new TaskType(prismContext)
+                .name("test145-worker1")
+                .beginActivityState()
+                    .beginActivity()
+                        .beginBucketing()
+                            .bucketsProcessingRole(BucketsProcessingRoleType.WORKER)
+                        .<ActivityStateType>end()
+                    .<TaskActivityStateType>end()
+                .end();
+        createBucketsInTask(worker1, BUCKETS_PER_TASK, BUCKETS_PER_TASK);
+
+        TaskType worker2 = new TaskType(prismContext)
+                .name("test145-worker2")
+                .beginActivityState()
+                    .beginActivity()
+                        .beginBucketing()
+                            .bucketsProcessingRole(BucketsProcessingRoleType.WORKER)
+                        .<ActivityStateType>end()
+                    .<TaskActivityStateType>end()
+                .end();
+        createBucketsInTask(worker2, 2*BUCKETS_PER_TASK, BUCKETS_PER_TASK);
+
+        OperationResult result = new OperationResult("test145WorkBucketsAddUsingJob");
+        String coordinatorOid = repositoryService.addObject(coordinator.asPrismObject(), null, result);
+        String worker1Oid = repositoryService.addObject(worker1.asPrismObject(), null, result);
+        String worker2Oid = repositoryService.addObject(worker2.asPrismObject(), null, result);
+
+        List<String> taskOids = List.of(coordinatorOid, worker1Oid, worker2Oid);
+        List<AtomicInteger> bucketCounts = List.of(
+                new AtomicInteger(BUCKETS_PER_TASK),
+                new AtomicInteger(BUCKETS_PER_TASK),
+                new AtomicInteger(BUCKETS_PER_TASK));
+
+        displayValue("coordinator added", coordinatorOid);
+        displayValue("worker1 added", worker1Oid);
+        displayValue("worker2 added", worker2Oid);
+
+        logger.info("Starting worker threads");
+
+        List<WorkerThread> threads = new ArrayList<>();
+        for (int i = 0; i < THREADS; i++) {
+            final int threadIndex = i;
+
+            WorkerThread thread = new WorkerThread(i) {
+
+                private final int sourceIndex = threadIndex % 3;
+                private final int targetIndex = (threadIndex + 1) % 3;
+                private final String sourceOid = taskOids.get(sourceIndex);
+                private final String targetOid = taskOids.get(targetIndex);
+
+                @Override
+                void runOnce(OperationResult result) throws Exception {
+
+                    // After success we know this was the bucket we really moved.
+                    // (Otherwise we would get an exception!)
+                    Holder<Integer> bucketMovedHolder = new Holder<>();
+
+                    repositoryService.executeJob((operationExecutor, localResult) -> {
+
+                        PrismObject<TaskType> sourceTask = operationExecutor.getObject(TaskType.class, sourceOid, null);
+                        List<WorkBucketType> sourceBuckets = getBuckets(sourceTask);
+                        if (sourceBuckets.isEmpty()) {
+                            displayValue(Thread.currentThread().getName(), "No buckets in " + sourceTask);
+                            bucketMovedHolder.setValue(null);
+                            return;
+                        }
+                        WorkBucketType bucketToMove = MiscUtil.getRandomItem(sourceBuckets);
+
+                        List<ItemDelta<?, ?>> deleteDeltas = prismContext.deltaFor(TaskType.class)
+                                .item(TaskType.F_ACTIVITY_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
+                                .delete(bucketToMove.clone())
+                                .asItemDeltas();
+
+                        List<ItemDelta<?, ?>> addDeltas = prismContext.deltaFor(TaskType.class)
+                                .item(TaskType.F_ACTIVITY_STATE, F_ACTIVITY, F_BUCKETING, F_BUCKET)
+                                .add((WorkBucketType) bucketToMove.cloneWithoutId())
+                                .asItemDeltas();
+
+                        operationExecutor.modifyObject(TaskType.class, sourceOid, deleteDeltas, null);
+                        operationExecutor.modifyObject(TaskType.class, targetOid, addDeltas, null);
+
+                        bucketMovedHolder.setValue(bucketToMove.getSequentialNumber());
+
+                    }, result);
+
+                    Integer bucketMoved = bucketMovedHolder.getValue();
+
+                    if (bucketMoved != null) {
+                        bucketCounts.get(sourceIndex).decrementAndGet();
+                        bucketCounts.get(targetIndex).incrementAndGet();
+                        displayValue(Thread.currentThread().getName(),
+                                "Bucket " + bucketMoved + " moved from " + sourceIndex + " to " + targetIndex +
+                                ". State: " + getState(bucketCounts));
+                    } else {
+                        displayValue(Thread.currentThread().getName(),
+                                "No bucket could be moved from " + sourceIndex + " to " + targetIndex +
+                                " (none are at the source). State: " + getState(bucketCounts));
+                    }
+                }
+
+                @NotNull
+                private String getState(List<AtomicInteger> taskBuckets) {
+                    return taskBuckets.get(0) + ":" + taskBuckets.get(1) + ":" + taskBuckets.get(2);
+                }
+
+                @Override
+                String description() {
+                    return "Bucket mover thread #" + threadIndex;
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+
+        waitForThreads(threads, DURATION);
+        PrismObject<TaskType> coordinatorAfter = repositoryService.getObject(TaskType.class, coordinatorOid, null, result);
+        PrismObject<TaskType> worker1After = repositoryService.getObject(TaskType.class, worker1Oid, null, result);
+        PrismObject<TaskType> worker2After = repositoryService.getObject(TaskType.class, worker2Oid, null, result);
+        displayValue("coordinator after", coordinatorAfter);
+        displayValue("worker1 after", worker1After);
+        displayValue("worker2 after", worker2After);
+
+        assertCorrectBucketDistribution(
+                BUCKETS_PER_TASK,
+                List.of(getBuckets(coordinatorAfter), getBuckets(worker1After), getBuckets(worker2After)),
+                bucketCounts);
+    }
+
+    private List<WorkBucketType> getBuckets(PrismObject<TaskType> task) {
+        return task.asObjectable().getActivityState().getActivity().getBucketing().getBucket();
+    }
+
+    private List<WorkBucketType> getBuckets(TaskType task) {
+        return task.getActivityState().getActivity().getBucketing().getBucket();
+    }
+
+    private void createBucketsInTask(TaskType task, int from, int BUCKETS_PER_TASK) {
+        for (int i = 0; i < BUCKETS_PER_TASK; i++) {
+            int seq = from + i;
+            getBuckets(task).add(
+                    new WorkBucketType(prismContext)
+                            .sequentialNumber(seq)
+                            .state(WorkBucketStateType.READY));
+        }
     }
 
     private void assertCorrectBucketSequence(List<WorkBucketType> buckets) {
@@ -828,6 +1007,29 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         }
     }
 
+    private void assertCorrectBucketDistribution(int bucketsPerTask, List<List<WorkBucketType>> bucketLists,
+            List<AtomicInteger> counts) {
+        for (int i = 0; i < bucketsPerTask; i++) {
+            List<Integer> occurrences = getBucketOccurrences(bucketLists, i);
+            assertThat(occurrences).as("occurrences for bucket #" + i).hasSize(1);
+        }
+        for (int i = 0; i < counts.size(); i++) {
+            assertThat(bucketLists.get(i)).as("bucket list in task #" + i).hasSize(counts.get(i).get());
+        }
+    }
+
+    private List<Integer> getBucketOccurrences(List<List<WorkBucketType>> bucketLists, int seq) {
+        List<Integer> occurrences = new ArrayList<>();
+        for (int listIndex = 0; listIndex < bucketLists.size(); listIndex++) {
+            List<WorkBucketType> bucketList = bucketLists.get(listIndex);
+            for (WorkBucketType bucket : bucketList) {
+                if (bucket.getSequentialNumber() == seq) {
+                    occurrences.add(listIndex);
+                }
+            }
+        }
+        return occurrences;
+    }
 
     /**
      * Here we test concurrent work bucket delegation using
@@ -909,7 +1111,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, oid, null, result);
         displayValue("task after", taskAfter);
 
-        assertCorrectBucketSequence(taskAfter.asObjectable().getActivityState().getActivity().getBucketing().getBucket());
+        assertCorrectBucketSequence(getBuckets(taskAfter));
     }
 
     private void waitForThreadsFinish(List<? extends WorkerThread> threads, long timeout) throws InterruptedException {

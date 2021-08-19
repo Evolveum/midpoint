@@ -18,6 +18,7 @@ import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -338,19 +339,21 @@ public class ObjectUpdater {
     }
 
     /**
-     * @param externalSession If non-null, this session is used to execute the operation. Note that usual commit/rollback is
-     * issued even if external session is present. We assume we are the last element of the processing in the session.
+     * @param externalSession If non-null, this session is used to execute the operation.
+     *
+     * @param doCommit If true, the usual commit/rollback is issued (regardless of external session is present).
+     * We assume we are the last element of the processing in the session in such cases.
      */
     public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(
             Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> originalModifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions originalModifyOptions,
             int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService,
-            boolean noFetchExtensionValueInsertionForbidden, Session externalSession)
+            boolean noFetchExtensionValueInsertionForbidden, Session externalSession, boolean doCommit,
+            AttemptContext attemptContext)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             SerializationRelatedException, PreconditionViolationException {
 
         RepoModifyOptions modifyOptions = adjustExtensionValuesHandling(originalModifyOptions, noFetchExtensionValueInsertionForbidden);
-        AttemptContext attemptContext = new AttemptContext();
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
@@ -370,7 +373,7 @@ public class ObjectUpdater {
                 session = baseHelper.beginTransaction();
             }
 
-            closureContext = closureManager.onBeginTransactionModify(session, type, oid, modifications);
+            closureContext = closureManager.onBeginTransactionModify(session, type, modifications);
 
             Collection<? extends ItemDelta<?, ?>> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
             Collection<? extends ItemDelta<?, ?>> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
@@ -488,34 +491,43 @@ public class ObjectUpdater {
                 caseHelper.updateCampaignCases(session, oid, campaignCaseModifications, modifyOptions);
             }
 
-            LOGGER.trace("Before commit...");
-            session.getTransaction().commit();
-            LOGGER.trace("Committed! (at attempt {})", attempt);
+            if (doCommit) {
+                LOGGER.trace("Before commit...");
+                session.getTransaction().commit();
+                LOGGER.trace("Committed! (at attempt {})", attempt);
+            }
             return rv;
         } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (PersistenceException ex) {
-            ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
-            if (constEx != null) {
-                handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
-                baseHelper.rollbackTransaction(session, constEx, result, true);
-                LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
-                // we don't know if it's only name uniqueness violation, or something else,
-                // therefore we're throwing it always as ObjectAlreadyExistsException
-
-                //todo improve (we support only 5 DB, so we should probably do some hacking in here)
-                throw new ObjectAlreadyExistsException(constEx);
-            } else {
-                baseHelper.handleGeneralException(ex, session, result);
-                throw new AssertionError("Shouldn't get here");
-            }
+            handlePersistenceException(ex, attemptContext, session, result);
+            throw new AssertionError("Shouldn't get here");
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
             throw new AssertionError("Shouldn't get here");
         } finally {
-            cleanupClosureAndSessionAndResult(closureContext, session, result);
+            if (doCommit) {
+                cleanupClosureAndSessionAndResult(closureContext, session, result);
+            }
             LOGGER.trace("Session cleaned up.");
+        }
+    }
+
+    private void handlePersistenceException(PersistenceException ex, AttemptContext attemptContext, Session session,
+            OperationResult result) throws ObjectAlreadyExistsException {
+        ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
+        if (constEx != null) {
+            handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
+            baseHelper.rollbackTransaction(session, constEx, result, true);
+            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
+            // we don't know if it's only name uniqueness violation, or something else,
+            // therefore we're throwing it always as ObjectAlreadyExistsException
+
+            //todo improve (we support only 5 DB, so we should probably do some hacking in here)
+            throw new ObjectAlreadyExistsException(constEx);
+        } else {
+            baseHelper.handleGeneralException(ex, session, result);
         }
     }
 
@@ -597,9 +609,72 @@ public class ObjectUpdater {
             try {
                 // TODO: eliminate redundant getObjectInternal call in modifyObjectAttempt
                 return modifyObjectAttempt(type, oid, modifications, null, modifyOptions, attempt, result, sqlRepositoryService,
-                        noFetchExtensionValueInsertionForbidden, session);
+                        noFetchExtensionValueInsertionForbidden, session, true, new AttemptContext());
             } catch (PreconditionViolationException e) {
                 throw new SystemException("Unexpected PreconditionViolationException: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    public @NotNull List<RepoUpdateOperationResult> executeJobAttempt(@NotNull RepositoryService.Job job,
+            int attempt, boolean noFetchExtensionValueInsertionForbidden, SqlRepositoryServiceImpl sqlRepositoryService,
+            OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+        LOGGER_PERFORMANCE.debug("> execute job");
+
+        try (Session session = baseHelper.beginTransaction()) {
+
+            List<RepoUpdateOperationResult> updateOperationResults = new ArrayList<>();
+
+            AttemptContext attemptContext = new AttemptContext();
+
+            RepositoryService.JobOperationExecutor executor = new RepositoryService.JobOperationExecutor() {
+
+                @Override
+                public <T extends ObjectType> PrismObject<T> getObject(@NotNull Class<T> type, @NotNull String oid,
+                        Collection<SelectorOptions<GetOperationOptions>> options)
+                        throws SchemaException, ObjectNotFoundException {
+                    try {
+                        return objectRetriever.getObjectInternal(session, type, oid, options, true);
+                    } catch (DtoTranslationException e) {
+                        // Can we treat this in a better way?
+                        throw new SystemException("Translation exception: " + e.getMessage(), e);
+                    }
+                }
+
+                @Override
+                public <T extends ObjectType> void modifyObject(@NotNull Class<T> type, @NotNull String oid,
+                        @NotNull Collection<? extends ItemDelta<?, ?>> modifications, RepoModifyOptions options)
+                        throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+                    if (!modifications.isEmpty()) {
+                        try {
+                            // TODO: eliminate redundant getObjectInternal call in modifyObjectAttempt
+                            ModifyObjectResult<T> modifyResult = modifyObjectAttempt(type, oid, modifications, null,
+                                    options, attempt, result, sqlRepositoryService,
+                                    noFetchExtensionValueInsertionForbidden, session, false, attemptContext);
+                            updateOperationResults.add(modifyResult);
+                        } catch (PreconditionViolationException e) {
+                            throw new SystemException("Unexpected precondition violation exception: " + e.getMessage(), e);
+                        }
+                    }
+                }
+            };
+
+            try {
+                job.execute(executor, result);
+                session.getTransaction().commit();
+                return updateOperationResults;
+            } catch (ObjectNotFoundException | SchemaException ex) {
+                baseHelper.rollbackTransaction(session, ex, result, true);
+                throw ex;
+            } catch (PersistenceException ex) {
+                handlePersistenceException(ex, attemptContext, session, result);
+                throw new AssertionError("Shouldn't get here");
+            } catch (RuntimeException ex) {
+                baseHelper.handleGeneralException(ex, session, result);
+                throw new AssertionError("Shouldn't get here");
+            } finally {
+                cleanupClosureAndSessionAndResult(null, session, result);
             }
         }
     }

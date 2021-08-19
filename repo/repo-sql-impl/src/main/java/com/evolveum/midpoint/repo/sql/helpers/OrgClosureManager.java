@@ -17,6 +17,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -144,11 +145,11 @@ public class OrgClosureManager {
         return onBeginTransaction(session);
     }
 
-    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
+    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, Collection<? extends ItemDelta> modifications) {
         if (!isEnabled()) {
             return null;
         }
-        if (!(OrgType.class.isAssignableFrom(type))) {
+        if (!OrgType.class.isAssignableFrom(type)) {
             return null;
         }
         if (filterParentRefDeltas(modifications).isEmpty()) {
@@ -164,7 +165,7 @@ public class OrgClosureManager {
         return onBeginTransaction(session);
     }
 
-    private Context onBeginTransaction(Session session) {
+    private @NotNull Context onBeginTransaction(Session session) {
         // table locking
         if (isH2() || isOracle() || isSQLServer()) {
             lockClosureTable(session);
@@ -180,7 +181,7 @@ public class OrgClosureManager {
                     "  PRIMARY KEY (descendant_oid, ancestor_oid)\n" +
                     ")";
             long start = System.currentTimeMillis();
-            NativeQuery q = session.createNativeQuery(createTableQueryText);
+            NativeQuery<?> q = session.createNativeQuery(createTableQueryText);
             q.executeUpdate();
             LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis() - start);
         }

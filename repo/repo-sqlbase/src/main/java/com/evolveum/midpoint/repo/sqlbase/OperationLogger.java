@@ -7,13 +7,11 @@
 package com.evolveum.midpoint.repo.sqlbase;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.ModifyObjectResult;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -70,6 +68,16 @@ public class OperationLogger {
                 shortDumpOptions(modifyOptions),
                 getStatus(result),
                 DebugUtil.debugDump(modifications, 1, false));
+    }
+
+    public static <O extends ObjectType> void logExecuteJob(List<RepoUpdateOperationResult> results, OperationResult result) {
+        if (!LOGGER_OP.isDebugEnabled()) {
+            return;
+        }
+
+        // TODO make results dumpable or transform them to dumpables
+        LOGGER_OP.debug("{} executed a job: {}\n{}", PREFIX, getStatus(result),
+                DebugUtil.debugDump(results, 1, false));
     }
 
     public static <O extends ObjectType> void logDelete(Class<O> type, String oid, OperationResult subResult) {

@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -183,7 +184,7 @@ public class BaseHelper {
         throw new SystemException(ex.getMessage(), ex);
     }
 
-    public int logOperationAttempt(String oid, String operation, int attempt, @NotNull RuntimeException ex,
+    public int logOperationAttempt(@Nullable String oid, String operation, int attempt, @NotNull RuntimeException ex,
             OperationResult result) {
 
         if (ex instanceof RestartOperationRequestedException) {

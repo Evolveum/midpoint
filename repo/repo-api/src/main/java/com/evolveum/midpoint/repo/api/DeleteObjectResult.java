@@ -14,7 +14,7 @@ package com.evolveum.midpoint.repo.api;
  * <p>
  * EXPERIMENTAL.
  */
-public class DeleteObjectResult {
+public class DeleteObjectResult implements RepoUpdateOperationResult {
 
     private final String objectTextRepresentation;
 

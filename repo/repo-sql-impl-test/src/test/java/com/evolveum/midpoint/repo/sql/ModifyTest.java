@@ -19,11 +19,14 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.*;
+
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
@@ -38,10 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -379,14 +378,57 @@ public class ModifyTest extends BaseSQLRepoTest {
             if ("old".equals(employeeNumber)) {
                 return prismContext.deltaFor(UserType.class)
                         .item(UserType.F_EMPLOYEE_NUMBER)
-                        .add("new")
                         .delete("old")
+                        .add("new")
                         .asItemDeltas();
             } else {
                 throw new IllegalStateException("employeeNumber is not 'old': " + employeeNumber);
             }
         }, getModifyOptions(), result);
         assertUserEmployeeNumber(user.getOid(), "new");
+    }
+
+    @Test
+    public void test053ModifyUserEmployeeNumberInJob() throws Exception {
+        if (RepoModifyOptions.isForceReindex(getModifyOptions())) {
+            throw new SkipException("reindex option is not supported by jobs");
+        }
+
+        OperationResult result = createOperationResult();
+        UserType user = new UserType(prismContext)
+                .oid("053")
+                .name("user053")
+                .employeeNumber("old");
+
+        repositoryService.addObject(user.asPrismObject(), null, result);
+        assertUserEmployeeNumber(user.getOid(), "old");
+
+        var results = repositoryService.executeJob(
+                (operationExecutor, localResult) -> {
+                    String oid = user.getOid();
+                    String employeeNumber = operationExecutor.getObject(UserType.class, oid, null)
+                            .asObjectable()
+                            .getEmployeeNumber();
+
+                    if ("old".equals(employeeNumber)) {
+                        operationExecutor.modifyObject(UserType.class, oid,
+                                prismContext.deltaFor(UserType.class)
+                                        .item(UserType.F_EMPLOYEE_NUMBER)
+                                        .delete("old")
+                                        .add("new")
+                                        .asItemDeltas(),
+                                null);
+                    } else {
+                        throw new IllegalStateException("employeeNumber is not 'old': " + employeeNumber);
+                    }
+                }, result);
+
+        assertUserEmployeeNumber(user.getOid(), "new");
+
+        assertThat(results).as("results").hasSize(1);
+        RepoUpdateOperationResult updateResult = results.get(0);
+        assertThat(updateResult).isInstanceOf(ModifyObjectResult.class);
+        assertThat(((ModifyObjectResult<?>) updateResult).getPerformanceRecord()).as("performance record").isNotNull();
     }
 
     @Test   // MID-4801

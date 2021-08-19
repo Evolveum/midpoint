@@ -19,6 +19,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
+
+import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater.AttemptContext;
+
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -572,7 +576,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options,
-                            attempt, subResult, this, noFetchExtensionValueInsertionForbidden, null);
+                            attempt, subResult, this, noFetchExtensionValueInsertionForbidden, null, true,
+                            new AttemptContext());
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                     rv.setPerformanceRecord(
                             pm.registerOperationFinish(opHandle, attempt));
@@ -677,8 +682,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     rv = objectUpdater.modifyObjectDynamicallyAttempt(type, oid, getOptions, innerModificationsSupplier,
                             modifyOptions, attempt, result, this, noFetchExtensionValueInsertionForbidden);
                     invokeConflictWatchers((w) -> w.afterModifyObject(oid));
-                    rv.setPerformanceRecord(
-                            pm.registerOperationFinish(opHandle, attempt));
+                    pm.registerOperationFinish(opHandle, attempt);
                     return rv;
                 } catch (RestartOperationRequestedException ex) {
                     // special case: we want to restart but we do not want to count these
@@ -701,6 +705,76 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             OperationLogger.logModifyDynamically(type, oid, rv, modifyOptions, result);
         }
+    }
+
+    @Override
+    @Experimental
+    public @NotNull List<RepoUpdateOperationResult> executeJob(@NotNull Job job, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        final String operation = "executing job";
+        int attempt = 1;
+        int restarts = 0;
+
+        boolean noFetchExtensionValueInsertionForbidden = false;
+
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_EXECUTE_JOB, null);
+
+        OperationResult result = parentResult.subresult(EXECUTE_JOB)
+                .build();
+
+        List<RepoUpdateOperationResult> results = null;
+        try {
+            while (true) {
+                try {
+                    results = objectUpdater.executeJobAttempt(job, attempt, noFetchExtensionValueInsertionForbidden, this, result);
+                    // We invoke these watchers only after successful processing of updates.
+                    invokeConflictWatchers(results);
+                    OperationRecord operationRecord = pm.registerOperationFinish(opHandle, attempt);
+                    setPerformanceRecords(results, operationRecord);
+                    return results;
+                } catch (RestartOperationRequestedException ex) {
+                    // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    } else if (ex.isForbidNoFetchExtensionValueAddition()) {
+                        noFetchExtensionValueInsertionForbidden = true;
+                    }
+                } catch (RuntimeException ex) {
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, result);
+                    pm.registerOperationNewAttempt(opHandle, attempt);
+                }
+            }
+
+        } catch (Throwable t) {
+            LOGGER.debug("Got exception while processing a job", t);
+            pm.registerOperationFinish(opHandle, attempt);
+            throw t;
+        } finally {
+            OperationLogger.logExecuteJob(results, result);
+        }
+    }
+
+    private void setPerformanceRecords(List<RepoUpdateOperationResult> results, OperationRecord operationRecord) {
+        results.stream()
+                .filter(r -> r instanceof ModifyObjectResult<?>)
+                .forEach(r -> ((ModifyObjectResult<?>) r).setPerformanceRecord(operationRecord));
+    }
+
+    private void invokeConflictWatchers(List<RepoUpdateOperationResult> results) {
+        invokeConflictWatchers(w -> {
+            for (RepoUpdateOperationResult result : results) {
+                if (result instanceof ModifyObjectResult<?>) {
+                    w.afterModifyObject(((ModifyObjectResult<?>) result).getObjectAfter().getOid());
+                } else {
+                    // Implement add / delete operations after they are supported by jobs
+                    throw new UnsupportedOperationException("Unsupported update result: " + result);
+                }
+            }
+        });
     }
 
     @Override
