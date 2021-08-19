@@ -229,17 +229,15 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<TaskType> getTask = repositoryService.getObject(TaskType.class, taskOid, null, result);
         String lastVersion = getTask.getVersion();
         AssertJUnit.assertTrue(task.equivalent(getTask));
-        TaskType taskType = null;
-        taskType = getTask.asObjectable();
+        TaskType taskType = getTask.asObjectable();
         AssertJUnit.assertNull(taskType.getObjectRef());
 
         Collection modifications = new ArrayList();
 
-        PrismObjectDefinition objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
-                TaskType.class);
+        PrismObjectDefinition objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
         PrismReferenceDefinition def = objectDef.findReferenceDefinition(TaskType.F_OBJECT_REF);
         System.out.println("MODIFY");
-        ObjectReferenceType objectRef = null;
+        ObjectReferenceType objectRef;
         ReferenceDelta delta = prismContext.deltaFactory().reference().create(def);
         delta.addValueToAdd(itemFactory().createReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);

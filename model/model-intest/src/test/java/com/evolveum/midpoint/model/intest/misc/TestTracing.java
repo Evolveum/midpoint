@@ -158,7 +158,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
                 .extensionContainer(NAME_MY_CONTAINER)
                     .assertSize(1)
                     .value(0)
-                        .assertItems(NAME_VALUE, NAME_EMBEDDED);
+                        .assertItemsExactly(NAME_VALUE, NAME_EMBEDDED);
 
         assertTraceCanBeParsed(result);
     }

@@ -168,7 +168,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
         try {
-            boolean isDead = node.getOperationalStatus() == NodeOperationalStateType.DOWN;
+            boolean isDead = node.getOperationalState() == NodeOperationalStateType.DOWN;
             boolean isUpAndAlive = taskManager.isUpAndAlive(node);
             if (isUpAndAlive || ClusterExecutionOptions.isTryAllNodes(options) ||
                     !isDead && ClusterExecutionOptions.isTryNodesInTransition(options)) {
@@ -187,7 +187,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
                 }
             } else {
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
-                        " is not running (operational state = " + node.getOperationalStatus() +
+                        " is not running (operational state = " + node.getOperationalState() +
                         ", last check in time = " + node.getLastCheckInTime());
             }
         } catch (Throwable t) {

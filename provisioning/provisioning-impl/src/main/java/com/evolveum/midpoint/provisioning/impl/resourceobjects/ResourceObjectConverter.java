@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -118,7 +117,7 @@ public class ResourceObjectConverter {
         AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 
         PrismObject<ShadowType> resourceShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, fetchAssociations, parentResult);            // todo consider whether it is always necessary to fetch the entitlements
+                attributesToReturn, fetchAssociations, parentResult); // todo consider whether it is always necessary to fetch the entitlements
 
         LOGGER.trace("Got resource object\n{}", resourceShadow.debugDumpLazily());
 
@@ -177,7 +176,7 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
                     .build();
             final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            ObjectHandler handler = ucfObject -> {
+            ObjectHandler handler = (ucfObject, result) -> {
                 if (!shadowHolder.isEmpty()) {
                     throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
                 }
@@ -237,7 +236,7 @@ public class ResourceObjectConverter {
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, parentResult), shadowClone, matchingRuleRegistry,
+            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, matchingRuleRegistry,
                     relationRegistry)) {
                 LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
                 SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
@@ -427,7 +426,7 @@ public class ResourceObjectConverter {
             LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
             AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
-            updateQuantum(ctx, connector, aResult, parentResult); // Hack: we use parentResult because result is closed now.
+            updateQuantum(ctx, connector, aResult, result); // The result is not closed, even if its status is set. So we use it.
             if (connectorAsyncOpRet != null) {
                 aResult.setOperationType(connectorAsyncOpRet.getOperationType());
             }
@@ -802,28 +801,28 @@ public class ResourceObjectConverter {
                     + "side-effects):\n{}", inProgress, DebugUtil.debugDumpLazily(knownExecutedChanges));
 
             if (inProgress) {
-                result.recordInProgress();
+                result.setInProgress();
                 result.setAsynchronousOperationReference(asynchronousOperationReference);
             }
 
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Object to modify not found: " + ex.getMessage(), ex);
             throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
         } catch (CommunicationException ex) {
-            result.recordFatalError(
+            result.recordFatalErrorNotFinish(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             throw new CommunicationException("Error communicating with connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (GenericFrameworkException ex) {
-            result.recordFatalError(
+            result.recordFatalErrorNotFinish(
                     "Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
             throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (ObjectAlreadyExistsException ex) {
-            result.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Conflict during modify: " + ex.getMessage(), ex);
             throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
         } catch (SchemaException | ConfigurationException | ExpressionEvaluationException | SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
-            result.recordFatalError(ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish(ex.getMessage(), ex);
             throw ex;
         }
 
@@ -1304,8 +1303,9 @@ public class ResourceObjectConverter {
                 LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
                 result.recordFatalError(e);
                 throw e;
+            } finally {
+                result.computeStatusIfUnknown();
             }
-
         }
     }
 
@@ -1340,7 +1340,7 @@ public class ResourceObjectConverter {
         try {
 
             metadata = connector.search(objectClassDef, query,
-                    (ucfObject) -> {
+                    (ucfObject, result) -> {
                         ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ResourceObjectConverter.this,
                                 ctx, fetchAssociations);
 
@@ -1352,7 +1352,7 @@ public class ResourceObjectConverter {
 
                             Task task = ctx.getTask();
                             try {
-                                OperationResult objResult = parentResult
+                                OperationResult objResult = result
                                         .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
                                         .setMinor()
                                         .addParam("number", objectNumber)
@@ -1371,8 +1371,8 @@ public class ResourceObjectConverter {
                                     if (objResult.isSuccess() && !objResult.isTraced()) {
                                         objResult.getSubresults().clear();
                                     }
-                                    // TODO Reconsider this. It is quite dubious to touch parentResult from the inside.
-                                    parentResult.summarize();
+                                    // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
+                                    result.summarize();
                                 }
                             } finally {
                                 RepositoryCache.exitLocalCaches();
@@ -1801,10 +1801,13 @@ public class ResourceObjectConverter {
         OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
         refreshResult.setStatus(status);
         AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
-        updateQuantum(ctx, connector, asyncResult, result);
+        updateQuantum(ctx, connector, asyncResult, parentResult); // We have to use parent result here because the result is closed.
         return asyncResult;
     }
 
+    /**
+     * Does _not_ close the operation result, just sets its status (and async operation reference).
+     */
     private void computeResultStatus(OperationResult result) {
         if (result.isInProgress()) {
             return;

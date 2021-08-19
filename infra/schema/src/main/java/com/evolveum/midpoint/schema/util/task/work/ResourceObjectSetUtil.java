@@ -56,4 +56,8 @@ public class ResourceObjectSetUtil {
             set.setQueryApplication(mode);
         }
     }
+
+    public static @NotNull ResourceObjectSetType fromConfiguration(ResourceObjectSetType resourceObjects) {
+         return resourceObjects != null ? resourceObjects : new ResourceObjectSetType(PrismContext.get());
+    }
 }

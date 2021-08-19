@@ -410,8 +410,8 @@ class RefreshHelper {
 
             LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, repoShadow, attemptNumber);
 
-            OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             ObjectDeltaOperation<ShadowType> objectDeltaOperation = new ObjectDeltaOperation<>(pendingDelta);
+            OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             try {
                 retryOperation(ctx, pendingDelta, opState, task, result);
                 repoShadow = opState.getRepoShadow();
@@ -438,6 +438,8 @@ class RefreshHelper {
                 // error handling. This means that the retry was a failure.
                 result.recordFatalError(e);
                 retryResult.recordFatalError(e);
+            } finally {
+                result.computeStatusIfUnknown(); // Status should be set by now, we just want to close the result
             }
 
             objectDeltaOperation.setExecutionResult(result);

@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -79,6 +82,15 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ExtensionAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> workStateExtension() {
         ExtensionAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> asserter =
                 new ExtensionAsserter<>(activityState.getWorkState(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public PrismContainerValueAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> workState() {
+        //noinspection unchecked
+        PrismContainerValue<AbstractActivityWorkStateType> pcv = activityState.getWorkState().asPrismContainerValue();
+        PrismContainerValueAsserter<AbstractActivityWorkStateType, ActivityStateAsserter<RA>> asserter =
+                new PrismContainerValueAsserter<>(pcv, this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -157,6 +169,14 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityBucketManagementStatisticsAsserter<ActivityStateAsserter<RA>> bucketManagementStatistics() {
+        ActivityBucketManagementStatisticsAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActivityBucketManagementStatisticsAsserter<>(
+                        getBucketManagementStatistics(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     public ActivityStateAsserter<RA> assertBucketManagementStatisticsOperations(int expected) {
         assertThat(getBucketManagementStatistics().getOperation().size())
                 .as("bucket mgmt operations #")
@@ -216,5 +236,25 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityStateAsserter<RA> assertPersistence(ActivityStatePersistenceType expected) {
         assertThat(activityState.getPersistence()).as("persistence").isEqualTo(expected);
         return this;
+    }
+
+    public ActivityStateAsserter<RA> assertScavenger(boolean value) {
+        assertThat(isScavenger()).as("is scavenger").isEqualTo(value);
+        return this;
+    }
+
+    private boolean isScavenger() {
+        return Boolean.TRUE.equals(activityState.getBucketing().isScavenger());
+    }
+
+    public ActivityStateAsserter<RA> assertNoReadyBuckets() {
+        assertThat(getReadyBuckets()).as("allocated buckets").isEqualTo(0);
+        return this;
+    }
+
+    private int getReadyBuckets() {
+        return (int) BucketingUtil.getBuckets(activityState).stream()
+                .filter(b -> b.getState() == WorkBucketStateType.READY)
+                .count();
     }
 }

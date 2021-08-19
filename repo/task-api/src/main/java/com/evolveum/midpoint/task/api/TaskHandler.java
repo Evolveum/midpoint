@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import java.util.List;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
 import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,10 +32,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -128,9 +132,21 @@ public class ClusterManager {
         nodeRegistrar.registerNodeUp(result);
     }
 
+    public @NotNull ClusterStateType determineClusterState(OperationResult result) throws SchemaException {
+        // We do not want to query cluster nodes at this moment. We rely on the repository information.
+        SearchResultList<PrismObject<NodeType>> nodes =
+                getRepositoryService().searchObjects(NodeType.class, null, null, result);
+        ClusterStateType clusterState = new ClusterStateType(PrismContext.get());
+        nodes.stream() // TODO use query after making operationalState indexed
+                .filter(n -> n.asObjectable().getOperationalState() == NodeOperationalStateType.UP)
+                .map(n -> n.asObjectable().getNodeIdentifier())
+                .forEach(id -> clusterState.getNodeUp().add(id));
+        return clusterState;
+    }
+
     class ClusterManagerThread extends Thread {
 
-        private boolean canRun = true;
+        private volatile boolean canRun = true;
 
         @Override
         public void run() {
@@ -149,7 +165,7 @@ public class ClusterManager {
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        NodeType node = checkClusterConfiguration(result);                              // if error, the scheduler will be stopped
+                        NodeType node = checkClusterConfiguration(result); // if error, the scheduler will be stopped
                         if (updateNodeExecutionLimitations && node != null) {
                             // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                             localScheduler.setLocalExecutionLimitations(node.getTaskExecutionLimitations());
@@ -185,12 +201,7 @@ public class ClusterManager {
                 }
 
                 LOGGER.trace("ClusterManager thread sleeping for {} msec", delay);
-                try {
-                    //noinspection BusyWait
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    LOGGER.trace("ClusterManager thread interrupted.");
-                }
+                MiscUtil.sleepCatchingInterruptedException(delay);
             }
 
             LOGGER.info("ClusterManager thread stopping.");
@@ -212,15 +223,14 @@ public class ClusterManager {
                 if (shouldBeMarkedAsDown(node)) {
                     LOGGER.warn("Node {} is down, marking it as such", node);
                     List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
-                            .item(NodeType.F_RUNNING).replace(false)
-                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStateType.DOWN)
+                            .item(NodeType.F_OPERATIONAL_STATE).replace(NodeOperationalStateType.DOWN)
                             .asItemDeltas();
                     try {
                         getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
                     } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
                     }
-                } else if (startingForTooLong(node)) {
+                } else if (isStartingForTooLong(node)) {
                     LOGGER.warn("Node {} is starting for too long. Last check-in time = {}", node, node.getLastCheckInTime());
                     // TODO should we mark this node as down?
                 }
@@ -233,15 +243,19 @@ public class ClusterManager {
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStateType.UP && (node.getLastCheckInTime() == null ||
-                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
-                        > configuration.getNodeAlivenessTimeout() * 1000L);
+        return node.getOperationalState() == NodeOperationalStateType.UP &&
+                isCheckInTimeLagging(node, configuration.getNodeAlivenessTimeout());
     }
 
-    private boolean startingForTooLong(NodeType node) {
-        return node.getOperationalStatus() == NodeOperationalStateType.STARTING && (node.getLastCheckInTime() == null ||
-                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
-                        > configuration.getNodeStartupTimeout() * 1000L);
+    private boolean isStartingForTooLong(NodeType node) {
+        return node.getOperationalState() == NodeOperationalStateType.STARTING &&
+                isCheckInTimeLagging(node, configuration.getNodeStartupTimeout());
+    }
+
+    private boolean isCheckInTimeLagging(NodeType node, int secondsLimit) {
+        Long lastCheckInTimestamp = MiscUtil.asLong(node.getLastCheckInTime());
+        return lastCheckInTimestamp == null ||
+                System.currentTimeMillis() > lastCheckInTimestamp + secondsLimit * 1000L;
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {

@@ -192,7 +192,7 @@ class NodeIdComputer {
                         sequenceLookup.advance();
                     } else {
                         NodeType existingNode = existingNodes.get(0).asObjectable();
-                        if (existingNode.getOperationalStatus() == NodeOperationalStateType.DOWN) {
+                        if (existingNode.getOperationalState() == NodeOperationalStateType.DOWN) {
                             LOGGER.info("Considering using the node name of '{}' that already exists but is marked as being down"
                                     + " (OID {}). So deleting the node and trying again.", candidateNodeId, existingNode.getOid());
                             try {

@@ -198,28 +198,28 @@ class ResourceObjectReferenceResolver {
             resolvedIdentification.validatePrimaryIdenfiers();
             return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx, parentResult);
         } catch (ObjectNotFoundException e) {
-            parentResult.recordFatalError(
-                    "Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
+            // Not finishing the result because we did not create it! (The same for other catch clauses.)
+            parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
             throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
                         PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
                     + e.getMessage(), e);
         } catch (CommunicationException e) {
-            parentResult.recordFatalError("Error communication with the connector " + connector
+            parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            parentResult.recordFatalError(
+            parentResult.recordFatalErrorNotFinish(
                     "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
             throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                     + e.getMessage(), e);
         } catch (SchemaException ex) {
-            parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            parentResult.recordFatalErrorNotFinish("Can't get resource object, schema error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ExpressionEvaluationException ex) {
-            parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            parentResult.recordFatalErrorNotFinish("Can't get resource object, expression error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ConfigurationException e) {
-            parentResult.recordFatalError(e);
+            parentResult.recordFatalErrorNotFinish(e);
             throw e;
         }
     }

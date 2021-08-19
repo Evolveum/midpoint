@@ -7,13 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
@@ -31,9 +30,8 @@ public class ImportWorkDefinition extends AbstractWorkDefinition implements Reso
             resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
         } else {
             ImportWorkDefinitionType typedDefinition = (ImportWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = typedDefinition.getResourceObjects() != null ?
-                    typedDefinition.getResourceObjects() : new ResourceObjectSetType(PrismContext.get());
+                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         }
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, REPLACE);
     }

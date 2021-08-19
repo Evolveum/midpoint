@@ -17,6 +17,7 @@ import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 
 import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -300,17 +301,10 @@ class TaskCycleExecutor {
 
     private void sleepUntil(long until) throws StopTaskException {
         LOGGER.trace("Sleeping until {} (for {} ms)", until, until - System.currentTimeMillis());
-        while (System.currentTimeMillis() <= until) {
-            try {
-                //noinspection BusyWait
-                Thread.sleep(WATCHFUL_SLEEP_INCREMENT);
-            } catch (InterruptedException e) {
-                // safely ignored
-            }
-            if (!task.canRun()) {
-                LOGGER.trace("Sleep interrupted, task.canRun is false");
-                throw new StopTaskException();
-            }
+        MiscUtil.sleepWatchfully(until, WATCHFUL_SLEEP_INCREMENT, task::canRun);
+        if (!task.canRun()) {
+            LOGGER.trace("Sleep interrupted, task.canRun is false");
+            throw new StopTaskException();
         }
         LOGGER.trace("Sleeping done");
     }

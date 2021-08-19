@@ -519,10 +519,6 @@ public class SearchBasedActivityExecution<
         return oidsSeen.add(oid);
     }
 
-    public WorkBucketType getBucket() {
-        return bucket;
-    }
-
     @Override
     protected boolean hasProgressCommitPoints() {
         return true;

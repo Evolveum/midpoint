@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.ModelSearchBasedActivityExecution;
 import com.evolveum.midpoint.model.impl.tasks.scanner.ScanActivityExecutionSpecifics;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
@@ -143,8 +142,7 @@ public class ShadowRefreshActivityHandler
             } else {
                 ShadowRefreshWorkDefinitionType typedDefinition = (ShadowRefreshWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = typedDefinition.getShadows() != null ?
-                        typedDefinition.getShadows() : new ObjectSetType(PrismContext.get());
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
             }
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);
         }

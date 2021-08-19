@@ -252,7 +252,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SchemaException {
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_SUSPEND_TASKS)
                 .addArbitraryObjectCollectionAsParam("taskOids", taskOids)
                 .addParam("waitForStop", waitForStop)
@@ -592,15 +592,21 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
-
-        if (TaskType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
-        } else if (NodeType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
-        } else {
-            throw new IllegalArgumentException("Unsupported object type: " + type);
+        try {
+            if (TaskType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                return (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -613,24 +619,29 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+        try {
+            SearchResultList<PrismObject<T>> objects;
+            if (TaskType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                //noinspection unchecked
+                objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
 
-        SearchResultList<PrismObject<T>> objects;
-        if (TaskType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) taskRetriever.searchTasks(query, options, result);
-        } else if (NodeType.class.isAssignableFrom(type)) {
-            //noinspection unchecked
-            objects = (SearchResultList<PrismObject<T>>) (SearchResultList<?>) nodeRetriever.searchNodes(query, options, result);
-        } else {
-            throw new IllegalArgumentException("Unsupported object type: " + type);
+            for (PrismObject<T> object : objects) {
+                handler.handle(object, result);
+            }
+            return objects.getMetadata();
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
-
-        for (PrismObject<T> object : objects) {
-            handler.handle(object, result);
-        }
-
-        result.computeStatus();
-        return objects.getMetadata();
     }
 
     @Override
@@ -893,6 +904,16 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @Override
+    public void registerNodeUp(OperationResult result) {
+        clusterManager.registerNodeUp(result);
+    }
+
+    @Override
+    public @NotNull ClusterStateType determineClusterState(OperationResult result) throws SchemaException {
+        return clusterManager.determineClusterState(result);
     }
 
     @Override

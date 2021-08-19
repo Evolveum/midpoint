@@ -50,7 +50,7 @@ public class ProvisioningContext extends StateReporter {
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
     @NotNull private final ResourceManager resourceManager;
-    private OperationResult parentResult;       // Use only when absolutely necessary!
+    private final OperationResult parentResult; // Use only when absolutely necessary! TODO remove, it's incorrect to use it like this
     private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 
     private PrismObject<ShadowType> originalShadow;
@@ -67,7 +67,7 @@ public class ProvisioningContext extends StateReporter {
 
     private String channelOverride;
 
-    Collection<ResourceObjectPattern> protectedAccountPatterns;
+    private Collection<ResourceObjectPattern> protectedAccountPatterns;
 
     public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
         this.resourceManager = resourceManager;

@@ -53,7 +53,7 @@ class SimpleMockActivityExecution
                 .recordOperationStart(new IterativeOperationStartInfo(
                         new IterationItemInformation(message, null, null, null)));
 
-        MiscUtil.sleepIgnoringInterruptedException(10); // to avoid wall clock time of 0 (failing throughput-assuming tests)
+        MiscUtil.sleepCatchingInterruptedException(10); // to avoid wall clock time of 0 (failing throughput-assuming tests)
 
         LOGGER.info("Message: {}", message);
         getRecorder().recordExecution(message);

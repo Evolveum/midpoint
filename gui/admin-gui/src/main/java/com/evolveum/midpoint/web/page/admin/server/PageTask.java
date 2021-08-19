@@ -616,7 +616,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             String taskOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
             if (taskOid != null) {
                 if (saveAndRun) {
-                    result.recordInProgress();
+                    result.setInProgress();
                 }
                 result.setBackgroundTaskOid(taskOid);
             }

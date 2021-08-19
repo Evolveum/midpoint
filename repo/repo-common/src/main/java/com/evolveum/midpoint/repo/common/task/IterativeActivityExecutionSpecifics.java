@@ -90,7 +90,7 @@ public interface IterativeActivityExecutionSpecifics extends ImplicitSegmentatio
     }
 
     @Override
-    default AbstractWorkSegmentationType resolveConfiguration(@NotNull ImplicitWorkSegmentationType configuration) {
+    default AbstractWorkSegmentationType resolveImplicitSegmentation(@NotNull ImplicitWorkSegmentationType segmentation) {
         throw new UnsupportedOperationException("Implicit work segmentation configuration is not available in this activity");
     }
 }

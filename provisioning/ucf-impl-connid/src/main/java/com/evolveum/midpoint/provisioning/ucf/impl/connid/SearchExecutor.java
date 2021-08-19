@@ -57,7 +57,6 @@ class SearchExecutor {
     private final SearchHierarchyConstraints searchHierarchyConstraints;
     private final UcfFetchErrorReportingMethod errorReportingMethod;
     private final StateReporter reporter;
-    @NotNull private final OperationResult result;
     @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
 
     /**
@@ -69,7 +68,7 @@ class SearchExecutor {
     SearchExecutor(@NotNull ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
             @NotNull ObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            UcfFetchErrorReportingMethod errorReportingMethod, StateReporter reporter, @NotNull OperationResult result,
+            UcfFetchErrorReportingMethod errorReportingMethod, StateReporter reporter,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.objectClassDefinition = objectClassDefinition;
@@ -83,12 +82,11 @@ class SearchExecutor {
         this.searchHierarchyConstraints = searchHierarchyConstraints;
         this.errorReportingMethod = errorReportingMethod;
         this.reporter = reporter;
-        this.result = result;
         this.connectorInstance = connectorInstance;
     }
 
-    public SearchResultMetadata execute() throws CommunicationException, ObjectNotFoundException, GenericFrameworkException,
-            SchemaException, SecurityViolationException {
+    public SearchResultMetadata execute(OperationResult result) throws CommunicationException, ObjectNotFoundException,
+            GenericFrameworkException, SchemaException, SecurityViolationException {
 
         if (isNoConnectorPaging() && query != null && query.getPaging() != null &&
                 (query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
@@ -96,9 +94,8 @@ class SearchExecutor {
         }
 
         OperationOptions connIdOptions = createOperationOptions();
-        ResultsHandler connIdHandler = new SearchResultsHandler();
 
-        SearchResult connIdSearchResult = executeConnIdSearch(connIdOptions, connIdHandler);
+        SearchResult connIdSearchResult = executeConnIdSearch(connIdOptions, result);
 
         return createResultMetadata(connIdSearchResult, connIdOptions);
     }
@@ -194,13 +191,15 @@ class SearchExecutor {
         }
     }
 
-    private SearchResult executeConnIdSearch(OperationOptions connIdOptions, ResultsHandler connIdHandler)
+    private SearchResult executeConnIdSearch(OperationOptions connIdOptions, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, GenericFrameworkException, SchemaException,
             SecurityViolationException {
 
         // Connector operation cannot create result for itself, so we need to create result for it
-        OperationResult icfOpResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
-        icfOpResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+        OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".search");
+        result.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+
+        ResultsHandler connIdHandler = new SearchResultsHandler(result);
 
         SearchResult connIdSearchResult;
         try {
@@ -211,18 +210,20 @@ class SearchExecutor {
                     .search(icfObjectClass, connIdFilter, connIdHandler, connIdOptions);
             recordIcfOperationEnd(null);
 
-            icfOpResult.recordSuccess();
+            result.recordSuccess();
         } catch (IntermediateException inEx) {
             Throwable ex = inEx.getCause();
             recordIcfOperationEnd(ex);
-            icfOpResult.recordFatalError(ex);
+            result.recordFatalError(ex);
             throwProperException(ex, ex);
             throw new AssertionError("should not get here");
         } catch (Throwable ex) {
             recordIcfOperationEnd(ex);
-            Throwable midpointEx = processConnIdException(ex, connectorInstance, icfOpResult);
+            Throwable midpointEx = processConnIdException(ex, connectorInstance, result);
             throwProperException(midpointEx, ex);
             throw new AssertionError("should not get here");
+        } finally {
+            result.computeStatusIfUnknown();
         }
         return connIdSearchResult;
     }
@@ -298,6 +299,12 @@ class SearchExecutor {
 
     private class SearchResultsHandler implements ResultsHandler {
 
+        private final OperationResult result;
+
+        SearchResultsHandler(OperationResult result) {
+            this.result = result;
+        }
+
         @Override
         public boolean handle(ConnectorObject connectorObject) {
             Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
@@ -322,7 +329,7 @@ class SearchExecutor {
                         connectorObject, objectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
-                return handler.handle(ucfObject);
+                return handler.handle(ucfObject, result);
 
             } catch (SchemaException e) {
                 throw new IntermediateException(e);

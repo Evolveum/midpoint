@@ -28,8 +28,8 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends Pri
     }
 
     @Override
-    public ValueMetadataValueAsserter<RA> assertItems(QName... expectedItems) {
-        return (ValueMetadataValueAsserter<RA>) super.assertItems(expectedItems);
+    public ValueMetadataValueAsserter<RA> assertItemsExactly(QName... expectedItems) {
+        return (ValueMetadataValueAsserter<RA>) super.assertItemsExactly(expectedItems);
     }
 
     @Override

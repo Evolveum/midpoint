@@ -242,7 +242,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
-                result.setStatus(OperationResultStatus.NOT_APPLICABLE);
+                result.recordNotApplicable();
                 return null;
             } else {
                 applyArchetypePolicy(objectDefinition, object, result);

@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityBucketingStateType.F_BUCKET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,15 +54,6 @@ class BucketOperation implements DebugDumpable {
 
     private static final String CONTENTION_LOG_NAME = BucketOperation.class.getName() + ".contention";
     static final Trace CONTENTION_LOGGER = TraceManager.getTrace(CONTENTION_LOG_NAME);
-
-    static final String GET_WORK_BUCKET_FOUND_SELF_ALLOCATED = "getWorkBucket.foundSelfAllocated";
-    static final String GET_WORK_BUCKET_CREATED_NEW = "getWorkBucket.createdNew";
-    static final String GET_WORK_BUCKET_DELEGATED = "getWorkBucket.delegated";
-    static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_DEFINITE = "getWorkBucket.noMoreBucketsDefinite";
-    static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_NOT_SCAVENGER = "getWorkBucket.noMoreBucketsNotScavenger";
-    static final String GET_WORK_BUCKET_NO_MORE_BUCKETS_WAIT_TIME_ELAPSED = "getWorkBucket.NoMoreBucketsWaitTimeElapsed";
-    static final String COMPLETE_WORK_BUCKET = "completeWorkBucket";
-    static final String RELEASE_WORK_BUCKET = "releaseWorkBucket";
 
     /** TODO */
     @NotNull final ActivityPath activityPath;
@@ -123,7 +115,12 @@ class BucketOperation implements DebugDumpable {
     }
 
     void loadTasks(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        workerTask = taskManager.getTaskPlain(workerTaskOid, result);
+        Task workerTask = taskManager.getTaskPlain(workerTaskOid, result);
+        loadTasksWithPreloadedWorker(workerTask, result);
+    }
+
+    void loadTasksWithPreloadedWorker(Task workerTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        this.workerTask = workerTask;
         workerStatePath = ActivityStateUtil.getStateItemPath(workerTask.getWorkState(), activityPath);
 
         BucketsProcessingRoleType workerRole = getWorkerTaskRole();
@@ -146,14 +143,14 @@ class BucketOperation implements DebugDumpable {
     }
 
     List<WorkBucketType> getWorkerTaskBuckets() {
-        return BucketingUtil.getBuckets(getWorkerTaskActivityWorkState());
+        return BucketingUtil.getBuckets(getWorkerTaskActivityState());
     }
 
-    @NotNull ActivityStateType getWorkerTaskActivityWorkState() {
+    @NotNull ActivityStateType getWorkerTaskActivityState() {
         return getActivityStateRequired(workerTask.getWorkState(), workerStatePath);
     }
 
-    @NotNull ActivityStateType getCoordinatorTaskPartWorkState() {
+    @NotNull ActivityStateType getCoordinatorTaskActivityState() {
         return getActivityStateRequired(coordinatorTask.getWorkState(), coordinatorStatePath);
     }
 
@@ -187,6 +184,16 @@ class BucketOperation implements DebugDumpable {
         return statePath.append(F_BUCKETING, F_BUCKET, bucket.getId());
     }
 
+    @SuppressWarnings("SameParameterValue")
+    Collection<ItemDelta<?, ?>> bucketsStateChangeDeltas(ItemPath statePath, Collection<WorkBucketType> buckets,
+            WorkBucketStateType newState, String workerOid) throws SchemaException {
+        Collection<ItemDelta<?, ?>> deltas = new ArrayList<>();
+        for (WorkBucketType bucket : buckets) {
+            deltas.addAll(bucketStateChangeDeltas(statePath, bucket, newState, workerOid));
+        }
+        return deltas;
+    }
+
     Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(ItemPath statePath, WorkBucketType bucket, WorkBucketStateType newState,
             String workerOid) throws SchemaException {
         ItemPath bucketPath = createBucketPath(statePath, bucket);
@@ -205,6 +212,16 @@ class BucketOperation implements DebugDumpable {
                 .delete(bucket.clone()).asItemDeltas();
     }
 
+    Collection<ItemDelta<?, ?>> bucketsDeleteDeltas(ItemPath statePath, Collection<WorkBucketType> buckets) throws SchemaException {
+        if (!buckets.isEmpty()) {
+            return prismContext.deltaFor(TaskType.class)
+                    .item(statePath.append(F_BUCKETING, F_BUCKET))
+                    .deleteRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
+        } else {
+            return List.of();
+        }
+    }
+
     ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
         return taskObject -> {
             WorkBucketType currentBucket = BucketingUtil.findBucketByNumber(
@@ -215,9 +232,20 @@ class BucketOperation implements DebugDumpable {
         };
     }
 
+    ModificationPrecondition<TaskType> bucketsUnchangedPrecondition(List<WorkBucketType> originalBuckets) {
+        return taskObject -> {
+            for (WorkBucketType originalBucket : originalBuckets) {
+                if (!bucketUnchangedPrecondition(originalBucket).holds(taskObject)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
     void deleteBucketFromWorker(int sequentialNumber, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ObjectAlreadyExistsException {
-        ActivityStateType state = getWorkerTaskActivityWorkState();
+        ActivityStateType state = getWorkerTaskActivityState();
         WorkBucketType workerBucket = BucketingUtil.findBucketByNumber(BucketingUtil.getBuckets(state), sequentialNumber);
         if (workerBucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber +
@@ -227,7 +255,7 @@ class BucketOperation implements DebugDumpable {
                 bucketDeleteDeltas(workerStatePath, workerBucket), result);
     }
 
-    void checkWorkerRefOnDelegatedBucket(WorkBucketType bucket) {
+    void checkWorkerRefOnDelegatedBuckets(WorkBucketType bucket) {
         if (bucket.getWorkerRef() == null) {
             LOGGER.warn("DELEGATED bucket without workerRef: {}", bucket);
         } else if (!workerTask.getOid().equals(bucket.getWorkerRef().getOid())) {

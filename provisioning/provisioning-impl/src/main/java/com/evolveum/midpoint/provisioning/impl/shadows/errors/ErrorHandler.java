@@ -106,7 +106,7 @@ public abstract class ErrorHandler {
         if (opState.getAttemptNumber() == null) {
             opState.setAttemptNumber(1);
         }
-        result.recordInProgress();
+        result.setInProgress();
         return OperationResultStatus.IN_PROGRESS;
     }
 
@@ -123,7 +123,7 @@ public abstract class ErrorHandler {
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
-    protected OperationResultStatus postponeModify(ProvisioningContext ctx,
+    OperationResultStatus postponeModify(ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
@@ -146,7 +146,7 @@ public abstract class ErrorHandler {
         if (opState.getAttemptNumber() == null) {
             opState.setAttemptNumber(1);
         }
-        result.recordInProgress();
+        result.setInProgress();
         return OperationResultStatus.IN_PROGRESS;
     }
 

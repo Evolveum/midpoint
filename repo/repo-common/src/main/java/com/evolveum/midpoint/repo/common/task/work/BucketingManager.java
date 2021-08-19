@@ -15,6 +15,8 @@ import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 
 import com.evolveum.midpoint.repo.common.task.work.segmentation.ImplicitSegmentationResolver;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +104,16 @@ public class BucketingManager {
             ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         new ReleaseBucketOperation(workerTaskOid, activityPath, statistics, beans, sequentialNumber)
+                .execute(result);
+    }
+
+    /**
+     * Releases all work buckets from a suspended worker.
+     */
+    public void releaseAllWorkBucketsFromSuspendedWorker(Task workerTask, ActivityPath activityPath,
+            ActivityBucketManagementStatistics statistics, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        new ReleaseAllBucketsOperation(workerTask, activityPath, statistics, beans)
                 .execute(result);
     }
 

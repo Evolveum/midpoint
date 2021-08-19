@@ -85,7 +85,7 @@ public class LocalNodeState {
         return node;
     }
 
-    NodeExecutionStateType getExecutionState() {
+    private NodeExecutionStateType getExecutionState() {
         if (errorState != NodeErrorStateType.OK) {
             return NodeExecutionStateType.ERROR;
         } else {

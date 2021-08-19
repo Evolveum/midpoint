@@ -24,7 +24,7 @@ public class ActivityBucketManagementStatisticsUtil {
     }
 
     public static String format(ActivityBucketManagementStatisticsType i, AbstractStatisticsPrinter.Options options,
-                                Integer iterations, Integer seconds) {
+            Integer iterations, Integer seconds) {
         return new TaskWorkBucketManagementPerformanceInformationPrinter(i, options, iterations, seconds)
                 .print();
     }

@@ -144,7 +144,7 @@ class ModifyHelper {
         PendingOperationType duplicateOperation =
                 shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, parentResult);
         if (duplicateOperation != null) {
-            parentResult.recordInProgress();
+            parentResult.setInProgress();
             return repoShadow.getOid();
         }
 
@@ -215,8 +215,8 @@ class ModifyHelper {
                 opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
                 // Create dummy subresult with IN_PROGRESS state.
                 // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-                OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
-                delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
+                parentResult.createSubresult(OP_DELAYED_OPERATION)
+                        .recordInProgress(); // using "record" to immediately close the result
                 LOGGER.debug("MODIFY {}: Resource operation NOT executed, execution pending", repoShadow);
             }
         }

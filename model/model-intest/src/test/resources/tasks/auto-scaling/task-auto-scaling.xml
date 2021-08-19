@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task oid="f7b42763-2553-469e-8bb9-df44498d4767"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Auto scaling</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <!-- No recurrence - we'll trigger this task manually -->
+    <autoScaling>
+        <mode>disabled</mode> <!-- Just to be sure we won't get auto-scaled ourselves! -->
+    </autoScaling>
+    <activity>
+        <work>
+            <activityAutoScaling>
+                <minReconciliationInterval>PT1H</minReconciliationInterval>
+                <maxReconciliationInterval>P1D</maxReconciliationInterval>
+            </activityAutoScaling>
+        </work>
+    </activity>
+</task>

@@ -9,7 +9,7 @@
 <task oid="91919191-76e0-59e2-86d6-556655660020"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>Waiting task</name>
+    <name>task-simple-waiting</name>
 
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30020</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>

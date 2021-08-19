@@ -130,4 +130,13 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     public @NotNull IterativeActivityExecution<I, ?, ?, ?, ?, ?> getActivityExecution() {
         return activityExecution;
     }
+
+    @Override
+    public String toString() {
+        return "ItemProcessingRequest{" +
+                "sequentialNumber=" + sequentialNumber +
+                ", identifier='" + identifier + '\'' +
+                ", item=" + item +
+                '}';
+    }
 }

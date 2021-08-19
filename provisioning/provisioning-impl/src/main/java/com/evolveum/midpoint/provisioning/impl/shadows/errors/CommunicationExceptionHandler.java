@@ -96,11 +96,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
-
-        String stateChangeReason = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
-        handleRetriesAndAttempts(ctx, opState, options, cause, result);
-        return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+        try {
+            String stateChangeReason = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
+            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
+            handleRetriesAndAttempts(ctx, opState, options, cause, result);
+            return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -113,10 +119,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
-        String stateChangeReason = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
-        handleRetriesAndAttempts(ctx, opState, options, cause, result);
-        return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
+        try {
+            String stateChangeReason = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
+            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
+            handleRetriesAndAttempts(ctx, opState, options, cause, result);
+            return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -128,10 +141,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
             ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
-        String stateChangeReason = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
-        markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
-        handleRetriesAndAttempts(ctx, opState, options, cause, result);
-        return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
+        try {
+            String stateChangeReason = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
+            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
+            handleRetriesAndAttempts(ctx, opState, options, cause, result);
+            return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     private void handleRetriesAndAttempts(ProvisioningContext ctx, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {

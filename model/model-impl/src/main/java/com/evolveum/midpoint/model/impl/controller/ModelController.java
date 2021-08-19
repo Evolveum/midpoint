@@ -685,7 +685,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         if (result.isInProgress()) {
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordInProgress();
+                result.setInProgress();
             }
         } else {
             result.computeStatus();

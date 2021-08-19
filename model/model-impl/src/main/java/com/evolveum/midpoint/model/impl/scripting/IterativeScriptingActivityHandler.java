@@ -143,7 +143,7 @@ public class IterativeScriptingActivityHandler
             } else {
                 IterativeScriptingWorkDefinitionType typedDefinition = (IterativeScriptingWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = typedDefinition.getObjects();
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
                 scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             }
             argCheck(scriptExecutionRequest != null, "No script execution request provided");

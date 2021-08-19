@@ -7,15 +7,13 @@
   -->
 
 <task oid="89bf08ec-c5b8-4641-95ca-37559c1f3896"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>task-dummy</name>
 
     <taskIdentifier>89bf08ec-c5b8-4641-95ca-37559c1f3896</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>closed</executionStatus>
-
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</handlerUri>
 
     <result>
         <operation>dummy</operation>

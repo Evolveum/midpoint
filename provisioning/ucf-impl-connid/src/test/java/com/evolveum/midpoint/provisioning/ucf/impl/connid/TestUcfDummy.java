@@ -311,7 +311,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
-        ObjectHandler handler = ucfObject -> {
+        ObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
             checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
             searchResults.add(ucfObject.getResourceObject());

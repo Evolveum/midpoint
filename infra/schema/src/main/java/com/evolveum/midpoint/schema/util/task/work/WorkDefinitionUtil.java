@@ -50,6 +50,8 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getShadowCleanup());
         addTypedParameters(values, definitions.getObjectIntegrityCheck());
         addTypedParameters(values, definitions.getShadowIntegrityCheck());
+        addTypedParameters(values, definitions.getActivityAutoScaling());
+        addTypedParameters(values, definitions.getNoOp());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

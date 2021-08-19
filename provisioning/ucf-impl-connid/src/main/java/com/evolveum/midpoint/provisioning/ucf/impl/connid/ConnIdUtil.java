@@ -108,6 +108,8 @@ public class ConnIdUtil {
      * WARNING: This is black magic. Really. Blame Sun Identity Connector
      * Framework interface design.
      *
+     * *FIXME* We should not finish the connIdResult!
+     *
      * @param connIdException
      *            exception from the ConnId
      * @param connIdResult

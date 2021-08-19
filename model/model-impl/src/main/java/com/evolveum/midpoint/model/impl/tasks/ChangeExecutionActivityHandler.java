@@ -155,7 +155,7 @@ public class ChangeExecutionActivityHandler
             } else {
                 ChangeExecutionWorkDefinitionType typedDefinition = (ChangeExecutionWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = typedDefinition.getObjects();
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
                 delta = typedDefinition.getDelta();
                 executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
             }

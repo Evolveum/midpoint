@@ -187,8 +187,8 @@ public class PageNodes extends PageAdmin {
                             StringUtils.isNotEmpty(node.getConnectionResult().getMessage())) {
                         statusMessage = node.getConnectionResult().getMessage();
                     } else if (node.getErrorState() != null && node.getErrorState() != NodeErrorStateType.OK) {
-                        statusMessage = node.getErrorState().toString();         // TODO: explain and localize this
-                    } else if (node.getExecutionState() == NodeExecutionStateType.ERROR) {      // error status not specified
+                        statusMessage = node.getErrorState().toString(); // TODO: explain and localize this
+                    } else if (node.getExecutionState() == NodeExecutionStateType.ERROR) { // error status not specified
                         statusMessage = "Unspecified error (or the node is just starting or shutting down)";
                     } else {
                         statusMessage = "";

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -31,8 +30,7 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
         } else {
             TriggerScanWorkDefinitionType typedDefinition = (TriggerScanWorkDefinitionType)
                     ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            objects = typedDefinition.getObjects() != null ?
-                    typedDefinition.getObjects() : new ObjectSetType(PrismContext.get());
+            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
         }
     }
 

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -369,7 +371,7 @@ public interface TaskManager {
      *
      * On error conditions does NOT throw an exception.
      */
-    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SchemaException;
+    boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
 
     /**
      * Suspends a task. The same as above except that on error condition it DOES throw appropriate exception.
@@ -488,6 +490,17 @@ public interface TaskManager {
      * (Checks whether the node is not up before deleting it.)
      */
     void deleteNode(String nodeOid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    /**
+     * Registers current node as "up". Normally this is done after midPoint starting up;
+     * but should be done explicitly in tests.
+     */
+    @VisibleForTesting
+    void registerNodeUp(OperationResult result);
+
+    /** Retrieves the cluster state needed e.g. for workers reconciliation. */
+    @Experimental
+    @NotNull ClusterStateType determineClusterState(OperationResult result) throws SchemaException;
     //endregion
 
     //region Managing state of the scheduler(s)

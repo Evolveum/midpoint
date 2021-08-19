@@ -9,8 +9,11 @@ package com.evolveum.midpoint.test.asserter;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.*;
@@ -22,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,6 +38,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
+@SuppressWarnings("UnusedReturnValue")
 public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     private TaskAsserter(PrismObject<TaskType> object) {
@@ -223,12 +229,15 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
-    @Deprecated
-    public ActivityProgressAsserter<TaskAsserter<RA>> rootStructuredProgress() {
-        ActivityStateType state = getActivityStateRequired(ActivityPath.empty());
-        ActivityProgressType progress = Objects.requireNonNull(state.getProgress(), "no progress information");
-        ActivityProgressAsserter<TaskAsserter<RA>> asserter =
-                new ActivityProgressAsserter<>(progress, this, getDetails());
+    /**
+     * Assumes that the whole task tree is fully loaded!
+     */
+    public ActivityProgressInformationAsserter<TaskAsserter<RA>> progressInformation() {
+        ActivityProgressInformationAsserter<TaskAsserter<RA>> asserter =
+                new ActivityProgressInformationAsserter<>(
+                        ActivityProgressInformation.fromRootTask(getObjectable(), TaskResolver.empty()),
+                        this,
+                        getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -332,19 +341,6 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return ownerAsserter;
     }
 
-    public TaskAsserter<TaskAsserter<RA>> subtaskForPart(int number) {
-        throw new UnsupportedOperationException();
-//        TaskType subtask = TaskTreeUtil.getAllTasksStream(getObjectable())
-//                .filter(t -> Integer.valueOf(number).equals(ActivityStateUtil.getPartitionSequentialNumber(t)))
-//                .findAny().orElse(null);
-//        assertThat(subtask).withFailMessage(() -> "No subtask for part " + number + " found").isNotNull();
-//
-//        TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this, "subtask for part " +
-//                number + " in " + getDetails());
-//        copySetupTo(asserter);
-//        return asserter;
-    }
-
     public TaskAsserter<TaskAsserter<RA>> subtaskForPath(ActivityPath activityPath) {
         TaskType subtask =
                 MiscUtil.extractSingletonRequired(
@@ -358,19 +354,49 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return asserter;
     }
 
+    public TaskAsserter<RA> assertSubtasks(int count) {
+        assertThat(getObjectable().getSubtaskRef()).as("subtasks").hasSize(count);
+        return this;
+    }
+
     public TaskAsserter<TaskAsserter<RA>> subtask(int index) {
         List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
         assertCheck(subtasks.size() > index, "Expected to see at least %s subtask(s), but only %s are present",
                 index + 1, subtasks.size());
 
-        ObjectReferenceType subtaskRef = subtasks.get(index);
-        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(subtaskRef);
-        assertThat(subtask).withFailMessage(() -> "No subtask #" + index + " found").isNotNull();
+        return subtask(subtasks, index);
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtask(String name) {
+        List<String> otherNames = new ArrayList<>();
+
+        List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
+        for (int i = 0; i < subtasks.size(); i++) {
+            TaskType subtask = subtaskFromRef(subtasks, i);
+            String subtaskName = subtask.getName().getOrig();
+            if (subtaskName.equals(name)) {
+                return subtask(subtasks, i);
+            } else {
+                otherNames.add(subtaskName);
+            }
+        }
+        throw new AssertionError("No subtask with the name '" + name + "' found. Subtasks: " + otherNames);
+    }
+
+    private @NotNull TaskAsserter<TaskAsserter<RA>> subtask(List<ObjectReferenceType> subtasks, int index) {
+        TaskType subtask = subtaskFromRef(subtasks, index);
 
         TaskAsserter<TaskAsserter<RA>> asserter = new TaskAsserter<>(subtask.asPrismObject(), this,
                 "subtask #" + index + " in " + getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    private @NotNull TaskType subtaskFromRef(List<ObjectReferenceType> subtasks, int index) {
+        ObjectReferenceType subtaskRef = subtasks.get(index);
+        TaskType subtask = (TaskType) ObjectTypeUtil.getObjectFromReference(subtaskRef);
+        assertThat(subtask).withFailMessage(() -> "Reference for subtask #" + index + " contains no object").isNotNull();
+        return subtask;
     }
 
     public TaskAsserter<RA> assertLastTriggerScanTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
@@ -388,6 +414,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public XMLGregorianCalendar getLastScanTimestamp(ActivityPath activityPath) {
         return getActivityWorkState(activityPath, ScanWorkStateType.class)
                 .getLastScanTimestamp();
+    }
+
+    public TaskAsserter<RA> assertCachingProfiles(String... expected) {
+        assertThat(getCachingProfiles()).as("caching profiles").containsExactlyInAnyOrder(expected);
+        return this;
+    }
+
+    private Collection<String> getCachingProfiles() {
+        TaskExecutionEnvironmentType env = getObjectable().getExecutionEnvironment();
+        return env != null ? env.getCachingProfile() : List.of();
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -409,5 +445,58 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return requireNonNullElseGet(
                 state.getStatistics(),
                 () -> new ActivityStatisticsType(getPrismContext()));
+    }
+
+    /**
+     * Loads immediate subtasks, if they are not loaded yet.
+     */
+    public TaskAsserter<RA> loadImmediateSubtasks(OperationResult result) throws SchemaException {
+        TaskType task = getObjectable();
+        if (!task.getSubtaskRef().isEmpty()) {
+            return this; // assuming subtasks are already loaded
+        }
+
+        doLoadImmediateSubtasks(task, result);
+        return this;
+    }
+
+    private void doLoadImmediateSubtasks(TaskType task, OperationResult result) throws SchemaException {
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_PARENT).eq(task.getTaskIdentifier())
+                .build();
+        SearchResultList<PrismObject<TaskType>> children =
+                getRepositoryService().searchObjects(TaskType.class, query, null, result);
+
+        task.getSubtaskRef().clear();
+        children.forEach(child ->
+                task.getSubtaskRef().add(
+                        ObjectTypeUtil.createObjectRefWithFullObject(child, PrismContext.get())));
+    }
+
+    /**
+     * Loads all subtasks i.e. the whole subtree.
+     */
+    public TaskAsserter<RA> loadSubtasksDeeply(OperationResult result) throws SchemaException {
+        doLoadSubtasksDeeply(getObjectable(), result);
+        return this;
+    }
+
+    private void doLoadSubtasksDeeply(TaskType task, OperationResult result) throws SchemaException {
+        doLoadImmediateSubtasks(task, result);
+        List<ObjectReferenceType> subtaskRefList = task.getSubtaskRef();
+        for (int i = 0; i < subtaskRefList.size(); i++) {
+            TaskType subtask = subtaskFromRef(subtaskRefList, i);
+            doLoadSubtasksDeeply(subtask, result);
+        }
+    }
+
+    public TaskAsserter<RA> assertExecutionGroup(String expected) {
+        assertThat(getExecutionGroup()).as("execution group").isEqualTo(expected);
+        return this;
+    }
+
+    private String getExecutionGroup() {
+        TaskType task = getObjectable();
+        return task.getExecutionConstraints() != null ? task.getExecutionConstraints().getGroup() : null;
     }
 }

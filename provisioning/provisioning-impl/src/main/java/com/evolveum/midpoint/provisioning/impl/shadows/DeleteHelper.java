@@ -121,7 +121,7 @@ class DeleteHelper {
         PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx,
                 opState, result);
         if (duplicateOperation != null) {
-            result.recordInProgress();
+            result.setInProgress();
             return opState.getRepoShadow();
         }
 
@@ -142,7 +142,7 @@ class DeleteHelper {
         try {
             resultShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
+            result.recordFatalErrorNotFinish("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
             throw new ObjectNotFoundException("An error occurred while deleting resource object " + repoShadow
                     + " with identifiers " + repoShadow + ": " + ex.getMessage(), ex);
         } catch (EncryptionException e) {
@@ -164,7 +164,7 @@ class DeleteHelper {
         // Create dummy subresult with IN_PROGRESS state.
         // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
         result.createSubresult(OP_DELAYED_OPERATION)
-                .setStatus(OperationResultStatus.IN_PROGRESS);
+                .recordInProgress(); // using "record" to immediately close the result
         LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", opState.getRepoShadow());
         return null;
     }
@@ -186,7 +186,7 @@ class DeleteHelper {
 
             opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
             result.createSubresult(OP_RESOURCE_OPERATION)
-                    .setStatus(OperationResultStatus.NOT_APPLICABLE);
+                    .recordNotApplicable(); // using "record" to immediately close the result
             return null;
 
         }

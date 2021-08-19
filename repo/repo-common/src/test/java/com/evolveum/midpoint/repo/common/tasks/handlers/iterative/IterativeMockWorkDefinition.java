@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockCom
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 
 import com.google.common.base.MoreObjects;
@@ -29,8 +30,12 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "IterativeMockDefinitionType");
 
+    /** Lower bound, inclusive. */
     private final int from;
+
+    /** Upper bound, inclusive. */
     private final int to;
+
     private final String message;
 
     IterativeMockWorkDefinition(WorkDefinitionSource source) {
@@ -46,6 +51,10 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     public int getTo() {
         return to;
+    }
+
+    public Interval getInterval() {
+        return Interval.of(from, to + 1);
     }
 
     public String getMessage() {

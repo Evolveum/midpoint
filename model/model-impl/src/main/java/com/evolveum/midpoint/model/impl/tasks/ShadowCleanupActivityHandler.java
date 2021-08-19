@@ -195,7 +195,7 @@ public class ShadowCleanupActivityHandler
             } else {
                 ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                shadows = typedDefinition.getShadows();
+                shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
                 interval = typedDefinition.getInterval();
             }
             ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous

@@ -251,8 +251,8 @@ class ItemProcessingGatekeeper<I> {
                 .logItemCompletion(operation, result.getStatus());
 
         if (isError() && getReportingOptions().isLogErrors()) {
-            LOGGER.error("{} of object {} {} failed: {}", activityExecution.getShortName(), iterationItemInformation,
-                    activityExecution.getContextDescription(), processingResult.getMessage(), processingResult.exception);
+            LOGGER.error("{} of object {}{} failed: {}", activityExecution.getShortName(), iterationItemInformation,
+                    activityExecution.getContextDescriptionSpaced(), processingResult.getMessage(), processingResult.exception);
         }
     }
 
@@ -311,14 +311,14 @@ class ItemProcessingGatekeeper<I> {
     private void storeTraceIfRequested(OperationResult result, OperationResult parentResult) {
         if (tracingRequested) {
             getTracer().storeTrace(workerTask, result, parentResult);
-            TracingAppender.terminateCollecting(); // todo reconsider
+            TracingAppender.removeSink(); // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
     }
 
     private void logOperationStart() {
-        LOGGER.trace("{} starting for {} {}", activityExecution.getShortName(), iterationItemInformation,
-                activityExecution.getContextDescription());
+        LOGGER.trace("{} starting for {}{}", activityExecution.getShortName(), iterationItemInformation,
+                activityExecution.getContextDescriptionSpaced());
     }
 
     private Tracer getTracer() {
