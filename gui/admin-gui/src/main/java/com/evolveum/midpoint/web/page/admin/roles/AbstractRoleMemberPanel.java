@@ -373,10 +373,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
                 if (CollectionUtils.isEmpty(loadedRelations) && useDefaultObjectRelations) {
-                    AssignmentObjectRelation assignmentObjectRelation = new AssignmentObjectRelation();
-                    assignmentObjectRelation.addRelations(getSupportedRelations());
-                    assignmentObjectRelation.addObjectTypes(getNewMemberObjectTypes());
-                    loadedRelations.add(assignmentObjectRelation);
+                    loadedRelations.addAll(getDefaultNewMemberRelations());
                 }
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
@@ -398,6 +395,30 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
                 additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
         return builder.build();
+    }
+
+    protected List<AssignmentObjectRelation> getDefaultNewMemberRelations() {
+        List<AssignmentObjectRelation> relationsList = new ArrayList<>();
+        List<QName> newMemberObjectTypes = getNewMemberObjectTypes();
+        if (newMemberObjectTypes != null) {
+            newMemberObjectTypes.forEach(objectType -> {
+                List<QName> supportedRelation = getSupportedRelations();
+                if (!UserType.COMPLEX_TYPE.equals(objectType) && !OrgType.COMPLEX_TYPE.equals(objectType)) {
+                    supportedRelation.remove(RelationTypes.APPROVER.getRelation());
+                    supportedRelation.remove(RelationTypes.OWNER.getRelation());
+                    supportedRelation.remove(RelationTypes.MANAGER.getRelation());
+                }
+                AssignmentObjectRelation assignmentObjectRelation = new AssignmentObjectRelation();
+                assignmentObjectRelation.addRelations(supportedRelation);
+                assignmentObjectRelation.addObjectTypes(Collections.singletonList(objectType));
+                relationsList.add(assignmentObjectRelation);
+            });
+        } else {
+            AssignmentObjectRelation assignmentObjectRelation = new AssignmentObjectRelation();
+            assignmentObjectRelation.addRelations(getSupportedRelations());
+            relationsList.add(assignmentObjectRelation);
+        }
+        return relationsList;
     }
 
     private AjaxIconButton createAssignButton(String buttonId) {
