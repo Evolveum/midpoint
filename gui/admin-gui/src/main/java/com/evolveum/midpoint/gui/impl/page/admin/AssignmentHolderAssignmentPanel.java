@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@PanelType(name = "assignments", defaultContainerPath = "assignment")
+//@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments", applicableFor = AssignmentHolderType.class)
 @PanelDisplay(label = "Assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30)
 @Counter(provider = AssignmentCounter.class)
@@ -52,13 +52,13 @@ public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> ex
         WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
-        PrismContainerWrapperModel<AH, AssignmentType> assignmentModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), AssignmentHolderType.F_ASSIGNMENT);
-        List<ITab> tabs = createAssignmentTabs(assignmentModel);
-        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, getPanelConfiguration());
-
-//        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
-
-        assignments.add(panel);
+//        PrismContainerWrapperModel<AH, AssignmentType> assignmentModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), AssignmentHolderType.F_ASSIGNMENT);
+//        List<ITab> tabs = createAssignmentTabs(assignmentModel);
+//        TabbedAssignmentTypePanel panel = new TabbedAssignmentTypePanel(ID_ASSIGNMENTS_PANEL, tabs, assignmentModel, getPanelConfiguration());
+//
+////        SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, assignmentModel);
+//
+//        assignments.add(panel);
     }
 
     private List<ITab> createAssignmentTabs(PrismContainerWrapperModel<AH, AssignmentType> assignmentModel) {

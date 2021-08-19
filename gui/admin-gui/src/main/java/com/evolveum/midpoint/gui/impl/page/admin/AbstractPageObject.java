@@ -6,13 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -51,7 +65,7 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
-
+    private static final String ID_BUTTONS = "buttons";
 
     private LoadableModel<PrismObjectWrapper<O>> model;
     private GuiObjectDetailsPageType detailsPageConfiguration;
@@ -94,7 +108,121 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     }
 
     private void initButtons() {
+        OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                initOperationalButtons(repeatingView);
+            }
+
+            @Override
+            protected void addStateButtons(RepeatingView stateButtonsView) {
+                initStateButtons(stateButtonsView);
+            }
+        };
+
+        opButtonPanel.setOutputMarkupId(true);
+//        opButtonPanel.add(new VisibleBehaviour(() -> isOperationalButtonsVisible() && opButtonPanel.buttonsExist()));
+
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.ofMillis(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        opButtonPanel.add(behavior);
+
+        add(opButtonPanel);
+    }
+
+    protected void initOperationalButtons(RepeatingView repeatingView) {
+        AjaxIconButton save = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_SAVE), Model.of("Save")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        save.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(save);
+
+        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW), Model.of("Preview changes")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        preview.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(preview);
+
+        AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE), Model.of("Delete object")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        remove.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(remove);
+
+
+//        AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                changeArchetypeButtonClicked(target);
+//            }
+//        };
+//        changeArchetype.add(new VisibleBehaviour(() -> !getObjectWrapper().isReadOnly() && isChangeArchetypeAllowed() &&
+//                getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+//        changeArchetype.add(AttributeAppender.append("class", "btn-default"));
+//        repeatingView.add(changeArchetype);
+    }
+
+    protected void initStateButtons(RepeatingView stateButtonsView) {
+
+    }
+
+    public int getRefreshInterval() {
+        return 30;
+    }
+
+    public boolean isRefreshEnabled() {
+        return false;
+    }
+
+    public void refresh(AjaxRequestTarget target) {
+        refresh(target, true);
+    }
+
+    public void refresh(AjaxRequestTarget target, boolean soft) {
+
+        if (isEditUser()) {
+            model.reset();
+        }
+        target.add(getSummaryPanel());
+        target.add(getOperationalButtonsPanel());
+        target.add(getFeedbackPanel());
+        refreshTitle(target);
+
+//        if (soft) {
+//            for (Component component : getMainPanel().getTabbedPanel()) {
+//                if (component instanceof RefreshableTabPanel) {
+//                    for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
+//                        target.add(c);
+//                    }
+//                }
+//            }
+//        } else {
+//            target.add(getMainPanel().getTabbedPanel());
+//        }
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
@@ -104,10 +232,14 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+        getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
+        String panelType = panelConfig.getPanelType();
+        if (panelType == null) {
+            return;
+        }
         Class<? extends Panel> panelClass = findObjectPanel(panelConfig.getPanelType());
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, model, panelConfig);
         form.addOrReplace(panel);
-        getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
     }
 
     private void initNavigation() {
@@ -209,6 +341,12 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
 
     private MidpointForm getMainForm() {
         return (MidpointForm) get(ID_MAIN_FORM);
+    }
+    private Component getSummaryPanel() {
+        return get(ID_SUMMARY);
+    }
+    private Component getOperationalButtonsPanel() {
+        return get(ID_BUTTONS);
     }
 
     public PrismObject<O> getPrismObject() {

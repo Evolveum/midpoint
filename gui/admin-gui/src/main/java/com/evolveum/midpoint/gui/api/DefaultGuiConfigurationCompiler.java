@@ -183,9 +183,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
         config.setIdentifier(identifier);
 
-        PanelType panelType = clazz.getAnnotation(PanelType.class);
-        config.setPanelType(panelType.name());
-        compileDefaultContainerSpecification(panelType, config);
+        addPanelTypeConfiguration(clazz, config);
         compileDisplay(clazz, config);
 
         List<ContainerPanelConfigurationType> children = processChildren(classes, objectType, clazz);
@@ -196,6 +194,15 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 //            defaultContainerPanelConfigurationMap.put(objectType, config);
         }
         return config;
+    }
+
+    private void addPanelTypeConfiguration(Class<?> clazz, ContainerPanelConfigurationType config) {
+        PanelType panelType = clazz.getAnnotation(PanelType.class);
+        if (panelType == null) {
+            return;
+        }
+        config.setPanelType(panelType.name());
+        compileDefaultContainerSpecification(panelType, config);
     }
 
     private void compileDefaultContainerSpecification(PanelType panelType, ContainerPanelConfigurationType config) {

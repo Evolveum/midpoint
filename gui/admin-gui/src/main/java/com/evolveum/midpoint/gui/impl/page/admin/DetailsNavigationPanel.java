@@ -60,12 +60,12 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             @Override
             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
                 WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
-                navigationDetails.add(AttributeAppender.append("style", new ReadOnlyModel<>(() -> {
+                navigationDetails.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> {
                     ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectModel.getObject().getCompileTimeClass().getSimpleName());
                     ContainerPanelConfigurationType storageConfig = storage.getDefaultConfiguration();
                     ContainerPanelConfigurationType itemModelObject = item.getModelObject();
                     if (storageConfig.getIdentifier().equals(itemModelObject.getIdentifier())) {
-                        return "background-color: #eeeeee;";
+                        return "active";
                     }
                     return "";
                 })));
@@ -103,7 +103,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                         DetailsNavigationPanel.this.onClickPerformed(config, target);
                     }
                 };
-                item.add(subPanel);
+                navigationDetails.add(subPanel);
                 item.add(new VisibleBehaviour(() -> isMenuItemVisible(item.getModelObject())));
 
 //                item.add(new Label(ID_NAV_ITEM, item.getModel()));

@@ -2005,10 +2005,27 @@ th.composited-icon {
     overflow-x: hidden;
     padding-top: 16px;
 
-    & > li {
+    & > li.navigation-details {
       list-style: none;
-    }
 
+      .navigation-details {
+        display: none;
+
+        &.active {
+          display: block;
+          background-color: #eeeeee;  //TODO: change to constant
+        }
+      }
+
+      &.active {
+        background-color: #eeeeee;  //TODO change to constant
+        list-style: none;
+
+        .navigation-details {
+          display: block;
+        }
+      }
+    }
   }
 }
 
@@ -2023,8 +2040,21 @@ th.composited-icon {
     overflow-x: hidden;
     padding-top: 16px;
 
-    & > li {
+    & > li.navigation-details {
       list-style: none;
+
+      .navigation-details {
+        display: none;
+      }
+
+      &.active {
+        background-color: #eeeeee;
+        list-style: none;
+
+        .navigation-details {
+          display: block;
+        }
+      }
     }
   }
 }
@@ -2052,4 +2082,20 @@ th.composited-icon {
 ul.details-menu {
   padding-inline-start: 13px;
 }
+
+.navigation-details {
+
+  .navigation-details {
+    display: none;
+  }
+}
+
+.navigation-details .active {
+  background-color: #eeeeee;
+
+  .navigation-details {
+    display: block;
+  }
+}
+
 
