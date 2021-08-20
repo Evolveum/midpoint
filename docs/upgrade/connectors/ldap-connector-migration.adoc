@@ -221,7 +221,7 @@ Some LDAP servers require explicit specification of ordering rule.
 | uidAttribute
 | Primary identifier attribute
 | Name of LDAP attribute to use as a primary identifier.
-This will be used as ConnId \__UID\__ attribute.
+This will be used as ConnId `pass:[__UID__]` attribute.
 The default is entryUUID which is the best choice for modern LDAP servers.
 Value of "dn" can be used here to use entry DN as a primary identifier.
 
