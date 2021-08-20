@@ -17,21 +17,36 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * Creates and manipulates exported reports in CSV format.
  */
-public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> {
+public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> implements DashboardReportDataWriter {
 
     @NotNull private final CommonCsvSupport support;
 
     @Nullable private final FileFormatConfigurationType configuration;
 
+    @NotNull private final Map<String, String> widgetsData = new HashMap<>();
+
     public CsvReportDataWriter(@Nullable FileFormatConfigurationType configuration) {
         this.support = new CommonCsvSupport(configuration);
         this.configuration = configuration;
+    }
+
+    @Override
+    public synchronized void appendDataRow(ExportedReportDataRow row) {
+        if (row instanceof ExportedDashboardReportDataRow
+                && ((ExportedDashboardReportDataRow) row).isBasicWidgetRow()) {
+            widgetsData.put(
+                    ((ExportedDashboardReportDataRow) row).getWidgetIdentifier(),
+                    String.join("", row.getValues().get(CommonHtmlSupport.getIndexOfNumberColumn())));
+        }
+        super.appendDataRow(row);
     }
 
     @Override
@@ -96,5 +111,10 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
         return values.stream()
                 .map(support::removeNewLines)
                 .collect(Collectors.joining(support.getMultivalueDelimiter()));
+    }
+
+    @Override
+    @NotNull public Map<String, String> getWidgetsData() {
+        return widgetsData;
     }
 }

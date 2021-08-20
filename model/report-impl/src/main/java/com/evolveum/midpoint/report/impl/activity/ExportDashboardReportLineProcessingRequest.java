@@ -44,6 +44,9 @@ public class ExportDashboardReportLineProcessingRequest
     }
 
     private String getName() {
-        return "dashboard " + item.getWidgetIdentifier() + "line #" + item.getLineNumber();
+        return "dashboard " +
+                (item.getWidgetIdentifier() != null ? item.getWidgetIdentifier() : "") +
+                "line #" +
+                item.getLineNumber();
     }
 }

@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
 @Experimental
 public interface DashboardService {
 
-    DashboardWidget createWidgetData(DashboardWidgetType widget, Task task, OperationResult result)
+    DashboardWidget createWidgetData(DashboardWidgetType widget, boolean useDisplaySource, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException;
 

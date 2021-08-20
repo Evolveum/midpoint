@@ -8,13 +8,12 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
@@ -36,16 +35,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Contains common functionality for save exported report file executions.
@@ -65,10 +62,20 @@ class SaveReportFileSupport {
      */
     private final ReportType report;
 
+    /**
+     * Type of storing exported data.
+     */
+    private final StoreExportedWidgetDataType storeType;
+
     SaveReportFileSupport(ReportType report, @NotNull RunningTask task, @NotNull ReportServiceImpl reportService) {
         this.report = report;
         runningTask = task;
         this.reportService = reportService;
+
+        StoreExportedWidgetDataType storeType = report.getDashboard() == null ?
+                null :
+                report.getDashboard().getStoreExportedWidgetData();
+        this.storeType = storeType == null ? StoreExportedWidgetDataType.ONLY_FILE : storeType;
     }
 
     /**
@@ -91,24 +98,75 @@ class SaveReportFileSupport {
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
 
-        String aggregatedFilePath = getDestinationFileName(report, dataWriter);
-
-        writeToReportFile(dataWriter.completizeReport(aggregatedData), aggregatedFilePath);
-        saveReportDataObject(dataWriter, aggregatedFilePath, result);
-        if (report.getPostReportScript() != null) {
-            processPostReportScript(report, aggregatedFilePath, runningTask, result);
-        }
+        storeExportedReport(dataWriter.completizeReport(aggregatedData), dataWriter, result);
     }
 
     public void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
+        storeExportedReport(dataWriter.completizeReport(), dataWriter, result);
+    }
 
+    private void storeExportedReport(String completizedReport,
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            OperationResult result) throws CommonException {
         String aggregatedFilePath = getDestinationFileName(report, dataWriter);
 
-        writeToReportFile(dataWriter.completizeReport(), aggregatedFilePath);
-        saveReportDataObject(dataWriter, aggregatedFilePath, result);
-        if (report.getPostReportScript() != null) {
-            processPostReportScript(report, aggregatedFilePath, runningTask, result);
+        if (StoreExportedWidgetDataType.ONLY_FILE.equals(storeType)
+                || StoreExportedWidgetDataType.WIDGET_AND_FILE.equals(storeType)) {
+            writeToReportFile(completizedReport, aggregatedFilePath);
+            saveReportDataObject(dataWriter, aggregatedFilePath, result);
+            if (report.getPostReportScript() != null) {
+                processPostReportScript(report, aggregatedFilePath, runningTask, result);
+            }
+        }
+        if ((StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeType)
+                || StoreExportedWidgetDataType.WIDGET_AND_FILE.equals(storeType))
+                && dataWriter instanceof DashboardReportDataWriter){
+            DashboardType dashboard = reportService.getObjectResolver().resolve(
+                    report.getDashboard().getDashboardRef(),
+                    DashboardType.class,
+                    null,
+                    "resolve dashboard",
+                    runningTask,
+                    result);
+            List<DashboardWidgetType> widgets = dashboard.getWidget();
+            Map<String, String> widgetsData = ((DashboardReportDataWriter) dataWriter).getWidgetsData();
+            List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
+            widgets.forEach(widget -> {
+                String widgetData = widgetsData.get(widget.getIdentifier());
+                if (StringUtils.isEmpty(widgetData)) {
+                   return;
+                }
+                DashboardWidgetDataType data = widget.getData();
+                if (data == null) {
+                    data =  new DashboardWidgetDataType().storedData(widgetData);
+                    PrismContainerDefinition<Containerable> def = dashboard.asPrismObject().getDefinition().findContainerDefinition(
+                            ItemPath.create(DashboardType.F_WIDGET, DashboardWidgetType.F_DATA));
+                    ContainerDelta<Containerable> delta = def.createEmptyDelta(
+                            ItemPath.create(widget.asPrismContainerValue().getPath(), DashboardWidgetType.F_DATA));
+                    delta.addValuesToAdd(data.asPrismContainerValue());
+                    shadowModifications.add(delta);
+                    return;
+                }
+
+                PrismPropertyDefinition<Object> def = dashboard.asPrismObject().getDefinition().findPropertyDefinition(
+                        ItemPath.create(DashboardType.F_WIDGET,
+                                DashboardWidgetType.F_DATA,
+                                DashboardWidgetDataType.F_STORED_DATA));
+                PropertyDelta<Object> delta = def.createEmptyDelta(
+                        ItemPath.create(widget.asPrismContainerValue().getPath(),
+                                DashboardWidgetType.F_DATA,
+                                DashboardWidgetDataType.F_STORED_DATA));
+                if (data.getStoredData() == null) {
+                    PrismPropertyValue<Object> newValue = PrismContext.get().itemFactory().createPropertyValue(widgetData);
+                    delta.addValuesToAdd(newValue);
+                } else {
+                    delta.setRealValuesToReplace(widgetData);
+                }
+                shadowModifications.add(delta);
+            });
+            reportService.getRepositoryService().modifyObject(
+                    DashboardType.class, dashboard.getOid(), shadowModifications, null, result);
         }
     }
 
@@ -128,8 +186,7 @@ class SaveReportFileSupport {
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
         String fileName = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
-        String reportDataName = fileName + " - " + type;
-        return reportDataName;
+        return fileName + " - " + type;
     }
 
     private static String getDateTime() {

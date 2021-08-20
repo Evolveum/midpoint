@@ -2405,6 +2405,24 @@
                         Type of the widget. It is an identifier that specifies the type of the information (content)
                         of the widget.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DashboardWidgetDataType.sourceType</a:displayName>
+                        <a:help>DashboardWidgetDataType.sourceType.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displaySourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the widget. It is an identifier that override sourceType.
+                        This element is used only for number message in widget, for redirect
+                        to details page is still used sourceType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>DashboardWidgetDataType.displaySourceType</a:displayName>
+                        <a:help>DashboardWidgetDataType.displaySourceType.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
@@ -2425,6 +2443,18 @@
                     <xsd:appinfo>
                         <a:displayName>DashboardWidgetDataType.objectRef</a:displayName>
                         <a:help>DashboardWidgetDataType.objectRef.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="storedData" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of a string data as a widget data source.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>DashboardWidgetDataType.storedData</a:displayName>
+                        <a:help>DashboardWidgetDataType.storedData.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2473,6 +2503,17 @@
                     </xsd:appinfo>
                     <xsd:documentation>
                         Content of the widget will be based on data from a single object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="widgetData">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WIDGET_DATA"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from a stored in widget.
+                        This data can be changed asynchronously.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>

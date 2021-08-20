@@ -10,16 +10,16 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -105,6 +105,46 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
+    public void test005DashboardReportAndStoredWidgetData() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyObjectReplaceProperty(ReportType.class,
+                REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.oid,
+                ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_STORE_EXPORTED_WIDGET_DATA),
+                task,
+                result,
+                StoreExportedWidgetDataType.ONLY_WIDGET
+        );
+
+        when();
+
+        runExportTask(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, result);
+        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
+
+        then();
+
+        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
+                .assertSuccess()
+                .display();
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.oid);
+        File outputFile = findOutputFile(report);
+        displayValue("Found report file", outputFile);
+        assertTrue("Output file for " + report + " exists", outputFile == null);
+
+        PrismObject<DashboardType> dashboard = getObject(DashboardType.class, DASHBOARD_DEFAULT_COLUMNS.oid);
+        dashboard.asObjectable().getWidget().forEach(widget -> {
+            assertTrue(
+                    "Stored data in widget " + widget.getIdentifier() + " is null",
+                    widget.getData() != null && widget.getData().getStoredData() != null
+            );
+        });
+    }
+
+    @Test
     public void test100AuditCollectionReportWithDefaultColumn() throws Exception {
         runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN);
     }
@@ -135,57 +175,57 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
-    public void test111ObjectCollectionReportWithView() throws Exception {
+    public void test112ObjectCollectionReportWithView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_VIEW);
     }
 
     @Test
-    public void test112ObjectCollectionReportWithDoubleView() throws Exception {
+    public void test113ObjectCollectionReportWithDoubleView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW);
     }
 
     @Test
-    public void test113ObjectCollectionReportWithFilter() throws Exception {
+    public void test114ObjectCollectionReportWithFilter() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER);
     }
 
     @Test
-    public void test114ObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
+    public void test115ObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION);
     }
 
     @Test
-    public void test115ObjectCollectionReportWithCondition() throws Exception {
+    public void test116ObjectCollectionReportWithCondition() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_CONDITION);
     }
 
     @Test
-    public void test116ObjectCollectionEmptyReport() throws Exception {
+    public void test117ObjectCollectionEmptyReport() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_EMPTY);
     }
 
     @Test
-    public void test117ObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+    public void test118ObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW);
     }
 
     @Test
-    public void test118ObjectCollectionWithParamReport() throws Exception {
+    public void test119ObjectCollectionWithParamReport() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_PARAM);
     }
 
     @Test
-    public void test119ObjectCollectionWithSubreportParamReport() throws Exception {
+    public void test120ObjectCollectionWithSubreportParamReport() throws Exception {
         runTest(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM);
     }
 
     @Test
-    public void test120RunMidpointUsers() throws Exception {
+    public void test121RunMidpointUsers() throws Exception {
         runTest(REPORT_USER_LIST);
     }
 
     @Test
-    public void test121RunMidpointUsersScript() throws Exception {
+    public void test122RunMidpointUsersScript() throws Exception {
         if (!isOsUnix()) {
             displaySkip();
             return;
@@ -208,10 +248,9 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        runExportTask(reportResource, result);
-
         when();
 
+        runExportTask(reportResource, result);
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
 
         then();
