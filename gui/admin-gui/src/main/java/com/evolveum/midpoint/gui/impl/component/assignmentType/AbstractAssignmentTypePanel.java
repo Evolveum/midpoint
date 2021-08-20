@@ -521,9 +521,14 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return new AssignmentsDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), isEntitlementAssignment(), config);
     }
 
+//    @Override
+//    public PrismContainerWrapper<AssignmentType> getModelObject() {
+//        return getContainerModel().getObject();
+//    }
+
     @Override
-    public PrismContainerWrapper<AssignmentType> getModelObject() {
-        return getContainerModel().getObject();
+    public AssignmentType getModelObject() {
+        return getContainerModel().getObject().getItem().getRealValue();
     }
 
     protected boolean isEntitlementAssignment() {

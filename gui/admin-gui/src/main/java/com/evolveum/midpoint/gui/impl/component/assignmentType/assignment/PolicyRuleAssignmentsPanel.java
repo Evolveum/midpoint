@@ -53,13 +53,13 @@ public abstract class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 
-        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
 
-        columns.add(new PrismPropertyWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 
-        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
 
-        columns.add(new PrismPropertyWrapperColumn<>(getModel(), AssignmentType.F_ORDER, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), AssignmentType.F_ORDER, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 
         return columns;
     }
@@ -71,7 +71,7 @@ public abstract class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType
 
     @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+        PrismContainerValue<AssignmentType> newAssignment = getContainerModel().getObject().getItem().createNewValue();
         AssignmentType assignmentType = newAssignment.asContainerable();
         try {
             newAssignment.findOrCreateContainer(AssignmentType.F_POLICY_RULE);
@@ -82,7 +82,7 @@ public abstract class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
-        PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewItemContainerValueWrapper(newAssignment, getModelObject(), target);
+        PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewItemContainerValueWrapper(newAssignment, getContainerModel().getObject(), target);
         itemDetailsPerformed(target, Collections.singletonList(newAssignmentWrapper));
     }
 
