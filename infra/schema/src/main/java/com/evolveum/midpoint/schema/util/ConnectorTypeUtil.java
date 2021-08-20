@@ -59,7 +59,12 @@ public class ConnectorTypeUtil {
         PrismContainer<XmlSchemaType> schemaContainer;
         try {
             schemaContainer = connector.findOrCreateContainer(ConnectorType.F_SCHEMA);
-            PrismProperty<SchemaDefinitionType> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+
+            PrismContainerValue<XmlSchemaType> schemaInstance = schemaContainer.getAnyValue();
+            if (schemaInstance == null) {
+                schemaInstance = schemaContainer.createNewValue();
+            }
+            PrismProperty<SchemaDefinitionType> definitionProperty = schemaInstance.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
             ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
         } catch (SchemaException e) {
             // Should not happen
