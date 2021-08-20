@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="4a56bee1-57e5-4575-9b05-0fb1ad6ad73e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>task-no-workers</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+    <executionStatus>runnable</executionStatus>
+    <activity>
+        <work>
+            <noOp>
+                <!-- runs for a long time -->
+                <steps>100000</steps>
+                <delay>100</delay>
+                <stepInterruptibility>full</stepInterruptibility>
+            </noOp>
+        </work>
+        <distribution>
+            <buckets>
+                <implicitSegmentation>
+                    <numberOfBuckets>20</numberOfBuckets>
+                </implicitSegmentation>
+            </buckets>
+        </distribution>
+    </activity>
+</task>

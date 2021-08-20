@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -54,7 +56,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
-@SuppressWarnings("FieldCanBeLocal")
+@SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue" })
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrings extends AbstractStoryTest {
@@ -69,36 +71,29 @@ public class TestStrings extends AbstractStoryTest {
     private static final File USERS_DIR = new File(TEST_DIR, "users");
 
     private static final File ORG_MONKEY_ISLAND_FILE = new File(ORG_DIR, "0-org-monkey-island-modified.xml");
-    private static final TestResource ORG_TEAMS = new TestResource(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
-    private static final TestResource ORG_ROLE_CATALOG = new TestResource(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
-    private static final TestResource ORG_SECURITY_APPROVERS = new TestResource(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
-    private static final TestResource ORG_SOD_APPROVERS = new TestResource(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
+    private static final TestResource<OrgType> ORG_TEAMS = new TestResource<>(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
+    private static final TestResource<OrgType> ORG_ROLE_CATALOG = new TestResource<>(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
+    private static final TestResource<OrgType> ORG_SECURITY_APPROVERS = new TestResource<>(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
+    private static final TestResource<OrgType> ORG_SOD_APPROVERS = new TestResource<>(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
 
-    private static final TestResource ROLE_END_USER = new TestResource(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
-    private static final TestResource FORM_USER_DETAILS = new TestResource(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
-    private static final TestResource METAROLE_APPROVAL_ROLE_APPROVERS_FIRST = new TestResource(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
-    private static final TestResource METAROLE_APPROVAL_ROLE_APPROVERS_FORM = new TestResource(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
-    private static final TestResource METAROLE_APPROVAL_SECURITY = new TestResource(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
+    private static final TestResource<RoleType> ROLE_END_USER = new TestResource<>(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
+    private static final TestResource<FormType> FORM_USER_DETAILS = new TestResource<>(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FIRST = new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FORM = new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
+    private static final TestResource<RoleType> METAROLE_APPROVAL_SECURITY = new TestResource<>(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
 
     private static final File ROLE_A_TEST_1 = new File(ROLES_SPECIFIC_DIR, "a-test-1.xml");
     private static String roleATest1Oid;
     private static final File ROLE_A_TEST_2A = new File(ROLES_SPECIFIC_DIR, "a-test-2a.xml");
-    private static String roleATest2aOid;
     private static final File ROLE_A_TEST_2B = new File(ROLES_SPECIFIC_DIR, "a-test-2b.xml");
-    private static String roleATest2bOid;
     private static final File ROLE_A_TEST_3A = new File(ROLES_SPECIFIC_DIR, "a-test-3a.xml");
-    private static String roleATest3aOid;
     private static final File ROLE_A_TEST_3B = new File(ROLES_SPECIFIC_DIR, "a-test-3b.xml");
-    private static String roleATest3bOid;
     private static final File ROLE_A_TEST_3X = new File(ROLES_SPECIFIC_DIR, "a-test-3x.xml");
-    private static String roleATest3xOid;
     private static final File ROLE_A_TEST_3Y = new File(ROLES_SPECIFIC_DIR, "a-test-3y.xml");
-    private static String roleATest3yOid;
     private static final File ROLE_A_TEST_4 = new File(ROLES_SPECIFIC_DIR, "a-test-4.xml");
     private static String roleATest4Oid;
 
     private static final File USER_BARKEEPER_FILE = new File(USERS_DIR, "barkeeper.xml");
-    private static String userBarkeeperOid;
     private static final File USER_BOB_FILE = new File(USERS_DIR, "bob.xml");
     private static String userBobOid;
     private static final File USER_CARLA_FILE = new File(USERS_DIR, "carla.xml");
@@ -114,11 +109,8 @@ public class TestStrings extends AbstractStoryTest {
     private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
     private static String userLechuckOid;
     private static final File USER_LECHUCK_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy.xml");
-    private static String userLechuckDeputyOid;
     private static final File USER_LECHUCK_DEPUTY_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy-deputy.xml");
-    private static String userLechuckDeputyDeputyOid;
     private static final File USER_LECHUCK_DEPUTY_LIMITED_FILE = new File(USERS_DIR, "lechuck-deputy-limited.xml");
-    private static String userLechuckDeputyLimitedOid;
 
     private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 
@@ -126,7 +118,7 @@ public class TestStrings extends AbstractStoryTest {
     private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
     private static final String DUMMY_PROCESS = "dummy:process";
 
-    protected static final int CASE_WAIT_TIMEOUT = 40000;
+    private static final int CASE_WAIT_TIMEOUT = 40000;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -156,15 +148,15 @@ public class TestStrings extends AbstractStoryTest {
         repoAdd(METAROLE_APPROVAL_SECURITY, initResult);
 
         roleATest1Oid = addAndRecompute(ROLE_A_TEST_1, initTask, initResult);
-        roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
-        roleATest2bOid = addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
-        roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
-        roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
-        roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
-        roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
+        addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
         roleATest4Oid = addAndRecompute(ROLE_A_TEST_4, initTask, initResult);
 
-        userBarkeeperOid = addAndRecomputeUser(USER_BARKEEPER_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_BARKEEPER_FILE, initTask, initResult);
         userBobOid = addAndRecomputeUser(USER_BOB_FILE, initTask, initResult);
         userCarlaOid = addAndRecomputeUser(USER_CARLA_FILE, initTask, initResult);
         userCheeseOid = addAndRecomputeUser(USER_CHEESE_FILE, initTask, initResult);
@@ -172,9 +164,9 @@ public class TestStrings extends AbstractStoryTest {
         userElaineOid = addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
         userGuybrushOid = addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
         userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
-        userLechuckDeputyOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_FILE, initTask, initResult);
-        userLechuckDeputyDeputyOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_DEPUTY_FILE, initTask, initResult);
-        userLechuckDeputyLimitedOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_LIMITED_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_LECHUCK_DEPUTY_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_LECHUCK_DEPUTY_DEPUTY_FILE, initTask, initResult);
+        addAndRecomputeUser(USER_LECHUCK_DEPUTY_LIMITED_FILE, initTask, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
@@ -249,7 +241,7 @@ public class TestStrings extends AbstractStoryTest {
 
         assertEquals("Wrong # of process messages", 1, processMessages.size());
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
-                "Process instance name: Assigning role \"a-test-1\" to user \"bob\"");
+                "Process instance name: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"");
 
         displayDumpable("audit", dummyAuditService);
     }
@@ -302,36 +294,36 @@ public class TestStrings extends AbstractStoryTest {
 
         Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
         assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
         Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Line managers (1/3)",
                 "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
                 "(in 7 days)", "^Result:");
         assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
         // events
@@ -391,30 +383,30 @@ public class TestStrings extends AbstractStoryTest {
 
         Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
                 "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
         assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
         assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
         Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
                 "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
         assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
         assertMessage(sorted2.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
         displayDumpable("audit", dummyAuditService);
@@ -466,11 +458,11 @@ public class TestStrings extends AbstractStoryTest {
         assertNull("process messages", processMessages);
 
         assertMessage(lifecycleMessages.get(0), "cheese@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(allocationMessages.get(0), "cheese@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
 
@@ -522,15 +514,15 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of process messages", 1, processMessages.size());
 
         assertMessage(lifecycleMessages.get(0), "chef@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(allocationMessages.get(0), "chef@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
-                "Process instance name: Assigning role \"a-test-1\" to user \"bob\"", "Result: APPROVED");
+                "Process instance name: Assigning role \"a-test-1\" to user \"Ghost Pirate Bob\"", "Result: APPROVED");
 
         displayDumpable("audit", dummyAuditService);
 
@@ -594,7 +586,7 @@ public class TestStrings extends AbstractStoryTest {
 
         assertEquals("Wrong # of process messages", 1, processMessages.size());
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
-                "Process instance name: Assigning role \"a-test-1\" to user \"carla\"");
+                "Process instance name: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"");
 
         displayDumpable("audit", dummyAuditService);
     }
@@ -676,16 +668,16 @@ public class TestStrings extends AbstractStoryTest {
 
         ArrayListValuedHashMap<String, Message> sorted = sortByRecipients(allocationMessages);
         assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item has been escalated",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Allocated to (before escalation): Guybrush Threepwood (guybrush)",
                 "(in 5 days)");
         assertMessage(sorted.get("guybrush@evolveum.com").get(1), "guybrush@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to (after escalation): Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
         assertMessage(sorted.get("cheese@evolveum.com").get(0), "cheese@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to (after escalation): Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
@@ -718,22 +710,22 @@ public class TestStrings extends AbstractStoryTest {
         ArrayListValuedHashMap<String, Message> sorted = sortByRecipients(allocationMessages);
         // FIXME The following assertions fail when daylight saving switch is approaching. We should fix it somehow, some day ...
         assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
         assertMessage(sorted.get("guybrush@evolveum.com").get(1), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
         assertMessage(sorted.get("cheese@evolveum.com").get(0), "cheese@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
         assertMessage(sorted.get("cheese@evolveum.com").get(1), "cheese@evolveum.com", "Work item will be automatically completed in 2 days",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
@@ -787,46 +779,46 @@ public class TestStrings extends AbstractStoryTest {
 
         Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
         assertMessage(sorted.get("guybrush@evolveum.com"), "guybrush@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "Originally allocated to: Guybrush Threepwood (guybrush)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "Originally allocated to: Guybrush Threepwood (guybrush)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Security (2/3)",
                 "Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
         assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
         Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
         assertMessage(sorted2.get("guybrush@evolveum.com"), "guybrush@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "Originally allocated to: Guybrush Threepwood (guybrush)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been completed",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
                 "Originally allocated to: Guybrush Threepwood (guybrush)",
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
         assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Security (2/3)",
                 "Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
         assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
-                "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
+                "Work item: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
         displayDumpable("audit", dummyAuditService);
@@ -901,7 +893,7 @@ public class TestStrings extends AbstractStoryTest {
         checkTwoCompleted(lifecycleMessages);
         checkTwoCompleted(allocationMessages);
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
-                "Process instance name: Assigning role \"a-test-1\" to user \"carla\"", "Result: REJECTED");
+                "Process instance name: Assigning role \"a-test-1\" to user \"Carla the Swordmaster\"", "Result: REJECTED");
 
         displayDumpable("audit", dummyAuditService);
     }
@@ -1029,7 +1021,7 @@ public class TestStrings extends AbstractStoryTest {
         // WHEN
         PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
         login(cheese);
-        ObjectDelta formDelta = prismContext.deltaFor(UserType.class)
+        ObjectDelta<UserType> formDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("Hello")
                 .asObjectDelta(userBobOid);
         workflowService.completeWorkItem(WorkItemId.of(workItem),
@@ -1201,13 +1193,11 @@ public class TestStrings extends AbstractStoryTest {
         return aCase.getEvent();
     }
 
-    private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
+    private void assertEscalationEvent(CaseEventType caseEvent, String initiator, String originalAssignee,
             int stageNumber, List<String> assigneesBefore, List<String> delegatedTo,
             WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) throws SchemaException {
-        if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
-            fail("Wrong event class: expected: " + WorkItemEscalationEventType.class + ", real: " + wfProcessEventType.getClass());
-        }
-        WorkItemEscalationEventType event = (WorkItemEscalationEventType) wfProcessEventType;
+        assertThat(caseEvent).as("case event").isInstanceOf(WorkItemEscalationEventType.class);
+        WorkItemEscalationEventType event = (WorkItemEscalationEventType) caseEvent;
         assertEvent(event, initiator, originalAssignee, stageNumber);
         PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
         PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
@@ -1216,23 +1206,19 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevel().getName());
     }
 
-    private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
+    private void assertCompletionEvent(CaseEventType caseEvent, String initiator, String originalAssignee,
             int stageNumber, WorkItemOutcomeType outcome, String comment) throws SchemaException {
-        if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
-            fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
-        }
-        WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
+        assertThat(caseEvent).as("case event").isInstanceOf(WorkItemCompletionEventType.class);
+        WorkItemCompletionEventType event = (WorkItemCompletionEventType) caseEvent;
         assertEvent(event, initiator, originalAssignee, stageNumber);
         assertEquals("Wrong outcome", outcome, ApprovalUtils.fromUri(event.getOutput().getOutcome()));
         assertEquals("Wrong comment", comment, event.getOutput().getComment());
     }
 
-    private void assertEvent(CaseEventType processEvent,
+    private void assertEvent(CaseEventType caseEvent,
             String initiator, String originalAssignee, Integer stageNumber) throws SchemaException {
-        if (!(processEvent instanceof WorkItemEventType)) {
-            fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
-        }
-        WorkItemEventType event = (WorkItemEventType) processEvent;
+        assertThat(caseEvent).as("case event").isInstanceOf(WorkItemEventType.class);
+        WorkItemEventType event = (WorkItemEventType) caseEvent;
         PrismAsserts.assertReferenceValue(ref(event.getInitiatorRef()), initiator);
         assertEquals("Wrong stage #", stageNumber, event.getStageNumber());
         //assertEquals("Wrong stage name", stageName, event.getStageName());

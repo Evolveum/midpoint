@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliation;
+import com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -150,7 +149,8 @@ public class TaskActivityManager {
     /**
      * Note that we reconcile only workers for distributed activities that already have their state.
      */
-    public void reconcileWorkers(@NotNull String rootTaskOid, @NotNull OperationResult parentResult)
+    public @NotNull Map<ActivityPath, WorkersReconciliationResultType> reconcileWorkers(@NotNull String rootTaskOid,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.subresult(OP_RECONCILE_WORKERS)
                 .addParam("rootTaskOid", rootTaskOid)
@@ -158,11 +158,15 @@ public class TaskActivityManager {
         try {
             Task rootTask = taskManager.getTaskTree(rootTaskOid, result);
             TaskType rootTaskBean = rootTask.getRawTaskObjectClonedIfNecessary().asObjectable();
+            Map<ActivityPath, WorkersReconciliationResultType> resultMap = new HashMap<>();
             ActivityTreeUtil.processStates(rootTaskBean, TaskResolver.empty(), (path, state, workerStates, task) -> {
-                if (workerStates != null) {
-                    reconcileWorkersForActivity(rootTask, task, path, result);
+                if (shouldReconcileActivity(workerStates, state)) {
+                    resultMap.put(
+                            path,
+                            reconcileWorkersForActivity(rootTask, task, path, result));
                 }
             });
+            return resultMap;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -171,10 +175,16 @@ public class TaskActivityManager {
         }
     }
 
+    private boolean shouldReconcileActivity(List<ActivityStateType> workerStates, ActivityStateType state) {
+        return workerStates != null &&
+                state != null && // actually, workerStates != null implies state != null
+                state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED;
+    }
+
     /**
      * Note: common exceptions are not propagated - these are reflected only in the operation result
      */
-    private void reconcileWorkersForActivity(@NotNull Task rootTask, @NotNull TaskType coordinatorTaskBean,
+    private @NotNull WorkersReconciliationResultType reconcileWorkersForActivity(@NotNull Task rootTask, @NotNull TaskType coordinatorTaskBean,
             @NotNull ActivityPath path, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_RECONCILE_WORKERS_FOR_ACTIVITY)
                 .addArbitraryObjectAsParam("rootTask", rootTask)
@@ -183,12 +193,16 @@ public class TaskActivityManager {
                 .build();
         try {
             Task coordinatorTask = taskManager.createTaskInstance(coordinatorTaskBean.asPrismObject(), result);
-            new WorkersReconciliation(rootTask, coordinatorTask, path, null, beans)
+            WorkersReconciliationOptions options = new WorkersReconciliationOptions();
+            options.setDontCloseWorkersWhenWorkDone(true); // TODO
+            return new WorkersReconciliation(rootTask, coordinatorTask, path, options, beans)
                     .execute(result);
         } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile workers for activity path '{}' in {}/{}", e, path,
                     coordinatorTaskBean, rootTask);
             result.recordFatalError(e);
+            return new WorkersReconciliationResultType(prismContext)
+                    .status(OperationResultStatusType.FATAL_ERROR);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

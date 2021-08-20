@@ -7,7 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil;
+import com.evolveum.midpoint.repo.common.task.work.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,10 +22,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.math.BigInteger;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * TODO
@@ -53,21 +50,13 @@ class IterativeMockActivityExecutionSpecifics
     public void iterateOverItemsInBucket(@NotNull WorkBucketType bucket, OperationResult result) {
         IterativeMockWorkDefinition workDef = activityExecution.getActivity().getWorkDefinition();
 
-        AbstractWorkBucketContentType content = bucket.getContent();
-        int from, to;
-        if (content instanceof NullWorkBucketContentType) {
-            from = workDef.getFrom();
-            to = workDef.getTo();
-        } else if (content instanceof NumericIntervalWorkBucketContentType) {
-            from = ((NumericIntervalWorkBucketContentType) content).getFrom().intValue();
-            to = ((NumericIntervalWorkBucketContentType) content).getTo().intValue() - 1;
-        } else {
-            throw new IllegalStateException("Unexpected bucket content: " + content);
-        }
+        Interval narrowed = NumericIntervalBucketUtil.getNarrowedInterval(bucket, workDef.getInterval());
 
-        for (int item = from; item <= to; item++) {
+        for (int item = narrowed.from; item < narrowed.to; item++) {
             ItemProcessingRequest<Integer> request = new IterativeMockProcessingRequest(item, activityExecution);
-            activityExecution.getCoordinator().submit(request, result);
+            if (!activityExecution.getCoordinator().submit(request, result)) {
+                break;
+            }
         }
     }
 
@@ -113,16 +102,9 @@ class IterativeMockActivityExecutionSpecifics
     }
 
     @Override
-    public AbstractWorkSegmentationType resolveConfiguration(@NotNull ImplicitWorkSegmentationType configuration) {
-        argCheck(configuration.getMatchingRule() == null, "Explicit matching rules are not supported");
-        argCheck(configuration.getDiscriminator() == null, "Explicit discriminator specification is not supported");
-        argCheck(configuration.getNumberOfBuckets() != null, "Number of buckets must be specified");
-
-        IterativeMockWorkDefinition workDef = activityExecution.getActivity().getWorkDefinition();
-
-        return new NumericWorkSegmentationType(PrismContext.get())
-                .from(BigInteger.valueOf(workDef.getFrom()))
-                .to(BigInteger.valueOf(workDef.getTo() + 1))
-                .numberOfBuckets(configuration.getNumberOfBuckets());
+    public AbstractWorkSegmentationType resolveImplicitSegmentation(@NotNull ImplicitWorkSegmentationType segmentation) {
+        return NumericIntervalBucketUtil.resolveImplicitSegmentation(
+                segmentation,
+                activityExecution.getActivity().getWorkDefinition().getInterval());
     }
 }

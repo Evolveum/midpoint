@@ -83,9 +83,9 @@ class Util {
             parentResult.setStatus(finalOperationStatus);
         } else {
             if (opState.isCompleted()) {
-                parentResult.computeStatus();
+                parentResult.computeStatus(true);
             } else {
-                parentResult.recordInProgress();
+                parentResult.setInProgress();
             }
         }
         parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());

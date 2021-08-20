@@ -136,4 +136,8 @@ public class ObjectSetUtil {
             set.setType(type);
         }
     }
+
+    public static @NotNull ObjectSetType fromConfiguration(ObjectSetType configured) {
+        return configured != null ? configured : new ObjectSetType(PrismContext.get());
+    }
 }

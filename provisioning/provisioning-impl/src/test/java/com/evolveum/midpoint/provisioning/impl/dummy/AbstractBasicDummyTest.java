@@ -300,16 +300,16 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                     .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
                     .end()
                 .operationalStateHistory()
                     .assertSize(1)
                     .value(0)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
+                        .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);

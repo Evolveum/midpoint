@@ -35,8 +35,8 @@ public class ExtensionAsserter<C extends Containerable, RA> extends PrismContain
     }
 
     @Override
-    public ExtensionAsserter<C,RA> assertItems(QName... expectedItems) {
-        super.assertItems(expectedItems);
+    public ExtensionAsserter<C,RA> assertItemsExactly(QName... expectedItems) {
+        super.assertItemsExactly(expectedItems);
         return this;
     }
 

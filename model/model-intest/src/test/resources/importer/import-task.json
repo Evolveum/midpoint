@@ -16,7 +16,6 @@
         "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
       },
       "executionStatus": "runnable",
-      "handlerUri": "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3",
       "recurrence": "single",
       "binding": "tight"
     }

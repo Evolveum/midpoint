@@ -98,16 +98,16 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
                 .end()
                 .operationalStateHistory()
                     .assertSize(1)
                     .value(0)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"));
+                        .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"));
 
         oldestStateRecord = resourceRepoAfter.asObjectable().getOperationalState();
         assertContainsOldestStateRecord(resourceRepoAfter);
@@ -143,8 +143,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                 .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
                 .end()
                 .operationalStateHistory()
                 .assertSize(2)
@@ -152,13 +152,13 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .value(0)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
                         .end()
                     .value(1)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
+                        .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
                         .end();
 
         assertContainsOldestStateRecord(resourceRepoAfter);
@@ -194,8 +194,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                 .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.DOWN)     // todo why DOWN and not BROKEN as before?
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to DOWN because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to DOWN because testing connection"))
                 .end()
                 .operationalStateHistory()
                 .assertSize(3);
@@ -257,8 +257,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP"))
                     .end()
                 .operationalStateHistory()
                     .assertSize(4);
@@ -294,8 +294,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertAny()
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP because testing connection"))
                 .end()
                 .operationalStateHistory()
                     .assertSize(5);     // not 6, because 5 is the limit

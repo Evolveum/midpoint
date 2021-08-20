@@ -367,6 +367,13 @@ public abstract class IterativeActivityExecution<
         return contextDescription;
     }
 
+    /**
+     * Inserts a space before context description if it's not empty.
+     */
+    public @NotNull String getContextDescriptionSpaced() {
+        return !contextDescription.isEmpty() ? " " + contextDescription : "";
+    }
+
     public void setContextDescription(String value) {
         this.contextDescription = ObjectUtils.defaultIfNull(value, "");
     }
@@ -456,5 +463,9 @@ public abstract class IterativeActivityExecution<
     public interface SpecificsSupplier<AE extends IterativeActivityExecution<?, ?, ?, ?, ?, ?>,
             AES extends IterativeActivityExecutionSpecifics> {
         AES supply(AE activityExecution);
+    }
+
+    public WorkBucketType getBucket() {
+        return bucket;
     }
 }

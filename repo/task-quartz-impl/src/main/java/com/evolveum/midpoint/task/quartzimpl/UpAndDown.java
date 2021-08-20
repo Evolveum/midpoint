@@ -26,7 +26,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
@@ -129,7 +128,6 @@ public class UpAndDown implements BeanFactoryAware {
             clusterManager.checkClusterConfiguration(result);      // Does not throw exceptions. Sets the ERROR state if necessary, however.
         }
 
-        NoOpTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager); // unfortunately, there seems to be no clean way of letting jobs know the taskManager
         JobStarter.setTaskManagerQuartzImpl(taskManager); // the same here
 
@@ -171,7 +169,7 @@ public class UpAndDown implements BeanFactoryAware {
         }
     }
 
-    public void onSystemStarted(OperationResult result) {
+    void onSystemStarted(OperationResult result) {
         int delay = configuration.getNodeStartupDelay();
         if (delay > 0) {
             new Thread(() -> {

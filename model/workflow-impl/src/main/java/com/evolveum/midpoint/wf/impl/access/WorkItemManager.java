@@ -99,8 +99,8 @@ public class WorkItemManager {
             OperationResult parentResult) {
         if (tracingRequested) {
             tracer.storeTrace(task, result, parentResult);
-            TracingAppender.terminateCollecting();  // todo reconsider
-            LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
+            TracingAppender.removeSink(); // todo reconsider
+            LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
     }
 

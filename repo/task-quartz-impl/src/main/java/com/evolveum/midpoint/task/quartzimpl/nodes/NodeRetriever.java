@@ -81,9 +81,6 @@ public class NodeRetriever {
             list = nodesInRepository;
         }
         LOGGER.trace("searchNodes returning {}", list);
-        result.computeStatus();
         return new SearchResultList<>(list);
     }
-
-
 }

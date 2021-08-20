@@ -9,18 +9,16 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
+import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.TypedWorkDefinitionWrapper;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
@@ -32,9 +30,8 @@ public class ReconciliationWorkDefinition extends AbstractWorkDefinition impleme
             resourceObjects = ResourceObjectSetUtil.fromLegacySource((LegacyWorkDefinitionSource) source);
         } else {
             ReconciliationWorkDefinitionType typedDefinition = (ReconciliationWorkDefinitionType)
-                    ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-            resourceObjects = typedDefinition.getResourceObjects() != null ?
-                    typedDefinition.getResourceObjects() : new ResourceObjectSetType(PrismContext.get());
+                    ((TypedWorkDefinitionWrapper) source).getTypedDefinition();
+            resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         }
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);
     }

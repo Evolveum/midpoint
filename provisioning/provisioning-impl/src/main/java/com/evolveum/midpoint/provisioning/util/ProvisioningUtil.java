@@ -351,7 +351,7 @@ public class ProvisioningUtil {
         // (What is the case here: each place that calls this method rethrows the exception.)
         // Therefore we'll log the exception only on debug level here.
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
-        opResult.recordFatalError(message, ex);
+        opResult.recordFatalErrorNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
         opResult.cleanupResult(ex);
     }
 
@@ -753,7 +753,7 @@ public class ProvisioningUtil {
         if (opState.getAttemptNumber() == null) {
             opState.setAttemptNumber(1);
         }
-        result.recordInProgress();
+        result.setInProgress();
         return OperationResultStatus.IN_PROGRESS;
     }
 

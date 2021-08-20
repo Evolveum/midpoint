@@ -171,14 +171,30 @@ public class ActivityItemProcessingStatisticsUtil {
      */
     public static String getLastProcessedObjectName(ActivityItemProcessingStatisticsType info,
             Predicate<ProcessedItemSetType> itemSetFilter) {
-        ProcessedItemType lastSuccess = toCollection(info).stream()
+        ProcessedItemType lastSuccess = getLastProcessedObject(info, itemSetFilter);
+        return lastSuccess != null ? lastSuccess.getName() : null;
+    }
+
+    /**
+     * Returns object OID that was last processed by given task in item set defined by the filter.
+     *
+     * TODO this should operate on a tree!
+     */
+    public static String getLastProcessedObjectOid(ActivityItemProcessingStatisticsType info,
+            Predicate<ProcessedItemSetType> itemSetFilter) {
+        ProcessedItemType lastSuccess = getLastProcessedObject(info, itemSetFilter);
+        return lastSuccess != null ? lastSuccess.getOid() : null;
+    }
+
+    @Nullable
+    private static ProcessedItemType getLastProcessedObject(ActivityItemProcessingStatisticsType info, Predicate<ProcessedItemSetType> itemSetFilter) {
+        return toCollection(info).stream()
                 .flatMap(component -> component.getProcessed().stream())
                 .filter(itemSetFilter)
                 .map(ProcessedItemSetType::getLastItem)
                 .filter(Objects::nonNull)
                 .max(Comparator.nullsFirst(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getEndTimestamp()))))
                 .orElse(null);
-        return lastSuccess != null ? lastSuccess.getName() : null;
     }
 
     /**

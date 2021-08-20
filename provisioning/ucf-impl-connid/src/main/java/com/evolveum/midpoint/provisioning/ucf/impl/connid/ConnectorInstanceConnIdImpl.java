@@ -1762,8 +1762,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
             return new SearchExecutor(objectClassDefinition, query, handler, attributesToReturn,
                     pagedSearchConfiguration, searchHierarchyConstraints,
-                    ucfErrorReportingMethod, reporter, result, this)
-                    .execute();
+                    ucfErrorReportingMethod, reporter, this)
+                    .execute(result);
 
         } catch (Throwable t) {
             result.recordFatalError(t);

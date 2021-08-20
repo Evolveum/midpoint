@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>4.2 waiting</name>
+    <name>task-42-waiting</name>
 
     <taskIdentifier>c9bdc85b-27d0-43f7-8b2a-1e44d1d23594</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
@@ -18,6 +18,6 @@
 
     <executionStatus>waiting</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/test/mock-task-handler</handlerUri>
     <recurrence>single</recurrence>
 </task>

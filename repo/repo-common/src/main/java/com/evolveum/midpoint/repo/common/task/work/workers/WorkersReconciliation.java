@@ -8,14 +8,19 @@
 package com.evolveum.midpoint.repo.common.task.work.workers;
 
 import static com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliationOptions.shouldCloseWorkersOnWorkDone;
+import static com.evolveum.midpoint.repo.common.task.work.workers.WorkersReconciliationOptions.shouldCreateSuspended;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
-import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.MultiValuedMap;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -43,7 +48,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Executes the workers reconciliation. This includes
+ *
+ * 1. auto-reconciliation when distributed activity starts,
+ * 2. explicitly requested reconciliation (e.g. via GUI),
+ * 3. reconciliation during auto-scaling.
+ *
+ * The reconciliation process tries to match worker tasks with the "to be" state (driven by configured distribution
+ * plus current cluster state). For details please see {@link #execute(OperationResult)} method.
+ */
 public class WorkersReconciliation {
+
+    private static final String OP_EXECUTE = WorkersReconciliation.class.getName() + ".execute";
+
+    /**
+     * How long should we wait when we request workers suspension?
+     *
+     * It is imaginable to wait no time. However, let's keep this approach for now.
+     */
+    private static final long SUSPENSION_WAIT_TIME = 10000L;
+
+    private static final ItemPath SCAVENGER_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY,
+            ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkersReconciliation.class);
 
@@ -63,11 +90,16 @@ public class WorkersReconciliation {
 
     private WorkersManagementType workersConfigBean;
 
-    private ExpectedWorkersSetup expectedWorkersSetup;
+    private ExpectedSetup expectedSetup;
 
     private List<Task> currentWorkers;
 
-    private MultiValuedMap<String, WorkerSpec> shouldBeWorkers;
+    private final Set<String> workersToResume = new HashSet<>();
+
+    /**
+     * Workers that should be present in a system. Described by their characterization.
+     */
+    private Set<WorkerCharacterization> shouldBeWorkers;
 
     @NotNull private final WorkersReconciliationResultType reconciliationResult;
 
@@ -82,45 +114,91 @@ public class WorkersReconciliation {
         this.reconciliationResult = new WorkersReconciliationResultType(beans.prismContext);
     }
 
-    public void execute(OperationResult result)
+    /**
+     * Executes the workers reconciliation.
+     *
+     * The simple part where tasks are on the correct nodes:
+     *
+     * 1. workers that match "to be" state (i.e. they have appropriate group + name + scavenger flag)
+     * are *accepted* - see {@link #skipMatchingWorkers()};
+     * 2. workers that are compatible (matching group + scavenger flag) but with not matching name are simply *renamed*,
+     * see {@link #renameCompatibleWorkers(OperationResult)};
+     * 3. workers that are in correct group (but otherwise wrong) are *adapted* by renaming and setting scavenger flag,
+     * see {@link #adaptGroupCompatibleWorkers(OperationResult)};
+     *
+     * At this moment, we have to start reconciling workers among nodes.
+     *
+     * TODO finish the description
+     */
+    public @NotNull WorkersReconciliationResultType execute(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        initialize();
+        OperationResult result = parentResult.createSubresult(OP_EXECUTE);
+        try {
 
-        if (coordinatorActivityState == null) {
-            result.recordNotApplicable("Activity has not run yet.");
-            return;
+            initialize();
+
+            if (coordinatorActivityState == null) {
+                result.recordNotApplicable("Activity has not run yet.");
+                return reconciliationResult;
+            }
+
+            expectedSetup = ExpectedSetup.create(activity, workersConfigBean, beans, coordinatorTask, rootTask, result);
+            shouldBeWorkers = expectedSetup.getWorkers();
+            int startingShouldBeWorkersCount = shouldBeWorkers.size();
+
+            currentWorkers = getCurrentWorkersSorted(result);
+            int startingWorkersCount = currentWorkers.size();
+
+            LOGGER.trace("Before reconciliation:\nCurrent workers: {}\nShould be workers: {}", currentWorkers, shouldBeWorkers);
+
+            // The simple part (correct nodes).
+
+            skipMatchingWorkers();
+            renameCompatibleWorkers(result);
+            adaptGroupCompatibleWorkers(result);
+
+            // Now all existing workers run on "inappropriate" nodes. So let's suspend them.
+            suspendReadyWorkers(result);
+
+            // Finally, let's create workers for the nodes where they are missing.
+            createWorkers(result);
+
+            if (!shouldCreateSuspended(options)) {
+                resumeSelectedWorkers(result);
+            }
+
+            if (shouldCloseWorkersOnWorkDone(options) && BucketingUtil.isWorkComplete(coordinatorActivityState)) {
+                closeAllWorkers(result);
+            }
+
+            int closedBecauseDone = or0(reconciliationResult.getClosedDone());
+            result.recordStatus(OperationResultStatus.SUCCESS, String.format("Worker reconciliation finished. Original workers: %d,"
+                            + " should be: %d, matched: %d, renamed: %d, adapted: %d, suspended: %d, created: %d worker task(s).%s",
+                    startingWorkersCount, startingShouldBeWorkersCount,
+                    reconciliationResult.getMatched(), reconciliationResult.getRenamed(), reconciliationResult.getAdapted(),
+                    reconciliationResult.getSuspended(), reconciliationResult.getCreated(),
+                    (closedBecauseDone > 0 ? " Closed " + closedBecauseDone + " workers because the work is done." : "")));
+
+            return reconciliationResult;
+        } catch (TaskModificationConflictException e) {
+            result.recordWarning("Conflicting worker task modification detected. Reconciliation aborted.");
+            return reconciliationResult;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+            reconciliationResult.status(OperationResultStatus.createStatusType(result.getStatus()));
         }
+    }
 
-        expectedWorkersSetup = ExpectedWorkersSetup.create(activity, workersConfigBean, beans, coordinatorTask, rootTask, result);
-        shouldBeWorkers = expectedWorkersSetup.getWorkersMap();
-        int startingShouldBeWorkersCount = shouldBeWorkers.size();
-
-        currentWorkers = getCurrentWorkersSorted(result);
-        int startingWorkersCount = currentWorkers.size();
-
-        LOGGER.trace("Before reconciliation:\nCurrent workers: {}\nShould be workers: {}", currentWorkers, shouldBeWorkers);
-
-        matchWorkers();
-        renameWorkers(result);
-        closeExecutingWorkers(result);
-        moveOrCloseWorkers(result);
-        createWorkers(result);
-
-        // TODO ensure that enough scavengers are present
-
-        if (shouldCloseWorkersOnWorkDone(options) && BucketingUtil.isWorkComplete(coordinatorActivityState)) {
-            closeAllWorkers(result);
+    private void resumeSelectedWorkers(OperationResult result) {
+        if (!workersToResume.isEmpty()) {
+            LOGGER.info("Resuming suspended workers: {}", workersToResume);
+            beans.taskManager.resumeTasks(workersToResume, result);
         }
-
-        int closedBecauseDone = or0(reconciliationResult.getClosedDone());
-        result.recordStatus(OperationResultStatus.SUCCESS, String.format("Worker reconciliation finished. Original workers: %d,"
-                        + " should be: %d, matched: %d, renamed: %d, closed because executing: %d, moved: %d, closed because"
-                        + " superfluous: %d, created: %d worker task(s).%s",
-                startingWorkersCount, startingShouldBeWorkersCount,
-                reconciliationResult.getMatched(), reconciliationResult.getRenamed(), reconciliationResult.getClosedExecuting(),
-                reconciliationResult.getMoved(), reconciliationResult.getClosedSuperfluous(), reconciliationResult.getCreated(),
-                (closedBecauseDone > 0 ? " Closed " + closedBecauseDone + " workers because the work is done." : "")));
+        reconciliationResult.setResumed(workersToResume.size());
     }
 
     private void initialize() throws SchemaException {
@@ -171,7 +249,7 @@ public class WorkersReconciliation {
         List<Task> relevantChildren = allChildren.stream()
                 .filter(this::isRelevantWorker)
                 .collect(Collectors.toList());
-        LOGGER.debug("Found {} relevant workers out of {} children: {}",
+        LOGGER.trace("Found {} relevant workers out of {} children: {}",
                 relevantChildren.size(), allChildren.size(), relevantChildren);
         return relevantChildren;
     }
@@ -184,103 +262,125 @@ public class WorkersReconciliation {
     }
 
     /**
-     * The easiest step: we just match current workers with the 'should be' state. Matching items are deleted from both sides.
+     * The easiest step: we just match current workers with the 'should be' state. Matching item pairs are skipped
+     * from further processing.
      */
-    private void matchWorkers() {
+    private void skipMatchingWorkers() {
         int count = 0;
         for (Task currentWorker : new ArrayList<>(currentWorkers)) {
-            WorkerSpec currentWorkerSpec = WorkerSpec.forTask(currentWorker, activityPath);
-            if (shouldBeWorkers.containsValue(currentWorkerSpec)) {
-                shouldBeWorkers.removeMapping(currentWorkerSpec.group, currentWorkerSpec);
+            Optional<WorkerCharacterization> matching = WorkerCharacterization.find(
+                    shouldBeWorkers,
+                    currentWorker.getGroup(),
+                    PolyString.getOrig(currentWorker.getName()),
+                    BucketingUtil.isScavenger(currentWorker.getWorkState(), activityPath));
+            if (matching.isPresent()) {
+                LOGGER.trace("Found fully matching as-is/to-be pair: {} and {}", matching.get(), currentWorker);
+                scheduleToResumeIfSuspended(currentWorker);
+                shouldBeWorkers.remove(matching.get());
                 currentWorkers.remove(currentWorker);
                 count++;
             }
         }
-        LOGGER.trace("After matchWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}", count, currentWorkers, shouldBeWorkers);
+        LOGGER.trace("After skipMatchingWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}",
+                count, currentWorkers, shouldBeWorkers);
         reconciliationResult.setMatched(count);
     }
 
-    /**
-     * Going through the groups and renaming wrongly-named tasks to the correct names.
-     */
-    private void renameWorkers(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        int count = 0;
-        for (String shouldBeGroup : shouldBeWorkers.keySet()) {
-            Collection<WorkerSpec> shouldBeWorkersInGroup = shouldBeWorkers.get(shouldBeGroup);
-            for (Task currentWorker : new ArrayList<>(currentWorkers)) {
-                if (Objects.equals(shouldBeGroup, currentWorker.getGroup())) {
-                    if (!shouldBeWorkersInGroup.isEmpty()) {
-                        WorkerSpec nextWorker = shouldBeWorkersInGroup.iterator().next();
-                        renameWorker(currentWorker, nextWorker.name, result);
-                        currentWorkers.remove(currentWorker);
-                        shouldBeWorkersInGroup.remove(nextWorker);
-                        count++;
-                    } else {
-                        break; // no more workers for this group
-                    }
-                }
-            }
+    private void scheduleToResumeIfSuspended(Task currentWorker) {
+        if (currentWorker.isSuspended()) {
+            LOGGER.info("Worker {} is needed. It will be resumed.", currentWorker);
+            workersToResume.add(currentWorker.getOid());
         }
-        LOGGER.trace("After renameWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}",
-                count, currentWorkers, shouldBeWorkers);
-        reconciliationResult.setRenamed(count);
-    }
-
-    private void renameWorker(Task currentWorker, String newName, OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        List<ItemDelta<?, ?>> itemDeltas = beans.prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_NAME).replace(PolyString.fromOrig(newName))
-                .asItemDeltas();
-        LOGGER.info("Renaming worker task {} to {}", currentWorker, newName);
-        beans.repositoryService.modifyObject(TaskType.class, currentWorker.getOid(), itemDeltas, result);
-    }
-
-    private void closeExecutingWorkers(OperationResult result) {
-        int count = 0;
-        for (Task worker : new ArrayList<>(currentWorkers)) {
-            if (worker.getSchedulingState() == TaskSchedulingStateType.READY && worker.getNodeAsObserved() != null) { // todo
-                LOGGER.info("Closing (also suspending if needed) misplaced worker task {}", worker);
-                beans.taskManager.suspendAndCloseTaskNoException(worker, TaskManager.DO_NOT_WAIT, result);
-                try {
-                    worker.refresh(result);
-                } catch (Throwable t) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh worker task {}", t, worker);
-                }
-                count++;
-            }
-        }
-        LOGGER.trace("After closeExecutingWorkers (result: {}):\nCurrent workers: {}", count, currentWorkers);
-        reconciliationResult.setClosedExecuting(count);
     }
 
     /**
-     * Moving workers to correct groups (and renaming them if needed). Closing the superfluous ones.
-     * We assume none of the workers are currently being executed.
+     * Workers that are compatible with the "to be" state (i.e. have correct group + scavenger flag) but not matching
+     * name are simply renamed.
      */
-    private void moveOrCloseWorkers(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        int moved = 0, closed = 0;
-        Iterator<WorkerSpec> shouldBeIterator = shouldBeWorkers.values().iterator();
-        for (Task worker : new ArrayList<>(currentWorkers)) {
-            if (shouldBeIterator.hasNext()) {
-                WorkerSpec shouldBeNext = shouldBeIterator.next();
-                moveWorker(worker, shouldBeNext, result);
-                currentWorkers.remove(worker);
-                shouldBeIterator.remove();
-                moved++;
-            } else {
-                if (!worker.isClosed()) {
-                    LOGGER.info("Closing superfluous worker task {}", worker);
-                    beans.taskManager.suspendAndCloseTaskNoException(worker, TaskManager.DO_NOT_WAIT, result);
-                    closed++;
+    private void renameCompatibleWorkers(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, TaskModificationConflictException {
+        reconciliationResult.setRenamed(0);
+
+        for (Task currentWorker : new ArrayList<>(currentWorkers)) {
+
+            Optional<WorkerCharacterization> compatible = WorkerCharacterization.find(
+                    shouldBeWorkers,
+                    currentWorker.getGroup(),
+                    BucketingUtil.isScavenger(currentWorker.getWorkState(), activityPath));
+
+            if (compatible.isPresent()) {
+                LOGGER.trace("Found compatible as-is/to-be pair: {} and {}", compatible.get(), currentWorker);
+                renameWorker(currentWorker, compatible.get().name, result);
+                scheduleToResumeIfSuspended(currentWorker);
+                shouldBeWorkers.remove(compatible.get());
+                currentWorkers.remove(currentWorker);
+
+                // Placed in the cycle to have the value recorded even if an exception occurs later.
+                reconciliationResult.setRenamed(reconciliationResult.getRenamed() + 1);
+            }
+        }
+        LOGGER.trace("After renameCompatibleWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}",
+                reconciliationResult.getRenamed(), currentWorkers, shouldBeWorkers);
+    }
+
+    /**
+     * Group-compatible workers that are placed in correct group (but otherwise wrong)
+     * are fixed by renaming and setting scavenger flag.
+     */
+    private void adaptGroupCompatibleWorkers(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, TaskModificationConflictException {
+        reconciliationResult.setAdapted(0);
+
+        for (Task currentWorker : new ArrayList<>(currentWorkers)) {
+            Optional<WorkerCharacterization> groupCompatible = WorkerCharacterization.find(
+                    shouldBeWorkers,
+                    currentWorker.getGroup());
+            if (groupCompatible.isPresent()) {
+                LOGGER.trace("Found group-compatible as-is/to-be pair: {} and {}", groupCompatible.get(), currentWorker);
+                adaptWorker(currentWorker, groupCompatible.get().name, groupCompatible.get().scavenger, result);
+                scheduleToResumeIfSuspended(currentWorker);
+                shouldBeWorkers.remove(groupCompatible.get());
+                currentWorkers.remove(currentWorker);
+
+                // Placed in the cycle to have the value recorded even if an exception occurs later.
+                reconciliationResult.setAdapted(reconciliationResult.getAdapted() + 1);
+            }
+        }
+        LOGGER.trace("After adaptGroupCompatibleWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}",
+                reconciliationResult.getAdapted(), currentWorkers, shouldBeWorkers);
+    }
+
+    private void suspendReadyWorkers(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<Task> readyWorkers = currentWorkers.stream()
+                .filter(Task::isReady)
+                .collect(Collectors.toList());
+
+        Collection<String> readyWorkerOids = readyWorkers.stream()
+                .map(Task::getOid)
+                .collect(Collectors.toSet());
+
+        if (!readyWorkerOids.isEmpty()) {
+            beans.taskManager.suspendTasks(readyWorkerOids, SUSPENSION_WAIT_TIME, result);
+            for (Task worker : readyWorkers) {
+                worker.refresh(result);
+                if (worker.isSuspended()) {
+                    releaseReadyBuckets(worker, result);
                 }
             }
         }
-        LOGGER.trace("After moveWorkers (result: {} moved, {} closed):\nCurrent workers: {}\nShould be workers: {}", moved,
-                closed, currentWorkers, shouldBeWorkers);
-        reconciliationResult.setMoved(moved);
-        reconciliationResult.setClosedSuperfluous(closed);
+
+        int count = readyWorkers.size();
+        LOGGER.trace("After suspendRunnableWorkers (suspended: {}):\nCurrent workers: {}", count, currentWorkers);
+        reconciliationResult.setSuspended(count);
+    }
+
+    private void releaseReadyBuckets(Task worker, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        List<WorkBucketType> readyBuckets = BucketingUtil.getReadyBuckets(
+                ActivityStateUtil.getActivityStateRequired(worker.getWorkState(), activityPath));
+        if (!readyBuckets.isEmpty()) {
+            beans.bucketingManager.releaseAllWorkBucketsFromSuspendedWorker(worker, activityPath, null, result);
+        }
     }
 
     /**
@@ -289,23 +389,25 @@ public class WorkersReconciliation {
     private void createWorkers(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
 
-        Map<WorkerSpec, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap =
-                expectedWorkersSetup.getPerNodeConfigurationMap();
+        Map<WorkerCharacterization, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap =
+                expectedSetup.getWorkersConfiguration();
 
-        WorkerState workerState = determineWorkerState();
+        WorkerState workerState = shouldCreateSuspended(options) ?
+                WorkerState.SUSPENDED : determineWorkerState();
+
         int count = 0;
-        for (WorkerSpec workerSpec : shouldBeWorkers.values()) {
-            createWorker(workerSpec, perNodeConfigurationMap, workerState, result);
-            count++;
+        for (WorkerCharacterization shouldBeWorker : shouldBeWorkers) {
+            if (isScavenging() && !shouldBeWorker.scavenger) {
+                LOGGER.trace("Skipping creation of non-scavenger, as we are in scavenging phase: {}", shouldBeWorker);
+            } else {
+                createWorker(shouldBeWorker, perNodeConfigurationMap, workerState, result);
+                count++;
+            }
         }
         reconciliationResult.setCreated(count);
     }
 
     private WorkerState determineWorkerState() {
-        if (WorkersReconciliationOptions.shouldCloseWorkersOnWorkDone(options)) {
-            return WorkerState.SUSPENDED;
-        }
-
         if (coordinatorTask.getSchedulingState() == null) {
             throw new IllegalStateException("Null executionStatus of " + coordinatorTask);
         }
@@ -323,16 +425,21 @@ public class WorkersReconciliation {
         }
     }
 
-    private void createWorker(WorkerSpec workerSpec, Map<WorkerSpec, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap,
+    private boolean isScavenging() {
+        return Boolean.TRUE.equals(coordinatorActivityState.getBucketing().isScavenging());
+    }
+
+    private void createWorker(WorkerCharacterization workerCharacterization,
+            Map<WorkerCharacterization, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap,
             WorkerState workerState, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
         TaskType worker = new TaskType(beans.prismContext);
-        worker.setName(PolyStringType.fromOrig(workerSpec.name));
-        if (workerSpec.group != null) {
-            worker.beginExecutionConstraints().group(workerSpec.group).end();
+        worker.setName(PolyStringType.fromOrig(workerCharacterization.name));
+        if (workerCharacterization.group != null) {
+            worker.beginExecutionConstraints().group(workerCharacterization.group).end();
         }
         applyDeltas(worker, workersConfigBean.getOtherDeltas());
-        applyDeltas(worker, perNodeConfigurationMap.get(workerSpec).getOtherDeltas());
+        applyDeltas(worker, perNodeConfigurationMap.get(workerCharacterization).getOtherDeltas());
 
         worker.setExecutionStatus(workerState.executionState);
         worker.setSchedulingState(workerState.schedulingState);
@@ -346,8 +453,10 @@ public class WorkersReconciliation {
                 .beginActivity()
                     .beginBucketing()
                         .bucketsProcessingRole(BucketsProcessingRoleType.WORKER)
-                        .scavenger(workerSpec.scavenger);
-        LOGGER.info("Creating worker task on {}: {} for activity path '{}'", workerSpec.group, workerSpec.name, activityPath);
+                        .scavenger(workerCharacterization.scavenger);
+
+        LOGGER.info("Creating worker task on {}: {} for activity path '{}'",
+                workerCharacterization.group, workerCharacterization.name, activityPath);
         beans.taskManager.addTask(worker.asPrismObject(), result);
     }
 
@@ -357,14 +466,60 @@ public class WorkersReconciliation {
         ItemDeltaCollectionsUtil.applyTo(itemDeltas, worker.asPrismContainerValue());
     }
 
-    private void moveWorker(Task worker, WorkerSpec shouldBe, OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    private void renameWorker(Task old, String newName, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, TaskModificationConflictException {
         List<ItemDelta<?, ?>> itemDeltas = beans.prismContext.deltaFor(TaskType.class)
-                .item(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP).replace(shouldBe.group)
-                .item(TaskType.F_NAME).replace(PolyString.fromOrig(shouldBe.name))
+                .item(TaskType.F_NAME).replace(PolyString.fromOrig(newName))
                 .asItemDeltas();
-        LOGGER.info("Moving worker task {} to {} as {}", worker, shouldBe.group, shouldBe.name);
-        beans.taskManager.modifyTask(worker.getOid(), itemDeltas, result);
+        LOGGER.info("Renaming worker task {} to {}", old, newName);
+
+        ModificationPrecondition<TaskType> precondition = current -> isNameOk(old, current, newName);
+        try {
+            beans.repositoryService.modifyObject(TaskType.class, old.getOid(), itemDeltas, precondition, null, result);
+        } catch (PreconditionViolationException e) {
+            throw new TaskModificationConflictException();
+        }
+    }
+
+    /**
+     * @param old Worker we fetched from repo at the beginning
+     * @param current Worker that is currently in the repo (at the transaction start)
+     * @param newValue Name to be set
+     */
+    private boolean isNameOk(Task old, PrismObject<TaskType> current, String newValue) {
+        String oldValue = old.getName().getOrig();
+        String currentValue = current.asObjectable().getName().getOrig();
+
+        // we accept also the situation where someone else fixes the name
+        return currentValue.equals(oldValue) || currentValue.equals(newValue);
+    }
+
+    /** @see #isNameOk(Task, PrismObject, String) */
+    private boolean isScavengerFlagOk(Task old, PrismObject<TaskType> current, boolean newValue) {
+        boolean oldValue = BucketingUtil.isScavenger(old.getWorkState(), activityPath);
+        boolean currentValue = BucketingUtil.isScavenger(current.asObjectable().getActivityState(), activityPath);
+
+        // we accept also the situation where someone else fixes the value
+        // (if oldValue != newValue then this returns always true; but there might be cases where oldValue = newValue)
+        return currentValue == oldValue || currentValue == newValue;
+    }
+
+    private void adaptWorker(Task old, String newName, boolean newScavengerFlag, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, TaskModificationConflictException {
+        List<ItemDelta<?, ?>> itemDeltas = beans.prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_NAME).replace(PolyString.fromOrig(newName))
+                .item(SCAVENGER_PATH).replace(newScavengerFlag)
+                .asItemDeltas();
+        LOGGER.info("Adapting worker task {} to {} (scavenger = {})", old, newName, newScavengerFlag);
+
+        ModificationPrecondition<TaskType> precondition =
+                current -> isNameOk(old, current, newName) && isScavengerFlagOk(old, current, newScavengerFlag);
+
+        try {
+            beans.repositoryService.modifyObject(TaskType.class, old.getOid(), itemDeltas, precondition, null, result);
+        } catch (PreconditionViolationException e) {
+            throw new TaskModificationConflictException();
+        }
     }
 
     private void closeAllWorkers(OperationResult result) throws SchemaException {

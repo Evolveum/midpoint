@@ -38,14 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends AbstractTaskManagerTest {
 
-    public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
+    private static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
-    @Autowired
-    private TaskManagerQuartzImpl taskManager;
-    @Autowired
-    private RepositoryService repositoryService;
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private TaskManagerQuartzImpl taskManager;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
 
     @Test
     public void testTasksCleanup() throws Exception {

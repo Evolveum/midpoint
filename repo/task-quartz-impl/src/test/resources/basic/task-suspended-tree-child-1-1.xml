@@ -8,7 +8,7 @@
 
 <task oid="11000000-76e0-59e2-86d6-556655660200"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Test200 Child 1 1</name>
+    <name>task-suspended-tree-child-1-1</name>
 
     <taskIdentifier>11000000-76e0-59e2-86d6-556655660200</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>

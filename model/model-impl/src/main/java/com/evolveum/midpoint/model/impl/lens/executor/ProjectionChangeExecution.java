@@ -109,7 +109,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             emptyToDeleteDeltaIfNeeded();
 
             if (deletingHigherOrderContextWithLowerAlreadyDeleted()) {
-                result.setStatus(OperationResultStatus.NOT_APPLICABLE);
+                result.recordNotApplicable();
                 return;
             }
 
@@ -197,6 +197,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             ModelImplUtils.handleConnectorErrorCriticality(projCtx.getResource(), t, result);
 
         } finally {
+            result.computeStatusIfUnknown(); // just to be sure the result is closed
             context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
                     projCtx.getResourceShadowDiscriminator(), result));
 

@@ -3218,7 +3218,7 @@ public final class WebComponentUtil {
                                     Map<QName, Object> extensionValues = prepareExtensionValues(oids);
                                     TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
                                             templateOid, extensionValues, pageBase.createSimpleTask(operation), result);
-                                    result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
+                                    result.setInProgress(); // this should be probably have been done in submitTaskFromTemplate
                                     result.setBackgroundTaskOid(executorTask.getOid());
                                 } else {
                                     result.recordWarning(pageBase.createStringResource("WebComponentUtil.message.createMenuItemsFromActions.warning").getString());

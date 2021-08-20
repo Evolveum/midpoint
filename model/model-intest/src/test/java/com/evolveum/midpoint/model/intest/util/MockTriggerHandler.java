@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -64,15 +65,7 @@ public class MockTriggerHandler implements SingleTriggerHandler {
         IntegrationTestTools.display("Mock trigger handler called with " + object);
         lastObject = object.clone();
         invocationCount.incrementAndGet();
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < delay && task.canRun()) {
-            try {
-                //noinspection BusyWait
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                // just ignore
-            }
-        }
+        MiscUtil.sleepWatchfully(System.currentTimeMillis() + delay, 500, task::canRun);
         if (failOnNextInvocation) {
             failOnNextInvocation = false;
             throw new IllegalStateException("Failing as instructed");

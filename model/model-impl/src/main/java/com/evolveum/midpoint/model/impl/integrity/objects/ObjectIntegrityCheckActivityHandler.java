@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.ActivityExecutionException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
@@ -191,8 +190,7 @@ public class ObjectIntegrityCheckActivityHandler
             } else {
                 ObjectIntegrityCheckWorkDefinitionType typedDefinition = (ObjectIntegrityCheckWorkDefinitionType)
                         ((WorkDefinitionWrapper.TypedWorkDefinitionWrapper) source).getTypedDefinition();
-                objects = typedDefinition.getObjects() != null ?
-                        typedDefinition.getObjects() : new ObjectSetType(PrismContext.get());
+                objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
                 histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
             }
         }

@@ -92,7 +92,9 @@ public abstract class SimpleActivityHandler<
 
     protected abstract @NotNull SearchBasedSpecificsSupplier<O, WD, SAH> getSpecificSupplier();
 
-    protected abstract @NotNull String getLegacyHandlerUri();
+    protected String getLegacyHandlerUri() {
+        return null;
+    }
 
     protected abstract @NotNull String getShortName();
 }

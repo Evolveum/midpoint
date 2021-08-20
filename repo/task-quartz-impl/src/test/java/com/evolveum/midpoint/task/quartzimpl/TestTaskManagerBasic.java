@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -21,8 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
@@ -51,7 +47,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.Channel;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -76,8 +71,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
     private static final String TASK_OWNER2_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-    private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
-    private static final ItemName DEAD_ITEM_NAME = new ItemName(NS_WHATEVER, "dead");
+    protected static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/task-manager-test/extension";
+    private static final ItemName ITEM_DEAD = new ItemName(NS_EXT, "dead");
 
     private static final File TEST_DIR = new File("src/test/resources/basic");
     private static final TestResource<TaskType> TASK_WITHOUT_PROGRESS = new TestResource<>(TEST_DIR, "task-without-progress.xml", "91919191-76e0-59e2-86d6-556655660003");
@@ -112,7 +107,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
     private static final TestResource<TaskType> TASK_NON_EXISTING_OWNER = new TestResource<>(TEST_DIR, "task-non-existing-owner.xml", "d1320df4-e5b7-43ec-af53-f74ee0b62345");
 
-    private static final ItemName SHIP_STATE_ITEM_NAME = new ItemName("http://myself.me/schemas/whatever", "shipState");
+    private static final ItemName ITEM_SHIP_STATE = new ItemName(NS_EXT, "shipState");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -122,7 +117,6 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
     @PostConstruct
     public void initialize() throws Exception {
-        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         super.initialize();
         addObjectFromFile(TASK_OWNER_FILENAME);
         addObjectFromFile(TASK_OWNER2_FILENAME);
@@ -164,7 +158,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         //noinspection unchecked
         PrismPropertyDefinition<String> shipStateDefinition =
                 (PrismPropertyDefinition<String>) requireNonNull(
-                        prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SHIP_STATE_ITEM_NAME));
+                        prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ITEM_SHIP_STATE));
 
         add(TASK_FOR_EXTENSION_TEST, result);
         TaskQuartzImpl taskBefore = getTaskWithResult(TASK_FOR_EXTENSION_TEST.oid, result);
@@ -189,7 +183,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         Task taskAfterAdd = getTaskWithResult(TASK_FOR_EXTENSION_TEST.oid, result);
         displayDumpable("Task after property add (from repo)", taskAfterAdd);
 
-        String shipStateAfterAdd = taskAfterAdd.getExtensionPropertyRealValue(SHIP_STATE_ITEM_NAME);
+        String shipStateAfterAdd = taskAfterAdd.getExtensionPropertyRealValue(ITEM_SHIP_STATE);
         assertEquals(longStateValue, shipStateAfterAdd);
 
         when("property change");
@@ -210,7 +204,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         Task taskAfterChange = getTaskWithResult(TASK_FOR_EXTENSION_TEST.oid, result);
         displayDumpable("Task after property change", taskAfterChange);
 
-        String shipStateAfterChange = taskAfterChange.getExtensionPropertyRealValue(SHIP_STATE_ITEM_NAME);
+        String shipStateAfterChange = taskAfterChange.getExtensionPropertyRealValue(ITEM_SHIP_STATE);
         assertEquals(changedLongStateValue, shipStateAfterChange);
     }
 
@@ -223,7 +217,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         OperationResult result = createOperationResult();
 
-        singleHandler1.resetHasRun();
+        mockTaskHandler.reset();
 
         when();
 
@@ -258,7 +252,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertSuccess(task);
 
         assertNotNull("Handler is gone", task.getHandlerUri());
-        assertTrue("Handler1 has not run", singleHandler1.hasRun());
+        assertTrue("Handler1 has not run", mockTaskHandler.hasRun());
         assertThat(task.getChannel()).isEqualTo(Channel.USER.getUri());
     }
 
@@ -312,12 +306,12 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
     private void assertDeadPropertySanity(OperationResult result, PrismObject<? extends ObjectType> object)
             throws ObjectNotFoundException, SchemaException {
         PrismContainer<?> extensionContainer = object.getExtension();
-        PrismProperty<Object> deadProperty = extensionContainer.findProperty(DEAD_ITEM_NAME);
+        PrismProperty<Object> deadProperty = extensionContainer.findProperty(ITEM_DEAD);
         assertEquals("Bad type of 'dead' property (add result)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, TASK_CYCLE_TIGHT.oid, null, result);
         PrismContainer<?> extensionContainerRepo = repoTask.getExtension();
-        PrismProperty<Object> deadPropertyRepo = extensionContainerRepo.findProperty(DEAD_ITEM_NAME);
+        PrismProperty<Object> deadPropertyRepo = extensionContainerRepo.findProperty(ITEM_DEAD);
         assertEquals("Bad type of 'dead' property (from repo)", DOMUtil.XSD_INT, deadPropertyRepo.getDefinition().getTypeName());
     }
 
@@ -435,7 +429,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
     private void assertDelayExtensionProperty(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         Task task = getTaskWithResult(oid, result);
-        Object delay = task.getExtensionPropertyRealValue(SchemaConstants.NOOP_DELAY_QNAME);
+        Object delay = task.getExtensionPropertyRealValue(MockTaskHandler.ITEM_DELAY);
         assertEquals("Delay was not read correctly", 2000, delay);
     }
 
@@ -528,6 +522,8 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         assertFalse(task.getLastRunStartTimestamp() == 0);
         assertNotNull("Last run finish time is null", task.getLastRunStartTimestamp());
         assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp() == 0);
+
+        // The task is not interruptible. It finishes the first run, not taking care of !canRun nor the interrupt signal.
         assertTrue("Progress is not reported", task.getProgress() > 0);
     }
 
@@ -775,7 +771,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         Task task = getTaskWithResult(TASK_WITH_THREADS.oid, result);
         displayDumpable("Task after", task);
 
-        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = mockParallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
         for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());
@@ -872,7 +868,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
 
         assertSuspended(task);
 
-        Collection<? extends RunningLightweightTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningLightweightTask> subtasks = mockParallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
         for (RunningLightweightTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStateType.CLOSED, subtask.getExecutionState());

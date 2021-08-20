@@ -15,7 +15,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *  Asserter that checks {@link ActivityProgressInformation} objects.
+ * Asserter that checks {@link ActivityProgressInformation} objects.
+ *
+ * For checking raw progress data, see {@link ActivityProgressAsserter}.
  */
 public class ActivityProgressInformationAsserter<RA> extends AbstractAsserter<RA> {
 

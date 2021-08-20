@@ -75,7 +75,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -103,7 +102,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @param <PO>
  *     the type of the object processed by provider
  */
-public abstract class ContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel {
+public abstract class ContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel<C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -118,7 +117,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
-    private Class<C> defaultType;
+    private final Class<C> defaultType;
 
     private LoadableModel<Search<C>> searchModel;
 
@@ -219,7 +218,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Search createSearch(Class<C> type) {
+    protected Search<C> createSearch(Class<C> type) {
         return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<>(new SearchValue<>(type, "")), getPageBase());
     }
 
@@ -274,7 +273,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
+            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
                 String status = GuiImplUtil.getObjectStatus(model.getObject());
                 if (status != null) {
                     item.add(AttributeModifier.append("class", new IModel<String>() {
@@ -331,7 +330,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return itemTable;
     }
 
-    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel<PO> model) {
+    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
@@ -514,7 +513,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PO>> item,
                     String componentId, IModel<PO> rowModel) {
                 IModel<?> model = getDataModel(rowModel);
-                if (model != null && model.getObject() instanceof Collection){
+                if (model.getObject() instanceof Collection){
                     RepeatingView listItems = new RepeatingView(componentId);
                     for (Object object : (Collection)model.getObject()) {
                         listItems.add(new Label(listItems.newChildId(), (IModel) () -> object));
@@ -764,7 +763,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         List<IColumn<PO, String>> others = createDefaultColumns();
         if (others == null) {
             return columns;
-        } else {
+        } else if (notContainsNameColumn(others)){
             IColumn<PO, String> nameColumn = createNameColumn(null, null, null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
@@ -776,6 +775,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
         LOGGER.trace("Finished to init columns, created columns {}", columns);
         return columns;
+    }
+
+    protected boolean notContainsNameColumn(List<IColumn<PO, String>> columns) {
+        return true;
     }
 
     protected IColumn<PO, String> createCheckboxColumn(){

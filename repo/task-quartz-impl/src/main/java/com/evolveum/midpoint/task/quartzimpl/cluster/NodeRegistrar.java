@@ -228,8 +228,7 @@ public class NodeRegistrar implements Cache {
         node.setUrlOverride(configuration.getUrl());                 // overridden later (if already exists in repo)
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
-        node.setRunning(true);
-        node.setOperationalStatus(operationalStatus);
+        node.setOperationalState(operationalStatus);
         node.setLastCheckInTime(currentTime);
         node.setBuild(getBuildInformation());
         node.setTaskExecutionLimitations(computeTaskExecutionLimitations(
@@ -355,8 +354,7 @@ public class NodeRegistrar implements Cache {
         try {
             setLocalNodeOperationalStatus(NodeOperationalStateType.DOWN);
             List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(NodeType.class)
-                    .item(NodeType.F_RUNNING).replace(false)
-                    .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
+                    .item(NodeType.F_OPERATIONAL_STATE).replace(operationalStatus)
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
                     .asItemDeltas();
             repositoryService.modifyObject(NodeType.class, nodeOid, modifications, result);
@@ -388,8 +386,7 @@ public class NodeRegistrar implements Cache {
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
-                    .item(NodeType.F_RUNNING).replace(true)
-                    .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
+                    .item(NodeType.F_OPERATIONAL_STATE).replace(operationalStatus)
                     .asItemDeltas();
             if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
@@ -520,11 +517,11 @@ public class NodeRegistrar implements Cache {
     }
 
     boolean isUpAndAlive(NodeType n) {
-        return n.getOperationalStatus() == NodeOperationalStateType.UP && isCheckingIn(n);
+        return n.getOperationalState() == NodeOperationalStateType.UP && isCheckingIn(n);
     }
 
     boolean isCheckingIn(NodeType n) {
-        return n.getOperationalStatus() != NodeOperationalStateType.DOWN && n.getLastCheckInTime() != null &&
+        return n.getOperationalState() != NodeOperationalStateType.DOWN && n.getLastCheckInTime() != null &&
                 System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         <= configuration.getNodeTimeout() * 1000L;
     }

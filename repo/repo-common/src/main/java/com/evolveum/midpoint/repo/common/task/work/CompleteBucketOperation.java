@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.common.task.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
+import com.evolveum.midpoint.schema.util.task.work.BucketingConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -59,7 +60,7 @@ public class CompleteBucketOperation extends BucketOperation {
 
     private void completeWorkBucketStandalone(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityStateType partWorkState = getWorkerTaskActivityWorkState();
+        ActivityStateType partWorkState = getWorkerTaskActivityState();
         WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(partWorkState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + workerTask);
@@ -73,12 +74,12 @@ public class CompleteBucketOperation extends BucketOperation {
         workerTask.applyModificationsTransient(modifications);
         workerTask.applyDeltasImmediate(modifications, result);
         compressCompletedBuckets(workerTask, workerStatePath, result);
-        statisticsKeeper.register(COMPLETE_WORK_BUCKET);
+        statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
     }
 
     private void completeWorkBucketMultiNode(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        ActivityStateType workState = getCoordinatorTaskPartWorkState();
+        ActivityStateType workState = getCoordinatorTaskActivityState();
         WorkBucketType bucket = BucketingUtil.findBucketByNumber(getBuckets(workState), sequentialNumber);
         if (bucket == null) {
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + coordinatorTask);
@@ -87,7 +88,7 @@ public class CompleteBucketOperation extends BucketOperation {
             throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + coordinatorTask
                     + " cannot be marked as complete, as it is not delegated; its state = " + bucket.getState());
         }
-        checkWorkerRefOnDelegatedBucket(bucket);
+        checkWorkerRefOnDelegatedBuckets(bucket);
         Collection<ItemDelta<?, ?>> modifications =
                 bucketStateChangeDeltas(coordinatorStatePath, bucket, WorkBucketStateType.COMPLETE);
         try {
@@ -100,7 +101,7 @@ public class CompleteBucketOperation extends BucketOperation {
         coordinatorTask.applyModificationsTransient(modifications);
         compressCompletedBuckets(coordinatorTask, coordinatorStatePath, result);
         deleteBucketFromWorker(sequentialNumber, result);
-        statisticsKeeper.register(COMPLETE_WORK_BUCKET);
+        statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
     }
 
     private void compressCompletedBuckets(Task task, ItemPath statePath, OperationResult result)

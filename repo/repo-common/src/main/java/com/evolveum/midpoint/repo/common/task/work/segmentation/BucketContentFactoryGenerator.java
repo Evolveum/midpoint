@@ -79,7 +79,7 @@ public class BucketContentFactoryGenerator {
             ImplicitSegmentationResolver resolver) {
         argCheck(resolver != null, "No bucketing context for implicit work segmentation");
         return createContentFactory(
-                resolver.resolveConfiguration(configuration),
+                resolver.resolveImplicitSegmentation(configuration),
                 null // We no longer need the resolver (this also avoids endless loops)
         );
     }

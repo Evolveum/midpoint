@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 /**
  * Classes implementing this interface are used to handle iterative results.
  *
@@ -20,8 +22,9 @@ public interface ObjectHandler {
     /**
      * Handle a single result.
      * @param object Resource object to process.
+     * @param result Operation result in context of which the object should be processed.
      * @return true if the operation should proceed, false if it should stop
      */
-    boolean handle(UcfObjectFound object);
+    boolean handle(UcfObjectFound object, OperationResult result);
 
 }
