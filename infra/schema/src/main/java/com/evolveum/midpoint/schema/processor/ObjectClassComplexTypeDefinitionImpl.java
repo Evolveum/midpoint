@@ -193,7 +193,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName) {
-        ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, prismContext);
+        ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, getPrismContext());
         add(propDef);
         return propDef;
     }
@@ -239,7 +239,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
     @Override
     public ObjectClassComplexTypeDefinitionImpl clone() {
         ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(
-                getTypeName(), prismContext);
+                getTypeName(), getPrismContext());
         copyDefinitionData(clone);
         clone.shared = false;
         return clone;
@@ -347,6 +347,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
         return true;
     }
 
+    @Override
     protected String getDebugDumpClassName() {
         return "OCD";
     }

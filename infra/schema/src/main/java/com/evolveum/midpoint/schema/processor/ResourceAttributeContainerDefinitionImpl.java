@@ -286,14 +286,14 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     @Override
     public ResourceAttributeContainer instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
-        return new ResourceAttributeContainerImpl(name, this, prismContext);
+        return new ResourceAttributeContainerImpl(name, this, getPrismContext());
     }
 
     @NotNull
     @Override
     public ResourceAttributeContainerDefinitionImpl clone() {
         ResourceAttributeContainerDefinitionImpl clone = new ResourceAttributeContainerDefinitionImpl(itemName,
-                (ObjectClassComplexTypeDefinition)complexTypeDefinition.clone(), prismContext);
+                (ObjectClassComplexTypeDefinition)complexTypeDefinition.clone(), getPrismContext());
         copyDefinitionData(clone);
         return clone;
     }
@@ -346,7 +346,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
     @Override
     public @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
         //noinspection unchecked
-        PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
+        PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) getPrismContext().getSchemaRegistry().
             findObjectDefinitionByCompileTimeClass(ShadowType.class);
         return origShadowDef.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, this);
     }

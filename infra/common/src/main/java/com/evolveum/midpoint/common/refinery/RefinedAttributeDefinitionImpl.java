@@ -671,7 +671,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         if(structuredType == null) {
-            this.structuredType = Optional.ofNullable(prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(typeName));
+            this.structuredType = Optional.ofNullable(getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(typeName));
         }
         return structuredType;
     }
