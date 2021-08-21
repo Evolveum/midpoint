@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -86,6 +88,16 @@ public class TestBucketsPerformance extends AbstractStoryTest {
         executeRecomputation(TASK_RECOMPUTE_256_30);
     }
 
+    @Test
+    public void test120RecomputeUsers_16_buckets_4_threads_again() throws Exception {
+        executeRecomputation(TASK_RECOMPUTE_16_04);
+    }
+
+    @Test
+    public void test130RecomputeUsers_256_buckets_30_threads_again() throws Exception {
+        executeRecomputation(TASK_RECOMPUTE_256_30);
+    }
+
     private void executeRecomputation(TestResource<TaskType> recomputationTask) throws IOException, CommonException {
         given();
         Task task = getTestTask();
@@ -99,15 +111,20 @@ public class TestBucketsPerformance extends AbstractStoryTest {
         var tree = assertTaskTree(recomputationTask.oid, "after")
                 .display()
                 .subtask(0)
-                .display()
+                    .display()
                 .end()
                 .getObject().asObjectable();
 
-        var stats = TaskOperationStatsUtil.getOperationStatsFromTree(tree, prismContext);
-        displayValue("Statistics", TaskOperationStatsUtil.format(stats));
+        var operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(tree, prismContext);
+        displayValue("Operation statistics", TaskOperationStatsUtil.format(operationStats));
+
+        var activityStats = ActivityStatisticsUtil.getActivityStatsFromTree(tree, ActivityPath.empty());
+        displayValue("Activity statistics", ActivityStatisticsUtil.format(activityStats));
 
         var performanceInformation =
                 activityManager.getPerformanceInformation(recomputationTask.oid, result);
         displayDumpable("Performance information", performanceInformation);
+
+        taskManager.deleteTaskTree(recomputationTask.oid, result);
     }
 }
