@@ -32,7 +32,7 @@ public class QTriggerMapping<OR extends MObject>
 
     public static <OR extends MObject> QTriggerMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QTriggerMapping<>(repositoryContext);
         }
         return get();

@@ -35,7 +35,7 @@ public class QAccessCertificationWorkItemMapping
 
     public static QAccessCertificationWorkItemMapping init(
             @NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QAccessCertificationWorkItemMapping(repositoryContext);
         }
         return get();

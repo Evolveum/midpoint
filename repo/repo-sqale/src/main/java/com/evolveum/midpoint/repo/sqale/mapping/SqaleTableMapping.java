@@ -49,7 +49,6 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterPro
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
@@ -65,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  * See javadoc in {@link QueryTableMapping} for more.
  *
- * Mappings are often initialized using static `init*(repositoryContext)` methods, various
+ * Mappings are typically initialized using static `init*(repositoryContext)` methods, various
  * suffixes are used for these reasons:
  *
  * * To differentiate various instances for the same mapping type, e.g. various references
@@ -75,10 +74,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * * And finally, to avoid accidental use of static method from the superclass (this should not
  * be even a thing!).
  *
- * Some subclasses (typically containers and refs) track their instances and avoid unnecessary
- * instance creation for the same init method; the instance is available via matching `get*()`.
- * Other subclasses (most objects) don't have `get*()` methods but can be obtained using
- * {@link QueryModelMappingRegistry#getByQueryType(Class)}, or by schema type (e.g. in tests).
+ * For object mappings the reuse is not that important and mapping is simply reinitialized.
+ * For container and ref mappings the same instance can be reused from various subclasses
+ * of object mapping and reuse is desired.
+ * Initialization method does not check only `null` but also forces reinitialization if different
+ * `repositoryContext` is provided; this is only used for testing purposes.
+ * Mappings are not built to be run with multiple repository contexts in the same runtime.
  *
  * [IMPORTANT]
  * ====
@@ -109,6 +110,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
 
+    }
+
+    protected static boolean needsInitialization(
+            SqaleTableMapping<?, ?, ?> instance, SqaleRepoContext repositoryContext) {
+        return instance == null || instance.repositoryContext() != repositoryContext;
     }
 
     @Override
@@ -183,7 +189,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull Function<Q, StringPath> origMapping,
             @NotNull Function<Q, StringPath> normMapping) {
         return new SqaleItemSqlMapper<>(
-                ctx -> new PolyStringItemFilterProcessor(ctx, origMapping, normMapping),
+                ctx -> new PolyStringItemFilterProcessor<>(ctx, origMapping, normMapping),
                 ctx -> new PolyStringItemDeltaProcessor(ctx, origMapping, normMapping),
                 origMapping);
     }
@@ -470,8 +476,12 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return Collections.emptyList();
     }
 
-    public S toSchemaObject(Tuple result, Q root,
-            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession, boolean forceFull) throws SchemaException {
+    public S toSchemaObject(
+            Tuple result,
+            Q root,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession,
+            boolean forceFull) throws SchemaException {
         return toSchemaObject(result, root, options);
     }
 }
