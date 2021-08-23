@@ -112,6 +112,8 @@ CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
+CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
+
 CREATE TYPE OperationExecutionRecordTypeType AS ENUM ('SIMPLE', 'COMPLEX');
 
 CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
@@ -756,8 +758,8 @@ CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
         CHECK (objectType = 'RESOURCE'),
-    business_administrativeState ResourceAdministrativeStateType,
-    operationalState_lastAvailabilityStatus AvailabilityStatusType,
+    businessAdministrativeState ResourceAdministrativeStateType,
+    operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id)
@@ -847,7 +849,8 @@ CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('NODE') STORED
         CHECK (objectType = 'NODE'),
-    nodeIdentifier TEXT
+    nodeIdentifier TEXT,
+    operationalState NodeOperationalStateType
 )
     INHERITS (m_assignment_holder);
 

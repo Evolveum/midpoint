@@ -29,9 +29,9 @@ public class QResource extends QAssignmentHolder<MResource> {
     public static final String TABLE_NAME = "m_resource";
 
     public static final ColumnMetadata BUSINESS_ADMINISTRATIVE_STATE =
-            ColumnMetadata.named("business_administrativeState").ofType(Types.OTHER);
+            ColumnMetadata.named("businessAdministrativeState").ofType(Types.OTHER);
     public static final ColumnMetadata OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
-            ColumnMetadata.named("operationalState_lastAvailabilityStatus").ofType(Types.OTHER);
+            ColumnMetadata.named("operationalStateLastAvailabilityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_REF_TARGET_OID =
             ColumnMetadata.named("connectorRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_REF_TARGET_TYPE =
