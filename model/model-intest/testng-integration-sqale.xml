@@ -32,10 +32,7 @@ mvn integration-test -P sqale -pl model/model-intest/
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
-            <!--
-            TODO: subclass of the above, but more is failing, probably because of missing RAW support?
             <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
-            -->
             <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
             <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
@@ -122,9 +119,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskLegacyMultithreaded"/>
             <!-- TODO Various assertion errors, transition count, success count, ...
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskReporting"/>
-            TODO: AssertionError: No subtask for activity path 'resourceObjects' found
-            <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
             -->
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="false" verbose="10">
@@ -169,12 +165,8 @@ mvn integration-test -P sqale -pl model/model-intest/
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
         </classes>
     </test>
-    <!--
     <test name="Manual" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            TODO many tests fail - starting with test100: Unexpected value, missing support for raw mode
-PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, namespace declarations))) in value set in property username in shadow:d17321e3-8445-4c90-a93c-fded7311ad64(will) (repository); expected (real values) [will]; has (pvalues) [
-PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, namespace declarations)))]
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
@@ -185,12 +177,15 @@ PPV([raw], raw element: XNode(primitive:parser ValueParser(DOM-less, will, names
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
+    <!--  
     Tests from testng-db-specific.xml
+    -->
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationPartitioned"/>
+            <!-- Invalid UUIDs in tests
             <class name="com.evolveum.midpoint.model.intest.sync.TestSyncStoryUsingReconciliationMultiNode"/>
+             --> 
         </classes>
     </test>
-    -->
 </suite>
