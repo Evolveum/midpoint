@@ -133,4 +133,8 @@ public class SqaleRepoContext extends SqlRepoContext {
     public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
         return extItemCache.resolveExtensionItem(extItemKey);
     }
+
+    public @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.ItemNameKey extItemKey) {
+        return extItemCache.resolveExtensionItem(extItemKey);
+    }
 }

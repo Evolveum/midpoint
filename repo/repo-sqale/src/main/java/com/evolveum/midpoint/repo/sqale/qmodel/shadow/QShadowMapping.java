@@ -11,13 +11,22 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import java.util.Collection;
 import java.util.Objects;
 
-import com.querydsl.core.Tuple;
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
@@ -26,7 +35,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QShadow} and {@link ShadowType}.
@@ -122,6 +133,49 @@ public class QShadowMapping
         ShadowType shadowType = super.toSchemaObject(row, entityPath, options);
         // FIXME: we store it because provisioning now sends it to repo, but it should be transient
         shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
+
+
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        if (GetOperationOptions.isRaw(rootOptions)) {
+            // If raw=true, we populate attributes with types cached in repository
+            applyShadowAttributesDefinitions(shadowType);
+        }
+
+
         return shadowType;
     }
+
+    @SuppressWarnings("unchecked")
+    private void applyShadowAttributesDefinitions(ShadowType shadowType) throws SchemaException {
+        if (shadowType.getAttributes() == null) {
+            return;
+        }
+        PrismContainerValue<?> attributesOld = shadowType.getAttributes().asPrismContainerValue();
+
+        for (Item<?, ?> attribute : attributesOld.getItems()) {
+            ItemName itemName = attribute.getElementName();
+            MExtItem itemInfo = repositoryContext().resolveExtensionItem(MExtItem.itemNameKey(attribute.getElementName(), MExtItemHolderType.ATTRIBUTES));
+            if (itemInfo != null && attribute.getDefinition() == null) {
+                ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo), true);
+            }
+        }
+
+    }
+
+    private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo) {
+        QName typeName = ExtUtils.SUPPORTED_TYPE_URI_TO_QNAME.get(itemInfo.valueType);
+        final MutableItemDefinition<?> def;
+        if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
+            def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);
+        } else {
+            def = PrismContext.get().definitionFactory().createPropertyDefinition(name, typeName);
+        }
+        def.setMinOccurs(0);
+        def.setMaxOccurs(-1);
+        def.setRuntimeSchema(true);
+        def.setDynamic(true);
+        return def;
+    }
+
+
 }
