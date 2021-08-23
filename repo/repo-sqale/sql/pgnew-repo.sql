@@ -128,11 +128,15 @@ CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOW
 CREATE TYPE SynchronizationSituationType AS ENUM (
     'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
 
+CREATE TYPE TaskAutoScalingModeType AS ENUM ('DISABLED', 'DEFAULT');
+
 CREATE TYPE TaskBindingType AS ENUM ('LOOSE', 'TIGHT');
 
 CREATE TYPE TaskExecutionStateType AS ENUM ('RUNNING', 'RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskRecurrenceType AS ENUM ('SINGLE', 'RECURRING');
+
+CREATE TYPE TaskSchedulingStateType AS ENUM ('READY', 'WAITING', 'SUSPENDED', 'CLOSED');
 
 CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 
@@ -1129,6 +1133,8 @@ CREATE TABLE m_task (
     parent TEXT, -- value of taskIdentifier
     recurrence TaskRecurrenceType,
     resultStatus OperationResultStatusType,
+    schedulingState TaskSchedulingStateType,
+    autoScalingMode TaskAutoScalingModeType, -- autoScaling/mode
     threadStopAction ThreadStopActionType,
     waitingReason TaskWaitingReasonType,
     dependentTaskIdentifiers TEXT[] -- contains values of taskIdentifier

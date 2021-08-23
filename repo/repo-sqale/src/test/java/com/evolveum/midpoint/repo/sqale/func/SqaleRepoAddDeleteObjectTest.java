@@ -1658,6 +1658,9 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .parent("parent")
                 .recurrence(TaskRecurrenceType.RECURRING)
                 .resultStatus(OperationResultStatusType.UNKNOWN)
+                .schedulingState(TaskSchedulingStateType.READY)
+                .autoScaling(new TaskAutoScalingType(prismContext)
+                        .mode(TaskAutoScalingModeType.DEFAULT))
                 .threadStopAction(ThreadStopActionType.RESCHEDULE)
                 .waitingReason(TaskWaitingReasonType.OTHER_TASKS)
                 .dependent("dep-task-1")
@@ -1688,6 +1691,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.parent).isEqualTo("parent");
         assertThat(row.recurrence).isEqualTo(TaskRecurrenceType.RECURRING);
         assertThat(row.resultStatus).isEqualTo(OperationResultStatusType.UNKNOWN);
+        assertThat(row.schedulingState).isEqualTo(TaskSchedulingStateType.READY);
+        assertThat(row.autoScalingMode).isEqualTo(TaskAutoScalingModeType.DEFAULT);
         assertThat(row.threadStopAction).isEqualTo(ThreadStopActionType.RESCHEDULE);
         assertThat(row.waitingReason).isEqualTo(TaskWaitingReasonType.OTHER_TASKS);
         assertThat(row.dependentTaskIdentifiers)
