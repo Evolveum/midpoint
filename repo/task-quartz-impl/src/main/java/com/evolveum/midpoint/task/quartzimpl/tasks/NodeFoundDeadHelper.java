@@ -7,16 +7,19 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.TaskHandlerRegistry;
@@ -29,8 +32,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.springframework.stereotype.Component;
 
 /**
  * Treats a situation when a node is found to be dead.
@@ -48,13 +49,18 @@ class NodeFoundDeadHelper {
      * tasks as not running on these nodes.
      */
     void markTasksAsNotRunning(Set<String> nodes, OperationResult result) throws SchemaException {
-        if (nodes.isEmpty()) {
+        Iterator<String> iterator = nodes.iterator();
+        if (!iterator.hasNext()) {
             return;
         }
+        // TODO create a utility method to create multi-valued "eq" disjunction
+        S_MatchingRuleEntry q = PrismContext.get().queryFor(TaskType.class)
+                .item(TaskType.F_NODE).eq(iterator.next());
+        while (iterator.hasNext()) {
+            q = q.or().item(TaskType.F_NODE).eq(iterator.next());
+        }
+        ObjectQuery query = q.build();
 
-        ObjectQuery query = PrismContext.get().queryFor(TaskType.class)
-                .item(TaskType.F_NODE).eq(nodes.toArray())
-                .build();
         List<PrismObject<TaskType>> tasksOnDeadNodes =
                 repositoryService.searchObjects(TaskType.class, query, null, result);
 
