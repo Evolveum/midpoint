@@ -8,6 +8,12 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -34,10 +40,10 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+//@PanelType(name = "basic", defaultContainerPath = "empty")
+//@PanelInstance(identifier = "basic", applicableFor = AssignmentHolderType.class, defaultPanel = true, notApplicableFor = ResourceType.class)
+//@PanelDisplay(label = "Basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10)
 public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
@@ -21,5 +22,7 @@ public @interface PanelType {
     String name() default "";
     boolean generic() default false;
     String defaultContainerPath() default "";
+
+    Class<? extends Containerable> defaultType() default Containerable.class;
 
 }

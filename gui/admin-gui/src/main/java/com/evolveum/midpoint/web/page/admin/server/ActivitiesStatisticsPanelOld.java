@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Some of the statistics are displayed per activity, others are aggregated. (This is perhaps temporary. We plan to
  * provide detailed information later.)
  */
-public class ActivitiesStatisticsPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
+public class ActivitiesStatisticsPanelOld extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";
     private static final String ID_SYNCHRONIZATION_STATISTICS = "synchronizationStatistics";
@@ -56,7 +56,7 @@ public class ActivitiesStatisticsPanel extends BasePanel<PrismObjectWrapper<Task
 
     private final LoadableModel<ActivitiesStatisticsDto> statisticsModel;
 
-    ActivitiesStatisticsPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
+    ActivitiesStatisticsPanelOld(String id, IModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);
 
         statisticsModel = LoadableModel.create(
@@ -115,7 +115,7 @@ public class ActivitiesStatisticsPanel extends BasePanel<PrismObjectWrapper<Task
 
                     @Override
                     protected WebMarkupContainer createHeader(String headerId) {
-                        return new Fragment(headerId, titleId, ActivitiesStatisticsPanel.this);
+                        return new Fragment(headerId, titleId, ActivitiesStatisticsPanelOld.this);
                     }
                 };
 

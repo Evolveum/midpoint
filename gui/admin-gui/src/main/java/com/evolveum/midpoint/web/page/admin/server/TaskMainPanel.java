@@ -259,7 +259,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ActivitiesStatisticsPanel(panelId, getObjectModel());
+                return new ActivitiesStatisticsPanelOld(panelId, getObjectModel());
             }
 
         });

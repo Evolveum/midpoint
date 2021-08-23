@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+
+    <div wicket:id="itemProcessing"></div>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div wicket:id="synchronizationStatistics">
+                <div wicket:id="synchronizationSituationTransitions"></div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+            <div wicket:id="resultingActionsExecuted"></div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+            <div wicket:id="allActionsExecuted"></div>
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="resultingActionsExecutedTitle">
+        <h3 class="box-title">
+            <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
+        </h3>
+        <div><wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/></div>
+    </wicket:fragment>
+
+
+    <wicket:fragment wicket:id="allActionsExecutedTitle">
+        <h3 class="box-title">
+            <wicket:message key="TaskOperationStatisticsPanel.actionEntry"/>
+        </h3>
+        <div><wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/></div>
+    </wicket:fragment>
+
+</wicket:panel>
+</body>
+</html>

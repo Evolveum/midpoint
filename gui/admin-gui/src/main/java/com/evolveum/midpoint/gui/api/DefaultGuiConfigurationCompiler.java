@@ -11,6 +11,10 @@ import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     @Autowired private GuiProfileCompilerRegistry registry;
+    @Autowired private PrismContext prismContext;
 
     private static final String[] PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
@@ -42,7 +47,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.resources",
             "com.evolveum.midpoint.gui.impl.component.assignment",
             "com.evolveum.midpoint.gui.impl.component.assignmentType.assignment",
-            "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement"
+            "com.evolveum.midpoint.gui.impl.component.assignmentType.inducement",
+            "com.evolveum.midpoint.gui.impl.page.admin.task.component"
     };
 
     private Map<String, Class<? extends Panel>> panelsMap = new HashMap<>();
@@ -202,6 +208,12 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             return;
         }
         config.setPanelType(panelType.name());
+        if (panelType.defaultType() != null && !Containerable.class.equals(panelType.defaultType())) {
+            PrismContainerDefinition<?> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(panelType.defaultType());
+            if (def != null) {
+                config.setType(def.getTypeName());
+            }
+        }
         compileDefaultContainerSpecification(panelType, config);
     }
 

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public @interface PanelDisplay {
 
     String label() default "";
-    String icon() default "";
+    String icon() default "fa fa-circle-o";
 
     int order() default 1000;
 
