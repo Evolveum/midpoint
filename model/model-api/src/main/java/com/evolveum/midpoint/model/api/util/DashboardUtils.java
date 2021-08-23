@@ -48,6 +48,24 @@ public class DashboardUtils {
         return widget.getData().getSourceType();
     }
 
+    public static DashboardWidgetSourceTypeType getDisplaySourceType(DashboardWidgetType widget) {
+        if(isDisplaySourceTypeOfDataNull(widget)) {
+            return null;
+        }
+        return widget.getData().getDisplaySourceType();
+    }
+
+    public static boolean isDisplaySourceTypeOfDataNull(DashboardWidgetType widget) {
+        if(isDataNull(widget)) {
+            return true;
+        }
+        if(widget.getData().getDisplaySourceType() == null) {
+            LOGGER.error("DisplayStoreType of data is not found in widget " + widget.getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isSourceTypeOfDataNull(DashboardWidgetType widget) {
         if(isDataNull(widget)) {
             return true;

@@ -69,7 +69,6 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
     private static final String ID_NUMBER = "number";
 
     private static HashMap<String, Class<? extends WebPage>> linksRefCollections;
-    private static HashMap<QName, Class<? extends WebPage>> linksRefObjects;
 
     private LoadableModel<DashboardWidgetDto> dasboardModel;
 
@@ -87,19 +86,6 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServices.class);
             }
         };
-
-        linksRefObjects = new HashMap<QName, Class<? extends WebPage>>() {
-            private static final long serialVersionUID = 1L;
-
-            {
-                put(TaskType.COMPLEX_TYPE, PageTask.class);
-                put(UserType.COMPLEX_TYPE, PageUser.class);
-                put(RoleType.COMPLEX_TYPE, PageRole.class);
-                put(OrgType.COMPLEX_TYPE, PageOrgUnit.class);
-                put(ServiceType.COMPLEX_TYPE, PageService.class);
-                put(ResourceType.COMPLEX_TYPE, PageResource.class);
-            }
-        };
     }
 
     public InfoBoxPanel(String id, IModel<DashboardWidgetType> model) {
@@ -115,7 +101,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 OperationResult result = task.getResult();
                 try {
                     getPrismContext().adopt(getModelObject());
-                    DashboardWidget dashboardWidget = getPageBase().getDashboardService().createWidgetData(getModelObject(), task, result);
+                    DashboardWidget dashboardWidget = getPageBase().getDashboardService().createWidgetData(getModelObject(), true, task, result);
                     result.computeStatusIfUnknown();
                     return new DashboardWidgetDto(dashboardWidget, getPageBase());
                 } catch (Exception e) {
@@ -162,10 +148,6 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
 
     protected static HashMap<String, Class<? extends WebPage>> getLinksRefCollections() {
         return linksRefCollections;
-    }
-
-    protected static HashMap<QName, Class<? extends WebPage>> getLinksRefObjects() {
-        return linksRefObjects;
     }
 
     protected void navigateToPage() {
@@ -223,8 +205,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
         if(object == null) {
             return;
         }
-        QName typeName = WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass());
-        Class<? extends WebPage> pageType = getLinksRefObjects().get(typeName);
+        Class<? extends WebPage> pageType = WebComponentUtil.getObjectDetailsPage(object.getClass());
         if(pageType == null) {
             return;
         }
@@ -286,8 +267,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 if(object == null) {
                     return false;
                 }
-                QName typeName = WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass());
-                return getLinksRefObjects().containsKey(typeName);
+                return WebComponentUtil.hasDetailsPage(object.getClass());
             }
         return false;
     }

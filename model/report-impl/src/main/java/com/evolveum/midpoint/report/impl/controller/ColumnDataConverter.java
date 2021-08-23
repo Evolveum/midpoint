@@ -81,7 +81,7 @@ class ColumnDataConverter<C extends Containerable> {
     }
 
     List<String> convertWidgetColumn(@NotNull String header, @Nullable Function<String, String> processValueForStatus) throws CommonException {
-        DashboardWidget data = reportService.getDashboardService().createWidgetData((DashboardWidgetType) record, task, result);
+        DashboardWidget data = reportService.getDashboardService().createWidgetData((DashboardWidgetType) record, false, task, result);
         if (header.equals(LABEL_COLUMN)) {
             return Collections.singletonList(data.getLabel(reportService.getLocalizationService()));
         }

@@ -56,7 +56,7 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
     /**
      * Controller for widgets.
      */
-    private DashboardWidgetExportController<Containerable> basicWidgetController;
+    private DashboardWidgetExportController basicWidgetController;
 
     ClassicDashboardReportExportActivityExecutionSpecifics(
             @NotNull PlainIterativeActivityExecution<ExportDashboardReportLine<Containerable>, ClassicReportExportWorkDefinition,
@@ -81,7 +81,7 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
 
         dataWriter = ReportUtils.createDashboardDataWriter(
                 report, getActivityHandler().reportService, support.getMapOfCompiledViews());
-        basicWidgetController = new DashboardWidgetExportController<>(dataWriter, report, reportService);
+        basicWidgetController = new DashboardWidgetExportController(dataWriter, report, reportService);
         basicWidgetController.initialize();
         basicWidgetController.beforeBucketExecution(1, result);
 
@@ -147,12 +147,12 @@ public class ClassicDashboardReportExportActivityExecutionSpecifics
         return true;
     }
 
-    private ExportController<Containerable> getController(ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request) {
+    private <C extends Containerable> ExportController<C> getController(ItemProcessingRequest<ExportDashboardReportLine<Containerable>> request) {
         if (request.getItem().isBasicWidgetRow()) {
-            return basicWidgetController;
+            return (ExportController<C>) basicWidgetController;
         }
         DashboardWidgetHolder holder = mapOfWidgetsController.get(request.getItem().getWidgetIdentifier());
-        return holder.getController();
+        return (ExportController<C>) holder.getController();
     }
 
     @Override

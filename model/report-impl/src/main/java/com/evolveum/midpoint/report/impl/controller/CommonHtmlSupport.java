@@ -12,7 +12,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Generally useful methods for dealing with HTML files.
@@ -39,8 +39,8 @@ class CommonHtmlSupport {
     static final String NUMBER_COLUMN = "number";
     static final String STATUS_COLUMN = "status";
 
-    static final Set<String> HEADS_OF_WIDGET =
-            ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
+    static final List<String> HEADS_OF_WIDGET =
+            ImmutableList.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
     private String cssStyle;
     private final Clock clock;
@@ -49,10 +49,6 @@ class CommonHtmlSupport {
     public CommonHtmlSupport(Clock clock, CompiledObjectCollectionView compiledView) {
         this.clock = clock;
         this.compiledView = compiledView;
-    }
-
-    String getMultivalueDelimiter() {
-        return "<br>";
     }
 
     String getCssStyle() {
@@ -94,5 +90,13 @@ class CommonHtmlSupport {
     String getCssStyleOfTable() {
         DisplayType display = compiledView.getDisplay();
         return display != null ? display.getCssStyle() : null;
+    }
+
+    static List<String> getHeadsOfWidget() {
+        return HEADS_OF_WIDGET;
+    }
+
+    static int getIndexOfNumberColumn() {
+        return HEADS_OF_WIDGET.indexOf(NUMBER_COLUMN);
     }
 }

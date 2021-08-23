@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.activity.ClassicDashboardReportExportActivityExecutionSpecifics;
@@ -21,13 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
 
 /**
- * Controls the process of exporting collection-based reports.
+ * Controls the process of exporting widgets of dashboard-based reports.
  *
  * Currently the only use of this class is to be a "bridge" between the world of the activity framework
  * (represented mainly by {@link ClassicDashboardReportExportActivityExecutionSpecifics} class) and a set of cooperating
@@ -38,13 +36,11 @@ import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
  *
  * 1. {@link #initialize()} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
- * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
+ * 3. {@link #handleDataRecord(int, DashboardWidgetType, RunningTask, OperationResult)} that processes given prism object,
  * to be aggregated.
- *
- * @param <C> Type of records to be processed.
  */
 @Experimental
-public class DashboardWidgetExportController<C extends Containerable> implements ExportController<C> {
+public class DashboardWidgetExportController implements ExportController<DashboardWidgetType> {
 
     /**
      * Data writer for the report. Produces e.g. CSV or HTML data.
@@ -83,7 +79,7 @@ public class DashboardWidgetExportController<C extends Containerable> implements
     public void initialize()
             throws CommonException {
 
-        List<ExportedReportHeaderColumn> headerColumns = getHeadsOfWidget().stream()
+        List<ExportedReportHeaderColumn> headerColumns = CommonHtmlSupport.getHeadsOfWidget().stream()
                 .map(label -> ExportedReportHeaderColumn.fromLabel(
                         GenericSupport.getMessage(reportService.getLocalizationService(), "Widget." + label)))
                 .collect(Collectors.toList());
@@ -93,7 +89,7 @@ public class DashboardWidgetExportController<C extends Containerable> implements
 
     /**
      * Called before bucket of data is executed, i.e. before data start flowing to
-     * {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} method.
+     * {@link #handleDataRecord(int, DashboardWidgetType, RunningTask, OperationResult)} method.
      *
      * We have to prepare for collecting the data.
      */
@@ -107,20 +103,18 @@ public class DashboardWidgetExportController<C extends Containerable> implements
         dataWriter.setHeaderRow(headerRow);
     }
 
-    protected static Set<String> getHeadsOfWidget() {
-        return HEADS_OF_WIDGET;
-    }
-
     /**
      * BEWARE: Can be called from multiple threads at once.
      * The resulting rows should be sorted on sequentialNumber.
      */
-    public void handleDataRecord(int sequentialNumber, C record, RunningTask workerTask, OperationResult result) throws CommonException {
+    public void handleDataRecord(int sequentialNumber, DashboardWidgetType widget, RunningTask workerTask, OperationResult result)
+            throws CommonException {
 
-        ColumnDataConverter<C> columnDataConverter =
-                new ColumnDataConverter<>(record, report, reportService, workerTask, result);
+        ColumnDataConverter<DashboardWidgetType> columnDataConverter =
+                new ColumnDataConverter<>(widget, report, reportService, workerTask, result);
 
-        ExportedDashboardReportDataRow dataRow = new ExportedDashboardReportDataRow(sequentialNumber);
+        ExportedDashboardReportDataRow dataRow = new ExportedDashboardReportDataRow(
+                sequentialNumber, widget.getIdentifier(), true);
 
         for (String label : getHeadsOfWidget()) {
             dataRow.addColumn(

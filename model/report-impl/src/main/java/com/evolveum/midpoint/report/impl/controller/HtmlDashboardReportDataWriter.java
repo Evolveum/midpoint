@@ -23,7 +23,7 @@ import java.util.function.Function;
  * Creates and manipulates exported reports in HTML format for dashboard reports.
  */
 public class HtmlDashboardReportDataWriter
-        extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> {
+        extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow>  implements DashboardReportDataWriter{
 
     private static final String BASIC_WIDGET_ROW_KEY = "BaseWidgetID";
 
@@ -31,6 +31,11 @@ public class HtmlDashboardReportDataWriter
      * Data of one table (widget or objects searched by widget).
      */
     @NotNull private final Map<String, ExportedWidgetData> data = new LinkedHashMap<>();
+
+    /**
+     * Data of widgets (number message).
+     */
+    @NotNull private final Map<String, String> widgetsData = new HashMap<>();
 
     public HtmlDashboardReportDataWriter(ReportServiceImpl reportService, Map<String,
             CompiledObjectCollectionView> mapOfCompiledView,
@@ -80,6 +85,12 @@ public class HtmlDashboardReportDataWriter
             }
         }
         rows.add(i + 1, row);
+
+        if (row.isBasicWidgetRow()) {
+            widgetsData.put(
+                    row.getWidgetIdentifier(),
+                    String.join("", row.getValues().get(CommonHtmlSupport.getIndexOfNumberColumn())));
+        }
     }
 
     private String checkIdentifier(boolean basicWidgetRow, String widgetIdentifier) {
@@ -169,6 +180,11 @@ public class HtmlDashboardReportDataWriter
     @Override
     public @Nullable Function<String, String> getFunctionForWidgetStatus() {
         return (value) -> CommonHtmlSupport.VALUE_CSS_STYLE_TAG + "{background-color: " + value + " !important;}";
+    }
+
+    @Override
+    @NotNull public Map<String, String> getWidgetsData() {
+        return widgetsData;
     }
 
     static class ExportedWidgetData {

@@ -21259,11 +21259,66 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="storeExportedWidgetData" type="tns:StoreExportedWidgetDataType" minOccurs="0" default="onlyFile">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of storing exported widget data.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.4</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.storeExportedData</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: other elements to configure the report -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="StoreExportedWidgetDataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of storing exported widget data. Specification where will be stored widget data.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="onlyWidget">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_WIDGET"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in element of widget.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="onlyFile">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_FILE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in file.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="widgetAndFile">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WIDGET_AND_FILE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Exported widget data will be stored only in element of widget and file.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ObjectCollectionReportEngineConfigurationType">
         <xsd:annotation>

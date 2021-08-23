@@ -14,6 +14,11 @@
 --
 -- Other notes:
 -- TEXT is used instead of VARCHAR, see: https://dba.stackexchange.com/a/21496/157622
+--
+-- For Audit tables see 'pgnew-repo-audit.sql' right next to this file.
+--
+-- For Quartz tables see:
+-- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 
@@ -1556,12 +1561,12 @@ CREATE TABLE m_assignment (
     creatorRefTargetOid UUID,
     creatorRefTargetType ObjectType,
     creatorRefRelationId INTEGER REFERENCES m_uri(id),
-    createChannelId INTEGER,
+    createChannelId INTEGER REFERENCES m_uri(id),
     createTimestamp TIMESTAMPTZ,
     modifierRefTargetOid UUID,
     modifierRefTargetType ObjectType,
     modifierRefRelationId INTEGER REFERENCES m_uri(id),
-    modifyChannelId INTEGER,
+    modifyChannelId INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
@@ -1676,100 +1681,7 @@ CREATE TABLE m_ext_item (
 -- endregion
 
 /*
--- TODO audit
-CREATE TABLE m_audit_delta (
-  checksum          VARCHAR(32) NOT NULL,
-  record_id         BIGINT        NOT NULL,
-  delta             BYTEA,
-  deltaOid          UUID,
-  deltaType         INTEGER,
-  fullResult        BYTEA,
-  objectNameNorm   TEXT,
-  objectNameOrig   TEXT,
-  resourceNameNorm TEXT,
-  resourceNameOrig TEXT,
-  resourceOid       UUID,
-  status            INTEGER,
-  PRIMARY KEY (record_id, checksum)
-);
-CREATE TABLE m_audit_event (
-  id                BIGSERIAL NOT NULL,
-  attorneyName      TEXT,
-  attorneyOid       UUID,
-  channel           TEXT,
-  eventIdentifier   TEXT,
-  eventStage        INTEGER,
-  eventType         INTEGER,
-  hostIdentifier    TEXT,
-  initiatorName     TEXT,
-  initiatorOid      UUID,
-  initiatorType     INTEGER,
-  message           VARCHAR(1024),
-  nodeIdentifier    TEXT,
-  outcome           INTEGER,
-  parameter         TEXT,
-  remoteHostAddress TEXT,
-  requestIdentifier TEXT,
-  result            TEXT,
-  sessionIdentifier TEXT,
-  targetName        TEXT,
-  targetOid         UUID,
-  targetOwnerName   TEXT,
-  targetOwnerOid    UUID,
-  targetOwnerType   INTEGER,
-  targetType        INTEGER,
-  taskIdentifier    TEXT,
-  taskOID           TEXT,
-  timestampValue    TIMESTAMPTZ,
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(900) NOT NULL,
-  record_id       BIGINT         NOT NULL,
-  PRIMARY KEY (record_id, changedItemPath)
-);
-CREATE TABLE m_audit_prop_value (
-  id        BIGSERIAL NOT NULL,
-  name      TEXT,
-  record_id BIGINT,
-  value     VARCHAR(1024),
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_ref_value (
-  id              BIGSERIAL NOT NULL,
-  name            TEXT,
-  oid             UUID,
-  record_id       BIGINT,
-  targetNameNorm TEXT,
-  targetNameOrig TEXT,
-  type            TEXT,
-  PRIMARY KEY (id)
-);
-CREATE TABLE m_audit_resource (
-  resourceOid       TEXT NOT NULL,
-  record_id       BIGINT         NOT NULL,
-  PRIMARY KEY (record_id, resourceOid)
-);
-
-CREATE INDEX iAuditDeltaRecordId
-  ON m_audit_delta (record_id);
-CREATE INDEX iTimestampValue
-  ON m_audit_event (timestampValue);
-CREATE INDEX iAuditEventRecordEStageTOid
-  ON m_audit_event (eventStage, targetOid);
-CREATE INDEX iChangedItemPath
-  ON m_audit_item (changedItemPath);
-CREATE INDEX iAuditItemRecordId
-  ON m_audit_item (record_id);
-CREATE INDEX iAuditPropValRecordId
-  ON m_audit_prop_value (record_id);
-CREATE INDEX iAuditRefValRecordId
-  ON m_audit_ref_value (record_id);
-CREATE INDEX iAuditResourceOid
-  ON m_audit_resource (resourceOid);
-CREATE INDEX iAuditResourceOidRecordId
-  ON m_audit_resource (record_id);
-
+TODO: further indexes
 CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
@@ -1797,19 +1709,6 @@ CREATE INDEX iFocusValidFrom
 CREATE INDEX iFocusValidTo
   ON m_focus (validTo);
 
-ALTER TABLE m_audit_delta
-  ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_item
-  ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_prop_value
-  ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_ref_value
-  ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_resource
-  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_focus_photo
-  ADD CONSTRAINT fk_focus_photo FOREIGN KEY (ownerOid) REFERENCES m_focus;
-
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (ownerOid) REFERENCES m_object;
 ALTER TABLE m_user_organization
@@ -1819,192 +1718,6 @@ ALTER TABLE m_user_organizational_unit
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 
--- Thanks to Patrick Lightbody for submitting this...
---
--- In your Quartz properties file, you'll need to set
--- org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-
-drop table if exists qrtz_fired_triggers;
-DROP TABLE if exists QRTZ_PAUSED_TRIGGER_GRPS;
-DROP TABLE if exists QRTZ_SCHEDULER_STATE;
-DROP TABLE if exists QRTZ_LOCKS;
-drop table if exists qrtz_simple_triggers;
-drop table if exists qrtz_cron_triggers;
-drop table if exists qrtz_simprop_triggers;
-DROP TABLE if exists QRTZ_BLOB_TRIGGERS;
-drop table if exists qrtz_triggers;
-drop table if exists qrtz_job_details;
-drop table if exists qrtz_calendars;
-
-CREATE TABLE qrtz_job_details
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    JOB_NAME  VARCHAR(200) NOT NULL,
-    JOB_GROUP VARCHAR(200) NOT NULL,
-    DESCRIPTION VARCHAR(250) NULL,
-    JOB_CLASS_NAME   VARCHAR(250) NOT NULL,
-    IS_DURABLE BOOL NOT NULL,
-    IS_NONCONCURRENT BOOL NOT NULL,
-    IS_UPDATE_DATA BOOL NOT NULL,
-    REQUESTS_RECOVERY BOOL NOT NULL,
-    JOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-);
-
-CREATE TABLE qrtz_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    JOB_NAME  VARCHAR(200) NOT NULL,
-    JOB_GROUP VARCHAR(200) NOT NULL,
-    DESCRIPTION VARCHAR(250) NULL,
-    NEXT_FIRE_TIME BIGINT NULL,
-    PREV_FIRE_TIME BIGINT NULL,
-    PRIORITY INTEGER NULL,
-    EXECUTION_GROUP VARCHAR(200) NULL,
-    TRIGGER_STATE VARCHAR(16) NOT NULL,
-    TRIGGER_TYPE VARCHAR(8) NOT NULL,
-    START_TIME BIGINT NOT NULL,
-    END_TIME BIGINT NULL,
-    CALENDAR_NAME VARCHAR(200) NULL,
-    MISFIRE_INSTR SMALLINT NULL,
-    JOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-    REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP)
-);
-
-CREATE TABLE qrtz_simple_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    REPEAT_COUNT BIGINT NOT NULL,
-    REPEAT_INTERVAL BIGINT NOT NULL,
-    TIMES_TRIGGERED BIGINT NOT NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_cron_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    CRON_EXPRESSION VARCHAR(120) NOT NULL,
-    TIME_ZONE_ID VARCHAR(80),
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_simprop_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    STR_PROP_1 VARCHAR(512) NULL,
-    STR_PROP_2 VARCHAR(512) NULL,
-    STR_PROP_3 VARCHAR(512) NULL,
-    INT_PROP_1 INT NULL,
-    INT_PROP_2 INT NULL,
-    LONG_PROP_1 BIGINT NULL,
-    LONG_PROP_2 BIGINT NULL,
-    DEC_PROP_1 NUMERIC(13,4) NULL,
-    DEC_PROP_2 NUMERIC(13,4) NULL,
-    BOOL_PROP_1 BOOL NULL,
-    BOOL_PROP_2 BOOL NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_blob_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    BLOB_DATA BYTEA NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_calendars
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    CALENDAR_NAME  VARCHAR(200) NOT NULL,
-    CALENDAR BYTEA NOT NULL,
-    PRIMARY KEY (SCHED_NAME,CALENDAR_NAME)
-);
-
-
-CREATE TABLE qrtz_paused_trigger_grps
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_GROUP  VARCHAR(200) NOT NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP)
-);
-
-CREATE TABLE qrtz_fired_triggers
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    ENTRY_ID VARCHAR(95) NOT NULL,
-    TRIGGER_NAME VARCHAR(200) NOT NULL,
-    TRIGGER_GROUP VARCHAR(200) NOT NULL,
-    INSTANCE_NAME VARCHAR(200) NOT NULL,
-    FIRED_TIME BIGINT NOT NULL,
-    SCHED_TIME BIGINT NOT NULL,
-    PRIORITY INTEGER NOT NULL,
-    EXECUTION_GROUP VARCHAR(200) NULL,
-    STATE VARCHAR(16) NOT NULL,
-    JOB_NAME VARCHAR(200) NULL,
-    JOB_GROUP VARCHAR(200) NULL,
-    IS_NONCONCURRENT BOOL NULL,
-    REQUESTS_RECOVERY BOOL NULL,
-    PRIMARY KEY (SCHED_NAME,ENTRY_ID)
-);
-
-CREATE TABLE qrtz_scheduler_state
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    INSTANCE_NAME VARCHAR(200) NOT NULL,
-    LAST_CHECKIN_TIME BIGINT NOT NULL,
-    CHECKIN_INTERVAL BIGINT NOT NULL,
-    PRIMARY KEY (SCHED_NAME,INSTANCE_NAME)
-);
-
-CREATE TABLE qrtz_locks
-  (
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    LOCK_NAME  VARCHAR(40) NOT NULL,
-    PRIMARY KEY (SCHED_NAME,LOCK_NAME)
-);
-
-create index idx_qrtz_j_req_recovery on qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_j_grp on qrtz_job_details(SCHED_NAME,JOB_GROUP);
-
-create index idx_qrtz_t_j on qrtz_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_t_jg on qrtz_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_t_c on qrtz_triggers(SCHED_NAME,CALENDAR_NAME);
-create index idx_qrtz_t_g on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP);
-create index idx_qrtz_t_state on qrtz_triggers(SCHED_NAME,TRIGGER_STATE);
-create index idx_qrtz_t_n_state on qrtz_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_n_g_state on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_next_fire_time on qrtz_triggers(SCHED_NAME,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st on qrtz_triggers(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
-create index idx_qrtz_t_nft_st_misfire_grp on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
-
-create index idx_qrtz_ft_trig_inst_name on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME);
-create index idx_qrtz_ft_inst_job_req_rcvry on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
-create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 */
 
 -- region Schema versioning and upgrading
@@ -2048,3 +1761,6 @@ BEGIN
     END IF;
 END $$;
 -- endregion
+
+-- For Quartz tables see:
+-- repo/task-quartz-impl/src/main/resources/com/evolveum/midpoint/task/quartzimpl/execution/tables_postgres.sql
