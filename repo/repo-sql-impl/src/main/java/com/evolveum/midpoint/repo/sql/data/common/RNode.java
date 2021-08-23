@@ -14,11 +14,13 @@ import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RNodeOperationalState;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 @Entity
@@ -34,6 +36,7 @@ public class RNode extends RObject {
 
     private RPolyString nameCopy;
     private String nodeIdentifier;
+    private RNodeOperationalState operationalState;
 
     public String getNodeIdentifier() {
         return nodeIdentifier;
@@ -47,6 +50,15 @@ public class RNode extends RObject {
     @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public RNodeOperationalState getOperationalState() {
+        return operationalState;
+    }
+
+    public void setOperationalState(RNodeOperationalState operationalState) {
+        this.operationalState = operationalState;
     }
 
     public void setNameCopy(RPolyString nameCopy) {
@@ -64,5 +76,6 @@ public class RNode extends RObject {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());
+        repo.setOperationalState(RUtil.getRepoEnumValue(jaxb.getOperationalState(), RNodeOperationalState.class));
     }
 }
