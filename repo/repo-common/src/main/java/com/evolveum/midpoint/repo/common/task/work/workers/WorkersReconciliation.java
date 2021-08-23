@@ -150,7 +150,9 @@ public class WorkersReconciliation {
             currentWorkers = getCurrentWorkersSorted(result);
             int startingWorkersCount = currentWorkers.size();
 
-            LOGGER.trace("Before reconciliation:\nCurrent workers: {}\nShould be workers: {}", currentWorkers, shouldBeWorkers);
+            LOGGER.trace("Before reconciliation:\nCurrent workers: {}\nShould be workers: {}\n"
+                            + "Nodes up: {}\nNodes up and alive: {}",
+                    currentWorkers, shouldBeWorkers, expectedSetup.getNodesUp(), expectedSetup.getNodesUpAndAlive());
 
             // The simple part (correct nodes).
 
@@ -158,8 +160,7 @@ public class WorkersReconciliation {
             renameCompatibleWorkers(result);
             adaptGroupCompatibleWorkers(result);
 
-            // Now all existing workers run on "inappropriate" nodes. So let's suspend them.
-            suspendReadyWorkers(result);
+            suspendRunningWorkersOnLiveNodes(result);
 
             // Finally, let's create workers for the nodes where they are missing.
             createWorkers(result);
@@ -281,7 +282,7 @@ public class WorkersReconciliation {
                 count++;
             }
         }
-        LOGGER.trace("After skipMatchingWorkers (result: {}):\nCurrent workers: {}\nShould be workers: {}",
+        LOGGER.trace("After skipMatchingWorkers (matched: {}):\nCurrent workers: {}\nShould be workers: {}",
                 count, currentWorkers, shouldBeWorkers);
         reconciliationResult.setMatched(count);
     }
@@ -350,38 +351,38 @@ public class WorkersReconciliation {
                 reconciliationResult.getAdapted(), currentWorkers, shouldBeWorkers);
     }
 
-    private void suspendReadyWorkers(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<Task> readyWorkers = currentWorkers.stream()
-                .filter(Task::isReady)
+    /**
+     * We suspend only those workers that run on live nodes!
+     *
+     * It is because we expect that the task will return its buckets when it is suspended. And in order to do this,
+     * it must be running - obviously.
+     *
+     * As for the tasks on dead and semi-dead (up but not checking-in) nodes, their buckets were or will be released
+     * by the cluster manager thread - when these nodes are discovered to be dead.
+     *
+     * TODO What if a task runs on a recently-killed node (still in grace period of 30 seconds)?
+     *  It will get suspended here, but the buckets will not be released.
+     *  (This can also occur if a task is suspended, but the node is killed shortly after that.)
+     *  See MID-7180.
+     */
+    private void suspendRunningWorkersOnLiveNodes(OperationResult result) {
+        List<Task> runningWorkersOnLiveNodes = currentWorkers.stream()
+                .filter(Task::isRunning)
+                .filter(t -> expectedSetup.getNodesUpAndAlive().contains(t.getNode()))
                 .collect(Collectors.toList());
 
-        Collection<String> readyWorkerOids = readyWorkers.stream()
+        Collection<String> workerOids = runningWorkersOnLiveNodes.stream()
                 .map(Task::getOid)
                 .collect(Collectors.toSet());
 
-        if (!readyWorkerOids.isEmpty()) {
-            beans.taskManager.suspendTasks(readyWorkerOids, SUSPENSION_WAIT_TIME, result);
-            for (Task worker : readyWorkers) {
-                worker.refresh(result);
-                if (worker.isSuspended()) {
-                    releaseReadyBuckets(worker, result);
-                }
-            }
+        if (!workerOids.isEmpty()) {
+            // TODO suspend gracefully (let the task finish current bucket, to avoid objects being re-processed)
+            beans.taskManager.suspendTasks(workerOids, SUSPENSION_WAIT_TIME, result);
         }
 
-        int count = readyWorkers.size();
-        LOGGER.trace("After suspendRunnableWorkers (suspended: {}):\nCurrent workers: {}", count, currentWorkers);
+        int count = workerOids.size();
+        LOGGER.trace("After suspendRunningWorkersOnLiveNodes (suspended: {}):\nCurrent workers: {}", count, currentWorkers);
         reconciliationResult.setSuspended(count);
-    }
-
-    private void releaseReadyBuckets(Task worker, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        List<WorkBucketType> readyBuckets = BucketingUtil.getReadyBuckets(
-                ActivityStateUtil.getActivityStateRequired(worker.getWorkState(), activityPath));
-        if (!readyBuckets.isEmpty()) {
-            beans.bucketingManager.releaseAllWorkBucketsFromSuspendedWorker(coordinatorTask.getOid(),
-                    worker.getOid(), activityPath, null, result);
-        }
     }
 
     /**

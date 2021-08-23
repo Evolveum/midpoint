@@ -65,8 +65,9 @@ public class BucketingManager {
     /**
      * Marks a work bucket as complete.
      */
-    public void completeWorkBucket(String coordinatorTaskOid, String workerTaskOid, ActivityPath activityPath,
-            int sequentialNumber, ActivityBucketManagementStatistics statistics, OperationResult result)
+    public void completeWorkBucket(@NotNull String coordinatorTaskOid, @Nullable String workerTaskOid,
+            @NotNull ActivityPath activityPath, int sequentialNumber,
+            ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         new CompleteBucketOperation(coordinatorTaskOid, workerTaskOid, activityPath, statistics, beans, sequentialNumber)
                 .execute(result);
@@ -75,8 +76,9 @@ public class BucketingManager {
     /**
      * Releases work bucket.
      */
-    public void releaseWorkBucket(String coordinatorTaskOid, String workerTaskOid, ActivityPath activityPath,
-            int sequentialNumber, ActivityBucketManagementStatistics statistics, OperationResult result)
+    public void releaseWorkBucket(@NotNull String coordinatorTaskOid, @NotNull String workerTaskOid,
+            @NotNull ActivityPath activityPath, int sequentialNumber,
+            ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         new ReleaseBucketsOperation(coordinatorTaskOid, workerTaskOid, activityPath, statistics, beans, sequentialNumber)
                 .execute(result);
@@ -88,8 +90,8 @@ public class BucketingManager {
      * Will change in the future - there are some preconditions to be checked within the modification operation.
      */
     @Experimental
-    public void releaseAllWorkBucketsFromSuspendedWorker(String coordinatorTaskOid, String workerTaskOid,
-            ActivityPath activityPath, ActivityBucketManagementStatistics statistics, OperationResult result)
+    public void releaseAllWorkBucketsFromWorker(@NotNull String coordinatorTaskOid, @NotNull String workerTaskOid,
+            @NotNull ActivityPath activityPath, ActivityBucketManagementStatistics statistics, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         new ReleaseBucketsOperation(coordinatorTaskOid, workerTaskOid, activityPath, statistics, beans, null)
                 .execute(result);
