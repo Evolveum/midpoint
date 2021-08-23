@@ -40,11 +40,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QFocusMapping<?, ?, ?> initFocusMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, QFocus.CLASS,
-                    repositoryContext);
-        }
+        instance = new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                FocusType.class, QFocus.CLASS,
+                repositoryContext);
         return instance;
     }
 

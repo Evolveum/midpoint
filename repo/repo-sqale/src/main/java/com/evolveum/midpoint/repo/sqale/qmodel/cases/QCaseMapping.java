@@ -37,9 +37,7 @@ public class QCaseMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QCaseMapping initCaseMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QCaseMapping(repositoryContext);
-        }
+        instance = new QCaseMapping(repositoryContext);
         return instance;
     }
 

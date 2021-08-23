@@ -30,9 +30,7 @@ public class QTaskMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QTaskMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QTaskMapping(repositoryContext);
-        }
+        instance = new QTaskMapping(repositoryContext);
         return instance;
     }
 

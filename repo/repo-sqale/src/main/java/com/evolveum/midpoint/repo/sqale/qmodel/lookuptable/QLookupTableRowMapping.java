@@ -33,7 +33,7 @@ public class QLookupTableRowMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QLookupTableRowMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
+        if (needsInitialization(instance, repositoryContext)) {
             instance = new QLookupTableRowMapping(repositoryContext);
         }
         return instance;

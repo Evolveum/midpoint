@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.querydsl.core.Tuple;
 
 /**
  * Mapping between {@link QShadow} and {@link ShadowType}.
@@ -40,9 +40,7 @@ public class QShadowMapping
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QShadowMapping initShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instance == null) {
-            instance = new QShadowMapping(repositoryContext);
-        }
+        instance = new QShadowMapping(repositoryContext);
         return instance;
     }
 

@@ -54,7 +54,7 @@ public class QAssignmentMapping<OR extends MObject>
     // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
     initAssignmentMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceAssignment == null) {
+        if (needsInitialization(instanceAssignment, repositoryContext)) {
             instanceAssignment = new QAssignmentMapping<>(
                     MContainerType.ASSIGNMENT, repositoryContext);
         }
@@ -70,7 +70,7 @@ public class QAssignmentMapping<OR extends MObject>
     // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
     initInducementMapping(@NotNull SqaleRepoContext repositoryContext) {
-        if (instanceInducement == null) {
+        if (needsInitialization(instanceInducement, repositoryContext)) {
             instanceInducement = new QAssignmentMapping<>(
                     MContainerType.INDUCEMENT, repositoryContext);
         }
