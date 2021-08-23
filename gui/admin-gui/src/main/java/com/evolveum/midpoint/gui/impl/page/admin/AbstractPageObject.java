@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -27,7 +29,9 @@ import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -67,14 +71,58 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     private static final String ID_SUMMARY = "summary";
     private static final String ID_BUTTONS = "buttons";
 
+    private LoadableModel<PageObjectModel<O>> pageModel;
+
     private LoadableModel<PrismObjectWrapper<O>> model;
-    private GuiObjectDetailsPageType detailsPageConfiguration;
+    private IModel<GuiObjectDetailsPageType> detailsPageConfiguration;
 
     public AbstractPageObject(PageParameters pageParameters) {
         super(pageParameters);
-        model = createPageModel();
-        detailsPageConfiguration = getCompiledGuiProfile().findObjectDetailsConfiguration(getType());
+
+        pageModel = createPageModel();
+        model = new LoadableModel<>(false) {
+            @Override
+            protected PrismObjectWrapper<O> load() {
+                return pageModel.getObject().getWrapper();
+            }
+        };
+        detailsPageConfiguration = new PropertyModel<>(pageModel,  "detailsPageConfiguration");
         initLayout();
+    }
+
+    private LoadableModel<PageObjectModel<O>> createPageModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected PageObjectModel<O> load() {
+                PrismObject<O> prismUser = loadPrismObject();
+
+                PageObjectModel<O> pageModel = new PageObjectModel<>();
+                GuiObjectDetailsPageType detailsPageConfig = loadPageConfiguration(prismUser);
+                pageModel.setDetailsPageConfiguration(detailsPageConfig);
+
+                PrismObjectWrapperFactory<O> factory = findObjectWrapperFactory(prismUser.getDefinition());
+                Task task = createSimpleTask("createWrapper");
+                OperationResult result = task.getResult();
+                WrapperContext ctx = new WrapperContext(task, result);
+                ctx.setCreateIfEmpty(true);
+                ctx.setContainerPanelConfigurationType(detailsPageConfig.getPanel());
+                try {
+                    PrismObjectWrapper<O> wrapper = factory.createObjectWrapper(prismUser, isEditUser()? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+                    pageModel.setWrapper(wrapper);
+                } catch (SchemaException e) {
+                    //TODO:
+                    return null;
+                }
+
+
+                return pageModel;
+            }
+        };
+    }
+
+    protected GuiObjectDetailsPageType loadPageConfiguration(PrismObject<O> prismObject) {
+        return getCompiledGuiProfile().findObjectDetailsConfiguration(getType());
     }
 
     private void initLayout() {
@@ -205,7 +253,7 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
     public void refresh(AjaxRequestTarget target, boolean soft) {
 
         if (isEditUser()) {
-            model.reset();
+            pageModel.reset();
         }
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
@@ -227,8 +275,12 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
         //TODO support for second level panel as a default, e.g. assignment -> role
-        ContainerPanelConfigurationType basicPanelConfig = getPanelConfigurations().stream().filter(panel -> BooleanUtils.isTrue(panel.isDefault())).findFirst().get();
-        return basicPanelConfig;
+        Optional<ContainerPanelConfigurationType> basicPanelConfig = getPanelConfigurations().getObject().stream().filter(panel -> BooleanUtils.isTrue(panel.isDefault())).findFirst();
+        if (basicPanelConfig.isPresent()) {
+            return basicPanelConfig.get();
+        }
+
+        return getPanelConfigurations().getObject().stream().findFirst().get();
     }
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
@@ -249,9 +301,9 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
 
     }
 
-    private DetailsNavigationPanel createNavigationPanel(String id, List<ContainerPanelConfigurationType> panels) {
+    private DetailsNavigationPanel createNavigationPanel(String id, IModel<List<ContainerPanelConfigurationType>> panels) {
 
-        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, model, Model.ofList(panels)) {
+        DetailsNavigationPanel panel = new DetailsNavigationPanel(id, model, panels) {
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
                 MidpointForm form = getMainForm();
@@ -264,28 +316,29 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
 
 
 
-    private LoadableModel<PrismObjectWrapper<O>> createPageModel() {
-        return new LoadableModel<>(false) {
-            @Override
-            protected PrismObjectWrapper<O> load() {
-                PrismObject<O> prismUser = loadPrismObject();
+//    private LoadableModel<PrismObjectWrapper<O>> createPageModel() {
+//        return new LoadableModel<>(false) {
+//            @Override
+//            protected PrismObjectWrapper<O> load() {
+//                PrismObject<O> prismUser = loadPrismObject();
+//
+//                PrismObjectWrapperFactory<O> factory = findObjectWrapperFactory(prismUser.getDefinition());
+//                Task task = createSimpleTask("createWrapper");
+//                OperationResult result = task.getResult();
+//                WrapperContext ctx = new WrapperContext(task, result);
+//                ctx.setCreateIfEmpty(true);
+//                ctx.setContainerPanelConfigurationType(getPanelConfigurations().getObject());
+//
+//                try {
+//                    return factory.createObjectWrapper(prismUser, isEditUser()? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+//                } catch (SchemaException e) {
+//                    //TODO:
+//                    return null;
+//                }
+//            }
+//        };
+//    }
 
-                PrismObjectWrapperFactory<O> factory = findObjectWrapperFactory(prismUser.getDefinition());
-                Task task = createSimpleTask("createWrapper");
-                OperationResult result = task.getResult();
-                WrapperContext ctx = new WrapperContext(task, result);
-                ctx.setCreateIfEmpty(true);
-                ctx.setContainerPanelConfigurationType(getPanelConfigurations());
-
-                try {
-                    return factory.createObjectWrapper(prismUser, isEditUser()? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
-                } catch (SchemaException e) {
-                    //TODO:
-                    return null;
-                }
-            }
-        };
-    }
     private PrismObject<O> loadPrismObject() {
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
@@ -332,8 +385,21 @@ public abstract class AbstractPageObject<O extends ObjectType> extends PageBase 
         return oid;
     }
 
-    public List<ContainerPanelConfigurationType> getPanelConfigurations() {
-        return detailsPageConfiguration.getPanel();
+//    protected IModel<GuiObjectDetailsPageType> createPageConfigurationModel() {
+//        return new LoadableModel<>() {
+//            @Override
+//            protected GuiObjectDetailsPageType load() {
+//                return getCompiledGuiProfile().findObjectDetailsConfiguration(getType());
+//            }
+//        };
+//    }
+
+    protected IModel<PrismObjectWrapper<O>> getModel() {
+        return model;
+    }
+
+    public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
+        return new PropertyModel<>(detailsPageConfiguration, GuiObjectDetailsPageType.F_PANEL.getLocalPart());
     }
 
     protected abstract Class<O> getType();

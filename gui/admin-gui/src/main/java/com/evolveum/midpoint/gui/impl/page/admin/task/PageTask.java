@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObject;
+import com.evolveum.midpoint.gui.impl.page.admin.PageAssignmentHolder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -33,7 +34,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageTask extends AbstractPageObject<TaskType> {
+public class PageTask extends PageAssignmentHolder<TaskType> {
 
     public PageTask(PageParameters pageParameters) {
         super(pageParameters);

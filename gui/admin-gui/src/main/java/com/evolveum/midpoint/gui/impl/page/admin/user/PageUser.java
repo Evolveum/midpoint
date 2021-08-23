@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.user;
 
+import com.evolveum.midpoint.gui.impl.page.admin.PageAssignmentHolder;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -34,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageUser extends AbstractPageObject<UserType> {
+public class PageUser extends PageAssignmentHolder<UserType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 

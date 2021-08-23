@@ -65,13 +65,13 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         createExecutionConstraintsTab(tabs, parentTaskPage);
         createErrorHandlingStrategyTab(tabs, parentTaskPage);
 //        createCleanupPoliciesTab(tabs, parentTaskPage);
-        createSubtasksTab(tabs, parentTaskPage);
+        createSubtasksTab(tabs, parentTaskPage);  //TODO
         createOperationStatisticsPanel(tabs, parentTaskPage);
         createEnvironmentalPerformanceTab(tabs, parentTaskPage);
         createOperationTab(tabs, parentTaskPage);
         createInternalPerformanceTab(tabs, parentTaskPage);
         createResultTab(tabs, parentTaskPage);
-        createErrorsTab(tabs, parentTaskPage);
+        createErrorsTab(tabs, parentTaskPage);  //TODO
         return tabs;
     }
 

@@ -17,6 +17,8 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cache;
 
@@ -64,6 +66,8 @@ public class ArchetypeManager implements Cache {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
+    @Autowired private ModelInteractionService modelInteractionService;
 
     private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
 
@@ -241,7 +245,7 @@ public class ArchetypeManager implements Cache {
         ConflictResolutionType mergedConflictResolutionType = mergeConflictResolution(currentPolicy, superPolicy);
         mergedPolicy.setConflictResolution(mergedConflictResolutionType);
 
-        DisplayType mergedDisplayType = mergeDisplayType(currentPolicy.getDisplay(), superPolicy.getDisplay());
+        DisplayType mergedDisplayType = adminGuiConfigurationMergeManager.mergeDisplayType(currentPolicy.getDisplay(), superPolicy.getDisplay());
         mergedPolicy.setDisplay(mergedDisplayType);
 
 
@@ -306,113 +310,114 @@ public class ArchetypeManager implements Cache {
             return currentObjectDetails.clone();
         }
 
-        GuiObjectDetailsPageType mergedObjectDetails = currentObjectDetails.clone();
-        List<VirtualContainersSpecificationType> mergedVirtualContainers = mergeVirtualContainers(currentObjectDetails, superObjectDetails);
-        mergedObjectDetails.getContainer().clear();
-        mergedObjectDetails.getContainer().addAll(mergedVirtualContainers);
+        GuiObjectDetailsPageType mergedObjectDetails = superObjectDetails.clone();
+        adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(mergedObjectDetails, currentObjectDetails);
+//        List<VirtualContainersSpecificationType> mergedVirtualContainers = adminGuiConfigurationMergeManager.mergeVirtualContainers(currentObjectDetails, superObjectDetails);
+//        mergedObjectDetails.getContainer().clear();
+//        mergedObjectDetails.getContainer().addAll(mergedVirtualContainers);
         //TODO save method, objectForm, relations
 
         return mergedObjectDetails;
     }
 
-    private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
-        if (currentContainers.isEmpty()) {
-            if (superContainers.isEmpty()) {
-                return Collections.emptyList();
-            }
-            return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
-        }
+//    private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
+//        if (currentContainers.isEmpty()) {
+//            if (superContainers.isEmpty()) {
+//                return Collections.emptyList();
+//            }
+//            return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
+//        }
+//
+//        if (superContainers.isEmpty()) {
+//            return currentContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
+//        }
+//
+//        List<C> mergedContainers = new ArrayList<>();
+//        for (C superContainer : superContainers) {
+//            C matchedContainer = find(predicate.apply(superContainer), currentContainers);
+//            if (matchedContainer != null) {
+//                C mergedContainer = mergeFunction.apply(matchedContainer, superContainer);
+//                mergedContainers.add(mergedContainer);
+//            } else {
+//                mergedContainers.add(cloneComplex(superContainer));
+//            }
+//        }
+//
+//        for (C currentContainer : currentContainers) {
+//            if (!findAny(predicate.apply(currentContainer), mergedContainers)) {
+//                mergedContainers.add(cloneComplex(currentContainer));
+//            }
+//        }
+//
+//        return mergedContainers;
+//    }
 
-        if (superContainers.isEmpty()) {
-            return currentContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
-        }
+//    private List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
+//        return mergeContainers(currentObjectDetails.getContainer(), superObjectDetails.getContainer(),
+//                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
+//    }
+//
+//
+//    private Predicate<VirtualContainersSpecificationType> createVirtualContainersPredicate(VirtualContainersSpecificationType superContainer) {
+//        return c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier());
+//    }
 
-        List<C> mergedContainers = new ArrayList<>();
-        for (C superContainer : superContainers) {
-            C matchedContainer = find(predicate.apply(superContainer), currentContainers);
-            if (matchedContainer != null) {
-                C mergedContainer = mergeFunction.apply(matchedContainer, superContainer);
-                mergedContainers.add(mergedContainer);
-            } else {
-                mergedContainers.add(cloneComplex(superContainer));
-            }
-        }
+//    private <C extends Containerable> C find(Predicate<C> predicate, List<C> currentContainers) {
+//        List<C> matchedContainers = currentContainers.stream()
+//                .filter(predicate)
+//                .collect(Collectors.toList());
+//
+//        if (CollectionUtils.isEmpty(matchedContainers)) {
+//            return null;
+//        }
+//
+//        if (matchedContainers.size() > 1) {
+//            throw new IllegalStateException("Cannot merge virtual containers. More containers with same identifier specified.");
+//        }
+//
+//        return matchedContainers.iterator().next();
+//    }
+//
+//    private <C extends Containerable> boolean findAny(Predicate<C> predicate, List<C> mergedContainers) {
+//        return mergedContainers.stream().anyMatch(predicate);
+//    }
+//
+//
+//    private boolean identifiersMatch(String id1, String id2) {
+//        return id1 != null && id1.equals(id2);
+//    }
+//
+//    private VirtualContainersSpecificationType mergeVirtualContainer(VirtualContainersSpecificationType currentContainer, VirtualContainersSpecificationType superContainer) {
+//        VirtualContainersSpecificationType mergedContainer = currentContainer.clone();
+//        if (currentContainer.getDescription() == null) {
+//            mergedContainer.setDescription(superContainer.getDescription());
+//        }
+//
+//        DisplayType mergedDisplayType = mergeDisplayType(currentContainer.getDisplay(), superContainer.getDisplay());
+//        mergedContainer.setDisplay(mergedDisplayType);
+//
+//        if (currentContainer.getDisplayOrder() == null) {
+//            mergedContainer.setDisplayOrder(superContainer.getDisplayOrder());
+//        }
+//
+//        if (currentContainer.getVisibility() == null) {
+//            mergedContainer.setVisibility(superContainer.getVisibility());
+//        }
+//
+//        for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {
+//            if (currentContainer.getItem().stream().noneMatch(i -> pathsMatch(i.getPath(), virtualItem.getPath()))) {
+//                mergedContainer.getItem().add(cloneComplex(virtualItem));
+//            }
+//        }
+//
+//        return mergedContainer;
+//    }
 
-        for (C currentContainer : currentContainers) {
-            if (!findAny(predicate.apply(currentContainer), mergedContainers)) {
-                mergedContainers.add(cloneComplex(currentContainer));
-            }
-        }
-
-        return mergedContainers;
-    }
-
-    private List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
-        return mergeContainers(currentObjectDetails.getContainer(), superObjectDetails.getContainer(),
-                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
-    }
-
-
-    private Predicate<VirtualContainersSpecificationType> createVirtualContainersPredicate(VirtualContainersSpecificationType superContainer) {
-        return c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier());
-    }
-
-    private <C extends Containerable> C find(Predicate<C> predicate, List<C> currentContainers) {
-        List<C> matchedContainers = currentContainers.stream()
-                .filter(predicate)
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(matchedContainers)) {
-            return null;
-        }
-
-        if (matchedContainers.size() > 1) {
-            throw new IllegalStateException("Cannot merge virtual containers. More containers with same identifier specified.");
-        }
-
-        return matchedContainers.iterator().next();
-    }
-
-    private <C extends Containerable> boolean findAny(Predicate<C> predicate, List<C> mergedContainers) {
-        return mergedContainers.stream().anyMatch(predicate);
-    }
-
-
-    private boolean identifiersMatch(String id1, String id2) {
-        return id1 != null && id1.equals(id2);
-    }
-
-    private VirtualContainersSpecificationType mergeVirtualContainer(VirtualContainersSpecificationType currentContainer, VirtualContainersSpecificationType superContainer) {
-        VirtualContainersSpecificationType mergedContainer = currentContainer.clone();
-        if (currentContainer.getDescription() == null) {
-            mergedContainer.setDescription(superContainer.getDescription());
-        }
-
-        DisplayType mergedDisplayType = mergeDisplayType(currentContainer.getDisplay(), superContainer.getDisplay());
-        mergedContainer.setDisplay(mergedDisplayType);
-
-        if (currentContainer.getDisplayOrder() == null) {
-            mergedContainer.setDisplayOrder(superContainer.getDisplayOrder());
-        }
-
-        if (currentContainer.getVisibility() == null) {
-            mergedContainer.setVisibility(superContainer.getVisibility());
-        }
-
-        for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {
-            if (currentContainer.getItem().stream().noneMatch(i -> pathsMatch(i.getPath(), virtualItem.getPath()))) {
-                mergedContainer.getItem().add(cloneComplex(virtualItem));
-            }
-        }
-
-        return mergedContainer;
-    }
-
-    private <C extends Containerable> C cloneComplex(C containerable) {
-        //noinspection unchecked
-        PrismContainerValue<C> pcv = containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
-        return pcv.asContainerable();
-    }
+//    private <C extends Containerable> C cloneComplex(C containerable) {
+//        //noinspection unchecked
+//        PrismContainerValue<C> pcv = containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
+//        return pcv.asContainerable();
+//    }
 
     private ApplicablePoliciesType mergeApplicablePolicies(ArchetypePolicyType currentPolicy, ArchetypePolicyType superPolicy) {
         ApplicablePoliciesType currentApplicablePolicies = currentPolicy.getApplicablePolicies();
@@ -470,87 +475,87 @@ public class ArchetypeManager implements Cache {
         return mergedConflictResolution;
     }
 
-    private DisplayType mergeDisplayType(DisplayType currentDisplayType, DisplayType superDisplayType) {
-        if (currentDisplayType == null) {
-            if (superDisplayType == null) {
-                return null;
-            }
-            return superDisplayType.clone();
-        }
-
-        if (superDisplayType == null) {
-            return currentDisplayType.clone();
-        }
-
-        DisplayType mergedDisplayType = currentDisplayType.clone();
-        if (currentDisplayType.getLabel() == null) {
-            mergedDisplayType.setLabel(superDisplayType.getLabel());
-        }
-
-        if (currentDisplayType.getColor() == null) {
-            mergedDisplayType.setColor(superDisplayType.getColor());
-        }
-
-        if (currentDisplayType.getCssClass() == null) {
-            mergedDisplayType.setCssClass(superDisplayType.getCssClass());
-        }
-
-        if (currentDisplayType.getCssStyle() == null) {
-            mergedDisplayType.setCssStyle(superDisplayType.getCssStyle());
-        }
-
-        if (currentDisplayType.getHelp() == null) {
-            mergedDisplayType.setHelp(superDisplayType.getHelp());
-        }
-
-        IconType mergedIcon = mergeIcon(currentDisplayType.getIcon(), superDisplayType.getIcon());
-        mergedDisplayType.setIcon(mergedIcon);
-
-        if (currentDisplayType.getPluralLabel() == null) {
-            mergedDisplayType.setPluralLabel(superDisplayType.getPluralLabel());
-        }
-
-        if (currentDisplayType.getSingularLabel() == null) {
-            mergedDisplayType.setSingularLabel(superDisplayType.getSingularLabel());
-        }
-
-        if (currentDisplayType.getTooltip() == null) {
-            mergedDisplayType.setTooltip(superDisplayType.getTooltip());
-        }
-
-        return mergedDisplayType;
-    }
-
-    private IconType mergeIcon(IconType currentIcon, IconType superIcon) {
-        if (currentIcon == null) {
-            if (superIcon == null) {
-                return null;
-            }
-            return superIcon.clone();
-        }
-
-        if (superIcon == null) {
-            return currentIcon.clone();
-        }
-
-        IconType mergedIcon = currentIcon.clone();
-        if (currentIcon.getCssClass() == null) {
-            mergedIcon.setCssClass(superIcon.getCssClass());
-        }
-
-        if (currentIcon.getColor() == null) {
-            mergedIcon.setColor(superIcon.getColor());
-        }
-
-        if (currentIcon.getImageUrl() == null) {
-            mergedIcon.setImageUrl(superIcon.getImageUrl());
-        }
-
-        return mergedIcon;
-    }
+//    private DisplayType mergeDisplayType(DisplayType currentDisplayType, DisplayType superDisplayType) {
+//        if (currentDisplayType == null) {
+//            if (superDisplayType == null) {
+//                return null;
+//            }
+//            return superDisplayType.clone();
+//        }
+//
+//        if (superDisplayType == null) {
+//            return currentDisplayType.clone();
+//        }
+//
+//        DisplayType mergedDisplayType = currentDisplayType.clone();
+//        if (currentDisplayType.getLabel() == null) {
+//            mergedDisplayType.setLabel(superDisplayType.getLabel());
+//        }
+//
+//        if (currentDisplayType.getColor() == null) {
+//            mergedDisplayType.setColor(superDisplayType.getColor());
+//        }
+//
+//        if (currentDisplayType.getCssClass() == null) {
+//            mergedDisplayType.setCssClass(superDisplayType.getCssClass());
+//        }
+//
+//        if (currentDisplayType.getCssStyle() == null) {
+//            mergedDisplayType.setCssStyle(superDisplayType.getCssStyle());
+//        }
+//
+//        if (currentDisplayType.getHelp() == null) {
+//            mergedDisplayType.setHelp(superDisplayType.getHelp());
+//        }
+//
+//        IconType mergedIcon = mergeIcon(currentDisplayType.getIcon(), superDisplayType.getIcon());
+//        mergedDisplayType.setIcon(mergedIcon);
+//
+//        if (currentDisplayType.getPluralLabel() == null) {
+//            mergedDisplayType.setPluralLabel(superDisplayType.getPluralLabel());
+//        }
+//
+//        if (currentDisplayType.getSingularLabel() == null) {
+//            mergedDisplayType.setSingularLabel(superDisplayType.getSingularLabel());
+//        }
+//
+//        if (currentDisplayType.getTooltip() == null) {
+//            mergedDisplayType.setTooltip(superDisplayType.getTooltip());
+//        }
+//
+//        return mergedDisplayType;
+//    }
+//
+//    private IconType mergeIcon(IconType currentIcon, IconType superIcon) {
+//        if (currentIcon == null) {
+//            if (superIcon == null) {
+//                return null;
+//            }
+//            return superIcon.clone();
+//        }
+//
+//        if (superIcon == null) {
+//            return currentIcon.clone();
+//        }
+//
+//        IconType mergedIcon = currentIcon.clone();
+//        if (currentIcon.getCssClass() == null) {
+//            mergedIcon.setCssClass(superIcon.getCssClass());
+//        }
+//
+//        if (currentIcon.getColor() == null) {
+//            mergedIcon.setColor(superIcon.getColor());
+//        }
+//
+//        if (currentIcon.getImageUrl() == null) {
+//            mergedIcon.setImageUrl(superIcon.getImageUrl());
+//        }
+//
+//        return mergedIcon;
+//    }
 
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {
-        return mergeContainers(currentConstraints, superConstraints,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentConstraints, superConstraints,
                 this::createItemConstraintPredicate,
                 this::mergeItemConstraint);
     }
@@ -592,7 +597,7 @@ public class ArchetypeManager implements Cache {
     }
 
     private List<LifecycleStateType> mergeLifecycleState(List<LifecycleStateType> currentState, List<LifecycleStateType> superLifecycleStates) {
-        return mergeContainers(currentState, superLifecycleStates,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentState, superLifecycleStates,
                 this::createLifecycleStatePredicate,
                 this::mergeLifecycleState);
     }
@@ -666,7 +671,7 @@ public class ArchetypeManager implements Cache {
     }
 
     private List<LifecycleStateActionType> mergeEntryAction(List<LifecycleStateActionType> currentActions, List<LifecycleStateActionType> superActions) {
-        return mergeContainers(currentActions, superActions,
+        return adminGuiConfigurationMergeManager.mergeContainers(currentActions, superActions,
                 this::createLifecycleStateActionPredicate,
                 this::mergeAction);
     }
@@ -853,5 +858,10 @@ public class ArchetypeManager implements Cache {
         if (LOGGER_CONTENT.isInfoEnabled()) {
             archetypePolicyCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached archetype policy: {}: {}", k, v));
         }
+    }
+
+    private <C extends Containerable> C cloneComplex(C containerable) {
+        //noinspection unchecked
+        return containerable.cloneWithoutId();
     }
 }

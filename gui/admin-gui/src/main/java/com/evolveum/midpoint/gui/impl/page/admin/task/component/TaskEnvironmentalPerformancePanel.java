@@ -28,25 +28,25 @@ import java.util.Collections;
 /**
  * @author semancik
  */
-//@PanelType(name = "performance")
-@PanelInstance(identifier = "performance", applicableFor = TaskType.class)
-@PanelDisplay(label = "Performance", order = 50)
-public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
+@PanelType(name = "environmentalPerformance")
+@PanelInstance(identifier = "environmentalPerformance", applicableFor = TaskType.class, childOf = TaskPerformancePanel.class)
+@PanelDisplay(label = "Environmental performance", order = 50)
+public class TaskEnvironmentalPerformancePanel extends AbstractObjectMainPanel<TaskType> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TaskPerformancePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskEnvironmentalPerformancePanel.class);
 
-    public TaskPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
+    public TaskEnvironmentalPerformancePanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
         setOutputMarkupId(true);
     }
 
    protected void initLayout() {
-//        StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(getModel());
-//        StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
-//        add(statisticsPanel);
+        StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(getModel());
+        StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
+        add(statisticsPanel);
     }
 
     @Override

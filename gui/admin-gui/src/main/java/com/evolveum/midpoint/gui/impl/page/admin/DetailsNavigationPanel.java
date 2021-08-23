@@ -40,9 +40,9 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private static final String ID_COUNT = "count";
     private static final String ID_NAVIGATION_DETAILS = "navLinkStyle";
 
-    private LoadableModel<PrismObjectWrapper<O>> objectModel;
+    private IModel<PrismObjectWrapper<O>> objectModel;
 
-    public DetailsNavigationPanel(String id, LoadableModel<PrismObjectWrapper<O>> objectModel, IModel<List<ContainerPanelConfigurationType>> model) {
+    public DetailsNavigationPanel(String id, IModel<PrismObjectWrapper<O>> objectModel, IModel<List<ContainerPanelConfigurationType>> model) {
         super(id, model);
         this.objectModel = objectModel;
     }

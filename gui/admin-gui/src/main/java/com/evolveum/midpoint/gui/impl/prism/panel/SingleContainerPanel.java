@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -73,6 +74,9 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
 
                 List<VirtualContainersSpecificationType> virtualContainers = config.getContainer();
                 for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
+                    if (!WebComponentUtil.getElementVisibility(virtualContainer.getVisibility())) {
+                        continue;
+                    }
                     IModel<PrismContainerWrapper<C>> virtualContainerModel = createVirtualContainerModel(virtualContainer);
                     Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, builder.build());
                     view.add(virtualPanel);

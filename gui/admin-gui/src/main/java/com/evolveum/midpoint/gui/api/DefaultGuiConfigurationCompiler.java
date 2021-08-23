@@ -11,6 +11,7 @@ import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,6 +40,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     @Autowired private GuiProfileCompilerRegistry registry;
     @Autowired private PrismContext prismContext;
+    @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
     private static final String[] PACKAGES_TO_SCAN = {
             "com.evolveum.midpoint.web.component.objectdetails", //Old panels
@@ -75,7 +77,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 compiledGuiProfile.getObjectDetails().getObjectDetailsPage().add(defaultDetailsPage.cloneWithoutId());
                 continue;
             }
-            List<ContainerPanelConfigurationType> mergedPanels = mergeConfigurations(defaultDetailsPage.getPanel(), compiledPageType.getPanel());
+            List<ContainerPanelConfigurationType> mergedPanels = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(defaultDetailsPage.getPanel(), compiledPageType.getPanel());
             setupDefaultPanel(ObjectTypes.getObjectTypeClass(compiledPageType.getType()), mergedPanels);
             compiledPageType.getPanel().clear();
             compiledPageType.getPanel().addAll(CloneUtil.cloneCollectionMembersWithoutIds(mergedPanels));
@@ -277,55 +279,4 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             return Integer.compare(displayOrder1, displayOrder2);
         });
     }
-
-    private List<ContainerPanelConfigurationType> mergeConfigurations(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
-        List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
-        for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
-            mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
-        }
-        return mergedPanels;
-    }
-
-    private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
-        for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
-            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
-                mergePanels(defaultPanel, configuredPanel);
-                return;
-            }
-        }
-        mergedPanels.add(configuredPanel.cloneWithoutId());
-    }
-
-    private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
-        if (configuredPanel.getPanelType() != null) {
-            mergedPanel.setPanelType(configuredPanel.getPanelType());
-        }
-
-        if (configuredPanel.getPath() != null) {
-            mergedPanel.setPath(configuredPanel.getPath());
-        }
-
-        if (configuredPanel.getListView() != null) {
-            mergedPanel.setListView(configuredPanel.getListView().cloneWithoutId());
-        }
-
-        if (!configuredPanel.getContainer().isEmpty()) {
-            mergedPanel.getContainer().addAll(CloneUtil.cloneCollectionMembersWithoutIds(configuredPanel.getContainer()));
-        }
-
-        if (configuredPanel.getType() != null) {
-            mergedPanel.setType(configuredPanel.getType());
-        }
-
-        if (configuredPanel.getVisibility() != null) {
-            mergedPanel.setVisibility(configuredPanel.getVisibility());
-        }
-
-        if (!configuredPanel.getPanel().isEmpty()) {
-            List<ContainerPanelConfigurationType> mergedConfigs = mergeConfigurations(mergedPanel.getPanel(), configuredPanel.getPanel());
-            mergedPanel.getPanel().clear();
-            mergedPanel.getPanel().addAll(mergedConfigs);
-        }
-    }
-
 }

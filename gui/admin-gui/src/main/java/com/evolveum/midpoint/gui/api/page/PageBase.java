@@ -292,6 +292,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
 
+    @SpringBean private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
+
     private List<Breadcrumb> breadcrumbs;
 
     private boolean initialized = false;
@@ -507,6 +509,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
+    }
+
+    public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
+        return adminGuiConfigurationMergeManager;
     }
 
     @NotNull

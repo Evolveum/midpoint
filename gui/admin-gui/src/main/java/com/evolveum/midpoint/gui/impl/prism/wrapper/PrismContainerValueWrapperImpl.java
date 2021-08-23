@@ -341,6 +341,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             PrismContainerValueWrapper<ExtensionType> extension = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
             List<? extends ItemWrapper<?, ?>> extensionItems = extension.getItems();
             for (ItemWrapper<?, ?> extensionItem : extensionItems) {
+                if (extensionItem.isShowInVirtualContainer()) {
+                    continue;
+                }
                 if (extensionItem instanceof PrismContainerWrapper) {
                     if (containers && !((PrismContainerWrapper) extensionItem).isVirtual()) {
                         ((List)itemWrappers).add(extensionItem);
